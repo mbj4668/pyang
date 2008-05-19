@@ -1,7 +1,9 @@
 # A YANG validator by mbj@tail-f.com
 #
 # Version:
-#   0.9.0a - work in progress
+#   0.9.0c - work in progress
+#   0.9.0b - 2008-05-19
+#        first release of restructured code
 #   02.2 - 2008-02-21
 #        fixed some xsd output bugs
 #        fixed bug in refinmenet, where a valid refinmened would
