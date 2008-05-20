@@ -7,7 +7,7 @@ import re
 
 import pyang.plugin
 import pyang.main as main
-import pyang.tokenizer
+import pyang.tokenizer as ptok
 
 def pyang_plugin_init():
     pyang.main.register_plugin(YINPlugin())
@@ -26,7 +26,7 @@ def emit_yin(ctx, module, writef):
     filename = ctx.filename
     pos = main.Position(filename)
     fd = open(filename, "r")
-    tokenizer = pyang.tokenizer.YangTokenizer(fd, pos)
+    tokenizer = ptok.YangTokenizer(fd, pos, ctx.errors)
     writef('<?xml version="1.0" encoding="UTF-8"?>\n')
     if module.i_is_submodule:
         mtype = 'submodule'
@@ -58,7 +58,7 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
     keywd = tokenizer.get_keyword()
     argname = None
     argiselem = False
-    if keywd == main.T_CLOSE_BRACE:
+    if keywd == ptok.T_CLOSE_BRACE:
         return;
     elif main.is_prefixed(keywd):
         (prefix, identifier) = keywd
@@ -88,9 +88,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
     if argname == None:
         tok = tokenizer.get_tok() # ; or {
         # no argument for this keyword
-        if tok == main.T_SEMICOLON:
+        if tok == ptok.T_SEMICOLON:
             writef(indent + '<' + tag + '/>\n')
-        elif tok == main.T_OPEN_BRACE:
+        elif tok == ptok.T_OPEN_BRACE:
             writef(indent + '<' + tag + '>\n')
             _yang_to_yin(ctx, module, tokenizer, writef,
                          indent + '  ', new_prefix)
@@ -101,9 +101,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
         if argiselem == False:
             # print argument as an attribute
             argstr = argname + '=' + quoteattr(arg)
-            if tok == main.T_SEMICOLON:
+            if tok == ptok.T_SEMICOLON:
                 writef(indent + '<' + tag + ' ' + argstr + '/>\n')
-            elif tok == main.T_OPEN_BRACE:
+            elif tok == ptok.T_OPEN_BRACE:
                 writef(indent + '<' + tag + ' ' + argstr + '>\n')
                 _yang_to_yin(ctx, module, tokenizer, writef,
                              indent + '  ', new_prefix)
@@ -120,9 +120,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
             writef(indent + '  <' + argname + '>\n')
             writef(fmt_text(indent + '    ', arg))
             writef('\n' + indent + '  </' + argname + '>\n')
-            if tok == main.T_SEMICOLON:
+            if tok == ptok.T_SEMICOLON:
                 pass
-            elif tok == main.T_OPEN_BRACE:
+            elif tok == ptok.T_OPEN_BRACE:
                 _yang_to_yin(ctx, module, tokenizer, writef,
                              indent + '  ', new_prefix)
             writef(indent + '</' + tag + '>\n')
