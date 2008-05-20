@@ -4,6 +4,8 @@ In this directory run:
 
 python setup.py install
 
+(this might require root access)
+
 
 Usage
 -----
