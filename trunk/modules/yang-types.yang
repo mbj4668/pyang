@@ -1,0 +1,276 @@
+module yang-types {
+
+    // XXX namespace to be allocated by IANA
+
+    namespace "urn:ietf:params:xml:ns:yang:yang-types";
+    prefix "yang";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Martin Bjorklund (Editor) <mbj@tail-f.com>";
+
+    description
+        "This module contains standard derived YANG types.";
+
+    revision 2007-10-02 {
+        description "Initial revision.";
+    }
+
+    /*
+     * collection of counter and gauge types
+     */
+
+    typedef counter32 {
+        type uint32;
+        description
+           "The counter32 type represents a non-negative integer
+            which monotonically increases until it reaches a
+            maximum value of 2^32-1 (4294967295 decimal), when it
+            wraps around and starts increasing again from zero.
+
+            Counters have no defined `initial' value, and thus, a
+            single value of a counter has (in general) no information
+            content.  Discontinuities in the monotonically increasing
+            value normally occur at re-initialization of the
+            management system, and at other times as specified in the
+            description of an object instance using this type.  If
+            such other times can occur, for example, the creation of
+            an object instance of type counter32 at times other than
+            re-initialization, then a corresponding object should be
+            defined, with an appropriate type, to indicate the last
+            discontinuity.
+
+            The counter32 type should not be used for configuration
+            objects. A default statement should not be used for
+            attributes with a type value of counter32.";
+        reference
+           "RFC 2578 (STD 58)";
+    }
+
+    typedef zero-based-counter32 {
+        type yang:counter32;
+        default "0";
+        description
+            "The zero-based-counter32 type represents a counter32
+             which has the defined `initial' value zero.";
+        reference
+           "RFC 2021";
+    }
+
+    typedef counter64 {
+        type uint64;
+        description
+           "The counter64 type represents a non-negative integer
+            which monotonically increases until it reaches a
+            maximum value of 2^64-1 (18446744073709551615), when
+            it wraps around and starts increasing again from zero.
+
+            Counters have no defined `initial' value, and thus, a
+            single value of a counter has (in general) no information
+            content.  Discontinuities in the monotonically increasing
+            value normally occur at re-initialization of the
+            management system, and at other times as specified in the
+            description of an object instance using this type.  If
+            such other times can occur, for example, the creation of
+            an object instance of type counter64 at times other than
+            re-initialization, then a corresponding object should be
+            defined, with an appropriate type, to indicate the last
+            discontinuity.
+
+            The counter64 type should not be used for configuration
+            objects. A default statement should not be used for
+            attributes with a type value of counter64.";
+        reference
+           "RFC 2578 (STD 58)";
+    }
+
+    typedef zero-based-counter64 {
+        type yang:counter64;
+        default "0";
+        description
+            "The zero-based-counter64 type represents a counter64
+             which has the defined `initial' value zero.";
+        reference
+           "RFC 2856";
+    }
+
+    typedef gauge32 {
+        type uint32;
+        description
+           "The gauge32 type represents a non-negative integer,
+            which may increase or decrease, but shall never
+            exceed a maximum value, nor fall below a minimum
+            value.  The maximum value can not be greater than
+            2^32-1 (4294967295 decimal), and the minimum value
+            can not be smaller than 0.  The value of a gauge32
+            has its maximum value whenever the information
+            being modeled is greater than or equal to its
+            maximum value, and has its minimum value whenever
+            the information being modeled is smaller than or
+            equal to its minimum value.  If the information
+            being modeled subsequently decreases below
+            (increases above) the maximum (minimum) value, the
+            gauge32 also decreases (increases).";
+        reference
+           "RFC 2578 (STD 58)";
+    }
+
+    typedef gauge64 {
+        type uint64;
+        description
+           "The gauge64 type represents a non-negative integer,
+            which may increase or decrease, but shall never
+            exceed a maximum value, nor fall below a minimum
+            value.  The maximum value can not be greater than
+            2^64-1 (18446744073709551615), and the minimum value
+            can not be smaller than 0.  The value of a gauge64
+            has its maximum value whenever the information
+            being modeled is greater than or equal to its
+            maximum value, and has its minimum value whenever
+            the information being modeled is smaller than or
+            equal to its minimum value.  If the information
+            being modeled subsequently decreases below
+            (increases above) the maximum (minimum) value, the
+            gauge64 also decreases (increases).";
+        reference
+           "RFC 2856";
+    }
+
+    /*
+     * collection of identifier related types
+     */
+
+    typedef uri {
+        type string;
+        description
+           "A uri type represents Uniform Resource Identifier (URI) 
+            as defined by STD 66.
+
+            Objects using this type MUST be in US-ASCII encoding, and
+            MUST be normalized as described by RFC 3986 Sections
+            6.2.1, 6.2.2.1, and 6.2.2.2.  All unnecessary
+            percent-encoding is removed, and all case-insensitive
+            characters are set to lowercase except for hexadecimal
+            digits, which are normalized to uppercase as described in
+            Section 6.2.2.1.
+
+            The purpose of this normalization is to help provide unique
+            URIs.  Note that this normalization is not sufficient to
+            provide uniqueness.  Two URIs that are textually distinct
+            after this normalization may still be equivalent.
+
+            Objects using this type MAY restrict the schemes that they
+            permit.  For example, 'data:' and 'urn:' schemes might not
+            be appropriate.
+
+            A zero-length URI is not a valid URI.  This can be used to
+            express 'URI absent' where required, for example when used
+            as an index field.";
+        reference
+           "RFC 3986 (STD 66), RFC 3305, and RFC 5017";
+    }
+
+    typedef object-identifier {
+        type string {
+	    pattern '([0-1](\.[1-3]?[0-9]))|(2.(0|([1-9]\d*)))'
+	          + '(\.(0|([1-9]\d*)))*';
+        }
+        description
+           "The object-identifier type represents administratively
+            assigned names in a registration-hierarchical-name tree.
+  
+            Values of this type are denoted as a sequence of numerical
+            non-negative sub-identifier values. Each sub-identifier
+            value MUST NOT exceed 2^32-1 (4294967295). Sub-identifiers
+            are separated by single dots and without any intermediate
+            white space.
+
+            Although the number of sub-identifiers is not limited,
+            module designers should realize that there may be
+            implementations that stick with the SMIv1/v2 limit of 128
+            sub-identifiers.";
+        reference
+           "ITU-T Recommendation X.660 / ISO/IEC 9834-1";
+    }
+
+    /*
+     * collection of date and time related types
+     */
+
+    typedef date-and-time {
+        type string {
+            pattern '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.d*)?'
+                  + '(Z|(\+|-)\d{2}:\d{2})';
+        }
+        description
+           'The date-and-time type is a profile of the ISO 8601
+            standard for representation of dates and times using the
+            Gregorian calendar. The format is most easily described
+            using the following ABFN (see RFC 3339):
+
+            date-fullyear   = 4DIGIT
+            date-month      = 2DIGIT  ; 01-12
+            date-mday       = 2DIGIT  ; 01-28, 01-29, 01-30, 01-31
+            time-hour       = 2DIGIT  ; 00-23
+            time-minute     = 2DIGIT  ; 00-59
+            time-second     = 2DIGIT  ; 00-58, 00-59, 00-60
+            time-secfrac    = "." 1*DIGIT
+            time-numoffset  = ("+" / "-") time-hour ":" time-minute
+            time-offset     = "Z" / time-numoffset
+
+            partial-time    = time-hour ":" time-minute ":" time-second
+                              [time-secfrac]
+            full-date       = date-fullyear "-" date-month "-" date-mday
+            full-time       = partial-time time-offset
+
+            date-time       = full-date "T" full-time';
+        reference "RFC 3339";
+    }
+    
+    typedef timeticks {
+        type uint32;
+        description
+           "The timeticks type represents a non-negative integer
+            which represents the time, modulo 2^32 (4294967296
+            decimal), in hundredths of a second between two epochs.
+            When objects are defined which use this type, the
+            description of the object identifies both of the reference
+            epochs.";
+        reference
+           "RFC 2578 (STD 58)";
+    }
+
+    typedef timestamp {
+        type yang:timeticks;
+        description
+           "The timestamp type represents the value of an associated
+            timeticks object at which a specific occurrence
+            happened.  The specific occurrence must be defined in the
+            description of any object defined using this type.  When
+            the specific occurrence occurred prior to the last time
+            the associated timeticks attribute was zero, then the
+            timestamp value is zero.  Note that this requires all
+            timestamp values to be reset to zero when the value of
+            the associated timeticks attribute reaches 497+ days and
+            wraps around to zero.
+
+            The associated timeticks object must be specified
+            in the description of any object using this type.";
+        reference
+           "RFC 2579 (STD 58)";
+    }
+
+    /*
+     * collection of generic address types
+     */
+
+    typedef phys-address {
+        type string;
+        description
+           "Represents media- or physical-level addresses.";
+        reference 
+           "RFC 2579 (STD 58)";
+    }
+}
