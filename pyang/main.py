@@ -3391,14 +3391,30 @@ def run():
 
 Validates the YANG module in <filename>, and all its dependencies."""
 
-    # search for plugins
+    # search for plugins in std directory
+    plugindirs = []
     basedir = os.path.split(sys.modules['pyang'].__file__)[0]
-    plugindirname = basedir + "/plugins"
-    fnames = os.listdir(plugindirname)
-    for fname in fnames:
-        if fname.endswith(".py") and fname != '__init__.py':
-            pluginmod = __import__('pyang/plugins/' + fname[:-3])
-            pluginmod.pyang_plugin_init()
+    plugindirs.append(basedir + "/plugins")
+    # check for --plugindir
+    idx = 1
+    while '--plugindir' in sys.argv[idx:]:
+        idx = idx + sys.argv[idx:].index('--plugindir')
+        plugindirs.append(sys.argv[idx+1])
+        idx = idx + 1
+    
+    syspath = sys.path
+    for plugindir in plugindirs:
+        sys.path = [plugindir] + syspath
+        fnames = os.listdir(plugindir)
+        for fname in fnames:
+            if fname.endswith(".py") and fname != '__init__.py':
+                pluginmod = __import__(fname[:-3])
+                try:
+                    pluginmod.pyang_plugin_init()
+                except AttributeError, s:
+                    print pluginmod.__dict__
+                    raise AttributeError, pluginmod.__file__ + ': ' + str(s)
+        sys.path = syspath
 
     fmts = {}
     for p in plugins:
@@ -3438,7 +3454,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
                              "canonical YANG order."),
         optparse.make_option("-f", "--format",
                              dest="format",
-                             help="Convert to <format>.  Supported formats " \
+                             help="Convert to FORMAT.  Supported formats " \
                              "are " +  ', '.join(fmts.keys())),
         optparse.make_option("-o", "--output",
                              dest="outfile",
@@ -3446,6 +3462,9 @@ Validates the YANG module in <filename>, and all its dependencies."""
                              "of stdout."),
         optparse.make_option("-p", "--path", dest="path", default="",
                              help="Search path for yin and yang modules"),
+        optparse.make_option("--plugindir",
+                             dest="plugindir",
+                             help="Loads pyang plugins from PLUGINDIR"),
         optparse.make_option("-d", "--debug",
                              dest="debug",
                              action="store_true",
@@ -3485,7 +3504,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
     debug = o.debug
 
     ctx = Context()
-    ctx.path = o.path + ':.'
+    ctx.path = o.path + ':' + basedir + '/../modules' + ':.'
     ctx.canonical = o.canonical
     ctx.opts = o
     # temporary hack. needed for yin plugin
