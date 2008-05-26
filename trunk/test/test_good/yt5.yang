@@ -1,0 +1,176 @@
+module yt5 {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt5";
+    prefix "yt5";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "ietf@andybierman.com";
+
+    description
+        "YANG test module 5.";
+
+    revision 2008-02-12 {
+        description "Update test cases.";
+    }
+
+    revision 2007-12-26 {
+        description "Initial revision.";
+    }
+
+    grouping G_one {
+       typedef local_1 { type int32; units meters; default 0; }
+       leaf G_aaa { type int8; }
+       uses G_two;
+       leaf G_bbb { type uint8; }
+       leaf test_leaf { type local_1; }
+    }
+
+    grouping G_two {
+       typedef local_1 { type string; default fred; }
+       leaf G_ccc { type binary; }
+       container G_ddd {
+         leaf G_eee {
+            type uint8;
+            mandatory true;
+            reference "RFC 2021";
+	 }
+       }
+       leaf test_leaf2 { type local_1; }
+    }
+
+    container con2 {
+
+      grouping AA {
+	leaf a { type A_typ; }
+
+        container b { 
+          container bb {
+            uses AAA;
+          }
+          grouping AAA {
+	    augment yt5:e/yt5:f {
+               leaf hhh { type binary; }
+               leaf h { type B_typ; }
+            }
+            typedef B_typ { type instance-identifier; }
+            uses AAAA;
+            leaf d { type int8; }
+          }
+        }
+
+        grouping AAAA {
+          container e {
+            container f {
+              typedef con2 { description "duplicate test"; type int16; }
+              leaf g { type int64; }
+              leaf h { type con2; }
+              leaf i { type con2; }
+            }
+          }
+        }
+
+        typedef A_typ {
+          type int32; 
+          default 3;
+          units miles;
+        }
+
+        augment b {
+          container c {
+            leaf cc { type string; }
+          }
+        }
+
+      }
+
+      container con3 {
+        augment "b/bb/e/f" {
+          container con4 { presence "means something"; }
+        }
+        uses AA;
+      }
+    }
+
+    container foo {
+      uses foo;
+    }
+
+    grouping foo {
+      leaf foo { type foo; }
+    }
+
+    grouping bar {
+      leaf bar { type foo; }
+      leaf-list yyy { 
+          type binary;
+          min-elements 2; 
+          max-elements 12; 
+      }
+      leaf baz { type int16; }
+      leaf goo { type foo; }
+      container zzz {
+        leaf zzzz { type uint32; }
+      }
+    }
+
+    container foo2 {
+      typedef foobar {
+        type uint32;
+      }
+      grouping foobar {
+        leaf foo { type foo; }
+      }
+      container foo3 {
+        uses foobar;
+        leaf-list foo4 { type foobar; } 
+      }
+    }
+
+    typedef foo {
+      type int32 {
+        range "-42 | -2 .. +7 | 8 | 41 | 42";
+      }
+    }
+
+    list foo3 {
+      uses foo;
+      key "foo baz bar";
+      uses bar;
+      unique "goo zzz/zzzz";
+      augment zzz {
+        container con_zzz {
+          presence "enables foo3_zzz service";
+        }
+      }
+    }
+
+    rpc rpc-one {
+      input {
+        leaf x {type int8; }
+        uses foo;
+      }
+      output { uses bar; }
+    }
+
+    rpc rpc-two;
+
+    rpc rpc-three {
+      input { leaf a { type foo; } }
+    }
+
+    notification notif-one;
+
+    notification notif-two {
+      leaf one { type string; }
+      anyxml two;
+    }
+
+    notification notif-three {
+      uses foo;
+    }
+      
+}
+

@@ -10,6 +10,7 @@ import sys
 
 import pyang.plugin
 import pyang.main
+from pyang.util import attrsearch
 
 yang_to_xsd_types = \
   {'int8':'byte',

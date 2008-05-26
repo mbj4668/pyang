@@ -1,0 +1,18 @@
+module yt6a {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt6a";
+    prefix "yt6a";
+
+    import yt6 { prefix yt6; }
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 6a.";
+
+
+}   

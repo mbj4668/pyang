@@ -14,6 +14,8 @@ STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
 all: $(STD_XSD) yang yin xsd
 
+test: all gen-xml
+
 yang-types.yang:
 	cp ../../modules/$@ $@
 inet-types.yang:
