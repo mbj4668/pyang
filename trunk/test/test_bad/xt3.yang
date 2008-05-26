@@ -1,5 +1,5 @@
 module xt3 {
-  namespace "urn:uri:xt3";
+  namespace "http://tmp/foo/bar";
   prefix "xt3";
   import xt4 { prefix xt4; }
   organization "hopp";
