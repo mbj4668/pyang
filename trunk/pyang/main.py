@@ -346,6 +346,52 @@ re_keypath = re.compile('^(/|(\.\./)+)' + re_keyword_str + \
                         re_keyword_str + '\])*(/' + re_keyword_str + '))*$',
                         re.IGNORECASE)
 
+
+# URI - RFC 3986, Appendix A
+scheme = "[A-Za-z][-+.A-Za-z0-9]*"
+unreserved = "[-._~A-Za-z0-9]"
+pct_encoded = "%[0-9A-F]{2}"
+sub_delims = "[!$&'()*+,;=]"
+pchar = ("(" + unreserved + "|" + pct_encoded + "|" + 
+         sub_delims + "|[:@])")
+segment = pchar + "*"
+segment_nz = pchar + "+"
+userinfo = ("(" + unreserved + "|" + pct_encoded + "|" +
+            sub_delims + "|:)*")
+dec_octet = "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"
+ipv4address = "(" + dec_octet + r"\.){3}" + dec_octet
+h16 = "[0-9A-F]{1,4}"
+ls32 = "(" + h16 + ":" + h16 + "|" + ipv4address + ")"
+ipv6address = (
+    "((" + h16 + ":){6}" + ls32 +
+    "|::(" + h16 + ":){5}" + ls32 +
+    "|(" + h16 + ")?::(" + h16 + ":){4}" + ls32 +
+    "|((" + h16 + ":)?" + h16 + ")?::(" + h16 + ":){3}" + ls32 +
+    "|((" + h16 + ":){,2}" + h16 + ")?::(" + h16 + ":){2}" + ls32 +
+    "|((" + h16 + ":){,3}" + h16 + ")?::" + h16 + ":" + ls32 +
+    "|((" + h16 + ":){,4}" + h16 + ")?::" + ls32 +
+    "|((" + h16 + ":){,5}" + h16 + ")?::" + h16 +
+    "|((" + h16 + ":){,6}" + h16 + ")?::)")
+ipvfuture = r"v[0-9A-F]+\.(" + unreserved + "|" + sub_delims + "|:)+"
+ip_literal = r"\[(" + ipv6address + "|" + ipvfuture + r")\]"
+reg_name = "(" + unreserved + "|" + pct_encoded + "|" + sub_delims + ")"
+host = "(" + ip_literal + "|" + ipv4address + "|" + reg_name + ")"
+port = "[0-9]*"
+authority = "(" + userinfo + "@)?" + host + "(:" + port + ")?"
+path_abempty = "(/" + segment + ")*"
+path_absolute = "/(" + segment_nz + "(/" + segment + ")*)?"
+path_rootless = segment_nz + "(/" + segment + ")*"
+path_empty = pchar + "{0}"
+hier_part = ("//" + authority + "(" + path_abempty + "|" +
+             path_absolute + "|" + path_rootless + "|" + path_empty + ")")
+query = "(" + pchar + "|[/?])*"
+fragment = query
+uri = (scheme + ":" + hier_part + r"(\?" + query + ")?" +
+       "(#" + fragment + ")?")
+
+re_uri = re.compile('^' + uri + '$')
+
+
 def is_prefixed(identifier):
     return type(identifier) == type(()) and len(identifier) == 2
 
@@ -1103,7 +1149,7 @@ class Range(Stmt):
 
     def validate(self, errors, type):
         # check that it's syntactically correct
-        if re_range.match(self.expr) == None:
+        if re_range.search(self.expr) == None:
             err_add(errors, self.pos, 'SYNTAX_ERROR', 'bad range expression')
             return False
         # now break it apart
@@ -1156,7 +1202,7 @@ class Length(Stmt):
     def validate(self, errors):
         # check that it's syntactically correct
         pos = self.pos
-        if re_length.match(self.expr) == None:
+        if re_length.search(self.expr) == None:
             err_add(errors, pos, 'SYNTAX_ERROR', 'bad length expression')
             return False
         def f(self, lostr, histr):
@@ -1323,7 +1369,7 @@ class Path(Stmt):
         return (up, dn)
 
     def validate(self, errors):
-        if re_keypath.match(self.expr) == None:
+        if re_keypath.search(self.expr) == None:
             err_add(errors, self.pos, 'SYNTAX_ERROR',
                     'bad keypath expression')
             return False
@@ -1952,7 +1998,7 @@ class Augment(Stmt):
     def validate(self, errors, recover=True):
         if self.i_validated == False:
             # check that it's syntactically correct
-            if re_schema_nid.match(self.expr) == None:
+            if re_schema_nid.search(self.expr) == None:
                 err_add(errors, self.pos, 'SYNTAX_ERROR',
                         'bad augment target node expression')
                 return False
@@ -2440,7 +2486,7 @@ class YangParser(object):
         module_header_stmts = \
             [('yang-version', '?',
               ('yang_version', self.chk_yang_version, None), ()),
-             ('namespace', '1', ('namespace', None,None), ()),
+             ('namespace', '1', ('namespace', self.chk_uri, None), ()),
              ('prefix', '1', ('prefix', None,None), ())]
         
         sub_module_header_stmts = \
@@ -2936,6 +2982,13 @@ class YangParser(object):
             err_add(self.ctx.errors, self.pos,
                     'BAD_VALUE', (vsn.arg, 'yang-version'))
 
+    def chk_uri(self, x, uri):
+        pass
+## FIXME: doesn't work - bad regexp?
+#        if re_uri.search(uri.arg) == None:
+#            err_add(self.ctx.errors, self.pos,
+#                    'BAD_VALUE', (uri.arg, 'namespace'))
+
     def chk_mandatory(self, x, mandatory):
         if mandatory.arg not in ['true', 'false']:
             err_add(self.ctx.errors, self.pos,
@@ -3342,7 +3395,7 @@ def validate_status(errors, x, y, defn, ref):
         err_add(x.pos, 'DEPRECATED_USES_OBSOLETE', (defn, ref))
 
 def validate_identifier(str, pos, errors):
-    if re_identifier.match(str) == None:
+    if re_identifier.search(str) == None:
         err_add(errors, pos, 'SYNTAX_ERROR', 'bad identifier "' + str + '"')
 
 def search_file(filename, search_path):
