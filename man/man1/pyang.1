@@ -1,0 +1,95 @@
+.TH pyang 1 "May 26, 2008" "pyang version 0.9.0"
+.SH NAME
+pyang \- validate and convert YANG modules to various formats
+.SH SYNOPSIS
+.B pyang
+[
+.B "-hv"
+] [
+.B "--canonical"
+] [
+.BI "-o " name
+] [
+.BI "-f " format
+] [
+.BI "-p " path
+]
+.I "module..."
+Only the most common options are listed here.  See below for a
+complete list of options.
+
+If pyang plugins are installed, these plugins may define their own
+options.  These options will listed in \fIpyang -h\fP.
+.SH DESCRIPTION
+The \fBpyang\fP program is used to validate YANG modules.  It is also
+used to convert YANG modules into equivalent YIN modules.  From a
+valid module, a W3C XML Schema (XSD) schema can be generated.
+
+If no \fIformat\fP is given, the specified modules are validated, and
+the program exits with exit code 0 if all moduels are valid.
+.SH OPTIONS
+.TP
+.B "-h, --help"
+Print a short help text and exit.
+.TP
+.B "-e, --list-errors"
+Print a listing of all error codes and messages pyang might generate,
+and then exit.
+.TP
+.B "--print-error-code"
+On errors, print the symbolic error code instead of the error message.
+.TP
+.BI "-l " level ", --level " level
+Report errors and warnings up to \fIlevel\fP.  If any error or warnings
+are printed, the program exits with exit code 1, otherwise with exit
+code 0.  The default error level is 3.
+.TP
+.B "--canonical"
+Validate the module(s) according the canonical YANG order.
+.TP
+.BI "-f " format ", --format " format
+Convert the module into \fIformat\fP.  When this parameter is present,
+a single module must be given.  If no \fIoutput\fP file is specified,
+the result is printed on stdout.  \fIformat\fP is one of xsd (W3C XML
+Schema) or yin (the XML syntax of YANG).
+.TP
+.BI "-o " name ", --output " name
+Write the output to the file \fIname\fP instead of stdout.
+.TP
+.BI "-p " path ", --path " path
+\fIpath\fP is a colon (:) separated list of directories to search for
+imported modules.  The current directory is always appended to the
+search path.
+.TP
+.B "-d, --debug"
+Turn on debugging of the pyang code.
+.TP
+.I module...
+These are the names of the files containing the modules to be
+validated, or the module to be converted.
+.SH XSD SPECIFIC OPTIONS
+Options for the \fIxsd\fR output format.
+.TP
+.B "--xsd-no-appinfo"
+Do not print YANG specific appie.nfo
+.TP
+.B "--xsd-no-imports"
+Do not generate any xs:imports.
+.SH Example
+The following example validates the standard YANG modules with derived
+types:
+
+  $ pyang yang-types.yang ieee-types.yang inet-types.yang
+
+The following example converts the yang-types module into YIN:
+
+  $ pyang -f yin -o yang-types.yin yang-types.yang
+
+.SH BUGS
+The XPath arguments for the \fBmust\fP and \fBwhen\fP statements are
+not validated.
+.SH Author
+Martin Bjorklund, Tail-f Systems, <mbj@tail-f.com>
+
+
+

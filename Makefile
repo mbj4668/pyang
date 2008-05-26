@@ -4,8 +4,9 @@ sdist:
 bdist: 
 	python setup.py bdist
 
+.PHONY:	test
 test:
-        @env PYTHONPATH="$(PWD)" python test/test1.py
+	(cd test; $(MAKE) test)
 
 clean:
 	(cd test && $(MAKE) clean)

@@ -1,0 +1,20 @@
+module yt9 {
+
+   namespace "urn:ietf:params:xml:ns:yang:yt9";
+
+   prefix "yt9";
+
+   organization "Netconf Central";
+
+   contact "Andy Bierman";
+
+   description "YANG test module 9. augment";
+
+   revision 2008-04-11 { description "initial version"; }
+
+   leaf a1 { type int32; }
+
+   container con1 {
+      leaf a2 { type string; }
+   }
+}   

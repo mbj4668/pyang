@@ -8,6 +8,7 @@ import re
 import pyang.plugin
 import pyang.main as main
 import pyang.tokenizer as ptok
+from pyang.util import attrsearch
 
 def pyang_plugin_init():
     pyang.main.register_plugin(YINPlugin())

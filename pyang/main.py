@@ -67,6 +67,8 @@ import types
 import pyang.plugin
 import tokenizer
 
+from util import attrsearch, keysearch, dictsearch
+
 pyang_version = '0.9.0b'
 
 ### Exceptions
@@ -808,7 +810,8 @@ class Typedef(Stmt):
                                                               self.default.pos,
                                                               self.default.arg)
         if self.i_default != None:
-            self.type.i_type_spec.validate(errors, self.pos, self.i_default,
+            self.type.i_type_spec.validate(errors, self.default.pos,
+                                           self.i_default,
                                            ' for the default value')
 
 class Grouping(Stmt):
@@ -1566,7 +1569,7 @@ def validate_keyref_path(obj, path, errors):
 class LeafList(DataDefStmt):
     def __init__(self, parent, pos, module, arg):
         DataDefStmt.__init__(self, parent, pos,
-                             self.__class__.__name__.lower(),
+                             'leaf-list',
                              module, arg)
         # argument
         self.name = arg
@@ -2050,7 +2053,7 @@ class Rpc(SchemaNodeStmt):
 class Params(SchemaNodeStmt):
     def __init__(self, parent, pos, arg, module):
         SchemaNodeStmt.__init__(self, parent, pos,
-                                self.__class__.__name__.lower(),
+                                arg,
                                 module, arg)
         # argument
         self.name = arg
@@ -3281,7 +3284,7 @@ yang_keywords = \
      'grouping':         ('name',        False,      False),
      'import':           ('module',      False,      True),
      'include':          ('module',      False,      True),
-     'input':            ('None',        None,       False),
+     'input':            (None,          None,       False),
      'key':              ('value',       False,      False),
      'leaf':             ('name',        False,      False),
      'leaf-list':        ('name',        False,      False),
@@ -3296,7 +3299,7 @@ yang_keywords = \
      'notification':     ('name',        False,      False),
      'ordered-by':       ('value',       False,      True),
      'organization':     ('info',        True,       True),
-     'output':           ('None',        None,       False),
+     'output':           (None,          None,       False),
      'path':             ('value',       False,      False),
      'pattern':          ('value',       False,      False),
      'position':         ('value',       False,      False),
@@ -3353,28 +3356,6 @@ def search_file(filename, search_path):
        if os.path.exists(fname):
            return fname
    return None
-
-def attrsearch(tag, attr, list):
-    for x in list:
-        if x.__dict__[attr] == tag:
-            return x
-    return None
-
-def keysearch(tag, n, list):
-    for x in list:
-        if x[n] == tag:
-            return x
-    return None
-
-def dictsearch(val, dict):
-    n = dict.iteritems()
-    try:
-        while True:
-            (k,v) = n.next()
-            if v == val:
-                return k
-    except StopIteration:
-        return None
 
 debug = False
 def dbg(str):
@@ -3442,7 +3423,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
                              dest="level",
                              default=3,
                              type="int",
-                             help="Report errors and warnings up to level. " \
+                             help="Report errors and warnings up to LEVEL. " \
                              "If any error or warnings are printed, the " \
                              "program exits with exit code 1, otherwise " \
                              "with exit code 0. The default error level " \
@@ -3458,7 +3439,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
                              "are " +  ', '.join(fmts.keys())),
         optparse.make_option("-o", "--output",
                              dest="outfile",
-                             help="Write the output to the file name instead " \
+                             help="Write the output to OUTFILE instead " \
                              "of stdout."),
         optparse.make_option("-p", "--path", dest="path", default="",
                              help="Search path for yin and yang modules"),

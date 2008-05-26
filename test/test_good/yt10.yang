@@ -1,0 +1,36 @@
+module yt10 {
+
+   namespace "urn:ietf:params:xml:ns:yang:yt10";
+
+   prefix "yt10";
+
+   import yt9 { prefix yt9; }
+
+   organization "Netconf Central";
+
+   contact "Andy Bierman";
+
+   description "YANG test module 9. augment";
+
+   revision 2008-04-11 { description "initial version"; }
+
+   augment /yt9:con1 {
+     leaf b1 { type int32; }
+
+     container con2 {
+        leaf b2 { type string; }
+     }
+   }
+
+   container test {
+      description "Particular configuration to retrieve.";
+       // mandatory true;
+       uses Foo;
+   }
+
+   grouping Foo {
+     leaf X { type int32; }
+     leaf Y { type uint32; }
+   }
+    
+}   
