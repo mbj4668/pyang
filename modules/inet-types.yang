@@ -9,13 +9,14 @@ module inet-types {
         "YANG Language Design Team";
 
     contact
-        "Martin Bjorklund (Editor) <mbj@tail-f.com>";
+        "Juergen Schoenwaelder (Editor) 
+         <j.schoenwaelder@jacobs-university.de>";
 
     description
         "This module contains standard derived YANG types
          for Internet addresses and related things.";
 
-    revision 2007-10-02 {
+    revision 2008-05-22 {
         description "Initial revision.";
     }
 
