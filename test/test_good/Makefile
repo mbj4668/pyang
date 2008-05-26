@@ -3,7 +3,7 @@ PYANG = pyang --plugindir ../plugins
 MODULES = $(wildcard *.yang)
 
 test:
-	for m in $(MODULES); do 				\
+	@for m in $(MODULES); do 				\
 		echo -n "trying $$m...";			\
 		$(PYANG) $$m || exit 1;				\
 		echo -n " xsd...";				\
