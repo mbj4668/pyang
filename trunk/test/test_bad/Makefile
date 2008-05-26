@@ -3,7 +3,7 @@ PYANG = pyang --print-error-code
 MODULES = $(wildcard *.yang)
 
 test:
-	for m in $(MODULES); do						\
+	@for m in $(MODULES); do						\
 		echo -n "trying $$m...";				\
 		$(PYANG) $$m 2> $$m.out;				\
 		diff expect/$$m.out $$m.out > $$m.diff || 		\
