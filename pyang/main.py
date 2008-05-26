@@ -374,7 +374,7 @@ ipv6address = (
     "|((" + h16 + ":){,6}" + h16 + ")?::)")
 ipvfuture = r"v[0-9A-F]+\.(" + unreserved + "|" + sub_delims + "|:)+"
 ip_literal = r"\[(" + ipv6address + "|" + ipvfuture + r")\]"
-reg_name = "(" + unreserved + "|" + pct_encoded + "|" + sub_delims + ")"
+reg_name = "(" + unreserved + "|" + pct_encoded + "|" + sub_delims + ")*"
 host = "(" + ip_literal + "|" + ipv4address + "|" + reg_name + ")"
 port = "[0-9]*"
 authority = "(" + userinfo + "@)?" + host + "(:" + port + ")?"
@@ -382,7 +382,7 @@ path_abempty = "(/" + segment + ")*"
 path_absolute = "/(" + segment_nz + "(/" + segment + ")*)?"
 path_rootless = segment_nz + "(/" + segment + ")*"
 path_empty = pchar + "{0}"
-hier_part = ("//" + authority + "(" + path_abempty + "|" +
+hier_part = ("(" + "//" + authority + path_abempty + "|" +
              path_absolute + "|" + path_rootless + "|" + path_empty + ")")
 query = "(" + pchar + "|[/?])*"
 fragment = query
@@ -2983,11 +2983,9 @@ class YangParser(object):
                     'BAD_VALUE', (vsn.arg, 'yang-version'))
 
     def chk_uri(self, x, uri):
-        pass
-## FIXME: doesn't work - bad regexp?
-#        if re_uri.search(uri.arg) == None:
-#            err_add(self.ctx.errors, self.pos,
-#                    'BAD_VALUE', (uri.arg, 'namespace'))
+        if re_uri.search(uri.arg) == None:
+            err_add(self.ctx.errors, self.pos,
+                    'BAD_VALUE', (uri.arg, 'namespace'))
 
     def chk_mandatory(self, x, mandatory):
         if mandatory.arg not in ['true', 'false']:

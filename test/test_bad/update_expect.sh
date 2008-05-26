@@ -13,10 +13,10 @@ do
   read -n 1 answer
   echo
 
-  if [ ${answer} = "y" -o ${answer} = "" ]
+  if [ "${answer}" = "y" -o "${answer}" = "" ]
   then
     mv -f "$output" "$expectFileName"
-  elif [ ${answer} = "q" ]
+  elif [ "${answer}" = "q" ]
   then 
     exit 0
   fi
