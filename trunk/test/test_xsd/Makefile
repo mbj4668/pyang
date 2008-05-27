@@ -1,8 +1,9 @@
 #
 # Just drop .mib files here and do make all; make gen-xml
 #
-PYANG = pyang --plugindir ../plugins
-SMIDUMP=/home/mbj/src/libsmi/installed/bin/smidump
+PYANG ?= pyang
+# need smidump 0.4.7 or later
+SMIDUMP ?= smidump
 
 MIB_SOURCES  := $(wildcard *.mib)
 YANG_OBJECTS := $(MIB_SOURCES:%.mib=%.yang)
@@ -43,7 +44,7 @@ xml: $(XML_OBJECTS)
 
 %.xml: %.yang
 	@echo "generating random xml document for $<..."
-	@$(PYANG) -f xml $< > $@
+	@$(PYANG) --plugindir ../plugins -f xml $< > $@
 	@echo "validating against generated XSD..."
 	@( if [ ! -s $@ ]; then                                     \
                exit 0;                                              \
