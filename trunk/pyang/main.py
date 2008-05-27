@@ -1,58 +1,3 @@
-# A YANG validator by mbj@tail-f.com
-#
-# Version:
-#   0.9.0c - work in progress
-#   0.9.0b - 2008-05-19
-#        first release of restructured code
-#   02.2 - 2008-02-21
-#        fixed some xsd output bugs
-#        fixed bug in refinmenet, where a valid refinmened would
-#          generate a duplicate node definition error
-#        fixed range/length check bug
-#        verify that a list in a grouping which is used from config
-#          has keys
-#        internal preparation for major restructure of the code
-#   02.1 - 2008-02-06
-#        draft-bjorklund-netconf-yang-02 compliant.
-#   01.3 - 2008-02-01
-#        draft-bjorklund-netconf-yang-01 compliant.
-#   00.2 - 2008-01-15
-#        fixed grouping translation in XSD output
-#        generate YIN appinfo by default in XSD output
-#        added validation of identifiers
-#        handle min/max in length and range expressions
-#        handle must in leaf refinement
-#        handle yin-element in extensions
-#        handle bits types in XSD generation
-#        xs:key generation fix in XSD output by John Dickinson
-#   00.1 - 2007-11-14
-#        Initial version, draft-bjorklund-netconf-yang-00 compliant.
-#
-# Copyright (c) 2007, Martin Bjorklund, mbj@tail-f.com
-# 
-# Permission to use, copy, modify, and/or distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-
-# TODO
-#   o  handle core yang stmts in extesions
-#   o  add validation of XPath (lower prio) (when, must)
-#   o  add YIN parser
-#   o  add more stuff to XSD output:
-#      o  generate xs:unique for 'unique'
-#   o  handle relative inline augment
-#   o  add validation of instance-identifier defaults
-#   o  rewrite .validate to be side-effect free
-
 import sys
 import os
 import string
@@ -73,16 +18,17 @@ pyang_version = '0.9.0b'
 
 ### Exceptions
 
-# used for non-recoverable errors to abort parsing
 class Abort(Exception):
+    """used for non-recoverable errors to abort parsing"""
     pass
 
-# raised by tokenizer when end of file is detected
 class Eof(Exception):
+    """raised by tokenizer when end of file is detected"""
     pass
 
-# used whena referenced item is not found
+
 class NotFound(Exception):
+    """used when a referenced item is not found"""
     pass
 
 ### error codes
@@ -398,14 +344,16 @@ def is_prefixed(identifier):
 def is_local(identifier):
     return type(identifier) == type('')
 
-### struct which contain variables for a parse session
 
 class Context(object):
+    """struct which contain variables for a parse session"""
     def __init__(self):
-        ## dict of modulename:<class Module>)
         self.modules = {}
-        ## ordered list of modules; we must validate in this order
+        """dict of modulename:<class Module>)"""
+        
         self.module_list = []
+        """ordered list of modules; we must validate in this order"""
+        
         self.path = "."
         self.errors = []
         self.canonical = False
@@ -489,15 +437,20 @@ class Position(object):
 ## All YANG statements are derived from Statement.  Simple statements
 ## which don't have any sub statements defined, e.g. 'description' are
 ## represented as Statement directly.
+
 class Statement(object):
     def __init__(self, parent, pos, keyword, module, arg=None):
         self.parent = parent
         self.pos = copy.copy(pos)
         self.keyword = keyword
-        # argument
-        self.arg = arg           # a string or None
-        # substatements
+        """the name of the statement"""
+
+        self.arg = arg
+        """the statement's argument;  a string or None"""
+        
         self.substmts = []
+        """the statement's substatements; a list of Statements"""
+
         # extra
         self.i_module = module
 
@@ -578,13 +531,24 @@ class Module(Statement):
         self.augment = []
         # extra
         self.i_is_submodule = is_submodule
-        self.i_prefixes = {} # dict of prefix:modulename
+        self.i_prefixes = {}
+        """dict of prefix:modulename"""
+        
         self.i_local_typedefs = []
-        self.i_gen_typedef = [] # generated 'dummy' typedefs
-        self.i_gen_import = [] # generated 'dummy' imports
-        self.i_gen_augment_idx = 0 # generated augment names
-        self.i_expanded_children = [] # augment and uses expanded schema tree
-        self.i_config = True # default config property for top-level nodes
+        self.i_gen_typedef = []
+        """generated 'dummy' typedefs"""
+        
+        self.i_gen_import = []
+        """generated 'dummy' imports"""
+        
+        self.i_gen_augment_idx = 0
+        """generated augment names"""
+        
+        self.i_expanded_children = []
+        """augment and uses expanded schema tree"""
+        
+        self.i_config = True
+        """default config property for top-level nodes"""
 
         if name not in ctx.modules:
             ctx.modules[name] = None
@@ -872,7 +836,7 @@ class Grouping(Statement):
         self.reference = None
         self.typedef = []
         self.grouping = []
-        self.children = []  # leaves, containers, lists, leaf-lists, uses
+        self.children = []
         self.augment = []
         # extra
         self.i_expanded_children = []
@@ -937,8 +901,11 @@ class Type(Statement):
         self.type = []
         # extra
         self.i_type_spec = None
-        self.i_typedef = None # pointer back its typedef, if applicable
-        self.i_is_derived = False # true if type has any restrictions
+        self.i_typedef = None
+        """pointer back its typedef, if applicable"""
+        
+        self.i_is_derived = False
+        """true if type has any restrictions"""
 
     def has_type(self, names):
         # returns name if the has name as one of its base types,
@@ -1145,7 +1112,9 @@ class Range(Statement):
         self.error_message = None
         self.error_app_tag = None
         # extra
-        self.i_ranges = None # list of (lo,hi)
+        self.i_ranges = []
+        """list of parsed ranges, (lo,hi) where lo and hi are
+        None, 'min', 'max', or a number matching the base type"""
 
     def validate(self, errors, type):
         # check that it's syntactically correct
@@ -1197,7 +1166,9 @@ class Length(Statement):
         self.error_message = None
         self.error_app_tag = None
         # extra
-        self.i_lengths = None # list of (lo,hi)
+        self.i_lengths = None
+        """list of parsed lengths, (lo,hi), where lo and hi are
+        None, 'min', 'max', or an integer"""
 
     def validate(self, errors):
         # check that it's syntactically correct
@@ -1254,7 +1225,7 @@ class Length(Statement):
         return True
 
     def mk_type_spec(self, base_type_spec):
-        # create a new type_spec for this type
+        """creates a new type_spec for this type"""
         return LengthTypeSpec(base_type_spec, self.i_lengths)
 
 class Pattern(Statement):
@@ -1630,9 +1601,12 @@ class LeafList(DataDefStatement):
         self.max_elements = None
         self.ordered_by = None
         # extra
-        self.i_keyrefs = [] # if this is a union, there might be several
+        self.i_keyrefs = []
+        """if this is a union, there might be several"""
+        
         self.i_keyrefs_validated = False
-        self.i_keyref_ptrs = [] # pointers to the keys the keyrefs refer to
+        self.i_keyref_ptrs = []
+        """pointers to the keys the keyrefs refer to"""
 
     def validate(self, errors):
         validate_identifier(self.name, self.pos, errors)
@@ -1670,7 +1644,7 @@ class Container(DataDefStatement):
         self.must = []
         self.typedef = []
         self.grouping = []
-        self.children = []  # leaves, containers, lists, leaf-lists, uses
+        self.children = []
         self.augment = []
 
     def validate(self, errors): 
@@ -1701,13 +1675,16 @@ class List(DataDefStatement):
         self.ordered_by = None
         self.key = None
         self.unique = []
-        self.children = []  # leaves, containers, lists, leaf-lists, uses
+        self.children = []
         self.typedef = []
         self.grouping = []
         self.augment = []
         # extra
-        self.i_key = [] # list of pointers to the leaves in i_expanded_children
-        self.i_unique = [] # list of list of pointers to the  - " -
+        self.i_key = []
+        """list of pointers to the leaves in i_expanded_children"""
+        
+        self.i_unique = []
+        """list of list of pointers to the  leaves in i_expanded_children"""
 
     def validate(self, errors):
         validate_identifier(self.name, self.pos, errors)
@@ -2704,8 +2681,10 @@ class YangParser(object):
                 attrhook = None
                 argname = None
                 if cspec == ():
-                    cspec = (lambda parent, pos, arg: Statement(parent, pos, keywd,
-                                                           self.module, arg),
+                    cspec = (lambda parent, pos, arg: Statement(parent, pos,
+                                                                keywd,
+                                                                self.module,
+                                                                arg),
                              1, [])
                 if extra == None:
                     attr = keywd
@@ -2852,7 +2831,8 @@ class YangParser(object):
             elif keywd == '$cut':
                 for (keywd, occurance, extra, cspec) in children[:i]:
                     if occurance == '1' or occurance == '+':
-                        err_add(self.ctx.errors, self.pos, 'UNEXPECTED_KEYWORD_1',
+                        err_add(self.ctx.errors, self.pos,
+                                'UNEXPECTED_KEYWORD_1',
                                 (tokenizer.tok_to_str(tok), keywd));
                         raise Abort
             # check next in children
@@ -3416,6 +3396,9 @@ def dbg(str):
 plugins = []
 
 def register_plugin(plugin):
+    """Call this to register a pyang plugin. See class PyangPlugin
+    for more info.
+    """
     plugins.append(plugin)
 
 def run():
@@ -3549,6 +3532,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
 
     if emit_obj != None:
         emit_obj.setup_ctx(ctx)
+
     for filename in filenames:
         modulename = ctx.add_module(filename)
     ctx.validate()
