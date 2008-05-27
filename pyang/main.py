@@ -484,12 +484,12 @@ class Position(object):
 
 ## Each statement in YANG is represented as a class.  Simple statements,
 ## which don't have any sub-statements defined in YANG, are represented
-## with the class Stmt.
+## with the class Statement.
 
-## All YANG statements are derived from Stmt.  Simple statements
+## All YANG statements are derived from Statement.  Simple statements
 ## which don't have any sub statements defined, e.g. 'description' are
-## represented as Stmt directly.
-class Stmt(object):
+## represented as Statement directly.
+class Statement(object):
     def __init__(self, parent, pos, keyword, module, arg=None):
         self.parent = parent
         self.pos = copy.copy(pos)
@@ -530,9 +530,9 @@ class Stmt(object):
         for x in self.substmts:
             x.pprint(indent + ' ', f)
 
-class SchemaNodeStmt(Stmt):
+class SchemaNodeStatement(Statement):
     def __init__(self, parent, pos, keyword, module, arg):
-        Stmt.__init__(self, parent, pos, keyword, module, arg)
+        Statement.__init__(self, parent, pos, keyword, module, arg)
         # extra
         self.i_expanded_children = []
         
@@ -540,9 +540,9 @@ class SchemaNodeStmt(Stmt):
         for c in self.i_expanded_children:
             c.validate_post_augment(errors)
 
-class DataDefStmt(SchemaNodeStmt):
+class DataDefStatement(SchemaNodeStatement):
     def __init__(self, parent, pos, keyword, module, arg):
-        SchemaNodeStmt.__init__(self, parent, pos, keyword, module, arg)
+        SchemaNodeStatement.__init__(self, parent, pos, keyword, module, arg)
         # extra
         self.i_config = None
 
@@ -552,10 +552,10 @@ class DataDefStmt(SchemaNodeStmt):
         for c in self.i_expanded_children:
             c.validate_post_uses(pos, errors, config)
 
-class Module(Stmt):
+class Module(Statement):
     def __init__(self, pos, ctx, name, is_submodule):
         self.name = name
-        Stmt.__init__(self, None, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, None, pos, self.__class__.__name__.lower(),
                       self, name)
         self.ctx = ctx
         # argument
@@ -786,35 +786,35 @@ class Module(Stmt):
         imp = Import(self, None, self, modname)
         self.i_gen_import.append(imp)
 
-class Import(Stmt):
+class Import(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.modulename = arg
         # statements
         self.prefix = None
 
-class Include(Stmt):
+class Include(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.modulename = arg
         # statements
 
-class Revision(Stmt):
+class Revision(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.date = arg
         # statements
         self.description = None
 
-class Typedef(Stmt):
+class Typedef(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -860,9 +860,9 @@ class Typedef(Stmt):
                                            self.i_default,
                                            ' for the default value')
 
-class Grouping(Stmt):
+class Grouping(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -894,9 +894,9 @@ class Grouping(Stmt):
         validate_children(self, self.children, errors)
         self.i_validated = True
 
-class Extension(Stmt):
+class Extension(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -909,9 +909,9 @@ class Extension(Stmt):
     def validate(self, errors):
         validate_identifier(self.name, self.pos, errors)
 
-class Argument(Stmt):
+class Argument(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -921,9 +921,9 @@ class Argument(Stmt):
     def validate(self, errors):
         validate_identifier(self.name, self.pos, errors)
 
-class Type(Stmt):
+class Type(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -1135,9 +1135,9 @@ def is_smaller(lo, hi):
         return True
     return lo < hi
 
-class Range(Stmt):
+class Range(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.expr = arg
@@ -1187,9 +1187,9 @@ class Range(Stmt):
     def mk_type_spec(self, base_type_spec):
         return RangeTypeSpec(base_type_spec, self.i_ranges)
 
-class Length(Stmt):
+class Length(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.expr = arg
@@ -1257,9 +1257,9 @@ class Length(Stmt):
         # create a new type_spec for this type
         return LengthTypeSpec(base_type_spec, self.i_lengths)
 
-class Pattern(Stmt):
+class Pattern(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.expr = arg
@@ -1282,9 +1282,9 @@ class Pattern(Stmt):
         # create a new type_spec for this type
         return PatternTypeSpec(base_type_spec, self.i_re)
 
-class Path(Stmt):
+class Path(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.expr = arg
@@ -1380,9 +1380,9 @@ class Path(Stmt):
         # create a new type_spec for this type
         return PathTypeSpec(self.i_target_node)
 
-class Must(Stmt):
+class Must(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.expr = arg
@@ -1392,9 +1392,9 @@ class Must(Stmt):
         self.description = None
         self.reference = None
 
-class Enum(Stmt):
+class Enum(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -1406,9 +1406,9 @@ class Enum(Stmt):
         # extra
         self.i_value = None
 
-class Bit(Stmt):
+class Bit(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.name = arg
@@ -1420,9 +1420,9 @@ class Bit(Stmt):
         # extra
         self.i_position = None
 
-class Leaf(DataDefStmt):
+class Leaf(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        DataDefStmt.__init__(self, parent, pos,
+        DataDefStatement.__init__(self, parent, pos,
                              self.__class__.__name__.lower(),
                              module, arg)
         # argument
@@ -1612,9 +1612,9 @@ def validate_keyref_path(obj, path, errors):
     except NotFound:
         return None
 
-class LeafList(DataDefStmt):
+class LeafList(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        DataDefStmt.__init__(self, parent, pos,
+        DataDefStatement.__init__(self, parent, pos,
                              'leaf-list',
                              module, arg)
         # argument
@@ -1654,9 +1654,9 @@ class LeafList(DataDefStmt):
                 self.i_keyref_ptrs.append(ptr)
         self.i_keyrefs_validated = True
 
-class Container(DataDefStmt):
+class Container(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        DataDefStmt.__init__(self, parent, pos,
+        DataDefStatement.__init__(self, parent, pos,
                              self.__class__.__name__.lower(),
                              module, arg)
         # argument
@@ -1683,9 +1683,9 @@ class Container(DataDefStmt):
             self.i_config = (self.config.arg == "true")
         validate_children(self, self.children, errors, self.i_config)
 
-class List(DataDefStmt):
+class List(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        DataDefStmt.__init__(self, parent, pos,
+        DataDefStatement.__init__(self, parent, pos,
                              self.__class__.__name__.lower(),
                              module, arg)
         # argument
@@ -1746,7 +1746,7 @@ class List(DataDefStmt):
             err_add(errors, self.pos, 'NEED_KEY', ())
 
     def validate_post_uses(self, pos, errors, config):
-        DataDefStmt.validate_post_uses(self, pos, errors, config)
+        DataDefStatement.validate_post_uses(self, pos, errors, config)
         if ((self.i_config == True) and (len(self.i_key) == 0)):
             err_add(errors, pos, 'NEED_KEY_USES', self.pos)
 
@@ -1776,9 +1776,9 @@ class List(DataDefStmt):
                 return
             self.i_unique.append(found)
 
-class Uses(SchemaNodeStmt):
+class Uses(SchemaNodeStatement):
     def __init__(self, parent, pos, module, arg):
-        SchemaNodeStmt.__init__(self, parent, pos,
+        SchemaNodeStatement.__init__(self, parent, pos,
                                 self.__class__.__name__.lower(),
                                 module, arg)
         # argument
@@ -1919,9 +1919,9 @@ def search_exp_data_node(children, modulename, identifier):
             return child
     return None
 
-class Choice(DataDefStmt):
+class Choice(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        DataDefStmt.__init__(self, parent, pos,
+        DataDefStatement.__init__(self, parent, pos,
                              self.__class__.__name__.lower(),
                              module, arg)
         # argument
@@ -1958,9 +1958,9 @@ class Choice(DataDefStmt):
                 err_add(errors, self.pos, 'DEFAULT_CASE_NOT_FOUND',
                         self.default.arg)
 
-class Case(DataDefStmt):
+class Case(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        DataDefStmt.__init__(self, parent, pos,
+        DataDefStatement.__init__(self, parent, pos,
                              self.__class__.__name__.lower(),
                              module, arg)
         # argument
@@ -1976,9 +1976,9 @@ class Case(DataDefStmt):
         validate_identifier(self.name, self.pos, errors)
         validate_children(self, self.children, errors, self.i_config)
 
-class Augment(Stmt):
+class Augment(Statement):
     def __init__(self, parent, pos, module, arg):
-        Stmt.__init__(self, parent, pos, self.__class__.__name__.lower(),
+        Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
                       module, arg)
         # argument
         self.expr = arg
@@ -2051,9 +2051,9 @@ class Augment(Stmt):
 
         return True
 
-class AnyXML(DataDefStmt):
+class AnyXML(DataDefStatement):
     def __init__(self, parent, pos, module, arg):
-        SchemaNodeStmt.__init__(self, parent, pos,
+        SchemaNodeStatement.__init__(self, parent, pos,
                                 self.__class__.__name__.lower(),
                                 module, arg)
         # argument
@@ -2071,9 +2071,9 @@ class AnyXML(DataDefStmt):
     def validate_post_augment(self, errors):
         return True
 
-class Rpc(SchemaNodeStmt):
+class Rpc(SchemaNodeStatement):
     def __init__(self, parent, pos, module, arg):
-        SchemaNodeStmt.__init__(self, parent, pos,
+        SchemaNodeStatement.__init__(self, parent, pos,
                                 self.__class__.__name__.lower(),
                                 module, arg)
         # argument
@@ -2096,9 +2096,9 @@ class Rpc(SchemaNodeStmt):
             self.children.append(self.output)
         validate_children(self, self.children, errors)
 
-class Params(SchemaNodeStmt):
+class Params(SchemaNodeStatement):
     def __init__(self, parent, pos, arg, module):
-        SchemaNodeStmt.__init__(self, parent, pos,
+        SchemaNodeStatement.__init__(self, parent, pos,
                                 arg,
                                 module, arg)
         # argument
@@ -2112,9 +2112,9 @@ class Params(SchemaNodeStmt):
     def validate(self, errors):
         validate_children(self, self.children, errors)
 
-class Notification(SchemaNodeStmt):
+class Notification(SchemaNodeStatement):
     def __init__(self, parent, pos, module, arg):
-        SchemaNodeStmt.__init__(self, parent, pos,
+        SchemaNodeStatement.__init__(self, parent, pos,
                                 self.__class__.__name__.lower(),
                                 module, arg)
         # argument
@@ -2133,13 +2133,13 @@ class Notification(SchemaNodeStmt):
         validate_children(self, self.children, errors)
 
 ## this class represents the usage of an (unknown) extension
-class ExtStmt(Stmt):
+class ExtensionStatement(Statement):
     def __init__(self, parent, pos, identifier, prefix=None, arg=None):
         if prefix == None:
             keyword = identifier
         else:
             keyword = (prefix, identifier)
-        Stmt.__init__(self, parent, pos, keyword, parent.i_module, arg)
+        Statement.__init__(self, parent, pos, keyword, parent.i_module, arg)
         # argument
         self.prefix = prefix
         self.identifier = identifier
@@ -2167,7 +2167,7 @@ class ExtStmt(Stmt):
                 err_add(errors, self.pos, 'EXTENSION_NO_ARGUMENT_PRESENT',
                         self.identifier)
 
-            Stmt.validate_extensions(self, module, errors)
+            Statement.validate_extensions(self, module, errors)
 
 ### parser
 
@@ -2637,7 +2637,7 @@ class YangParser(object):
     # substatements by extensions.
     #
     # spec = (create_class_fun, number_of_args, children) | ()
-    #   spec == () means class is Stmt
+    #   spec == () means class is Statement
     #   number_of_args = 0 | 1
     #   children = list of (keywd, occurance, extra, spec) |
     #                      ('$choice', occurance, None, alternatives) |
@@ -2704,7 +2704,7 @@ class YangParser(object):
                 attrhook = None
                 argname = None
                 if cspec == ():
-                    cspec = (lambda parent, pos, arg: Stmt(parent, pos, keywd,
+                    cspec = (lambda parent, pos, arg: Statement(parent, pos, keywd,
                                                            self.module, arg),
                              1, [])
                 if extra == None:
@@ -2874,7 +2874,7 @@ class YangParser(object):
                     attrhook = None
                     argname = None
                     if cspec == ():
-                        cspec = (lambda parent, pos, arg: Stmt(parent, pos,
+                        cspec = (lambda parent, pos, arg: Statement(parent, pos,
                                                                keywd,
                                                                self.module,
                                                                arg),
@@ -2950,7 +2950,7 @@ class YangParser(object):
         else:
             # no argument present, check if that was ok
             arg = None
-        stmt = ExtStmt(parent, pos, identifier, prefix, arg)
+        stmt = ExtensionStatement(parent, pos, identifier, prefix, arg)
         parent.substmts.append(stmt)
         if tok == tokenizer.T_SEMICOLON:
             return
