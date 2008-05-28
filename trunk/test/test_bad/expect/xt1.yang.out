@@ -1,4 +1,5 @@
 xt2.yang:2: [1] BAD_VALUE
+xt3.yang:4: [1] UNEXPECTED_KEYWORD_1
 xt1s1.yang:7: [1] PREFIX_NOT_DEFINED
 xt1.yang:23: [1] BAD_TYPE_NAME
 xt1.yang:212: [2] RANGE_BOUNDS
