@@ -461,6 +461,15 @@ class Statement(object):
                 return typedef
         return self.parent.search_typedef(name)
 
+    def escaped_arg(self):
+        """In `self.arg`, replace characters forbidden in XML by
+        entities and return the result.
+        """
+        res = self.arg.replace("&", "&amp;")
+        res = res.replace('"', "&quot;")
+        res = res.replace("<", "&lt;")
+        return res.replace(">", "&gt;")
+
     def search_grouping(self, name, modules=None):
         if 'grouping' in self.__dict__:
             dbg("search for grouping %s in %s" % (name, self.arg))
