@@ -1,6 +1,6 @@
 module xt3 {
   namespace "http://tmp/foo/bar";
-  prefix "xt3";
+  // prefix "xt3";  // error: prefix missing
   import xt4 { prefix xt4; }
   organization "hopp";
   contact "hej";
