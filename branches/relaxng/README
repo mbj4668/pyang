@@ -1,0 +1,21 @@
+Install
+-------
+In this directory run:
+
+python setup.py install
+
+(this might require root access)
+
+
+Usage
+-----
+pyang -h
+
+
+Run locally without installing
+------------------------------
+export PYTHONPATH=`pwd`
+export PATH=`pwd`/bin:$PATH
+
+pyang -h
+

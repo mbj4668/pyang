@@ -1,0 +1,20 @@
+  o  handle core yang stmts in extesions
+
+  o  add validation of XPath (lower prio) (when, must)
+
+  o  add YIN parser
+
+  o  add more stuff to XSD output:
+     o  generate xs:unique for 'unique'
+
+  o  handle relative inline augment
+
+  o  add validation of instance-identifier defaults
+
+  o  rewrite .validate to be side-effect free
+
+  o  better handling of multiple input files
+
+  o  better handling of filename vs. modulename.  either enforce a
+     coupling, or completely separate them (i.e. allow a file to be
+     called anything, and build some kind of module->filename index)

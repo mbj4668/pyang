@@ -1,0 +1,14 @@
+module xt4 {
+  namespace "file:///tmp/bar";
+  prefix "xt4";
+  revision '2005-01-01' { description "initinla"; }
+
+  typedef yt {
+    type string {
+      pattern "[x-y]";
+    }
+  }
+
+}
+  
+

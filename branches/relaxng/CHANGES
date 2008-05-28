@@ -1,0 +1,33 @@
+   0.9.0c - work in progress
+
+   0.9.0b - 2008-05-19
+        first release of restructured code
+
+   02.2 - 2008-02-21
+        fixed some xsd output bugs
+        fixed bug in refinmenet, where a valid refinmened would
+          generate a duplicate node definition error
+        fixed range/length check bug
+        verify that a list in a grouping which is used from config
+          has keys
+        internal preparation for major restructure of the code
+
+   02.1 - 2008-02-06
+        draft-bjorklund-netconf-yang-02 compliant.
+
+   01.3 - 2008-02-01
+        draft-bjorklund-netconf-yang-01 compliant.
+
+   00.2 - 2008-01-15
+        fixed grouping translation in XSD output
+        generate YIN appinfo by default in XSD output
+        added validation of identifiers
+        handle min/max in length and range expressions
+        handle must in leaf refinement
+        handle yin-element in extensions
+        handle bits types in XSD generation
+        xs:key generation fix in XSD output by John Dickinson
+
+   00.1 - 2007-11-14
+        Initial version, draft-bjorklund-netconf-yang-00 compliant.
+

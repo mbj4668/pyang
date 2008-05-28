@@ -1,0 +1,64 @@
+module yt1g {
+
+    // XXX namespace to be allocated by IANA
+
+    namespace "urn:ietf:params:xml:ns:yang:yt1";
+    prefix "yt1";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 1.";
+
+    revision 2007-11-23 {
+        description "Initial revision.";
+    }
+
+    typedef Num3 {
+	default -7;
+        units seconds;
+	type int16 {
+	    range "-32000 .. 4 | max" {
+                error-app-tag "range-violation";
+	        error-message "Wrong value genius!";
+            }
+        }
+        description "number test 3";
+    }
+
+    typedef Num1 {
+	type int32 {
+	    range min..max;
+        }
+        description "test 1";
+        status deprecated;
+    }
+
+    typedef Num2 {
+        description "test 2";
+	type int32 {
+	    range "-32000 .. 4 | max";
+        }
+        default -1;
+    }
+
+    typedef Num4 {
+        description "test 4";
+	type Num1 {
+  	    range "3 | 7";
+        }
+    }
+
+    typedef Num6 {
+        description "test 6";
+	type Num3 {
+  	    range "-3 | -2 .. +2 | 3";
+        }
+	default 0;
+    }
+
+}
