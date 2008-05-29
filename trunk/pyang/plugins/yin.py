@@ -35,7 +35,7 @@ def emit_yin(ctx, module, writef):
     else:
         mtype = 'module'
         xindent = ''
-    writef('<%s xmlns="urn:ietf:params:xml:ns:yin:1"\n' % mtype)
+    writef('<%s xmlns="urn:ietf:params:xml:ns:yang:yin:1"\n' % mtype)
     for pre in module.i_prefixes:
         modname = module.i_prefixes[pre]
         mod = ctx.modules[modname]

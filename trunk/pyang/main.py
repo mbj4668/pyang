@@ -26,7 +26,6 @@ class Eof(Exception):
     """raised by tokenizer when end of file is detected"""
     pass
 
-
 class NotFound(Exception):
     """used when a referenced item is not found"""
     pass
@@ -41,6 +40,9 @@ error_codes = \
     'EXPECTED_QUOTED_STRING':
       (1,
        'expected quoted string after \'+\' operator'),
+    'UNKNOWN_KEYWORD':
+      (1,
+       'unknown keyword "%s"'),
     'UNEXPECTED_KEYWORD':
       (1,
        'unexpected keyword "%s"'),
@@ -240,6 +242,16 @@ error_codes = \
     'DUPLICATE_NAMESPACE':
       (1,
        'duplicate namespace uri %s found in module %s'),
+    'MISSING_ARGUMENT_ATTRIBUTE':
+      (1,
+       'missing argument attribute %s'),
+    'MISSING_ARGUMENT_ELEMENT':
+      (1,
+       'missing argument element %s'),
+    'UNEXPECTED_ATTRIBUTE':
+      (1,
+       'unexpected attribute %s'),
+    
     }
 
 def err_level(tag):

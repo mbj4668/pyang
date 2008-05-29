@@ -4,8 +4,8 @@ from pyang import main
 
 ## FIXME: tmp test code
 class Context(object):
-  def __init__(self):
-    self.errors = []
+    def __init__(self):
+        self.errors = []
 
 ## FIXME: move to util
 def is_prefixed(identifier):
@@ -272,10 +272,10 @@ class YangParser(object):
 import sys
 
 def ppkeywd(tok):
-    if type(tok) == type(''):
-        return tok
-    elif is_prefixed(tok):
+    if is_prefixed(tok):
         return tok[0] + ':' + tok[1]
+    else:
+        return tok
 
 def pp(s, indent=0):
     sys.stdout.write(" " * indent + ppkeywd(s.keyword))
