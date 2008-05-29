@@ -18,9 +18,10 @@ class RelaxNGTranslator(object):
 
     Instance variables:
     
-    * module: YANG module that is being translated
+    * dc_elements: dictionary with Dublin core elements (tag -> text)
     * handler: dictionary dispatching YANG statements to handler methods
     * imported_symbols: list of used external symbols
+    * module: YANG module that is being translated
     * root_elem: root element in the constructed etree
 
     """
@@ -29,8 +30,9 @@ class RelaxNGTranslator(object):
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
         "datatypeLibrary" : "http://www.w3.org/2001/XMLSchema-datatypes",
         "xmlns:a": "http://relaxng.org/ns/compatibility/annotations/1.0",
+        "xmlns:dc": "http://purl.org/dc/terms",
     }
-    """Common attributes of the root ``grammar`` element."""
+    """Common attributes of the <grammar> element."""
 
     datatype_map = {
         "string" : "string",
@@ -51,19 +53,23 @@ class RelaxNGTranslator(object):
     def __init__(self):
         """Initialize the instance."""
         self.handler = {
+            "contact": self.handle_contact,
+            "container": self.new_element,
+            "description": self.handle_description,
+            "enum" : self.handle_enum,
+            "import" : self.noop,
+            "grouping" : self.handle_reusable,
             "leaf": self.new_element,
             "leaf-list": self.new_list,
             "list": self.new_list,
-            "container": self.new_element,
-            "description": self.handle_description,
             "namespace": self.handle_namespace,
+            "organization": self.handle_organization,
+            "pattern": self.handle_pattern,
             "prefix": self.noop,
+            "handle_revision": self.handle_revision,
             "type": self.handle_type,
             "typedef" : self.handle_reusable,
-            "grouping" : self.handle_reusable,
             "uses" : self.handle_uses,
-            "enum" : self.handle_enum,
-            "import" : self.noop
         }
 
     def translate(self, module):
@@ -74,11 +80,25 @@ class RelaxNGTranslator(object):
         self.module = module
         self.imported_modules = {}
         self.imported_symbols = []
+        self.dc_elements = {
+            "source": ("YANG module '%s' (automatic translation)" %
+                       self.module.name)
+            }
         self.root_elem = ET.Element("grammar", self.grammar_attrs)
         start = ET.SubElement(self.root_elem, "start")
         for sub in module.substmts: self.handle(sub, start)
+        self.dublin_core()
         return ET.ElementTree(element=self.root_elem)
         
+    def dublin_core(self):
+        """
+        Attach Dublin Core elements from dc_elements to <grammar>.
+        """
+        for dc in self.dc_elements:
+            dcel = ET.Element("dc:" + dc)
+            dcel.text = self.dc_elements[dc]
+            self.root_elem.insert(0, dcel)
+
     def pull_def(self, prefix, stmt, ident):
         """
         Pull the definitions of `ident` from external module carrying
@@ -107,6 +127,15 @@ class RelaxNGTranslator(object):
     def noop(self, stmt, p_elem):
         pass
 
+    def handle_contact(self, stmt, p_elem):
+        self.dc_elements["contributor"] = stmt.arg
+
+    def handle_organization(self, stmt, p_elem):
+        self.dc_elements["creator"] = stmt.arg
+
+    def handle_revision(self, stmt, p_elem):
+        self.dc_elements["issued"] = stmt.arg
+
     def new_element(self, stmt, p_elem):
         """Handle ``leaf`` or ``container."""
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
@@ -125,12 +154,20 @@ class RelaxNGTranslator(object):
 
     def handle_description(self, stmt, p_elem):
         if stmt.i_module != self.module: return # ignore imported descriptions
-        elem = ET.Element("a:documentation")
-        p_elem.insert(0, elem)
-        elem.text = stmt.arg
+        if stmt.parent == self.module: # top-level description
+            self.dc_elements["description"] = stmt.arg
+        else:
+            elem = ET.Element("a:documentation")
+            p_elem.insert(0, elem)
+            elem.text = stmt.arg
 
     def handle_namespace(self, stmt, p_elem):
         self.root_elem.attrib["ns"] = stmt.arg
+
+    def handle_pattern(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "param", name="pattern")
+        elem.text = stmt.arg
+        for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_type(self, stmt, p_elem):
         if stmt.arg in ("enumeration", "union"):
