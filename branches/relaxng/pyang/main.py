@@ -462,13 +462,24 @@ class Statement(object):
         return self.parent.search_typedef(name)
 
     def escaped_arg(self):
-        """In `self.arg`, replace characters forbidden in XML by
-        entities and return the result.
-        """
+        """In self.arg, replace characters forbidden in XML by
+        entities and return the result."""
         res = self.arg.replace("&", "&amp;")
         res = res.replace('"', "&quot;")
         res = res.replace("<", "&lt;")
         return res.replace(">", "&gt;")
+
+    def get_by_kw(self, keyword):
+        """Return the list of receiver's children with a given
+        keyword."""
+        return [ ch for ch in self.substmts if ch.keyword == keyword ]
+
+    def get_by_kw_and_arg(self, keyword, arg):
+        """Return the list of receiver's children with a given
+        `keyword` and `argument`.
+        """
+        return [ ch for ch in self.substmts
+                 if (ch.keyword == keyword and ch.arg == arg) ]
 
     def search_grouping(self, name, modules=None):
         if 'grouping' in self.__dict__:
