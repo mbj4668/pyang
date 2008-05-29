@@ -475,11 +475,29 @@ class Statement(object):
         return [ ch for ch in self.substmts if ch.keyword == keyword ]
 
     def get_by_kw_and_arg(self, keyword, arg):
-        """Return the list of receiver's children with a given
-        `keyword` and `argument`.
+        """Return the receiver's child with a given `keyword` and
+        `arg` or None if it doesn't exist.
         """
-        return [ ch for ch in self.substmts
-                 if (ch.keyword == keyword and ch.arg == arg) ]
+        for ch in self.substmts:
+            if (ch.keyword == keyword and ch.arg == arg): return ch
+        return None
+
+    def full_path(self, join=None):
+        """Return the identifiers of the receiver and all ancestor
+        nodes either as a list (if `join` is None) or as a string with
+        the identifiers joined by `join`. The first item is not module
+        name but its prefix,
+        """
+        path = [self.arg]
+        parent = self.parent
+        while parent.keyword != "module":
+            path.insert(0, parent.arg)
+            parent = parent.parent
+        path.insert(0, parent.prefix.arg)
+        if join is None:
+            return path
+        else:
+            return join.join(path)
 
     def search_grouping(self, name, modules=None):
         if 'grouping' in self.__dict__:
