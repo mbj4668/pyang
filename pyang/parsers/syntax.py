@@ -94,7 +94,7 @@ arg_type_map = {
     "path-arg": re.compile("^" + path_arg + "$"),
     "unique-arg": re.compile("^" + unique_arg + "$"),
     }
-"""Argument type definitions
+"""Argument type definitions.
 
 Regular expressions for all argument types except plain string that
 are checked directly by the parser.
