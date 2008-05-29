@@ -92,14 +92,17 @@ body_stmts = [
 ]
 
 cut = ('$cut', '*')
-"""Special substatement which marks the end of a block in which
-   the substatements may occur in any order."""
+"""Marker for end of statement block.
+
+Special substatement which marks the end of a block in which the
+substatements may occur in any order.
+"""
 
 top_stmts = [
     ('$choice', [[('module', '1')],
                  [('submodule', '1')]])
 ]
-"""top-level statements"""
+"""Top-level statements."""
 
 stmt_map = {
     'module':
@@ -413,7 +416,7 @@ stmt_map = {
            data_def_stmts),
           ]),
     }
-"""YANG statement definitions
+"""YANG statement definitions.
 
 Maps a statement name to a 2-tuple:
     (<argument type name> | None, <list of substatements> )
@@ -438,55 +441,52 @@ handler_map = {
                   
 
 def chk_module_statements(ctx, module_stmt, canonical=False):
-    """Validates the statement hierarchy according to the grammar.
+    """Validate the statement hierarchy according to the grammar.
 
-    ret: True if module is valid, False otherwise.
+    Return True if module is valid, False otherwise.
     """
-    
     n = len(ctx.errors)
-    if canonical:
-        _chk_stmts_canonical(ctx, [module_stmt], top_stmts)
-    else:
-        _chk_stmts(ctx, [module_stmt], top_stmts)
+    _chk_stmts(ctx, [module_stmt], top_stmts, canonical)
     return n == len(ctx.errors)
 
-def _chk_stmts(ctx, stmts, spec):
+def _chk_stmts(ctx, stmts, spec, canonical):
     for stmt in stmts:
         if not is_prefixed(stmt.keyword):
-            match_res = _match_stmt(ctx, stmt, spec)
+            match_res = _match_stmt(ctx, stmt, spec, canonical)
             if match_res == None:
                 main.err_add(ctx.errors, stmt.pos,
                              'UNEXPECTED_KEYWORD', stmt.keyword);
             else:
                 (_arg_type, subspec) = stmt_map[stmt.keyword]
-                _chk_stmts(ctx, stmt.substmts, subspec)
+                _chk_stmts(ctx, stmt.substmts, subspec, canonical)
                 spec = match_res
         else:
-            _chk_stmts(ctx, stmt.substmts, [])
+            _chk_stmts(ctx, stmt.substmts, [], canonical)
     # any non-optional statements left are errors
     for (keywd, occurance) in spec:
         if occurance == '1' or occurance == '+':
             main.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
                          (stmt.keyword, keywd))
 
-def _match_stmt(ctx, stmt, spec):
-    """tries to match stmt against the spec.
+def _match_stmt(ctx, stmt, spec, canonical):
+    """Match stmt against the spec.
 
-    ret: None | spec'
+    Return None | spec'
     spec' is an updated spec with the matching spec consumed
     """
-
     i = 0
-    prev_cut = 0
     while i < len(spec):
         (keywd, occurance) = spec[i]
         if keywd == stmt.keyword:
             if occurance == '1' or occurance == '?':
+                # consume this match
                 return spec[:i] + spec[i+1:]
             if occurance == '+':
+                # mark that we have found the one that was needed
                 c = (keywd, '*')
                 return spec[:i] + [c] + spec[i+1:]
             else:
+                # occurane == '*'
                 return spec
         elif keywd == '$choice':
             cases = occurance
@@ -494,121 +494,31 @@ def _match_stmt(ctx, stmt, spec):
             while j < len(cases):
                 # check if this alternative matches - check for a
                 # match with each optional keyword
-                match_res = _match_stmt(ctx, stmt, cases[j])
+                save_errors = ctx.errors
+                match_res = _match_stmt(ctx, stmt, cases[j], canonical)
                 if match_res != None:
                     # this case branch matched, use it
                     # remove the choice and add res to the spec
                     return spec[:i] + match_res + spec[i+1:]
+                # we must not report errors on non-matching branches
+                ctx.errors = save_errors
                 j = j + 1
         elif keywd == '$interleave':
             cspec = occurance
-            match_res = _match_stmt(ctx, stmt, cspec)
+            match_res = _match_stmt(ctx, stmt, cspec, canonical)
             if match_res != None:
                 # we got a match
                 return spec
         elif keywd == '$cut':
             # any non-optional statements left are errors
-            for (keywd, occurance) in spec[prev_cut:i]:
+            for (keywd, occurance) in spec[:i]:
                 if occurance == '1' or occurance == '+':
                     main.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
                                  (stmt.keyword, keywd))
-            prev_cut = i + 1
+        elif canonical == True:
+            if occurance == '1' or occurance == '+':
+                main.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
+                             (stmt.keyword, keywd))
         # check next in spec
         i = i + 1
     return None
-
-## FIXME: it *got* to be possible to make this simpler.
-##        idea: use the same alg. as above; do a version of _match_stmt
-##        for the canonical order.
-def _chk_stmts_canonical(ctx, stmts, spec, recurse=True):
-    i = 0
-    j = 0
-    # first loop over each specificed child, and compare with the
-    # statements we've got
-    while j < len(spec):
-        # skip extensions; they are always allowed
-        # FIXME: check w/ plugin-registered grammar
-        while i < len(stmts) and is_prefixed(stmts[i].keyword):
-            i += 1
-        if i == len(stmts):
-            break
-        (keywd, occurance) = spec[j]
-        if keywd == '$cut':
-            pass
-        elif keywd == '$interleave':
-            chspec = occurance
-            # check that each stmt is in the interleave spec
-            # this code does not check occurance within the interleave spec,
-            # but this is currently ok, since we don't allow anything but '*'
-            # in an interleave child spec
-            while (i < len(stmts) and
-                   (is_prefixed(stmts[i].keyword) or
-                    not util.keysearch(stmts[i].keyword, 1, chspec))):
-                i += 1
-            if i == len(stmts):
-                j += 1
-                break
-        elif keywd == '$choice':
-            cases = occurance
-            case_n = 0
-            found = False
-            while not found and case_n < len(cases):
-                # check if this case branch matches - check for a
-                # match with each optional keyword
-                k = 0
-                while not found and k < len(cases[case_n]):
-                    if stmts[i].keyword == cases[case_n][k][0]:
-                        # this choice alternative matched, use it
-                        chspec = cases[case_n]
-                        found = True
-                    occ = cases[case_n][k][1]
-                    if (occ == '+' or occ == '1'):
-                        # this stmt was mandatory but not found; check
-                        # next case branch
-                        break
-                    k += 1
-                case_n += 1
-            if not found:
-                main.err_add(ctx.errors, stmts[i].pos,
-                             'UNEXPECTED_KEYWORD', stmts[i].keyword)
-            else:
-                # this code assumes that there are no other stmts
-                # allowed after the choice.
-                _chk_stmts_canonical(ctx, stmts[i:], chspec, recurse=False)
-                i = len(stmts)
-                j = len(spec)
-                break
-        elif stmts[i].keyword == keywd:
-            i += 1
-            if occurance == '*' or occurance == '+':
-                # skip multi statements, and skip extensions
-                while i < len(stmts) and (is_prefixed(stmts[i].keyword) or
-                                          stmts[i].keyword == keywd):
-                    i += 1
-            if i == len(stmts):
-                j += 1
-                break
-        elif occurance == '1' or occurance == '+':
-            main.err_add(ctx.errors, stmts[i].pos,
-                         'UNEXPECTED_KEYWORD_1', (stmts[i].keyword, keywd))
-        j += 1
-
-    # any statements left are errors
-    for stmt in stmts[i:]:
-        main.err_add(ctx.errors, stmt.pos,
-                     'UNEXPECTED_KEYWORD', stmt.keyword)
-
-    # any non-optional statements in the spec are error
-    for (keywd, occurance) in spec[j:]:
-        if occurance == '1' or occurance == '+':
-            # FIXME: need pos from parent?
-            main.err_add(ctx.errors, None, 'EXPECTED_KEYWORD', keywd)
-        
-    # next, recursively check each statement to the spec
-    if recurse:
-        for stmt in stmts:
-            if is_prefixed(stmt.keyword):
-                subspec = []
-            else:
-                (_arg_type, subspec) = stmt_map[stmt.keyword]
-            _chk_stmts_canonical(ctx, stmt.substmts, subspec)

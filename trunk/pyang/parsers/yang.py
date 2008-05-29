@@ -13,11 +13,11 @@ def is_prefixed(identifier):
 
 
 class Abort(Exception):
-    """used for non-recoverable errors to abort parsing"""
+    """Signal a non-recoverable errors to abort parsing."""
     pass
 
 class Eof(Exception):
-    """raised by tokenizer when end of file is detected"""
+    """Signal that end of file is detected."""
     pass
 
 class YangTokenizer(object):
@@ -26,7 +26,10 @@ class YangTokenizer(object):
         self.pos = pos
         self.buf = ''
         self.linepos = 0
-        """used to remove leading whitespace from strings"""
+        """
+
+        used to remove leading whitespace from strings
+        """
         
         self.errors = errors
 
@@ -89,7 +92,7 @@ class YangTokenizer(object):
                 return (m.group(2), m.group(4))
 
     def peek(self):
-        """ret: next real character in input stream
+        """Return next real character in input stream.
 
         Skips whitespace and comments, and returns next character
         withoyt consuming it.  Use skip_tok() to consume the characater.
