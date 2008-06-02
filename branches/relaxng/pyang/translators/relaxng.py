@@ -31,6 +31,7 @@ class RelaxNGTranslator(object):
         "datatypeLibrary" : "http://www.w3.org/2001/XMLSchema-datatypes",
         "xmlns:a": "http://relaxng.org/ns/compatibility/annotations/1.0",
         "xmlns:dc": "http://purl.org/dc/terms",
+        "xmlns:sch": "http://purl.oclc.org/dsdl/schematron",
     }
     """Common attributes of the <grammar> element."""
 
@@ -62,6 +63,7 @@ class RelaxNGTranslator(object):
             "leaf": self.new_element,
             "leaf-list": self.new_list,
             "list": self.new_list,
+            "must": self.handle_must,
             "namespace": self.handle_namespace,
             "organization": self.handle_organization,
             "pattern": self.handle_pattern,
@@ -204,3 +206,13 @@ class RelaxNGTranslator(object):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
         for sub in stmt.substmts: self.handle(sub, elem)
+
+    def handle_must(self, stmt, p_elem):
+        pattern = ET.SubElement(p_elem, "sch:pattern")
+        rule = ET.SubElement(pattern, "sch:rule",
+                             context=p_elem.attrib["name"])
+        assert_ = ET.SubElement(rule, "sch:assert",
+                                test=stmt.arg.replace("$this", "."))
+        err_msg = stmt.get_by_kw("error-message")
+        if err_msg != []:
+            assert_.text = err_msg[0].arg
