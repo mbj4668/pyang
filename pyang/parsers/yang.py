@@ -1,5 +1,5 @@
-import grammar
 import syntax
+import grammar
 from pyang import main
 
 ## FIXME: tmp test code
@@ -25,11 +25,8 @@ class YangTokenizer(object):
         self.fd = fd
         self.pos = pos
         self.buf = ''
-        self.linepos = 0
-        """
-
-        used to remove leading whitespace from strings
-        """
+        self.offset = 0
+        """Position on line.  Used to remove leading whitespace from strings."""
         
         self.errors = errors
 
@@ -38,16 +35,16 @@ class YangTokenizer(object):
         if self.buf == '':
             raise Eof
         self.pos.line = self.pos.line + 1
-        self.linepos = 0
+        self.offset = 0
 
     def set_buf(self, i, pos=None):
         if pos == None:
             pos = i
-        self.linepos = self.linepos + pos
+        self.offset = self.offset + pos
         self.buf = self.buf[i:]
 
     def skip(self):
-        """skip whitespace and count position"""
+        """Skip whitespace and count position"""
         i = 0
         pos = 0
         buflen = len(self.buf)
@@ -124,7 +121,7 @@ class YangTokenizer(object):
             # collect output in strs (list of strings)
             strs = [] 
             # remember position of " character
-            indentpos = self.linepos
+            indentpos = self.offset
             i = 1
             while True:
                 buflen = len(self.buf)
@@ -197,19 +194,30 @@ class YangTokenizer(object):
 
 
 class YangParser(object):
-    def __init__(self, ctx, filename):
+    def __init__(self):
+        self.module = None
+        pass
+
+    def parse(self, ctx, filename):
+        """Parse the file containing a YANG (sub)module.
+
+        Return a Statement on success or None on failure
+        """
+
         self.ctx = ctx
         self.pos = main.Position(filename)
-        fd = open(filename, "r")
-        self.tokenizer = YangTokenizer(fd, self.pos, ctx.errors)
 
-    def parse_module(self):
         try:
+            fd = open(filename, "r")
+            self.tokenizer = YangTokenizer(fd, self.pos, ctx.errors)
             module = self._parse_statement(None)
         except Abort:
             return None
         except Eof, e:
             main.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
+            return None
+        except IOError, ex:
+            main.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
             return None
         try:
             # we expect a Eof at this point, everything else is an error
@@ -239,9 +247,12 @@ class YangParser(object):
             else:
                 arg = None
             try:
-                stmt = grammar.handler_map[keywd](parent, self.pos, arg)
+                handler = grammar.handler_map[keywd]
+                stmt = handle(self.ctx, self.module, parent, self.pos, arg)
+                if parent == None:
+                    self.module = stmt
             except KeyError:
-                stmt = main.Statement(parent, self.pos, keywd, None, arg)
+                stmt = main.Statement(parent, self.pos, keywd, self.module, arg)
         else:
             # this is an extension
             # read optional argument
