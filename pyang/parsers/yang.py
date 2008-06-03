@@ -238,21 +238,27 @@ class YangParser(object):
             except KeyError:
                 main.err_add(self.ctx.errors, self.pos,
                              'UNKNOWN_KEYWORD', keywd)
+            # check if the statement needs an argument
             if arg_type is not None:
                 arg = self.tokenizer.get_string()
+                # verify the argument syntax
                 if (arg_type != 'string' and
                     syntax.arg_type_map[arg_type].search(arg) is None):
                     main.err_add(self.ctx.errors, self.pos,
                                  'BAD_VALUE', (arg, arg_type))
             else:
                 arg = None
-            try:
-                handler = grammar.handler_map[keywd]
-                stmt = handle(self.ctx, self.module, parent, self.pos, arg)
-                if parent == None:
-                    self.module = stmt
-            except KeyError:
-                stmt = main.Statement(parent, self.pos, keywd, self.module, arg)
+            # instantiate a class representing this statement
+            if parent == None:
+                stmt = self._top_stmt(keywd, arg)
+                self.module = stmt
+            else:
+                try:
+                    handle = grammar.handler_map[keywd]
+                    stmt = handle(parent, self.pos, self.module, arg)
+                except KeyError:
+                    stmt = main.Statement(parent, self.pos, keywd,
+                                          self.module, arg)
         else:
             # this is an extension
             # read optional argument
@@ -264,6 +270,7 @@ class YangParser(object):
             (prefix, identifier) = keywd # FIXME: rewrite ExtensionStmt
             stmt = main.ExtensionStatement(parent, self.pos, identifier,
                                            prefix, arg)
+        # check for substatements
         tok = self.tokenizer.peek()
         if tok == '{':
             self.tokenizer.skip_tok() # skip the '{'
@@ -278,6 +285,17 @@ class YangParser(object):
             raise Abort
         return stmt
 
+    def _top_stmt(keywd, arg):
+        if keywd == 'module':
+            is_submodule = False
+        elif keywd == 'submodule':
+            is_submodule = True
+        else:
+            main.err_add(self.ctx.errors, self.pos,
+                         'UNEXPECTED_KEYWORD_N',
+                         (keywd, ('module', 'submodule')))
+            raise Abort
+        return main.Module(self.pos, self.ctx, arg, is_submodule),
 
 # FIXME: tmp debug
 import sys

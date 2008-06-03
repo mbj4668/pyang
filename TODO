@@ -18,3 +18,5 @@
   o  better handling of filename vs. modulename.  either enforce a
      coupling, or completely separate them (i.e. allow a file to be
      called anything, and build some kind of module->filename index)
+
+  o  send entire text file contents to the parse functions
