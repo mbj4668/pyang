@@ -9,8 +9,8 @@ import time
 import libxml2
 import types
 
-import pyang.plugin
 import tokenizer
+#import pyang.parsers.yang
 
 from util import attrsearch, keysearch, dictsearch
 
@@ -403,6 +403,8 @@ class Context(object):
             # by default, assume it's yang
             p = YangParser(self, filename)
             module = p.parse_module()
+#            p = pyang.parsers.yang.YangParser()
+#            module = p.parse(self, filename)
 
         if module == None:
             return None
@@ -2088,8 +2090,8 @@ class Rpc(SchemaNodeStatement):
 class Params(SchemaNodeStatement):
     def __init__(self, parent, pos, arg, module):
         SchemaNodeStatement.__init__(self, parent, pos,
-                                arg,
-                                module, arg)
+                                     arg,
+                                     module, arg)
         # argument
         self.name = arg
         # statements

@@ -428,34 +428,38 @@ where <occurance> is one of: '?', '1', '+', '*'.
 and <case> is a list of substatements
 """
 
-# FIXME: this map is not correct yet
-# possibly remove in the future, if we don't have these special classes
+# FIXME: possibly remove in the future, if we don't have these special classes
 handler_map = {
-    'module':
-        lambda ctx, module, parent, pos, arg: \
-            # FIXME: name is set later, remove from Module init
-            main.Module(ctx, pos, None, arg, is_submodule=False),
-    'submodule':
-        lambda ctx, module, parent, pos, arg: \
-            main.Module(pos, arg, None, is_submodule=True),
-    'import':
-        lambda ctx, module, parent, pos, arg: \
-            main.Import(parent, pos, module, arg),
-    'include':
-        lambda ctx, module, parent, pos, arg: \
-            main.Include(parent, pos, module, arg),
-    'revision':
-        lambda ctx, module, parent, pos, arg: \
-            main.Revision(parent, pos, module, arg),
-    'typedef':
-        lambda ctx, module, parent, pos, arg: \
-            main.Typedef(parent, pos, module, arg),
-    'grouping':
-        lambda ctx, module, parent, pos, arg: \
-            main.Grouping(parent, pos, module, arg),
-    'extension':
-        lambda ctx, module, parent, pos, arg: \
-            main.Extension(parent, pos, module, arg),
+    'import': main.Import,
+    'include': main.Include,
+    'revision': main.Revision,
+    'typedef': main.Typedef,
+    'grouping': main.Grouping,
+    'extension': main.Extension,
+    'argument': main.Argument,
+    'type': main.Type,
+    'range': main.Range,
+    'length': main.Length,
+    'pattern': main.Pattern,
+    'path': main.Path,
+    'must': main.Must,
+    'enum': main.Enum,
+    'bit': main.Bit,
+    'leaf': main.Leaf,
+    'leaf-list': main.LeafList,
+    'container': main.Container,
+    'list': main.List,
+    'uses': main.Uses,
+    'choice': main.Choice,
+    'case': main.Case,
+    'augment': main.Augment,
+    'anyxml': main.AnyXML,
+    'rpc': main.Rpc,
+    'input': lambda parent, pos, arg, module: \
+               main.Params(parent, pos, 'input', module),
+    'output': lambda parent, pos, arg, module: \
+               main.Params(parent, pos, 'output', module),
+    'notification': main.Notification,
     }
                   
 
