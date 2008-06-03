@@ -368,7 +368,7 @@ stmt_map = {
           ('reference', '?'),
           ('$interleave',
            # FIXME: should handle input & output here, unless the
-           # spec is fixed (see mail thread)
+           # spec is fixed (see netmod mail thread)
            [('case', '*')] +
            data_def_stmts),
           ]),
@@ -432,11 +432,30 @@ and <case> is a list of substatements
 # possibly remove in the future, if we don't have these special classes
 handler_map = {
     'module':
-        lambda parent, pos, arg: main.Module(pos, None, arg, is_submodule=False),
+        lambda ctx, module, parent, pos, arg: \
+            # FIXME: name is set later, remove from Module init
+            main.Module(ctx, pos, None, arg, is_submodule=False),
     'submodule':
-        lambda parent, pos, arg: main.Module(pos, arg, is_submodule=True),
+        lambda ctx, module, parent, pos, arg: \
+            main.Module(pos, arg, None, is_submodule=True),
+    'import':
+        lambda ctx, module, parent, pos, arg: \
+            main.Import(parent, pos, module, arg),
+    'include':
+        lambda ctx, module, parent, pos, arg: \
+            main.Include(parent, pos, module, arg),
+    'revision':
+        lambda ctx, module, parent, pos, arg: \
+            main.Revision(parent, pos, module, arg),
     'typedef':
-        lambda parent, pos, arg: main.Typedef(parent, pos, None, arg),
+        lambda ctx, module, parent, pos, arg: \
+            main.Typedef(parent, pos, module, arg),
+    'grouping':
+        lambda ctx, module, parent, pos, arg: \
+            main.Grouping(parent, pos, module, arg),
+    'extension':
+        lambda ctx, module, parent, pos, arg: \
+            main.Extension(parent, pos, module, arg),
     }
                   
 
@@ -461,6 +480,7 @@ def _chk_stmts(ctx, stmts, spec, canonical):
                 _chk_stmts(ctx, stmt.substmts, subspec, canonical)
                 spec = match_res
         else:
+            # FIXME: handle plugin-registered extension grammar
             _chk_stmts(ctx, stmt.substmts, [], canonical)
     # any non-optional statements left are errors
     for (keywd, occurance) in spec:
