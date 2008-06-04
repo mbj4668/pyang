@@ -5,15 +5,17 @@ from xml.sax.saxutils import escape
 
 import re
 
-import pyang.plugin
-import pyang.main as main
-import pyang.tokenizer as ptok
+from pyang import main
+from pyang import plugin
+from pyang import error
+from pyang import statement
+from pyang import util
 from pyang.util import attrsearch
 
 def pyang_plugin_init():
-    pyang.main.register_plugin(YINPlugin())
+    main.register_plugin(YINPlugin())
 
-class YINPlugin(pyang.plugin.PyangPlugin):
+class YINPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         fmts['yin'] = self
     def emit(self, ctx, module, writef):
@@ -22,12 +24,207 @@ class YINPlugin(pyang.plugin.PyangPlugin):
 
 ## FIXME: rewrite to use Stmt.substmts instead of re-parsing the file
 
+
+
+T_SEMICOLON   = 1
+T_OPEN_BRACE  = 2
+T_CLOSE_BRACE = 3
+
+def is_tok(tok):
+    return type(tok) == type(T_SEMICOLON)
+
+def tok_to_str(tok):
+    if type(tok) == type(''):
+        return tok
+    elif util.is_prefixed(tok):
+        return tok[0] + ':' + tok[1]
+    elif tok == T_SEMICOLON:
+        return ';'
+    elif tok == T_OPEN_BRACE:
+        return '{'
+    elif tok == T_CLOSE_BRACE:
+        return '}'
+
+class YangTokenizer(object):
+    def __init__(self, fd, pos, errors):
+        self.fd = fd
+        self.pos = pos
+        self.buf = ''
+        self.linepos = 0  # used to remove leading whitespace from strings
+        self.errors = errors
+
+    def readline(self):
+        self.buf = file.readline(self.fd)
+        if self.buf == '':
+            raise error.Eof
+        self.pos.line = self.pos.line + 1
+        self.linepos = 0
+
+    def set_buf(self, i, pos=None):
+        if pos == None:
+            pos = i
+        self.linepos = self.linepos + pos
+        self.buf = self.buf[i:]
+
+    def skip(self):
+        # skip whitespace and count position
+        i = 0
+        pos = 0
+        buflen = len(self.buf)
+        while i < buflen and self.buf[i].isspace():
+            if self.buf[i] == '\t':
+                pos = pos + 8
+            else:
+                pos = pos + 1
+            i = i + 1
+        if i == buflen:
+            self.readline()
+            return self.skip()
+        else:
+            self.set_buf(i, pos)
+        # skip line comment
+        if self.buf.startswith('//'):
+            self.readline()
+            return self.skip()
+        # skip block comment
+        elif self.buf.startswith('/*'):
+            i = self.buf.find('*/')
+            while i == -1:
+                self.readline()
+                i = self.buf.find('*/')
+            self.set_buf(i+2)
+            return self.skip()
+
+    # ret: token() | identifier | (prefix, identifier)
+    def get_keyword(self):
+        self.skip()
+        try:
+            return self.get_tok()
+        except ValueError:
+            pass
+
+        m = statement.re_keyword.match(self.buf)
+        if m == None:
+            error.err_add(self.errors, self.pos,
+                         'UNEXPECTED_KEYWORD', self.buf)
+            raise error.Abort
+        else:
+            self.set_buf(m.end())
+            if m.group(2) == None: # no prefix
+                return m.group(4)
+            else:
+                return (m.group(2), m.group(4))
+
+    # ret: token()
+    def get_tok(self):
+        self.skip()
+        if self.buf[0] == ';':
+            self.set_buf(1)
+            return T_SEMICOLON
+        elif self.buf[0] == '{':
+            self.set_buf(1)
+            return T_OPEN_BRACE;
+        elif self.buf[0] == '}':
+            self.set_buf(1)
+            return T_CLOSE_BRACE;
+        raise ValueError
+    
+    # ret: token() | string
+    def get_string(self, need_quote=False):
+        self.skip()
+        try:
+            return self.get_tok()
+        except ValueError:
+            pass
+        
+        if self.buf[0] == '"' or self.buf[0] == "'":
+            # for double-quoted string,  loop over string and translate
+            # escaped characters.  also strip leading whitespace as
+            # necessary.
+            # for single-quoted string, keep going until end quote is found.
+            quote_char = self.buf[0]
+            # collect output in strs (list of strings)
+            strs = [] 
+            # remember position of " character
+            indentpos = self.linepos
+            i = 1
+            while True:
+                buflen = len(self.buf)
+                start = i
+                while i < buflen:
+                    if self.buf[i] == quote_char:
+                        # end-of-string; copy the buf to output
+                        strs.append(self.buf[start:i])
+                        # and trim buf
+                        self.set_buf(i+1)
+                        # check for '+' operator
+                        self.skip()
+                        if self.buf[0] == '+':
+                            self.set_buf(1)
+                            self.skip()
+                            nstr = self.get_string(need_quote=True)
+                            if (type(nstr) != type('')):
+                                error.err_add(self.errors, self.pos,
+                                              'EXPECTED_QUOTED_STRING', ())
+                                raise error.Abort
+                            strs.append(nstr)
+                        return ''.join(strs)
+                    elif (quote_char == '"' and
+                          self.buf[i] == '\\' and i < (buflen-1)):
+                        # check for special characters
+                        special = None
+                        if self.buf[i+1] == 'n':
+                            special = '\n'
+                        elif self.buf[i+1] == 't':
+                            special = '\t'
+                        elif self.buf[i+1] == '\"':
+                            special = '\"'
+                        elif self.buf[i+1] == '\\':
+                            special = '\\'
+                        if special != None:
+                            strs.append(self.buf[start:i])
+                            strs.append(special)
+                            i = i + 1
+                            start = i + 1
+                    i = i + 1
+                # end-of-line, keep going
+                strs.append(self.buf[start:i])
+                self.readline()
+                i = 0
+                if quote_char == '"':
+                    # skip whitespace used for indentation
+                    buflen = len(self.buf)
+                    while (i < buflen and self.buf[i].isspace() and
+                           i <= indentpos):
+                        i = i + 1
+                    if i == buflen:
+                        # whitespace only on this line; keep it as is
+                        i = 0
+        elif need_quote == True:
+            error.err_add(self.errors, self.pos, 'EXPECTED_QUOTED_STRING', ())
+            raise error.Abort
+        else:
+            # unquoted string
+            buflen = len(self.buf)
+            i = 0
+            while i < buflen:
+                if (self.buf[i].isspace() or self.buf[i] == ';' or
+                    self.buf[i] == '{' or self.buf[i] == '}' or
+                    self.buf[i:i+2] == '//' or self.buf[i:i+2] == '/*' or
+                    self.buf[i:i+2] == '*/'):
+                    res = self.buf[:i]
+                    self.set_buf(i)
+                    return res
+                i = i + 1
+
+
+
 # PRE: the file is syntactically correct
 def emit_yin(ctx, module, writef):
     filename = ctx.filename
-    pos = main.Position(filename)
+    pos = error.Position(filename)
     fd = open(filename, "r")
-    tokenizer = ptok.YangTokenizer(fd, pos, ctx.errors)
+    tokenizer = YangTokenizer(fd, pos, ctx.errors)
     writef('<?xml version="1.0" encoding="UTF-8"?>\n')
     if module.i_is_submodule:
         mtype = 'submodule'
@@ -59,9 +256,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
     keywd = tokenizer.get_keyword()
     argname = None
     argiselem = False
-    if keywd == ptok.T_CLOSE_BRACE:
+    if keywd == T_CLOSE_BRACE:
         return;
-    elif main.is_prefixed(keywd):
+    elif util.is_prefixed(keywd):
         (prefix, identifier) = keywd
         new_prefix = prefix
         tag = prefix + ':' + identifier
@@ -89,9 +286,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
     if argname == None:
         tok = tokenizer.get_tok() # ; or {
         # no argument for this keyword
-        if tok == ptok.T_SEMICOLON:
+        if tok == T_SEMICOLON:
             writef(indent + '<' + tag + '/>\n')
-        elif tok == ptok.T_OPEN_BRACE:
+        elif tok == T_OPEN_BRACE:
             writef(indent + '<' + tag + '>\n')
             _yang_to_yin(ctx, module, tokenizer, writef,
                          indent + '  ', new_prefix)
@@ -102,9 +299,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
         if argiselem == False:
             # print argument as an attribute
             argstr = argname + '=' + quoteattr(arg)
-            if tok == ptok.T_SEMICOLON:
+            if tok == T_SEMICOLON:
                 writef(indent + '<' + tag + ' ' + argstr + '/>\n')
-            elif tok == ptok.T_OPEN_BRACE:
+            elif tok == T_OPEN_BRACE:
                 writef(indent + '<' + tag + ' ' + argstr + '>\n')
                 _yang_to_yin(ctx, module, tokenizer, writef,
                              indent + '  ', new_prefix)
@@ -121,9 +318,9 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
             writef(indent + '  <' + argname + '>\n')
             writef(fmt_text(indent + '    ', arg))
             writef('\n' + indent + '  </' + argname + '>\n')
-            if tok == ptok.T_SEMICOLON:
+            if tok == T_SEMICOLON:
                 pass
-            elif tok == ptok.T_OPEN_BRACE:
+            elif tok == T_OPEN_BRACE:
                 _yang_to_yin(ctx, module, tokenizer, writef,
                              indent + '  ', new_prefix)
             writef(indent + '</' + tag + '>\n')

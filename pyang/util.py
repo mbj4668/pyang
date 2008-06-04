@@ -20,3 +20,10 @@ def dictsearch(val, dict):
     except StopIteration:
         return None
 
+def is_prefixed(identifier):
+    return type(identifier) == type(()) and len(identifier) == 2
+
+def is_local(identifier):
+    return type(identifier) == type('')
+
+

@@ -1,24 +1,8 @@
 import syntax
 import grammar
-from pyang import main
-
-## FIXME: tmp test code
-class Context(object):
-    def __init__(self):
-        self.errors = []
-
-## FIXME: move to util
-def is_prefixed(identifier):
-    return type(identifier) == type(()) and len(identifier) == 2
-
-
-class Abort(Exception):
-    """Signal a non-recoverable errors to abort parsing."""
-    pass
-
-class Eof(Exception):
-    """Signal that end of file is detected."""
-    pass
+from pyang import error
+from pyang import statement
+from pyang import util
 
 class YangTokenizer(object):
     def __init__(self, fd, pos, errors):
@@ -33,7 +17,7 @@ class YangTokenizer(object):
     def readline(self):
         self.buf = file.readline(self.fd)
         if self.buf == '':
-            raise Eof
+            raise error.Eof
         self.pos.line = self.pos.line + 1
         self.offset = 0
 
@@ -76,11 +60,11 @@ class YangTokenizer(object):
         """ret: identifier | (prefix, identifier)"""
         self.skip()
 
-        m = main.re_keyword.match(self.buf)
+        m = statement.re_keyword.match(self.buf)
         if m == None:
-            main.err_add(self.errors, self.pos,
-                         'UNEXPECTED_KEYWORD', self.buf)
-            raise Abort
+            error.err_add(self.errors, self.pos,
+                          'SYNTAX_ERROR', 'illegal keyword: ' + self.buf)
+            raise error.Abort
         else:
             self.set_buf(m.end())
             if m.group(2) == None: # no prefix
@@ -98,7 +82,7 @@ class YangTokenizer(object):
         try:
             return self.buf[0]
         except:
-            raise Eof
+            raise error.Eof
 
     def skip_tok(self):
         self.skip()
@@ -109,9 +93,9 @@ class YangTokenizer(object):
         self.skip()
         
         if self.buf[0] == ';' or self.buf[0] == '{' or self.buf[0] == '}':
-            main.err_add(self.errors, self.pos,
-                         'EXPECTED_ARGUMENT', self.buf[0])
-            raise Abort
+            error.err_add(self.errors, self.pos,
+                          'EXPECTED_ARGUMENT', self.buf[0])
+            raise error.Abort
         if self.buf[0] == '"' or self.buf[0] == "'":
             # for double-quoted string,  loop over string and translate
             # escaped characters.  also strip leading whitespace as
@@ -139,9 +123,9 @@ class YangTokenizer(object):
                             self.skip()
                             nstr = self.get_string(need_quote=True)
                             if (type(nstr) != type('')):
-                                main.err_add(self.errors, self.pos,
-                                             'EXPECTED_QUOTED_STRING', ())
-                                raise Abort
+                                error.err_add(self.errors, self.pos,
+                                              'EXPECTED_QUOTED_STRING', ())
+                                raise error.Abort
                             strs.append(nstr)
                         return ''.join(strs)
                     elif (quote_char == '"' and
@@ -176,8 +160,8 @@ class YangTokenizer(object):
                         # whitespace only on this line; keep it as is
                         i = 0
         elif need_quote == True:
-            main.err_add(self.errors, self.pos, 'EXPECTED_QUOTED_STRING', ())
-            raise Abort
+            error.err_add(self.errors, self.pos, 'EXPECTED_QUOTED_STRING', ())
+            raise error.Abort
         else:
             # unquoted string
             buflen = len(self.buf)
@@ -205,47 +189,48 @@ class YangParser(object):
         """
 
         self.ctx = ctx
-        self.pos = main.Position(filename)
+        self.pos = error.Position(filename)
 
         try:
             fd = open(filename, "r")
             self.tokenizer = YangTokenizer(fd, self.pos, ctx.errors)
             module = self._parse_statement(None)
-        except Abort:
+        except error.Abort:
             return None
-        except Eof, e:
-            main.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
+        except error.Eof, e:
+            error.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
             return None
         except IOError, ex:
-            main.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
+            error.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
             return None
         try:
-            # we expect a Eof at this point, everything else is an error
+            # we expect a error.Eof at this point, everything else is an error
             self.tokenizer.peek()
-        except Eof:
+        except error.Eof:
             return module
         except:
             pass
-        main.err_add(self.ctx.errors, self.pos, 'TRAILING_GARBAGE', ())
+        error.err_add(self.ctx.errors, self.pos, 'TRAILING_GARBAGE', ())
         return None
 
     def _parse_statement(self, parent):
         keywd = self.tokenizer.get_keyword()
-        if not is_prefixed(keywd):
+        if not util.is_prefixed(keywd):
             # this is a core YANG keyword
             try:
                 (arg_type, _children) = grammar.stmt_map[keywd]
             except KeyError:
-                main.err_add(self.ctx.errors, self.pos,
-                             'UNKNOWN_KEYWORD', keywd)
+                arg_type = None
+                error.err_add(self.ctx.errors, self.pos,
+                              'UNKNOWN_KEYWORD', keywd)
             # check if the statement needs an argument
             if arg_type is not None:
                 arg = self.tokenizer.get_string()
                 # verify the argument syntax
                 if (arg_type != 'string' and
                     syntax.arg_type_map[arg_type].search(arg) is None):
-                    main.err_add(self.ctx.errors, self.pos,
-                                 'BAD_VALUE', (arg, arg_type))
+                    error.err_add(self.ctx.errors, self.pos,
+                                  'BAD_VALUE', (arg, arg_type))
             else:
                 arg = None
             # instantiate a class representing this statement
@@ -257,7 +242,7 @@ class YangParser(object):
                     handle = grammar.handler_map[keywd]
                     stmt = handle(parent, self.pos, self.module, arg)
                 except KeyError:
-                    stmt = main.Statement(parent, self.pos, keywd,
+                    stmt = statement.Statement(parent, self.pos, keywd,
                                           self.module, arg)
         else:
             # this is an extension
@@ -268,7 +253,7 @@ class YangParser(object):
             else:
                 arg = self.tokenizer.get_string()
             (prefix, identifier) = keywd # FIXME: rewrite ExtensionStmt
-            stmt = main.ExtensionStatement(parent, self.pos, identifier,
+            stmt = statement.ExtensionStatement(parent, self.pos, identifier,
                                            prefix, arg)
         # check for substatements
         tok = self.tokenizer.peek()
@@ -281,27 +266,27 @@ class YangParser(object):
         elif tok == ';':
             self.tokenizer.skip_tok() # skip the ';'
         else:
-            main.err_add(self.ctx.errors, self.pos, 'INCOMPLETE_STATEMENT', tok)
-            raise Abort
+            error.err_add(self.ctx.errors, self.pos, 'INCOMPLETE_STATEMENT', tok)
+            raise error.Abort
         return stmt
 
-    def _top_stmt(keywd, arg):
+    def _top_stmt(self, keywd, arg):
         if keywd == 'module':
             is_submodule = False
         elif keywd == 'submodule':
             is_submodule = True
         else:
-            main.err_add(self.ctx.errors, self.pos,
-                         'UNEXPECTED_KEYWORD_N',
-                         (keywd, ('module', 'submodule')))
-            raise Abort
-        return main.Module(self.pos, self.ctx, arg, is_submodule),
+            error.err_add(self.ctx.errors, self.pos,
+                          'UNEXPECTED_KEYWORD_N',
+                          (keywd, ('module', 'submodule')))
+            raise error.Abort
+        return statement.Module(self.pos, self.ctx, arg, is_submodule)
 
 # FIXME: tmp debug
 import sys
 
 def ppkeywd(tok):
-    if is_prefixed(tok):
+    if util.is_prefixed(tok):
         return tok[0] + ':' + tok[1]
     else:
         return tok

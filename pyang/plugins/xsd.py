@@ -8,8 +8,9 @@ import re
 import copy
 import sys
 
-import pyang.plugin
-import pyang.main
+from pyang import main
+from pyang import plugin
+from pyang import util
 from pyang.util import attrsearch
 
 yang_to_xsd_types = \
@@ -35,9 +36,9 @@ yang_to_xsd_types = \
    }
 
 def pyang_plugin_init():
-    pyang.main.register_plugin(XSDPlugin())
+    main.register_plugin(XSDPlugin())
 
-class XSDPlugin(pyang.plugin.PyangPlugin):
+class XSDPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):
         optlist = [
             optparse.make_option("--xsd-no-appinfo",
@@ -204,7 +205,7 @@ def emit_xsd(ctx, module, writef):
     writef('    <xs:documentation>\n')
     writef('      This schema was generated from the YANG module %s\n' % \
            module.name)
-    writef('      by pyang version %s.\n' % pyang.main.pyang_version)
+    writef('      by pyang version %s.\n' % main.pyang_version)
     writef('\n')
     writef('      The schema describes an instance document consisting of the\n')
     writef('      entire configuration data store and operational data.  This\n')
@@ -609,14 +610,14 @@ def xsd_print_simple_type(ctx, module, writef, indent, type, attrstr, descr):
 
 def xsd_print_annotation(ctx, writef, indent, obj):
     def is_appinfo(keyword):
-        if pyang.main.is_prefixed(keyword) == True:
+        if util.is_prefixed(keyword) == True:
             return False
-        (argname, argiselem, argappinfo) = pyang.main.yang_keywords[keyword]
+        (argname, argiselem, argappinfo) = main.yang_keywords[keyword]
         return argappinfo
     
     def do_print(indent, stmt):
         keyword = stmt.keyword
-        (argname, argiselem, argappinfo) = pyang.main.yang_keywords[keyword]
+        (argname, argiselem, argappinfo) = main.yang_keywords[keyword]
         if argname == None:
             writef(indent + '<yin:' + keyword + '/>\n')
         elif argiselem == False:
