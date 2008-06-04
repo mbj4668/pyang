@@ -10,7 +10,7 @@ import libxml2
 import types
 
 import tokenizer
-#import pyang.parsers.yang
+import pyang.parsers.yang
 
 from util import attrsearch, keysearch, dictsearch
 
@@ -34,6 +34,9 @@ class NotFound(Exception):
 
 error_codes = \
     {
+    'IO_ERROR':
+      (1,
+       'io error: %s'),
     'EOF_ERROR':
       (1,
        'premature end of file'),
@@ -46,6 +49,9 @@ error_codes = \
     'UNEXPECTED_KEYWORD':
       (1,
        'unexpected keyword "%s"'),
+    'UNKNOWN_KEYWORD':
+      (1,
+       'unknown keyword "%s"'),
     'UNEXPECTED_KEYWORD_1':
       (1,
        'unexpected keyword "%s", expected %s'),
@@ -401,10 +407,10 @@ class Context(object):
             module = p.parse_module()
         else:
             # by default, assume it's yang
-            p = YangParser(self, filename)
-            module = p.parse_module()
-#            p = pyang.parsers.yang.YangParser()
-#            module = p.parse(self, filename)
+#            p = YangParser(self, filename)
+#            module = p.parse_module()
+            p = pyang.parsers.yang.YangParser()
+            module = p.parse(self, filename)
 
         if module == None:
             return None
