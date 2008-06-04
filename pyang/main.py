@@ -193,7 +193,7 @@ yang_keywords = \
      'submodule':        ('name',        False,      False),
      'type':             ('name',        False,      False),
      'typedef':          ('name',        False,      False),
-     'unique':           ('value',       False,      False),
+     'unique':           ('tag',         False,      False),
      'units':            ('name',        False,      True),
      'uses':             ('name',        False,      False),
      'value':            ('value',       False,      False),

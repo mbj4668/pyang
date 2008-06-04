@@ -52,7 +52,6 @@ class XSDPlugin(plugin.PyangPlugin):
             ]
         g = optparser.add_option_group("XSD specific options")
         g.add_options(optlist)
-            
     def add_output_format(self, fmts):
         fmts['xsd'] = self
     def setup_context(self, ctx):
