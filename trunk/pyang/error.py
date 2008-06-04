@@ -246,10 +246,10 @@ error_codes = \
        'duplicate namespace uri %s found in module %s'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
-       'missing argument attribute %s'),
+       'missing argument attribute "%s"'),
     'MISSING_ARGUMENT_ELEMENT':
       (1,
-       'missing argument element %s'),
+       'missing argument element "%s" for "%s"'),
     'UNEXPECTED_ATTRIBUTE':
       (1,
        'unexpected attribute %s'),

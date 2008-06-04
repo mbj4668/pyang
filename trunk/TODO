@@ -2,8 +2,6 @@
 
   o  add validation of XPath (lower prio) (when, must)
 
-  o  add YIN parser
-
   o  add more stuff to XSD output:
      o  generate xs:unique for 'unique'
 

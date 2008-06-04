@@ -3,6 +3,7 @@
 from xml.sax.saxutils import quoteattr
 from xml.sax.saxutils import escape
 
+import optparse
 import re
 
 from pyang import main
@@ -16,6 +17,15 @@ def pyang_plugin_init():
     main.register_plugin(YINPlugin())
 
 class YINPlugin(plugin.PyangPlugin):
+    def add_opts(self, optparser):
+        optlist = [
+            optparse.make_option("--yin-pretty-strings",
+                                 dest="yin_pretty_strings",
+                                 action="store_true",
+                                 help="Pretty print strings"),
+            ]
+        g = optparser.add_option_group("YIN specific options")
+        g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['yin'] = self
     def emit(self, ctx, module, writef):
@@ -233,6 +243,8 @@ def emit_yin(ctx, module, writef):
         mtype = 'module'
         xindent = ''
     writef('<%s xmlns="urn:ietf:params:xml:ns:yang:yin:1"\n' % mtype)
+    writef(xindent + '        xmlns:' + module.prefix.arg + '=' +
+                   quoteattr(module.namespace.arg) + '\n')
     for pre in module.i_prefixes:
         modname = module.i_prefixes[pre]
         mod = ctx.modules[modname]
@@ -266,18 +278,22 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
         if mod != None:
             ext = attrsearch(identifier, 'name', mod.extension)
             if ext.argument != None:
-                argname = ext.argument.name
                 if ext.argument.yin_element != None:
+                    argname = prefix + ':' + ext.argument.name
                     argiselem = ext.argument.yin_element.arg == 'true'
+                else:
+                    argname = ext.argument.name
     elif cur_prefix != None:
         tag = keywd
         try:
             mod = ctx.modules[module.i_prefixes[cur_prefix]]
             ext = attrsearch(keywd, 'name', mod.extension)
             if ext.argument != None:
-                argname = ext.argument.name
                 if ext.argument.yin_element != None:
+                    argname = cur_prefix + ':' + ext.argument.name
                     argiselem = ext.argument.yin_element.arg == 'true'
+                else:
+                    argname = ext.argument.name
         except KeyError:
             pass
     else:
@@ -309,15 +325,18 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
         else:
             # print argument as an element
             writef(indent + '<' + tag + '>\n')
-## FIXME: since whitespace is significant in XML, the current
-## code is strictly speaking incorrect.  But w/o the whitespace,
-## it looks too ugly.
-#            writef(indent + '  <' + argname + '>' + \
-#                   escape(arg) + \
-#                   '</' + argname + '>\n')
-            writef(indent + '  <' + argname + '>\n')
-            writef(fmt_text(indent + '    ', arg))
-            writef('\n' + indent + '  </' + argname + '>\n')
+            if ctx.opts.yin_pretty_strings:
+                # since whitespace is significant in XML, the current
+                # code is strictly speaking incorrect.  But w/o the whitespace,
+                # it looks too ugly.
+                writef(indent + '  <' + argname + '>\n')
+                writef(fmt_text(indent + '    ', arg))
+                writef('\n' + indent + '  </' + argname + '>\n')
+            else:
+                writef(indent + '  <' + argname + '>' + \
+                           escape(arg) + \
+                           '</' + argname + '>\n')
+
             if tok == T_SEMICOLON:
                 pass
             elif tok == T_OPEN_BRACE:

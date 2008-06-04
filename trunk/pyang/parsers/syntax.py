@@ -142,7 +142,7 @@ yin_map = {
     "pattern": (False, "value"),
     "position": (False, "value"),
     "prefix": (False, "value"),
-    "presence": (True, "info"),
+    "presence": (False, "value"),
     "range": (False, "value"),
     "reference": (False, "info"),
     "revision": (False, "date"),
