@@ -1,7 +1,8 @@
 """Description of YANG & YIN grammar."""
 
-from pyang import main
+from pyang import statement
 from pyang import util
+from pyang import error
 import syntax
 
 # test:
@@ -14,11 +15,6 @@ import syntax
 # }
 #
 # also test negative w/ 2 input stmnts.
-
-# FIXME: move to util
-def is_prefixed(identifier):
-    return type(identifier) == type(()) and len(identifier) == 2
-
 
 module_header_stmts = [
     ('yang-version', '?'),
@@ -174,7 +170,7 @@ stmt_map = {
           ('reference', '?'),
           ]),
     'type':
-        ('identifier',
+        ('identifier-ref',
          [('$choice',
            [[('range', '?')],
             [('length', '?'),
@@ -191,7 +187,7 @@ stmt_map = {
           ('reference', '?'),
           ]),
     'length':
-        ('lentgh-arg',
+        ('length-arg',
          [('error-message', '?'),
           ('error-app-tag', '?'),
           ('description', '?'),
@@ -276,7 +272,8 @@ stmt_map = {
           ]),
     'leaf':
         ('identifier',
-         [('type', '1'),
+         [#('type', '1'), # FIXME: optional for refinements
+          ('type', '?'),
           ('units', '?'),
           ('must', '*'),
           ('default', '?'),
@@ -288,7 +285,8 @@ stmt_map = {
           ]),
     'leaf-list':
         ('identifier',
-         [('type', '1'),
+         [#('type', '1'), # FIXME: optional for refinements
+          ('type', '?'),
           ('units', '?'),
           ('must', '*'),
           ('config', '?'),
@@ -430,36 +428,36 @@ and <case> is a list of substatements
 
 # FIXME: possibly remove in the future, if we don't have these special classes
 handler_map = {
-    'import': main.Import,
-    'include': main.Include,
-    'revision': main.Revision,
-    'typedef': main.Typedef,
-    'grouping': main.Grouping,
-    'extension': main.Extension,
-    'argument': main.Argument,
-    'type': main.Type,
-    'range': main.Range,
-    'length': main.Length,
-    'pattern': main.Pattern,
-    'path': main.Path,
-    'must': main.Must,
-    'enum': main.Enum,
-    'bit': main.Bit,
-    'leaf': main.Leaf,
-    'leaf-list': main.LeafList,
-    'container': main.Container,
-    'list': main.List,
-    'uses': main.Uses,
-    'choice': main.Choice,
-    'case': main.Case,
-    'augment': main.Augment,
-    'anyxml': main.AnyXML,
-    'rpc': main.Rpc,
-    'input': lambda parent, pos, arg, module: \
-               main.Params(parent, pos, 'input', module),
-    'output': lambda parent, pos, arg, module: \
-               main.Params(parent, pos, 'output', module),
-    'notification': main.Notification,
+    'import': lambda a,b,c,d: statement.Import(a,b,c,d),
+    'include': lambda a,b,c,d: statement.Include(a,b,c,d),
+    'revision': lambda a,b,c,d: statement.Revision(a,b,c,d),
+    'typedef': lambda a,b,c,d: statement.Typedef(a,b,c,d),
+    'grouping': lambda a,b,c,d: statement.Grouping(a,b,c,d),
+    'extension': lambda a,b,c,d: statement.Extension(a,b,c,d),
+    'argument': lambda a,b,c,d: statement.Argument(a,b,c,d),
+    'type': lambda a,b,c,d: statement.Type(a,b,c,d),
+    'range': lambda a,b,c,d: statement.Range(a,b,c,d),
+    'length': lambda a,b,c,d: statement.Length(a,b,c,d),
+    'pattern': lambda a,b,c,d: statement.Pattern(a,b,c,d),
+    'path': lambda a,b,c,d: statement.Path(a,b,c,d),
+    'must': lambda a,b,c,d: statement.Must(a,b,c,d),
+    'enum': lambda a,b,c,d: statement.Enum(a,b,c,d),
+    'bit': lambda a,b,c,d: statement.Bit(a,b,c,d),
+    'leaf': lambda a,b,c,d: statement.Leaf(a,b,c,d),
+    'leaf-list': lambda a,b,c,d: statement.LeafList(a,b,c,d),
+    'container': lambda a,b,c,d: statement.Container(a,b,c,d),
+    'list': lambda a,b,c,d: statement.List(a,b,c,d),
+    'uses': lambda a,b,c,d: statement.Uses(a,b,c,d),
+    'choice': lambda a,b,c,d: statement.Choice(a,b,c,d),
+    'case': lambda a,b,c,d: statement.Case(a,b,c,d),
+    'augment': lambda a,b,c,d: statement.Augment(a,b,c,d),
+    'anyxml': lambda a,b,c,d: statement.AnyXML(a,b,c,d),
+    'rpc': lambda a,b,c,d: statement.Rpc(a,b,c,d),
+    'input': lambda parent, pos, module, arg: \
+               statement.Params(parent, pos, 'input', module),
+    'output': lambda parent, pos, module, arg: \
+               statement.Params(parent, pos, 'output', module),
+    'notification': lambda a,b,c,d: statement.Notification(a,b,c,d),
     }
                   
 
@@ -469,28 +467,29 @@ def chk_module_statements(ctx, module_stmt, canonical=False):
     Return True if module is valid, False otherwise.
     """
     n = len(ctx.errors)
-    _chk_stmts(ctx, [module_stmt], top_stmts, canonical)
+    _chk_stmts(ctx, module_stmt.pos, [module_stmt], top_stmts, canonical)
     return n == len(ctx.errors)
 
-def _chk_stmts(ctx, stmts, spec, canonical):
+def _chk_stmts(ctx, pos, stmts, spec, canonical):
     for stmt in stmts:
-        if not is_prefixed(stmt.keyword):
+        if not util.is_prefixed(stmt.keyword):
             match_res = _match_stmt(ctx, stmt, spec, canonical)
             if match_res == None:
-                main.err_add(ctx.errors, stmt.pos,
-                             'UNEXPECTED_KEYWORD', stmt.keyword);
+                error.err_add(ctx.errors, stmt.pos,
+                              'UNEXPECTED_KEYWORD', stmt.keyword);
             else:
                 (_arg_type, subspec) = stmt_map[stmt.keyword]
-                _chk_stmts(ctx, stmt.substmts, subspec, canonical)
+                _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical)
                 spec = match_res
         else:
             # FIXME: handle plugin-registered extension grammar
-            _chk_stmts(ctx, stmt.substmts, [], canonical)
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, [], canonical)
+        # update last know position
+        pos = stmt.pos
     # any non-optional statements left are errors
     for (keywd, occurance) in spec:
         if occurance == '1' or occurance == '+':
-            main.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                         (stmt.keyword, keywd))
+            error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD', keywd)
 
 def _match_stmt(ctx, stmt, spec, canonical):
     """Match stmt against the spec.
@@ -526,7 +525,7 @@ def _match_stmt(ctx, stmt, spec, canonical):
                     return spec[:i] + match_res + spec[i+1:]
                 # we must not report errors on non-matching branches
                 ctx.errors = save_errors
-                j = j + 1
+                j += 1
         elif keywd == '$interleave':
             cspec = occurance
             match_res = _match_stmt(ctx, stmt, cspec, canonical)
@@ -537,12 +536,18 @@ def _match_stmt(ctx, stmt, spec, canonical):
             # any non-optional statements left are errors
             for (keywd, occurance) in spec[:i]:
                 if occurance == '1' or occurance == '+':
-                    main.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                                 (stmt.keyword, keywd))
+                    error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
+                                  (stmt.keyword, keywd))
+            # consume them so we don't report the same error again
+            spec = spec[i:]
+            i = 0
         elif canonical == True:
             if occurance == '1' or occurance == '+':
-                main.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                             (stmt.keyword, keywd))
+                error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
+                              (stmt.keyword, keywd))
+                # consume it so we don't report the same error again
+                spec = spec[i:]
+                i = 0
         # check next in spec
-        i = i + 1
+        i += 1
     return None

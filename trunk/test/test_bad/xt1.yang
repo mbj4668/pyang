@@ -7,7 +7,7 @@ module/*hej*/xt1 {
   include xt1s1;
   organization "hopp";
   contact "hej" {
-    xt3:test hej {hemm he;}
+    xt3:test hej {xt3:hemm he;}
     xt3:test hej {xt3:hemm he;}
   }
   description "arne" + /* hmm*/ ' ' + 'anka';

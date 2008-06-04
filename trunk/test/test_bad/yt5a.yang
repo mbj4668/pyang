@@ -79,7 +79,7 @@ module yt5a {
         default 4.576;
       }
 
-      key "  leaf z ___  _x_ ";
+      key "leaf z ___  _x_";
     }
 
     extension a {

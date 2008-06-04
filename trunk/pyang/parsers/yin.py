@@ -4,7 +4,8 @@ from xml.parsers import expat
 
 import syntax
 import grammar
-from pyang import main
+from pyang import error
+from pyang import statement
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 
@@ -39,7 +40,7 @@ class YinParser(object):
         """
 
         self.ctx = ctx
-        self.pos = main.Position(filename)
+        self.pos = error.Position(filename)
         self.argument = None
         self.root = None
 
@@ -49,11 +50,11 @@ class YinParser(object):
         except expat.ExpatError, ex:
             print ex
             self.pos.line = ex.lineno
-            main.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
-                         str(ex).split(":")[0])
+            error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
+                          str(ex).split(":")[0])
             return None
         except IOError, ex:
-            main.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
+            error.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
             return None
 
         return self.root
@@ -71,8 +72,8 @@ class YinParser(object):
             stmt.arg = attribs[name]
             del attribs[name]
         except KeyError:
-            main.err_add(self.ctx.errors, stmt.pos,
-                         'MISSING_ARGUMENT_ATTRIBUTE', name)
+            error.err_add(self.ctx.errors, stmt.pos,
+                          'MISSING_ARGUMENT_ATTRIBUTE', name)
 
     def check_attr(self, stmt, attribs):
         """Check for unknown attributes."""
@@ -80,11 +81,11 @@ class YinParser(object):
         for at in attribs:
             (ns, local_name) = self.split_qname(at)
             if ns is None:
-                main.err_add(self.ctx.errors, stmt.pos,
-                             'UNEXPECTED_ATTRIBUTE', local_name)
+                error.err_add(self.ctx.errors, stmt.pos,
+                              'UNEXPECTED_ATTRIBUTE', local_name)
             if ns == yin_namespace:
-                main.err_add(self.ctx.errors, stmt.pos,
-                             'UNEXPECTED_ATTRIBUTE', "{"+at)
+                error.err_add(self.ctx.errors, stmt.pos,
+                              'UNEXPECTED_ATTRIBUTE', "{"+at)
         
     # Handlers for Expat events
 
@@ -95,20 +96,21 @@ class YinParser(object):
         stripped = data.lstrip()
         if len(stripped) > 0:
             self.pos.line = self.lineno
-            main.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
-                         "unexpected character data")
+            error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
+                          "unexpected character data")
 
     def start_element(self, name, attrs):
         self.pos.line = self.lineno
         if self.argument is not None:
-            main.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
-                         "invalid argument - mixed content")
+            error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
+                          "invalid argument - mixed content")
         (ns, local_name) = self.split_qname(name)
         if self.stmt_stack == []:  # root element
             if ns != yin_namespace:
                 # FIXME: error - extension on top-level
                 return
-            self.root = main.Statement(None, self.pos, local_name, None, None)
+            self.root = statement.Statement(None, self.pos, local_name,
+                                            None, None)
             self.set_arg_from_attr(self.root, "name", attrs)
             self.stmt_stack.append(self.root)
             return
@@ -127,14 +129,14 @@ class YinParser(object):
             # read the argument data in char_data
             self.argument = ""
             return
-        yst = main.Statement(parent, self.pos, local_name, self.root, None)
+        yst = statement.Statement(parent, self.pos, local_name, self.root, None)
         parent.substmts.append(yst)
         self.stmt_stack.append(yst)
         try:
             (arg_is_elem, argname) = syntax.yin_map[local_name]
         except KeyError:
-            main.err_add(self.ctx.errors, self.pos,
-                         'UNKNOWN_KEYWORD', local_name)
+            error.err_add(self.ctx.errors, self.pos,
+                          'UNKNOWN_KEYWORD', local_name)
         if arg_is_elem == True:
             self.arg_name = argname
         elif arg_is_elem == False:
@@ -154,6 +156,6 @@ class YinParser(object):
         if stmt.arg is None:
             (arg_is_elem, argname) = syntax.yin_map[stmt.keyword]
             if arg_is_elem == True and argname is not None:
-                main.err_add(self.ctx.errors, stmt.pos,
-                             'MISSING_ARGUMENT_ELEMENT', argname)
+                error.err_add(self.ctx.errors, stmt.pos,
+                              'MISSING_ARGUMENT_ELEMENT', argname)
         del self.stmt_stack[-1]

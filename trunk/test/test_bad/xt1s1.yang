@@ -3,8 +3,8 @@ submodule xt1s1 {
   import xt3 { prefix xt3p; } // different prefix than in xt1
   organization "hopp";
   contact "hej" {
-    xt3p:test hej {hemm he;}
-    xt3:test hej {hemm he;} // error: bad prefix
+    xt3p:test hej {}
+    xt3:test hej {xt3:hemm he;} // error: bad prefix
   }
   revision 2007-06-06 { description "initinla"; }
 }

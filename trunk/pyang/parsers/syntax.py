@@ -5,16 +5,16 @@ import re
 ### Regular expressions - constraints on arguments
 
 identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
-pos_decimal = r"[1-9][%-9]*"
-nonneg_decimal = r"0|" + pos_decimal
+pos_decimal = r"[1-9][0-9]*"
+nonneg_decimal = r"(0|[1-9])[0-9]*"
 decimal_ = r"[-+]?" + nonneg_decimal 
 float_ = decimal_ + r"\.[0-9]+(E[-+]?[0-9]+)?$"
 length_boundary = r"(min|max|" + nonneg_decimal + r")"
 length_part = length_boundary + r"(\s*..\s*" + length_boundary + r")?"
-length_expr = r"\s*" + length_part + r"(\s*|\s*" + length_part + r")*\s*"
+length_expr = length_part + r"(\s*\|\s*" + length_part + r")*"
 range_boundary = r"(-INF|INF|min|max|" + decimal_ + r"|" + float_ + r")"
 range_part = range_boundary + r"(\s*..\s*" + range_boundary + r")?"
-range_expr = r"\s*" + range_part + r"(\s*|\s*" + range_part + r")*\s*"
+range_expr = range_part + r"(\s*\|\s*" + range_part + r")*"
 
 # path and unique
 node_id = "(" + identifier + ":)?" + identifier
@@ -28,7 +28,9 @@ relative_path_arg = r"(\.\./)*" + descendant_path_arg
 path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
 descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
-unique_arg = r"(" + descendant_schema_nodeid + "\s+)+"
+unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
+augment_arg = "(" + absolute_schema_nodeid + "|" + descendant_schema_nodeid + ")"
+key_arg = identifier + "(\s+" + identifier + ")*"
 
 # URI - RFC 3986, Appendix A
 scheme = "[A-Za-z][-+.A-Za-z0-9]*"
@@ -73,7 +75,7 @@ uri = (scheme + ":" + hier_part + r"(\?" + query + ")?" +
        "(#" + fragment + ")?")
 
 # Date
-date = r"2[0-9]{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
+date = r"[1-2][0-9]{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
 
 arg_type_map = {
     "identifier": re.compile("^" + identifier + "$"),
@@ -84,15 +86,15 @@ arg_type_map = {
     "version": re.compile("^1$"),
     "date": re.compile("^" + date +"$"),
     "status-arg": re.compile("^(current|obsolete|deprecated)$"),
-    "key-arg": re.compile(r"^\s*" + identifier +r"(\s+" +
-                               identifier + r")*\s*$"),
+    "key-arg": re.compile("^" + key_arg + "$"),
     "length-arg": re.compile("^" + length_expr + "$"),
     "range-arg": re.compile("^" + range_expr + "$"),
     "max-value": re.compile(r"^(unbounded|" + pos_decimal + r")$"),
-    "ordered-by": re.compile(r"^(user|system)$"),
+    "ordered-by-arg": re.compile(r"^(user|system)$"),
     "identifier-ref": re.compile("^" + node_id + "$"),
     "path-arg": re.compile("^" + path_arg + "$"),
     "unique-arg": re.compile("^" + unique_arg + "$"),
+    "augment-arg": re.compile("^" + augment_arg + "$"),
     }
 """Argument type definitions.
 

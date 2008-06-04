@@ -1,0 +1,21 @@
+module xt8 {
+  prefix "xt8";
+  namespace "urn:uri:foo";   // expect namespace before prefix
+
+  import yang-types { prefix yang; }
+  contact "hej" { }
+  description "arne" + /* hmm*/ ' ' + 'anka';
+  organization "hopp";  // expected after import
+
+  revision 2001-01-01 { description "2"; }
+  revision 2000-01-11 { description "initinla"; }
+
+  typedef myInt2 {
+    status deprecated;  // expected after type
+    type int8 {
+      range "1 | 5..6";
+    }
+  }
+}
+  
+
