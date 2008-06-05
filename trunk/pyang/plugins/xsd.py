@@ -36,7 +36,7 @@ yang_to_xsd_types = \
    }
 
 def pyang_plugin_init():
-    main.register_plugin(XSDPlugin())
+    plugin.register_plugin(XSDPlugin())
 
 class XSDPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):

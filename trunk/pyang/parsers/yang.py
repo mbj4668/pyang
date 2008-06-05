@@ -5,8 +5,8 @@ from pyang import statement
 from pyang import util
 
 class YangTokenizer(object):
-    def __init__(self, fd, pos, errors):
-        self.fd = fd
+    def __init__(self, text, pos, errors):
+        self.lines = text.splitlines(True)
         self.pos = pos
         self.buf = ''
         self.offset = 0
@@ -15,10 +15,11 @@ class YangTokenizer(object):
         self.errors = errors
 
     def readline(self):
-        self.buf = file.readline(self.fd)
-        if self.buf == '':
+        if len(self.lines) == 0:
             raise error.Eof
-        self.pos.line = self.pos.line + 1
+        self.buf = self.lines[0]
+        del self.lines[0]
+        self.pos.line += 1
         self.offset = 0
 
     def set_buf(self, i, pos=None):
@@ -182,26 +183,22 @@ class YangParser(object):
         self.module = None
         pass
 
-    def parse(self, ctx, filename):
-        """Parse the file containing a YANG (sub)module.
+    def parse(self, ctx, ref, text):
+        """Parse the string `text` containing a YANG (sub)module.
 
         Return a Statement on success or None on failure
         """
 
         self.ctx = ctx
-        self.pos = error.Position(filename)
+        self.pos = error.Position(ref)
 
         try:
-            fd = open(filename, "r")
-            self.tokenizer = YangTokenizer(fd, self.pos, ctx.errors)
+            self.tokenizer = YangTokenizer(text, self.pos, ctx.errors)
             module = self._parse_statement(None)
         except error.Abort:
             return None
         except error.Eof, e:
             error.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
-            return None
-        except IOError, ex:
-            error.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
             return None
         try:
             # we expect a error.Eof at this point, everything else is an error

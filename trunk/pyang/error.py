@@ -3,12 +3,12 @@ import copy
 ### struct to keep track of position for error messages
 
 class Position(object):
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, ref):
+        self.ref = ref
         self.line = 0
         self.module_name = None
     def __str__(self):
-        return self.filename + ':' + str(self.line)
+        return self.ref + ':' + str(self.line)
 
 ### Exceptions
 
@@ -24,9 +24,9 @@ class Eof(Exception):
 
 error_codes = \
     {
-    'IO_ERROR':
+    'READ_ERROR':
       (1,
-       'io error: %s'),
+       'read error: %s'),
     'EOF_ERROR':
       (1,
        'premature end of file'),
