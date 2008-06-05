@@ -33,22 +33,21 @@ class YinParser(object):
         self.parser.EndElementHandler = self.end_element
         self.stmt_stack = []
 
-    def parse(self, ctx, filename):
-        """Parse the file containing a YIN (sub)module.
+    def parse(self, ctx, ref, text):
+        """Parse the string `text` containing a YIN (sub)module.
 
         Return a Statement on success or None on failure
         """
 
         self.ctx = ctx
-        self.pos = error.Position(filename)
+        self.pos = error.Position(ref)
         self.module = None
         self.argument = None
         self.statement_data = None
         self.is_extension = False
 
         try:
-            fd = open(filename, "r")
-            self.parser.ParseFile(fd)
+            self.parser.Parse(text, True)
         except error.Abort:
             return None
         except expat.ExpatError, ex:
@@ -56,9 +55,6 @@ class YinParser(object):
             self.pos.line = ex.lineno
             error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
                           str(ex).split(":")[0])
-            return None
-        except IOError, ex:
-            error.err_add(self.ctx.errors, self.pos, 'IO_ERROR', str(ex))
             return None
 
         return self.module

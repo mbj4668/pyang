@@ -1,30 +1,87 @@
+"""pyang plugin handling"""
+
+import os
+import sys
+
+plugins = []
+"""List of registered PyangPlugin instances"""
+
+def init(plugindirs=[]):
+    """Initialize the plugin framework"""
+
+    # search for plugins in std directory
+    basedir = os.path.split(sys.modules['pyang'].__file__)[0]
+    plugindirs.insert(0, basedir + "/plugins")
+    
+    syspath = sys.path
+    for plugindir in plugindirs:
+        sys.path = [plugindir] + syspath
+        fnames = os.listdir(plugindir)
+        for fname in fnames:
+            if fname.endswith(".py") and fname != '__init__.py':
+                pluginmod = __import__(fname[:-3])
+                try:
+                    pluginmod.pyang_plugin_init()
+                except AttributeError, s:
+                    print pluginmod.__dict__
+                    raise AttributeError, pluginmod.__file__ + ': ' + str(s)
+        sys.path = syspath
+
+
+def register_plugin(plugin):
+    """Call this to register a pyang plugin. See class PyangPlugin
+    for more info.
+    """
+    plugins.append(plugin)
+
 class PyangPlugin(object):
-    """abstract base class for pyang plugins
+    """Abstract base class for pyang plugins
 
     A pyang plugin is a module found in the plugins directory of the
     pyang installation, or in the dynamic pluginpath.
 
     Such a module must export a function 'pyang_plugin_init()', which
-    may call pyang.main.register_plugin() with an instance of a class
+    may call pyang.plugin.register_plugin() with an instance of a class
     derived from this class as argument.
+
+    A plugin can extend the base pyang library functions, or the pyang
+    front-end program, or both.
     """
+
+    ## pyang front-end program methods
+
     def add_output_format(self, fmts):
-        """override this method to add an output format.  fmts is a dict
-        which maps the format name string to a plugin instance.
+        """Add an output format to the pyang program.
+
+        `fmts` is a dict which maps the format name string to a plugin
+        instance.
+
+        Override this method and update `fmts` with the output format
+        name.
         """
         return
     def add_opts(self, optparser):
-        """override this method to add command line options.  Add the
-        plugin related options as an option group.
+        """Add command line options to the pyang program.
+
+        Override this method and add the plugin related options as an
+        option group.
         """
         return
+
+    ## library methods
+
     def setup_ctx(self, ctx):
-        """override this method to modify the Context before any
-        files are read"""
+        """Modify the Context before at setup time.
+
+        Override this method to modify the Context before the module
+        repository is accessed.
+        """
         return
     def emit(self, ctx, module, writef):
-        """override this method to perform the output conversion.
-        writef is a function that takes one string to print as argument.
+        """Produce the plugin output.
+
+        Override this method to perform the output conversion.
+        `writef` is a function that takes one string to print as argument.
         """
         return
     

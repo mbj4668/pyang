@@ -14,7 +14,7 @@ from pyang import util
 from pyang.util import attrsearch
 
 def pyang_plugin_init():
-    main.register_plugin(YINPlugin())
+    plugin.register_plugin(YINPlugin())
 
 class YINPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):

@@ -184,15 +184,7 @@ class Module(Statement):
             # parse and load the imported module
             self.ctx.search_module(import_.pos, modulename = import_.modulename)
 
-        # get the prefix to use for this import
-        if import_.prefix == None:
-            imported_module = self.ctx.modules[import_.modulename]
-            if imported_module == None:
-                # failed to import
-                return
-            prefix = imported_module.prefix.arg
-        else:
-            prefix = import_.prefix.arg
+        prefix = import_.prefix.arg
         # check if the prefix is already used by someone else
         if prefix in self.i_prefixes:
             err_add(self.ctx.errors, import_.pos,
@@ -278,9 +270,14 @@ class Module(Statement):
         else:
             try:
                 modulename = self.i_prefixes[prefix]
-                module = self.ctx.modules[modulename]
             except KeyError:
                 err_add(errors, pos, 'PREFIX_NOT_DEFINED', prefix)
+                return None
+            # even if the prefix is defined, the module might not be
+            # loaded; the load might have failed
+            try:
+                module = self.ctx.modules[modulename]
+            except KeyError:
                 return None
             return module
 
