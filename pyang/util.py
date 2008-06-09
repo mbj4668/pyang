@@ -26,4 +26,16 @@ def is_prefixed(identifier):
 def is_local(identifier):
     return type(identifier) == type('')
 
-
+def guess_format(text):
+    """Guess YANG/YIN format
+    
+    If the first non-whitespace character is '<' then it is XML.
+    Return 'yang' or 'yin'"""
+    format = 'yang'
+    i = 0
+    while i < len(text) and text[i].isspace():
+        i += 1
+    if i < len(text):
+        if text[i] == '<':
+            format = 'yin'
+    return format

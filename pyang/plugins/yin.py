@@ -1,4 +1,4 @@
-### YIN output
+"""YIN output plugin"""
 
 from xml.sax.saxutils import quoteattr
 from xml.sax.saxutils import escape
@@ -6,7 +6,6 @@ from xml.sax.saxutils import escape
 import optparse
 import re
 
-from pyang import main
 from pyang import plugin
 from pyang import error
 from pyang import statements
@@ -297,7 +296,7 @@ def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
         except KeyError:
             pass
     else:
-        (argname, argiselem, argappinfo) = main.yang_keywords[keywd]
+        (argname, argiselem, _argappinfo) = yang_keywords[keywd]
         tag = keywd
     if argname == None:
         tok = tokenizer.get_tok() # ; or {
@@ -356,3 +355,62 @@ def fmt_text(indent, data):
         else:
             res.extend(indent + line)
     return ''.join(res)
+
+    # keyword             argument-name  yin-element xsd-appinfo
+yang_keywords = \
+    {'anyxml':           ('name',        False,      False),
+     'argument':         ('name',        False,      False),
+     'augment':          ('target-node', False,      False),
+     'belongs-to':       ('module',      False,      True),
+     'bit':              ('name',        False,      False),
+     'case':             ('name',        False,      False),
+     'choice':           ('name',        False,      False),
+     'config':           ('value',       False,      True),
+     'contact':          ('info',        True,       True),
+     'container':        ('name',        False,      False),
+     'default':          ('value',       False,      True),
+     'description':      ('text',        True,       False),
+     'enum':             ('name',        False,      False),
+     'error-app-tag':    ('value',       False,      True),
+     'error-message':    ('value',       True,       True),
+     'extension':        ('name',        False,      False),
+     'grouping':         ('name',        False,      False),
+     'import':           ('module',      False,      True),
+     'include':          ('module',      False,      True),
+     'input':            (None,          None,       False),
+     'key':              ('value',       False,      False),
+     'leaf':             ('name',        False,      False),
+     'leaf-list':        ('name',        False,      False),
+     'length':           ('value',       False,      False),
+     'list':             ('name',        False,      False),
+     'mandatory':        ('value',       False,      True),
+     'max-elements':     ('value',       False,      True),
+     'min-elements':     ('value',       False,      True),
+     'module':           ('name',        False,      False),
+     'must':             ('condition',   False,      True),
+     'namespace':        ('uri',         False,      False),
+     'notification':     ('name',        False,      False),
+     'ordered-by':       ('value',       False,      True),
+     'organization':     ('info',        True,       True),
+     'output':           (None,          None,       False),
+     'path':             ('value',       False,      False),
+     'pattern':          ('value',       False,      False),
+     'position':         ('value',       False,      False),
+     'presence':         ('value',       False,      False),
+     'prefix':           ('value',       False,      True),
+     'range':            ('value',       False,      False),
+     'reference':        ('info',        False,      True),
+     'revision':         ('date',        False,      True),
+     'rpc':              ('name',        False,      False),
+     'status':           ('value',       False,      True),
+     'submodule':        ('name',        False,      False),
+     'type':             ('name',        False,      False),
+     'typedef':          ('name',        False,      False),
+     'unique':           ('tag',         False,      False),
+     'units':            ('name',        False,      True),
+     'uses':             ('name',        False,      False),
+     'value':            ('value',       False,      False),
+     'when':             ('condition',   False,      True),
+     'yang-version':     ('value',       False,      True),
+     'yin-element':      ('value',       False,      False),
+     }

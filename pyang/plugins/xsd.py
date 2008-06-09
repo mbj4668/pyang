@@ -1,4 +1,4 @@
-### XSD output
+"""XSD output plugin"""
 
 from xml.sax.saxutils import quoteattr
 from xml.sax.saxutils import escape
@@ -8,10 +8,9 @@ import re
 import copy
 import sys
 
-from pyang import main
+import pyang
 from pyang import plugin
 from pyang import util
-from pyang.util import attrsearch
 
 yang_to_xsd_types = \
   {'int8':'byte',
@@ -34,6 +33,65 @@ yang_to_xsd_types = \
    # empty is handled separately
    # union is handled separately
    }
+
+    # keyword             argument-name  yin-element xsd-appinfo
+yang_keywords = \
+    {'anyxml':           ('name',        False,      False),
+     'argument':         ('name',        False,      False),
+     'augment':          ('target-node', False,      False),
+     'belongs-to':       ('module',      False,      True),
+     'bit':              ('name',        False,      False),
+     'case':             ('name',        False,      False),
+     'choice':           ('name',        False,      False),
+     'config':           ('value',       False,      True),
+     'contact':          ('info',        True,       True),
+     'container':        ('name',        False,      False),
+     'default':          ('value',       False,      True),
+     'description':      ('text',        True,       False),
+     'enum':             ('name',        False,      False),
+     'error-app-tag':    ('value',       False,      True),
+     'error-message':    ('value',       True,       True),
+     'extension':        ('name',        False,      False),
+     'grouping':         ('name',        False,      False),
+     'import':           ('module',      False,      True),
+     'include':          ('module',      False,      True),
+     'input':            (None,          None,       False),
+     'key':              ('value',       False,      False),
+     'leaf':             ('name',        False,      False),
+     'leaf-list':        ('name',        False,      False),
+     'length':           ('value',       False,      False),
+     'list':             ('name',        False,      False),
+     'mandatory':        ('value',       False,      True),
+     'max-elements':     ('value',       False,      True),
+     'min-elements':     ('value',       False,      True),
+     'module':           ('name',        False,      False),
+     'must':             ('condition',   False,      True),
+     'namespace':        ('uri',         False,      False),
+     'notification':     ('name',        False,      False),
+     'ordered-by':       ('value',       False,      True),
+     'organization':     ('info',        True,       True),
+     'output':           (None,          None,       False),
+     'path':             ('value',       False,      False),
+     'pattern':          ('value',       False,      False),
+     'position':         ('value',       False,      False),
+     'presence':         ('value',       False,      False),
+     'prefix':           ('value',       False,      True),
+     'range':            ('value',       False,      False),
+     'reference':        ('info',        False,      True),
+     'revision':         ('date',        False,      True),
+     'rpc':              ('name',        False,      False),
+     'status':           ('value',       False,      True),
+     'submodule':        ('name',        False,      False),
+     'type':             ('name',        False,      False),
+     'typedef':          ('name',        False,      False),
+     'unique':           ('tag',         False,      False),
+     'units':            ('name',        False,      True),
+     'uses':             ('name',        False,      False),
+     'value':            ('value',       False,      False),
+     'when':             ('condition',   False,      True),
+     'yang-version':     ('value',       False,      True),
+     'yin-element':      ('value',       False,      False),
+     }
 
 def pyang_plugin_init():
     plugin.register_plugin(XSDPlugin())
@@ -95,7 +153,7 @@ def emit_xsd(ctx, module, writef):
     def gen_name(name, name_list):
         tname = name
         i = 0
-        while attrsearch(tname, 'i_xsd_name', name_list):
+        while util.attrsearch(tname, 'i_xsd_name', name_list):
             i = i + 1
             tname = name + '_' + str(i)
         return tname
@@ -204,7 +262,7 @@ def emit_xsd(ctx, module, writef):
     writef('    <xs:documentation>\n')
     writef('      This schema was generated from the YANG module %s\n' % \
            module.name)
-    writef('      by pyang version %s.\n' % main.pyang_version)
+    writef('      by pyang version %s.\n' % pyang.__version__)
     writef('\n')
     writef('      The schema describes an instance document consisting of the\n')
     writef('      entire configuration data store and operational data.  This\n')
@@ -427,7 +485,7 @@ def xsd_print_grouping(ctx, module, writef, indent, grouping):
 def xsd_print_augment(ctx, module, writef, indent, augment):
     i = module.i_gen_augment_idx
     name = "a" + str(i)
-    while attrsearch(name, 'name', module.grouping) != None:
+    while util.attrsearch(name, 'name', module.grouping) != None:
         i = i + 1
         name = "a" + str(i)
     module.i_gen_augment_idx = i + 1
@@ -611,12 +669,12 @@ def xsd_print_annotation(ctx, writef, indent, obj):
     def is_appinfo(keyword):
         if util.is_prefixed(keyword) == True:
             return False
-        (argname, argiselem, argappinfo) = main.yang_keywords[keyword]
+        (argname, argiselem, argappinfo) = yang_keywords[keyword]
         return argappinfo
     
     def do_print(indent, stmt):
         keyword = stmt.keyword
-        (argname, argiselem, argappinfo) = main.yang_keywords[keyword]
+        (argname, argiselem, argappinfo) = yang_keywords[keyword]
         if argname == None:
             writef(indent + '<yin:' + keyword + '/>\n')
         elif argiselem == False:
