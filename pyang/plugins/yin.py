@@ -9,7 +9,7 @@ import re
 from pyang import main
 from pyang import plugin
 from pyang import error
-from pyang import statement
+from pyang import statements
 from pyang import util
 from pyang.util import attrsearch
 
@@ -113,7 +113,7 @@ class YangTokenizer(object):
         except ValueError:
             pass
 
-        m = statement.re_keyword.match(self.buf)
+        m = statements.re_keyword.match(self.buf)
         if m == None:
             error.err_add(self.errors, self.pos,
                          'UNEXPECTED_KEYWORD', self.buf)

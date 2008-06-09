@@ -1,17 +1,14 @@
-import sys
 import os
 import string
-import optparse
 #import traceback # for debugging. use: traceback.print_stack()
 
 import error
-import debug
-import plugin
-import parsers.yang
-import parsers.yin
-import parsers.grammar
+import yang_parser
+import yin_parser
+import grammar
 import util
 
+## FIXME: move to vsn.py - also fix man page and setup.py
 pyang_version = '0.9.0b'
 
 ## FIXME: move Repos, Context etc to maybe lib.py
@@ -106,15 +103,15 @@ class Context(object):
         """
 
         if format == 'yin':
-            p = parsers.yin.YinParser()
+            p = yin_parser.YinParser()
         else:
-            p = parsers.yang.YangParser()
+            p = yang_parser.YangParser()
 
         module = p.parse(self, ref, text)
         if module == None:
             return None
 
-        parsers.grammar.chk_module_statements(self, module, self.canonical)
+        grammar.chk_module_statements(self, module, self.canonical)
         self._set_attrs(module)
 
         if module.name not in self.modules or self.modules[module.name] == None:
@@ -170,7 +167,7 @@ class Context(object):
                             return r
                 return None
             if util.is_prefixed(stmt.keyword): return '*'
-            (_arg_type, children) = parsers.grammar.stmt_map[stmt.keyword]
+            (_arg_type, children) = grammar.stmt_map[stmt.keyword]
             return find(children)
 
         def get_attr(keywd):
@@ -293,156 +290,3 @@ def guess_format(text):
         if text[i] == '<':
             format = 'yin'
     return format
-
-### main pyang program
-
-def run():
-    usage = """%prog [options] <filename>...
-
-Validates the YANG module in <filename>, and all its dependencies."""
-
-    plugindirs = []
-    # check for --plugindir
-    idx = 1
-    while '--plugindir' in sys.argv[idx:]:
-        idx = idx + sys.argv[idx:].index('--plugindir')
-        plugindirs.append(sys.argv[idx+1])
-        idx = idx + 1
-    plugin.init(plugindirs)
-
-    fmts = {}
-    for p in plugin.plugins:
-        p.add_output_format(fmts)
-
-    optlist = [
-        # use capitalized versions of std options help and version
-        optparse.make_option("-h", "--help",
-                             action="help",
-                             help="Show this help message and exit"),
-        optparse.make_option("-v", "--version",
-                             action="version",
-                             help="Show version number and exit"),
-        optparse.make_option("-e", "--list-errors",
-                             dest="list_errors",
-                             action="store_true",
-                             help="Print a listing of all error codes " \
-                             "and exit."),
-        optparse.make_option("--print-error-code",
-                             dest="print_error_code",
-                             action="store_true",
-                             help="On errors, print the error code instead " \
-                             "of the error message."),
-        optparse.make_option("-l", "--level",
-                             dest="level",
-                             default=3,
-                             type="int",
-                             help="Report errors and warnings up to LEVEL. " \
-                             "If any error or warnings are printed, the " \
-                             "program exits with exit code 1, otherwise " \
-                             "with exit code 0. The default error level " \
-                             "is 3."),
-        optparse.make_option("--canonical",
-                             dest="canonical",
-                             action="store_true",
-                             help="Validate the module(s) according the " \
-                             "canonical YANG order."),
-        optparse.make_option("-f", "--format",
-                             dest="format",
-                             help="Convert to FORMAT.  Supported formats " \
-                             "are " +  ', '.join(fmts.keys())),
-        optparse.make_option("-o", "--output",
-                             dest="outfile",
-                             help="Write the output to OUTFILE instead " \
-                             "of stdout."),
-        optparse.make_option("-p", "--path", dest="path", default="",
-                             help="Search path for yin and yang modules"),
-        optparse.make_option("--plugindir",
-                             dest="plugindir",
-                             help="Loads pyang plugins from PLUGINDIR"),
-        optparse.make_option("-d", "--debug",
-                             dest="debug",
-                             action="store_true",
-                             help="Turn on debugging of the pyang code"),
-        ]
-        
-    optparser = optparse.OptionParser(usage, add_help_option = False)
-    optparser.version = '%prog ' + pyang_version
-    optparser.add_options(optlist)
-
-    for p in plugin.plugins:
-        p.add_opts(optparser)
-
-    (o, args) = optparser.parse_args()
-
-    if o.list_errors == True:
-        for tag in error.error_codes:
-            (level, fmt) = error.error_codes[tag]
-            print "Error:   %s - level %d" % (tag, level)
-            print "Message: %s" % fmt
-            print ""
-        sys.exit(0)
-
-    if o.outfile != None and o.format == None:
-        print >> sys.stderr, "no format specified"
-        sys.exit(1)
-    if o.format != None and len(args) > 1:
-        print >> sys.stderr, "too many files to convert"
-        sys.exit(1)
-    if len(args) == 0:
-        print >> sys.stderr, "no file given"
-        sys.exit(1)
-
-    filenames = args
-
-    debug.set_debug(o.debug)
-
-    basedir = os.path.split(sys.modules['pyang'].__file__)[0]
-    path = o.path + ':' + basedir + '/../modules' + ':.'
-    repos = FileRepository(path)
-
-    ctx = Context(repos)
-    ctx.canonical = o.canonical
-    ctx.opts = o
-    # temporary hack. needed for yin plugin
-    ctx.filename = args[0]
-    
-    if o.format != None:
-        emit_obj = fmts[o.format]
-    else:
-        emit_obj = None
-
-    if emit_obj != None:
-        emit_obj.setup_ctx(ctx)
-
-    for filename in filenames:
-        try:
-            fd = file(filename)
-            text = fd.read()
-        except IOError, ex:
-            sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
-            sys.exit(1)
-        format = guess_format(text)
-        module = ctx.add_module(filename, format, text)
-
-    ctx.validate()
-    exit_code = 0
-    for (epos, etag, eargs) in ctx.errors:
-        elevel = error.err_level(etag)
-        if elevel <= o.level:
-            if o.print_error_code == True:
-                print >> sys.stderr, \
-                      str(epos) + ': [%d] %s' % (elevel, etag)
-            else:
-                print >> sys.stderr, \
-                      str(epos) + ': [%d] ' % \
-                      elevel + error.err_to_str(etag, eargs)
-            exit_code = 1
-    if o.outfile == None:
-        writef = lambda str: sys.stdout.write(str)
-    else:
-        fd = open(o.outfile, "w+")
-        writef = lambda str: fd.write(str)
-    if emit_obj != None:
-        emit_obj.emit(ctx, module, writef)
-
-    sys.exit(exit_code)

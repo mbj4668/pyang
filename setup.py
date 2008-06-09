@@ -4,5 +4,5 @@ setup(name='pyang',
       author='Martin Bjorklund',
       description="A YANG validator and converter",
       scripts=['bin/pyang'],
-      packages=['pyang', 'pyang.plugins', 'pyang.parsers'],
+      packages=['pyang', 'pyang.plugins'],
       )
