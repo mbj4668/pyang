@@ -4,8 +4,8 @@ from xml.parsers import expat
 
 import syntax
 import grammar
-from pyang import error
-from pyang import statement
+import error
+import statements
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 
@@ -128,7 +128,7 @@ class YinParser(object):
                               (local_name, ('module', 'submodule')))
                 raise error.Abort
             arg = self.get_arg_from_attr('name', attrs)
-            stmt = statement.Module(self.pos, self.ctx, arg, is_submodule)
+            stmt = statements.Module(self.pos, self.ctx, arg, is_submodule)
             self.module = stmt
             self.check_attr(self.pos, attrs)
             self.stmt_stack.append(stmt)
@@ -215,7 +215,7 @@ class YinParser(object):
             handle = grammar.handler_map[keywd]
             stmt = handle(parent, self.pos, self.module, arg)
         except KeyError:
-            stmt = statement.Statement(parent, self.pos, keywd,
-                                       self.module, arg)
+            stmt = statements.Statement(parent, self.pos, keywd,
+                                        self.module, arg)
         parent.substmts.append(stmt)
         self.stmt_stack.append(stmt)

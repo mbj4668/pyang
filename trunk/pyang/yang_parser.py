@@ -1,8 +1,8 @@
 import syntax
 import grammar
-from pyang import error
-from pyang import statement
-from pyang import util
+import error
+import statements
+import util
 
 class YangTokenizer(object):
     def __init__(self, text, pos, errors):
@@ -61,7 +61,7 @@ class YangTokenizer(object):
         """ret: identifier | (prefix, identifier)"""
         self.skip()
 
-        m = statement.re_keyword.match(self.buf)
+        m = statements.re_keyword.match(self.buf)
         if m == None:
             error.err_add(self.errors, self.pos,
                           'SYNTAX_ERROR', 'illegal keyword: ' + self.buf)
@@ -239,8 +239,8 @@ class YangParser(object):
                     handle = grammar.handler_map[keywd]
                     stmt = handle(parent, self.pos, self.module, arg)
                 except KeyError:
-                    stmt = statement.Statement(parent, self.pos, keywd,
-                                          self.module, arg)
+                    stmt = statements.Statement(parent, self.pos, keywd,
+                                                self.module, arg)
         else:
             # this is an extension
             # read optional argument
@@ -250,8 +250,8 @@ class YangParser(object):
             else:
                 arg = self.tokenizer.get_string()
             (prefix, identifier) = keywd # FIXME: rewrite ExtensionStmt
-            stmt = statement.ExtensionStatement(parent, self.pos, identifier,
-                                           prefix, arg)
+            stmt = statements.ExtensionStatement(parent, self.pos, identifier,
+                                                 prefix, arg)
         # check for substatements
         tok = self.tokenizer.peek()
         if tok == '{':
@@ -277,7 +277,7 @@ class YangParser(object):
                           'UNEXPECTED_KEYWORD_N',
                           (keywd, ('module', 'submodule')))
             raise error.Abort
-        return statement.Module(self.pos, self.ctx, arg, is_submodule)
+        return statements.Module(self.pos, self.ctx, arg, is_submodule)
 
 # FIXME: tmp debug
 import sys

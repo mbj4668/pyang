@@ -7,6 +7,7 @@ from debug import dbg
 import util
 from util import attrsearch, keysearch
 from error import err_add
+import types
 
 ### regular expressions
 
@@ -283,7 +284,6 @@ class Module(Statement):
 
     def validate(self):
         errors = self.ctx.errors
-        validate_identifier(self.name, self.pos, errors)
 
         # make sure all sub modules we include have a proper belongs-to
         if self.belongs_to == None:
@@ -415,14 +415,13 @@ class Typedef(Statement):
         # check if we're initialized
         if self.i_validated == True:
             return
-        validate_identifier(self.name, self.pos, errors)
         if self.i_validated == False:
             err_add(errors, self.pos,
                     'CIRCULAR_DEPENDENCY', ('type', self.name) )
             return
         self.i_validated = False
         dbg("validating typedef %s" % self.name)
-        if is_base_type(self.name):
+        if types.is_base_type(self.name):
             err_add(errors, self.pos, 'BAD_TYPE_NAME', self.name)
         elif self.parent.parent != None:
             ptype = self.parent.parent.search_typedef(self.name)
@@ -463,7 +462,6 @@ class Grouping(Statement):
     def validate(self, errors):
         if self.i_validated == True:
             return
-        validate_identifier(self.name, self.pos, errors)
         for x in self.typedef:
             x.validate(errors)
         for x in self.grouping:
@@ -488,9 +486,6 @@ class Extension(Statement):
         self.status = None
         self.argument = None
     
-    def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
-
 class Argument(Statement):
     def __init__(self, parent, pos, module, arg):
         Statement.__init__(self, parent, pos, self.__class__.__name__.lower(),
@@ -499,9 +494,6 @@ class Argument(Statement):
         self.name = arg
         # statements
         self.yin_element = None
-
-    def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
 
 class Type(Statement):
     def __init__(self, parent, pos, module, arg):
@@ -549,7 +541,7 @@ class Type(Statement):
             if typedef == None:
                 # check built-in types
                 try:
-                    self.i_type_spec = yang_type_specs[name]
+                    self.i_type_spec = types.yang_type_specs[name]
                 except KeyError:
                     err_add(errors, self.pos,
                             'TYPE_NOT_FOUND', (name, self.i_module.name))
@@ -623,7 +615,7 @@ class Type(Statement):
         elif self.name == 'enumeration':
             self.i_is_derived = True
             if self.enums_validate(errors):
-                self.i_type_spec = EnumerationTypeSpec(self.enum)
+                self.i_type_spec = types.EnumerationTypeSpec(self.enum)
 
         # check the bits - only applicable when the type is the builtin
         # bits type
@@ -632,7 +624,7 @@ class Type(Statement):
         elif self.name == 'bits':
             self.i_is_derived = True
             if self.bits_validate(errors):
-                self.i_type_spec = BitsTypeSpec(self.bit)
+                self.i_type_spec = types.BitsTypeSpec(self.bit)
 
         # check the union types
         if self.type != [] and self.name != 'union':
@@ -640,7 +632,7 @@ class Type(Statement):
         elif self.name == 'union':
             self.i_is_derived = True
             if self.union_validate(errors):
-                self.i_type_spec = UnionTypeSpec(self.type)
+                self.i_type_spec = types.UnionTypeSpec(self.type)
 
     def enums_validate(self, errors):
         if self.enum == []:
@@ -650,7 +642,6 @@ class Type(Statement):
         # make sure all values given are unique
         values = []
         for e in self.enum:
-            validate_identifier(e.name, e.pos, errors)
             if e.value != None:
                 try:
                     x = int(e.value.arg)
@@ -674,7 +665,6 @@ class Type(Statement):
         # make sure all positions given are unique
         values = []
         for b in self.bit:
-            validate_identifier(b.name, b.pos, errors)
             try:
                 x = int(b.position.arg)
                 if x < 0:
@@ -772,7 +762,7 @@ class Range(Statement):
         return True
 
     def mk_type_spec(self, base_type_spec):
-        return RangeTypeSpec(base_type_spec, self.i_ranges)
+        return types.RangeTypeSpec(base_type_spec, self.i_ranges)
 
 class Length(Statement):
     def __init__(self, parent, pos, module, arg):
@@ -844,7 +834,7 @@ class Length(Statement):
 
     def mk_type_spec(self, base_type_spec):
         """creates a new type_spec for this type"""
-        return LengthTypeSpec(base_type_spec, self.i_lengths)
+        return types.LengthTypeSpec(base_type_spec, self.i_lengths)
 
 class Pattern(Statement):
     def __init__(self, parent, pos, module, arg):
@@ -869,7 +859,7 @@ class Pattern(Statement):
 
     def mk_type_spec(self, base_type_spec):
         # create a new type_spec for this type
-        return PatternTypeSpec(base_type_spec, self.i_re)
+        return types.PatternTypeSpec(base_type_spec, self.i_re)
 
 class Path(Statement):
     def __init__(self, parent, pos, module, arg):
@@ -967,7 +957,7 @@ class Path(Statement):
 
     def mk_type_spec(self, base_type_spec):
         # create a new type_spec for this type
-        return PathTypeSpec(self.i_target_node)
+        return types.PathTypeSpec(self.i_target_node)
 
 class Must(Statement):
     def __init__(self, parent, pos, module, arg):
@@ -1032,7 +1022,6 @@ class Leaf(DataDefStatement):
         self.i_keyref_ptrs = [] # pointers to the keys the keyrefs refer to
 
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         if self.config != None:
             self.i_config = (self.config.arg == "true")
         if self.default != None:
@@ -1227,7 +1216,6 @@ class LeafList(DataDefStatement):
         """pointers to the keys the keyrefs refer to"""
 
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         if self.config != None:
             self.i_config = (self.config.arg == "true")
         if self.type != None:
@@ -1266,7 +1254,6 @@ class Container(DataDefStatement):
         self.augment = []
 
     def validate(self, errors): 
-        validate_identifier(self.name, self.pos, errors)
         for x in self.typedef:
             x.validate(errors)
         for x in self.grouping:
@@ -1305,7 +1292,6 @@ class List(DataDefStatement):
         """list of list of pointers to the  leaves in i_expanded_children"""
 
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         for x in self.typedef:
             x.validate(errors)
         for x in self.grouping:
@@ -1530,7 +1516,6 @@ class Choice(DataDefStatement):
         self.children = [] # cases and shorthands
 
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         children = []
         for c in self.children:
             if c.keyword == 'case':
@@ -1568,7 +1553,6 @@ class Case(DataDefStatement):
         self.augment = []
 
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         validate_children(self, self.children, errors, self.i_config)
 
 class Augment(Statement):
@@ -1660,9 +1644,6 @@ class AnyXML(DataDefStatement):
         self.reference = None
         self.mandatory = None
 
-    def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
-
     def validate_post_augment(self, errors):
         return True
 
@@ -1684,7 +1665,6 @@ class Rpc(SchemaNodeStatement):
         self.grouping = []
         
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         if self.input != None:
             self.children.append(self.input)
         if self.output != None:
@@ -1724,7 +1704,6 @@ class Notification(SchemaNodeStatement):
         self.augment = []
         
     def validate(self, errors):
-        validate_identifier(self.name, self.pos, errors)
         validate_children(self, self.children, errors)
 
 ## this class represents the usage of an (unknown) extension
@@ -1772,9 +1751,6 @@ def keyword_to_str(keyword):
     else:
         return keyword
 
-def is_base_type(typename):
-    return typename in yang_type_specs
-
 def validate_status(errors, x, y, defn, ref):
     xstatus = x.status
     if xstatus == None:
@@ -1788,266 +1764,3 @@ def validate_status(errors, x, y, defn, ref):
         err_add(x.pos, 'CURRENT_USES_OBSOLETE', (defn, ref))
     elif xstatus == 'deprecated' and ystatus == 'obsolete':
         err_add(x.pos, 'DEPRECATED_USES_OBSOLETE', (defn, ref))
-
-def validate_identifier(str, pos, errors):
-    if re_identifier.search(str) == None:
-        err_add(errors, pos, 'SYNTAX_ERROR', 'bad identifier "' + str + '"')
-
-### YANG built-in types
-
-class TypeSpec(object):
-    def __init__(self):
-        self.definition = ""
-        pass
-    def str_to_val(self, errors, pos, str):
-        return str;
-    def validate(self, errors, pos, val, errstr=''):
-        return True;
-    def restrictions(self):
-        return []
-    
-class IntTypeSpec(TypeSpec):
-    def __init__(self, min, max):
-        TypeSpec.__init__(self)
-        self.min = min
-        self.max = max
-
-    def str_to_val(self, errors, pos, str):
-        try:
-            dbg('trying to convert "%s" to an int...' % str)
-            if str in ['min', 'max']:
-                return str
-            return int(str, 0)
-        except ValueError:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str, self.definition, 'not an integer'))
-            return None
-
-    def validate(self, errors, pos, val, errstr = ''):
-        if val < self.min or val > self.max:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str(val), self.definition, 'range error' + errstr))
-            return False
-        else:
-            return True
-    
-    def restrictions(self):
-        return ['range']
-    
-
-class FloatTypeSpec(TypeSpec):
-    def __init__(self, bits):
-        TypeSpec.__init__(self)
-        self.bits = bits
-
-    def str_to_val(self, errors, pos, str):
-        try:
-            dbg('trying to convert "%s" to a float...' % str)
-            if str in ['min', 'max']:
-                return str
-            return float(str)
-        except ValueError:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str, self.definition, 'not a float'))
-            return None
-
-    # FIXME: validate 32/64 bit floats
-
-    def restrictions(self):
-        return ['range']
-    
-class BooleanTypeSpec(TypeSpec):
-    def __init__(self):
-        TypeSpec.__init__(self)
-
-    def str_to_val(self, errors, pos, str):
-        dbg('trying to convert "%s" to a boolean...' % str)
-        if str == 'true': return True;
-        elif str == 'false': return False
-        else:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str, self.definition, 'not a boolean'))
-            return None
-
-class StringTypeSpec(TypeSpec):
-    def __init__(self):
-        TypeSpec.__init__(self)
-
-    def restrictions(self):
-        return ['pattern', 'length']
-    
-class BinaryTypeSpec(TypeSpec):
-    def __init__(self):
-        TypeSpec.__init__(self)
-
-    # FIXME: validate base64 encoding
-
-    def restrictions(self):
-        return ['length']
-    
-class EmptyTypeSpec(TypeSpec):
-    def __init__(self):
-        TypeSpec.__init__(self)
-
-    def str_to_val(self, errors, pos, str):
-        err_add(errors, pos, 'BAD_DEFAULT_VALUE', 'empty')
-        return None
-
-## type restrictions
-
-class RangeTypeSpec(TypeSpec):
-    def __init__(self, base, ranges):
-        TypeSpec.__init__(self)
-        self.base = base
-        self.ranges = ranges
-
-    def str_to_val(self, errors, pos, str):
-        return self.base.str_to_val(errors, pos, str)
-
-    def validate(self, errors, pos, val, errstr=''):
-            if self.base.validate(errors, pos, val, errstr) == False:
-                return False
-            for (lo, hi) in self.ranges:
-                if ((lo == 'min' or val >= lo) and
-                    (hi == None or hi == 'max' or val <= hi)):
-                    return True
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str(val), self.definition, 'range error' + errstr))
-            return False
-
-    def restrictions(self):
-        return self.base.restrictions()
-
-class LengthTypeSpec(TypeSpec):
-    def __init__(self, base, lengths):
-        TypeSpec.__init__(self)
-        self.base = base
-        self.lengths = lengths
-
-    def str_to_val(self, errors, pos, str):
-        return self.base.str_to_val(errors, pos, str)
-
-    def validate(self, errors, pos, val, errstr=''):
-        if self.base.validate(errors, pos, val, errstr) == False:
-            return False
-        vallen = len(val)
-        for (lo, hi) in self.lengths:
-            if vallen >= lo and (hi == None or vallen <= hi):
-                return True
-        err_add(errors, pos, 'TYPE_VALUE',
-                (val, self.definition, 'length error' + errstr))
-        return False
-
-    def restrictions(self):
-        return self.base.restrictions()
-
-class PatternTypeSpec(TypeSpec):
-    def __init__(self, base, re):
-        TypeSpec.__init__(self)
-        self.base = base
-        self.re = re
-
-    def str_to_val(self, errors, pos, str):
-        return self.base.str_to_val(errors, pos, str)
-
-    def validate(self, errors, pos, val, errstr=''):
-        if self.base.validate(errors, pos, val, errstr) == False:
-            return False
-        ret = False
-        if self.re.regexpExec(val) == 1:
-            return True
-        else:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (val, self.definition, 'pattern mismatch' + errstr))
-            return False
-    
-    def restrictions(self):
-        return self.base.restrictions()
-
-class EnumerationTypeSpec(TypeSpec):
-    def __init__(self, enums):
-        TypeSpec.__init__(self)
-        # no base - no restrictions allowed
-        self.enums = [(e.name, e.i_value) for e in enums]
-
-    def validate(self, errors, pos, val, errstr = ''):
-        if keysearch(val, 0, self.enums) == None:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (val, self.definition, 'enum not defined' + errstr))
-            return False
-        else:
-            return True
-
-class BitsTypeSpec(TypeSpec):
-    def __init__(self, bits):
-        TypeSpec.__init__(self)
-        # no base - no restrictions allowed
-        self.bits = [(b.name, b.i_position) for b in bits]
-
-    def str_to_val(self, errors, pos, str):
-        return str.split()
-
-    def validate(self, errors, pos, val, errstr = ''):
-        for v in val:
-            if keysearch(v, 0, self.bits) == None:
-                err_add(errors, pos, 'TYPE_VALUE',
-                        (v, self.definition, 'bit not defined' + errstr))
-                return False
-        return True
-
-class PathTypeSpec(TypeSpec):
-    def __init__(self, target_node):
-        TypeSpec.__init__(self)
-        # no base - no restrictions allowed
-        self.target_node = target_node
-
-    def str_to_val(self, errors, pos, str):
-        return self.target_node.type.i_type_spec.str_to_val(errors, pos, str)
-
-    def validate(self, errors, pos, val, errstr = ''):
-        return self.target_node.type.i_type_spec.validate(errors, pos, str)
-
-class UnionTypeSpec(TypeSpec):
-    def __init__(self, types):
-        TypeSpec.__init__(self)
-        # no base - no restrictions allowed
-        self.types = types
-
-    def str_to_val(self, errors, pos, str):
-        return str
-
-    def validate(self, errors, pos, str, errstr = ''):
-        # try to validate against each membertype
-        for t in self.types:
-            t.validate(errors)
-            if t.i_type_spec != None:
-                val = t.i_type_spec.str_to_val([], pos, str)
-                if val != None:
-                    if t.i_type_spec.validate([], pos, val):
-                        return True;
-        err_add(errors, pos, 'TYPE_VALUE',
-                (str, self.definition, 'no member type macthed' + errstr))
-        return False
-
-yang_type_specs = \
-  {'int8':IntTypeSpec(-128, 127),
-   'int16':IntTypeSpec(-32768, 32767),
-   'int32':IntTypeSpec(-2147483648, 2147483647),
-   'int64':IntTypeSpec(-9223372036854775808, 9223372036854775807),
-   'uint8':IntTypeSpec(0, 255),
-   'uint16':IntTypeSpec(0, 65535),
-   'uint32':IntTypeSpec(0, 4294967295),
-   'uint64':IntTypeSpec(0, 18446744073709551615),
-   'float32':FloatTypeSpec(32),
-   'float64':FloatTypeSpec(64),
-   'string':StringTypeSpec(),
-   'boolean':BooleanTypeSpec(),
-   'enumeration':TypeSpec(),
-   'bits':TypeSpec(),
-   'binary':BinaryTypeSpec(),
-   'keyref':TypeSpec(),
-   'instance-identifier':TypeSpec(),
-   'empty':EmptyTypeSpec(),
-   'union':TypeSpec(),
-   }
-

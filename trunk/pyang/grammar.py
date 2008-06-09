@@ -1,6 +1,6 @@
 """Description of YANG & YIN grammar."""
 
-from pyang import statement
+from pyang import statements
 from pyang import util
 from pyang import error
 import syntax
@@ -428,36 +428,36 @@ and <case> is a list of substatements
 
 # FIXME: possibly remove in the future, if we don't have these special classes
 handler_map = {
-    'import': lambda a,b,c,d: statement.Import(a,b,c,d),
-    'include': lambda a,b,c,d: statement.Include(a,b,c,d),
-    'revision': lambda a,b,c,d: statement.Revision(a,b,c,d),
-    'typedef': lambda a,b,c,d: statement.Typedef(a,b,c,d),
-    'grouping': lambda a,b,c,d: statement.Grouping(a,b,c,d),
-    'extension': lambda a,b,c,d: statement.Extension(a,b,c,d),
-    'argument': lambda a,b,c,d: statement.Argument(a,b,c,d),
-    'type': lambda a,b,c,d: statement.Type(a,b,c,d),
-    'range': lambda a,b,c,d: statement.Range(a,b,c,d),
-    'length': lambda a,b,c,d: statement.Length(a,b,c,d),
-    'pattern': lambda a,b,c,d: statement.Pattern(a,b,c,d),
-    'path': lambda a,b,c,d: statement.Path(a,b,c,d),
-    'must': lambda a,b,c,d: statement.Must(a,b,c,d),
-    'enum': lambda a,b,c,d: statement.Enum(a,b,c,d),
-    'bit': lambda a,b,c,d: statement.Bit(a,b,c,d),
-    'leaf': lambda a,b,c,d: statement.Leaf(a,b,c,d),
-    'leaf-list': lambda a,b,c,d: statement.LeafList(a,b,c,d),
-    'container': lambda a,b,c,d: statement.Container(a,b,c,d),
-    'list': lambda a,b,c,d: statement.List(a,b,c,d),
-    'uses': lambda a,b,c,d: statement.Uses(a,b,c,d),
-    'choice': lambda a,b,c,d: statement.Choice(a,b,c,d),
-    'case': lambda a,b,c,d: statement.Case(a,b,c,d),
-    'augment': lambda a,b,c,d: statement.Augment(a,b,c,d),
-    'anyxml': lambda a,b,c,d: statement.AnyXML(a,b,c,d),
-    'rpc': lambda a,b,c,d: statement.Rpc(a,b,c,d),
+    'import': lambda a,b,c,d: statements.Import(a,b,c,d),
+    'include': lambda a,b,c,d: statements.Include(a,b,c,d),
+    'revision': lambda a,b,c,d: statements.Revision(a,b,c,d),
+    'typedef': lambda a,b,c,d: statements.Typedef(a,b,c,d),
+    'grouping': lambda a,b,c,d: statements.Grouping(a,b,c,d),
+    'extension': lambda a,b,c,d: statements.Extension(a,b,c,d),
+    'argument': lambda a,b,c,d: statements.Argument(a,b,c,d),
+    'type': lambda a,b,c,d: statements.Type(a,b,c,d),
+    'range': lambda a,b,c,d: statements.Range(a,b,c,d),
+    'length': lambda a,b,c,d: statements.Length(a,b,c,d),
+    'pattern': lambda a,b,c,d: statements.Pattern(a,b,c,d),
+    'path': lambda a,b,c,d: statements.Path(a,b,c,d),
+    'must': lambda a,b,c,d: statements.Must(a,b,c,d),
+    'enum': lambda a,b,c,d: statements.Enum(a,b,c,d),
+    'bit': lambda a,b,c,d: statements.Bit(a,b,c,d),
+    'leaf': lambda a,b,c,d: statements.Leaf(a,b,c,d),
+    'leaf-list': lambda a,b,c,d: statements.LeafList(a,b,c,d),
+    'container': lambda a,b,c,d: statements.Container(a,b,c,d),
+    'list': lambda a,b,c,d: statements.List(a,b,c,d),
+    'uses': lambda a,b,c,d: statements.Uses(a,b,c,d),
+    'choice': lambda a,b,c,d: statements.Choice(a,b,c,d),
+    'case': lambda a,b,c,d: statements.Case(a,b,c,d),
+    'augment': lambda a,b,c,d: statements.Augment(a,b,c,d),
+    'anyxml': lambda a,b,c,d: statements.AnyXML(a,b,c,d),
+    'rpc': lambda a,b,c,d: statements.Rpc(a,b,c,d),
     'input': lambda parent, pos, module, arg: \
-               statement.Params(parent, pos, 'input', module),
+               statements.Params(parent, pos, 'input', module),
     'output': lambda parent, pos, module, arg: \
-               statement.Params(parent, pos, 'output', module),
-    'notification': lambda a,b,c,d: statement.Notification(a,b,c,d),
+               statements.Params(parent, pos, 'output', module),
+    'notification': lambda a,b,c,d: statements.Notification(a,b,c,d),
     }
                   
 

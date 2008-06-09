@@ -2,7 +2,7 @@
 # to a YANG module.
 
 from pyang import plugin
-from pyang import statement
+from pyang import types
 import sys
 from random import randint, random
 
@@ -112,7 +112,7 @@ def emit_type_val(t, writef):
         pass
     elif t.range != None:
         (lo,hi) = pick(t.range.i_ranges)
-        ts = statement.yang_type_specs[inttype]
+        ts = types.yang_type_specs[inttype]
         if lo == 'min':
             lo = ts.min
         if hi == 'max':
@@ -125,7 +125,7 @@ def emit_type_val(t, writef):
         val = pick(['true','false'])
         writef(val)
     elif inttype != None:
-        ts = statement.yang_type_specs[inttype]
+        ts = types.yang_type_specs[inttype]
         val = randint(ts.min, ts.max)
         writef(str(val))
     elif t.has_type('ipv4-address') != None:
