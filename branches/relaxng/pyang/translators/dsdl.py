@@ -1,4 +1,4 @@
-"""This module implements translator from YANG to RELAX NG.
+"""This module implements translator from YANG to DSDL.
 
 """
 
@@ -7,33 +7,42 @@ __docformat__ = "reStructuredText"
 import sys
 import xml.etree.ElementTree as ET
 
-class RelaxNGTranslator(object):
+class DSDLTranslator(object):
 
-    """Instances of this class translate YANG to RELAX NG.
+    """Instances of this class translate YANG to DSDL.
 
     The `translate` method walks recursively down the tree of YANG
-    statements and builds the resulting `ElementTree`. For each
-    statement, a handler method for the statement's keyword is
-    dispatched.
+    statements and builds one or more resulting ElementTree(s)
+    containing the corresponding schemas. For each YANG statement, a
+    handler method for the statement's keyword is dispatched.
 
     Instance variables:
     
     * dc_elements: dictionary with Dublin core elements (tag -> text)
+    * emit: list of prefixes that controls which schema languages
+      will be generated.
     * handler: dictionary dispatching YANG statements to handler methods
     * imported_symbols: list of used external symbols
     * module: YANG module that is being translated
-    * root_elem: root element in the constructed etree
-
+    * root_elem: root element in the main etree (with annotated RELAX NG)
     """
 
     grammar_attrs = {
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
         "datatypeLibrary" : "http://www.w3.org/2001/XMLSchema-datatypes",
-        "xmlns:a": "http://relaxng.org/ns/compatibility/annotations/1.0",
-        "xmlns:dc": "http://purl.org/dc/terms",
-        "xmlns:sch": "http://purl.oclc.org/dsdl/schematron",
     }
     """Common attributes of the <grammar> element."""
+
+    schema_languages = {
+        "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
+        "dc": "http://purl.org/dc/terms",
+        "sch": "http://purl.oclc.org/dsdl/schematron",
+    }
+    """Mapping of prefixes to schema language namespace URIs.
+
+    The prefixes also used for controlling which schema languages are
+    produced as output of the `translate` method.
+    """
 
     datatype_map = {
         "string" : "string",
@@ -49,10 +58,15 @@ class RelaxNGTranslator(object):
         "float64": "double",
         "boolean": "boolean",
     }
-    """YANG -> RELAX NG mapping of simple datatypes"""
+    """mapping of simple datatypes from YANG to W3C datatype library"""
 
     def __init__(self):
-        """Initialize the instance."""
+        """Initialize the instance.
+
+        Subclasses should first call __init__ method from heir
+        superclass and then redefine some of the items in the
+        `self.handler` dictionary if necessary.
+        """
         self.handler = {
             "contact": self.handle_contact,
             "container": self.new_element,
@@ -74,12 +88,12 @@ class RelaxNGTranslator(object):
             "uses" : self.handle_uses,
         }
 
-    def translate(self, module):
-        """
-        Translate `module` and return etree holding the
-        corresponding RELAX NG schema.
+    def translate(self, module, emit = ["a","dc","sch"]):
+        """Translate `module` to DSDL schema(s).
+
         """
         self.module = module
+        self.emit = emit
         self.imported_modules = {}
         self.imported_symbols = []
         self.dc_elements = {
@@ -87,6 +101,9 @@ class RelaxNGTranslator(object):
                        self.module.name)
             }
         self.root_elem = ET.Element("grammar", self.grammar_attrs)
+        for prefix in self.schema_languages: # define namespaces
+            self.root_elem.attrib["xmlns:" + prefix] = \
+                self.schema_languages[prefix]
         start = ET.SubElement(self.root_elem, "start")
         for sub in module.substmts: self.handle(sub, start)
         self.dublin_core()
