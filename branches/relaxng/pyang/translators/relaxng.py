@@ -68,7 +68,7 @@ class RelaxNGTranslator(object):
             "organization": self.handle_organization,
             "pattern": self.handle_pattern,
             "prefix": self.noop,
-            "handle_revision": self.handle_revision,
+            "revision": self.handle_revision,
             "type": self.handle_type,
             "typedef" : self.handle_reusable,
             "uses" : self.handle_uses,
