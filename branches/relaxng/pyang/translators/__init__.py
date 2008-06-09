@@ -2,6 +2,6 @@
 
 Modules:
 
-* relaxng: translator to RELAX NG
+* dsdl: translator to DSDL
 
 """
