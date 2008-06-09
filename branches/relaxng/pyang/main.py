@@ -482,6 +482,10 @@ class Statement(object):
             if (ch.keyword == keyword and ch.arg == arg): return ch
         return None
 
+    def substmt_keywords(self):
+        """Return a set of unique substatement keywords."""
+        return set([ch.keyword for ch in self.substmts])
+
     def full_path(self, join=None):
         """Return the identifiers of the receiver and all ancestor
         nodes either as a list (if `join` is None) or as a string with

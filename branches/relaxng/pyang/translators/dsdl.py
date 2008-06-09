@@ -60,6 +60,9 @@ class DSDLTranslator(object):
     }
     """mapping of simple datatypes from YANG to W3C datatype library"""
 
+    datatree_nodes = ["container", "leaf", "leaf-list", "list", "choice"]
+    """list of YANG statementes that form the data tree"""
+
     def __init__(self):
         """Initialize the instance.
 
@@ -99,12 +102,16 @@ class DSDLTranslator(object):
         self.dc_elements = {
             "source": ("YANG module '%s' (automatic translation)" %
                        self.module.name)
-            }
+        }
         self.root_elem = ET.Element("grammar", self.grammar_attrs)
-        for prefix in self.schema_languages: # define namespaces
+        for prefix in self.emit: # used namespaces
             self.root_elem.attrib["xmlns:" + prefix] = \
                 self.schema_languages[prefix]
-        start = ET.SubElement(self.root_elem, "start")
+        # Library modules have no <start>
+        if len(module.substmt_keywords().intersection(self.datatree_nodes)):
+            start = ET.SubElement(self.root_elem, "start")
+        else:
+            start = self.root_elem
         for sub in module.substmts: self.handle(sub, start)
         self.dublin_core()
         return ET.ElementTree(element=self.root_elem)
@@ -113,20 +120,49 @@ class DSDLTranslator(object):
         """
         Attach Dublin Core elements from dc_elements to <grammar>.
         """
+        if "dc" not in self.emit: return
         for dc in self.dc_elements:
             dcel = ET.Element("dc:" + dc)
             dcel.text = self.dc_elements[dc]
             self.root_elem.insert(0, dcel)
 
+    def resolve_ref(self, stmt):
+        """Resolve reference to a typedef or grouping, return ref element."""
+        if stmt.keyword == "uses":
+            def_type = "grouping"
+        else:
+            def_type = "typedef"
+        ref = stmt.arg
+        if ":" in ref:        # reference with prefix
+            prefix, ident = stmt.arg.split(":")
+            if prefix == self.module.prefix.arg: # local prefix?
+                ref = ident
+            else:
+                if stmt.arg not in self.imported_symbols:
+                    imp_symbol = self.pull_def(prefix, def_type, ident)
+                else:
+                    imp_symbol = stmt.arg
+                return ET.Element("ref", name=imp_symbol.replace(":", "__"))
+        parent = stmt.parent
+        while parent is not None:
+            def_ = parent.get_by_kw_and_arg(def_type, ref)
+            if def_ is not None:
+                break
+            parent = parent.parent
+        return ET.Element("ref", name=def_.full_path("__"))
+
     def pull_def(self, prefix, stmt, ident):
-        """
-        Pull the definitions of `ident` from external module carrying
-        `prefix` and install it as pattern definition.  Argument
-        `stmt` should be either `typedef` or `grouping`.
+        """Pull the definition of `ident` from external module with `prefix`.
+
+        Argument `stmt` should be either ``typedef`` or ``grouping``.
+        The imported symbol is returned (with disambiguating prefix).
         """
         ext_mod = self.module.ctx.modules[self.module.i_prefixes[prefix]]
         def_stmt = ext_mod.get_by_kw_and_arg(stmt, ident)
         self.handle(def_stmt, self.root_elem)
+        imp_symbol = prefix + ":" + ident
+        self.imported_symbols.append(imp_symbol)
+        return imp_symbol
 
     def handle(self, stmt, p_elem):
         """
@@ -154,7 +190,7 @@ class DSDLTranslator(object):
 
     def handle_revision(self, stmt, p_elem):
         self.dc_elements["issued"] = stmt.arg
-
+        
     def new_element(self, stmt, p_elem):
         """Handle ``leaf`` or ``container."""
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
@@ -172,10 +208,11 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_description(self, stmt, p_elem):
-        if stmt.i_module != self.module: return # ignore imported descriptions
+        if stmt.i_module != self.module: # ignore imported descriptions
+            return
         if stmt.parent == self.module: # top-level description
             self.dc_elements["description"] = stmt.arg
-        else:
+        elif "a" in self.emit and stmt.parent.keyword != "enum":
             elem = ET.Element("a:documentation")
             p_elem.insert(0, elem)
             elem.text = stmt.arg
@@ -193,14 +230,11 @@ class DSDLTranslator(object):
             elem = ET.SubElement(p_elem, "choice")
         elif stmt.arg == "empty":
             ET.SubElement(p_elem, "empty")
-        elif ":" in stmt.arg:        # foreign type
-            pr_t = stmt.arg.split(":")
-            if stmt.arg not in self.imported_symbols:
-                self.pull_def(pr_t[0], "typedef", pr_t[1])
-            ET.SubElement(p_elem, "ref", name="__".join(pr_t))
-        else:
+        elif stmt.arg in self.datatype_map:
             elem = ET.SubElement(p_elem, "data",
                                  type=self.datatype_map[stmt.arg])
+        else:                   # derived type
+            p_elem.append(self.resolve_ref(stmt))
         for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_reusable(self, stmt, p_elem):
@@ -210,18 +244,17 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle(sub, elem)
         
     def handle_uses(self, stmt, p_elem):
-        parent = stmt.parent
-        while parent is not None:
-            grp = parent.get_by_kw_and_arg("grouping", stmt.arg)
-            if grp is not None:
-                break
-            parent = parent.parent
-        ET.SubElement(p_elem, "ref",
-                      name=grp.full_path("__"))
+        p_elem.append(self.resolve_ref(stmt))
+        for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_enum(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
+        if "a" in self.emit:    # special handling of description
+            desc = stmt.get_by_kw("description")
+            if len(desc) > 0:
+                docel = ET.SubElement(p_elem, "a:documentation")
+                docel.text = desc[0].arg
         for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_must(self, stmt, p_elem):
