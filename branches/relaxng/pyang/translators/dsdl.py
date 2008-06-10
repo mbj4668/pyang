@@ -57,6 +57,7 @@ class DSDLTranslator(object):
         "float32": "float",
         "float64": "double",
         "boolean": "boolean",
+        "binary": "base64Binary",
     }
     """mapping of simple datatypes from YANG to W3C datatype library"""
 
@@ -71,6 +72,8 @@ class DSDLTranslator(object):
         `self.handler` dictionary if necessary.
         """
         self.handler = {
+            "case": self.handle_case,
+            "choice": self.handle_choice,
             "contact": self.handle_contact,
             "container": self.new_element,
             "description": self.handle_description,
@@ -91,12 +94,13 @@ class DSDLTranslator(object):
             "uses" : self.handle_uses,
         }
 
-    def translate(self, module, emit = ["a","dc","sch"]):
+    def translate(self, module, emit = ["a","dc","sch"], debug=0):
         """Translate `module` to DSDL schema(s).
 
         """
         self.module = module
         self.emit = emit
+        self.debug = debug
         self.imported_modules = {}
         self.imported_symbols = []
         self.dc_elements = {
@@ -135,11 +139,11 @@ class DSDLTranslator(object):
         ref = stmt.arg
         if ":" in ref:        # reference with prefix
             prefix, ident = stmt.arg.split(":")
-            if prefix == self.module.prefix.arg: # local prefix?
+            if prefix == stmt.i_module.prefix.arg: # local prefix?
                 ref = ident
             else:
                 if stmt.arg not in self.imported_symbols:
-                    imp_symbol = self.pull_def(prefix, def_type, ident)
+                    imp_symbol = self.pull_def(stmt, prefix, def_type, ident)
                 else:
                     imp_symbol = stmt.arg
                 return ET.Element("ref", name=imp_symbol.replace(":", "__"))
@@ -151,14 +155,18 @@ class DSDLTranslator(object):
             parent = parent.parent
         return ET.Element("ref", name=def_.full_path("__"))
 
-    def pull_def(self, prefix, stmt, ident):
+    def pull_def(self, stmt, prefix, kw, ident):
         """Pull the definition of `ident` from external module with `prefix`.
 
-        Argument `stmt` should be either ``typedef`` or ``grouping``.
-        The imported symbol is returned (with disambiguating prefix).
+        Argument `kw` should be either ``typedef`` or ``grouping``.
+        Argument `stmt` is the context statement for which the prefix
+        is resolved. The imported symbol is returned (with
+        disambiguating prefix).
         """
-        ext_mod = self.module.ctx.modules[self.module.i_prefixes[prefix]]
-        def_stmt = ext_mod.get_by_kw_and_arg(stmt, ident)
+        if self.debug > 0:
+            sys.stderr.write("Pulling '%s %s:%s'\n" % (kw, prefix, ident))
+        ext_mod = stmt.i_module.ctx.modules[stmt.i_module.i_prefixes[prefix]]
+        def_stmt = ext_mod.get_by_kw_and_arg(kw, ident)
         self.handle(def_stmt, self.root_elem)
         imp_symbol = prefix + ":" + ident
         self.imported_symbols.append(imp_symbol)
@@ -175,6 +183,9 @@ class DSDLTranslator(object):
         except KeyError:
             sys.stderr.write("%s not handled\n" % stmt.keyword)
         else:
+            if self.debug > 0:
+                sys.stdout.write("Handling '%s %s'\n" %
+                                 (stmt.keyword, stmt.arg))
             handler(stmt, p_elem)
 
     # Handlers for YANG statements
@@ -199,7 +210,7 @@ class DSDLTranslator(object):
     def new_list(self, stmt, p_elem):
         """Handle ``leaf-list`` or ``list."""
         min_el = stmt.get_by_kw("min-elements")
-        if min_el == [] or int(min_el[1].arg) == 0:
+        if min_el == [] or int(min_el[0].arg) == 0:
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
@@ -266,3 +277,11 @@ class DSDLTranslator(object):
         err_msg = stmt.get_by_kw("error-message")
         if err_msg != []:
             assert_.text = err_msg[0].arg
+
+    def handle_choice(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "choice")
+        for sub in stmt.substmts: self.handle(sub, elem)
+
+    def handle_case(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "group")
+        for sub in stmt.substmts: self.handle(sub, elem)
