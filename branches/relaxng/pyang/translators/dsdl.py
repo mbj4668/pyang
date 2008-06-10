@@ -184,7 +184,7 @@ class DSDLTranslator(object):
             sys.stderr.write("%s not handled\n" % stmt.keyword)
         else:
             if self.debug > 0:
-                sys.stdout.write("Handling '%s %s'\n" %
+                sys.stderr.write("Handling '%s %s'\n" %
                                  (stmt.keyword, stmt.arg))
             handler(stmt, p_elem)
 
