@@ -1,4 +1,5 @@
   o  handle core yang stmts in extesions
+     - coding done, write test cases
 
   o  add validation of XPath (lower prio) (when, must)
 
@@ -17,4 +18,11 @@
      coupling, or completely separate them (i.e. allow a file to be
      called anything, and build some kind of module->filename index)
 
-  o  send entire text file contents to the parse functions
+  o  make the parsers even more agnostic of yang grammar - they should
+     not even know about Module.  idea: pass an optional handle
+     function to the parser which can do the classes.  the same parser
+     can then be used to implement overlays.
+
+  o  restructure statements.py
+     - get rid of duplicate syntax checks
+     - remove most special classes?

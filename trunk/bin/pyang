@@ -4,10 +4,11 @@ import sys
 import os
 import optparse
 
+import pyang
 from pyang import plugin
 from pyang import debug
-from pyang import main
 from pyang import error
+from pyang import util
 
 def run():
 
@@ -80,7 +81,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
         ]
         
     optparser = optparse.OptionParser(usage, add_help_option = False)
-    optparser.version = '%prog ' + main.pyang_version
+    optparser.version = '%prog ' + pyang.__version__
     optparser.add_options(optlist)
 
     for p in plugin.plugins:
@@ -112,9 +113,9 @@ Validates the YANG module in <filename>, and all its dependencies."""
 
     basedir = os.path.split(sys.modules['pyang'].__file__)[0]
     path = o.path + ':' + basedir + '/../modules' + ':.'
-    repos = main.FileRepository(path)
+    repos = pyang.FileRepository(path)
 
-    ctx = main.Context(repos)
+    ctx = pyang.Context(repos)
     ctx.canonical = o.canonical
     ctx.opts = o
     # temporary hack. needed for yin plugin
@@ -135,7 +136,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
         except IOError, ex:
             sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
             sys.exit(1)
-        format = main.guess_format(text)
+        format = util.guess_format(text)
         module = ctx.add_module(filename, format, text)
 
     ctx.validate()
