@@ -486,22 +486,21 @@ class Statement(object):
         """Return a set of unique substatement keywords."""
         return set([ch.keyword for ch in self.substmts])
 
-    def full_path(self, join=None):
-        """Return the identifiers of the receiver and all ancestor
-        nodes either as a list (if `join` is None) or as a string with
-        the identifiers joined by `join`. The first item is not module
-        name but its prefix,
+    def full_path(self):
+        """Return full path of the receiver.
+
+        This function makes sense mostly for definition statements
+        ('typedef' and 'grouping'). The returned value is a list of
+        data tree node identifiers containing receiver's argument and
+        arguments of all ancestor statements up to 'module' (in
+        reverse order).
         """
-        path = [self.arg]
-        parent = self.parent
-        while parent.keyword != "module":
-            path.insert(0, parent.arg)
-            parent = parent.parent
-        path.insert(0, parent.prefix.arg)
-        if join is None:
-            return path
-        else:
-            return join.join(path)
+        path = []
+        node = self
+        while node is not None:
+            path.insert(0, node.arg)
+            node = node.parent
+        return path
 
     def search_grouping(self, name, modules=None):
         if 'grouping' in self.__dict__:
