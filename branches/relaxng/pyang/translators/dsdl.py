@@ -64,6 +64,12 @@ class DSDLTranslator(object):
     datatree_nodes = ["container", "leaf", "leaf-list", "list", "choice"]
     """list of YANG statementes that form the data tree"""
 
+    anyxml_def = '''<define name="anyxml"><zeroOrMore><choice>
+        <attribute><anyName/></attribute>
+        <element><anyName/><ref name="anyxml"/></element>
+        <text/></choice></zeroOrMore></define>'''
+    """RELAX NG pattern representing 'anyxml'"""
+
     def __init__(self):
         """Initialize the instance.
 
@@ -72,6 +78,7 @@ class DSDLTranslator(object):
         `self.handler` dictionary if necessary.
         """
         self.handler = {
+            "anyxml": self.handle_anyxml,
             "case": self.handle_case,
             "choice": self.handle_choice,
             "contact": self.handle_contact,
@@ -102,6 +109,7 @@ class DSDLTranslator(object):
         self.debug = debug
         self.prefix_map = {}
         self.imported_symbols = []
+        self.first_anyxml = True
         self.dc_elements = {
             "source": ("YANG module '%s' (automatic translation)" %
                        self.module.name)
@@ -187,6 +195,15 @@ class DSDLTranslator(object):
     def noop(self, stmt, p_elem):
         pass
 
+    def handle_anyxml(self, stmt, p_elem):
+        if self.first_anyxml:   # install definition
+            def_ = ET.fromstring(self.anyxml_def)
+            self.root_elem.append(def_)
+            self.first_anyxml = False
+        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+        for sub in stmt.substmts: self.handle(sub, elem)
+        ET.SubElement(elem, "ref", name="anyxml")
+
     def handle_contact(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
 
@@ -260,7 +277,6 @@ class DSDLTranslator(object):
             if len(desc) > 0:
                 docel = ET.SubElement(p_elem, "a:documentation")
                 docel.text = desc[0].arg
-        for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_must(self, stmt, p_elem):
         pattern = ET.SubElement(p_elem, "sch:pattern")
