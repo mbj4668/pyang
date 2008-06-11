@@ -82,14 +82,15 @@ class DSDLTranslator(object):
             "case": self.handle_case,
             "choice": self.handle_choice,
             "contact": self.handle_contact,
-            "container": self.new_element,
+            "container": self.handle_container,
             "description": self.handle_description,
             "enum" : self.handle_enum,
             "import" : self.noop,
             "grouping" : self.handle_reusable,
-            "leaf": self.new_element,
+            "leaf": self.handle_leaf,
             "leaf-list": self.new_list,
             "list": self.new_list,
+            "mandatory": self.noop,
             "must": self.handle_must,
             "namespace": self.handle_namespace,
             "organization": self.handle_organization,
@@ -207,17 +208,22 @@ class DSDLTranslator(object):
     def handle_contact(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
 
+    def handle_container(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+        for sub in stmt.substmts: self.handle(sub, elem)
+
+    def handle_leaf(self, stmt, p_elem):
+        if stmt.get_by_kw_and_arg("mandatory", "true") is None:
+            p_elem = ET.SubElement(p_elem, "optional")
+        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+        for sub in stmt.substmts: self.handle(sub, elem)
+
     def handle_organization(self, stmt, p_elem):
         self.dc_elements["creator"] = stmt.arg
 
     def handle_revision(self, stmt, p_elem):
         self.dc_elements["issued"] = stmt.arg
         
-    def new_element(self, stmt, p_elem):
-        """Handle ``leaf`` or ``container."""
-        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle(sub, elem)
-
     def new_list(self, stmt, p_elem):
         """Handle ``leaf-list`` or ``list."""
         min_el = stmt.get_by_kw("min-elements")
