@@ -1472,7 +1472,7 @@ def validate_children(obj, children, errors, config=None):
 
     def chk_children(names, children):
         for c in children:
-            if c.keyword != 'case':
+            if c.keyword not in ['case', 'input', 'output']:
                 if (c.i_module.name, c.name) in names:
                     err_add(errors, c.pos, 'DUPLICATE_CHILD_NAME', c.name)
                 names[(c.i_module.name, c.name)] = True
@@ -1671,10 +1671,24 @@ class Rpc(SchemaNodeStatement):
             self.children.append(self.output)
         validate_children(self, self.children, errors)
 
-class Params(SchemaNodeStatement):
-    def __init__(self, parent, pos, arg, module):
+class Input(SchemaNodeStatement):
+    def __init__(self, parent, pos, module, arg):
         SchemaNodeStatement.__init__(self, parent, pos,
-                                     arg,
+                                     self.__class__.__name__.lower(),
+                                     module, arg)
+        # statements
+        self.children = []  # leaves, containers, lists, leaf-lists, uses
+        self.typedef = []
+        self.grouping = []
+        self.augment = []
+        
+    def validate(self, errors):
+        validate_children(self, self.children, errors)
+
+class Output(SchemaNodeStatement):
+    def __init__(self, parent, pos, module, arg):
+        SchemaNodeStatement.__init__(self, parent, pos,
+                                     self.__class__.__name__.lower(),
                                      module, arg)
         # argument
         self.name = arg

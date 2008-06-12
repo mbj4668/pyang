@@ -453,10 +453,8 @@ handler_map = {
     'augment': lambda a,b,c,d: statements.Augment(a,b,c,d),
     'anyxml': lambda a,b,c,d: statements.AnyXML(a,b,c,d),
     'rpc': lambda a,b,c,d: statements.Rpc(a,b,c,d),
-    'input': lambda parent, pos, module, arg: \
-               statements.Params(parent, pos, 'input', module),
-    'output': lambda parent, pos, module, arg: \
-               statements.Params(parent, pos, 'output', module),
+    'input': lambda a,b,c,d: statements.Input(a,b,c,d),
+    'output': lambda a,b,c,d: statements.Output(a,b,c,d),
     'notification': lambda a,b,c,d: statements.Notification(a,b,c,d),
     }
                   
