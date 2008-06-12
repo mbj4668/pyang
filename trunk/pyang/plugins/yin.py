@@ -7,10 +7,9 @@ import optparse
 import re
 
 from pyang import plugin
-from pyang import error
-from pyang import statements
 from pyang import util
-from pyang.util import attrsearch
+
+yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 
 def pyang_plugin_init():
     plugin.register_plugin(YINPlugin())
@@ -30,320 +29,74 @@ class YINPlugin(plugin.PyangPlugin):
     def emit(self, ctx, module, writef):
         emit_yin(ctx, module, writef)
         
-
-## FIXME: rewrite to use Stmt.substmts instead of re-parsing the file
-
-
-
-T_SEMICOLON   = 1
-T_OPEN_BRACE  = 2
-T_CLOSE_BRACE = 3
-
-def is_tok(tok):
-    return type(tok) == type(T_SEMICOLON)
-
-def tok_to_str(tok):
-    if type(tok) == type(''):
-        return tok
-    elif util.is_prefixed(tok):
-        return tok[0] + ':' + tok[1]
-    elif tok == T_SEMICOLON:
-        return ';'
-    elif tok == T_OPEN_BRACE:
-        return '{'
-    elif tok == T_CLOSE_BRACE:
-        return '}'
-
-class YangTokenizer(object):
-    def __init__(self, fd, pos, errors):
-        self.fd = fd
-        self.pos = pos
-        self.buf = ''
-        self.linepos = 0  # used to remove leading whitespace from strings
-        self.errors = errors
-
-    def readline(self):
-        self.buf = file.readline(self.fd)
-        if self.buf == '':
-            raise error.Eof
-        self.pos.line = self.pos.line + 1
-        self.linepos = 0
-
-    def set_buf(self, i, pos=None):
-        if pos == None:
-            pos = i
-        self.linepos = self.linepos + pos
-        self.buf = self.buf[i:]
-
-    def skip(self):
-        # skip whitespace and count position
-        i = 0
-        pos = 0
-        buflen = len(self.buf)
-        while i < buflen and self.buf[i].isspace():
-            if self.buf[i] == '\t':
-                pos = pos + 8
-            else:
-                pos = pos + 1
-            i = i + 1
-        if i == buflen:
-            self.readline()
-            return self.skip()
-        else:
-            self.set_buf(i, pos)
-        # skip line comment
-        if self.buf.startswith('//'):
-            self.readline()
-            return self.skip()
-        # skip block comment
-        elif self.buf.startswith('/*'):
-            i = self.buf.find('*/')
-            while i == -1:
-                self.readline()
-                i = self.buf.find('*/')
-            self.set_buf(i+2)
-            return self.skip()
-
-    # ret: token() | identifier | (prefix, identifier)
-    def get_keyword(self):
-        self.skip()
-        try:
-            return self.get_tok()
-        except ValueError:
-            pass
-
-        m = statements.re_keyword.match(self.buf)
-        if m == None:
-            error.err_add(self.errors, self.pos,
-                         'UNEXPECTED_KEYWORD', self.buf)
-            raise error.Abort
-        else:
-            self.set_buf(m.end())
-            if m.group(2) == None: # no prefix
-                return m.group(4)
-            else:
-                return (m.group(2), m.group(4))
-
-    # ret: token()
-    def get_tok(self):
-        self.skip()
-        if self.buf[0] == ';':
-            self.set_buf(1)
-            return T_SEMICOLON
-        elif self.buf[0] == '{':
-            self.set_buf(1)
-            return T_OPEN_BRACE;
-        elif self.buf[0] == '}':
-            self.set_buf(1)
-            return T_CLOSE_BRACE;
-        raise ValueError
-    
-    # ret: token() | string
-    def get_string(self, need_quote=False):
-        self.skip()
-        try:
-            return self.get_tok()
-        except ValueError:
-            pass
-        
-        if self.buf[0] == '"' or self.buf[0] == "'":
-            # for double-quoted string,  loop over string and translate
-            # escaped characters.  also strip leading whitespace as
-            # necessary.
-            # for single-quoted string, keep going until end quote is found.
-            quote_char = self.buf[0]
-            # collect output in strs (list of strings)
-            strs = [] 
-            # remember position of " character
-            indentpos = self.linepos
-            i = 1
-            while True:
-                buflen = len(self.buf)
-                start = i
-                while i < buflen:
-                    if self.buf[i] == quote_char:
-                        # end-of-string; copy the buf to output
-                        strs.append(self.buf[start:i])
-                        # and trim buf
-                        self.set_buf(i+1)
-                        # check for '+' operator
-                        self.skip()
-                        if self.buf[0] == '+':
-                            self.set_buf(1)
-                            self.skip()
-                            nstr = self.get_string(need_quote=True)
-                            if (type(nstr) != type('')):
-                                error.err_add(self.errors, self.pos,
-                                              'EXPECTED_QUOTED_STRING', ())
-                                raise error.Abort
-                            strs.append(nstr)
-                        return ''.join(strs)
-                    elif (quote_char == '"' and
-                          self.buf[i] == '\\' and i < (buflen-1)):
-                        # check for special characters
-                        special = None
-                        if self.buf[i+1] == 'n':
-                            special = '\n'
-                        elif self.buf[i+1] == 't':
-                            special = '\t'
-                        elif self.buf[i+1] == '\"':
-                            special = '\"'
-                        elif self.buf[i+1] == '\\':
-                            special = '\\'
-                        if special != None:
-                            strs.append(self.buf[start:i])
-                            strs.append(special)
-                            i = i + 1
-                            start = i + 1
-                    i = i + 1
-                # end-of-line, keep going
-                strs.append(self.buf[start:i])
-                self.readline()
-                i = 0
-                if quote_char == '"':
-                    # skip whitespace used for indentation
-                    buflen = len(self.buf)
-                    while (i < buflen and self.buf[i].isspace() and
-                           i <= indentpos):
-                        i = i + 1
-                    if i == buflen:
-                        # whitespace only on this line; keep it as is
-                        i = 0
-        elif need_quote == True:
-            error.err_add(self.errors, self.pos, 'EXPECTED_QUOTED_STRING', ())
-            raise error.Abort
-        else:
-            # unquoted string
-            buflen = len(self.buf)
-            i = 0
-            while i < buflen:
-                if (self.buf[i].isspace() or self.buf[i] == ';' or
-                    self.buf[i] == '{' or self.buf[i] == '}' or
-                    self.buf[i:i+2] == '//' or self.buf[i:i+2] == '/*' or
-                    self.buf[i:i+2] == '*/'):
-                    res = self.buf[:i]
-                    self.set_buf(i)
-                    return res
-                i = i + 1
-
-
-
-# PRE: the file is syntactically correct
 def emit_yin(ctx, module, writef):
-    filename = ctx.filename
-    pos = error.Position(filename)
-    fd = open(filename, "r")
-    tokenizer = YangTokenizer(fd, pos, ctx.errors)
     writef('<?xml version="1.0" encoding="UTF-8"?>\n')
-    if module.i_is_submodule:
-        mtype = 'submodule'
-        xindent = '   '
-    else:
-        mtype = 'module'
-        xindent = ''
-    writef('<%s xmlns="urn:ietf:params:xml:ns:yang:yin:1"\n' % mtype)
-    writef(xindent + '        xmlns:' + module.prefix.arg + '=' +
-                   quoteattr(module.namespace.arg) + '\n')
-    for pre in module.i_prefixes:
-        modname = module.i_prefixes[pre]
-        mod = ctx.modules[modname]
-        if mod != None:
-            uri = mod.namespace.arg
-            writef(xindent + '        xmlns:' + pre + '=' +
-                   quoteattr(uri) + '\n')
-    writef(xindent + '        name="%s">\n' % module.name)
+    writef('<%s name="%s"\n' % (module.keyword, module.arg))
+    writef(' ' * len(module.keyword) + '  xmlns="%s"' % yin_namespace)
 
-    # skip the module keywd and name
-    tokenizer.get_keyword() # module
-    tokenizer.get_string()  # <name>
-    tokenizer.get_tok()     # {
-    _yang_to_yin(ctx, module, tokenizer, writef, '  ', None)
-    writef('</%s>\n' % mtype)
-
-# pre:  { read
-# post: } read
-def _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix):
-    new_prefix = cur_prefix
-    keywd = tokenizer.get_keyword()
-    argname = None
-    argiselem = False
-    if keywd == T_CLOSE_BRACE:
-        return;
-    elif util.is_prefixed(keywd):
-        (prefix, identifier) = keywd
-        new_prefix = prefix
+    if module.prefix != None:
+        # FIXME: if the prefix really can be used in the submodule
+        # then we need to grab it from the module
+        # currently if we get here it is a module (not submodule)
+        writef('\n')
+        writef(' ' * len(module.keyword))
+        writef('  xmlns:' + module.prefix.arg + '=' +
+               quoteattr(module.namespace.arg))
+    writef('>\n')
+    for s in module.substmts:
+        emit_stmt(ctx, module, s, writef, '  ', '  ')
+    writef('</%s>\n' % module.keyword)
+    
+def emit_stmt(ctx, module, stmt, writef, indent, indentstep):
+    if util.is_prefixed(stmt.keyword):
+        # this is an extension.  need to find its definition
+        (prefix, identifier) = stmt.keyword
         tag = prefix + ':' + identifier
-        mod = module.prefix_to_module(prefix, tokenizer.pos, [])
-        if mod != None:
-            ext = attrsearch(identifier, 'name', mod.extension)
-            if ext.argument != None:
-                if ext.argument.yin_element != None:
-                    argname = prefix + ':' + ext.argument.name
-                    argiselem = ext.argument.yin_element.arg == 'true'
-                else:
-                    argname = ext.argument.name
-    elif cur_prefix != None:
-        tag = keywd
-        try:
-            mod = ctx.modules[module.i_prefixes[cur_prefix]]
-            ext = attrsearch(keywd, 'name', mod.extension)
-            if ext.argument != None:
-                if ext.argument.yin_element != None:
-                    argname = cur_prefix + ':' + ext.argument.name
-                    argiselem = ext.argument.yin_element.arg == 'true'
-                else:
-                    argname = ext.argument.name
-        except KeyError:
-            pass
-    else:
-        (argname, argiselem, _argappinfo) = yang_keywords[keywd]
-        tag = keywd
-    if argname == None:
-        tok = tokenizer.get_tok() # ; or {
-        # no argument for this keyword
-        if tok == T_SEMICOLON:
-            writef(indent + '<' + tag + '/>\n')
-        elif tok == T_OPEN_BRACE:
-            writef(indent + '<' + tag + '>\n')
-            _yang_to_yin(ctx, module, tokenizer, writef,
-                         indent + '  ', new_prefix)
-            writef(indent + '</' + tag + '>\n')
-    else:
-        arg = tokenizer.get_string()
-        tok = tokenizer.get_tok() # ; or {
-        if argiselem == False:
-            # print argument as an attribute
-            argstr = argname + '=' + quoteattr(arg)
-            if tok == T_SEMICOLON:
-                writef(indent + '<' + tag + ' ' + argstr + '/>\n')
-            elif tok == T_OPEN_BRACE:
-                writef(indent + '<' + tag + ' ' + argstr + '>\n')
-                _yang_to_yin(ctx, module, tokenizer, writef,
-                             indent + '  ', new_prefix)
-                writef(indent + '</' + tag + '>\n')
-        else:
-            # print argument as an element
-            writef(indent + '<' + tag + '>\n')
-            if ctx.opts.yin_pretty_strings:
-                # since whitespace is significant in XML, the current
-                # code is strictly speaking incorrect.  But w/o the whitespace,
-                # it looks too ugly.
-                writef(indent + '  <' + argname + '>\n')
-                writef(fmt_text(indent + '    ', arg))
-                writef('\n' + indent + '  </' + argname + '>\n')
+        extmodule = module.prefix_to_module(prefix, None, [])
+        ext = util.attrsearch(identifier, 'name', extmodule.extension)
+        if ext.argument != None:
+            if ext.argument.yin_element != None:
+                argname = prefix + ':' + ext.argument.name
+                argiselem = ext.argument.yin_element.arg == 'true'
             else:
-                writef(indent + '  <' + argname + '>' + \
-                           escape(arg) + \
-                           '</' + argname + '>\n')
-
-            if tok == T_SEMICOLON:
-                pass
-            elif tok == T_OPEN_BRACE:
-                _yang_to_yin(ctx, module, tokenizer, writef,
-                             indent + '  ', new_prefix)
+                # no yin-element given, default to false
+                argiselem = False
+                argname = ext.argument.name
+        else:
+            argiselem = False
+            argname = None
+    else:
+        (argname, argiselem) = yang_keywords[stmt.keyword]
+        tag = stmt.keyword
+    if argiselem == False or argname == None:
+        if argname == None:
+            attr = ''
+        else:
+            attr = ' ' + argname + '=' + quoteattr(stmt.arg)
+        if len(stmt.substmts) == 0:
+            writef(indent + '<' + tag + attr + '/>\n')
+        else:
+            writef(indent + '<' + tag + attr + '>\n')
+            for s in stmt.substmts:
+                emit_stmt(ctx, module, s, writef, indent + indentstep,
+                          indentstep)
             writef(indent + '</' + tag + '>\n')
-    _yang_to_yin(ctx, module, tokenizer, writef, indent, cur_prefix)
-            
+    else:
+        writef(indent + '<' + tag + '>\n')
+        if ctx.opts.yin_pretty_strings:
+            # since whitespace is significant in XML, the current
+            # code is strictly speaking incorrect.  But w/o the whitespace,
+            # it looks too ugly.
+            writef(indent + indentstep + '<' + argname + '>\n')
+            writef(fmt_text(indent + indentstep + indentstep, stmt.arg))
+            writef('\n' + indent + indentstep + '</' + argname + '>\n')
+        else:
+            writef(indent + indentstep + '<' + argname + '>' + \
+                       escape(stmt.arg) + \
+                       '</' + argname + '>\n')
+        for s in stmt.substmts:
+            emit_stmt(ctx, module, s, writef, indent + indentstep, indentstep)
+        writef(indent + '</' + tag + '>\n')
 
 def fmt_text(indent, data):
     res = []
@@ -356,61 +109,61 @@ def fmt_text(indent, data):
             res.extend(indent + line)
     return ''.join(res)
 
-    # keyword             argument-name  yin-element xsd-appinfo
+    # keyword             argument-name  yin-element
 yang_keywords = \
-    {'anyxml':           ('name',        False,      False),
-     'argument':         ('name',        False,      False),
-     'augment':          ('target-node', False,      False),
-     'belongs-to':       ('module',      False,      True),
-     'bit':              ('name',        False,      False),
-     'case':             ('name',        False,      False),
-     'choice':           ('name',        False,      False),
-     'config':           ('value',       False,      True),
-     'contact':          ('info',        True,       True),
-     'container':        ('name',        False,      False),
-     'default':          ('value',       False,      True),
-     'description':      ('text',        True,       False),
-     'enum':             ('name',        False,      False),
-     'error-app-tag':    ('value',       False,      True),
-     'error-message':    ('value',       True,       True),
-     'extension':        ('name',        False,      False),
-     'grouping':         ('name',        False,      False),
-     'import':           ('module',      False,      True),
-     'include':          ('module',      False,      True),
-     'input':            (None,          None,       False),
-     'key':              ('value',       False,      False),
-     'leaf':             ('name',        False,      False),
-     'leaf-list':        ('name',        False,      False),
-     'length':           ('value',       False,      False),
-     'list':             ('name',        False,      False),
-     'mandatory':        ('value',       False,      True),
-     'max-elements':     ('value',       False,      True),
-     'min-elements':     ('value',       False,      True),
-     'module':           ('name',        False,      False),
-     'must':             ('condition',   False,      True),
-     'namespace':        ('uri',         False,      False),
-     'notification':     ('name',        False,      False),
-     'ordered-by':       ('value',       False,      True),
-     'organization':     ('info',        True,       True),
-     'output':           (None,          None,       False),
-     'path':             ('value',       False,      False),
-     'pattern':          ('value',       False,      False),
-     'position':         ('value',       False,      False),
-     'presence':         ('value',       False,      False),
-     'prefix':           ('value',       False,      True),
-     'range':            ('value',       False,      False),
-     'reference':        ('info',        False,      True),
-     'revision':         ('date',        False,      True),
-     'rpc':              ('name',        False,      False),
-     'status':           ('value',       False,      True),
-     'submodule':        ('name',        False,      False),
-     'type':             ('name',        False,      False),
-     'typedef':          ('name',        False,      False),
-     'unique':           ('tag',         False,      False),
-     'units':            ('name',        False,      True),
-     'uses':             ('name',        False,      False),
-     'value':            ('value',       False,      False),
-     'when':             ('condition',   False,      True),
-     'yang-version':     ('value',       False,      True),
-     'yin-element':      ('value',       False,      False),
+    {'anyxml':           ('name',        False),
+     'argument':         ('name',        False),
+     'augment':          ('target-node', False),
+     'belongs-to':       ('module',      False),
+     'bit':              ('name',        False),
+     'case':             ('name',        False),
+     'choice':           ('name',        False),
+     'config':           ('value',       False),
+     'contact':          ('info',        True),
+     'container':        ('name',        False),
+     'default':          ('value',       False),
+     'description':      ('text',        True),
+     'enum':             ('name',        False),
+     'error-app-tag':    ('value',       False),
+     'error-message':    ('value',       True),
+     'extension':        ('name',        False),
+     'grouping':         ('name',        False),
+     'import':           ('module',      False),
+     'include':          ('module',      False),
+     'input':            (None,          None),
+     'key':              ('value',       False),
+     'leaf':             ('name',        False),
+     'leaf-list':        ('name',        False),
+     'length':           ('value',       False),
+     'list':             ('name',        False),
+     'mandatory':        ('value',       False),
+     'max-elements':     ('value',       False),
+     'min-elements':     ('value',       False),
+     'module':           ('name',        False),
+     'must':             ('condition',   False),
+     'namespace':        ('uri',         False),
+     'notification':     ('name',        False),
+     'ordered-by':       ('value',       False),
+     'organization':     ('info',        True),
+     'output':           (None,          None),
+     'path':             ('value',       False),
+     'pattern':          ('value',       False),
+     'position':         ('value',       False),
+     'presence':         ('value',       False),
+     'prefix':           ('value',       False),
+     'range':            ('value',       False),
+     'reference':        ('info',        False),
+     'revision':         ('date',        False),
+     'rpc':              ('name',        False),
+     'status':           ('value',       False),
+     'submodule':        ('name',        False),
+     'type':             ('name',        False),
+     'typedef':          ('name',        False),
+     'unique':           ('tag',         False),
+     'units':            ('name',        False),
+     'uses':             ('name',        False),
+     'value':            ('value',       False),
+     'when':             ('condition',   False),
+     'yang-version':     ('value',       False),
+     'yin-element':      ('value',       False),
      }
