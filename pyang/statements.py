@@ -75,6 +75,47 @@ class Statement(object):
         # extra
         self.i_module = module
 
+    def escaped_arg(self):
+        """In self.arg, replace characters forbidden in XML by
+        entities and return the result."""
+        res = self.arg.replace("&", "&amp;")
+        res = res.replace('"', "&quot;")
+        res = res.replace("<", "&lt;")
+        return res.replace(">", "&gt;")
+
+    def get_by_kw(self, keyword):
+        """Return the list of receiver's children with a given
+        keyword."""
+        return [ ch for ch in self.substmts if ch.keyword == keyword ]
+
+    def get_by_kw_and_arg(self, keyword, arg):
+        """Return the receiver's child with a given `keyword` and
+        `arg` or None if it doesn't exist.
+        """
+        for ch in self.substmts:
+            if (ch.keyword == keyword and ch.arg == arg): return ch
+        return None
+
+    def substmt_keywords(self):
+        """Return a set of unique substatement keywords."""
+        return set([ch.keyword for ch in self.substmts])
+
+    def full_path(self):
+        """Return full path of the receiver.
+
+        This function makes sense mostly for definition statements
+        ('typedef' and 'grouping'). The returned value is a list of
+        data tree node identifiers containing receiver's argument and
+        arguments of all ancestor statements up to 'module' (in
+        reverse order).
+        """
+        path = []
+        node = self
+        while node is not None:
+            path.insert(0, node.arg)
+            node = node.parent
+        return path
+
     def search_typedef(self, name):
         if 'typedef' in self.__dict__:
             typedef = attrsearch(name, 'name', self.typedef)
