@@ -2,6 +2,7 @@
 
 import os
 import string
+import sys
 
 import error
 import yang_parser
@@ -28,16 +29,19 @@ class Context(object):
         self.canonical = False
         self.submodule_expansion = True
 
-    def add_module(self, ref, format, text):
+    def add_module(self, ref, text, format=None):
         """Parse a module text and add the module data to the context
 
         `ref` is a string which is used to identify the source of
               the text for the user.  used in error messages
-        `format` is one of 'yang' or 'yin'.
         `text` is the raw text data
+        `format` is one of 'yang' or 'yin'.
 
         Returns the parsed module on success, and None on error.
         """
+
+        if format == None:
+            format = util.guess_format(text)
 
         if format == 'yin':
             p = yin_parser.YinParser()
@@ -77,7 +81,7 @@ class Context(object):
         except self.repository.ReadError, ex:
             error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
         (ref, format, text) = r
-        module = self.add_module(ref, format, text)
+        module = self.add_module(ref, text, format)
         if modulename != module.name:
             error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
                           (module.name, filename, modulename))
@@ -176,7 +180,13 @@ class Repository(object):
             Exception.__init__(self, str)
 
 class FileRepository(Repository):
-    def __init__(self, path):
+    def __init__(self, path=""):
+        """Create a Repository which searches the filesystem for modules
+
+        `path` is a ':'-separated string of directories
+        """
+        basedir = os.path.split(sys.modules['pyang'].__file__)[0]
+        path = path + ':' + basedir + '/../modules' + ':.'
         Repository.__init__(self)
         self.path = path
 

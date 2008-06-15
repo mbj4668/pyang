@@ -2,7 +2,7 @@ PYANG = pyang
 
 MODULES = $(wildcard *.yang)
 
-test:
+test: clean
 	@for m in $(MODULES); do 					\
 		echo -n "checking $$m...";				\
 		$(PYANG) $$m || exit 1;					\

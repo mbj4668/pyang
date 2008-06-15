@@ -14,10 +14,6 @@
 
   o  better handling of multiple input files
 
-  o  better handling of filename vs. modulename.  either enforce a
-     coupling, or completely separate them (i.e. allow a file to be
-     called anything, and build some kind of module->filename index)
-
   o  make the parsers even more agnostic of yang grammar - they should
      not even know about Module.  idea: pass an optional handle
      function to the parser which can do the classes.  the same parser
