@@ -148,12 +148,11 @@ Validates the YANG module in <filename>, and all its dependencies."""
                       elevel + error.err_to_str(etag, eargs)
             exit_code = 1
     if o.outfile == None:
-        writef = lambda str: sys.stdout.write(str)
+        fd = sys.stdout
     else:
         fd = open(o.outfile, "w+")
-        writef = lambda str: fd.write(str)
     if emit_obj != None and module != None:
-        emit_obj.emit(ctx, module, writef)
+        emit_obj.emit(ctx, module, fd)
 
     sys.exit(exit_code)
 

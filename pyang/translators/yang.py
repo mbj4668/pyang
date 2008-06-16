@@ -12,30 +12,30 @@ def pyang_plugin_init():
 class YANGPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         fmts['yang'] = self
-    def emit(self, ctx, module, writef):
-        emit_yang(module, writef)
+    def emit(self, ctx, module, fd):
+        emit_yang(module, fd)
         
-def emit_yang(module, writef):
-    emit_stmt(module, writef, '', '  ')
+def emit_yang(module, fd):
+    emit_stmt(module, fd, '', '  ')
     
-def emit_stmt(stmt, writef, indent, indentstep):
+def emit_stmt(stmt, fd, indent, indentstep):
     if util.is_prefixed(stmt.keyword):
         (prefix, identifier) = stmt.keyword
         keywd = prefix + ':' + identifier
     else:
         keywd = stmt.keyword
-    writef(indent + keywd)
+    fd.write(indent + keywd)
     if stmt.arg != None:
-        emit_arg(stmt.arg, writef, indent, indentstep)
+        emit_arg(stmt.arg, fd, indent, indentstep)
     if len(stmt.substmts) == 0:
-        writef(';\n')
+        fd.write(';\n')
     else:
-        writef(' {\n')
+        fd.write(' {\n')
         for s in stmt.substmts:
-            emit_stmt(s, writef, indent + indentstep, indentstep)
-        writef(indent + '}\n')
+            emit_stmt(s, fd, indent + indentstep, indentstep)
+        fd.write(indent + '}\n')
 
-def emit_arg(arg, writef, indent, indentstep):
+def emit_arg(arg, fd, indent, indentstep):
     """Heuristically pretty print the argument string"""
     # current alg. always print a double quoted string
     arg = arg.replace('\\', r'\\')
@@ -43,10 +43,10 @@ def emit_arg(arg, writef, indent, indentstep):
     arg = arg.replace('\t', r'\t')
     lines = arg.splitlines()
     if len(lines) == 1:
-        writef(' "' + arg + '"')
+        fd.write(' "' + arg + '"')
     else:
-        writef('\n')
-        writef(indent + indentstep + '"' + lines[0] + '\n')
+        fd.write('\n')
+        fd.write(indent + indentstep + '"' + lines[0] + '\n')
         for line in lines[1:-1]:
-            writef(indent + indentstep + ' ' + line + '\n')
-        writef(indent + indentstep + ' ' + lines[-1] + '"')
+            fd.write(indent + indentstep + ' ' + line + '\n')
+        fd.write(indent + indentstep + ' ' + lines[-1] + '"')

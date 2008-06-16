@@ -114,7 +114,7 @@ class XSDPlugin(plugin.PyangPlugin):
         fmts['xsd'] = self
     def setup_context(self, ctx):
         ctx.submodule_expansion = False        
-    def emit(self, ctx, module, writef):
+    def emit(self, ctx, module, fd):
         # cannot do XSD unless everything is ok for our module
         for (epos, etag, eargs) in ctx.errors:
             if epos.module_name == module.name:
@@ -126,9 +126,13 @@ class XSDPlugin(plugin.PyangPlugin):
             if mod == None:
                 sys.exit(1)
             
-        emit_xsd(ctx, module, writef)
+        emit_xsd(ctx, module, fd)
 
-def emit_xsd(ctx, module, writef):
+class DummyFD(object):
+    def write(self, s):
+        pass
+
+def emit_xsd(ctx, module, fd):
     if module.i_is_submodule:
         parent_modulename = module.belongs_to.arg
         ctx.search_module(module.belongs_to.pos, modulename=parent_modulename)
@@ -175,10 +179,11 @@ def emit_xsd(ctx, module, writef):
 
     # first pass, which might generate new imports
     ctx.i_pass = 'first'
-    dummyf = lambda str: None
-    xsd_print_children(ctx, module, dummyf, module.i_expanded_children, '  ', [])
+    dummyfd = DummyFD()
+    xsd_print_children(ctx, module, dummyfd, module.i_expanded_children,
+                       '  ', [])
     for c in module.typedef:
-        xsd_print_simple_type(ctx, module, dummyf, '  ', c.type, '', None)
+        xsd_print_simple_type(ctx, module, dummyfd, '  ', c.type, '', None)
 
     prefixes = [module.i_prefix] + [p for p in module.i_prefixes]
     if module.i_prefix in ['xs', 'yin', 'nc', 'ncn']:
@@ -198,23 +203,26 @@ def emit_xsd(ctx, module, writef):
         elif c.keyword == 'rpc':
             has_rpc = True
 
-    writef('<?xml version="1.0" encoding="UTF-8"?>\n')
-    writef('<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"\n')
+    fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+    fd.write('<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"\n')
     if ctx.opts.xsd_no_appinfo != True:
-        writef('           xmlns:yin="urn:ietf:params:xml:schema:yang:yin:1"\n')
+        fd.write('           ' \
+                       'xmlns:yin="urn:ietf:params:xml:schema:yang:yin:1"\n')
     if has_rpc == True:
-        writef('           xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"\n')
+        fd.write('           ' \
+                       'xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"\n')
     if has_notifications == True:
-        writef('           xmlns:ncn="urn:ietf:params:xml:ns:' + \
-               'netconf:notification:1.0"\n')
-    writef('           targetNamespace="%s"\n' % module.i_namespace)
-    writef('           xmlns="%s"\n' % module.i_namespace)
-    writef('           xmlns:%s="%s"\n' % (module.i_prefix, module.i_namespace))
-    writef('           elementFormDefault="qualified"\n')
-    writef('           attributeFormDefault="unqualified"\n')
+        fd.write('           xmlns:ncn="urn:ietf:params:xml:ns:' \
+                       'netconf:notification:1.0"\n')
+    fd.write('           targetNamespace="%s"\n' % module.i_namespace)
+    fd.write('           xmlns="%s"\n' % module.i_namespace)
+    fd.write('           xmlns:%s="%s"\n' % \
+                   (module.i_prefix, module.i_namespace))
+    fd.write('           elementFormDefault="qualified"\n')
+    fd.write('           attributeFormDefault="unqualified"\n')
     if len(module.revision) > 0:
-        writef('           version="%s"\n' % module.revision[0].date)
-    writef('           xml:lang="en"')
+        fd.write('           version="%s"\n' % module.revision[0].date)
+    fd.write('           xml:lang="en"')
     for pre in module.i_prefixes:
         modname = module.i_prefixes[pre]
         mod = ctx.modules[modname]
@@ -229,101 +237,105 @@ def emit_xsd(ctx, module, writef):
             prefixes.append(pre)
         mod.i_prefix = pre
         uri = mod.namespace.arg
-        writef('\n           xmlns:' + pre + '=' + quoteattr(uri))
-    writef('>\n\n')
+        fd.write('\n           xmlns:' + pre + '=' + quoteattr(uri))
+    fd.write('>\n\n')
     
     if ctx.opts.xsd_no_imports != True:
         imports = module.import_ + module.i_gen_import
         for x in imports:
             mod = ctx.modules[x.modulename]
             uri = mod.namespace.arg
-            writef('  <xs:import namespace="%s" schemaLocation="%s.xsd"/>\n' %
-                   (uri, x.modulename))
+            fd.write('  <xs:import namespace="%s"' \
+                           'schemaLocation="%s.xsd"/>\n' %
+                       (uri, x.modulename))
         if has_rpc:
-            writef('  <xs:import\n')
-            writef('     namespace="urn:ietf:params:xml:ns:netconf:base:1.0"\n')
-            writef('     schemaLocation="http://www.iana.org/assignments/' +
-                   'xml-registry/schema/netconf.xsd"/>')
+            fd.write('  <xs:import\n')
+            fd.write('     namespace=' \
+                           '"urn:ietf:params:xml:ns:netconf:base:1.0"\n')
+            fd.write('     schemaLocation="http://www.iana.org/assignments/' \
+                           'xml-registry/schema/netconf.xsd"/>')
         if has_notifications:
-            writef('  <xs:import\n')
-            writef('     namespace="urn:ietf:params:xml:ns:netconf:' + \
-                   'notification:1.0"\n')
+            fd.write('  <xs:import\n')
+            fd.write('     namespace="urn:ietf:params:xml:ns:netconf:' \
+                           'notification:1.0"\n')
 # FIME: not yet published!  use a local copy for now.
-            writef('      schemaLocation="notification.xsd"/>')
-#            writef('     schemaLocation="http://www.iana.org/assignments/' +
+            fd.write('      schemaLocation="notification.xsd"/>')
+#            fd.write('     schemaLocation="http://www.iana.org/assignments/' +
 #                   'xml-registry/schema/notification.xsd"/>')
         if len(imports) > 0 or has_rpc or has_notifications:
-            writef('\n')
+            fd.write('\n')
 
     for inc in module.include:
-        writef('  <xs:include schemaLocation="%s.xsd"/>\n' % inc.modulename)
+        fd.write('  <xs:include schemaLocation="%s.xsd"/>\n' % inc.modulename)
 
-    writef('  <xs:annotation>\n')
-    writef('    <xs:documentation>\n')
-    writef('      This schema was generated from the YANG module %s\n' % \
-           module.name)
-    writef('      by pyang version %s.\n' % pyang.__version__)
-    writef('\n')
-    writef('      The schema describes an instance document consisting of the\n')
-    writef('      entire configuration data store and operational data.  This\n')
-    writef('      schema can thus NOT be used as-is to validate NETCONF PDUs.\n')
-    writef('    </xs:documentation>\n')
-    writef('  </xs:annotation>\n\n')
-    xsd_print_annotation(ctx, writef, '  ', module)
+    fd.write('  <xs:annotation>\n')
+    fd.write('    <xs:documentation>\n')
+    fd.write('      This schema was generated from the YANG module %s\n' % \
+                   module.name)
+    fd.write('      by pyang version %s.\n' % pyang.__version__)
+    fd.write('\n')
+    fd.write('      The schema describes an instance document consisting of\n')
+    fd.write('      the entire configuration data store and operational\n')
+    fd.write('      data.  This schema can thus NOT be used as-is to\n')
+    fd.write('      validate NETCONF PDUs.\n')
+    fd.write('    </xs:documentation>\n')
+    fd.write('  </xs:annotation>\n\n')
+    xsd_print_annotation(ctx, fd, '  ', module)
     ctx.i_pass = 'second'
 
     # print typedefs
     if len(module.typedef) > 0:
-        writef('  <!-- YANG typedefs -->\n\n')
+        fd.write('  <!-- YANG typedefs -->\n\n')
     for c in module.typedef:
-        xsd_print_simple_type(ctx, module, writef, '  ', c.type,
+        xsd_print_simple_type(ctx, module, fd, '  ', c.type,
                               ' name="%s"' % c.i_xsd_name, c.description)
-        writef('\n')
+        fd.write('\n')
 
     # print locally defined typedefs
     if len(module.i_local_typedefs) > 0:
-        writef('  <!-- local YANG typedefs -->\n\n')
+        fd.write('  <!-- local YANG typedefs -->\n\n')
     for c in module.i_local_typedefs:
-        xsd_print_simple_type(ctx, module, writef, '  ', c.type,
+        xsd_print_simple_type(ctx, module, fd, '  ', c.type,
                               ' name="%s"' % c.i_xsd_name, c.description)
-        writef('\n')
+        fd.write('\n')
 
     # print groups
     if len(module.grouping) > 0:
-        writef('  <!-- YANG groupings -->\n\n')
+        fd.write('  <!-- YANG groupings -->\n\n')
     for c in module.grouping:
-        xsd_print_grouping(ctx, module, writef, '  ', c)
-        writef('\n')
+        xsd_print_grouping(ctx, module, fd, '  ', c)
+        fd.write('\n')
     if len(module.grouping) > 0:
-        writef('\n')
+        fd.write('\n')
 
     # print augments
     # filter away local augments; they are printed inline in the XSD
     augment = [a for a in module.augment \
                if a.i_target_node.i_module.name != module.name]
     if len(augment) > 0:
-        writef('  <!-- YANG augments -->\n\n')
+        fd.write('  <!-- YANG augments -->\n\n')
     for c in augment:
-        xsd_print_augment(ctx, module, writef, '  ', c)
-        writef('\n')
+        xsd_print_augment(ctx, module, fd, '  ', c)
+        fd.write('\n')
     if len(augment) > 0:
-        writef('\n')
+        fd.write('\n')
 
     # print data definitions
-    xsd_print_children(ctx, module, writef, module.i_expanded_children, '  ', [])
-    writef('\n')
+    xsd_print_children(ctx, module, fd, module.i_expanded_children,
+                       '  ', [])
+    fd.write('\n')
 
     # then print all generated 'dummy' simpleTypes, if any
     if len(module.i_gen_typedef) > 0:
-        writef('  <!-- locally generated simpleType helpers -->\n\n')
+        fd.write('  <!-- locally generated simpleType helpers -->\n\n')
     for c in module.i_gen_typedef:
-        xsd_print_simple_type(ctx, module, writef, '  ', c.type,
+        xsd_print_simple_type(ctx, module, fd, '  ', c.type,
                               ' name="%s"' % c.name, None)
-        writef('\n')
+        fd.write('\n')
 
-    writef('</xs:schema>\n')
+    fd.write('</xs:schema>\n')
 
-def xsd_print_children(ctx, module, writef, children, indent, path,
+def xsd_print_children(ctx, module, fd, children, indent, path,
                        uniq=[''], uindent=''):
     for c in children:
         cn = c.keyword
@@ -378,17 +390,18 @@ def xsd_print_children(ctx, module, writef, children, indent, path,
                 sgroup = ' substitutionGroup="nc:rpcOperation"'
                 extbase = 'nc:rpcOperationType'
 
-            writef(indent + '<xs:element name="%s"%s%s%s%s>\n' % \
+            fd.write(indent + '<xs:element name="%s"%s%s%s%s>\n' % \
                    (c.name, mino, maxo, atype, sgroup))
-            xsd_print_annotation(ctx, writef, indent + '  ', c)
+            xsd_print_annotation(ctx, fd, indent + '  ', c)
             if cn in ['container', 'list', 'rpc', 'notification']:
-                writef(indent + '  <xs:complexType>\n')
+                fd.write(indent + '  <xs:complexType>\n')
                 extindent = ''
                 if extbase != None:
-                    writef(indent + '    <xs:complexContent>\n')
-                    writef(indent + '      <xs:extension base="%s">\n' % extbase)
+                    fd.write(indent + '    <xs:complexContent>\n')
+                    fd.write(indent + '      <xs:extension base="%s">\n' % \
+                                   extbase)
                     extindent = '      '
-                writef(indent + extindent + '    <xs:sequence>\n')
+                fd.write(indent + extindent + '    <xs:sequence>\n')
                 if cn == 'rpc':
                     if c.input != None:
                         chs = c.input.i_expanded_children
@@ -420,108 +433,110 @@ def xsd_print_children(ctx, module, writef, children, indent, path,
                     chs = c.i_expanded_children
                 # allocate a new object for constraint recording
                 uniqkey=['']
-                xsd_print_children(ctx, module, writef, chs,
+                xsd_print_children(ctx, module, fd, chs,
                                    indent + extindent + '      ',
                                    [c.name] + path,
                                    uniqkey, indent + extindent + '  ')
                 # allow for augments
-                writef(indent + extindent + '      <xs:any minOccurs="0" '\
-                       'maxOccurs="unbounded"\n')
-                writef(indent + extindent + '              namespace="##other" '\
-                       'processContents="lax"/>\n')
-                writef(indent + extindent + '    </xs:sequence>\n')
+                fd.write(indent + extindent + '      <xs:any minOccurs="0" '\
+                               'maxOccurs="unbounded"\n')
+                fd.write(indent + extindent +
+                           '              namespace="##other" '\
+                               'processContents="lax"/>\n')
+                fd.write(indent + extindent + '    </xs:sequence>\n')
                 if extbase != None:
-                    writef(indent + '      </xs:extension>\n')
-                    writef(indent + '    </xs:complexContent>\n')
-                writef(indent + '  </xs:complexType>\n')
+                    fd.write(indent + '      </xs:extension>\n')
+                    fd.write(indent + '    </xs:complexContent>\n')
+                fd.write(indent + '  </xs:complexType>\n')
                 # write the recorded key and unique constraints (if any)
-                writef(uniqkey[0])
+                fd.write(uniqkey[0])
             elif cn in ['leaf', 'leaf-list']:
                 if c.type.i_is_derived == True:
-                    xsd_print_simple_type(ctx, module, writef, indent + '  ',
+                    xsd_print_simple_type(ctx, module, fd, indent + '  ',
                                           c.type, '', None)
                 elif c.type.name == 'empty':
-                    writef(indent + '  <xs:complexType/>\n')
+                    fd.write(indent + '  <xs:complexType/>\n')
             elif cn in ['anyxml']:
-                writef(indent + '  <xs:complexType>\n')
-                writef(indent + '    <xs:complexContent>\n')
-                writef(indent + '      <xs:extension base="xs:anyType">\n')
-                writef(indent + '    </xs:complexContent>\n')
-                writef(indent + '  </xs:complexType>\n')
+                fd.write(indent + '  <xs:complexType>\n')
+                fd.write(indent + '    <xs:complexContent>\n')
+                fd.write(indent + '      <xs:extension base="xs:anyType">\n')
+                fd.write(indent + '    </xs:complexContent>\n')
+                fd.write(indent + '  </xs:complexType>\n')
                 
-            writef(indent + '</xs:element>\n')
+            fd.write(indent + '</xs:element>\n')
         elif cn == 'choice':
-            writef(indent + '<xs:choice>\n')
-            xsd_print_description(writef, indent + '  ', c.description)
+            fd.write(indent + '<xs:choice>\n')
+            xsd_print_description(fd, indent + '  ', c.description)
             for child in c.i_expanded_children:
-                writef(indent + '  <xs:sequence>\n')
-                xsd_print_children(ctx, module, writef,
+                fd.write(indent + '  <xs:sequence>\n')
+                xsd_print_children(ctx, module, fd,
                                    child.i_expanded_children,
                                    indent + '    ', path)
                 # allow for augments
-                writef(indent + '    <xs:any minOccurs="0" '\
-                       'maxOccurs="unbounded"\n')
-                writef(indent + '            namespace="##other" '\
-                   'processContents="lax"/>\n')
-                writef(indent + '  </xs:sequence>\n')
+                fd.write(indent + '    <xs:any minOccurs="0" '\
+                               'maxOccurs="unbounded"\n')
+                fd.write(indent + '            namespace="##other" '\
+                               'processContents="lax"/>\n')
+                fd.write(indent + '  </xs:sequence>\n')
             # allow for augments
-            writef(indent + '  <xs:any minOccurs="0" maxOccurs="unbounded"\n')
-            writef(indent + '          namespace="##other" '\
-                   'processContents="lax"/>\n')
-            writef(indent + '</xs:choice>\n')
+            fd.write(indent + '  <xs:any minOccurs="0"' \
+                           ' maxOccurs="unbounded"\n')
+            fd.write(indent + '          namespace="##other" '\
+                           'processContents="lax"/>\n')
+            fd.write(indent + '</xs:choice>\n')
         elif cn == 'uses':
-            writef(indent + '<xs:group ref="%s"/>\n' % c.name)
+            fd.write(indent + '<xs:group ref="%s"/>\n' % c.name)
             
 
-def xsd_print_grouping(ctx, module, writef, indent, grouping):
-    writef(indent + '<xs:group name="%s">\n' % grouping.name)
-    xsd_print_description(writef, indent + '  ', grouping.description)
-    writef(indent + '  <xs:sequence>\n')
-    xsd_print_children(ctx, module, writef, grouping.i_expanded_children,
+def xsd_print_grouping(ctx, module, fd, indent, grouping):
+    fd.write(indent + '<xs:group name="%s">\n' % grouping.name)
+    xsd_print_description(fd, indent + '  ', grouping.description)
+    fd.write(indent + '  <xs:sequence>\n')
+    xsd_print_children(ctx, module, fd, grouping.i_expanded_children,
                        indent + '    ', [grouping.name])
-    writef(indent + '  </xs:sequence>\n')
-    writef(indent + '</xs:group>\n')
+    fd.write(indent + '  </xs:sequence>\n')
+    fd.write(indent + '</xs:group>\n')
 
-def xsd_print_augment(ctx, module, writef, indent, augment):
+def xsd_print_augment(ctx, module, fd, indent, augment):
     i = module.i_gen_augment_idx
     name = "a" + str(i)
     while util.attrsearch(name, 'name', module.grouping) != None:
         i = i + 1
         name = "a" + str(i)
     module.i_gen_augment_idx = i + 1
-    writef(indent + '<xs:group name="%s">\n' % name)
-    xsd_print_description(writef, indent + '  ', augment.description)
-    writef(indent + '  <xs:sequence>\n')
-    xsd_print_children(ctx, module, writef, augment.i_expanded_children,
+    fd.write(indent + '<xs:group name="%s">\n' % name)
+    xsd_print_description(fd, indent + '  ', augment.description)
+    fd.write(indent + '  <xs:sequence>\n')
+    xsd_print_children(ctx, module, fd, augment.i_expanded_children,
                        indent + '    ', [])
-    writef(indent + '  </xs:sequence>\n')
-    writef(indent + '</xs:group>\n')
+    fd.write(indent + '  </xs:sequence>\n')
+    fd.write(indent + '</xs:group>\n')
 
-def xsd_print_description(writef, indent, descr):
+def xsd_print_description(fd, indent, descr):
     if descr != None:
-        writef(indent + '<xs:annotation>\n')
-        writef(indent + '  <xs:documentation>\n')
-        writef(fmt_text(indent + '    ', descr.arg) + '\n')
-        writef(indent + '  </xs:documentation>\n')
-        writef(indent + '</xs:annotation>\n\n')
+        fd.write(indent + '<xs:annotation>\n')
+        fd.write(indent + '  <xs:documentation>\n')
+        fd.write(fmt_text(indent + '    ', descr.arg) + '\n')
+        fd.write(indent + '  </xs:documentation>\n')
+        fd.write(indent + '</xs:annotation>\n\n')
 
-def xsd_print_simple_type(ctx, module, writef, indent, type, attrstr, descr):
+def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
     if type.bit != []:
-        writef(indent + '<xs:simpleType%s>\n' % attrstr)
-        xsd_print_description(writef, indent + '  ', descr)
-        writef(indent + '  <xs:list>\n')
-        writef(indent + '    <xs:simpleType>\n')
-        writef(indent + '      <xs:restriction base="xs:string">\n')
+        fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
+        xsd_print_description(fd, indent + '  ', descr)
+        fd.write(indent + '  <xs:list>\n')
+        fd.write(indent + '    <xs:simpleType>\n')
+        fd.write(indent + '      <xs:restriction base="xs:string">\n')
         for bit in type.bit:
-            writef(indent + '        <xs:enumeration value=%s/>\n' % \
+            fd.write(indent + '        <xs:enumeration value=%s/>\n' % \
                    quoteattr(bit.name))
-        writef(indent + '      </xs:restriction>\n')
-        writef(indent + '    </xs:simpleType>\n')
-        writef(indent + '  </xs:list>\n')
-        writef(indent + '</xs:simpleType>\n')
+        fd.write(indent + '      </xs:restriction>\n')
+        fd.write(indent + '    </xs:simpleType>\n')
+        fd.write(indent + '  </xs:list>\n')
+        fd.write(indent + '</xs:simpleType>\n')
         return
-    writef(indent + '<xs:simpleType%s>\n' % attrstr)
-    xsd_print_description(writef, indent + '  ', descr)
+    fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
+    xsd_print_description(fd, indent + '  ', descr)
     if type.name in yang_to_xsd_types:
         base = 'xs:%s' % yang_to_xsd_types[type.name]
     elif type.enum != []:
@@ -596,76 +611,81 @@ def xsd_print_simple_type(ctx, module, writef, indent, type, attrstr, descr):
                         base = module.gen_new_typedef(new_type)
                 else:
                     base = parent.name
-        writef(indent + '  <xs:union>\n')
+        fd.write(indent + '  <xs:union>\n')
         if type.length != None:
             for (lo,hi) in type.length.i_lengths:
-                writef(indent + '    <xs:simpleType>\n')
-                writef(indent + '      <xs:restriction base="%s">\n' % base)
+                fd.write(indent + '    <xs:simpleType>\n')
+                fd.write(indent + '      <xs:restriction base="%s">\n' % base)
                 if hi == None:
                     # FIXME: we don't generate length here currently,
                     # b/c libxml segfaults if base also has min/maxLength...
-#                    writef(indent + '        <xs:length value="%s"/>\n' % lo)
+#                    fd.write(indent +
+#                        '        <xs:length value="%s"/>\n' % lo)
                     hi = lo
                 if lo not in ['min','max']:
-                    writef(indent + '        <xs:minLength value="%s"/>\n' % lo)
+                    fd.write(indent + 
+                               '        <xs:minLength value="%s"/>\n' % lo)
                 if hi not in ['min','max']:
-                    writef(indent + '        <xs:maxLength value="%s"/>\n' % hi)
-                writef(indent + '      </xs:restriction>\n')
-                writef(indent + '    </xs:simpleType>\n')
+                    fd.write(indent +
+                               '        <xs:maxLength value="%s"/>\n' % hi)
+                fd.write(indent + '      </xs:restriction>\n')
+                fd.write(indent + '    </xs:simpleType>\n')
         elif type.range != None:
             for (lo,hi) in type.range.i_ranges:
-                writef(indent + '    <xs:simpleType>\n')
-                writef(indent + '      <xs:restriction base="%s">\n' % base)
+                fd.write(indent + '    <xs:simpleType>\n')
+                fd.write(indent + '      <xs:restriction base="%s">\n' % base)
                 if lo not in ['min','max']:
-                    writef(indent + '        <xs:minInclusive value="%s"/>\n' %\
-                           lo)
+                    fd.write(indent +
+                               '        <xs:minInclusive value="%s"/>\n' %\
+                                   lo)
                 if hi == None:
                     hi = lo
                 if hi not in ['min', 'max']:
-                    writef(indent + '        <xs:maxInclusive value="%s"/>\n' %\
-                           hi)
-                writef(indent + '      </xs:restriction>\n')
-                writef(indent + '    </xs:simpleType>\n')
-        writef(indent + '  </xs:union>\n')
+                    fd.write(indent +
+                               '        <xs:maxInclusive value="%s"/>\n' %\
+                                   hi)
+                fd.write(indent + '      </xs:restriction>\n')
+                fd.write(indent + '    </xs:simpleType>\n')
+        fd.write(indent + '  </xs:union>\n')
     elif type.type != []:
-        writef(indent + '  <xs:union>\n')
+        fd.write(indent + '  <xs:union>\n')
         for t in type.type:
-            xsd_print_simple_type(ctx, module, writef, indent+'  ', t, '', None)
-        writef(indent + '  </xs:union>\n')
+            xsd_print_simple_type(ctx, module, fd, indent+'  ', t, '', None)
+        fd.write(indent + '  </xs:union>\n')
     else:
-        writef(indent + '  <xs:restriction base="%s">\n' % base)
+        fd.write(indent + '  <xs:restriction base="%s">\n' % base)
         if len(type.enum) > 0:
             for e in type.enum:
-                writef(indent + '    <xs:enumeration value=%s/>\n' % \
+                fd.write(indent + '    <xs:enumeration value=%s/>\n' % \
                     quoteattr(e.name))
         elif type.pattern != None:
-            writef(indent + '    <xs:pattern value=%s/>\n' % \
+            fd.write(indent + '    <xs:pattern value=%s/>\n' % \
                    quoteattr(type.pattern.expr))
         elif type.length != None:
             [(lo,hi)] = type.length.i_lengths # other cases in union above
             if lo == hi and False:
                 # FIXME: we don't generate length here currently,
                 # b/c libxml segfaults if base also has min/maxLength
-                writef(indent + '    <xs:length value="%s"/>\n' % lo)
+                fd.write(indent + '    <xs:length value="%s"/>\n' % lo)
             else:
                 if lo not in ['min','max']:
-                    writef(indent + '    <xs:minLength value="%s"/>\n' % lo)
+                    fd.write(indent + '    <xs:minLength value="%s"/>\n' % lo)
                 if hi == None:
                     hi = lo
                 if hi not in ['min', 'max']:
-                    writef(indent + '    <xs:maxLength value="%s"/>\n' % hi)
+                    fd.write(indent + '    <xs:maxLength value="%s"/>\n' % hi)
         elif type.range != None:
             [(lo,hi)] = type.range.i_ranges # other cases in union above
             if lo not in ['min','max']:
-                writef(indent + '    <xs:minInclusive value="%s"/>\n' % lo)
+                fd.write(indent + '    <xs:minInclusive value="%s"/>\n' % lo)
             if hi == None:
                 hi = lo
             if hi not in ['min', 'max']:
-                writef(indent + '    <xs:maxInclusive value="%s"/>\n' % hi)
-        writef(indent + '  </xs:restriction>\n')
-    writef(indent + '</xs:simpleType>\n')
+                fd.write(indent + '    <xs:maxInclusive value="%s"/>\n' % hi)
+        fd.write(indent + '  </xs:restriction>\n')
+    fd.write(indent + '</xs:simpleType>\n')
 
-def xsd_print_annotation(ctx, writef, indent, obj):
+def xsd_print_annotation(ctx, fd, indent, obj):
     def is_appinfo(keyword):
         if util.is_prefixed(keyword) == True:
             return False
@@ -676,41 +696,41 @@ def xsd_print_annotation(ctx, writef, indent, obj):
         keyword = stmt.keyword
         (argname, argiselem, argappinfo) = yang_keywords[keyword]
         if argname == None:
-            writef(indent + '<yin:' + keyword + '/>\n')
+            fd.write(indent + '<yin:' + keyword + '/>\n')
         elif argiselem == False:
             # print argument as an attribute
             attrstr = argname + '=' + quoteattr(stmt.arg)
             if len(stmt.substmts) == 0:
-                writef(indent + '<yin:' + keyword + ' ' + attrstr + '/>\n')
+                fd.write(indent + '<yin:' + keyword + ' ' + attrstr + '/>\n')
             else:
-                writef(indent + '<yin:' + keyword + ' ' + attrstr + '>\n')
+                fd.write(indent + '<yin:' + keyword + ' ' + attrstr + '>\n')
                 for s in stmt.substmts:
                     do_print(indent + '  ', s)
-                writef(indent + '</yin:' + keyword + '>\n')
+                fd.write(indent + '</yin:' + keyword + '>\n')
         else:
             # print argument as an element
-            writef(indent + '<yin:' + keyword + '>\n')
-            writef(indent + '  <yin:' + argname + '>\n')
-            writef(fmt_text(indent + '    ', stmt.arg))
-            writef('\n' + indent + '  </yin:' + argname + '>\n')
+            fd.write(indent + '<yin:' + keyword + '>\n')
+            fd.write(indent + '  <yin:' + argname + '>\n')
+            fd.write(fmt_text(indent + '    ', stmt.arg))
+            fd.write('\n' + indent + '  </yin:' + argname + '>\n')
             for s in stmt.substmts:
                 do_print(indent + '  ', s)
-            writef(indent + '</yin:' + keyword + '>\n')
+            fd.write(indent + '</yin:' + keyword + '>\n')
 
     stmts = [s for s in obj.substmts if is_appinfo(s.keyword)]
     if ((ctx.opts.xsd_no_appinfo == False and len(stmts) > 0) or
         obj.description != None):
-        writef(indent + '<xs:annotation>\n')
+        fd.write(indent + '<xs:annotation>\n')
         if obj.description != None:
-            writef(indent + '  <xs:documentation>\n')
-            writef(fmt_text(indent + '    ', obj.description.arg) + '\n')
-            writef(indent + '  </xs:documentation>\n')
+            fd.write(indent + '  <xs:documentation>\n')
+            fd.write(fmt_text(indent + '    ', obj.description.arg) + '\n')
+            fd.write(indent + '  </xs:documentation>\n')
         if ctx.opts.xsd_no_appinfo == False:
-            writef(indent + '  <xs:appinfo>\n')
+            fd.write(indent + '  <xs:appinfo>\n')
             for stmt in stmts:
                 do_print(indent + '    ', stmt)
-            writef(indent + '  </xs:appinfo>\n')
-        writef(indent + '</xs:annotation>\n')
+            fd.write(indent + '  </xs:appinfo>\n')
+        fd.write(indent + '</xs:annotation>\n')
 
 # FIXME: I don't thik this is strictly correct - we should really just
 # print the string as-is, since whitespace in XSD is significant.

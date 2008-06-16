@@ -27,8 +27,10 @@ test: clean
 		diff $$m.yin $$m.gen.yin > $$m.diff ||	 		\
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
+		# FIXME echo -n " generating dsl...";				\
+		# $(PYANG) -f dsdl -o $$m.rng $$m || exit 1;		\
 		echo " ok";						\
 	done
 
 clean:
-	rm -rf *.xsd *.yin *.gen.*
+	rm -rf *.xsd *.yin *.gen.* *.rng
