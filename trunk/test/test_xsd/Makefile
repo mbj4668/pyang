@@ -9,11 +9,12 @@ MIB_SOURCES  := $(wildcard *.mib)
 YANG_OBJECTS := $(MIB_SOURCES:%.mib=%.yang)
 YIN_OBJECTS := $(MIB_SOURCES:%.mib=%.yin)
 XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
+DSDL_OBJECTS := # FIXME $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
 STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
-all: $(STD_XSD) yang yin xsd
+all: $(STD_XSD) yang yin xsd dsdl
 
 test: all gen-xml
 
@@ -31,6 +32,7 @@ gen-xml:
 yang: $(YANG_OBJECTS)
 yin: $(YIN_OBJECTS)
 xsd: $(XSD_OBJECTS)
+dsdl: $(DSDL_OBJECTS)
 xml: $(XML_OBJECTS)
 
 %.yang:	%.mib
@@ -42,6 +44,9 @@ xml: $(XML_OBJECTS)
 %.xsd:	%.yang
 	$(PYANG) -f xsd $< -o $@
 
+%.rng:	%.yang
+	$(PYANG) -f dsdl $< -o $@
+
 %.xml: %.yang
 	@echo "generating random xml document for $<..."
 	@$(PYANG) --plugindir ../plugins -f xml $< > $@
@@ -51,6 +56,18 @@ xml: $(XML_OBJECTS)
            fi;                                                      \
            xsd=`basename $@ .xml`.xsd;                              \
 	   str=`xmllint --noout --schema $${xsd} $@ 2>&1 |          \
+                grep -v __foo__ | grep -v 'validate'`;              \
+	   if [ ! -z "$${str}" ]; then                              \
+	      echo $${str};                                         \
+	      exit 1;                                               \
+           fi; )
+	@echo "validating against generated RNG..."
+	@( if [ ! -s $@ ]; then                                     \
+               exit 0;                                              \
+           fi;                                                      \
+	   exit 0; # FIXME!! \
+           rng=`basename $@ .xml`.rng;                              \
+	   str=`xmllint --noout --relaxng $${rng} $@ 2>&1 |         \
                 grep -v __foo__ | grep -v 'validate'`;              \
 	   if [ ! -z "$${str}" ]; then                              \
 	      echo $${str};                                         \

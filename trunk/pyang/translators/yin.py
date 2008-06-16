@@ -26,28 +26,28 @@ class YINPlugin(plugin.PyangPlugin):
         g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['yin'] = self
-    def emit(self, ctx, module, writef):
-        emit_yin(ctx, module, writef)
+    def emit(self, ctx, module, fd):
+        emit_yin(ctx, module, fd)
         
-def emit_yin(ctx, module, writef):
-    writef('<?xml version="1.0" encoding="UTF-8"?>\n')
-    writef('<%s name="%s"\n' % (module.keyword, module.arg))
-    writef(' ' * len(module.keyword) + '  xmlns="%s"' % yin_namespace)
+def emit_yin(ctx, module, fd):
+    fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+    fd.write('<%s name="%s"\n' % (module.keyword, module.arg))
+    fd.write(' ' * len(module.keyword) + '  xmlns="%s"' % yin_namespace)
 
     if module.prefix != None:
         # FIXME: if the prefix really can be used in the submodule
         # then we need to grab it from the module
         # currently if we get here it is a module (not submodule)
-        writef('\n')
-        writef(' ' * len(module.keyword))
-        writef('  xmlns:' + module.prefix.arg + '=' +
+        fd.write('\n')
+        fd.write(' ' * len(module.keyword))
+        fd.write('  xmlns:' + module.prefix.arg + '=' +
                quoteattr(module.namespace.arg))
-    writef('>\n')
+    fd.write('>\n')
     for s in module.substmts:
-        emit_stmt(ctx, module, s, writef, '  ', '  ')
-    writef('</%s>\n' % module.keyword)
+        emit_stmt(ctx, module, s, fd, '  ', '  ')
+    fd.write('</%s>\n' % module.keyword)
     
-def emit_stmt(ctx, module, stmt, writef, indent, indentstep):
+def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
     if util.is_prefixed(stmt.keyword):
         # this is an extension.  need to find its definition
         (prefix, identifier) = stmt.keyword
@@ -74,29 +74,29 @@ def emit_stmt(ctx, module, stmt, writef, indent, indentstep):
         else:
             attr = ' ' + argname + '=' + quoteattr(stmt.arg)
         if len(stmt.substmts) == 0:
-            writef(indent + '<' + tag + attr + '/>\n')
+            fd.write(indent + '<' + tag + attr + '/>\n')
         else:
-            writef(indent + '<' + tag + attr + '>\n')
+            fd.write(indent + '<' + tag + attr + '>\n')
             for s in stmt.substmts:
-                emit_stmt(ctx, module, s, writef, indent + indentstep,
+                emit_stmt(ctx, module, s, fd, indent + indentstep,
                           indentstep)
-            writef(indent + '</' + tag + '>\n')
+            fd.write(indent + '</' + tag + '>\n')
     else:
-        writef(indent + '<' + tag + '>\n')
+        fd.write(indent + '<' + tag + '>\n')
         if ctx.opts.yin_pretty_strings:
             # since whitespace is significant in XML, the current
             # code is strictly speaking incorrect.  But w/o the whitespace,
             # it looks too ugly.
-            writef(indent + indentstep + '<' + argname + '>\n')
-            writef(fmt_text(indent + indentstep + indentstep, stmt.arg))
-            writef('\n' + indent + indentstep + '</' + argname + '>\n')
+            fd.write(indent + indentstep + '<' + argname + '>\n')
+            fd.write(fmt_text(indent + indentstep + indentstep, stmt.arg))
+            fd.write('\n' + indent + indentstep + '</' + argname + '>\n')
         else:
-            writef(indent + indentstep + '<' + argname + '>' + \
+            fd.write(indent + indentstep + '<' + argname + '>' + \
                        escape(stmt.arg) + \
                        '</' + argname + '>\n')
         for s in stmt.substmts:
-            emit_stmt(ctx, module, s, writef, indent + indentstep, indentstep)
-        writef(indent + '</' + tag + '>\n')
+            emit_stmt(ctx, module, s, fd, indent + indentstep, indentstep)
+        fd.write(indent + '</' + tag + '>\n')
 
 def fmt_text(indent, data):
     res = []

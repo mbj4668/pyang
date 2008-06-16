@@ -5,7 +5,49 @@
 __docformat__ = "reStructuredText"
 
 import sys
+import optparse
 import xml.etree.ElementTree as ET
+
+from pyang import plugin
+from pyang import statements
+
+def pyang_plugin_init():
+    plugin.register_plugin(DSDLPlugin())
+
+class DSDLPlugin(plugin.PyangPlugin):
+    def add_output_format(self, fmts):
+        fmts['dsdl'] = self
+    def add_opts(self, optparser):
+        optlist = [
+            optparse.make_option("--dsdl-no-schematron",
+                                 dest="dsdl_no_schematron",
+                                 action="store_true",
+                                 help="Do not print Schematron rules"),
+            optparse.make_option("--dsdl-no-dublin-core",
+                                 dest="dsdl_no_dublin_core",
+                                 action="store_true",
+                                 help="Do not print Dublin Core elements"),
+            optparse.make_option("--dsdl-no-annotations",
+                                 dest="dsdl_no_annotations",
+                                 action="store_true",
+                                 help="Do not print documentation annotations"),
+            ]
+        g = optparser.add_option_group("DSDL specific options")
+        g.add_options(optlist)
+    def emit(self, ctx, module, fd):
+        emit_dsdl(ctx, module, fd)
+
+def emit_dsdl(ctx, module, fd):
+    emit = []
+    if ctx.opts.dsdl_no_schematron != True:
+        emit.append("sch")
+    if ctx.opts.dsdl_no_dublin_core != True:
+        emit.append("dc")
+    if ctx.opts.dsdl_no_annotations != True:
+        emit.append("a")
+    etree = DSDLTranslator().translate(module, emit, debug=0)
+    etree.write(fd, "UTF-8")
+
 
 class DSDLTranslator(object):
 
@@ -184,11 +226,14 @@ class DSDLTranslator(object):
         try:
             handler = self.handler[stmt.keyword]
         except KeyError:
-            sys.stderr.write("%s not handled\n" % stmt.keyword)
+            if self.debug > 0:
+                sys.stderr.write("%s not handled\n" % \
+                                     statements.keyword_to_str(stmt.keyword))
         else:
             if self.debug > 0:
                 sys.stderr.write("Handling '%s %s'\n" %
-                                 (stmt.keyword, stmt.arg))
+                                 (statements.keyword_to_str(stmt.keyword),
+                                  stmt.arg))
             handler(stmt, p_elem)
 
     # Handlers for YANG statements
@@ -257,7 +302,7 @@ class DSDLTranslator(object):
         if stmt.arg in ("enumeration", "union"):
             elem = ET.SubElement(p_elem, "choice")
         elif stmt.arg == "empty":
-            ET.SubElement(p_elem, "empty")
+            elem = ET.SubElement(p_elem, "empty")
         elif stmt.arg in self.datatype_map:
             elem = ET.SubElement(p_elem, "data",
                                  type=self.datatype_map[stmt.arg])
