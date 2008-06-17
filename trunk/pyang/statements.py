@@ -150,11 +150,11 @@ class Statement(object):
                 ref = subst.arg
                 if ":" in ref:  # prefixed?
                     prefix, ident = ref.split(":")
-                    if prefix == stmt.i_module.prefix.arg: # local prefix?
+                    if prefix == subst.i_module.prefix.arg: # local prefix?
                         grp = self.search_grouping(ident)
                     else:
-                        mod_name = stmt.i_module.i_prefixes[prefix]
-                        ext_mod = stmt.i_module.ctx.modules[mod_name]
+                        mod_name = subst.i_module.i_prefixes[prefix]
+                        ext_mod = subst.i_module.ctx.modules[mod_name]
                         grp = ext_mod.search_grouping(ident)
                 else:
                     grp = self.search_grouping(ref)
