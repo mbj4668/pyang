@@ -116,6 +116,54 @@ class Statement(object):
             node = node.parent
         return path
 
+    def is_optional(self):
+        """Determine whether receiver (container or grouping) is optional.
+
+        Returns `True` or `False`.
+        """
+        try:
+            return self.optional
+        except AttributeError:
+            self._mark_optional()
+            return self.optional
+
+    def _mark_optional(self):
+        """Fill recursively `self.optional` in the receiver and descendants.
+        """
+        for subst in self.substmts:
+            if subst.keyword == "container":
+                if len(subst.get_by_kw("presence")) == 0:
+                    subst._mark_optional()
+                    if not subst.optional:
+                        self.optional = False
+                        return
+            elif subst.keyword == "leaf":
+                if subst.get_by_kw_and_arg("mandatory", "true"):
+                    self.optional = False
+                    return
+            elif subst.keyword in ("list", "leaf-list"):
+                minel = subst.get_by_kw("min-elements")
+                if len(minel) > 0 and int(minel[0].arg) > 0:
+                    self.optional = False
+                    return
+            elif subst.keyword == "uses":
+                ref = subst.arg
+                if ":" in ref:  # prefixed?
+                    prefix, ident = ref.split(":")
+                    if prefix == stmt.i_module.prefix.arg: # local prefix?
+                        grp = self.search_grouping(ident)
+                    else:
+                        mod_name = stmt.i_module.i_prefixes[prefix]
+                        ext_mod = stmt.i_module.ctx.modules[mod_name]
+                        grp = ext_mod.search_grouping(ident)
+                else:
+                    grp = self.search_grouping(ref)
+                grp._mark_optional()
+                if not grp.optional:
+                    self.optional = False
+                    return
+        self.optional = True
+
     def search_typedef(self, name):
         if 'typedef' in self.__dict__:
             typedef = attrsearch(name, 'name', self.typedef)

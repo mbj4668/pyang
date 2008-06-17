@@ -254,6 +254,8 @@ class DSDLTranslator(object):
         self.dc_elements["contributor"] = stmt.arg
 
     def handle_container(self, stmt, p_elem):
+        if stmt.is_optional():
+            p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle(sub, elem)
 
