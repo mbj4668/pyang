@@ -650,7 +650,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
     elif type.type != []:
         fd.write(indent + '  <xs:union>\n')
         for t in type.type:
-            xsd_print_simple_type(ctx, module, fd, indent+'  ', t, '', None)
+            xsd_print_simple_type(ctx, module, fd, indent+'    ', t, '', None)
         fd.write(indent + '  </xs:union>\n')
     else:
         fd.write(indent + '  <xs:restriction base="%s">\n' % base)

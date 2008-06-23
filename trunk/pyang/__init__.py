@@ -122,7 +122,7 @@ class Context(object):
         for s in stmt.substmts:
             occurance = get_occurance(s.keyword)
             attr = get_attr(s.keyword)
-            if attr is not None:
+            if attr is not None and attr in stmt.__dict__:
                 if occurance == '?' or occurance == '1':
                     # single-instance attribute
                     stmt.__dict__[attr] = s
