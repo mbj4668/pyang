@@ -501,14 +501,23 @@ def _match_stmt(ctx, stmt, spec, canonical):
         if keywd == stmt.keyword:
             if occurance == '1' or occurance == '?':
                 # consume this match
-                return spec[:i] + spec[i+1:]
+                if canonical == True:
+                    return spec[i+1:]
+                else:
+                    return spec[:i] + spec[i+1:]
             if occurance == '+':
                 # mark that we have found the one that was needed
                 c = (keywd, '*')
-                return spec[:i] + [c] + spec[i+1:]
+                if canonical == True:
+                    return [c] + spec[i+1:]
+                else:
+                    return spec[:i] + [c] + spec[i+1:]
             else:
                 # occurane == '*'
-                return spec
+                if canonical == True:
+                    return spec[i:]
+                else:
+                    return spec
         elif keywd == '$choice':
             cases = occurance
             j = 0
