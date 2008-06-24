@@ -25,80 +25,84 @@ def emit_xml(module, fd):
     if cn == 'Choice':
         print >> sys.stderr, "Cannot handle choice on top-level"
         sys.exit(1)
-    emit_obj(c, fd, '', attrs, 1)
+    emit_stmt(c, fd, '', attrs, 1)
 
-def emit_obj(obj, fd, ind, attrs='', n=None):
-    cn = obj.__class__.__name__
-    if n == None and cn in ['List', 'LeafList']:
+def emit_stmt(stmt, fd, ind, attrs='', n=None):
+    if n == None and stmt.keyword in ['list', 'leaf-list']:
         lb = 0
-        if obj.min_elements != None:
-            lb = int(obj.min_elements.arg)
+        if stmt.min_elements != None:
+            lb = int(stmt.min_elements.arg)
         ub = 3 # 3 is many
-        if obj.max_elements != None and obj.max_elements.arg != 'unbounded':
-            ub = int(obj.max_elements.arg)
+        if stmt.max_elements != None and stmt.max_elements.arg != 'unbounded':
+            ub = int(stmt.max_elements.arg)
             if ub > 3:
                 ub = 3
         if lb > ub:
             ub = lb
         n = randint(lb,ub)
-    if cn == 'Container':
-        emit_container(obj, fd, ind, attrs)
-    elif cn == 'Leaf':
-        emit_leaf(obj, fd, ind, attrs)
-    elif cn == 'LeafList':
-        emit_leaf_list(obj, n, fd, ind, attrs)
-    elif cn == 'List':
-        emit_list(obj, n, fd, ind, attrs)
-    elif cn == 'Choice':
+    if stmt.keyword == 'container':
+        emit_container(stmt, fd, ind, attrs)
+    elif stmt.keyword == 'leaf':
+        emit_leaf(stmt, fd, ind, attrs)
+    elif stmt.keyword == 'leaf-list':
+        emit_leaf_list(stmt, n, fd, ind, attrs)
+    elif stmt.keyword == 'list':
+        emit_list(stmt, n, fd, ind, attrs)
+    elif stmt.keyword == 'choice':
         # pick one case
-        c = pick(obj.i_expanded_children)
-        emit_obj(c, fd, ind)
-    elif cn == 'Case':
-        for c in obj.i_expanded_children:
-            emit_obj(c, fd, ind)
+        c = pick(stmt.i_expanded_children)
+        emit_stmt(c, fd, ind)
+    elif stmt.keyword == 'case':
+        for c in stmt.i_expanded_children:
+            emit_stmt(c, fd, ind)
+    elif stmt.keyword == 'anyxml':
+        emit_anyxml(stmt, fd, ind)
         
-def emit_leaf(obj, fd, ind, attrs):
+def emit_leaf(stmt, fd, ind, attrs):
     do_print = True
-    if ((obj.mandatory != None) and (obj.mandatory.arg == 'false') or
-        (obj.default != None) or (obj.type.has_type('empty') != None)):
+    if ((stmt.mandatory != None) and (stmt.mandatory.arg == 'false') or
+        (stmt.default != None) or (stmt.type.has_type('empty') != None)):
         if random() < 0.3:
             do_print = False
     if do_print == True:
-        fd.write(ind + '<%s%s>' % (obj.name, attrs))
-        emit_type_val(obj.type, fd)
-        fd.write('</%s>\n' % obj.name)
+        fd.write(ind + '<%s%s>' % (stmt.name, attrs))
+        emit_type_val(stmt.type, fd)
+        fd.write('</%s>\n' % stmt.name)
 
-def emit_container(obj, fd, ind, attrs):
+def emit_container(stmt, fd, ind, attrs):
     do_print = True
-    if obj.presence != None:
+    if stmt.presence != None:
         if random() < 0.3:
             do_print = False
     if do_print == True:
-        fd.write(ind + '<%s%s>\n' % (obj.name, attrs))
-        for c in obj.i_expanded_children:
-            emit_obj(c, fd, ind + '  ')
-        fd.write(ind + '</%s>\n' % obj.name)
+        fd.write(ind + '<%s%s>\n' % (stmt.name, attrs))
+        for c in stmt.i_expanded_children:
+            emit_stmt(c, fd, ind + '  ')
+        fd.write(ind + '</%s>\n' % stmt.name)
 
-def emit_leaf_list(obj, n, fd, ind, attrs):
+def emit_leaf_list(stmt, n, fd, ind, attrs):
     while (n > 0):
-        fd.write(ind + '<%s%s>' % (obj.name, attrs))
-        emit_type_val(obj.type, fd)
-        fd.write('</%s>\n' % obj.name)
+        fd.write(ind + '<%s%s>' % (stmt.name, attrs))
+        emit_type_val(stmt.type, fd)
+        fd.write('</%s>\n' % stmt.name)
         n = n - 1
 
-def emit_list(obj, n, fd, ind, attrs):
+def emit_list(stmt, n, fd, ind, attrs):
     while (n > 0):
-        fd.write(ind + '<%s%s>\n' % (obj.name, attrs))
-        cs = obj.i_expanded_children
-        for k in obj.i_key:
+        fd.write(ind + '<%s%s>\n' % (stmt.name, attrs))
+        cs = stmt.i_expanded_children
+        for k in stmt.i_key:
             fd.write(ind + '  <%s>' % k.name)
             emit_type_val(k.type, fd)
             fd.write('</%s>\n' % k.name)
-        for c in obj.i_expanded_children:
-            if c not in obj.i_key:
-                emit_obj(c, fd, ind + '  ')
-        fd.write(ind + '</%s>\n' % obj.name)
+        for c in stmt.i_expanded_children:
+            if c not in stmt.i_key:
+                emit_stmt(c, fd, ind + '  ')
+        fd.write(ind + '</%s>\n' % stmt.name)
         n = n - 1
+
+def emit_anyxml(stmt, fd, ind):
+    fd.write(ind + '<%s><bar xmlns="">42</bar></%s>\n' % (stmt.name, stmt.name))
         
 def emit_type_val(t, fd):
     if t.i_is_derived == False and t.i_typedef != None:
