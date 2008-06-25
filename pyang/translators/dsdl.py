@@ -88,6 +88,7 @@ class DSDLTranslator(object):
 
     datatype_map = {
         "string" : "string",
+        "instance-identifier": "string",
         "int8": "byte",
         "int16": "short",
         "int32": "int",
@@ -103,7 +104,8 @@ class DSDLTranslator(object):
     }
     """mapping of simple datatypes from YANG to W3C datatype library"""
 
-    datatree_nodes = ["container", "leaf", "leaf-list", "list", "choice"]
+    datatree_nodes = ["container", "leaf", "leaf-list", "list",
+                      "choice", "anyxml"]
     """list of YANG statementes that form the data tree"""
 
     anyxml_def = '''<define name="anyxml"><zeroOrMore><choice>
@@ -111,6 +113,17 @@ class DSDLTranslator(object):
         <element><anyName/><ref name="anyxml"/></element>
         <text/></choice></zeroOrMore></define>'''
     """RELAX NG pattern representing 'anyxml'"""
+
+    def schematron_assert(elem, cond, err_msg=None):
+        """Install <sch:assert> under `elem`.
+
+        The assert is wrapped in <sch:pattern> and <sch:rule> elements
+        and the latter also sets the context to `elem`.
+        """
+        assert_ = ET.SubElement(elem, "sch:assert", test=cond)
+        if err_msg is not None:
+            assert_.text = err_msg
+    schematron_assert = staticmethod(schematron_assert)
 
     def __init__(self):
         """Initialize the instance.
@@ -121,6 +134,7 @@ class DSDLTranslator(object):
         """
         self.handler = {
             "anyxml": self.handle_anyxml,
+            "bit": self.handle_bit,
             "case": self.handle_case,
             "choice": self.handle_choice,
             "contact": self.handle_contact,
@@ -250,6 +264,11 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle(sub, elem)
         ET.SubElement(elem, "ref", name="anyxml")
 
+    def handle_bit(self, stmt, p_elem):
+        optel = ET.SubElement(p_elem, "optional")
+        elem = ET.SubElement(optel, "value")
+        elem.text = stmt.arg
+
     def handle_contact(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
 
@@ -305,11 +324,19 @@ class DSDLTranslator(object):
             elem = ET.SubElement(p_elem, "choice")
         elif stmt.arg == "empty":
             elem = ET.SubElement(p_elem, "empty")
+        elif stmt.arg == "bits":
+            elem = ET.SubElement(p_elem, "list")
+        elif stmt.arg  == "keyref":
+            elem = ET.SubElement(p_elem, "data", type="string")
+            pel = stmt.get_by_kw("path")[0]
+            err_msg = """Missing key '<value-of select="."/>'"""
+            self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
         elif stmt.arg in self.datatype_map:
             elem = ET.SubElement(p_elem, "data",
                                  type=self.datatype_map[stmt.arg])
         else:                   # derived type
             p_elem.append(self.resolve_ref(stmt, "typedef"))
+            return
         for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_reusable(self, stmt, p_elem):
@@ -332,14 +359,13 @@ class DSDLTranslator(object):
                 docel.text = desc[0].arg
 
     def handle_must(self, stmt, p_elem):
-        pattern = ET.SubElement(p_elem, "sch:pattern")
-        rule = ET.SubElement(pattern, "sch:rule",
-                             context=p_elem.attrib["name"])
-        assert_ = ET.SubElement(rule, "sch:assert",
-                                test=stmt.arg.replace("$this", "."))
-        err_msg = stmt.get_by_kw("error-message")
-        if err_msg != []:
-            assert_.text = err_msg[0].arg
+        estmt = stmt.get_by_kw("error-message")
+        if len(estmt) > 0:
+            err_msg = estmt[0].arg
+        else:
+            err_msg = None
+        self.schematron_assert(p_elem, stmt.arg.replace("$this", "."),
+                               err_msg)
 
     def handle_choice(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "choice")
