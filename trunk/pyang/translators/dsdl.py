@@ -116,9 +116,6 @@ class DSDLTranslator(object):
 
     def schematron_assert(elem, cond, err_msg=None):
         """Install <sch:assert> under `elem`.
-
-        The assert is wrapped in <sch:pattern> and <sch:rule> elements
-        and the latter also sets the context to `elem`.
         """
         assert_ = ET.SubElement(elem, "sch:assert", test=cond)
         if err_msg is not None:
