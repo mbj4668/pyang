@@ -558,3 +558,32 @@ def _match_stmt(ctx, stmt, spec, canonical):
         # check next in spec
         i += 1
     return None
+
+def sort_canonical(keyword, stmts):
+    """Sort all `stmts` in the canonical order defined by `keyword`.
+    Return the sorted list.  The `stmt` list is not modified.
+    If `keyword` does not have a canonical order, the list is returned
+    as is.
+    """
+    def flatten_spec(spec):
+        res = []
+        for (kw, s) in spec:
+            if kw == '$interleave':
+                res.extend(flatten_spec(s))
+            elif kw == '$choice':
+                for branch in s:
+                    res.extend(flatten_spec(branch))
+            else:
+                res.append((kw,s))
+        return res
+
+    try:
+        (_arg_type, subspec) = stmt_map[keyword]
+    except KeyError:
+        return stmts
+    res = []
+    for (kw, _spec) in flatten_spec(subspec):
+        res.extend([stmt for stmt in stmts if stmt.keyword == kw])
+    # then copy all other statements (extensions)
+    res.extend([stmt for stmt in stmts if stmt not in res])
+    return res

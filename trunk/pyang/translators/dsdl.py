@@ -19,20 +19,20 @@ class DSDLPlugin(plugin.PyangPlugin):
         fmts['dsdl'] = self
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--dsdl-no-schematron",
-                                 dest="dsdl_no_schematron",
-                                 action="store_true",
-                                 help="Do not print Schematron rules"),
-            optparse.make_option("--dsdl-no-dublin-core",
-                                 dest="dsdl_no_dublin_core",
-                                 action="store_true",
-                                 help="Do not print Dublin Core elements"),
             optparse.make_option("--dsdl-no-annotations",
                                  dest="dsdl_no_annotations",
                                  action="store_true",
                                  help="Do not print documentation annotations"),
+            optparse.make_option("--dsdl-no-dublin-core",
+                                 dest="dsdl_no_dublin_core",
+                                 action="store_true",
+                                 help="Do not print Dublin Core elements"),
+            optparse.make_option("--dsdl-no-schematron",
+                                 dest="dsdl_no_schematron",
+                                 action="store_true",
+                                 help="Do not print Schematron rules"),
             ]
-        g = optparser.add_option_group("DSDL specific options")
+        g = optparser.add_option_group("DSDL output specific options")
         g.add_options(optlist)
     def emit(self, ctx, module, fd):
         emit_dsdl(ctx, module, fd)

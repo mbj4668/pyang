@@ -15,11 +15,14 @@ pyang \- validate and convert YANG modules to various formats
 .BI "-p " path
 ]
 .I "module..."
+
+
 Only the most common options are listed here.  See below for a
 complete list of options.
 
 If pyang plugins are installed, these plugins may define their own
-options.  These options will listed in \fIpyang -h\fP.
+options, or add new formats to the \fI-f\fR option.  These options and
+formats are listed in \fIpyang -h\fP.
 .SH DESCRIPTION
 The \fBpyang\fP program is used to validate YANG modules.  It is also
 used to convert YANG modules into equivalent YIN modules.  From a
@@ -50,16 +53,22 @@ Validate the module(s) according the canonical YANG order.
 .BI "-f " format ", --format " format
 Convert the module into \fIformat\fP.  When this parameter is present,
 a single module must be given.  If no \fIoutput\fP file is specified,
-the result is printed on stdout.  \fIformat\fP is one of xsd (W3C XML
-Schema) or yin (the XML syntax of YANG).
+the result is printed on stdout.
+
+\fIformat\fP is one of \fIyin\fR (the XML syntax of YANG), \fIyang\fR,
+\fIdsdl\fR (ISO/IEC 19757), or \fIxsd\fR (W3C XML Schema).
 .TP
-.BI "-o " name ", --output " name
-Write the output to the file \fIname\fP instead of stdout.
+.BI "-o " outfile ", --output " outfile
+Write the output to the file \fIoutfile\fP instead of stdout.
 .TP
 .BI "-p " path ", --path " path
 \fIpath\fP is a colon (:) separated list of directories to search for
 imported modules.  The current directory is always appended to the
 search path.
+.TP
+.BI "--plugindir " plugindir
+Load all YANG plugins found in the directory \fIplugindir\fR.  This
+option may be given multiple times.
 .TP
 .B "-d, --debug"
 Turn on debugging of the pyang code.
@@ -67,7 +76,33 @@ Turn on debugging of the pyang code.
 .I module...
 These are the names of the files containing the modules to be
 validated, or the module to be converted.
-.SH XSD SPECIFIC OPTIONS
+.SH YANG OUTPUT SPECIFIC OPTIONS
+Options for the \fIyang\fR output format.
+.TP
+.B "--yang-canonical"
+Generate all statements in the canonical order.
+.SH YIN OUTPUT SPECIFIC OPTIONS
+Options for the \fIyin\fR output format.
+.TP
+.B "--yin-canonical"
+Generate all statements in the canonical order.
+.TP
+.B "--yin-pretty-strings"
+Pretty print strings, i.e. print with extra whitespace in the string.
+This is not strictly correct, since the whitespace is significant
+within the strings in XML, but the output is more readable.
+.SH DSDL OUTPUT SPECIFIC OPTIONS
+Options for the \fIdsdl\fR output format.
+.TP
+.B "--dsdl-no-annotations"
+Do not print documentation annotations
+.TP
+.B "--dsdl-no-dublin-core"
+Do not print Dublin Core elements
+.TP
+.B "--dsdl-no-schematron"
+Do not print Schematron rules
+.SH XSD OUTPUT SPECIFIC OPTIONS
 Options for the \fIxsd\fR output format.
 .TP
 .B "--xsd-no-appinfo"
@@ -88,8 +123,8 @@ The following example converts the yang-types module into YIN:
 .SH BUGS
 The XPath arguments for the \fBmust\fP and \fBwhen\fP statements are
 not validated.
-.SH Author
+.SH Authors
 Martin Bjorklund, Tail-f Systems, <mbj@tail-f.com>
-
+Ladislav Lhotka, CESNET, <lhotka@cesnet.cz>
 
 
