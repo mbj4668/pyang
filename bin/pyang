@@ -73,7 +73,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
                              help="Search path for yin and yang modules"),
         optparse.make_option("--plugindir",
                              dest="plugindir",
-                             help="Loads pyang plugins from PLUGINDIR"),
+                             help="Load pyang plugins from PLUGINDIR"),
         optparse.make_option("-d", "--debug",
                              dest="debug",
                              action="store_true",

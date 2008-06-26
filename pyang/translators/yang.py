@@ -5,6 +5,7 @@ import re
 
 from pyang import plugin
 from pyang import util
+from pyang import grammar
 
 def pyang_plugin_init():
     plugin.register_plugin(YANGPlugin())
@@ -12,27 +13,40 @@ def pyang_plugin_init():
 class YANGPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         fmts['yang'] = self
+    def add_opts(self, optparser):
+        optlist = [
+            optparse.make_option("--yang-canonical",
+                                 dest="yang_canonical",
+                                 action="store_true",
+                                 help="Print in canonical order"),
+            ]
+        g = optparser.add_option_group("YANG output specific options")
+        g.add_options(optlist)
     def emit(self, ctx, module, fd):
-        emit_yang(module, fd)
+        emit_yang(ctx, module, fd)
         
-def emit_yang(module, fd):
-    emit_stmt(module, fd, '', '  ')
+def emit_yang(ctx, module, fd):
+    emit_stmt(ctx, module, fd, '', '  ')
     
-def emit_stmt(stmt, fd, indent, indentstep):
+def emit_stmt(ctx, stmt, fd, indent, indentstep):
     if util.is_prefixed(stmt.keyword):
         (prefix, identifier) = stmt.keyword
-        keywd = prefix + ':' + identifier
+        keyword = prefix + ':' + identifier
     else:
-        keywd = stmt.keyword
-    fd.write(indent + keywd)
+        keyword = stmt.keyword
+    fd.write(indent + keyword)
     if stmt.arg != None:
         emit_arg(stmt.arg, fd, indent, indentstep)
     if len(stmt.substmts) == 0:
         fd.write(';\n')
     else:
         fd.write(' {\n')
-        for s in stmt.substmts:
-            emit_stmt(s, fd, indent + indentstep, indentstep)
+        if ctx.opts.yang_canonical:
+            substmts = grammar.sort_canonical(stmt.keyword, stmt.substmts)
+        else:
+            substmts = stmt.substmts
+        for s in substmts:
+            emit_stmt(ctx, s, fd, indent + indentstep, indentstep)
         fd.write(indent + '}\n')
 
 def emit_arg(arg, fd, indent, indentstep):
@@ -50,3 +64,4 @@ def emit_arg(arg, fd, indent, indentstep):
         for line in lines[1:-1]:
             fd.write(indent + indentstep + ' ' + line + '\n')
         fd.write(indent + indentstep + ' ' + lines[-1] + '"')
+

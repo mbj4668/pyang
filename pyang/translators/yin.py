@@ -8,6 +8,7 @@ import re
 
 from pyang import plugin
 from pyang import util
+from pyang import grammar
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 
@@ -17,12 +18,16 @@ def pyang_plugin_init():
 class YINPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):
         optlist = [
+            optparse.make_option("--yin-canonical",
+                                 dest="yin_canonical",
+                                 action="store_true",
+                                 help="Print in canonical order"),
             optparse.make_option("--yin-pretty-strings",
                                  dest="yin_pretty_strings",
                                  action="store_true",
                                  help="Pretty print strings"),
             ]
-        g = optparser.add_option_group("YIN specific options")
+        g = optparser.add_option_group("YIN output specific options")
         g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['yin'] = self
@@ -43,7 +48,11 @@ def emit_yin(ctx, module, fd):
         fd.write('  xmlns:' + module.prefix.arg + '=' +
                quoteattr(module.namespace.arg))
     fd.write('>\n')
-    for s in module.substmts:
+    if ctx.opts.yin_canonical:
+        substmts = grammar.sort_canonical(module.keyword, module.substmts)
+    else:
+        substmts = module.substmts
+    for s in substmts:
         emit_stmt(ctx, module, s, fd, '  ', '  ')
     fd.write('</%s>\n' % module.keyword)
     
@@ -94,7 +103,11 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
             fd.write(indent + indentstep + '<' + argname + '>' + \
                        escape(stmt.arg) + \
                        '</' + argname + '>\n')
-        for s in stmt.substmts:
+        if ctx.opts.yin_canonical:
+            substmts = grammar.sort_canonical(stmt.keyword, stmt.substmts)
+        else:
+            substmts = stmt.substmts
+        for s in substmts:
             emit_stmt(ctx, module, s, fd, indent + indentstep, indentstep)
         fd.write(indent + '</' + tag + '>\n')
 
