@@ -31,6 +31,14 @@ class DSDLPlugin(plugin.PyangPlugin):
                                  dest="dsdl_no_schematron",
                                  action="store_true",
                                  help="Do not print Schematron rules"),
+            optparse.make_option("--dsdl-no-dsrl",
+                                 dest="dsdl_no_dsrl",
+                                 action="store_true",
+                                 help="Do not print DSRL elements"),
+            optparse.make_option("--dsdl-no-netmod",
+                                 dest="dsdl_no_netmod",
+                                 action="store_true",
+                                 help="Do not print NETMOD attributes"),
             ]
         g = optparser.add_option_group("DSDL output specific options")
         g.add_options(optlist)
@@ -45,6 +53,10 @@ def emit_dsdl(ctx, module, fd):
         emit.append("dc")
     if ctx.opts.dsdl_no_annotations != True:
         emit.append("a")
+    if ctx.opts.dsdl_no_dsrl != True:
+        emit.append("dsrl")
+    if ctx.opts.dsdl_no_netmod != True:
+        emit.append("nm")
     etree = DSDLTranslator().translate(module, emit, debug=0)
     etree.write(fd, "UTF-8")
 
@@ -78,6 +90,8 @@ class DSDLTranslator(object):
     schema_languages = {
         "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
         "dc": "http://purl.org/dc/terms",
+        "dsrl": "http://purl.oclc.org/dsdl/dsrl",
+        "nm": "urn:ietf:params:xml:ns:netmod:dsdl-attrib:1",
         "sch": "http://purl.oclc.org/dsdl/schematron",
     }
     """Mapping of prefixes to schema language namespace URIs.
@@ -132,15 +146,20 @@ class DSDLTranslator(object):
         """
         self.handler = {
             "anyxml": self.handle_anyxml,
+            "belongs-to": self.handle_belongs_to,
             "bit": self.handle_bit,
             "case": self.handle_case,
             "choice": self.handle_choice,
+            "config": self.handle_config,
             "contact": self.handle_contact,
             "container": self.handle_container,
+            "default": self.handle_default,
             "description": self.handle_description,
             "enum" : self.handle_enum,
             "import" : self.noop,
+            "include" : self.handle_include,
             "grouping" : self.handle_reusable,
+            "key": self.handle_key,
             "leaf": self.handle_leaf,
             "leaf-list": self.new_list,
             "list": self.new_list,
@@ -156,7 +175,7 @@ class DSDLTranslator(object):
             "uses" : self.handle_uses,
         }
 
-    def translate(self, module, emit = ["a","dc","sch"], debug=0):
+    def translate(self, module, emit = schema_languages.keys(), debug=0):
         """Translate `module` to DSDL schema(s).
         """
         self.module = module
@@ -267,6 +286,9 @@ class DSDLTranslator(object):
         elem = ET.SubElement(optel, "value")
         elem.text = stmt.arg
 
+    def handle_config(self, stmt, p_elem):
+        p_elem.attrib["nm:config"] = stmt.arg
+
     def handle_contact(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
 
@@ -275,6 +297,16 @@ class DSDLTranslator(object):
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle(sub, elem)
+
+    def handle_default(self, stmt, p_elem):
+        delem = ET.SubElement(p_elem, "dsrl:default-content")
+        delem.text = stmt.arg
+
+    def handle_include(self, stmt, p_elem):
+        delem = ET.SubElement(p_elem, "include", href = stmt.arg)
+
+    def handle_key(self, stmt, p_elem):
+        p_elem.attrib["nm:key"] = stmt.arg
 
     def handle_leaf(self, stmt, p_elem):
         if len(stmt.search(keyword="mandatory", arg="true")) == 0:
@@ -288,14 +320,25 @@ class DSDLTranslator(object):
     def handle_revision(self, stmt, p_elem):
         self.dc_elements["issued"] = stmt.arg
         
+    def handle_belongs_to(self, stmt, p_elem):
+        self.dc_elements["isPartOf"] = stmt.arg
+        
     def new_list(self, stmt, p_elem):
         """Handle ``leaf-list`` or ``list."""
         min_el = stmt.search(keyword="min-elements")
-        if min_el == [] or int(min_el[0].arg) == 0:
+        if len(min_el) == 0 or int(min_el[0].arg) == 0:
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
         cont = ET.SubElement(p_elem, rng_card)
+        if rng_card == "oneOrMore":
+            cont.attrib["nm:min-elements"] = min_el[0].arg
+        max_el = stmt.search(keyword="max-elements")
+        if len(max_el) > 0:
+            cont.attrib["nm:max-elements"] = max_el[0].arg
+        ordby = stmt.search("ordered-by")
+        if len(ordby) > 0:
+            cont.attrib["nm:ordered-by"] = ordby[0].arg
         elem = ET.SubElement(cont, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle(sub, elem)
 
