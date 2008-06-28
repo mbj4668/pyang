@@ -122,6 +122,7 @@ class DSDLTranslator(object):
             assert_.text = err_msg
     schematron_assert = staticmethod(schematron_assert)
 
+
     def __init__(self):
         """Initialize the instance.
 
@@ -216,17 +217,17 @@ class DSDLTranslator(object):
                 if def_name not in self.imported_symbols:
                     # pull the definition
                     ext_mod = stmt.i_module.ctx.modules[mod_name]
-                    def_ = ext_mod.get_by_kw_and_arg(kw, ident)
+                    def_, = ext_mod.search(keyword=kw, arg=ident)
                     self.handle(def_, self.root_elem)
                     self.imported_symbols.append(def_name)
                 return ET.Element("ref", name=def_name)
         parent = stmt.parent
         while parent is not None:
-            def_ = parent.get_by_kw_and_arg(kw, ref)
-            if def_ is not None:
+            deflist = parent.search(keyword=kw, arg=ref)
+            if len(deflist) > 0:
                 break
             parent = parent.parent
-        return ET.Element("ref", name=self.unique_def_name(def_))
+        return ET.Element("ref", name=self.unique_def_name(deflist[0]))
 
     def handle(self, stmt, p_elem):
         """
@@ -276,7 +277,7 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle(sub, elem)
 
     def handle_leaf(self, stmt, p_elem):
-        if stmt.get_by_kw_and_arg("mandatory", "true") is None:
+        if len(stmt.search(keyword="mandatory", arg="true")) == 0:
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle(sub, elem)
@@ -289,7 +290,7 @@ class DSDLTranslator(object):
         
     def new_list(self, stmt, p_elem):
         """Handle ``leaf-list`` or ``list."""
-        min_el = stmt.get_by_kw("min-elements")
+        min_el = stmt.search(keyword="min-elements")
         if min_el == [] or int(min_el[0].arg) == 0:
             rng_card = "zeroOrMore"
         else:
@@ -325,7 +326,7 @@ class DSDLTranslator(object):
             elem = ET.SubElement(p_elem, "list")
         elif stmt.arg  == "keyref":
             elem = ET.SubElement(p_elem, "data", type="string")
-            pel = stmt.get_by_kw("path")[0]
+            pel, = stmt.search(keyword="path")
             err_msg = """Missing key '<value-of select="."/>'"""
             self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
         elif stmt.arg in self.datatype_map:
@@ -350,13 +351,13 @@ class DSDLTranslator(object):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
         if "a" in self.emit:    # special handling of description
-            desc = stmt.get_by_kw("description")
+            desc = stmt.search(keyword="description")
             if len(desc) > 0:
                 docel = ET.SubElement(p_elem, "a:documentation")
                 docel.text = desc[0].arg
 
     def handle_must(self, stmt, p_elem):
-        estmt = stmt.get_by_kw("error-message")
+        estmt = stmt.search(keyword="error-message")
         if len(estmt) > 0:
             err_msg = estmt[0].arg
         else:
