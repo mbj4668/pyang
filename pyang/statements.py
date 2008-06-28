@@ -83,18 +83,22 @@ class Statement(object):
         res = res.replace("<", "&lt;")
         return res.replace(">", "&gt;")
 
-    def get_by_kw(self, keyword):
-        """Return the list of receiver's children with a given
-        keyword."""
-        return [ ch for ch in self.substmts if ch.keyword == keyword ]
+    def search(self, keyword=None, arg=None):
+        """Return list of receiver's substmts with `keyword` and/or `arg`.
 
-    def get_by_kw_and_arg(self, keyword, arg):
-        """Return the receiver's child with a given `keyword` and
-        `arg` or None if it doesn't exist.
+        If `kw` is ``None``, only the following substatements are
+        taken into account: leaf, leaf-list, list, container, choice,
+        rpc, notification.
         """
-        for ch in self.substmts:
-            if (ch.keyword == keyword and ch.arg == arg): return ch
-        return None
+        if arg is None:
+            return [ ch for ch in self.substmts if ch.keyword == keyword ]
+        elif keyword is None:
+            kws = ["leaf", "leaf-list", "list", "container",
+                   "choice", "rpc", "notification"]
+        else:                   # both specified
+            kws = [keyword]
+        return [ ch for ch in self.substmts
+                 if ch.keyword in kws and ch.arg == arg ]
 
     def substmt_keywords(self):
         """Return a set of unique substatement keywords."""
@@ -132,17 +136,17 @@ class Statement(object):
         """
         for subst in self.substmts:
             if subst.keyword == "container":
-                if len(subst.get_by_kw("presence")) == 0:
+                if len(subst.search(keyword="presence")) == 0:
                     subst._mark_optional()
                     if not subst.optional:
                         self.optional = False
                         return
             elif subst.keyword == "leaf":
-                if subst.get_by_kw_and_arg("mandatory", "true"):
+                if subst.search(keyword="mandatory", arg="true"):
                     self.optional = False
                     return
             elif subst.keyword in ("list", "leaf-list"):
-                minel = subst.get_by_kw("min-elements")
+                minel = subst.search(keyword="min-elements")
                 if len(minel) > 0 and int(minel[0].arg) > 0:
                     self.optional = False
                     return
