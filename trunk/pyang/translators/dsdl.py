@@ -171,6 +171,7 @@ class DSDLTranslator(object):
             "type": self.type_stmt,
             "typedef" : self.handle_reusable,
             "unique" : self.unique_stmt,
+            "units" : self.units_stmt,
             "uses" : self.uses_stmt,
         }
         self.type_handler = {
@@ -213,12 +214,17 @@ class DSDLTranslator(object):
         for prefix in self.emit: # used namespaces
             self.root_elem.attrib["xmlns:" + prefix] = \
                 self.schema_languages[prefix]
-        # Library modules have no <start>
-        if len(module.substmt_keywords().intersection(self.datatree_nodes)):
-            start = ET.SubElement(self.root_elem, "start")
+        # Write <start> if there are data tree nodes
+        dt_nodes = 0
+        for dtn in self.datatree_nodes:
+            dt_nodes += len(module.search(keyword=dtn))
+        if dt_nodes > 0:
+            topel = ET.SubElement(self.root_elem, "start")
+            if dt_nodes > 1: # Non-unique root element
+                topel = ET.SubElement(topel, "group")
         else:
-            start = self.root_elem
-        for sub in module.substmts: self.handle_stmt(sub, start)
+            topel = self.root_elem
+        for sub in module.substmts: self.handle_stmt(sub, topel)
         self.dublin_core()
         return ET.ElementTree(element=self.root_elem)
         
@@ -456,6 +462,9 @@ class DSDLTranslator(object):
                                               " or ".join(clist))
         err_msg = 'Not unique: "%s"' % stmt.arg
         self.schematron_assert(p_elem, cond, err_msg)
+
+    def units_stmt(self, stmt, p_elem):
+        self.nm_attribute(p_elem, "units", stmt.arg)
 
     # Handlers for YANG types
 
