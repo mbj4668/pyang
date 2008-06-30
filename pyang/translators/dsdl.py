@@ -147,7 +147,7 @@ class DSDLTranslator(object):
             "belongs-to": self.belongs_to_stmt,
             "case": self.case_stmt,
             "choice": self.choice_stmt,
-            "config": self.config_stmt,
+            "config": self.attach_nm_att,
             "contact": self.contact_stmt,
             "container": self.container_stmt,
             "default": self.default_stmt,
@@ -156,7 +156,7 @@ class DSDLTranslator(object):
             "import" : self.noop,
             "include" : self.include_stmt,
             "grouping" : self.handle_reusable,
-            "key": self.key_stmt,
+            "key": self.attach_nm_att,
             "leaf": self.leaf_stmt,
             "leaf-list": self.handle_list,
             "list": self.handle_list,
@@ -168,10 +168,11 @@ class DSDLTranslator(object):
             "prefix": self.noop,
             "reference": self.reference_stmt,
             "revision": self.revision_stmt,
+            "status" : self.attach_nm_att,
             "type": self.type_stmt,
             "typedef" : self.handle_reusable,
             "unique" : self.unique_stmt,
-            "units" : self.units_stmt,
+            "units" : self.attach_nm_att,
             "uses" : self.uses_stmt,
         }
         self.type_handler = {
@@ -313,6 +314,10 @@ class DSDLTranslator(object):
     def noop(self, stmt, p_elem):
         pass
 
+    def attach_nm_att(self, stmt, p_elem):
+        """Handle config, key, units, status."""
+        self.nm_attribute(p_elem, stmt.keyword, stmt.arg)
+
     def anyxml_stmt(self, stmt, p_elem):
         if self.first_anyxml:   # install definition
             def_ = ET.fromstring(self.anyxml_def)
@@ -321,9 +326,6 @@ class DSDLTranslator(object):
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
         ET.SubElement(elem, "ref", name="anyxml")
-
-    def config_stmt(self, stmt, p_elem):
-        self.nm_attribute(p_elem, "config", stmt.arg)
 
     def contact_stmt(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
@@ -341,9 +343,6 @@ class DSDLTranslator(object):
 
     def include_stmt(self, stmt, p_elem):
         delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
-
-    def key_stmt(self, stmt, p_elem):
-        self.nm_attribute(p_elem, "key", stmt.arg)
 
     def leaf_stmt(self, stmt, p_elem):
         if len(stmt.search(keyword="mandatory", arg="true")) == 0:
@@ -398,16 +397,21 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def reference_stmt(self, stmt, p_elem):
-        if "a" not in self.emit: return
-        elem = ET.Element("a:documentation")
-        elem.text = "See: " + stmt.arg
-        i = 0
-        # insert after description
-        for ch in p_elem:
-            if ch.tag == "a:documentation":
-                i += 1
-                continue
-        p_elem.insert(i, elem)
+        if stmt.i_module != self.module: # ignore imported descriptions
+            return
+        if stmt.parent == self.module: # top-level description
+            self.dc_elements["BibliographicResource"] = stmt.arg
+        if "a" in self.emit and stmt.parent.keyword != "enum":
+            elem = ET.Element("a:documentation")
+            elem.text = "See: " + stmt.arg
+            i = 0
+            # insert after description
+            for ch in p_elem:
+                if ch.tag == "a:documentation":
+                    i += 1
+                else:
+                    break
+            p_elem.insert(i, elem)
 
     def type_stmt(self, stmt, p_elem):
         if stmt.arg == "empty":
@@ -462,9 +466,6 @@ class DSDLTranslator(object):
                                               " or ".join(clist))
         err_msg = 'Not unique: "%s"' % stmt.arg
         self.schematron_assert(p_elem, cond, err_msg)
-
-    def units_stmt(self, stmt, p_elem):
-        self.nm_attribute(p_elem, "units", stmt.arg)
 
     # Handlers for YANG types
 
