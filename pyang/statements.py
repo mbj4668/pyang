@@ -146,6 +146,10 @@ class Statement(object):
                 if len(minel) > 0 and int(minel[0].arg) > 0:
                     self.optional = False
                     return
+                subst._mark_optional()
+                if not subst.optional:
+                    self.optional = False
+                    return
             elif subst.keyword == "uses":
                 ref = subst.arg
                 if ":" in ref:  # prefixed?
@@ -158,8 +162,7 @@ class Statement(object):
                         grp = ext_mod.search_grouping(ident)
                 else:
                     grp = self.search_grouping(ref)
-                grp._mark_optional()
-                if not grp.optional:
+                if not grp.is_optional():
                     self.optional = False
                     return
         self.optional = True
