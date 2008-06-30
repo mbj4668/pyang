@@ -170,6 +170,7 @@ class DSDLTranslator(object):
             "revision": self.revision_stmt,
             "type": self.type_stmt,
             "typedef" : self.handle_reusable,
+            "unique" : self.unique_stmt,
             "uses" : self.uses_stmt,
         }
         self.type_handler = {
@@ -448,6 +449,14 @@ class DSDLTranslator(object):
     def case_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "group")
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
+
+    def unique_stmt(self, stmt, p_elem):
+        leafs = stmt.arg.split()
+        clist = [ "%s != current()/%s" % (l,l) for l in leafs ]
+        cond = "preceding-sibling::%s[%s]" % (p_elem.attrib["name"],
+                                              " or ".join(clist))
+        err_msg = 'Not unique: "%s"' % stmt.arg
+        self.schematron_assert(p_elem, cond, err_msg)
 
     # Handlers for YANG types
 
