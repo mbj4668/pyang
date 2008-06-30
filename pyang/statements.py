@@ -100,10 +100,6 @@ class Statement(object):
         return [ ch for ch in self.substmts
                  if ch.keyword in kws and ch.arg == arg ]
 
-    def substmt_keywords(self):
-        """Return a set of unique substatement keywords."""
-        return set([ch.keyword for ch in self.substmts])
-
     def full_path(self):
         """Return full path of the receiver.
 
