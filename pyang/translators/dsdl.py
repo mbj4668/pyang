@@ -135,14 +135,6 @@ class DSDLTranslator(object):
         return [ tuple(r.split("..")) for r in range_expr.split("|") ]
     decode_ranges = staticmethod(decode_ranges)
 
-    def schematron_assert(elem, cond, err_msg=None):
-        """Install <sch:assert> under `elem`.
-        """
-        assert_ = ET.SubElement(elem, "sch:assert", test=cond)
-        if err_msg is not None:
-            assert_.text = err_msg
-    schematron_assert = staticmethod(schematron_assert)
-
     def __init__(self):
         """Initialize the instance.
 
@@ -203,7 +195,7 @@ class DSDLTranslator(object):
             "union": self.choice_type,
         }
 
-    def translate(self, module, emit = schema_languages.keys(), debug=0):
+    def translate(self, module, emit=schema_languages.keys(), debug=0):
         """Translate `module` to DSDL schema(s).
         """
         self.module = module
@@ -233,12 +225,26 @@ class DSDLTranslator(object):
         """
         Attach Dublin Core elements from dc_elements to <grammar>.
         """
-        if "dc" not in self.emit: return
-        for dc in self.dc_elements:
-            dcel = ET.Element("dc:" + dc)
-            dcel.text = self.dc_elements[dc]
-            self.root_elem.insert(0, dcel)
+        if "dc" in self.emit:
+            for dc in self.dc_elements:
+                dcel = ET.Element("dc:" + dc)
+                dcel.text = self.dc_elements[dc]
+                self.root_elem.insert(0, dcel)
 
+    def schematron_assert(self, elem, cond, err_msg=None):
+        """Install <sch:assert> under `elem`.
+        """
+        if "sch" in self.emit:
+            assert_ = ET.SubElement(elem, "sch:assert", test=cond)
+            if err_msg is not None:
+                assert_.text = err_msg
+
+    def nm_attribute(self, elem, attr, value):
+        """Attach NETMOD attribute `attr` with `value` to `elem`.
+        """
+        if "nm" in self.emit:
+            elem.attrib["nm:" + attr] = value
+        
     def unique_def_name(self, stmt):
         """Answer disambiguated name of the receiver (typedef or grouping).
         """
@@ -310,7 +316,7 @@ class DSDLTranslator(object):
         ET.SubElement(elem, "ref", name="anyxml")
 
     def config_stmt(self, stmt, p_elem):
-        p_elem.attrib["nm:config"] = stmt.arg
+        self.nm_attribute(p_elem, "config", stmt.arg)
 
     def contact_stmt(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
@@ -322,14 +328,15 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def default_stmt(self, stmt, p_elem):
-        delem = ET.SubElement(p_elem, "dsrl:default-content")
-        delem.text = stmt.arg
+        if "dsrl" in self.emit:
+            delem = ET.SubElement(p_elem, "dsrl:default-content")
+            delem.text = stmt.arg
 
     def include_stmt(self, stmt, p_elem):
-        delem = ET.SubElement(p_elem, "include", href = stmt.arg)
+        delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
 
     def key_stmt(self, stmt, p_elem):
-        p_elem.attrib["nm:key"] = stmt.arg
+        self.nm_attribute(p_elem, "key", stmt.arg)
 
     def leaf_stmt(self, stmt, p_elem):
         if len(stmt.search(keyword="mandatory", arg="true")) == 0:
@@ -355,13 +362,13 @@ class DSDLTranslator(object):
             rng_card = "oneOrMore"
         cont = ET.SubElement(p_elem, rng_card)
         if rng_card == "oneOrMore":
-            cont.attrib["nm:min-elements"] = min_el[0].arg
+            self.nm_attribute(cont, "min-elements", min_el[0].arg)
         max_el = stmt.search(keyword="max-elements")
         if len(max_el) > 0:
-            cont.attrib["nm:max-elements"] = max_el[0].arg
+            self.nm_attribute(cont, "max-elements", max_el[0].arg)
         ordby = stmt.search("ordered-by")
         if len(ordby) > 0:
-            cont.attrib["nm:ordered-by"] = ordby[0].arg
+            self.nm_attribute(cont, "ordered-by", ordby[0].arg)
         elem = ET.SubElement(cont, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
@@ -384,6 +391,7 @@ class DSDLTranslator(object):
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def reference_stmt(self, stmt, p_elem):
+        if "a" not in self.emit: return
         elem = ET.Element("a:documentation")
         elem.text = "See: " + stmt.arg
         i = 0
