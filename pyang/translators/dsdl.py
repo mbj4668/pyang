@@ -422,7 +422,6 @@ class DSDLTranslator(object):
         
     def uses_stmt(self, stmt, p_elem):
         p_elem.append(self.resolve_ref(stmt, "grouping"))
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def enum_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "value")
