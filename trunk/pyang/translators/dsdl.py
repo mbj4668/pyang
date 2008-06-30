@@ -101,7 +101,6 @@ class DSDLTranslator(object):
     """
 
     datatype_map = {
-        "string" : "string",
         "instance-identifier": "string",
         "int8": "byte",
         "int16": "short",
@@ -128,6 +127,14 @@ class DSDLTranslator(object):
         <text/></choice></zeroOrMore></define>'''
     """RELAX NG pattern representing 'anyxml'"""
 
+    def decode_ranges(range_expr):
+        """Parse `range_expr` and return list of (lo,hi) tuples.
+
+        For range-part with a single component, hi is not present.
+        """
+        return [ tuple(r.split("..")) for r in range_expr.split("|") ]
+    decode_ranges = staticmethod(decode_ranges)
+
     def schematron_assert(elem, cond, err_msg=None):
         """Install <sch:assert> under `elem`.
         """
@@ -136,43 +143,64 @@ class DSDLTranslator(object):
             assert_.text = err_msg
     schematron_assert = staticmethod(schematron_assert)
 
-
     def __init__(self):
         """Initialize the instance.
 
         Subclasses should first call __init__ method from heir
         superclass and then redefine some of the items in the
-        `self.handler` dictionary if necessary.
+        `self.stmt_handler` dictionary if necessary.
         """
-        self.handler = {
-            "anyxml": self.handle_anyxml,
-            "belongs-to": self.handle_belongs_to,
-            "bit": self.handle_bit,
-            "case": self.handle_case,
-            "choice": self.handle_choice,
-            "config": self.handle_config,
-            "contact": self.handle_contact,
-            "container": self.handle_container,
-            "default": self.handle_default,
-            "description": self.handle_description,
-            "enum" : self.handle_enum,
+        self.stmt_handler = {
+            "anyxml": self.anyxml_stmt,
+            "belongs-to": self.belongs_to_stmt,
+            "case": self.case_stmt,
+            "choice": self.choice_stmt,
+            "config": self.config_stmt,
+            "contact": self.contact_stmt,
+            "container": self.container_stmt,
+            "default": self.default_stmt,
+            "description": self.description_stmt,
+            "enum" : self.enum_stmt,
             "import" : self.noop,
-            "include" : self.handle_include,
+            "include" : self.include_stmt,
             "grouping" : self.handle_reusable,
-            "key": self.handle_key,
-            "leaf": self.handle_leaf,
-            "leaf-list": self.new_list,
-            "list": self.new_list,
+            "key": self.key_stmt,
+            "leaf": self.leaf_stmt,
+            "leaf-list": self.handle_list,
+            "list": self.handle_list,
             "mandatory": self.noop,
-            "must": self.handle_must,
-            "namespace": self.handle_namespace,
-            "organization": self.handle_organization,
-            "pattern": self.handle_pattern,
+            "must": self.must_stmt,
+            "namespace": self.namespace_stmt,
+            "organization": self.organization_stmt,
+            "pattern": self.pattern_stmt,
             "prefix": self.noop,
-            "revision": self.handle_revision,
-            "type": self.handle_type,
+            "reference": self.reference_stmt,
+            "revision": self.revision_stmt,
+            "type": self.type_stmt,
             "typedef" : self.handle_reusable,
-            "uses" : self.handle_uses,
+            "uses" : self.uses_stmt,
+        }
+        self.type_handler = {
+            "boolean": self.mapped_type,
+            "binary": self.mapped_type,
+            "bits": self.bits_type,
+            "empty": self.mapped_type,
+            "enumeration": self.choice_type,
+            "float32": self.numeric_type,
+            "float64": self.numeric_type,
+            "instance-identifier": self.mapped_type,
+            "int8": self.numeric_type,
+            "int16": self.numeric_type,
+            "int32": self.numeric_type,
+            "int64": self.numeric_type,
+            "keyref": self.keyref_type,
+            "string" : self.string_type,
+            "uint8": self.numeric_type,
+            "uint16": self.numeric_type,
+            "uint32": self.numeric_type,
+            "uint64": self.numeric_type,
+            "uint64": self.choice_type,
+            "union": self.choice_type,
         }
 
     def translate(self, module, emit = schema_languages.keys(), debug=0):
@@ -197,7 +225,7 @@ class DSDLTranslator(object):
             start = ET.SubElement(self.root_elem, "start")
         else:
             start = self.root_elem
-        for sub in module.substmts: self.handle(sub, start)
+        for sub in module.substmts: self.handle_stmt(sub, start)
         self.dublin_core()
         return ET.ElementTree(element=self.root_elem)
         
@@ -237,7 +265,7 @@ class DSDLTranslator(object):
                     # pull the definition
                     ext_mod = stmt.i_module.ctx.modules[mod_name]
                     def_, = ext_mod.search(keyword=kw, arg=ident)
-                    self.handle(def_, self.root_elem)
+                    self.handle_stmt(def_, self.root_elem)
                     self.imported_symbols.append(def_name)
                 return ET.Element("ref", name=def_name)
         parent = stmt.parent
@@ -248,14 +276,14 @@ class DSDLTranslator(object):
             parent = parent.parent
         return ET.Element("ref", name=self.unique_def_name(deflist[0]))
 
-    def handle(self, stmt, p_elem):
+    def handle_stmt(self, stmt, p_elem):
         """
         Run handler method for `stmt` in the context of `p_elem`.
 
         All handler methods have the same arguments.
         """
         try:
-            handler = self.handler[stmt.keyword]
+            handler = self.stmt_handler[stmt.keyword]
         except KeyError:
             if self.debug > 0:
                 sys.stderr.write("%s not handled\n" % \
@@ -272,59 +300,54 @@ class DSDLTranslator(object):
     def noop(self, stmt, p_elem):
         pass
 
-    def handle_anyxml(self, stmt, p_elem):
+    def anyxml_stmt(self, stmt, p_elem):
         if self.first_anyxml:   # install definition
             def_ = ET.fromstring(self.anyxml_def)
             self.root_elem.append(def_)
             self.first_anyxml = False
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
         ET.SubElement(elem, "ref", name="anyxml")
 
-    def handle_bit(self, stmt, p_elem):
-        optel = ET.SubElement(p_elem, "optional")
-        elem = ET.SubElement(optel, "value")
-        elem.text = stmt.arg
-
-    def handle_config(self, stmt, p_elem):
+    def config_stmt(self, stmt, p_elem):
         p_elem.attrib["nm:config"] = stmt.arg
 
-    def handle_contact(self, stmt, p_elem):
+    def contact_stmt(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
 
-    def handle_container(self, stmt, p_elem):
+    def container_stmt(self, stmt, p_elem):
         if stmt.is_optional():
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def handle_default(self, stmt, p_elem):
+    def default_stmt(self, stmt, p_elem):
         delem = ET.SubElement(p_elem, "dsrl:default-content")
         delem.text = stmt.arg
 
-    def handle_include(self, stmt, p_elem):
+    def include_stmt(self, stmt, p_elem):
         delem = ET.SubElement(p_elem, "include", href = stmt.arg)
 
-    def handle_key(self, stmt, p_elem):
+    def key_stmt(self, stmt, p_elem):
         p_elem.attrib["nm:key"] = stmt.arg
 
-    def handle_leaf(self, stmt, p_elem):
+    def leaf_stmt(self, stmt, p_elem):
         if len(stmt.search(keyword="mandatory", arg="true")) == 0:
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def handle_organization(self, stmt, p_elem):
+    def organization_stmt(self, stmt, p_elem):
         self.dc_elements["creator"] = stmt.arg
 
-    def handle_revision(self, stmt, p_elem):
+    def revision_stmt(self, stmt, p_elem):
         self.dc_elements["issued"] = stmt.arg
         
-    def handle_belongs_to(self, stmt, p_elem):
+    def belongs_to_stmt(self, stmt, p_elem):
         self.dc_elements["isPartOf"] = stmt.arg
         
-    def new_list(self, stmt, p_elem):
-        """Handle ``leaf-list`` or ``list."""
+    def handle_list(self, stmt, p_elem):
+        """Handle leaf-list or list."""
         min_el = stmt.search(keyword="min-elements")
         if len(min_el) == 0 or int(min_el[0].arg) == 0:
             rng_card = "zeroOrMore"
@@ -340,9 +363,9 @@ class DSDLTranslator(object):
         if len(ordby) > 0:
             cont.attrib["nm:ordered-by"] = ordby[0].arg
         elem = ET.SubElement(cont, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def handle_description(self, stmt, p_elem):
+    def description_stmt(self, stmt, p_elem):
         if stmt.i_module != self.module: # ignore imported descriptions
             return
         if stmt.parent == self.module: # top-level description
@@ -352,45 +375,47 @@ class DSDLTranslator(object):
             p_elem.insert(0, elem)
             elem.text = stmt.arg
 
-    def handle_namespace(self, stmt, p_elem):
+    def namespace_stmt(self, stmt, p_elem):
         self.root_elem.attrib["ns"] = stmt.arg
 
-    def handle_pattern(self, stmt, p_elem):
+    def pattern_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "param", name="pattern")
         elem.text = stmt.arg
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def handle_type(self, stmt, p_elem):
-        if stmt.arg in ("enumeration", "union"):
-            elem = ET.SubElement(p_elem, "choice")
-        elif stmt.arg == "empty":
-            elem = ET.SubElement(p_elem, "empty")
-        elif stmt.arg == "bits":
-            elem = ET.SubElement(p_elem, "list")
-        elif stmt.arg  == "keyref":
-            elem = ET.SubElement(p_elem, "data", type="string")
-            pel, = stmt.search(keyword="path")
-            err_msg = """Missing key '<value-of select="."/>'"""
-            self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
-        elif stmt.arg in self.datatype_map:
-            elem = ET.SubElement(p_elem, "data",
-                                 type=self.datatype_map[stmt.arg])
-        else:                   # derived type
-            p_elem.append(self.resolve_ref(stmt, "typedef"))
+    def reference_stmt(self, stmt, p_elem):
+        elem = ET.Element("a:documentation")
+        elem.text = "See: " + stmt.arg
+        i = 0
+        # insert after description
+        for ch in p_elem:
+            if ch.tag == "a:documentation":
+                i += 1
+                continue
+        p_elem.insert(i, elem)
+
+    def type_stmt(self, stmt, p_elem):
+        if stmt.arg == "empty":
+            ET.SubElement(p_elem, "empty")
             return
-        for sub in stmt.substmts: self.handle(sub, elem)
+        try:
+            thandler = self.type_handler[stmt.arg]
+        except KeyError:                   # derived type
+            p_elem.append(self.resolve_ref(stmt, "typedef"))
+        else:
+            thandler(stmt, p_elem)
 
     def handle_reusable(self, stmt, p_elem):
         """Handle ``typedef`` or ``grouping``."""
         elem = ET.SubElement(self.root_elem, "define",
                              name=self.unique_def_name(stmt))
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
         
-    def handle_uses(self, stmt, p_elem):
+    def uses_stmt(self, stmt, p_elem):
         p_elem.append(self.resolve_ref(stmt, "grouping"))
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def handle_enum(self, stmt, p_elem):
+    def enum_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
         if "a" in self.emit:    # special handling of description
@@ -399,7 +424,7 @@ class DSDLTranslator(object):
                 docel = ET.SubElement(p_elem, "a:documentation")
                 docel.text = desc[0].arg
 
-    def handle_must(self, stmt, p_elem):
+    def must_stmt(self, stmt, p_elem):
         estmt = stmt.search(keyword="error-message")
         if len(estmt) > 0:
             err_msg = estmt[0].arg
@@ -408,10 +433,95 @@ class DSDLTranslator(object):
         self.schematron_assert(p_elem, stmt.arg.replace("$this", "."),
                                err_msg)
 
-    def handle_choice(self, stmt, p_elem):
+    def choice_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "choice")
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def handle_case(self, stmt, p_elem):
+    def case_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "group")
-        for sub in stmt.substmts: self.handle(sub, elem)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+
+    # Handlers for YANG types
+
+    def choice_type(self, stmt, p_elem):
+        """Handle enumeration and union types."""
+        elem = ET.SubElement(p_elem, "choice")
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+
+    def mapped_type(self, stmt, p_elem):
+        """Handle types that are simply mapped to RELAX NG.
+        
+        `DSDLTranslator.datatype_map` maps the type names.
+        """
+        ET.SubElement(p_elem, "data", type=self.datatype_map[stmt.arg])
+
+    def numeric_type(self, stmt, p_elem):
+        """Handle numeric types."""
+        rngtype = self.datatype_map[stmt.arg]
+        rstmt = stmt.search(keyword="range")
+        if len(rstmt) == 0:
+            ET.SubElement(p_elem, "data", type=rngtype)
+            return
+        ranges = self.decode_ranges(rstmt[0].arg)
+        if len(ranges) > 1:
+            p_elem = ET.SubElement(p_elem, "choice")
+            for sub in rstmt[0].substmts: self.handle_stmt(sub, p_elem)
+        for rc in ranges:
+            elem = ET.SubElement(p_elem, "data", type=rngtype)
+            if len(ranges) == 1:
+                for sub in rstmt[0].substmts: self.handle_stmt(sub, elem)
+            if rc[0] not in ("min", "-INF"):
+                lelem = ET.SubElement(elem, "param", name="minInclusive")
+                lelem.text = rc[0]
+            if len(rc) == 1 or rc[1] not in ("max","INF"):
+                helem = ET.SubElement(elem, "param", name="maxInclusive")
+                if len(rc) == 1:
+                    helem.text = rc[0]
+                else:
+                    helem.text = rc[1]
+
+    def bits_type(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "list")
+        for bit in stmt.search(keyword="bit"):
+            optel = ET.SubElement(p_elem, "optional")
+            velem = ET.SubElement(optel, "value")
+            velem.text = bit.arg
+
+    def keyref_type(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "data", type="string")
+        pel, = stmt.search(keyword="path")
+        err_msg = """Missing key '<value-of select="."/>'"""
+        self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
+
+    def string_type(self, stmt, p_elem):
+        pstmt = stmt.search(keyword="pattern")
+        if len(pstmt) > 0:
+            pe = ET.Element("param", name="pattern")
+            pe.text = pstmt[0].arg
+            for sub in pstmt[0].substmts: self.handle_stmt(sub, pe)
+        else:
+            pe = None
+        rstmt = stmt.search(keyword="length")
+        if len(rstmt) == 0:
+            elem = ET.SubElement(p_elem, "data", type="string")
+            if pe is not None: elem.append(pe) 
+            return
+        ranges = self.decode_ranges(rstmt[0].arg)
+        if len(ranges) > 1:
+            p_elem = ET.SubElement(p_elem, "choice")
+            for sub in rstmt[0].substmts: self.handle_stmt(sub, p_elem)
+        for rc in ranges:
+            elem = ET.SubElement(p_elem, "data", type="string")
+            if pe is not None: elem.append(pe)
+            if len(ranges) == 1:
+                for sub in rstmt[0].substmts: self.handle_stmt(sub, elem)
+            if len(rc) == 1:
+                lelem = ET.SubElement(p_elem, "param", name="length")
+                lelem.text = rc[0]
+                return
+            if rc[0] != "min":
+                lelem = ET.SubElement(elem, "param", name="minLength")
+                lelem.text = rc[0]
+            if rc[1] != "max":
+                helem = ET.SubElement(elem, "param", name="maxLength")
+                helem.text = rc[1]
