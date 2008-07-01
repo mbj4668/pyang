@@ -118,21 +118,27 @@ class DSDLTranslator(object):
     """mapping of simple datatypes from YANG to W3C datatype library"""
 
     datatree_nodes = ["container", "leaf", "leaf-list", "list",
-                      "choice", "anyxml"]
+                      "choice", "anyxml", "uses"]
     """list of YANG statementes that form the data tree"""
 
-    anyxml_def = '''<define name="anyxml"><zeroOrMore><choice>
+    anyxml_def = '''<define name="__anyxml__"><zeroOrMore><choice>
         <attribute><anyName/></attribute>
-        <element><anyName/><ref name="anyxml"/></element>
+        <element><anyName/><ref name="__anyxml__"/></element>
         <text/></choice></zeroOrMore></define>'''
     """RELAX NG pattern representing 'anyxml'"""
 
     def decode_ranges(range_expr):
-        """Parse `range_expr` and return list of (lo,hi) tuples.
+        """Parse `range_expr` and return list of [lo,hi] pairs.
 
         For range-part with a single component, hi is not present.
         """
-        return [ tuple(r.split("..")) for r in range_expr.split("|") ]
+        raw = range_expr.split("|")
+        res = []
+        for part in raw:
+            strp = [x.strip() for x in part.split("..")]
+            if len(strp) > 1 or strp[0] not in ("min", "max"):
+                res.append(strp)
+        return res
     decode_ranges = staticmethod(decode_ranges)
 
     def __init__(self):
@@ -194,7 +200,6 @@ class DSDLTranslator(object):
             "uint16": self.numeric_type,
             "uint32": self.numeric_type,
             "uint64": self.numeric_type,
-            "uint64": self.choice_type,
             "union": self.choice_type,
         }
 
@@ -325,7 +330,7 @@ class DSDLTranslator(object):
             self.first_anyxml = False
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
-        ET.SubElement(elem, "ref", name="anyxml")
+        ET.SubElement(elem, "ref", name="__anyxml__")
 
     def contact_stmt(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
@@ -334,7 +339,11 @@ class DSDLTranslator(object):
         if stmt.is_optional():
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        substmts = stmt.substmts
+        if len(substmts) == 0:
+            ET.SubElement(elem, "empty")
+        else:
+            for sub in substmts: self.handle_stmt(sub, elem)
 
     def default_stmt(self, stmt, p_elem):
         if "dsrl" in self.emit:
@@ -489,6 +498,9 @@ class DSDLTranslator(object):
             ET.SubElement(p_elem, "data", type=rngtype)
             return
         ranges = self.decode_ranges(rstmt[0].arg)
+        if len(ranges) == 0: # isolated "max" or "min"
+            ET.SubElement(p_elem, "data", type=rngtype)
+            return
         if len(ranges) > 1:
             p_elem = ET.SubElement(p_elem, "choice")
             for sub in rstmt[0].substmts: self.handle_stmt(sub, p_elem)
@@ -509,7 +521,7 @@ class DSDLTranslator(object):
     def bits_type(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "list")
         for bit in stmt.search(keyword="bit"):
-            optel = ET.SubElement(p_elem, "optional")
+            optel = ET.SubElement(elem, "optional")
             velem = ET.SubElement(optel, "value")
             velem.text = bit.arg
 
@@ -533,6 +545,10 @@ class DSDLTranslator(object):
             if pe is not None: elem.append(pe) 
             return
         ranges = self.decode_ranges(rstmt[0].arg)
+        if len(ranges) == 0: # isolated "max" or "min"
+            elem = ET.SubElement(p_elem, "data", type="string")
+            if pe is not None: elem.append(pe) 
+            return
         if len(ranges) > 1:
             p_elem = ET.SubElement(p_elem, "choice")
             for sub in rstmt[0].substmts: self.handle_stmt(sub, p_elem)
@@ -542,7 +558,7 @@ class DSDLTranslator(object):
             if len(ranges) == 1:
                 for sub in rstmt[0].substmts: self.handle_stmt(sub, elem)
             if len(rc) == 1:
-                lelem = ET.SubElement(p_elem, "param", name="length")
+                lelem = ET.SubElement(elem, "param", name="length")
                 lelem.text = rc[0]
                 return
             if rc[0] != "min":
