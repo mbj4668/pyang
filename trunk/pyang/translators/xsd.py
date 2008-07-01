@@ -245,8 +245,8 @@ def emit_xsd(ctx, module, fd):
         for x in imports:
             mod = ctx.modules[x.modulename]
             uri = mod.namespace.arg
-            fd.write('  <xs:import namespace="%s"' \
-                           'schemaLocation="%s.xsd"/>\n' %
+            fd.write('  <xs:import namespace="%s"\n' \
+                     '             schemaLocation="%s.xsd"/>\n' %
                        (uri, x.modulename))
         if has_rpc:
             fd.write('  <xs:import\n')

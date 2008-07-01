@@ -9,7 +9,7 @@ MIB_SOURCES  := $(wildcard *.mib)
 YANG_OBJECTS := $(MIB_SOURCES:%.mib=%.yang)
 YIN_OBJECTS := $(MIB_SOURCES:%.mib=%.yin)
 XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
-DSDL_OBJECTS := # FIXME $(MIB_SOURCES:%.mib=%.rng)
+DSDL_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
 STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
@@ -65,7 +65,7 @@ xml: $(XML_OBJECTS)
 	@( if [ ! -s $@ ]; then                                     \
                exit 0;                                              \
            fi;                                                      \
-	   exit 0; # FIXME!! \
+	   exit 0; # FIXME - remove this line \
            rng=`basename $@ .xml`.rng;                              \
 	   str=`xmllint --noout --relaxng $${rng} $@ 2>&1 |         \
                 grep -v __foo__ | grep -v 'validate'`;              \
