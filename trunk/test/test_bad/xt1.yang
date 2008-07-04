@@ -225,6 +225,13 @@ module/*hej*/xt1 {
       pattern "[A-Za-z][^/:.]*";
     }
   }
+
+
+  leaf incomplete {
+    // error: missing type keyword
+    config true;
+  }
+
 }
   
 

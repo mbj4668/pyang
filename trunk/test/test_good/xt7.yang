@@ -14,4 +14,16 @@ module xt7 {
          yin-element false;
        }
      }
+
+  grouping baz {
+    leaf x {
+      type int32;
+    }
+  }
+  uses baz {
+    leaf x {
+      default 42;
+    }
+  }
+
 }

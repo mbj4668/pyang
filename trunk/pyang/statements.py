@@ -1830,10 +1830,6 @@ class ExtensionStatement(Statement):
         if self.i_def_module == None:
             self.i_def_module = module.prefix_to_module(self.prefix, self.pos,
                                                         errors)
-        # possibly inherit i_module
-        for x in self.substmts:
-            if x.prefix == None:
-                x.i_def_module = self.i_def_module
         # recurse only if this prefix was found
         if self.i_def_module != None:
             ext = self.i_def_module.search_extension(self.identifier)
