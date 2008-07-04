@@ -1,6 +1,3 @@
-  o  handle core yang stmts in extesions
-     - coding done, write test cases
-
   o  add validation of XPath (lower prio) (when, must)
 
   o  add more stuff to XSD output:

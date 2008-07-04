@@ -272,8 +272,19 @@ stmt_map = {
           ]),
     'leaf':
         ('identifier',
-         [#('type', '1'), # FIXME: optional for refinements
-          ('type', '?'),
+         [('type', '1'),
+          ('units', '?'),
+          ('must', '*'),
+          ('default', '?'),
+          ('config', '?'),
+          ('mandatory', '?'),
+          ('status', '?'),
+          ('description', '?'),
+          ('reference', '?'),
+          ]),
+    'refined-leaf':
+        ('identifier',
+         [('type', '?'),
           ('units', '?'),
           ('must', '*'),
           ('default', '?'),
@@ -285,8 +296,20 @@ stmt_map = {
           ]),
     'leaf-list':
         ('identifier',
-         [#('type', '1'), # FIXME: optional for refinements
-          ('type', '?'),
+         [('type', '1'),
+          ('units', '?'),
+          ('must', '*'),
+          ('config', '?'),
+          ('min-elements', '?'),
+          ('max-elements', '?'),
+          ('ordered-by', '?'),
+          ('status', '?'),
+          ('description', '?'),
+          ('reference', '?'),
+          ]),
+    'refined-leaf-list':
+        ('identifier',
+         [('type', '?'),
           ('units', '?'),
           ('must', '*'),
           ('config', '?'),
@@ -468,7 +491,7 @@ def chk_module_statements(ctx, module_stmt, canonical=False):
     _chk_stmts(ctx, module_stmt.pos, [module_stmt], top_stmts, canonical)
     return n == len(ctx.errors)
 
-def _chk_stmts(ctx, pos, stmts, spec, canonical):
+def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
     for stmt in stmts:
         if not util.is_prefixed(stmt.keyword):
             match_res = _match_stmt(ctx, stmt, spec, canonical)
@@ -477,11 +500,23 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical):
                               'UNEXPECTED_KEYWORD', stmt.keyword);
             else:
                 (_arg_type, subspec) = stmt_map[stmt.keyword]
-                _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical)
+                # FIXME: hack to handle the current situation where some
+                # stmts' grammar is context dependant.  I hope this gets
+                # fixed with a special 'refine' statement.
+                if is_refinement:
+                    if stmt.keyword == 'leaf':
+                        (_arg_type, subspec) = stmt_map['refined-leaf']
+                    elif stmt.keyword == 'leaf-list':
+                        (_arg_type, subspec) = stmt_map['refined-leaf-list']
+                if stmt.keyword == 'uses':
+                    is_refinement = True
+                _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical,
+                           is_refinement)
                 spec = match_res
         else:
             # FIXME: handle plugin-registered extension grammar
-            _chk_stmts(ctx, stmt.pos, stmt.substmts, [], canonical)
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, [('$any', '*')], canonical,
+                       is_refinement)
         # update last know position
         pos = stmt.pos
     # any non-optional statements left are errors
@@ -498,7 +533,9 @@ def _match_stmt(ctx, stmt, spec, canonical):
     i = 0
     while i < len(spec):
         (keywd, occurance) = spec[i]
-        if keywd == stmt.keyword:
+        if keywd == '$any':
+            return spec
+        elif keywd == stmt.keyword:
             if occurance == '1' or occurance == '?':
                 # consume this match
                 if canonical == True:
