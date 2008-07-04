@@ -77,6 +77,7 @@ class Context(object):
             r = self.repository.get_module(modulename)
             if r == None:
                 error.err_add(self.errors, pos, 'MODULE_NOT_FOUND', modulename)
+                self.modules[modulename] = None
                 return None
         except self.repository.ReadError, ex:
             error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
@@ -86,6 +87,7 @@ class Context(object):
             error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
                           (module.name, filename, modulename))
             self.del_module(module)
+            self.modules[modulename] = None
             return None
         return module
 
