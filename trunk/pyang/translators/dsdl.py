@@ -170,7 +170,6 @@ class DSDLTranslator(object):
             "must": self.must_stmt,
             "namespace": self.namespace_stmt,
             "organization": self.organization_stmt,
-            "pattern": self.pattern_stmt,
             "prefix": self.noop,
             "reference": self.reference_stmt,
             "revision": self.revision_stmt,
@@ -185,7 +184,6 @@ class DSDLTranslator(object):
             "boolean": self.mapped_type,
             "binary": self.mapped_type,
             "bits": self.bits_type,
-            "empty": self.mapped_type,
             "enumeration": self.choice_type,
             "float32": self.numeric_type,
             "float64": self.numeric_type,
@@ -354,7 +352,9 @@ class DSDLTranslator(object):
         delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
 
     def leaf_stmt(self, stmt, p_elem):
-        if len(stmt.search(keyword="mandatory", arg="true")) == 0:
+        if (len(stmt.search(keyword="mandatory", arg="true")) == 0 and
+            (stmt.parent.keyword != "list" or
+            stmt.arg not in stmt.parent.search(keyword="key")[0].arg)):
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
@@ -400,11 +400,6 @@ class DSDLTranslator(object):
     def namespace_stmt(self, stmt, p_elem):
         self.root_elem.attrib["ns"] = stmt.arg
 
-    def pattern_stmt(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "param", name="pattern")
-        elem.text = stmt.arg
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
-
     def reference_stmt(self, stmt, p_elem):
         if stmt.i_module != self.module: # ignore imported descriptions
             return
@@ -445,11 +440,8 @@ class DSDLTranslator(object):
     def enum_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
-        if "a" in self.emit:    # special handling of description
-            desc = stmt.search(keyword="description")
-            if len(desc) > 0:
-                docel = ET.SubElement(p_elem, "a:documentation")
-                docel.text = desc[0].arg
+        for sub in stmt.search(keyword="status"):
+            sub.handle_stmt(sub, elem)
 
     def must_stmt(self, stmt, p_elem):
         estmt = stmt.search(keyword="error-message")
