@@ -270,28 +270,34 @@ class DSDLTranslator(object):
 
         The `kw` argument is either ``typedef`` or ``grouping``.
         """
+        primary = (self.module == stmt.i_module) # ref in main module?
         ref = stmt.arg
+        same = True
         if ":" in ref:          # prefixed?
-            prefix, ident = ref.split(":")
-            if prefix == stmt.i_module.prefix.arg: # local prefix?
-                ref = ident
-            else:
-                mod_name = stmt.i_module.i_prefixes[prefix]
-                def_name =  mod_name + "__" + ident
+            prefix, ref = ref.split(":")
+            same = (prefix == stmt.i_module.prefix.arg)
+        if same:
+            parent = stmt.parent
+            while parent is not None:
+                deflist = parent.search(keyword=kw, arg=ref)
+                parent = parent.parent
+                if len(deflist) > 0: break
+            def_ = deflist[0]
+            if not primary and parent is None: # top-level external def?
+                def_name = stmt.i_module.name + "__" + ref
                 if def_name not in self.imported_symbols:
-                    # pull the definition
-                    ext_mod = stmt.i_module.ctx.modules[mod_name]
-                    def_, = ext_mod.search(keyword=kw, arg=ident)
                     self.handle_stmt(def_, self.root_elem)
                     self.imported_symbols.append(def_name)
-                return ET.Element("ref", name=def_name)
-        parent = stmt.parent
-        while parent is not None:
-            deflist = parent.search(keyword=kw, arg=ref)
-            if len(deflist) > 0:
-                break
-            parent = parent.parent
-        return ET.Element("ref", name=self.unique_def_name(deflist[0]))
+            return ET.Element("ref", name=self.unique_def_name(def_))
+        mod_name = stmt.i_module.i_prefixes[prefix]
+        def_name =  mod_name + "__" + ref
+        if def_name not in self.imported_symbols:
+            # pull the definition
+            ext_mod = stmt.i_module.ctx.modules[mod_name]
+            def_, = ext_mod.search(keyword=kw, arg=ref)
+            self.handle_stmt(def_, self.root_elem)
+            self.imported_symbols.append(def_name)
+        return ET.Element("ref", name=def_name)
 
     def handle_stmt(self, stmt, p_elem):
         """
@@ -303,8 +309,8 @@ class DSDLTranslator(object):
             handler = self.stmt_handler[stmt.keyword]
         except KeyError:
             if self.debug > 0:
-                sys.stderr.write("%s not handled\n" % \
-                                     statements.keyword_to_str(stmt.keyword))
+                sys.stderr.write("%s not handled\n" %
+                                 statements.keyword_to_str(stmt.keyword))
         else:
             if self.debug > 0:
                 sys.stderr.write("Handling '%s %s'\n" %
