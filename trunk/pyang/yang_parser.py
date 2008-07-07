@@ -217,9 +217,15 @@ class YangParser(object):
             try:
                 (arg_type, _children) = grammar.stmt_map[keywd]
             except KeyError:
-                arg_type = None
                 error.err_add(self.ctx.errors, self.pos,
                               'UNKNOWN_KEYWORD', keywd)
+                # skip the argument if present
+                tok = self.tokenizer.peek()
+                if tok == '{' or tok == ';':
+                    arg_type = None
+                else:
+                    arg_type = 'string'
+
             # check if the statement needs an argument
             if arg_type is not None:
                 arg = self.tokenizer.get_string()
