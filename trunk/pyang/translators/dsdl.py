@@ -449,7 +449,7 @@ class DSDLTranslator(object):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
         for sub in stmt.search(keyword="status"):
-            sub.handle_stmt(sub, elem)
+            self.handle_stmt(sub, elem)
 
     def handle_list(self, stmt, p_elem):
         """Handle ``leaf-list`` or ``list``."""
