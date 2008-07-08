@@ -1,7 +1,10 @@
-"""Package pyang.translators: translators of YANG to other formats.
+"""Package pyang.translators: output or translators plugins for YANG.
 
 Modules:
 
-* dsdl: translator to DSDL
+* dsdl: DSDL translator plugin
+* xsd: W3C XML Schema translator plugin
+* yin: YIN output plugin
+* yang: YANG output plugin
 
 """
