@@ -78,9 +78,9 @@ class Statement(object):
     def search(self, keyword=None, arg=None):
         """Return list of receiver's substmts with `keyword` and/or `arg`.
 
-        If `kw` is ``None``, only the following substatements are
-        taken into account: leaf, leaf-list, list, container, choice,
-        rpc, notification.
+        If `keyword` is ``None``, only the following substatements are
+        taken into account: ``leaf``, ``leaf-list``, ``list``,
+        ``container``, ``choice``, ``rpc``, ``notification``.
         """
         if arg is None:
             return [ ch for ch in self.substmts if ch.keyword == keyword ]
@@ -120,7 +120,7 @@ class Statement(object):
             return self.optional
 
     def _mark_optional(self):
-        """Fill recursively `self.optional` in the receiver and descendants.
+        """Set recursively `self.optional` in the receiver and descendants.
         """
         for subst in self.substmts:
             if subst.keyword == "container":
