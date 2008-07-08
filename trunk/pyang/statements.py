@@ -75,14 +75,6 @@ class Statement(object):
         # extra
         self.i_module = module
 
-    def escaped_arg(self):
-        """In self.arg, replace characters forbidden in XML by
-        entities and return the result."""
-        res = self.arg.replace("&", "&amp;")
-        res = res.replace('"', "&quot;")
-        res = res.replace("<", "&lt;")
-        return res.replace(">", "&gt;")
-
     def search(self, keyword=None, arg=None):
         """Return list of receiver's substmts with `keyword` and/or `arg`.
 
