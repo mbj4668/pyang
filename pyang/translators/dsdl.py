@@ -15,8 +15,31 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""This module implements translator from YANG to DSDL.
+"""This module implements translator from YANG to DSDL & annotations.
 
+It is designed as a plugin for the pyang program and defines several
+new command-line options:
+
+--dsdl-no-annotations
+    No output of DTD compatibility annotations
+
+--dsdl-no-dublin-core
+    No output of Dublin Core annotations
+
+--dsdl-no-schematron
+    No output of Schematron rules
+
+-dsdl-no-dsrl
+    No output of DSRL annotations (default-content)
+
+-dsdl-no-netmod
+    No output of NETMOD-specific attributes
+
+Two classes are defined in this module:
+
+* `DSDLPlugin`: pyang plugin interface class
+
+* `DSDLTranslator`: its instance preforms the translation
 """
 
 __docformat__ = "reStructuredText"
@@ -25,8 +48,7 @@ import sys
 import optparse
 import xml.etree.ElementTree as ET
 
-from pyang import plugin
-from pyang import statements
+from pyang import plugin, statements
 
 def pyang_plugin_init():
     plugin.register_plugin(DSDLPlugin())
@@ -39,23 +61,27 @@ class DSDLPlugin(plugin.PyangPlugin):
             optparse.make_option("--dsdl-no-annotations",
                                  dest="dsdl_no_annotations",
                                  action="store_true",
-                                 help="Do not print documentation annotations"),
+                                 help="No output of DTD compatibility"
+                                 " annotations"),
             optparse.make_option("--dsdl-no-dublin-core",
                                  dest="dsdl_no_dublin_core",
                                  action="store_true",
-                                 help="Do not print Dublin Core elements"),
+                                 help="No output of Dublin Core"
+                                 " annotations"),
             optparse.make_option("--dsdl-no-schematron",
                                  dest="dsdl_no_schematron",
                                  action="store_true",
-                                 help="Do not print Schematron rules"),
+                                 help="No output of Schematron rules"),
             optparse.make_option("--dsdl-no-dsrl",
                                  dest="dsdl_no_dsrl",
                                  action="store_true",
-                                 help="Do not print DSRL elements"),
+                                 help="No output of DSRL annotations"
+                                 " (default-content)"),
             optparse.make_option("--dsdl-no-netmod",
                                  dest="dsdl_no_netmod",
                                  action="store_true",
-                                 help="Do not print NETMOD attributes"),
+                                 help="No output of NETMOD-specific"
+                                 " attributes"),
             ]
         g = optparser.add_option_group("DSDL output specific options")
         g.add_options(optlist)
@@ -80,22 +106,35 @@ def emit_dsdl(ctx, module, fd):
 
 class DSDLTranslator(object):
 
-    """Instances of this class translate YANG to DSDL.
+    """Instances of this class translate YANG to DSDL + annotations.
 
     The `translate` method walks recursively down the tree of YANG
     statements and builds one or more resulting ElementTree(s)
     containing the corresponding schemas. For each YANG statement, a
-    handler method for the statement's keyword is dispatched.
+    callback method for the statement's keyword is dispatched.
 
     Instance variables:
     
-    * dc_elements: dictionary with Dublin core elements (tag -> text)
-    * emit: list of prefixes that controls which schema languages
-      will be generated.
-    * handler: dictionary dispatching YANG statements to handler methods
-    * imported_symbols: list of used external symbols
-    * module: YANG module that is being translated
-    * root_elem: root element in the main etree (with annotated RELAX NG)
+    * `dc_elements`: dictionary with Dublin core elements (tag -> text)
+    * `debug`: integer controlling level of debug messages
+    * `emit`: list of prefixes (keys in `schema_languages` dictionary)
+      controlling which annotations will be generated.
+    * `first_anyxml`: boolean indicating first occurence of ``anyxml``
+      statement (so that `anyxml_def` has to be inserted)
+    * `imported_symbols`: list of used external symbols whose definition
+      has already been imported 
+    * `module`: YANG module that is being translated
+    * `root_elem`: <grammar> ETree Element, which is the root of the
+      resulting RELAX NG ETree
+    * `stmt_handler`: dictionary dispatching callback methods for
+      handling YANG statements (keyword -> method)
+    * `type_handler`: dictionary dispatching callback methods for
+      YANG built-in types (type -> method)
+
+    Class variables are: `anyxml_def`, `datatree_nodes`, `datatype_map`,
+    `grammar_attrs`, `schema_languages`.
+
+    One static method is defined: `decode_ranges`.
     """
 
     grammar_attrs = {
@@ -111,11 +150,7 @@ class DSDLTranslator(object):
         "nm": "urn:ietf:params:xml:ns:netmod:dsdl-attrib:1",
         "sch": "http://purl.oclc.org/dsdl/schematron",
     }
-    """Mapping of prefixes to schema language namespace URIs.
-
-    The prefixes also used for controlling which schema languages are
-    produced as output of the `translate` method.
-    """
+    """Mapping of prefixes to schema language namespace URIs."""
 
     datatype_map = {
         "instance-identifier": "string",
@@ -132,11 +167,11 @@ class DSDLTranslator(object):
         "boolean": "boolean",
         "binary": "base64Binary",
     }
-    """mapping of simple datatypes from YANG to W3C datatype library"""
+    """Mapping of simple datatypes from YANG to W3C datatype library"""
 
     datatree_nodes = ["container", "leaf", "leaf-list", "list",
                       "choice", "anyxml", "uses"]
-    """list of YANG statementes that form the data tree"""
+    """List of YANG statementes that form the data tree"""
 
     anyxml_def = '''<define name="__anyxml__"><zeroOrMore><choice>
         <attribute><anyName/></attribute>
@@ -147,7 +182,9 @@ class DSDLTranslator(object):
     def decode_ranges(range_expr):
         """Parse `range_expr` and return list of [lo,hi] pairs.
 
+        Argument `range_expr` is either range-expr or length-expr.
         For range-part with a single component, hi is not present.
+        If range-part is a single ``min`` or ``max``, it is omitted.
         """
         raw = range_expr.split("|")
         res = []
@@ -159,11 +196,15 @@ class DSDLTranslator(object):
     decode_ranges = staticmethod(decode_ranges)
 
     def __init__(self):
-        """Initialize the instance.
+        """Initialize the statement and type dispatchers.
 
-        Subclasses should first call __init__ method from heir
-        superclass and then redefine some of the items in the
-        `self.stmt_handler` dictionary if necessary.
+        The same instance may be used for translating multiple YANG
+        modules since all instance variables are initialized by the
+        `translate` method.
+
+        To change the behaviour of the translator, make a subclass and
+        replace appropriate callback methods in the `stmt_handler`
+        and/or `type_handler` dictionaries.
         """
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
@@ -219,12 +260,15 @@ class DSDLTranslator(object):
         }
 
     def translate(self, module, emit=schema_languages.keys(), debug=0):
-        """Translate `module` to DSDL schema(s).
+        """Translate `module` to RELAX NG schema with annotations.
+
+        The `emit` argument controls output of individual annotations
+        (by default, all are present). The `debug` argument controls
+        level of debug messages - 0 (default) supresses them.  
         """
         self.module = module
         self.emit = emit
         self.debug = debug
-        self.prefix_map = {}
         self.imported_symbols = []
         self.first_anyxml = True
         self.dc_elements = {
@@ -251,7 +295,7 @@ class DSDLTranslator(object):
         
     def dublin_core(self):
         """
-        Attach Dublin Core elements from dc_elements to <grammar>.
+        Attach Dublin Core elements from `dc_elements` to `root_elem`.
         """
         if "dc" in self.emit:
             for dc in self.dc_elements:
@@ -274,7 +318,11 @@ class DSDLTranslator(object):
             elem.attrib["nm:" + attr] = value
         
     def unique_def_name(self, stmt):
-        """Answer disambiguated name of the receiver (typedef or grouping).
+        """Answer mangled name of the receiver (typedef or grouping).
+
+        Identifiers of all ancestor nodes are prepended, separated by
+        ``__``. Moreover, symbols from foreign modules start with
+        their module name (local names thus start with `__`).
         """
         path = stmt.full_path()
         if stmt.i_module == self.module:
@@ -285,7 +333,11 @@ class DSDLTranslator(object):
     def resolve_ref(self, stmt, kw):
         """Resolve definition reference in `stmt`, return <ref> element.
 
-        The `kw` argument is either ``typedef`` or ``grouping``.
+        The method returns an ETree Element <ref name="mangled_name"/>. 
+        As a side effect, all used foreign definitions are copied to
+        the resulting schema.
+
+        The `kw` argument must be either ``typedef`` or ``grouping``.
         """
         primary = (self.module == stmt.i_module) # ref in main module?
         ref = stmt.arg
@@ -320,7 +372,10 @@ class DSDLTranslator(object):
         """
         Run handler method for `stmt` in the context of `p_elem`.
 
-        All handler methods have the same arguments.
+        All handler methods are defined below and have the same
+        arguments. They should create the schema fragment
+        corresponding to `stmt`, insert it under `p_elem` and perform
+        all side effects as necessary.
         """
         try:
             handler = self.stmt_handler[stmt.keyword]
@@ -337,21 +392,30 @@ class DSDLTranslator(object):
 
     # Handlers for YANG statements
 
-    def noop(self, stmt, p_elem):
-        pass
-
-    def attach_nm_att(self, stmt, p_elem):
-        """Handle config, key, units, status."""
-        self.nm_attribute(p_elem, stmt.keyword, stmt.arg)
-
     def anyxml_stmt(self, stmt, p_elem):
-        if self.first_anyxml:   # install definition
+        if self.first_anyxml:
+            # install definition
             def_ = ET.fromstring(self.anyxml_def)
             self.root_elem.append(def_)
             self.first_anyxml = False
         elem = ET.SubElement(p_elem, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
+
+    def attach_nm_att(self, stmt, p_elem):
+        """Handle ``config``, ``key``, ``status``, ``units``."""
+        self.nm_attribute(p_elem, stmt.keyword, stmt.arg)
+
+    def belongs_to_stmt(self, stmt, p_elem):
+        self.dc_elements["isPartOf"] = stmt.arg
+        
+    def case_stmt(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "group")
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+
+    def choice_stmt(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "choice")
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def contact_stmt(self, stmt, p_elem):
         self.dc_elements["contributor"] = stmt.arg
@@ -371,28 +435,24 @@ class DSDLTranslator(object):
             delem = ET.SubElement(p_elem, "dsrl:default-content")
             delem.text = stmt.arg
 
-    def include_stmt(self, stmt, p_elem):
-        delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
+    def description_stmt(self, stmt, p_elem):
+        if stmt.i_module != self.module: # ignore imported descriptions
+            return
+        if stmt.parent == self.module: # top-level description
+            self.dc_elements["description"] = stmt.arg
+        elif "a" in self.emit and stmt.parent.keyword != "enum":
+            elem = ET.Element("a:documentation")
+            p_elem.insert(0, elem)
+            elem.text = stmt.arg
 
-    def leaf_stmt(self, stmt, p_elem):
-        if (len(stmt.search(keyword="mandatory", arg="true")) == 0 and
-            (stmt.parent.keyword != "list" or
-            stmt.arg not in stmt.parent.search(keyword="key")[0].arg)):
-            p_elem = ET.SubElement(p_elem, "optional")
-        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+    def enum_stmt(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "value")
+        elem.text = stmt.arg
+        for sub in stmt.search(keyword="status"):
+            sub.handle_stmt(sub, elem)
 
-    def organization_stmt(self, stmt, p_elem):
-        self.dc_elements["creator"] = stmt.arg
-
-    def revision_stmt(self, stmt, p_elem):
-        self.dc_elements["issued"] = stmt.arg
-        
-    def belongs_to_stmt(self, stmt, p_elem):
-        self.dc_elements["isPartOf"] = stmt.arg
-        
     def handle_list(self, stmt, p_elem):
-        """Handle leaf-list or list."""
+        """Handle ``leaf-list`` or ``list``."""
         min_el = stmt.search(keyword="min-elements")
         if len(min_el) == 0 or int(min_el[0].arg) == 0:
             rng_card = "zeroOrMore"
@@ -410,18 +470,40 @@ class DSDLTranslator(object):
         elem = ET.SubElement(cont, "element", name=stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def description_stmt(self, stmt, p_elem):
-        if stmt.i_module != self.module: # ignore imported descriptions
-            return
-        if stmt.parent == self.module: # top-level description
-            self.dc_elements["description"] = stmt.arg
-        elif "a" in self.emit and stmt.parent.keyword != "enum":
-            elem = ET.Element("a:documentation")
-            p_elem.insert(0, elem)
-            elem.text = stmt.arg
+    def handle_reusable(self, stmt, p_elem):
+        """Handle ``typedef`` or ``grouping``."""
+        elem = ET.SubElement(self.root_elem, "define",
+                             name=self.unique_def_name(stmt))
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        
+    def include_stmt(self, stmt, p_elem):
+        delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
+
+    def leaf_stmt(self, stmt, p_elem):
+        if (len(stmt.search(keyword="mandatory", arg="true")) == 0 and
+            (stmt.parent.keyword != "list" or
+            stmt.arg not in stmt.parent.search(keyword="key")[0].arg)):
+            p_elem = ET.SubElement(p_elem, "optional")
+        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+
+    def must_stmt(self, stmt, p_elem):
+        estmt = stmt.search(keyword="error-message")
+        if len(estmt) > 0:
+            err_msg = estmt[0].arg
+        else:
+            err_msg = None
+        self.schematron_assert(p_elem, stmt.arg.replace("$this", "."),
+                               err_msg)
 
     def namespace_stmt(self, stmt, p_elem):
         self.root_elem.attrib["ns"] = stmt.arg
+
+    def noop(self, stmt, p_elem):
+        pass
+
+    def organization_stmt(self, stmt, p_elem):
+        self.dc_elements["creator"] = stmt.arg
 
     def reference_stmt(self, stmt, p_elem):
         if stmt.i_module != self.module: # ignore imported descriptions
@@ -440,48 +522,25 @@ class DSDLTranslator(object):
                     break
             p_elem.insert(i, elem)
 
+    def revision_stmt(self, stmt, p_elem):
+        self.dc_elements["issued"] = stmt.arg
+        
     def type_stmt(self, stmt, p_elem):
+        """Handle ``type`` statement.
+
+        All types except ``empty`` are handled by a specific type
+        callback method defined below. Derived types are recognized by
+        raising the KeyError.
+        """
         if stmt.arg == "empty":
             ET.SubElement(p_elem, "empty")
             return
         try:
             thandler = self.type_handler[stmt.arg]
-        except KeyError:                   # derived type
+        except KeyError:
             p_elem.append(self.resolve_ref(stmt, "typedef"))
         else:
             thandler(stmt, p_elem)
-
-    def handle_reusable(self, stmt, p_elem):
-        """Handle ``typedef`` or ``grouping``."""
-        elem = ET.SubElement(self.root_elem, "define",
-                             name=self.unique_def_name(stmt))
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
-        
-    def uses_stmt(self, stmt, p_elem):
-        p_elem.append(self.resolve_ref(stmt, "grouping"))
-
-    def enum_stmt(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "value")
-        elem.text = stmt.arg
-        for sub in stmt.search(keyword="status"):
-            sub.handle_stmt(sub, elem)
-
-    def must_stmt(self, stmt, p_elem):
-        estmt = stmt.search(keyword="error-message")
-        if len(estmt) > 0:
-            err_msg = estmt[0].arg
-        else:
-            err_msg = None
-        self.schematron_assert(p_elem, stmt.arg.replace("$this", "."),
-                               err_msg)
-
-    def choice_stmt(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "choice")
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
-
-    def case_stmt(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "group")
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def unique_stmt(self, stmt, p_elem):
         leafs = stmt.arg.split()
@@ -491,17 +550,31 @@ class DSDLTranslator(object):
         err_msg = 'Not unique: "%s"' % stmt.arg
         self.schematron_assert(p_elem, cond, err_msg)
 
+    def uses_stmt(self, stmt, p_elem):
+        p_elem.append(self.resolve_ref(stmt, "grouping"))
+
     # Handlers for YANG types
 
+    def bits_type(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "list")
+        for bit in stmt.search(keyword="bit"):
+            optel = ET.SubElement(elem, "optional")
+            velem = ET.SubElement(optel, "value")
+            velem.text = bit.arg
+
     def choice_type(self, stmt, p_elem):
-        """Handle enumeration and union types."""
+        """Handle ``enumeration`` and ``union`` types."""
         elem = ET.SubElement(p_elem, "choice")
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
+    def keyref_type(self, stmt, p_elem):
+        elem = ET.SubElement(p_elem, "data", type="string")
+        pel, = stmt.search(keyword="path")
+        err_msg = """Missing key '<value-of select="."/>'"""
+        self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
+
     def mapped_type(self, stmt, p_elem):
         """Handle types that are simply mapped to RELAX NG.
-        
-        `DSDLTranslator.datatype_map` maps the type names.
         """
         ET.SubElement(p_elem, "data", type=self.datatype_map[stmt.arg])
 
@@ -532,19 +605,6 @@ class DSDLTranslator(object):
                     helem.text = rc[0]
                 else:
                     helem.text = rc[1]
-
-    def bits_type(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "list")
-        for bit in stmt.search(keyword="bit"):
-            optel = ET.SubElement(elem, "optional")
-            velem = ET.SubElement(optel, "value")
-            velem.text = bit.arg
-
-    def keyref_type(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "data", type="string")
-        pel, = stmt.search(keyword="path")
-        err_msg = """Missing key '<value-of select="."/>'"""
-        self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
 
     def string_type(self, stmt, p_elem):
         pstmt = stmt.search(keyword="pattern")
