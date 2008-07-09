@@ -1,4 +1,4 @@
-.TH pyang 1 "May 26, 2008" "pyang version 0.9.0"
+.TH pyang 1 "Jul 08, 2008" "pyang version 0.9.1"
 .SH NAME
 pyang \- validate and convert YANG modules to various formats
 .SH SYNOPSIS
@@ -102,6 +102,12 @@ Do not print Dublin Core elements
 .TP
 .B "--dsdl-no-schematron"
 Do not print Schematron rules
+.TP
+.B "--dsdl-no-dsrl"
+Do not print DSRL annotations (default-content)
+.TP
+.B "--dsdl-no-netmod"
+Do not print NETMOD-specific attributes
 .SH XSD OUTPUT SPECIFIC OPTIONS
 Options for the \fIxsd\fR output format.
 .TP
@@ -125,6 +131,7 @@ The XPath arguments for the \fBmust\fP and \fBwhen\fP statements are
 not validated.
 .SH Authors
 Martin Bjorklund, Tail-f Systems, <mbj@tail-f.com>
+.br
 Ladislav Lhotka, CESNET, <lhotka@cesnet.cz>
 
 

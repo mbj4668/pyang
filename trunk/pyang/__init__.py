@@ -10,7 +10,7 @@ import yin_parser
 import grammar
 import util
 
-__version__ = '0.9.6c'
+__version__ = '0.9.1'
 
 class Context(object):
     """Class which encapsulates a parse session"""

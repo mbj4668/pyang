@@ -10,12 +10,14 @@ python setup.py install
 Usage
 -----
 pyang -h
-
+man pyang
 
 Run locally without installing
 ------------------------------
 export PYTHONPATH=`pwd`
 export PATH=`pwd`/bin:$PATH
+export MANPATH=`pwd`/man:$MANPATH
 
 pyang -h
+man pyang
 
