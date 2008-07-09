@@ -1,4 +1,9 @@
-   0.9.0c - work in progress
+   0.9.1 - 2008-07--8
+        rewrote yang parser
+        added yin parser
+        added dsdl output
+        added yang output
+        more internal restructuring
 
    0.9.0b - 2008-05-19
         first release of restructured code

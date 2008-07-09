@@ -1,1 +1,2 @@
 include LICENSE
+include man/man1/*.1
