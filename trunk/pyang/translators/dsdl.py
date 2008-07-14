@@ -322,7 +322,7 @@ class DSDLTranslator(object):
 
         Identifiers of all ancestor nodes are prepended, separated by
         ``__``. Moreover, symbols from foreign modules start with
-        their module name (local names thus start with `__`).
+        their module name (local names thus start with ``__``).
         """
         path = stmt.full_path()
         if stmt.i_module == self.module:
