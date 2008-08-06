@@ -493,7 +493,7 @@ class DSDLTranslator(object):
             err_msg = estmt[0].arg
         else:
             err_msg = None
-        self.schematron_assert(p_elem, stmt.arg.replace("$this", "."),
+        self.schematron_assert(p_elem, stmt.arg.replace("$this", "current()"),
                                err_msg)
 
     def namespace_stmt(self, stmt, p_elem):
