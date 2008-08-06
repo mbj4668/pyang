@@ -2,7 +2,7 @@
 
 <!-- Program name: sep-dsrl.xsl
 
-Copyright © 2007 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2008 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
 Picks DSRL defaults from DSDL data model and makes them stand-alone.
 
