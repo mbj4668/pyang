@@ -226,7 +226,7 @@ class DSDLTranslator(object):
             "list": self.handle_list,
             "mandatory": self.noop,
             "must": self.must_stmt,
-            "namespace": self.namespace_stmt,
+            "namespace": self.noop,
             "organization": self.organization_stmt,
             "prefix": self.noop,
             "reference": self.reference_stmt,
@@ -270,6 +270,8 @@ class DSDLTranslator(object):
         self.emit = emit
         self.debug = debug
         self.imported_symbols = []
+        self.namespace = module.search(keyword="namespace")[0].arg
+        self.prefix = module.search(keyword="prefix")[0].arg
         self.first_anyxml = True
         self.dc_elements = {
             "source": ("YANG module '%s' (automatic translation)" %
@@ -279,6 +281,8 @@ class DSDLTranslator(object):
         for prefix in self.emit: # used namespaces
             self.root_elem.attrib["xmlns:" + prefix] = \
                 self.schema_languages[prefix]
+        self.root_elem.attrib["xmlns:" + self.prefix] = self.namespace
+        self.root_elem.attrib["ns"] = self.namespace
         # Write <start> if there are data tree nodes
         dt_nodes = 0
         for dtn in self.datatree_nodes:
@@ -317,6 +321,14 @@ class DSDLTranslator(object):
         if "nm" in self.emit:
             elem.attrib["nm:" + attr] = value
         
+    def add_prefix(self, nodeid):
+        """Prepend `self.prefix` to all parts of `nodeid`.
+
+        Argument `nodeid` is a descendant schema identifier.
+        """
+        parts = [ "%s:%s" % (self.prefix,p) for p in nodeid.split("/")]
+        return "/".join(parts)
+
     def unique_def_name(self, stmt):
         """Answer mangled name of the receiver (typedef or grouping).
 
@@ -496,9 +508,6 @@ class DSDLTranslator(object):
         self.schematron_assert(p_elem, stmt.arg.replace("$this", "current()"),
                                err_msg)
 
-    def namespace_stmt(self, stmt, p_elem):
-        self.root_elem.attrib["ns"] = stmt.arg
-
     def noop(self, stmt, p_elem):
         pass
 
@@ -544,9 +553,10 @@ class DSDLTranslator(object):
 
     def unique_stmt(self, stmt, p_elem):
         leafs = stmt.arg.split()
-        clist = [ "%s != current()/%s" % (l,l) for l in leafs ]
-        cond = "preceding-sibling::%s[%s]" % (p_elem.attrib["name"],
-                                              " or ".join(clist))
+        clist = [ "%s != current()/%s" % ((self.add_prefix(l),) * 2)
+                  for l in leafs ]
+        cond = ("preceding-sibling::%s:%s[%s]" %
+                (self.prefix, p_elem.attrib["name"], " or ".join(clist)))
         err_msg = 'Not unique: "%s"' % stmt.arg
         self.schematron_assert(p_elem, cond, err_msg)
 
