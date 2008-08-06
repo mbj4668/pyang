@@ -326,7 +326,7 @@ class DSDLTranslator(object):
         """
         path = stmt.full_path()
         if stmt.i_module == self.module:
-            return "__" + "__".join(path[1:])
+            return "__".join(path[1:])
         else:
             return "__".join(path)
 
