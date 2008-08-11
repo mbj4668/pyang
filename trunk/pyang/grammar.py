@@ -344,6 +344,8 @@ stmt_map = {
     'choice':
         ('identifier',
          [('default', '?'),
+          ('must', '*'),
+          ('config', '?'),
           ('mandatory', '?'),
           ('status', '?'),
           ('description', '?'),
@@ -359,7 +361,8 @@ stmt_map = {
           ]),
     'case':
         ('identifier',
-         [('status', '?'),
+         [('must', '*'),
+          ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
           ('$interleave',
@@ -388,8 +391,6 @@ stmt_map = {
           ('description', '?'),
           ('reference', '?'),
           ('$interleave',
-           # FIXME: should handle input & output here, unless the
-           # spec is fixed (see netmod mail thread)
            [('case', '*')] +
            data_def_stmts),
           ]),

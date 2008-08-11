@@ -127,6 +127,10 @@ module yt5 {
         uses foobar;
         leaf-list foo4 { type foobar; } 
       }
+      container foo4 {
+        uses yt5:foobar;
+        leaf-list foo4 { type foobar; } 
+      }
     }
 
     typedef foo {
@@ -159,6 +163,12 @@ module yt5 {
 
     rpc rpc-three {
       input { leaf a { type foo; } }
+    }
+
+  //  FIXME: this should work.  the input node should be
+  // auto-created
+    augment /rpc-two/input {
+      leaf a { type uint32; }
     }
 
     notification notif-one;

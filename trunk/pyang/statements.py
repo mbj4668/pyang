@@ -1461,12 +1461,21 @@ class Uses(SchemaNodeStatement):
         name = self.name
         dbg("searching for grouping: %s" % self.name)
         if name.find(":") == -1:
+            is_local = True
+            prefix = name
+        else:
+            # this is a prefixed name
+            [prefix, name] = name.split(':', 1)
+            if prefix == self.i_module.prefix.arg:
+                is_local = True
+            else:
+                is_local = False
+        if is_local:
             # this is a no-prefixed name, check module-local groupings
             self.i_grouping = self.parent.search_grouping(name)
             modulename = self.i_module.name
         else:
-            # this is a prefixed name, check the imported modules
-            [prefix, name] = name.split(':', 1)
+            # check the imported modules
             module = self.i_module.prefix_to_module(prefix, self.pos, errors)
             if module == None:
                 return
@@ -1747,6 +1756,8 @@ class Rpc(SchemaNodeStatement):
         self.children = [] # input / output
         self.typedef = []
         self.grouping = []
+        # extra
+        self.i_expanded_children = []
         
     def validate(self, errors):
         if self.input != None:
@@ -1760,11 +1771,15 @@ class Input(SchemaNodeStatement):
         SchemaNodeStatement.__init__(self, parent, pos,
                                      self.__class__.__name__.lower(),
                                      module, arg)
+        # argument
+        self.name = 'input'
         # statements
         self.children = []  # leaves, containers, lists, leaf-lists, uses
         self.typedef = []
         self.grouping = []
         self.augment = []
+        # extra
+        self.i_expanded_children = []
         
     def validate(self, errors):
         validate_children(self, self.children, errors)
@@ -1775,12 +1790,14 @@ class Output(SchemaNodeStatement):
                                      self.__class__.__name__.lower(),
                                      module, arg)
         # argument
-        self.name = arg
+        self.name = 'output'
         # statements
         self.children = []  # leaves, containers, lists, leaf-lists, uses
         self.typedef = []
         self.grouping = []
         self.augment = []
+        # extra
+        self.i_expanded_children = []
         
     def validate(self, errors):
         validate_children(self, self.children, errors)
