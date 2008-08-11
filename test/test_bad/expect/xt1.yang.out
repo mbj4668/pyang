@@ -8,3 +8,4 @@ xt1.yang:218: [2] RANGE_BOUNDS
 xt1.yang:177: [1] DUPLICATE_CHILD_NAME
 xt1.yang:188: [1] DUPLICATE_CHILD_NAME
 xt1.yang:202: [1] NEED_KEY_USES
+xt1.yang:121: [1] FIXME: expect an error here

@@ -4,6 +4,7 @@ import re
 
 from error import err_add
 from debug import dbg
+import util
 
 class TypeSpec(object):
     def __init__(self):
@@ -181,7 +182,7 @@ class EnumerationTypeSpec(TypeSpec):
         self.enums = [(e.name, e.i_value) for e in enums]
 
     def validate(self, errors, pos, val, errstr = ''):
-        if keysearch(val, 0, self.enums) == None:
+        if util.keysearch(val, 0, self.enums) == None:
             err_add(errors, pos, 'TYPE_VALUE',
                     (val, self.definition, 'enum not defined' + errstr))
             return False
@@ -199,7 +200,7 @@ class BitsTypeSpec(TypeSpec):
 
     def validate(self, errors, pos, val, errstr = ''):
         for v in val:
-            if keysearch(v, 0, self.bits) == None:
+            if util.keysearch(v, 0, self.bits) == None:
                 err_add(errors, pos, 'TYPE_VALUE',
                         (v, self.definition, 'bit not defined' + errstr))
                 return False

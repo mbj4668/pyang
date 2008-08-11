@@ -117,6 +117,12 @@ module/*hej*/xt1 {
     }
   }
 
+  augment "/bar" {
+      leaf qwerty {  // error: qwerty already exists
+          type uint32;
+      }
+  }
+
   grouping Bar {
     leaf x { type int32; }
     leaf y { type int32; }
