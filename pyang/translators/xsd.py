@@ -107,6 +107,16 @@ class XSDPlugin(plugin.PyangPlugin):
                                  dest="xsd_no_imports",
                                  action="store_true",
                                  help="Do not generate any xs:imports"),
+            optparse.make_option("--xsd-break-pattern",
+                                 dest="xsd_break_pattern",
+                                 action="store_true",
+                                 help="Break XSD pattern so that they fit "
+                                      "into RFCs"),
+            optparse.make_option("--xsd-no-lecture",
+                                 dest="xsd_no_lecture",
+                                 action="store_true",
+                                 help="Do not generate the lecture about "
+                                      "how the XSD can be used")
             ]
         g = optparser.add_option_group("XSD output specific options")
         g.add_options(optlist)
@@ -273,18 +283,21 @@ def emit_xsd(ctx, module, fd):
     for inc in module.include:
         fd.write('  <xs:include schemaLocation="%s.xsd"/>\n' % inc.modulename)
 
-    fd.write('  <xs:annotation>\n')
-    fd.write('    <xs:documentation>\n')
-    fd.write('      This schema was generated from the YANG module %s\n' % \
-                   module.name)
-    fd.write('      by pyang version %s.\n' % pyang.__version__)
-    fd.write('\n')
-    fd.write('      The schema describes an instance document consisting of\n')
-    fd.write('      the entire configuration data store and operational\n')
-    fd.write('      data.  This schema can thus NOT be used as-is to\n')
-    fd.write('      validate NETCONF PDUs.\n')
-    fd.write('    </xs:documentation>\n')
-    fd.write('  </xs:annotation>\n\n')
+    if ctx.opts.xsd_no_lecture != True:
+        fd.write('  <xs:annotation>\n')
+        fd.write('    <xs:documentation>\n')
+        fd.write('      This schema was generated from the YANG module %s\n' % \
+                     module.name)
+        fd.write('      by pyang version %s.\n' % pyang.__version__)
+        fd.write('\n')
+        fd.write('      The schema describes an instance document consisting\n')
+        fd.write('      of the entire configuration data store, operational\n')
+        fd.write('      data, rpc operations, and notifications.\n')
+        fd.write('      This schema can thus NOT be used as-is to\n')
+        fd.write('      validate NETCONF PDUs.\n')
+        fd.write('    </xs:documentation>\n')
+        fd.write('  </xs:annotation>\n\n')
+        
     xsd_print_annotation(ctx, fd, '  ', module)
     ctx.i_pass = 'second'
 
@@ -664,8 +677,18 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                 fd.write(indent + '    <xs:enumeration value=%s/>\n' % \
                     quoteattr(e.name))
         elif type.pattern != None:
-            fd.write(indent + '    <xs:pattern value=%s/>\n' % \
-                   quoteattr(type.pattern.expr))
+            fd.write(indent + '    <xs:pattern value=')
+            qstr = quoteattr(type.pattern.expr)
+            cnt = 70 - len(indent) - 22
+            if ctx.opts.xsd_break_pattern == True and len(qstr) > cnt:
+                while (len(qstr) > 0):
+                    fd.write(qstr[0:cnt])
+                    qstr = qstr[cnt:]
+                    if len(qstr):
+                        fd.write("\n" + indent + '                       ')
+            else:
+                fd.write(qstr)
+            fd.write('/>\n')
         elif type.length != None:
             [(lo,hi)] = type.length.i_lengths # other cases in union above
             if lo == hi and False:

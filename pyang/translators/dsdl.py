@@ -86,6 +86,13 @@ class DSDLPlugin(plugin.PyangPlugin):
         g = optparser.add_option_group("DSDL output specific options")
         g.add_options(optlist)
     def emit(self, ctx, module, fd):
+        try:
+            import xml.etree.ElementTree as ET
+        except ImportError:
+            print >> sys.stderr, ("DSDL translation needs the python module "
+                                  "etree, available in python 2.5")
+            sys.exit(1)
+
         emit_dsdl(ctx, module, fd)
 
 def emit_dsdl(ctx, module, fd):

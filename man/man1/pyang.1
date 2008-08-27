@@ -114,8 +114,15 @@ Options for the \fIxsd\fR output format.
 .B "--xsd-no-appinfo"
 Do not print YANG specific appie.nfo
 .TP
+.B "--xsd-no-lecture"
+Do not print the lecture about how the XSD can be used.
+.TP
 .B "--xsd-no-imports"
 Do not generate any xs:imports.
+.TP
+.B "--xsd-break-pattern"
+Break long patterns so that they fit into RFCs. The resulting patterns
+might not always be valid XSD, so use with care.
 .SH Example
 The following example validates the standard YANG modules with derived
 types:

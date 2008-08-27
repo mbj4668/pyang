@@ -253,7 +253,7 @@ error_codes = \
     'UNEXPECTED_ATTRIBUTE':
       (1,
        'unexpected attribute %s'),
-    
+
     }
 
 def err_level(tag):
