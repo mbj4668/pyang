@@ -1,7 +1,6 @@
 import re
 import copy
 import time
-import libxml2
 
 from debug import dbg
 import util
@@ -935,10 +934,16 @@ class Pattern(Statement):
     def validate(self, errors):
         # check that it's syntactically correct
         try:
+            import libxml2
             self.i_re = libxml2.regexpCompile(self.expr)
             return True
         except libxml2.treeError, v:
             err_add(errors, self.pos, 'PATTERN_ERROR', str(v))
+            return False
+        except ImportError:
+            err_add(errors, self.pos, 'PATTERN_ERROR',
+                    "Could not import python module libxml2 "
+                    "(see http://xmlsoft.org)")
             return False
 
     def mk_type_spec(self, base_type_spec):
