@@ -935,7 +935,6 @@ class Pattern(Statement):
         # check that it's syntactically correct
         try:
             import libxml2
-            import libxml3
             self.i_re = libxml2.regexpCompile(self.expr)
             return True
         except libxml2.treeError, v:
