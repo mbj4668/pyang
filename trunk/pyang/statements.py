@@ -935,13 +935,14 @@ class Pattern(Statement):
         # check that it's syntactically correct
         try:
             import libxml2
+            import libxml3
             self.i_re = libxml2.regexpCompile(self.expr)
             return True
         except libxml2.treeError, v:
             err_add(errors, self.pos, 'PATTERN_ERROR', str(v))
             return False
         except ImportError:
-            err_add(errors, self.pos, 'PATTERN_ERROR',
+            err_add(errors, self.pos, 'PATTERN_FAILURE',
                     "Could not import python module libxml2 "
                     "(see http://xmlsoft.org)")
             return False
