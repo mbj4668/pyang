@@ -118,12 +118,15 @@ class XSDPlugin(plugin.PyangPlugin):
         # cannot do XSD unless everything is ok for our module
         for (epos, etag, eargs) in ctx.errors:
             if epos.module_name == module.name:
+                print >> sys.stderr, "XSD translation needs a valid module"
                 sys.exit(1)
         # we also need to have all other modules found
         for pre in module.i_prefixes:
             modname = module.i_prefixes[pre]
             mod = ctx.modules[modname]
             if mod == None:
+                print >> sys.stderr, ("cannot find module %s, needed by XSD"
+                                      " translation" % modname)
                 sys.exit(1)
             
         emit_xsd(ctx, module, fd)
@@ -141,6 +144,8 @@ def emit_xsd(ctx, module, fd):
             module.i_namespace = parent_module.namespace.arg
             module.i_prefix = parent_module.prefix.arg
         else:
+            print >> sys.stderr, ("cannot find module %s, needed by XSD"
+                                  " translation" % parent_modulename)
             sys.exit(1)
     else:
         module.i_namespace = module.namespace.arg
