@@ -111,7 +111,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
 
     debug.set_debug(o.debug)
 
-    repos = pyang.FileRepository()
+    repos = pyang.FileRepository(o.path)
 
     ctx = pyang.Context(repos)
     ctx.canonical = o.canonical
