@@ -21,3 +21,54 @@ export MANPATH=`pwd`/man:$MANPATH
 pyang -h
 man pyang
 
+
+Code structure
+--------------
+bin/pyang
+  The executable script documented in pyang(1).
+
+pyang/
+  Contains the pyang library code.
+
+pyang/__init__.py
+  Initalization code for the pyang library.
+  Defines the Context and Repository clasess.
+
+pyang/syntax.py
+  Generic syntax checking for YANG and YIN statements.
+  Defines regular expressions for argument checking of core
+  statements.
+
+pyang/grammar.py
+  Generic grammar for YANG and YIN.
+  Defines chk_module_statements() which validates a parse tree
+  according to the grammar.
+
+pyang/statements.py
+  Defines the generic Statement class, and special classes for each
+  YANG statement.  Also contains all validation code.
+  This code will be rewritten - all specialized classes will be
+  removed, and the validation code driven by a map instead.
+
+pyang/yang_parser.py
+  YANG tokenizer and parser.
+  
+pyang/yin_parser.py
+  YIN parser.  Uses the expat library for XML parsing.
+
+pyang/types.py
+  Contains code for checking built-in types.
+
+pyang/plugin.py
+  Plugin API.  Defines the class PyangPlugin which all plugins
+  inherits from.
+  All output handlers are written as plugins.  In the future, plugins
+  will be written for validation of YANG extensions as well.
+
+pyang/plugins/
+  Directory where plugins can be installed.  All plugins in this
+  directory are automatically initialized when the library is
+  initialized.
+
+pyang/translators/
+  Contains output plugins for YANG, YIN, XSD, and DSDL translation.

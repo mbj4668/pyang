@@ -145,23 +145,8 @@ class DummyFD(object):
     def write(self, s):
         pass
 
-def emit_xsd(ctx, module, fd):
-    if module.i_is_submodule:
-        parent_modulename = module.belongs_to.arg
-        ctx.search_module(module.belongs_to.pos, modulename=parent_modulename)
-        parent_module = ctx.modules[parent_modulename]
-        if parent_module != None:
-            module.i_namespace = parent_module.namespace.arg
-            module.i_prefix = parent_module.prefix.arg
-        else:
-            print >> sys.stderr, ("cannot find module %s, needed by XSD"
-                                  " translation" % parent_modulename)
-            sys.exit(1)
-    else:
-        module.i_namespace = module.namespace.arg
-        module.i_prefix = module.prefix.arg
 
-    # find locally defined typedefs
+def find_locally_defined_typedefs(ctx, module):
     for c in module.typedef:
         c.i_xsd_name = c.name
     for inc in module.include:
@@ -191,6 +176,24 @@ def emit_xsd(ctx, module, fd):
                 add_typedef(c)
     for c in module.children + module.augment + module.grouping:
         add_typedef(c)
+
+def emit_xsd(ctx, module, fd):
+    if module.i_is_submodule:
+        parent_modulename = module.belongs_to.arg
+        ctx.search_module(module.belongs_to.pos, modulename=parent_modulename)
+        parent_module = ctx.modules[parent_modulename]
+        if parent_module != None:
+            module.i_namespace = parent_module.namespace.arg
+            module.i_prefix = parent_module.prefix.arg
+        else:
+            print >> sys.stderr, ("cannot find module %s, needed by XSD"
+                                  " translation" % parent_modulename)
+            sys.exit(1)
+    else:
+        module.i_namespace = module.namespace.arg
+        module.i_prefix = module.prefix.arg
+
+    find_locally_defined_typedefs(ctx, module)
 
     # first pass, which might generate new imports
     ctx.i_pass = 'first'
@@ -329,7 +332,7 @@ def emit_xsd(ctx, module, fd):
     # print augments
     # filter away local augments; they are printed inline in the XSD
     augment = [a for a in module.augment \
-               if a.i_target_node.i_module.name != module.name]
+                   if a.i_target_node.i_module.name != module.name]
     if len(augment) > 0:
         fd.write('  <!-- YANG augments -->\n\n')
     for c in augment:
