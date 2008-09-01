@@ -587,7 +587,7 @@ class Type(Statement):
         # statements
         self.range = None
         self.length = None
-        self.pattern = None
+        self.pattern = []
         self.enum = []
         self.bit = []
         self.path = None
@@ -675,13 +675,18 @@ class Type(Statement):
                 self.i_type_spec = self.length.mk_type_spec(self.i_type_spec)
             
         # check the pattern restriction
-        if (self.pattern != None and
+        if (self.pattern != [] and
             'pattern' not in self.i_type_spec.restrictions()):
             err_add(errors, self.pattern.pos, 'BAD_RESTRICTION', 'pattern')
-        elif self.pattern != None:
+        elif self.pattern != []:
             self.i_is_derived = True
-            if self.pattern.validate(errors):
-                self.i_type_spec = self.pattern.mk_type_spec(self.i_type_spec)
+            all_valid = True
+            for p in self.pattern:
+                if not p.validate(errors):
+                    all_valid = False
+            if all_valid == True:
+                self.i_type_spec = types.PatternTypeSpec(self.i_type_spec,
+                                                         self.pattern)
 
         # check the path restriction
         if self.path != None and self.name != 'keyref':
@@ -945,10 +950,6 @@ class Pattern(Statement):
                     "Could not import python module libxml2 "
                     "(see http://xmlsoft.org)")
             return False
-
-    def mk_type_spec(self, base_type_spec):
-        # create a new type_spec for this type
-        return types.PatternTypeSpec(base_type_spec, self.i_re)
 
 class Path(Statement):
     def __init__(self, parent, pos, module, arg):

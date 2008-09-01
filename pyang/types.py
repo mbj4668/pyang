@@ -153,10 +153,10 @@ class LengthTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 class PatternTypeSpec(TypeSpec):
-    def __init__(self, base, re):
+    def __init__(self, base, patterns):
         TypeSpec.__init__(self)
         self.base = base
-        self.re = re
+        self.res = [pattern.i_re for pattern in patterns]
 
     def str_to_val(self, errors, pos, str):
         return self.base.str_to_val(errors, pos, str)
@@ -164,13 +164,12 @@ class PatternTypeSpec(TypeSpec):
     def validate(self, errors, pos, val, errstr=''):
         if self.base.validate(errors, pos, val, errstr) == False:
             return False
-        ret = False
-        if self.re.regexpExec(val) == 1:
-            return True
-        else:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (val, self.definition, 'pattern mismatch' + errstr))
-            return False
+        for re in self.res:
+            if re.regexpExec(val) != 1:
+                err_add(errors, pos, 'TYPE_VALUE',
+                        (val, self.definition, 'pattern mismatch' + errstr))
+                return False
+        return True
     
     def restrictions(self):
         return self.base.restrictions()

@@ -174,7 +174,7 @@ stmt_map = {
          [('$choice',
            [[('range', '?')],
             [('length', '?'),
-             ('pattern', '?')],
+             ('pattern', '*')],
             [('enum', '*')],
             [('bit', '*')],
             [('path', '?')],
