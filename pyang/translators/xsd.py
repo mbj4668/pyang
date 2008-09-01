@@ -11,6 +11,7 @@ import sys
 import pyang
 from pyang import plugin
 from pyang import util
+from pyang import statements
 
 yang_to_xsd_types = \
   {'int8':'byte',
@@ -146,7 +147,7 @@ class DummyFD(object):
         pass
 
 
-def find_locally_defined_typedefs(ctx, module):
+def expand_locally_defined_typedefs(ctx, module):
     for c in module.typedef:
         c.i_xsd_name = c.name
     for inc in module.include:
@@ -183,25 +184,34 @@ def emit_xsd(ctx, module, fd):
         ctx.search_module(module.belongs_to.pos, modulename=parent_modulename)
         parent_module = ctx.modules[parent_modulename]
         if parent_module != None:
-            module.i_namespace = parent_module.namespace.arg
-            module.i_prefix = parent_module.prefix.arg
+            i_namespace = parent_module.namespace.arg
+            i_prefix = parent_module.prefix.arg
         else:
             print >> sys.stderr, ("cannot find module %s, needed by XSD"
                                   " translation" % parent_modulename)
             sys.exit(1)
     else:
-        module.i_namespace = module.namespace.arg
-        module.i_prefix = module.prefix.arg
+        i_namespace = module.namespace.arg
+        i_prefix = module.prefix.arg
 
-    find_locally_defined_typedefs(ctx, module)
+    # initialize some XSD specific variables
+    module.i_namespace = i_namespace
+    module.i_prefix = i_prefix
+    module.i_gen_typedef = []
+    module.i_gen_import = []
+    module.i_gen_augment_idx = 0
+    module.i_local_typedefs = []
+
+    # first, create top-level typedefs of local typedefs
+    expand_locally_defined_typedefs(ctx, module)
 
     # first pass, which might generate new imports
     ctx.i_pass = 'first'
     dummyfd = DummyFD()
-    xsd_print_children(ctx, module, dummyfd, module.i_expanded_children,
+    print_children(ctx, module, dummyfd, module.i_expanded_children,
                        '  ', [])
     for c in module.typedef:
-        xsd_print_simple_type(ctx, module, dummyfd, '  ', c.type, '', None)
+        print_simple_type(ctx, module, dummyfd, '  ', c.type, '', None)
 
     prefixes = [module.i_prefix] + [p for p in module.i_prefixes]
     if module.i_prefix in ['xs', 'yin', 'nc', 'ncn']:
@@ -271,15 +281,13 @@ def emit_xsd(ctx, module, fd):
             fd.write('     namespace=' \
                            '"urn:ietf:params:xml:ns:netconf:base:1.0"\n')
             fd.write('     schemaLocation="http://www.iana.org/assignments/' \
-                           'xml-registry/schema/netconf.xsd"/>')
+                         'xml-registry/schema/netconf.xsd"/>')
         if has_notifications:
             fd.write('  <xs:import\n')
             fd.write('     namespace="urn:ietf:params:xml:ns:netconf:' \
                            'notification:1.0"\n')
-# FIME: not yet published!  use a local copy for now.
-            fd.write('      schemaLocation="notification.xsd"/>')
-#            fd.write('     schemaLocation="http://www.iana.org/assignments/' +
-#                   'xml-registry/schema/notification.xsd"/>')
+            fd.write('     schemaLocation="http://www.iana.org/assignments/' \
+                         'xml-registry/schema/notification.xsd"/>')
         if len(imports) > 0 or has_rpc or has_notifications:
             fd.write('\n')
 
@@ -301,63 +309,59 @@ def emit_xsd(ctx, module, fd):
         fd.write('    </xs:documentation>\n')
         fd.write('  </xs:annotation>\n\n')
         
-    xsd_print_annotation(ctx, fd, '  ', module)
+    print_annotation(ctx, fd, '  ', module)
     ctx.i_pass = 'second'
 
     # print typedefs
     if len(module.typedef) > 0:
-        fd.write('  <!-- YANG typedefs -->\n\n')
+        fd.write('\n  <!-- YANG typedefs -->\n')
     for c in module.typedef:
-        xsd_print_simple_type(ctx, module, fd, '  ', c.type,
-                              ' name="%s"' % c.i_xsd_name, c.description)
         fd.write('\n')
+        print_simple_type(ctx, module, fd, '  ', c.type,
+                          ' name="%s"' % c.i_xsd_name, c.description)
 
     # print locally defined typedefs
     if len(module.i_local_typedefs) > 0:
-        fd.write('  <!-- local YANG typedefs -->\n\n')
+        fd.write('\n  <!-- local YANG typedefs -->\n')
     for c in module.i_local_typedefs:
-        xsd_print_simple_type(ctx, module, fd, '  ', c.type,
-                              ' name="%s"' % c.i_xsd_name, c.description)
         fd.write('\n')
+        print_simple_type(ctx, module, fd, '  ', c.type,
+                          ' name="%s"' % c.i_xsd_name, c.description)
 
     # print groups
     if len(module.grouping) > 0:
-        fd.write('  <!-- YANG groupings -->\n\n')
+        fd.write('\n  <!-- YANG groupings -->\n')
     for c in module.grouping:
-        xsd_print_grouping(ctx, module, fd, '  ', c)
         fd.write('\n')
-    if len(module.grouping) > 0:
-        fd.write('\n')
+        print_grouping(ctx, module, fd, '  ', c)
 
     # print augments
     # filter away local augments; they are printed inline in the XSD
     augment = [a for a in module.augment \
                    if a.i_target_node.i_module.name != module.name]
     if len(augment) > 0:
-        fd.write('  <!-- YANG augments -->\n\n')
+        fd.write('\n  <!-- YANG augments -->\n')
     for c in augment:
-        xsd_print_augment(ctx, module, fd, '  ', c)
         fd.write('\n')
-    if len(augment) > 0:
-        fd.write('\n')
+        print_augment(ctx, module, fd, '  ', c)
 
-    # print data definitions
-    xsd_print_children(ctx, module, fd, module.i_expanded_children,
-                       '  ', [])
     fd.write('\n')
+    # print data definitions
+    print_children(ctx, module, fd, module.i_expanded_children,
+                   '  ', [])
 
     # then print all generated 'dummy' simpleTypes, if any
     if len(module.i_gen_typedef) > 0:
-        fd.write('  <!-- locally generated simpleType helpers -->\n\n')
+        fd.write('\n  <!-- locally generated simpleType helpers -->\n')
     for c in module.i_gen_typedef:
-        xsd_print_simple_type(ctx, module, fd, '  ', c.type,
-                              ' name="%s"' % c.name, None)
         fd.write('\n')
+        print_simple_type(ctx, module, fd, '  ', c.type,
+                          ' name="%s"' % c.name, None)
 
-    fd.write('</xs:schema>\n')
+    fd.write('\n</xs:schema>\n')
 
-def xsd_print_children(ctx, module, fd, children, indent, path,
-                       uniq=[''], uindent=''):
+def print_children(ctx, module, fd, children, indent, path,
+                   uniq=[''], uindent=''):
     for c in children:
         cn = c.keyword
         if cn in ['container', 'list', 'leaf', 'leaf-list', 'anyxml',
@@ -413,7 +417,7 @@ def xsd_print_children(ctx, module, fd, children, indent, path,
 
             fd.write(indent + '<xs:element name="%s"%s%s%s%s>\n' % \
                    (c.name, mino, maxo, atype, sgroup))
-            xsd_print_annotation(ctx, fd, indent + '  ', c)
+            print_annotation(ctx, fd, indent + '  ', c)
             if cn in ['container', 'list', 'rpc', 'notification']:
                 fd.write(indent + '  <xs:complexType>\n')
                 extindent = ''
@@ -454,10 +458,10 @@ def xsd_print_children(ctx, module, fd, children, indent, path,
                     chs = c.i_expanded_children
                 # allocate a new object for constraint recording
                 uniqkey=['']
-                xsd_print_children(ctx, module, fd, chs,
-                                   indent + extindent + '      ',
-                                   [c.name] + path,
-                                   uniqkey, indent + extindent + '  ')
+                print_children(ctx, module, fd, chs,
+                               indent + extindent + '      ',
+                               [c.name] + path,
+                               uniqkey, indent + extindent + '  ')
                 # allow for augments
                 fd.write(indent + extindent + '      <xs:any minOccurs="0" '\
                                'maxOccurs="unbounded"\n')
@@ -473,8 +477,8 @@ def xsd_print_children(ctx, module, fd, children, indent, path,
                 fd.write(uniqkey[0])
             elif cn in ['leaf', 'leaf-list']:
                 if c.type.i_is_derived == True:
-                    xsd_print_simple_type(ctx, module, fd, indent + '  ',
-                                          c.type, '', None)
+                    print_simple_type(ctx, module, fd, indent + '  ',
+                                      c.type, '', None)
                 elif c.type.name == 'empty':
                     fd.write(indent + '  <xs:complexType/>\n')
             elif cn in ['anyxml']:
@@ -487,12 +491,12 @@ def xsd_print_children(ctx, module, fd, children, indent, path,
             fd.write(indent + '</xs:element>\n')
         elif cn == 'choice':
             fd.write(indent + '<xs:choice>\n')
-            xsd_print_description(fd, indent + '  ', c.description)
+            print_description(fd, indent + '  ', c.description)
             for child in c.i_expanded_children:
                 fd.write(indent + '  <xs:sequence>\n')
-                xsd_print_children(ctx, module, fd,
-                                   child.i_expanded_children,
-                                   indent + '    ', path)
+                print_children(ctx, module, fd,
+                               child.i_expanded_children,
+                               indent + '    ', path)
                 # allow for augments
                 fd.write(indent + '    <xs:any minOccurs="0" '\
                                'maxOccurs="unbounded"\n')
@@ -509,16 +513,16 @@ def xsd_print_children(ctx, module, fd, children, indent, path,
             fd.write(indent + '<xs:group ref="%s"/>\n' % c.name)
             
 
-def xsd_print_grouping(ctx, module, fd, indent, grouping):
+def print_grouping(ctx, module, fd, indent, grouping):
     fd.write(indent + '<xs:group name="%s">\n' % grouping.name)
-    xsd_print_description(fd, indent + '  ', grouping.description)
+    print_description(fd, indent + '  ', grouping.description)
     fd.write(indent + '  <xs:sequence>\n')
-    xsd_print_children(ctx, module, fd, grouping.i_expanded_children,
-                       indent + '    ', [grouping.name])
+    print_children(ctx, module, fd, grouping.i_expanded_children,
+                    indent + '    ', [grouping.name])
     fd.write(indent + '  </xs:sequence>\n')
     fd.write(indent + '</xs:group>\n')
 
-def xsd_print_augment(ctx, module, fd, indent, augment):
+def print_augment(ctx, module, fd, indent, augment):
     i = module.i_gen_augment_idx
     name = "a" + str(i)
     while util.attrsearch(name, 'name', module.grouping) != None:
@@ -526,14 +530,14 @@ def xsd_print_augment(ctx, module, fd, indent, augment):
         name = "a" + str(i)
     module.i_gen_augment_idx = i + 1
     fd.write(indent + '<xs:group name="%s">\n' % name)
-    xsd_print_description(fd, indent + '  ', augment.description)
+    print_description(fd, indent + '  ', augment.description)
     fd.write(indent + '  <xs:sequence>\n')
-    xsd_print_children(ctx, module, fd, augment.i_expanded_children,
-                       indent + '    ', [])
+    print_children(ctx, module, fd, augment.i_expanded_children,
+                   indent + '    ', [])
     fd.write(indent + '  </xs:sequence>\n')
     fd.write(indent + '</xs:group>\n')
 
-def xsd_print_description(fd, indent, descr):
+def print_description(fd, indent, descr):
     if descr != None:
         fd.write(indent + '<xs:annotation>\n')
         fd.write(indent + '  <xs:documentation>\n')
@@ -541,10 +545,34 @@ def xsd_print_description(fd, indent, descr):
         fd.write(indent + '  </xs:documentation>\n')
         fd.write(indent + '</xs:annotation>\n\n')
 
-def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
+def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
+
+    def gen_new_typedef(module, new_type):
+        i = 0
+        name = "t" + str(i)
+        all_typedefs = module.typedef + module.i_local_typedefs + \
+            module.i_gen_typedef
+        while util.attrsearch(name, 'name', all_typedefs):
+            i = i + 1
+            name = "t" + str(i)
+        typedef = statements.Typedef(new_type, new_type.pos, module, name)
+        typedef.type = new_type
+        module.i_gen_typedef.append(typedef)
+        return name
+
+    def gen_new_import(module, modname):
+        i = 0
+        pre = "p" + str(i)
+        while pre in module.i_prefixes:
+            i = i + 1
+            pre = "p" + str(i)
+        module.i_prefixes[pre] = modname
+        imp = statements.Import(module, None, module, modname)
+        module.i_gen_import.append(imp)
+
     if type.bit != []:
         fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
-        xsd_print_description(fd, indent + '  ', descr)
+        print_description(fd, indent + '  ', descr)
         fd.write(indent + '  <xs:list>\n')
         fd.write(indent + '    <xs:simpleType>\n')
         fd.write(indent + '      <xs:restriction base="xs:string">\n')
@@ -557,7 +585,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         fd.write(indent + '</xs:simpleType>\n')
         return
     fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
-    xsd_print_description(fd, indent + '  ', descr)
+    print_description(fd, indent + '  ', descr)
     if type.name in yang_to_xsd_types:
         base = 'xs:%s' % yang_to_xsd_types[type.name]
     elif type.enum != []:
@@ -575,7 +603,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         if ctx.i_pass == 'first':
             base = ''
         else:
-            base = module.gen_new_typedef(new_type)
+            base = gen_new_typedef(module, new_type)
         # reset type
         new_type = copy.copy(type)
         new_type.pattern = []
@@ -624,12 +652,12 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                                 # it is imported, use our prefix
                                 new_type.name = newprefix + ':' + newname
                             else:
-                                module.gen_new_import(newmodname)
+                                gen_new_import(module, newmodname)
                                 
                     if ctx.i_pass == 'first':
                         base = ''
                     else:
-                        base = module.gen_new_typedef(new_type)
+                        base = gen_new_typedef(module, new_type)
                 else:
                     base = parent.name
         fd.write(indent + '  <xs:union>\n')
@@ -671,7 +699,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
     elif type.type != []:
         fd.write(indent + '  <xs:union>\n')
         for t in type.type:
-            xsd_print_simple_type(ctx, module, fd, indent+'    ', t, '', None)
+            print_simple_type(ctx, module, fd, indent+'    ', t, '', None)
         fd.write(indent + '  </xs:union>\n')
     elif type.pattern != []:
         def print_pattern(indent, pattern):
@@ -702,26 +730,12 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                 fd.write(indent + '  </xs:restriction>\n')
 
         print_anded_patterns(type.pattern, indent)
-
     else:
         fd.write(indent + '  <xs:restriction base="%s">\n' % base)
         if len(type.enum) > 0:
             for e in type.enum:
                 fd.write(indent + '    <xs:enumeration value=%s/>\n' % \
                     quoteattr(e.name))
-        elif type.pattern != []:
-            fd.write(indent + '    <xs:pattern value=')
-            qstr = quoteattr(type.pattern.expr)
-            cnt = 70 - len(indent) - 22
-            if ctx.opts.xsd_break_pattern == True and len(qstr) > cnt:
-                while (len(qstr) > 0):
-                    fd.write(qstr[0:cnt])
-                    qstr = qstr[cnt:]
-                    if len(qstr):
-                        fd.write("\n" + indent + '                       ')
-            else:
-                fd.write(qstr)
-            fd.write('/>\n')
         elif type.length != None:
             [(lo,hi)] = type.length.i_lengths # other cases in union above
             if lo == hi and False:
@@ -746,7 +760,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         fd.write(indent + '  </xs:restriction>\n')
     fd.write(indent + '</xs:simpleType>\n')
 
-def xsd_print_annotation(ctx, fd, indent, obj):
+def print_annotation(ctx, fd, indent, obj):
     def is_appinfo(keyword):
         if util.is_prefixed(keyword) == True:
             return False
