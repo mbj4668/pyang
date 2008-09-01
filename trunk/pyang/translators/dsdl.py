@@ -625,28 +625,28 @@ class DSDLTranslator(object):
 
     def string_type(self, stmt, p_elem):
         pstmt = stmt.search(keyword="pattern")
-        if len(pstmt) > 0:
+        pels = []
+        for pat in pstmt:
             pe = ET.Element("param", name="pattern")
-            pe.text = pstmt[0].arg
-            for sub in pstmt[0].substmts: self.handle_stmt(sub, pe)
-        else:
-            pe = None
+            pe.text = pat.arg
+            pels.append(pe)
+            for sub in pat.substmts: self.handle_stmt(sub, pe)
         rstmt = stmt.search(keyword="length")
         if len(rstmt) == 0:
             elem = ET.SubElement(p_elem, "data", type="string")
-            if pe is not None: elem.append(pe) 
+            for pe in pels: elem.append(pe) 
             return
         ranges = self.decode_ranges(rstmt[0].arg)
         if len(ranges) == 0: # isolated "max" or "min"
             elem = ET.SubElement(p_elem, "data", type="string")
-            if pe is not None: elem.append(pe) 
+            for pe in pels: elem.append(pe) 
             return
         if len(ranges) > 1:
             p_elem = ET.SubElement(p_elem, "choice")
             for sub in rstmt[0].substmts: self.handle_stmt(sub, p_elem)
         for rc in ranges:
             elem = ET.SubElement(p_elem, "data", type="string")
-            if pe is not None: elem.append(pe)
+            for pe in pels: elem.append(pe)
             if len(ranges) == 1:
                 for sub in rstmt[0].substmts: self.handle_stmt(sub, elem)
             if len(rc) == 1:
