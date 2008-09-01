@@ -53,7 +53,8 @@ module/*hej*/xt1 {
   typedef myStr2 {
     type myStr {
       length "3";
-      pattern "b*";
+      pattern "b.*";
+      pattern ".*e";
     }
   }
 
@@ -72,7 +73,12 @@ module/*hej*/xt1 {
 
   leaf ss2 {
     type myStr2;
-    default "bbb";
+    default "bbe";
+  }
+
+  leaf ss3 {
+    type myStr2;
+    default "bbb"; // error: pattern mismatch
   }
 
 

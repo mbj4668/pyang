@@ -566,7 +566,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         base = type.i_typedef.i_xsd_name
     else:
         base = type.name
-    if ((type.length != None) and (type.pattern != None)):
+    if ((type.length != None) and (type.pattern != [])):
         # this type has both length and pattern, which isn't allowed
         # in XSD.  we solve this by generating a dummy type with the
         # pattern only, derive from it
@@ -578,7 +578,7 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
             base = module.gen_new_typedef(new_type)
         # reset type
         new_type = copy.copy(type)
-        new_type.pattern = None
+        new_type.pattern = []
         type = new_type
     if (((type.length != None) and (len(type.length.i_lengths) > 1)) or
         ((type.range != None) and (len(type.range.i_ranges)) > 1)):
@@ -597,14 +597,14 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                 # as base type, unless the parent's parent has pattern
                 # restrictions also, in which case we generate a new typedef
                 # w/o the lengths
-                if parent.pattern != None:
+                if parent.pattern != []:
                     # we have to generate a new derived type with the
                     # pattern restriction only
                     new_type = copy.copy(parent)
                     new_type.length = None
                     # type might be in another module, so we might need to
-                    # a prefix.  further, it's base type might be in yet another
-                    # module, so we might need to change it's base type's
+                    # a prefix.  further, its base type might be in yet another
+                    # module, so we might need to change its base type's
                     # name
                     if type.name.find(":") != -1:
                         [prefix, _name] = type.name.split(':', 1)
@@ -673,13 +673,43 @@ def xsd_print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         for t in type.type:
             xsd_print_simple_type(ctx, module, fd, indent+'    ', t, '', None)
         fd.write(indent + '  </xs:union>\n')
+    elif type.pattern != []:
+        def print_pattern(indent, pattern):
+            fd.write(indent + '  <xs:pattern value=')
+            qstr = quoteattr(pattern.expr)
+            cnt = 70 - len(indent) - 22
+            if ctx.opts.xsd_break_pattern == True and len(qstr) > cnt:
+                while (len(qstr) > 0):
+                    fd.write(qstr[0:cnt])
+                    qstr = qstr[cnt:]
+                    if len(qstr):
+                        fd.write("\n" + indent + '                     ')
+            else:
+                fd.write(qstr)
+            fd.write('/>\n')
+            
+        def print_anded_patterns(patterns, indent):
+            if len(patterns) == 1:
+                fd.write(indent + '  <xs:restriction base="%s">\n' % base)
+                print_pattern(indent + '  ', patterns[0])
+                fd.write(indent + '  </xs:restriction>\n')
+            else:
+                fd.write(indent + '  <xs:restriction>\n')
+                fd.write(indent + '    <xs:simpleType>\n')
+                print_anded_patterns(patterns[1:], indent + '    ')
+                fd.write(indent + '    </xs:simpleType>\n')
+                print_pattern(indent + '  ', patterns[0])
+                fd.write(indent + '  </xs:restriction>\n')
+
+        print_anded_patterns(type.pattern, indent)
+
     else:
         fd.write(indent + '  <xs:restriction base="%s">\n' % base)
         if len(type.enum) > 0:
             for e in type.enum:
                 fd.write(indent + '    <xs:enumeration value=%s/>\n' % \
                     quoteattr(e.name))
-        elif type.pattern != None:
+        elif type.pattern != []:
             fd.write(indent + '    <xs:pattern value=')
             qstr = quoteattr(type.pattern.expr)
             cnt = 70 - len(indent) - 22

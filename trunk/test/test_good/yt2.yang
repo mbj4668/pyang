@@ -27,6 +27,10 @@ module yt2 {
              error-message "Wrong Str1 pattern";
 	     error-app-tag str1-violation;
            }
+           pattern ".*xx" {
+             error-message "Wrong Str1 pattern";
+	     error-app-tag str1-violation;
+           }
        }
     }
 

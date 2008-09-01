@@ -219,12 +219,13 @@ class YangParser(object):
             except KeyError:
                 error.err_add(self.ctx.errors, self.pos,
                               'UNKNOWN_KEYWORD', keywd)
+                raise error.Abort
                 # skip the argument if present
-                tok = self.tokenizer.peek()
-                if tok == '{' or tok == ';':
-                    arg_type = None
-                else:
-                    arg_type = 'string'
+#                tok = self.tokenizer.peek()
+#                if tok == '{' or tok == ';':
+#                    arg_type = None
+#                else:
+#                    arg_type = 'string'
 
             # check if the statement needs an argument
             if arg_type is not None:
