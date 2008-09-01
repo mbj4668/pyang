@@ -239,16 +239,6 @@ class Module(Statement):
         self.i_prefixes = {}
         """dict of prefix:modulename"""
         
-        self.i_local_typedefs = []
-        self.i_gen_typedef = []
-        """generated 'dummy' typedefs"""
-        
-        self.i_gen_import = []
-        """generated 'dummy' imports"""
-        
-        self.i_gen_augment_idx = 0
-        """generated augment names"""
-        
         self.i_expanded_children = []
         """augment and uses expanded schema tree"""
         
@@ -427,29 +417,6 @@ class Module(Statement):
             c.validate_post_augment(errors)
 
         return errors
-
-    def gen_new_typedef(self, type):
-        i = 0
-        name = "t" + str(i)
-        all_typedefs = self.typedef + self.i_local_typedefs + \
-                       self.i_gen_typedef
-        while attrsearch(name, 'name', all_typedefs):
-            i = i + 1
-            name = "t" + str(i)
-        typedef = Typedef(type, type.pos, self, name)
-        typedef.type = type
-        self.i_gen_typedef.append(typedef)
-        return name
-
-    def gen_new_import(self, modname):
-        i = 0
-        pre = "p" + str(i)
-        while pre in self.i_prefixes:
-            i = i + 1
-            pre = "p" + str(i)
-        self.i_prefixes[pre] = modname
-        imp = Import(self, None, self, modname)
-        self.i_gen_import.append(imp)
 
 class Import(Statement):
     def __init__(self, parent, pos, module, arg):
