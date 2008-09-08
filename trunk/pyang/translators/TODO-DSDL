@@ -1,0 +1,50 @@
+TODO LIST:    -*- mode: org -*-
+
+* TODO Implement conceptual tree
+** TODO Implement the top structure in the schema
+   The root is <nmt:netmod-tree>, under it three optional elements
+   <nmt:data>, <nmt:rpcs> and <nmt:notifications>
+** TODO Register new namespace for conceptual tree
+   Proposal: urn:ietf:params:xml:ns:netmod:tree:1
+* TODO Remove all(?) NETMOD-specific annotations
+  Only nm:config is really needed but maybe this can be implemented
+  via [[TODO Implement validation][validation phases]]
+* TODO Implement handling of RPCs
+  For every rpc, create a <nmt:rpc> under <nmt:rpcs>.
+* TODO Implement handling of notifications
+  For every notification, create a <nmt:notification> under
+  <nmt:notification>.
+* TODO Implement unique and keyref via Schematron abstract patterns.
+  Should these patterns be included in the RNG schema as annotations?
+  Probably not, it will only appear in the stand-alone Schematron
+  schema.
+* TODO Implement validation phases
+  Schematron phases seem to be good for this purpose. The disadvantage
+  is that it can be used only for Schematron, so perhaps only two
+  phases can be implemented this way - full and partial (references
+  needn't be valid) 
+* TODO Implement handling of "extension"
+  Just put it to the schema (in YIN form). This could be optional -
+  via command-line args or config file.
+* TODO Implement refinements in "uses"
+  The content of the grouping should be expanded in place and the
+  refinements added.
+* TODO Implement "augment"
+  Should be similar to refinements (it's a pity that the syntax
+  differs). Augments have to be always handled last among the siblings
+  so that the stuff to be augmented is already present in the ETree.
+  Top-level augments that modify foreign modules will be ignored.
+* XSLT stylesheets
+** Extraction stylesheets
+*** TODO Stylesheet for extracting Schematron
+*** TODO Stylesheet for extracting DSRL
+** Specific NETCONF PDU stylesheets
+*** TODO Stylesheet for unfiltered get
+*** Stylesheet for unfiltered get-config
+*** Stylesheet for edit-config
+* Other programs
+** get/get-config schema reflecting a specific filter
+   This cannot probably be implemented in XSLT but might be
+   interesting.
+
+
