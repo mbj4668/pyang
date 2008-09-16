@@ -21,7 +21,6 @@ module yt4 {
     container con1 {
 
       grouping con1_grp1 {
-	leaf a_ { type con1_typ1; }
         leaf b { 
           type yt3:Num3;
           default -17;
@@ -30,6 +29,7 @@ module yt4 {
           // mandatory true;
           reference +;
         }
+	leaf a_ { type con1_typ1; }
       }
 
       list con1_list1 {
@@ -37,6 +37,7 @@ module yt4 {
         leaf xx { type con1_typ1; }
 //        leaf xxx { type yt4:con1_typ1; } // should NOT be error
         uses con1_grp1 {
+          leaf a_ { default y; }
           leaf b { 
             description "new b";
             default 4;

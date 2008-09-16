@@ -39,3 +39,8 @@ def guess_format(text):
         if text[i] == '<':
             format = 'yin'
     return format
+
+def listsdelete(x, xs):
+    """Return a new list with x removed from xs"""
+    i = xs.index(x)
+    return xs[:i] + xs[(i+1):]
