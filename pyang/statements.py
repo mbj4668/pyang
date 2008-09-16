@@ -269,7 +269,8 @@ class Module(Statement):
 
     def set_include(self, include):
         # parse and load the included module
-        self.ctx.search_module(include.pos, modulename = include.modulename)
+        if include.modulename not in self.ctx.modules:
+            self.ctx.search_module(include.pos, modulename = include.modulename)
 
     def search_extension(self, name, modules=None):
         extension = attrsearch(name, 'name', self.extension)
@@ -287,37 +288,29 @@ class Module(Statement):
                         return extension
         return None
 
-    def search_typedef(self, name, modules=None):
+    def search_typedef(self, name):
         typedef = attrsearch(name, 'name', self.typedef)
         if typedef != None:
             return typedef
-        if modules == None:
-            modules = []
-        modules.append(self.name)
         for inc in self.include:
-            if inc.modulename not in modules:
-                mod = self.ctx.modules[inc.modulename]
-                if mod != None:
-                    typedef = mod.search_typedef(name, modules)
-                    if typedef != None:
-                        return typedef
+            submod = self.ctx.modules[inc.modulename]
+            if submod != None:
+                typedef = attrsearch(name, 'name', submod.typedef)
+                if typedef != None:
+                    return typedef
         return None
 
-    def search_grouping(self, name, modules=None):
+    def search_grouping(self, name):
         dbg("search for grouping %s in module %s" % (name, self.name))
         grouping = attrsearch(name, 'name', self.grouping)
         if grouping != None:
             return grouping
-        if modules == None:
-            modules = []
-        modules.append(self.name)
         for inc in self.include:
-            if inc.modulename not in modules:
-                mod = self.ctx.modules[inc.modulename]
-                if mod != None:
-                    grouping = mod.search_grouping(name, modules)
-                    if grouping != None:
-                        return grouping
+            submod = self.ctx.modules[inc.modulename]
+            if submod != None:
+                grouping = attrsearch(name, 'name', submod.grouping)
+                if grouping != None:
+                    return grouping
         return None
 
     def search_child(self, name, modules=None):
@@ -1473,22 +1466,25 @@ class Uses(SchemaNodeStatement):
             if len(gch) == 0:
                 err_add(errors, uch[0].pos, 'NODE_NOT_IN_GROUPING', uch[0].name)
                 return
+            # check if we found the refined node
+            g = attrsearch(uch[0].name, 'name', gch)
+            if g == None:
+                err_add(errors, uch[0].pos, 'NODE_NOT_IN_GROUPING', uch[0].name)
+                return
+            gch = util.listsdelete(g, gch)
+            # check that uch[0] and g are of compatible type
+            if uch[0].keyword != g.keyword:
+                err_add(errors, uch[0].pos, 'NODE_GROUPING_TYPE', uch[0].name)
+                return
             # create an expanded child and add it to the list of expanded chs.
-            newx = copy.copy(gch[0])
+            newx = copy.copy(g)
             xch.append(newx)
             # inline the definition into our modulde
             newx.i_module.name = self.i_module.name
-            # check if we found the refined node
-            if uch[0].name != gch[0].name:
-                return validate_uses_children(uch, gch[1:], xch, errors)
-            # check that uch[0] and gch[0] are of compatible type
-            if uch[0].keyword != gch[0].keyword:
-                err_add(errors, uch[0].pos, 'NODE_GROUPING_TYPE', uch[0].name)
-                return
             # possibly recurse
             if uch[0].keyword in ['list', 'container', 'choice', 'case']:
                 newx.children = []
-                validate_uses_children(uch[0].children, gch[0].children,
+                validate_uses_children(uch[0].children, g.children,
                                        newx.children, errors)
             # possibly modify the expanded child
             if uch[0].keyword in ['leaf', 'choice']:
@@ -1505,7 +1501,7 @@ class Uses(SchemaNodeStatement):
                 if uch[0].mandatory != None:
                     newx.mandatory = uch[0].mandatory
 
-            validate_uses_children(uch[1:], gch[1:], xch, errors)
+            validate_uses_children(uch[1:], gch, xch, errors)
                 
         if ((self.i_module.ctx.submodule_expansion == False) and
             ((self.i_grouping.i_module.i_is_submodule) and

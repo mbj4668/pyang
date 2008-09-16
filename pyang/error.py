@@ -107,7 +107,7 @@ error_codes = \
        'the default case "%s" is not found"'),
     'NODE_NOT_IN_GROUPING':
       (1,
-       'the node "%s" is not found in the grouping at this position'),
+       'the node "%s" is not found in the grouping'),
     'NODE_GROUPING_TYPE':
       (1,
        'the node "%s" does not match the type in the grouping'),
