@@ -148,6 +148,7 @@ class DummyFD(object):
 
 
 def expand_locally_defined_typedefs(ctx, module):
+    """Create top-level typedefs for all locally defined typedefs."""
     for c in module.typedef:
         c.i_xsd_name = c.name
     for inc in module.include:
@@ -156,8 +157,8 @@ def expand_locally_defined_typedefs(ctx, module):
             c.i_xsd_name = c.name
 
     def gen_name(name, name_list):
-        tname = name
         i = 0
+        tname = name + '_' + str(i)
         while util.attrsearch(tname, 'i_xsd_name', name_list):
             i = i + 1
             tname = name + '_' + str(i)
@@ -647,7 +648,8 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                             newmodname = new_type.i_module.i_prefixes[newprefix]
                             # first, check if we already have the module
                             # imported
-                            newprefix = dictsearch(newmodname, module.i_prefixes)
+                            newprefix = util.dictsearch(newmodname,
+                                                        module.i_prefixes)
                             if newprefix != None:
                                 # it is imported, use our prefix
                                 new_type.name = newprefix + ':' + newname
