@@ -4,9 +4,13 @@ xt3.yang:4: [1] UNEXPECTED_KEYWORD_1
 xt1s1.yang:7: [1] PREFIX_NOT_DEFINED
 xt1.yang:23: [1] BAD_TYPE_NAME
 xt1.yang:224: [2] RANGE_BOUNDS
+xt1.yang:230: [2] TYPE_VALUE
 xt1.yang:230: [2] RANGE_BOUNDS
 xt1.yang:81: [2] TYPE_VALUE
 xt1.yang:189: [1] DUPLICATE_CHILD_NAME
 xt1.yang:200: [1] DUPLICATE_CHILD_NAME
 xt1.yang:214: [1] NEED_KEY_USES
 xt1.yang:127: [1] FIXME: expect an error here
+xt1.yang:263: [2] TYPE_VALUE
+xt1.yang:269: [2] TYPE_VALUE
+xt1.yang:273: [2] TYPE_VALUE

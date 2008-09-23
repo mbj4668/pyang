@@ -120,7 +120,7 @@ class RangeTypeSpec(TypeSpec):
                 return False
             for (lo, hi) in self.ranges:
                 if ((lo == 'min' or val >= lo) and
-                    (hi == None or hi == 'max' or val <= hi)):
+                    ((hi == None and val == lo) or hi == 'max' or val <= hi)):
                     return True
             err_add(errors, pos, 'TYPE_VALUE',
                     (str(val), self.definition, 'range error' + errstr))
@@ -143,7 +143,8 @@ class LengthTypeSpec(TypeSpec):
             return False
         vallen = len(val)
         for (lo, hi) in self.lengths:
-            if vallen >= lo and (hi == None or vallen <= hi):
+            if ((lo == 'min' or vallen >= lo) and
+                ((hi == None and vallen == lo) or hi == 'max' or vallen <= hi)):
                 return True
         err_add(errors, pos, 'TYPE_VALUE',
                 (val, self.definition, 'length error' + errstr))

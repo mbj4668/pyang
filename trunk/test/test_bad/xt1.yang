@@ -244,6 +244,36 @@ module/*hej*/xt1 {
     config true;
   }
 
+    container fooxx {
+        typedef x {
+            type string {
+                pattern "a.*";
+                pattern ".*b";
+                length "3|5|7";
+            }
+        }
+        leaf y {
+            type x {
+                length "3|7";
+            }
+            default "a.b";  // ok
+        }
+        leaf z1 {
+            type x;
+            default "a..b";  // nok - length error
+        }
+        leaf z2 {
+            type x {
+                length "3|7";
+            }
+            default "a...b";  // nok - length error
+        }
+        leaf z3 {
+            type x;
+            default "a.x";  // nok - pattern error
+        }
+    }
+  
 }
   
 

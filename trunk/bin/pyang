@@ -64,7 +64,7 @@ Validates the YANG module in <filename>, and all its dependencies."""
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
-                             "are " +  ', '.join(fmts.keys())),
+                             "are: " +  ', '.join(fmts.keys())),
         optparse.make_option("-o", "--output",
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
