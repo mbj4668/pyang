@@ -652,7 +652,7 @@ class DSDLTranslator(object):
             if len(rc) == 1:
                 lelem = ET.SubElement(elem, "param", name="length")
                 lelem.text = rc[0]
-                return
+                continue
             if rc[0] != "min":
                 lelem = ET.SubElement(elem, "param", name="minLength")
                 lelem.text = rc[0]
