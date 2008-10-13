@@ -1,21 +1,22 @@
-   0.9.2 - 
+   0.9.2 - 2008-10-13
         handle prefixed references to local groupings
         make use of path argument given to pyang
-        report some XSD error conditions that used to cause XSD translation
-          to silently fail to stderr
-        added --xsd-break-pattern command line option
-          (thanks to Juergen Schoenwaelder)
-        added --xsd-no-lecture command line option
         handle multiple patterns
         allow refinements in any order
         fixed bug where a grouping defined in a submodule was not
           detected (if the submodule was included more than once)
-        fixed length and range validation bug
-        fixed XSD output bug in some rare cases involving typedef chains
-          across mutiple YANG modules.
+        fixed length and range validation bug across mutiple YANG modules.
         allow 'must' and 'config' in 'choice'
         allow 'must' in 'case'
         added some initial text describing code layout to README
+
+        XSD: report some XSD error conditions that used to cause XSD
+          translation to silently fail to stderr
+        XSD: added --xsd-break-pattern command line option
+          (thanks to Juergen Schoenwaelder)
+        XSD: added --xsd-no-lecture command line option
+        XSD: fixed XSD output bug in some rare cases involving typedef chains
+
 	DSDL: corrected handling of multiple length alternatives
 	DSDL: added TODO
 	DSDL: added support for multiple patterns in string restrictions

@@ -46,7 +46,10 @@ __docformat__ = "reStructuredText"
 
 import sys
 import optparse
-import xml.etree.ElementTree as ET
+try:
+    import xml.etree.ElementTree as ET
+except ImportError:
+    pass
 
 from pyang import plugin, statements
 
