@@ -15,12 +15,22 @@
           across mutiple YANG modules.
         allow 'must' and 'config' in 'choice'
         allow 'must' in 'case'
-        added some inital text describing code layout to README
+        added some initial text describing code layout to README
+	DSDL: corrected handling of multiple length alternatives
+	DSDL: added TODO
+	DSDL: added support for multiple patterns in string restrictions
+	DSDL: added xmlns declaration for the data model NS
+	DSDL: $this in must-stmt is now replaced with current()
+	  rather than '.'
+	DSDL: local top-level named patterns now don't start with '__'
+	DSDL: added XSLT stylesheet that separates DSRL
 
         known issue: augmenting the input parameters of an rpc that is
           declared without any input parameters does not work
         known issue: an error is not reported if the same node is added
           twice via an augment
+	known issue: chained derivation of types doesn't work properly
+	  in the DSDL translator
 
    0.9.1 - 2008-07-08
         rewrote yang parser
