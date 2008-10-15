@@ -6,7 +6,7 @@ class Position(object):
     def __init__(self, ref):
         self.ref = ref
         self.line = 0
-        self.module_name = None
+        self.top_name = None
     def __str__(self):
         return self.ref + ':' + str(self.line)
 
@@ -38,7 +38,7 @@ error_codes = \
        'unknown keyword "%s"'),
     'INCOMPLETE_STATEMENT':
       (1,
-       'unterminated statement definition for keyword "%s"'),
+       'unterminated statement definition for keyword "%s", looking at %s'),
     'EXPECTED_KEYWORD':
       (1,
        'expected keyword "%s"'),
@@ -65,7 +65,10 @@ error_codes = \
        'unexpected token "%s", expected one of %s'),
     'EXPECTED_ARGUMENT':
       (1,
-       'expected an argument, got "%s"'),
+       'expected an argument for keyword "%s"'),
+    'UNEXPECTED_ARGUMENT':
+      (1,
+       'did not expect an argument, got "%s"'),
     'TRAILING_GARBAGE':
       (2,
        'trailing garbage after module'),
@@ -89,10 +92,13 @@ error_codes = \
        'prefix "%s" already used for module %s'),
     'PREFIX_NOT_DEFINED':
       (1,
-       'prefix "%s" is not defined'),
+       'prefix "%s" is not defined (reported only once)'),
     'NODE_NOT_FOUND':
       (1,
-       'node %s::%s is not found'),
+       'node %s:%s is not found'),
+    'BAD_NODE_IN_AUGMENT':
+      (1,
+       'node %s:%s cannot be augmented'),
     'EXTENSION_NOT_DEFINED':
       (1,
        'extension "%s" is not defined in module %s'),
@@ -126,38 +132,38 @@ error_codes = \
     'DUPLICATE_ENUM_VALUE':
       (1,
        'the integer value "%d" has already been used for the ' \
-       'enumeration'),
+       'enumeration at %s'),
     'ENUM_VALUE':
       (1,
        'the enumeration value "%s" is not an 32 bit integer'),
     'DUPLICATE_BIT_POSITION':
       (1,
-       'the position "%d" has already been used for another bit'),
+       'the position "%d" has already been used for the bit at %s'),
     'BIT_POSITION':
       (1,
        'the position value "%s" is not valid'),
     'NEED_KEY':
       (1,
-       'The list needs at least one key'),
+       'the list needs at least one key'),
     'NEED_KEY_USES':
       (1,
-       'The list at "%s" needs at least one key because it is used as config'),
+       'the list at "%s" needs at least one key because it is used as config'),
     'BAD_KEY':
       (1,
-       'The key "%s" does not reference an existing leaf'),
+       'the key "%s" does not reference an existing leaf'),
     'BAD_UNIQUE':
       (1,
-       'The unique argument "%s" does not reference an existing leaf'),
+       'the unique argument "%s" does not reference an existing leaf'),
     'BAD_UNIQUE_PART':
       (1,
-       'The identifier "%s" in the unique argument does not reference '
+       'the identifier "%s" in the unique argument does not reference '
        'an existing container or list'),
     'DUPLICATE_KEY':
       (1,
-       'The key "%s" must not be used more than once'),
+       'the key "%s" must not be listed more than once'),
     'DUPLICATE_UNIQUE':
       (3,
-       'The leaf "%s" occurs more than once in the unique expression'),
+       'the leaf "%s" occurs more than once in the unique expression'),
     'PATTERN_ERROR':
       (2,
        'syntax error in pattern: %s'),
@@ -169,30 +175,31 @@ error_codes = \
        'the keyref path for %s at %s has too many ".."'),
     'KEYREF_IDENTIFIER_NOT_FOUND':
       (1,
-       '%s::%s in the keyref path for %s at %s is not found'),
+       '%s:%s in the keyref path for %s at %s is not found'),
     'KEYREF_IDENTIFIER_BAD_NODE':
       (1,
-       '%s::%s in the keyref path for %s at %s references a %s node'),
+       '%s:%s in the keyref path for %s at %s references a %s node'),
     'KEYREF_BAD_PREDICATE':
       (1,
-       '%s::%s in the keyref path for %s at %s has a predicate, '
+       '%s:%s in the keyref path for %s at %s has a predicate, '
        'but is not a list'),
     'KEYREF_BAD_PREDICATE_PTR':
       (1,
-       '%s::%s in the keyref path\'s predicate for %s at %s is compared '
+       '%s:%s in the keyref path\'s predicate for %s at %s is compared '
        'with a leaf that is not a correct keyref'),
     'KEYREF_NOT_LEAF_KEY':
       (1,
        'the keyref path for %s at %s does not refer to a key leaf in a list'),
     'KEYREF_NO_KEY':
       (1,
-       '%s::%s in the keyref path for %s at %s is not the name of a key leaf'),
+       '%s:%s in the keyref path for %s at %s is not the name of a key leaf'),
     'KEYREF_MULTIPLE_KEYS':
       (1,
-       '%s::%s in the keyref path for %s at %s is referenced more than once'),
+       '%s:%s in the keyref path for %s at %s is referenced more than once'),
     'DUPLICATE_CHILD_NAME':
       (1,
-       'there is already a child node with the name "%s"'),
+       'there is already a child node to "%s" at %s with the name "%s" '
+       'defined at %s'),
     'BAD_TYPE_NAME':
       (1,
        'illegal type name "%s"'),
@@ -213,10 +220,10 @@ error_codes = \
        'a type %s must have at least one %s statement'),
     'BAD_TYPE_IN_UNION':
       (1,
-       'the type %s cannot be part of a union'),
+       'the type %s (defined at %s) cannot be part of a union'),
     'BAD_TYPE_IN_KEY':
       (1,
-       'the type %s cannot be part of a key'),
+       'the type %s cannot be part of a key, used by leaf %s'),
     'DUPLICATE_STATEMENT':
       (1,
        'multiple statements with the same argument "%s" found'),
@@ -247,6 +254,9 @@ error_codes = \
     'DUPLICATE_NAMESPACE':
       (1,
        'duplicate namespace uri %s found in module %s'),
+    'DUPLICATE_MODULE':
+      (1,
+       'duplicate module %s found (conflicts with %s)'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
        'missing argument attribute "%s"'),
@@ -256,6 +266,21 @@ error_codes = \
     'UNEXPECTED_ATTRIBUTE':
       (1,
        'unexpected attribute %s'),
+    'INVALID_CONFIG':
+      (2,
+       'config true cannot be set when the parent is config false'),
+
+    'UNUSED_IMPORT':
+      (4,
+       'imported module %s not used'),
+
+    'UNUSED_TYPEDEF':
+      (4,
+       'typedef %s not used'),
+
+    'UNUSED_GROUPING':
+      (4,
+       'grouping %s not used'),
 
     }
 
@@ -275,3 +300,10 @@ def err_to_str(tag, args):
 
 def err_add(errors, pos, tag, args):
     errors.append((copy.copy(pos), tag, args))
+
+def is_warning(level):
+    return not is_error(level)
+
+def is_error(level):
+    return level < 4
+

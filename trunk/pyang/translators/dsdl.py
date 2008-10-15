@@ -285,7 +285,7 @@ class DSDLTranslator(object):
         self.first_anyxml = True
         self.dc_elements = {
             "source": ("YANG module '%s' (automatic translation)" %
-                       self.module.name)
+                       self.module.arg)
         }
         self.root_elem = ET.Element("grammar", self.grammar_attrs)
         for prefix in self.emit: # used namespaces
@@ -366,7 +366,7 @@ class DSDLTranslator(object):
         same = True
         if ":" in ref:          # prefixed?
             prefix, ref = ref.split(":")
-            same = (prefix == stmt.i_module.prefix.arg)
+            same = (prefix == stmt.i_module.i_prefix)
         if same:
             parent = stmt.parent
             while parent is not None:
@@ -375,7 +375,7 @@ class DSDLTranslator(object):
                 if len(deflist) > 0: break
             def_ = deflist[0]
             if not primary and parent is None: # top-level external def?
-                def_name = stmt.i_module.name + "__" + ref
+                def_name = stmt.i_module.arg + "__" + ref
                 if def_name not in self.imported_symbols:
                     self.handle_stmt(def_, self.root_elem)
                     self.imported_symbols.append(def_name)
@@ -384,7 +384,7 @@ class DSDLTranslator(object):
         def_name =  mod_name + "__" + ref
         if def_name not in self.imported_symbols:
             # pull the definition
-            ext_mod = stmt.i_module.ctx.modules[mod_name]
+            ext_mod = stmt.i_module.i_ctx.modules[mod_name]
             def_, = ext_mod.search(keyword=kw, arg=ref)
             self.handle_stmt(def_, self.root_elem)
             self.imported_symbols.append(def_name)
@@ -404,11 +404,11 @@ class DSDLTranslator(object):
         except KeyError:
             if self.debug > 0:
                 sys.stderr.write("%s not handled\n" %
-                                 statements.keyword_to_str(stmt.keyword))
+                                 util.keyword_to_str(stmt.raw_keyword))
         else:
             if self.debug > 0:
                 sys.stderr.write("Handling '%s %s'\n" %
-                                 (statements.keyword_to_str(stmt.keyword),
+                                 (util.keyword_to_str(stmt.raw_keyword),
                                   stmt.arg))
             handler(stmt, p_elem)
 

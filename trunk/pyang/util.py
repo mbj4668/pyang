@@ -26,6 +26,13 @@ def is_prefixed(identifier):
 def is_local(identifier):
     return type(identifier) == type('')
 
+def keyword_to_str(keyword):
+    if is_prefixed(keyword):
+        (prefix, keyword) = keyword
+        return prefix + ":" + keyword
+    else:
+        return keyword
+
 def guess_format(text):
     """Guess YANG/YIN format
     

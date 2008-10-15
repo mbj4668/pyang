@@ -9,6 +9,7 @@ import re
 from pyang import plugin
 from pyang import util
 from pyang import grammar
+from pyang import statements
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 
@@ -39,14 +40,16 @@ def emit_yin(ctx, module, fd):
     fd.write('<%s name="%s"\n' % (module.keyword, module.arg))
     fd.write(' ' * len(module.keyword) + '  xmlns="%s"' % yin_namespace)
 
-    if module.prefix != None:
+    prefix = module.search_one('prefix')
+    if prefix != None:
         # FIXME: if the prefix really can be used in the submodule
         # then we need to grab it from the module
         # currently if we get here it is a module (not submodule)
+        namespace = module.search_one('namespace')
         fd.write('\n')
         fd.write(' ' * len(module.keyword))
-        fd.write('  xmlns:' + module.prefix.arg + '=' +
-               quoteattr(module.namespace.arg))
+        fd.write('  xmlns:' + prefix.arg + '=' +
+               quoteattr(namespace.arg))
     fd.write('>\n')
     if ctx.opts.yin_canonical:
         substmts = grammar.sort_canonical(module.keyword, module.substmts)
@@ -57,26 +60,28 @@ def emit_yin(ctx, module, fd):
     fd.write('</%s>\n' % module.keyword)
     
 def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
-    if util.is_prefixed(stmt.keyword):
+    if util.is_prefixed(stmt.raw_keyword):
         # this is an extension.  need to find its definition
-        (prefix, identifier) = stmt.keyword
+        (prefix, identifier) = stmt.raw_keyword
         tag = prefix + ':' + identifier
-        extmodule = module.prefix_to_module(prefix, None, [])
-        ext = util.attrsearch(identifier, 'name', extmodule.extension)
-        if ext.argument != None:
-            if ext.argument.yin_element != None:
-                argname = prefix + ':' + ext.argument.name
-                argiselem = ext.argument.yin_element.arg == 'true'
+        extmodule = statements.prefix_to_module(module, prefix, None, [])
+        ext = util.attrsearch(identifier, 'arg', extmodule.search('extension'))
+        ext_arg = ext.search_one('argument')
+        if ext_arg != None: 
+            yin_element = ext_arg.search_one('yin_element')
+            if yin_element != None:
+                argname = prefix + ':' + ext.argument.arg
+                argiselem = yin_element.arg == 'true'
             else:
                 # no yin-element given, default to false
                 argiselem = False
-                argname = ext.argument.name
+                argname = ext_arg.arg
         else:
             argiselem = False
             argname = None
     else:
-        (argname, argiselem) = yang_keywords[stmt.keyword]
-        tag = stmt.keyword
+        (argname, argiselem) = yang_keywords[stmt.raw_keyword]
+        tag = stmt.raw_keyword
     if argiselem == False or argname == None:
         if argname == None:
             attr = ''

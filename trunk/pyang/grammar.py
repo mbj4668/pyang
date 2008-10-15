@@ -1,6 +1,5 @@
 """Description of YANG & YIN grammar."""
 
-from pyang import statements
 from pyang import util
 from pyang import error
 import syntax
@@ -450,39 +449,6 @@ where <occurance> is one of: '?', '1', '+', '*'.
 and <case> is a list of substatements
 """
 
-# FIXME: possibly remove in the future, if we don't have these special classes
-handler_map = {
-    'import': lambda a,b,c,d: statements.Import(a,b,c,d),
-    'include': lambda a,b,c,d: statements.Include(a,b,c,d),
-    'revision': lambda a,b,c,d: statements.Revision(a,b,c,d),
-    'typedef': lambda a,b,c,d: statements.Typedef(a,b,c,d),
-    'grouping': lambda a,b,c,d: statements.Grouping(a,b,c,d),
-    'extension': lambda a,b,c,d: statements.Extension(a,b,c,d),
-    'argument': lambda a,b,c,d: statements.Argument(a,b,c,d),
-    'type': lambda a,b,c,d: statements.Type(a,b,c,d),
-    'range': lambda a,b,c,d: statements.Range(a,b,c,d),
-    'length': lambda a,b,c,d: statements.Length(a,b,c,d),
-    'pattern': lambda a,b,c,d: statements.Pattern(a,b,c,d),
-    'path': lambda a,b,c,d: statements.Path(a,b,c,d),
-    'must': lambda a,b,c,d: statements.Must(a,b,c,d),
-    'enum': lambda a,b,c,d: statements.Enum(a,b,c,d),
-    'bit': lambda a,b,c,d: statements.Bit(a,b,c,d),
-    'leaf': lambda a,b,c,d: statements.Leaf(a,b,c,d),
-    'leaf-list': lambda a,b,c,d: statements.LeafList(a,b,c,d),
-    'container': lambda a,b,c,d: statements.Container(a,b,c,d),
-    'list': lambda a,b,c,d: statements.List(a,b,c,d),
-    'uses': lambda a,b,c,d: statements.Uses(a,b,c,d),
-    'choice': lambda a,b,c,d: statements.Choice(a,b,c,d),
-    'case': lambda a,b,c,d: statements.Case(a,b,c,d),
-    'augment': lambda a,b,c,d: statements.Augment(a,b,c,d),
-    'anyxml': lambda a,b,c,d: statements.AnyXML(a,b,c,d),
-    'rpc': lambda a,b,c,d: statements.Rpc(a,b,c,d),
-    'input': lambda a,b,c,d: statements.Input(a,b,c,d),
-    'output': lambda a,b,c,d: statements.Output(a,b,c,d),
-    'notification': lambda a,b,c,d: statements.Notification(a,b,c,d),
-    }
-                  
-
 def chk_module_statements(ctx, module_stmt, canonical=False):
     """Validate the statement hierarchy according to the grammar.
 
@@ -492,30 +458,58 @@ def chk_module_statements(ctx, module_stmt, canonical=False):
     _chk_stmts(ctx, module_stmt.pos, [module_stmt], top_stmts, canonical)
     return n == len(ctx.errors)
 
+def chk_statement(ctx, stmt, grammar, canonical=False):
+    """Validate `stmt` according to `grammar`.
+
+    Marks each statement in the hirearchy with stmt.is_grammatically_valid,
+    which is a boolean.
+
+    Return True if stmt is valid, False otherwise.
+    """
+    n = len(ctx.errors)
+    _chk_stmts(ctx, stmt.pos, [stmt], grammar, canonical)
+    return n == len(ctx.errors)
+
 def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
     for stmt in stmts:
+        stmt.is_grammatically_valid = False
         if not util.is_prefixed(stmt.keyword):
             match_res = _match_stmt(ctx, stmt, spec, canonical)
             if match_res == None:
                 error.err_add(ctx.errors, stmt.pos,
                               'UNEXPECTED_KEYWORD', stmt.keyword);
             else:
-                (_arg_type, subspec) = stmt_map[stmt.keyword]
+                (arg_type, subspec) = stmt_map[stmt.keyword]
                 # FIXME: hack to handle the current situation where some
                 # stmts' grammar is context dependant.  I hope this gets
                 # fixed with a special 'refine' statement.
                 if is_refinement:
                     if stmt.keyword == 'leaf':
-                        (_arg_type, subspec) = stmt_map['refined-leaf']
+                        (arg_type, subspec) = stmt_map['refined-leaf']
                     elif stmt.keyword == 'leaf-list':
-                        (_arg_type, subspec) = stmt_map['refined-leaf-list']
+                        (arg_type, subspec) = stmt_map['refined-leaf-list']
                 if stmt.keyword == 'uses':
                     is_refinement = True
+                # verify the statement's argument
+                if arg_type is None and stmt.arg is not None:
+                    error.err_add(ctx.errors, stmt.pos,
+                                  'UNEXPECTED_ARGUMENT', stmt.arg);
+                elif arg_type is not None and stmt.arg is None:
+                    error.err_add(ctx.errors, stmt.pos,
+                                  'EXPECTED_ARGUMENT', stmt.keyword);
+                elif (arg_type is not None and arg_type != 'string' and
+                      syntax.arg_type_map[arg_type].search(stmt.arg) is None):
+                    error.err_add(ctx.errors, stmt.pos,
+                                  'BAD_VALUE', (stmt.arg, arg_type))
+                else:
+                    stmt.is_grammatically_valid = True
+
                 _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical,
                            is_refinement)
                 spec = match_res
         else:
             # FIXME: handle plugin-registered extension grammar
+            stmt.is_grammatically_valid = True
             _chk_stmts(ctx, stmt.pos, stmt.substmts, [('$any', '*')], canonical,
                        is_refinement)
         # update last know position

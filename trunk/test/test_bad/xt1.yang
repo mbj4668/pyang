@@ -1,9 +1,9 @@
 module/*hej*/xt1 {
   namespace "urn:uri:foo"; // test this
   prefix "xt1";
-  import xt2 { prefix xt2; }
+  import xt2 { prefix xt2; } // warning: unused import
   import xt3 { prefix xt3; }
-  import yang-types { prefix yang; }
+  import yang-types { prefix yang; } // warning: unused import
   include xt1s1;
   organization "hopp";
   contact "hej" {
@@ -200,8 +200,8 @@ module/*hej*/xt1 {
 	leaf err2 { type int32; }
       }
     }
-    leaf err2 { type int32; }
-    uses g; // error: err2 already defined!
+    uses g; 
+    leaf err2 { type int32; } // error: err2 already defined!
   }
 
   grouping ww {

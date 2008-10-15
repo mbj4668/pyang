@@ -1,0 +1,14 @@
+module c {
+    namespace "urn:c";
+    prefix c;
+    import b { prefix b; }
+    
+    typedef xx {
+        type b:xx {
+            length "3|5";
+        }
+    }
+
+}
+
+            

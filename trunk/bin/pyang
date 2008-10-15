@@ -47,15 +47,10 @@ Validates the YANG module in <filename>, and all its dependencies."""
                              action="store_true",
                              help="On errors, print the error code instead " \
                              "of the error message."),
-        optparse.make_option("-l", "--level",
-                             dest="level",
-                             default=3,
-                             type="int",
-                             help="Report errors and warnings up to LEVEL. " \
-                             "If any error or warnings are printed, the " \
-                             "program exits with exit code 1, otherwise " \
-                             "with exit code 0. The default error level " \
-                             "is 3."),
+        optparse.make_option("-W", 
+                             dest="warnings",
+                             action="append",
+                             default=[]),
         optparse.make_option("--canonical",
                              dest="canonical",
                              action="store_true",
@@ -92,7 +87,10 @@ Validates the YANG module in <filename>, and all its dependencies."""
     if o.list_errors == True:
         for tag in error.error_codes:
             (level, fmt) = error.error_codes[tag]
-            print "Error:   %s - level %d" % (tag, level)
+            if error.is_warning(level):
+                print "Warning: %s" % tag
+            else:
+                print "Error:   %s" % tag
             print "Message: %s" % fmt
             print ""
         sys.exit(0)
@@ -125,6 +123,8 @@ Validates the YANG module in <filename>, and all its dependencies."""
     if emit_obj != None:
         emit_obj.setup_ctx(ctx)
 
+    exit_code = 0
+
     for filename in filenames:
         try:
             fd = file(filename)
@@ -133,20 +133,41 @@ Validates the YANG module in <filename>, and all its dependencies."""
             sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
             sys.exit(1)
         module = ctx.add_module(filename, text)
+        if module is None:
+            exit_code = 1
 
     ctx.validate()
-    exit_code = 0
-    for (epos, etag, eargs) in ctx.errors:
+
+    def cmp_error(e1, e2):
+        pos1 = e1[0]
+        pos2 = e2[0]
+        if pos1.ref == pos2.ref:
+            return cmp(pos1.line, pos2.line)
+        if pos1.ref == filenames[0]:
+            # first print error for the first filename given
+            return -1;
+        if pos1.ref < pos2.ref:
+            return -1;
+        return 1
+
+    for (epos, etag, eargs) in sorted(ctx.errors, cmp_error):
         elevel = error.err_level(etag)
-        if elevel <= o.level:
-            if o.print_error_code == True:
-                print >> sys.stderr, \
-                      str(epos) + ': [%d] %s' % (elevel, etag)
-            else:
-                print >> sys.stderr, \
-                      str(epos) + ': [%d] ' % \
-                      elevel + error.err_to_str(etag, eargs)
+        if error.is_warning(elevel):
+            type = "warning"
+            if 'error' in o.warnings:
+                exit_code = 1
+            elif 'none' in o.warnings:
+                continue
+        else:
             exit_code = 1
+            type = "error"
+        if o.print_error_code == True:
+            print >> sys.stderr, \
+                str(epos) + ': %s: %s' % (type, etag)
+        else:
+            print >> sys.stderr, \
+                str(epos) + ': %s: ' % type + \
+                error.err_to_str(etag, eargs)
     if o.outfile == None:
         fd = sys.stdout
     else:

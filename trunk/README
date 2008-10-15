@@ -6,6 +6,10 @@ python setup.py install
 
 (this might require root access)
 
+To install in a different location, run:
+
+python setup.py install --prefix=/usr/local
+
 
 Usage
 -----
@@ -45,10 +49,7 @@ pyang/grammar.py
   according to the grammar.
 
 pyang/statements.py
-  Defines the generic Statement class, and special classes for each
-  YANG statement.  Also contains all validation code.
-  This code will be rewritten - all specialized classes will be
-  removed, and the validation code driven by a map instead.
+  Defines the generic Statement class and all validation code.
 
 pyang/yang_parser.py
   YANG tokenizer and parser.

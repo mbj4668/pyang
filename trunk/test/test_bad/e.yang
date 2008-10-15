@@ -1,0 +1,100 @@
+module e {
+    namespace "urn:e";
+    prefix e;
+    
+    import f { // note that prefix f is used in must expression
+        prefix f;
+    }
+
+    typedef arnex {
+        type int32;
+    }
+
+    grouping xxx {
+        typedef arne { // warning: unused typedef
+            type int32;
+        }
+        grouping x { // warning: unused grouping
+            leaf f {
+                type int32;
+            }
+        }
+        leaf z4 {
+            type int32;
+        }
+    }
+
+  container y {
+    must "/f:gg[a='a:s']";
+
+    leaf x {
+      type int32;
+    }
+  }
+
+  augment "/e:y/e:z" {
+    leaf g {
+      type int32;
+    }
+  }
+
+  augment "/e:y/e:z/e:q" {
+    leaf g {
+      type int32;
+    }
+  }
+
+  augment "/e:y" {
+    container z {
+    }
+  }
+
+
+    augment "/e:y/e:z/e:q/e:w" {
+      leaf f {
+          type int32;
+      }
+      container s {
+          config false;
+      }
+    }
+
+    augment "/e:y/e:z/e:q/e:w/e:s" {
+        leaf f {
+            config true;
+            type string;
+        }
+    }
+
+    augment "/e:y/e:z/e:q/e:w/e:e" { // error: e is a leaf
+      leaf f {
+          type int32;
+      }
+  }
+
+
+    augment "/e:y/e:z/e:q/e:g" { // error: g is a leaf
+      leaf f {
+          type int32;
+      }
+    }
+
+    augment "/e:y/e:z/e:q/e:g/e:r" { // error: f is a leaf; r not found
+      leaf f {
+          type int32;
+      }
+    }
+
+  augment "/e:y/e:z" {
+    container q {
+        container w {
+            leaf e {
+                type int32;
+            }
+        }
+    }
+  }
+
+
+
+}
