@@ -7,15 +7,12 @@
 
   o  add validation of instance-identifier defaults
 
-  o  rewrite .validate to be side-effect free
-
   o  better handling of multiple input files
 
-  o  make the parsers even more agnostic of yang grammar - they should
-     not even know about Module.  idea: pass an optional handle
-     function to the parser which can do the classes.  the same parser
-     can then be used to implement overlays.
+  o  fix yin parser to properly handle extensions
 
-  o  restructure statements.py
-     - get rid of duplicate syntax checks
-     - remove most special classes?
+BEFORE NEXT RELEASE:
+
+  o  remove --level; add -Werror/-Wnone to man page
+
+  o  handle local extensions defined in a submodule

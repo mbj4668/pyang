@@ -29,8 +29,8 @@ def emit_yang(ctx, module, fd):
     emit_stmt(ctx, module, fd, '', '  ')
     
 def emit_stmt(ctx, stmt, fd, indent, indentstep):
-    if util.is_prefixed(stmt.keyword):
-        (prefix, identifier) = stmt.keyword
+    if util.is_prefixed(stmt.raw_keyword):
+        (prefix, identifier) = stmt.raw_keyword
         keyword = prefix + ':' + identifier
     else:
         keyword = stmt.keyword

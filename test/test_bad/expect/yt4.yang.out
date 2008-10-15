@@ -1,2 +1,1 @@
-yt4.yang:6: [1] MODULE_NOT_FOUND
-yt4.yang:38: [1] TYPE_NOT_FOUND
+yt4.yang:6: error: MODULE_NOT_FOUND

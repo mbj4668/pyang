@@ -4,22 +4,34 @@ import re
 
 ### Regular expressions - constraints on arguments
 
+# keywords and identifiers
 identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
+prefix = identifier
+keyword = '((' + prefix + '):)?(' + identifier + ')'
+
+re_keyword = re.compile(keyword)
+re_keyword_start = re.compile('^' + keyword)
+
 pos_decimal = r"[1-9][0-9]*"
 nonneg_decimal = r"(0|[1-9])[0-9]*"
 decimal_ = r"[-+]?" + nonneg_decimal 
 float_ = decimal_ + r"\.[0-9]+(E[-+]?[0-9]+)?$"
-length_boundary = r"(min|max|" + nonneg_decimal + r")"
-length_part = length_boundary + r"(\s*..\s*" + length_boundary + r")?"
-length_expr = length_part + r"(\s*\|\s*" + length_part + r")*"
-range_boundary = r"(-INF|INF|min|max|" + decimal_ + r"|" + float_ + r")"
-range_part = range_boundary + r"(\s*..\s*" + range_boundary + r")?"
-range_expr = range_part + r"(\s*\|\s*" + range_part + r")*"
+length_str = '((min|max|[0-9]+)\s*' \
+             '(\.\.\s*' \
+             '(min|max|[0-9]+)\s*)?)'
+length_expr = length_str + '(\|\s*' + length_str + ')*'
+re_length_part = re.compile(length_str)
+range_str = '((\-INF|min|max|((\+|\-)?[0-9]+(\.[0-9]+)?))\s*' \
+            '(\.\.\s*' \
+            '(INF|min|max|(\+|\-)?[0-9]+(\.[0-9]+)?)\s*)?)'
+range_expr = range_str + '(\|\s*' + range_str + ')*'
+re_range_part = re.compile(range_str)
+
 
 # path and unique
-node_id = "(" + identifier + ":)?" + identifier
+node_id = keyword
 rel_path_keyexpr = r"(\.\./)+(" + node_id + "/)*" + node_id
-path_key_expr = r"([$]this/" + rel_path_keyexpr + ")"
+path_key_expr = r"(current\(\)/" + rel_path_keyexpr + ")"
 path_equality_expr = node_id + r"\s*=\s*" + path_key_expr
 path_predicate = r"\[\s*" + path_equality_expr + r"\s*\]"
 absolute_path_arg = "(/" + node_id + "(" + path_predicate + ")*)+"
@@ -31,6 +43,7 @@ descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
 unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
 augment_arg = "(" + absolute_schema_nodeid + "|" + descendant_schema_nodeid + ")"
 key_arg = identifier + "(\s+" + identifier + ")*"
+re_schema_node_id_part = re.compile('/' + node_id)
 
 # URI - RFC 3986, Appendix A
 scheme = "[A-Za-z][-+.A-Za-z0-9]*"

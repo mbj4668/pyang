@@ -35,7 +35,7 @@ module yt4 {
       list con1_list1 {
         reference "RFC 4741";
         leaf xx { type con1_typ1; }
-        leaf xxx { type yt4:con1_typ1; } // should NOT be error
+        leaf xxx { type yt4:con1_typ1; }
         uses con1_grp1 {
           leaf b { 
             description "new b";

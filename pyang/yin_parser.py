@@ -118,19 +118,16 @@ class YinParser(object):
             if ns != yin_namespace:
                 # FIXME: error - extension on top-level
                 return
-            if local_name == 'module':
-                is_submodule = False
-            elif local_name == 'submodule':
-                is_submodule = True
+            if local_name == 'module' or local_name == 'submodule':
+                pass
             else:
                 error.err_add(self.ctx.errors, self.pos,
                               'UNEXPECTED_KEYWORD_N',
                               (local_name, ('module', 'submodule')))
                 raise error.Abort
             arg = self.get_arg_from_attr('name', attrs)
-            stmt = statements.Module(self.pos, self.ctx, arg, is_submodule)
+            stmt = statements.Statement(None, None, self.pos, local_name, arg)
             self.module = stmt
-            self.check_attr(self.pos, attrs)
             self.stmt_stack.append(stmt)
             return
 
@@ -211,11 +208,6 @@ class YinParser(object):
                 raise error.Abort
 
     def create_statement(self, parent, keywd, arg):
-        try:
-            handle = grammar.handler_map[keywd]
-            stmt = handle(parent, self.pos, self.module, arg)
-        except KeyError:
-            stmt = statements.Statement(parent, self.pos, keywd,
-                                        self.module, arg)
+        stmt = statements.Statement(self.module, parent, self.pos, keywd, arg)
         parent.substmts.append(stmt)
         self.stmt_stack.append(stmt)

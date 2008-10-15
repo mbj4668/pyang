@@ -1,2 +1,2 @@
-xt3.yang:4: [1] UNEXPECTED_KEYWORD_1
-xt1s1.yang:7: [1] PREFIX_NOT_DEFINED
+xt1s1.yang:7: error: PREFIX_NOT_DEFINED
+xt3.yang:4: error: UNEXPECTED_KEYWORD_1

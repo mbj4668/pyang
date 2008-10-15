@@ -51,12 +51,16 @@ module yt5 {
             uses AAA;
           }
           grouping AAA {
-	    augment yt5:e/yt5:f {
-               leaf hhh { type binary; }
-               leaf h { type B_typ; }
-            }
             typedef B_typ { type instance-identifier; }
-            uses AAAA;
+            uses AAAA {
+/*
+                extend "yt5:e/yt5:f" {
+                    leaf hhh { type binary; }
+                    leaf h { type B_typ; }
+                }
+*/
+            }
+                
             leaf d { type int8; }
           }
         }
@@ -78,19 +82,23 @@ module yt5 {
           units miles;
         }
 
+/*  not allowed anymore
         augment b {
           container c {
             leaf cc { type string; }
           }
         }
-
+*/
       }
 
       container con3 {
-        augment "b/bb/e/f" {
-          container con4 { presence "means something"; }
-        }
-        uses AA;
+          uses AA {
+/*
+              extend "b/bb/e/f" {
+                  container con4 { presence "means something"; }
+              }
+*/
+          }
       }
     }
 
@@ -142,13 +150,17 @@ module yt5 {
     list foo3 {
       uses foo;
       key "foo baz bar";
-      uses bar;
-      unique "goo zzz/zzzz";
-      augment zzz {
-        container con_zzz {
-          presence "enables foo3_zzz service";
-        }
+      uses bar {
+/*
+          extend zzz {
+              container con_zzz {
+                  presence "enables foo3_zzz service";
+              }
+          }
+*/
       }
+            
+      unique "goo zzz/zzzz";
     }
 
     rpc rpc-one {
@@ -162,13 +174,20 @@ module yt5 {
     rpc rpc-two;
 
     rpc rpc-three {
-      input { leaf a { type foo; } }
+      input {
+          leaf a { type foo; }
+          container xx;
+      }
     }
 
   //  FIXME: this should work.  the input node should be
   // auto-created
     augment /rpc-two/input {
-      leaf a { type uint32; }
+      leaf aa { type uint32; }
+    }
+
+    augment /rpc-three/input/xx {
+      leaf aa { type uint32; }
     }
 
     notification notif-one;

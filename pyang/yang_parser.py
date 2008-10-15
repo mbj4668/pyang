@@ -1,8 +1,11 @@
-import syntax
-import grammar
+""" This module implements a generic YANG parser.
+
+The parser does not check any keywords or grammar.
+"""
 import error
-import statements
 import util
+import statements
+import syntax
 
 class YangTokenizer(object):
     def __init__(self, text, pos, errors):
@@ -61,7 +64,7 @@ class YangTokenizer(object):
         """ret: identifier | (prefix, identifier)"""
         self.skip()
 
-        m = statements.re_keyword.match(self.buf)
+        m = syntax.re_keyword.match(self.buf)
         if m == None:
             error.err_add(self.errors, self.pos,
                           'SYNTAX_ERROR', 'illegal keyword: ' + self.buf)
@@ -69,9 +72,9 @@ class YangTokenizer(object):
         else:
             self.set_buf(m.end())
             if m.group(2) == None: # no prefix
-                return m.group(4)
+                return m.group(3)
             else:
-                return (m.group(2), m.group(4))
+                return (m.group(2), m.group(3))
 
     def peek(self):
         """Return next real character in input stream.
@@ -177,24 +180,23 @@ class YangTokenizer(object):
                     return res
                 i = i + 1
 
-
 class YangParser(object):
     def __init__(self):
-        self.module = None
         pass
 
     def parse(self, ctx, ref, text):
-        """Parse the string `text` containing a YANG (sub)module.
+        """Parse the string `text` containing a YANG statement.
 
         Return a Statement on success or None on failure
         """
 
         self.ctx = ctx
         self.pos = error.Position(ref)
+        self.top = None
 
         try:
             self.tokenizer = YangTokenizer(text, self.pos, ctx.errors)
-            module = self._parse_statement(None)
+            stmt = self._parse_statement(None)
         except error.Abort:
             return None
         except error.Eof, e:
@@ -204,7 +206,7 @@ class YangParser(object):
             # we expect a error.Eof at this point, everything else is an error
             self.tokenizer.peek()
         except error.Eof:
-            return module
+            return stmt
         except:
             pass
         error.err_add(self.ctx.errors, self.pos, 'TRAILING_GARBAGE', ())
@@ -212,53 +214,18 @@ class YangParser(object):
 
     def _parse_statement(self, parent):
         keywd = self.tokenizer.get_keyword()
-        if not util.is_prefixed(keywd):
-            # this is a core YANG keyword
-            try:
-                (arg_type, _children) = grammar.stmt_map[keywd]
-            except KeyError:
-                error.err_add(self.ctx.errors, self.pos,
-                              'UNKNOWN_KEYWORD', keywd)
-                raise error.Abort
-                # skip the argument if present
-#                tok = self.tokenizer.peek()
-#                if tok == '{' or tok == ';':
-#                    arg_type = None
-#                else:
-#                    arg_type = 'string'
-
-            # check if the statement needs an argument
-            if arg_type is not None:
-                arg = self.tokenizer.get_string()
-                # verify the argument syntax
-                if (arg_type != 'string' and
-                    syntax.arg_type_map[arg_type].search(arg) is None):
-                    error.err_add(self.ctx.errors, self.pos,
-                                  'BAD_VALUE', (arg, arg_type))
-            else:
-                arg = None
-            # instantiate a class representing this statement
-            if parent == None:
-                stmt = self._top_stmt(keywd, arg)
-                self.module = stmt
-            else:
-                try:
-                    handle = grammar.handler_map[keywd]
-                    stmt = handle(parent, self.pos, self.module, arg)
-                except KeyError:
-                    stmt = statements.Statement(parent, self.pos, keywd,
-                                                self.module, arg)
+        # check for argument
+        tok = self.tokenizer.peek()
+        if tok == '{' or tok == ';':
+            arg = None
         else:
-            # this is an extension
-            # read optional argument
-            tok = self.tokenizer.peek()
-            if tok == '{' or tok == ';':
-                arg = None
-            else:
-                arg = self.tokenizer.get_string()
-            (prefix, identifier) = keywd # FIXME: rewrite ExtensionStmt
-            stmt = statements.ExtensionStatement(parent, self.pos, identifier,
-                                                 prefix, arg)
+            arg = self.tokenizer.get_string()
+
+        stmt = statements.Statement(self.top, parent, self.pos, keywd, arg)
+        if self.top is None:
+            self.pos.top_name = arg
+            self.top = stmt
+ 
         # check for substatements
         tok = self.tokenizer.peek()
         if tok == '{':
@@ -270,21 +237,10 @@ class YangParser(object):
         elif tok == ';':
             self.tokenizer.skip_tok() # skip the ';'
         else:
-            error.err_add(self.ctx.errors, self.pos, 'INCOMPLETE_STATEMENT', tok)
+            error.err_add(self.ctx.errors, self.pos, 'INCOMPLETE_STATEMENT',
+                          (keywd, tok))
             raise error.Abort
         return stmt
-
-    def _top_stmt(self, keywd, arg):
-        if keywd == 'module':
-            is_submodule = False
-        elif keywd == 'submodule':
-            is_submodule = True
-        else:
-            error.err_add(self.ctx.errors, self.pos,
-                          'UNEXPECTED_KEYWORD_N',
-                          (keywd, ('module', 'submodule')))
-            raise error.Abort
-        return statements.Module(self.pos, self.ctx, arg, is_submodule)
 
 # FIXME: tmp debug
 import sys
@@ -296,7 +252,7 @@ def ppkeywd(tok):
         return tok
 
 def pp(s, indent=0):
-    sys.stdout.write(" " * indent + ppkeywd(s.keyword))
+    sys.stdout.write(" " * indent + ppkeywd(s.raw_keyword))
     if s.arg is not None:
         sys.stdout.write(" '" + s.arg + "'")
     if s.substmts == []:

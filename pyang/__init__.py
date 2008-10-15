@@ -3,6 +3,7 @@
 import os
 import string
 import sys
+import zlib
 
 import error
 import yang_parser
@@ -19,10 +20,11 @@ class Context(object):
         """`repository` is a `Repository` instance"""
         
         self.modules = {}
-        """dict of modulename:<class Module>)"""
+        """dict of modulename:<class Module>)
+        contains all modules and submodule found"""
         
         self.module_list = []
-        """ordered list of modules; we must validate in this order"""
+        """list of modules added explicitly to the Context"""
         
         self.repository = repository
         self.errors = []
@@ -37,9 +39,14 @@ class Context(object):
         `text` is the raw text data
         `format` is one of 'yang' or 'yin'.
 
-        Returns the parsed module on success, and None on error.
+        Returns the parsed and validated module on success, and None on error.
         """
+        module = self._add_module(ref, text, format)
+        if module != None:
+            self.module_list.append(module)
+            return module
 
+    def _add_module(self, ref, text, format=None):
         if format == None:
             format = util.guess_format(text)
 
@@ -49,22 +56,46 @@ class Context(object):
             p = yang_parser.YangParser()
 
         module = p.parse(self, ref, text)
-        if module == None:
+        if module is None:
             return None
+        if module.arg is None:
+            error.err_add(self.errors, module.pos,
+                          'EXPECTED_ARGUMENT', module.keyword)
+            return None
+        top_keywords = ['module', 'submodule']
+        if module.keyword not in top_keywords:
+            error.err_add(self.errors, module.pos,
+                          'UNEXPECTED_KEYWORD_N', (module.keyword, top_keywords))
+            return None
+            
 
-        grammar.chk_module_statements(self, module, self.canonical)
-        self._set_attrs(module)
+        module.i_adler32 = zlib.adler32(text)
 
-        if module.name not in self.modules or self.modules[module.name] == None:
-            self.modules[module.name] = module
-            self.module_list.append(module)
+        if module.arg in self.modules:
+            other = self.modules[module.arg]
+            if other.i_adler32 != module.i_adler32:
+                error.err_add(self.errors, module.pos,
+                              'DUPLICATE_MODULE', (module.arg, other.pos))
+                return None
+            # exactly same module
+            return other
+
+        statements.validate_module(self, module)
+
+        self.modules[module.arg] = module
         return module
 
     def del_module(self, module):
         """Remove a module from the context"""
 
-        del self.modules[module.name]
+        del self.modules[module.arg]
         self.module_list.remove(module)
+
+    def get_module(self, modulename):
+        if modulename in self.modules:
+            return self.modules[modulename]
+        else:
+            return None
 
     def search_module(self, pos, modulename):
         """Searches for a module named `modulename` in the repository
@@ -82,8 +113,8 @@ class Context(object):
         except self.repository.ReadError, ex:
             error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
         (ref, format, text) = r
-        module = self.add_module(ref, text, format)
-        if modulename != module.name:
+        module = self._add_module(ref, text, format)
+        if modulename != module.arg:
             error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
                           (module.name, filename, modulename))
             self.del_module(module)
@@ -91,71 +122,22 @@ class Context(object):
             return None
         return module
 
-    def _set_attrs(self, stmt):
-        """temporary function which sets class attributes for substatements"""
-
-        def get_occurance(subkeywd):
-            def find(spec):
-                for (keywd, occ) in spec:
-                    if keywd == subkeywd:
-                        return occ
-                    if keywd == '$choice':
-                        for s in occ:
-                            r = find(s)
-                            if r is not None:
-                                return r
-                    if keywd == '$interleave':
-                        r = find(occ)
-                        if r is not None:
-                            return r
-                return None
-            if util.is_prefixed(stmt.keyword): return '*'
-            (_arg_type, children) = grammar.stmt_map[stmt.keyword]
-            return find(children)
-
-        def get_attr(keywd):
-            if keywd == 'import': return "import_"
-            if keywd in ['leaf', 'container', 'leaf-list', 'list', 'anyxml',
-                         'case', 'choice', 'uses', 'rpc', 'notification']:
-                return 'children'
-            if util.is_prefixed(keywd): return None
-            return keywd.replace('-','_')
-
-        for s in stmt.substmts:
-            occurance = get_occurance(s.keyword)
-            attr = get_attr(s.keyword)
-            if attr is not None and attr in stmt.__dict__:
-                if occurance == '?' or occurance == '1':
-                    # single-instance attribute
-                    stmt.__dict__[attr] = s
-                else:
-                    # make sure the substmt is not already defined
-                    if (s.keyword != 'augment' and
-                        s.keyword != 'type' and
-                        util.attrsearch(s.arg, 'arg', stmt.__dict__[attr])):
-                        error.err_add(self.errors, s.pos,
-                                      'DUPLICATE_STATEMENT', s.arg)
-                    stmt.__dict__[attr].append(s)
-            self._set_attrs(s)
-            if s.keyword == 'import':
-                s.parent.set_import(s)
-            elif s.keyword == 'include':
-                s.parent.set_include(s)
-
     def validate(self):
         uris = {}
         for modname in self.modules:
             m = self.modules[modname]
-            if m != None and m.namespace != None:
-                uri = m.namespace.arg
-                if uri in uris:
-                    error.err_add(self.errors, m.namespace.pos,
-                                  'DUPLICATE_NAMESPACE', (uri, uris[uri]))
-                else:
-                    uris[uri] = m.name
-        for m in self.module_list:
             if m != None:
-                m.validate()
+                namespace = m.search_one('namespace')
+                if namespace != None:
+                    uri = namespace.arg
+                    if uri in uris:
+                        error.err_add(self.errors, namespace.pos,
+                                      'DUPLICATE_NAMESPACE', (uri, uris[uri]))
+                    else:
+                        uris[uri] = m.arg
+   #     for m in self.module_list:
+   #         if m != None:
+   #             m.validate()
 
 class Repository(object):
     """Abstract base class that represents a module repository"""
@@ -169,7 +151,7 @@ class Repository(object):
         Returns (`ref`, `format`, `text`) if found, or None if not found.
         `ref` is a string which is used to identify the source of
               the text for the user.  used in error messages
-        `format` is one of 'yang' or 'yin'.
+        `format` is one of 'yang' or 'yin' or None.
         `text` is the raw text data
 
         Raises `ReadError`

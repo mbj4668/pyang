@@ -1,2 +1,2 @@
-yt5a.yang:20: [1] MODULE_NOT_FOUND
-yt5a.yang:59: [3] DUPLICATE_UNIQUE
+yt5a.yang:20: error: MODULE_NOT_FOUND
+yt5a.yang:59: error: DUPLICATE_UNIQUE
