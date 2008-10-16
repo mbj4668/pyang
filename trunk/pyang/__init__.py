@@ -80,9 +80,9 @@ class Context(object):
             # exactly same module
             return other
 
+        self.modules[module.arg] = module
         statements.validate_module(self, module)
 
-        self.modules[module.arg] = module
         return module
 
     def del_module(self, module):

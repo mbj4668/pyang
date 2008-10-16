@@ -406,13 +406,17 @@ def validate_path_expr(errors, path):
                 i = i + 1
             return s[i:]
     
-        def parse_identifier(s):
+        def parse_identifier(s, is_absolute):
             m = syntax.re_keyword_start.match(s)
             s = s[m.end():]
             if m.group(2) is None: # no prefix
                 return (m.group(3), s)
             elif m.group(2) == path.i_module.i_prefix: # local module
                 return (m.group(3), s)
+#            elif is_absolute == False:
+                # a relative keypath in a 
+#                err_add(errors, pos, 'TYPE_VALUE',
+#                        (str, self.definition, 'no member type matched' + errstr))
             else:
                 prefix = m.group(2)
                 mod = statements.prefix_to_module(path.i_module, prefix,
@@ -445,11 +449,12 @@ def validate_path_expr(errors, path):
             return ((identifier, up, dn), s)
 
         (up, s) = parse_dot_dot(s)
+        is_absolute = up == -1
         dn = []
         i = 0
         # all '..'s are now parsed
         while len(s) > 0:
-            (identifier, s) = parse_identifier(s[i:])
+            (identifier, s) = parse_identifier(s[i:], is_absolute)
             dn.append(identifier)
             if len(s) == 0:
                 break

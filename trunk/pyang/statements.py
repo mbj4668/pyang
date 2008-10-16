@@ -63,6 +63,9 @@ def validate_module(ctx, module):
                 if 'i_children' in stmt.__dict__:
                     for s in stmt.i_children:
                         iterate(s, phase)
+                for s in stmt.substmts:
+                    if 'i_has_i_children' in s.__dict__:
+                        iterate(s, phase)
             else:
                 for s in stmt.substmts:
                     iterate(s, phase)
@@ -186,7 +189,7 @@ _v_i_children = {
     'reference_1':True,
     'reference_2':True,
 }
-"""Phases in this dict are run over i_children."""
+"""Phases in this dict are run over the stmts which has i_children."""
 
 keyword_with_children = {
     'module':True,
@@ -453,8 +456,7 @@ def v_type_type(ctx, stmt):
             return
         stmt.i_typedef = search_typedef(pmodule, name)
         if stmt.i_typedef is None:
-            err_add(ctx.errors, stmt.pos,
-            'TYPE_NOT_FOUND', (name, pmodule.name))
+            err_add(ctx.errors, stmt.pos, 'TYPE_NOT_FOUND', (name, pmodule.arg))
             return
         else:
             stmt.i_typedef.i_is_unused = False
@@ -608,6 +610,7 @@ def v_type_grouping(ctx, stmt):
 
     stmt.i_is_validated = 'in_progress'
     stmt.i_is_unused = True
+    stmt.i_has_i_children = True
 
     name = stmt.arg
     if stmt.parent.parent is not None:
@@ -667,10 +670,10 @@ def v_type_extension(ctx, stmt):
         return
     ext_arg = ext.search_one('argument')
     if stmt.arg is not None and ext_arg is None:
-        err_add(errors, stmt.pos, 'EXTENSION_ARGUMENT_PRESENT',
+        err_add(ctx.errors, stmt.pos, 'EXTENSION_ARGUMENT_PRESENT',
                 identifier)
     elif stmt.arg is None and ext_arg is not None:
-        err_add(errors, stmt.pos, 'EXTENSION_NO_ARGUMENT_PRESENT',
+        err_add(ctx.errors, stmt.pos, 'EXTENSION_NO_ARGUMENT_PRESENT',
                 identifier)
 
     

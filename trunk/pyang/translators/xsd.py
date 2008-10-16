@@ -637,6 +637,9 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                     # we have to generate a new derived type with the
                     # pattern restriction only
                     new_type = copy.copy(parent)
+                    # remove length
+                    length_stmt = parent.search_one('length')
+                    new_type.substmts.remove(length_stmt)
                     # FIXME: remove length
                     #        new_type.length = None
                     # type might be in another module, so we might need to
@@ -745,7 +748,7 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         if len(type.search('enum')) > 0:
             for e in type.search('enum'):
                 fd.write(indent + '    <xs:enumeration value=%s/>\n' % \
-                    quoteattr(e.arg))
+                             quoteattr(e.arg))
         elif type.search_one('length') != None:
             # other cases in union above
             [(lo,hi)] = type.i_lengths

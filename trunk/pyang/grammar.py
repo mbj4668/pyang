@@ -99,6 +99,9 @@ top_stmts = [
 ]
 """Top-level statements."""
 
+def add_stmt(stmt, grammar_):
+    stmt_map[stmt] = grammar_
+
 stmt_map = {
     'module':
         ('identifier',

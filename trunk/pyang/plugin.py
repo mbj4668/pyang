@@ -78,7 +78,7 @@ class PyangPlugin(object):
     ## library methods
 
     def setup_ctx(self, ctx):
-        """Modify the Context before at setup time.
+        """Modify the Context at setup time.
 
         Override this method to modify the Context before the module
         repository is accessed.
