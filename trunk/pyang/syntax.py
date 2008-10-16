@@ -115,6 +115,11 @@ Regular expressions for all argument types except plain string that
 are checked directly by the parser.
 """
 
+def add_arg_type(arg_type, regexp):
+    """Add a new arg_type to the map.
+    Used by extension plugins to register their own argument types."""
+    arg_type_map[arg_type] = regexp
+
 yin_map = {
     "anyxml": (False, "name"),
     "argument": (False, "name"),
