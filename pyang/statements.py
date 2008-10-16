@@ -1325,7 +1325,7 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
             else:
                 err_add(ctx.errors, pathpos, 'KEYREF_IDENTIFIER_BAD_NODE',
                         (module_name, name, stmt.arg, stmt.pos,
-                         ptr.keyword))
+                         util.keyword_to_str(ptr.keyword)))
                 raise NotFound
             i = i + 1
         return (key_list, keys, ptr)

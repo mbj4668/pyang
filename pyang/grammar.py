@@ -99,8 +99,16 @@ top_stmts = [
 ]
 """Top-level statements."""
 
-def add_stmt(stmt, grammar_):
-    stmt_map[stmt] = grammar_
+def add_stmt(stmt, (arg, rules)):
+    """Use by plugins to add grammar for an extension statement."""
+    stmt_map[stmt] = (arg, rules)
+
+def add_to_rules(stmts, rules):
+    """Use by plugins to add extra rules to the existing rules for
+    a statement."""
+    for s in stmts:
+        (arg, rules0) = stmt_map[s]
+        stmt_map[s] = (arg, rules0 + rules)
 
 stmt_map = {
     'module':
@@ -452,6 +460,16 @@ where <occurance> is one of: '?', '1', '+', '*'.
 and <case> is a list of substatements
 """
 
+extension_modules = []
+"""A list of YANG module names for which extensions are validated"""
+
+def register_extension_module(modname):
+    """Add a modulename to the list of known YANG module where extensions
+    are defined.
+    Used by plugins to register that they implement extensions from
+    a particular module."""
+    extension_modules.append(modname)
+
 def chk_module_statements(ctx, module_stmt, canonical=False):
     """Validate the statement hierarchy according to the grammar.
 
@@ -477,41 +495,50 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
     for stmt in stmts:
         stmt.is_grammatically_valid = False
         if not util.is_prefixed(stmt.keyword):
-            match_res = _match_stmt(ctx, stmt, spec, canonical)
-            if match_res == None:
-                error.err_add(ctx.errors, stmt.pos,
-                              'UNEXPECTED_KEYWORD', stmt.keyword);
-            else:
-                (arg_type, subspec) = stmt_map[stmt.keyword]
-                # FIXME: hack to handle the current situation where some
-                # stmts' grammar is context dependant.  I hope this gets
-                # fixed with a special 'refine' statement.
-                if is_refinement:
-                    if stmt.keyword == 'leaf':
-                        (arg_type, subspec) = stmt_map['refined-leaf']
-                    elif stmt.keyword == 'leaf-list':
-                        (arg_type, subspec) = stmt_map['refined-leaf-list']
-                if stmt.keyword == 'uses':
-                    is_refinement = True
-                # verify the statement's argument
-                if arg_type is None and stmt.arg is not None:
-                    error.err_add(ctx.errors, stmt.pos,
-                                  'UNEXPECTED_ARGUMENT', stmt.arg);
-                elif arg_type is not None and stmt.arg is None:
-                    error.err_add(ctx.errors, stmt.pos,
-                                  'EXPECTED_ARGUMENT', stmt.keyword);
-                elif (arg_type is not None and arg_type != 'string' and
-                      syntax.arg_type_map[arg_type].search(stmt.arg) is None):
-                    error.err_add(ctx.errors, stmt.pos,
-                                  'BAD_VALUE', (stmt.arg, arg_type))
-                else:
-                    stmt.is_grammatically_valid = True
-
-                _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical,
-                           is_refinement)
-                spec = match_res
+            chk_grammar = True
         else:
-            # FIXME: handle plugin-registered extension grammar
+            (modname, _identifier) = stmt.keyword
+            if modname in extension_modules:
+                chk_grammar = True
+            else:
+                chk_grammar = False
+        match_res = _match_stmt(ctx, stmt, spec, canonical)
+        if match_res is None and chk_grammar == True:
+            error.err_add(ctx.errors, stmt.pos,
+                          'UNEXPECTED_KEYWORD', 
+                          util.keyword_to_str(stmt.keyword));
+        elif match_res is not None:
+            (arg_type, subspec) = stmt_map[stmt.keyword]
+            # FIXME: hack to handle the current situation where some
+            # stmts' grammar is context dependant.  I hope this gets
+            # fixed with a special 'refine' statement.
+            if is_refinement:
+                if stmt.keyword == 'leaf':
+                    (arg_type, subspec) = stmt_map['refined-leaf']
+                elif stmt.keyword == 'leaf-list':
+                    (arg_type, subspec) = stmt_map['refined-leaf-list']
+            if stmt.keyword == 'uses':
+                is_refinement = True
+            # verify the statement's argument
+            if arg_type is None and stmt.arg is not None:
+                error.err_add(ctx.errors, stmt.pos,
+                              'UNEXPECTED_ARGUMENT', stmt.arg);
+            elif arg_type is not None and stmt.arg is None:
+                error.err_add(ctx.errors, stmt.pos,
+                              'EXPECTED_ARGUMENT',
+                              util.keyword_to_str(stmt.keyword));
+            elif (arg_type is not None and arg_type != 'string' and
+                  syntax.arg_type_map[arg_type].search(stmt.arg) is None):
+                error.err_add(ctx.errors, stmt.pos,
+                              'BAD_VALUE', (stmt.arg, arg_type))
+            else:
+                stmt.is_grammatically_valid = True
+
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical,
+                       is_refinement)
+            spec = match_res
+        else:
+            # unknown extension
             stmt.is_grammatically_valid = True
             _chk_stmts(ctx, stmt.pos, stmt.substmts, [('$any', '*')], canonical,
                        is_refinement)
@@ -579,14 +606,16 @@ def _match_stmt(ctx, stmt, spec, canonical):
             for (keywd, occurance) in spec[:i]:
                 if occurance == '1' or occurance == '+':
                     error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                                  (stmt.keyword, keywd))
+                                  (util.keyword_to_str(stmt.keyword),
+                                   util.keyword_to_str(keywd)))
             # consume them so we don't report the same error again
             spec = spec[i:]
             i = 0
         elif canonical == True:
             if occurance == '1' or occurance == '+':
                 error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                              (stmt.keyword, keywd))
+                              (util.keyword_to_str(stmt.keyword),
+                               util.keyword_to_str(keywd)))
                 # consume it so we don't report the same error again
                 spec = spec[i:]
                 i = 0
