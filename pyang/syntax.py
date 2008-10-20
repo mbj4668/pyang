@@ -27,6 +27,8 @@ range_str = '((\-INF|min|max|((\+|\-)?[0-9]+(\.[0-9]+)?))\s*' \
 range_expr = range_str + '(\|\s*' + range_str + ')*'
 re_range_part = re.compile(range_str)
 
+re_identifier = re.compile("^" + identifier + "$")
+
 
 # path and unique
 node_id = keyword
@@ -90,24 +92,41 @@ uri = (scheme + ":" + hier_part + r"(\?" + query + ")?" +
 # Date
 date = r"[1-2][0-9]{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
 
+re_nonneg_decimal = re.compile("^" + nonneg_decimal + "$")
+re_decimal = re.compile("^" + decimal_ + "$")
+re_uri = re.compile("^" + uri + "$")
+re_boolean = re.compile("^(true|false)$")
+re_version = re.compile("^1$")
+re_date = re.compile("^" + date +"$")
+re_status = re.compile("^(current|obsolete|deprecated)$")
+re_key = re.compile("^" + key_arg + "$")
+re_length = re.compile("^" + length_expr + "$")
+re_range = re.compile("^" + range_expr + "$")
+re_pos_decimal = re.compile(r"^(unbounded|" + pos_decimal + r")$")
+re_ordered_by = re.compile(r"^(user|system)$")
+re_node_id = re.compile("^" + node_id + "$")
+re_path = re.compile("^" + path_arg + "$")
+re_unique = re.compile("^" + unique_arg + "$")
+re_augment = re.compile("^" + augment_arg + "$")
+
 arg_type_map = {
-    "identifier": re.compile("^" + identifier + "$"),
-    "non-negative-decimal": re.compile("^" + nonneg_decimal + "$"),
-    "decimal": re.compile("^" + decimal_ + "$"),
-    "uri": re.compile("^" + uri + "$"),
-    "boolean": re.compile("^(true|false)$"),
-    "version": re.compile("^1$"),
-    "date": re.compile("^" + date +"$"),
-    "status-arg": re.compile("^(current|obsolete|deprecated)$"),
-    "key-arg": re.compile("^" + key_arg + "$"),
-    "length-arg": re.compile("^" + length_expr + "$"),
-    "range-arg": re.compile("^" + range_expr + "$"),
-    "max-value": re.compile(r"^(unbounded|" + pos_decimal + r")$"),
-    "ordered-by-arg": re.compile(r"^(user|system)$"),
-    "identifier-ref": re.compile("^" + node_id + "$"),
-    "path-arg": re.compile("^" + path_arg + "$"),
-    "unique-arg": re.compile("^" + unique_arg + "$"),
-    "augment-arg": re.compile("^" + augment_arg + "$"),
+    "identifier": lambda s: re_identifier.search(s) is not None,
+    "non-negative-decimal": lambda s: re_nonneg_decimal.search(s) is not None,
+    "decimal": lambda s: re_decimal.search(s) is not None,
+    "uri": lambda s: re_uri.search(s) is not None,
+    "boolean": lambda s: re_boolean.search(s) is not None,
+    "version": lambda s: re_version.search(s) is not None,
+    "date": lambda s: re_date.search(s) is not None,
+    "status-arg": lambda s: re_status.search(s) is not None,
+    "key-arg": lambda s: re_key.search(s) is not None,
+    "length-arg": lambda s: re_length.search(s) is not None,
+    "range-arg": lambda s: re_range.search(s) is not None,
+    "max-value": lambda s: re_pos_decimal.search(s) is not None,
+    "ordered-by-arg": lambda s: re_ordered_by.search(s) is not None,
+    "identifier-ref": lambda s: re_node_id.search(s) is not None,
+    "path-arg": lambda s: re_path.search(s) is not None,
+    "unique-arg": lambda s: re_unique.search(s) is not None,
+    "augment-arg": lambda s: re_augment.search(s) is not None,
     }
 """Argument type definitions.
 

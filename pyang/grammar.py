@@ -103,7 +103,7 @@ def add_stmt(stmt, (arg, rules)):
     """Use by plugins to add grammar for an extension statement."""
     stmt_map[stmt] = (arg, rules)
 
-def add_to_rules(stmts, rules):
+def add_to_stmts_rules(stmts, rules):
     """Use by plugins to add extra rules to the existing rules for
     a statement."""
     for s in stmts:
@@ -507,7 +507,7 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
             error.err_add(ctx.errors, stmt.pos,
                           'UNEXPECTED_KEYWORD', 
                           util.keyword_to_str(stmt.keyword));
-        elif match_res is not None:
+        elif match_res is not None and chk_grammar == True:
             (arg_type, subspec) = stmt_map[stmt.keyword]
             # FIXME: hack to handle the current situation where some
             # stmts' grammar is context dependant.  I hope this gets
@@ -528,7 +528,7 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
                               'EXPECTED_ARGUMENT',
                               util.keyword_to_str(stmt.keyword));
             elif (arg_type is not None and arg_type != 'string' and
-                  syntax.arg_type_map[arg_type].search(stmt.arg) is None):
+                  syntax.arg_type_map[arg_type](stmt.arg) == False):
                 error.err_add(ctx.errors, stmt.pos,
                               'BAD_VALUE', (stmt.arg, arg_type))
             else:
@@ -547,7 +547,8 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
     # any non-optional statements left are errors
     for (keywd, occurance) in spec:
         if occurance == '1' or occurance == '+':
-            error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD', keywd)
+            error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD',
+                          util.keyword_to_str(keywd))
 
 def _match_stmt(ctx, stmt, spec, canonical):
     """Match stmt against the spec.
