@@ -228,11 +228,14 @@ def add_validation_phase(phase, before=None, after=None):
     # otherwise append at the end
     _validation_phases.append(phase)
 
-def add_validation_fun(phase, keyword, f):
+def add_validation_fun(phase, keywords, f):
     """Add a validation function to some phase in the framework.
 
+    Function `f` is called for each valid occurance of each keyword in
+    `keywrods`.
     Can be used by plugins to do special validation of extensions."""
-    _validation_map[(phase, keyword)] = f
+    for keyword in keywords:
+        _validation_map[(phase, keyword)] = f
 
 def add_validation_var(var_name, var_dict):
     """Add a validation variable to the framework.
@@ -1234,7 +1237,7 @@ def add_keyref_path(keyrefs, type_):
 
 def validate_keyref_path(ctx, stmt, path, pathpos):
     def find_identifier(identifier):
-        if type(identifier) == type(()) and len(type) == 2:
+        if type(identifier) == type(()) and len(identifier) == 2:
             (module, name) = identifier
             return (module, name)
         else: # local identifier
