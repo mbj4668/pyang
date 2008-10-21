@@ -89,7 +89,8 @@ class Context(object):
         """Remove a module from the context"""
 
         del self.modules[module.arg]
-        self.module_list.remove(module)
+        if module in self.module_list:
+            self.module_list.remove(module)
 
     def get_module(self, modulename):
         if modulename in self.modules:
@@ -116,7 +117,7 @@ class Context(object):
         module = self._add_module(ref, text, format)
         if modulename != module.arg:
             error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
-                          (module.name, filename, modulename))
+                          (module.arg, ref, modulename))
             self.del_module(module)
             self.modules[modulename] = None
             return None

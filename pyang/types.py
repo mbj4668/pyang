@@ -4,6 +4,7 @@ from error import err_add
 from debug import dbg
 import util
 import syntax
+import statements
 
 class Abort(Exception):
     pass
@@ -420,7 +421,7 @@ def validate_path_expr(errors, path):
             else:
                 prefix = m.group(2)
                 mod = statements.prefix_to_module(path.i_module, prefix,
-                                                  path.pos, ctx.errors)
+                                                  path.pos, errors)
                 if mod is not None:
                     return ((mod, m.group(3)), s)
                 else:
@@ -429,7 +430,7 @@ def validate_path_expr(errors, path):
         def parse_key_predicate(s):
             s = s[1:] # skip '['
             s = skip_space(s)
-            (identifier, s) = parse_identifier(s)
+            (identifier, s) = parse_identifier(s, False)
             s = skip_space(s)
             s = s[1:] # skip '='
             s = skip_space(s)
@@ -438,7 +439,7 @@ def validate_path_expr(errors, path):
             s = skip_space(s)
             dn = []
             while True:
-                (xidentifier, s) = parse_identifier(s[i:])
+                (xidentifier, s) = parse_identifier(s[i:], False)
                 dn.append(xidentifier)
                 if s[0] == '/':
                     s = s[1:] # skip '/'
