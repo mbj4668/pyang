@@ -491,7 +491,10 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
                 chk_grammar = True
             else:
                 chk_grammar = False
-        match_res = _match_stmt(ctx, stmt, spec, canonical)
+        if chk_grammar == True:
+            match_res = _match_stmt(ctx, stmt, spec, canonical)
+        else:
+            match_res = None
         if match_res is None and chk_grammar == True:
             error.err_add(ctx.errors, stmt.pos,
                           'UNEXPECTED_KEYWORD', 

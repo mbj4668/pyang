@@ -1150,10 +1150,10 @@ def modulename_to_module(module, modulename):
     return module
 
 def has_type(type, names):
-    """Return name if `type` has name as one of its base types,
+    """Return type with name if `type` has name as one of its base types,
     and name is in the `names` list.  otherwise, return None."""
     if type.arg in names:
-        return type.arg
+        return type
     for t in type.search('type'): # check all union's member types
         r = has_type(t, names)
         if r is not None:

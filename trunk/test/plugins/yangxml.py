@@ -122,7 +122,7 @@ def emit_type_val(t, fd):
         pass
     elif range != None:
         (lo,hi) = pick(t.i_ranges)
-        ts = types.yang_type_specs[inttype]
+        ts = types.yang_type_specs[inttype.arg]
         if lo == 'min':
             lo = ts.min
         if hi == 'max':
@@ -135,7 +135,7 @@ def emit_type_val(t, fd):
         val = pick(['true','false'])
         fd.write(val)
     elif inttype != None:
-        ts = types.yang_type_specs[inttype]
+        ts = types.yang_type_specs[inttype.arg]
         val = randint(ts.min, ts.max)
         fd.write(str(val))
     elif statements.has_type(t, ['ipv4-address']) != None:
