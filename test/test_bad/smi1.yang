@@ -1,4 +1,7 @@
 module smi1 {
+
+  smi:oid "1.3.6.4.1";
+
   namespace urn:t;
   prefix a;
 
