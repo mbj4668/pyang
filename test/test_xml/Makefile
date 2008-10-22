@@ -11,7 +11,7 @@ YIN_OBJECTS := $(MIB_SOURCES:%.mib=%.yin)
 XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
 DSDL_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
-STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang
+STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang yang-smi.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
 all: $(STD_XSD) yang yin xsd dsdl
@@ -23,6 +23,8 @@ yang-types.yang:
 inet-types.yang:
 	cp ../../modules/$@ $@
 ieee-types.yang:
+	cp ../../modules/$@ $@
+yang-smi.yang:
 	cp ../../modules/$@ $@
 
 gen-xml: 

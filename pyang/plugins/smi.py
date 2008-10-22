@@ -54,13 +54,14 @@ smi_stmts = [
 
     ('oid', '?',
      ('smi-oid', []),
-     ['leaf', 'leaf-list', 'list', 'container', 'module']),
+     ['leaf', 'leaf-list', 'list', 'container', 'module',
+      'augment', 'notification']),
     
     ('display-hint', '?',
      ('string', []),
      ['leaf', 'typedef']),
 
-    ('defval', '?',
+    ('default', '?',
      ('string', []),
      ['leaf', 'typedef']),
 

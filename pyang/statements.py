@@ -1153,7 +1153,7 @@ def has_type(type, names):
     """Return name if `type` has name as one of its base types,
     and name is in the `names` list.  otherwise, return None."""
     if type.arg in names:
-        return type
+        return type.arg
     for t in type.search('type'): # check all union's member types
         r = has_type(t, names)
         if r is not None:
@@ -1237,9 +1237,13 @@ def add_keyref_path(keyrefs, type_):
 
 def validate_keyref_path(ctx, stmt, path, pathpos):
     def find_identifier(identifier):
-        if type(identifier) == type(()) and len(identifier) == 2:
-            (module, name) = identifier
-            return (module, name)
+        if util.is_prefixed(identifier):
+            (prefix, name) = identifier
+            pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos,
+                                       ctx.errors)
+            if pmodule is None:
+                raise NotFound
+            return (pmodule, name)
         else: # local identifier
             return (stmt.i_module, identifier)
 
@@ -1266,7 +1270,7 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
             dn = dn[1:]
         else:
             while up > 0:
-                if ptr is None:
+                if ptr is None or ptr.keyword == 'grouping':
                     err_add(ctx.errors, pathpos, 'KEYREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
@@ -1340,18 +1344,18 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
         (key_list, keys, ptr) = follow_path(stmt, up, dn)
         # ptr is now the node that the keyref path points to
         # check that it is a key in a list
-        is_key = False
-        if ptr.keyword == 'leaf':
-            if ptr.parent.keyword == 'list':
-                if ptr in ptr.parent.i_key:
-                    is_key = True
-        if is_key == False:
+        if not (ptr.keyword == 'leaf' and
+                ptr.parent.keyword == 'list' and
+                ptr in ptr.parent.i_key):
             err_add(ctx.errors, pathpos, 'KEYREF_NOT_LEAF_KEY',
                     (stmt.arg, stmt.pos))
             return None
         if key_list == ptr.parent and (ptr.module.arg, ptr.arg) in keys:
             err_add(ctx.errors, pathpos, 'KEYREF_MULTIPLE_KEYS',
                     (ptr.module.arg, ptr.arg, stmt.arg, stmt.pos))
+        if stmt.i_config == True and ptr.i_config == False:
+            err_add(ctx.errors, pathpos, 'KEYREF_BAD_CONFIG',
+                    (stmt.arg, stmt.pos))
         return ptr
     except NotFound:
         return None
@@ -1483,11 +1487,14 @@ class Statement(object):
                     return
         self.optional = True
 
-    def copy(self, parent, uses_pos=None):
+    def copy(self, parent=None, uses_pos=None):
         new = copy.copy(self)
         if uses_pos is not None:
             new.i_uses_pos = uses_pos
-        new.parent = parent
+        if parent == None:
+            new.parent = self.parent
+        else:
+            new.parent = parent
         new.substmts = []
         for s in self.substmts:
             new.substmts.append(s.copy(new))

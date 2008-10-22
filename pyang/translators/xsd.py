@@ -5,7 +5,6 @@ from xml.sax.saxutils import escape
 
 import optparse
 import re
-import copy
 import sys
 
 import pyang
@@ -248,8 +247,6 @@ def emit_xsd(ctx, module, fd):
                        'netconf:notification:1.0"\n')
     fd.write('           targetNamespace="%s"\n' % module.i_namespace)
     fd.write('           xmlns="%s"\n' % module.i_namespace)
-    fd.write('           xmlns:%s="%s"\n' % \
-                   (module.i_prefix, module.i_namespace))
     fd.write('           elementFormDefault="qualified"\n')
     fd.write('           attributeFormDefault="unqualified"\n')
     if len(module.search('revision')) > 0:
@@ -608,18 +605,19 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         # this type has both length and pattern, which isn't allowed
         # in XSD.  we solve this by generating a dummy type with the
         # pattern only, derive from it
-        new_type = copy.copy(type)
-        # remove length
-        length_stmt = type.search_one('length')
+        new_type = type.copy()
+        # remove length and generate the base type with pattern restriction
+        length_stmt = new_type.search_one('length')
         new_type.substmts.remove(length_stmt)
+        new_type.i_lengths = []
         if ctx.i_pass == 'first':
             base = ''
         else:
             base = gen_new_typedef(module, new_type)
         # reset type
-        new_type = copy.copy(type)
-        # remove patterns
-        for p in type.search('pattern'):
+        new_type = type.copy()
+        # remove patterns and keep the length restriction
+        for p in new_type.search('pattern'):
             new_type.substmts.remove(p)
         type = new_type
     if (len(type.i_lengths) > 1 or len(type.i_ranges) > 1):
@@ -636,13 +634,12 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                 if parent.search('pattern') != []:
                     # we have to generate a new derived type with the
                     # pattern restriction only
-                    new_type = copy.copy(parent)
+                    new_type = parent.copy()
                     # remove length
-                    length_stmt = parent.search_one('length')
+                    length_stmt = new_type.search_one('length')
                     new_type.substmts.remove(length_stmt)
-                    # FIXME: remove length
-                    #        new_type.length = None
-                    # type might be in another module, so we might need to
+                    new_type.i_lengths = []
+                    # type might be in another module, so we might need to add
                     # a prefix.  further, its base type might be in yet another
                     # module, so we might need to change its base type's
                     # name

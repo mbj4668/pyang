@@ -4,17 +4,6 @@ from pyang import util
 from pyang import error
 import syntax
 
-# test:
-# rpc foo {
-#   typedef a1 { ... }
-#   grouping a2 { ... }
-#   typedef a3 { ... }
-#   grouping a4 { ... }
-#   input { ...}
-# }
-#
-# also test negative w/ 2 input stmnts.
-
 module_header_stmts = [
     ('yang-version', '?'),
     ('namespace', '1'),

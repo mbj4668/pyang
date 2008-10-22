@@ -196,6 +196,9 @@ error_codes = \
     'KEYREF_MULTIPLE_KEYS':
       (1,
        '%s:%s in the keyref path for %s at %s is referenced more than once'),
+    'KEYREF_BAD_CONFIG':
+      (1,
+       'the keyref path for %s at %s is config but refers to a non-config key'),
     'DUPLICATE_CHILD_NAME':
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '
