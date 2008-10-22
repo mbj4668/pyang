@@ -65,17 +65,22 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
         (prefix, identifier) = stmt.raw_keyword
         tag = prefix + ':' + identifier
         extmodule = statements.prefix_to_module(module, prefix, None, [])
-        ext = util.attrsearch(identifier, 'arg', extmodule.search('extension'))
-        ext_arg = ext.search_one('argument')
-        if ext_arg != None: 
-            yin_element = ext_arg.search_one('yin_element')
-            if yin_element != None:
-                argname = prefix + ':' + ext.argument.arg
-                argiselem = yin_element.arg == 'true'
+        if extmodule is not None:
+            ext = util.attrsearch(identifier, 'arg',
+                                  extmodule.search('extension'))
+            ext_arg = ext.search_one('argument')
+            if ext_arg != None: 
+                yin_element = ext_arg.search_one('yin_element')
+                if yin_element != None:
+                    argname = prefix + ':' + ext.argument.arg
+                    argiselem = yin_element.arg == 'true'
+                else:
+                    # no yin-element given, default to false
+                    argiselem = False
+                    argname = ext_arg.arg
             else:
-                # no yin-element given, default to false
                 argiselem = False
-                argname = ext_arg.arg
+                argname = None            
         else:
             argiselem = False
             argname = None

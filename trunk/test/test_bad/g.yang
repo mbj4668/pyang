@@ -36,4 +36,38 @@ module g {
             type int32;
         }
     }
+
+    rpc xfoo {
+        typedef a1 {
+            type uint32;
+        }
+        grouping a2 {
+            leaf x {
+                type a1;
+                default "-1"; // error: bad default
+            }
+        }
+        typedef a3 {
+            type a1 {
+                range "10..max";
+            }
+        }
+        grouping a4 {
+            leaf y {
+                type a3;
+                default 1; // error: bad default
+            }
+        }
+        input {
+            uses a4 {
+                leaf y {
+                    default 2; // error: bad default
+                }
+            }
+        }
+        input { // error: multiple input
+            uses a2;
+        }
+    }
+
 }
