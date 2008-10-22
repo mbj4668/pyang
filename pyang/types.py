@@ -454,7 +454,7 @@ def validate_path_expr(errors, path):
                     s = skip_space(s)
                     s = s[1:] # skip ']'
                     break
-            return ((identifier, up, dn), s)
+            return (('predicate', identifier, up, dn), s)
 
         (up, s) = parse_dot_dot(s)
         is_absolute = up == -1
