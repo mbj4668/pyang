@@ -464,9 +464,7 @@ def chk_module_statements(ctx, module_stmt, canonical=False):
 
     Return True if module is valid, False otherwise.
     """
-    n = len(ctx.errors)
-    _chk_stmts(ctx, module_stmt.pos, [module_stmt], top_stmts, canonical)
-    return n == len(ctx.errors)
+    return chk_statement(ctx, module_stmt, top_stmts, canonical)
 
 def chk_statement(ctx, stmt, grammar, canonical=False):
     """Validate `stmt` according to `grammar`.
@@ -594,6 +592,15 @@ def _match_stmt(ctx, stmt, spec, canonical):
             if match_res != None:
                 # we got a match
                 return spec
+        elif util.is_prefixed(stmt.keyword):
+            # allow extension statements mixed with these
+            # set canonical to False in this call to just remove the
+            # matching stmt from the spec
+            match_res = _match_stmt(ctx, stmt, spec[i+1:], False)
+            if match_res != None:
+                return spec[:i+1] + match_res
+            else:
+                return None
         elif keywd == '$cut':
             # any non-optional statements left are errors
             for (keywd, occurance) in spec[:i]:
