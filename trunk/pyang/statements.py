@@ -1255,7 +1255,7 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
         return False
 
     def is_predicate(x):
-        if type(x) == type(()) and len(x) == 3:
+        if type(x) == type(()) and len(x) == 4 and x[0] == 'predicate':
             return True
         return False
     
@@ -1289,7 +1289,7 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
                 # check each predicate
                 while i < len(dn) and is_predicate(dn[i]) == True:
                     # unpack the predicate
-                    (keyleaf, pup, pdn) = dn[i]
+                    (_tag, keyleaf, pup, pdn) = dn[i]
                     (pmodule, pname) = find_identifier(keyleaf)
                     # make sure the keyleaf is really a key in the list
                     pleaf = search_child(ptr.i_key, pmodule.arg, pname)

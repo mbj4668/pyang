@@ -41,7 +41,7 @@ def emit_yin(ctx, module, fd):
     fd.write(' ' * len(module.keyword) + '  xmlns="%s"' % yin_namespace)
 
     prefix = module.search_one('prefix')
-    if prefix != None:
+    if prefix is not None:
         # FIXME: if the prefix really can be used in the submodule
         # then we need to grab it from the module
         # currently if we get here it is a module (not submodule)
@@ -49,7 +49,14 @@ def emit_yin(ctx, module, fd):
         fd.write('\n')
         fd.write(' ' * len(module.keyword))
         fd.write('  xmlns:' + prefix.arg + '=' +
-               quoteattr(namespace.arg))
+                 quoteattr(namespace.arg))
+    for imp in module.search('import'):
+        prefix = imp.search_one('prefix')
+        if prefix is not None:
+            fd.write('\n')
+            fd.write(' ' * len(module.keyword))
+            fd.write('  xmlns:' + prefix.arg + '=' +
+                     quoteattr(imp.arg))
     fd.write('>\n')
     if ctx.opts.yin_canonical:
         substmts = grammar.sort_canonical(module.keyword, module.substmts)
@@ -69,9 +76,9 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
             ext = util.attrsearch(identifier, 'arg',
                                   extmodule.search('extension'))
             ext_arg = ext.search_one('argument')
-            if ext_arg != None: 
+            if ext_arg is not None: 
                 yin_element = ext_arg.search_one('yin_element')
-                if yin_element != None:
+                if yin_element is not None:
                     argname = prefix + ':' + ext.argument.arg
                     argiselem = yin_element.arg == 'true'
                 else:
@@ -87,8 +94,8 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
     else:
         (argname, argiselem) = yang_keywords[stmt.raw_keyword]
         tag = stmt.raw_keyword
-    if argiselem == False or argname == None:
-        if argname == None:
+    if argiselem == False or argname is None:
+        if argname is None:
             attr = ''
         else:
             attr = ' ' + argname + '=' + quoteattr(stmt.arg)

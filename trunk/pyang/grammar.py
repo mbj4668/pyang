@@ -496,7 +496,7 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
         if match_res is None and chk_grammar == True:
             error.err_add(ctx.errors, stmt.pos,
                           'UNEXPECTED_KEYWORD', 
-                          util.keyword_to_str(stmt.keyword));
+                          util.keyword_to_str(stmt.raw_keyword));
         elif match_res is not None and chk_grammar == True:
             (arg_type, subspec) = stmt_map[stmt.keyword]
             # FIXME: hack to handle the current situation where some
@@ -606,7 +606,7 @@ def _match_stmt(ctx, stmt, spec, canonical):
             for (keywd, occurance) in spec[:i]:
                 if occurance == '1' or occurance == '+':
                     error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                                  (util.keyword_to_str(stmt.keyword),
+                                  (util.keyword_to_str(stmt.raw_keyword),
                                    util.keyword_to_str(keywd)))
             # consume them so we don't report the same error again
             spec = spec[i:]
@@ -614,7 +614,7 @@ def _match_stmt(ctx, stmt, spec, canonical):
         elif canonical == True:
             if occurance == '1' or occurance == '+':
                 error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
-                              (util.keyword_to_str(stmt.keyword),
+                              (util.keyword_to_str(stmt.raw_keyword),
                                util.keyword_to_str(keywd)))
                 # consume it so we don't report the same error again
                 spec = spec[i:]
