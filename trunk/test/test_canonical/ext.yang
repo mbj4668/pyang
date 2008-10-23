@@ -1,0 +1,8 @@
+module ext {
+  namespace "urn:ext";
+  prefix ext;
+
+  extension foo {
+    argument name;
+  }
+}
