@@ -2,13 +2,18 @@ Install
 -------
 In this directory run:
 
-python setup.py install
+  python setup.py install
 
 (this might require root access)
 
+
 To install in a different location, run:
 
-python setup.py install --prefix=/usr/local
+  python setup.py install --prefix=/usr/local
+
+If you do this, it is recommended to set the environment variable
+YANG_INSTALL to the prefix directory.  This ensures that pyang will
+find standard YANG modules.
 
 
 Usage
@@ -21,6 +26,7 @@ Run locally without installing
 export PYTHONPATH=`pwd`
 export PATH=`pwd`/bin:$PATH
 export MANPATH=`pwd`/man:$MANPATH
+export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
 
 pyang -h
 man pyang

@@ -11,7 +11,7 @@ import yin_parser
 import grammar
 import util
 
-__version__ = '0.9.2'
+__version__ = '0.9.3pre1'
 
 class Context(object):
     """Class which encapsulates a parse session"""
@@ -168,10 +168,27 @@ class FileRepository(Repository):
     def __init__(self, path=""):
         """Create a Repository which searches the filesystem for modules
 
-        `path` is a ':'-separated string of directories
+        `path` is a `os.pathsep`-separated string of directories
         """
-        basedir = os.path.split(sys.modules['pyang'].__file__)[0]
-        path = path + ':' + basedir + '/../modules' + ':.'
+
+        # add standard search path
+        path += os.pathsep + '.'
+
+        modpath = os.getenv('YANG_MODPATH')
+        if modpath is not None:
+            path += os.pathsep + modpath
+
+        home = os.getenv('HOME')
+        if home is not None:
+            path += os.pathsep + os.path.join(home, 'yang', 'modules')
+
+        inst = os.getenv('YANG_INSTALL')
+        if inst is not None:
+            path += os.pathsep + os.path.join(inst, 'yang', 'modules')
+        else:
+            path += os.pathsep + \
+                os.path.join(sys.prefix, 'share', 'yang', 'modules')
+
         Repository.__init__(self)
         self.path = path
 

@@ -13,6 +13,4 @@
 
 BEFORE NEXT RELEASE:
 
-  o  remove --level; add -Werror/-Wnone to man page
-
   o  handle local extensions defined in a submodule
