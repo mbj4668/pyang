@@ -9,8 +9,11 @@
 
   o  better handling of multiple input files
 
-  o  fix yin parser to properly handle extensions
-
 BEFORE NEXT RELEASE:
 
   o  handle local extensions defined in a submodule
+
+  o  update to -02:
+     - features
+     - deviations
+     - belongs-to prefix (rewrite yin_parser which parses the module)

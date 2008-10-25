@@ -8,6 +8,7 @@
         handle auto-assignment of enum values and bit positions
         allow plugins to register grammar for extensions
         added a plugin for the 'yang-smi' SMIv2 module
+	rewrote yin_parser - now handles extensions properly
 
    0.9.2 - 2008-10-13
         handle prefixed references to local groupings

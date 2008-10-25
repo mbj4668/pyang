@@ -105,6 +105,10 @@ module yt3 {
         enum a;
         enum b;
         enum c;
+        enum 100;
+        enum "a b";
+        enum "a  b";
+        enum "..@#!#;<!--"; // yin translator MUST quote this!!
       }
     }
 

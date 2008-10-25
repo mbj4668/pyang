@@ -53,10 +53,14 @@ def emit_yin(ctx, module, fd):
     for imp in module.search('import'):
         prefix = imp.search_one('prefix')
         if prefix is not None:
-            fd.write('\n')
-            fd.write(' ' * len(module.keyword))
-            fd.write('  xmlns:' + prefix.arg + '=' +
-                     quoteattr(imp.arg))
+            mod = statements.modulename_to_module(module, imp.arg)
+            if mod is not None:
+                ns = mod.search_one('namespace')
+                if ns is not None:
+                    fd.write('\n')
+                    fd.write(' ' * len(module.keyword))
+                    fd.write('  xmlns:' + prefix.arg + '=' +
+                             quoteattr(ns.arg))
     fd.write('>\n')
     if ctx.opts.yin_canonical:
         substmts = grammar.sort_canonical(module.keyword, module.substmts)

@@ -129,6 +129,10 @@ error_codes = \
     'TYPE_VALUE':
       (2,
        'the value "%s" does not match its base type %s- %s'),
+    'DUPLICATE_ENUM_NAME':
+      (1,
+       'the enum name "%s" has already been used for the ' \
+       'enumeration at %s'),
     'DUPLICATE_ENUM_VALUE':
       (1,
        'the integer value "%d" has already been used for the ' \
@@ -262,7 +266,7 @@ error_codes = \
        'duplicate module %s found (conflicts with %s)'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
-       'missing argument attribute "%s"'),
+       'missing argument attribute "%s" for "%s"'),
     'MISSING_ARGUMENT_ELEMENT':
       (1,
        'missing argument element "%s" for "%s"'),

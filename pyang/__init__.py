@@ -115,6 +115,8 @@ class Context(object):
             error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
         (ref, format, text) = r
         module = self._add_module(ref, text, format)
+        if module == None:
+            return None
         if modulename != module.arg:
             error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
                           (module.arg, ref, modulename))
@@ -135,7 +137,7 @@ class Context(object):
             if r == None:
                 return 'not_found'
         except self.repository.ReadError, ex:
-            return ('read_error', ex)
+            return ('read_error', str(ex))
 
         (ref, format, text) = r
 

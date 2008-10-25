@@ -417,7 +417,9 @@ def v_type_typedef(ctx, stmt):
         type.i_type_spec.validate(ctx.errors, stmt.pos,
                                   stmt.i_default,
                                   ' for the inherited default value ')
-    elif default is not None and type.i_type_spec is not None :
+    elif (default is not None and 
+          default.arg is not None and
+          type.i_type_spec is not None):
         stmt.i_default = type.i_type_spec.str_to_val(ctx.errors,
                                                      default.pos,
                                                      default.arg)
