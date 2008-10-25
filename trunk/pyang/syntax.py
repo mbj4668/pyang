@@ -127,12 +127,23 @@ arg_type_map = {
     "path-arg": lambda s: re_path.search(s) is not None,
     "unique-arg": lambda s: re_unique.search(s) is not None,
     "augment-arg": lambda s: re_augment.search(s) is not None,
+    "enum-arg": lambda s: chk_enum_arg(s)
     }
 """Argument type definitions.
 
 Regular expressions for all argument types except plain string that
 are checked directly by the parser.
 """
+
+def chk_enum_arg(s):
+    """Checks if the string `s` is a valid enum string.
+
+    Return True or False."""
+
+    if len(s) == 0 or s[0].isspace() or s[-1].isspace():
+        return False
+    else:
+        return True
 
 def add_arg_type(arg_type, regexp):
     """Add a new arg_type to the map.

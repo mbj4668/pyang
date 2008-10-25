@@ -202,7 +202,7 @@ stmt_map = {
     'default':
         ('string', []),
     'enum':
-        ('identifier',
+        ('enum-arg',
          [('value', '?'),
           ('status', '?'),
           ('description', '?'),

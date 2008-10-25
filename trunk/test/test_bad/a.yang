@@ -65,6 +65,11 @@ module a {
             enum bar {
                 value 0; // error: 0 auto-assigned to foo
             }
+            enum " bad"; // error: bad enum string
+            enum "bad "; // error: bad enum string
+            enum ""; // error: bad enum string
+            enum "foo"; // error: already defined
+            enum "100 years";
         }
     }
 

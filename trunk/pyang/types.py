@@ -286,7 +286,8 @@ def validate_enums(errors, enums, stmt):
         err_add(errors, stmt.pos, 'MISSING_TYPE_SPEC',
                 ('enumeration', 'enum'))
         return None
-    # make sure all values given are unique
+    # make sure all names and values given are unique
+    names = {}
     values = {}
     next = 0
     for e in enums:
@@ -304,6 +305,7 @@ def validate_enums(errors, enums, stmt):
                             (x, values[x]))
                 else:
                     values[x] = value.pos
+                    
             except ValueError:
                 err_add(errors, value.pos, 'ENUM_VALUE', value.arg)
         else:
@@ -311,6 +313,11 @@ def validate_enums(errors, enums, stmt):
             values[next] = e.pos
             e.i_value = next
             next = next + 1
+        if e.arg in names:
+            err_add(errors, e.pos, 'DUPLICATE_ENUM_NAME', (e.arg, names[e.arg]))
+        else:
+            names[e.arg] = e.pos
+
     # check status (here??)
     return enums
 
@@ -333,7 +340,8 @@ def validate_bits(errors, bits, stmt):
         err_add(errors, stmt.pos, 'MISSING_TYPE_SPEC',
                 ('bits', 'bit'))
         return None
-    # make sure all positions given are unique
+    # make sure all names and positions given are unique
+    names = {}
     values = {}
     next = 0
     for b in bits:
@@ -358,6 +366,11 @@ def validate_bits(errors, bits, stmt):
             values[next] = b.pos
             b.i_position = next
             next = next + 1
+        if b.arg in names:
+            err_add(errors, b.pos, 'DUPLICATE_BIT_NAME', (b.arg, names[b.arg]))
+        else:
+            names[b.arg] = b.pos
+
     # check status (here??)
     return bits
 

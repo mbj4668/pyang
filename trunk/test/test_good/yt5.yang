@@ -180,8 +180,6 @@ module yt5 {
       }
     }
 
-  //  FIXME: this should work.  the input node should be
-  // auto-created
     augment /rpc-two/input {
       leaf aa { type uint32; }
     }
