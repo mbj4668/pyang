@@ -95,10 +95,10 @@ error_codes = \
        'prefix "%s" is not defined (reported only once)'),
     'NODE_NOT_FOUND':
       (1,
-       'node %s:%s is not found'),
+       'node %s::%s is not found'),
     'BAD_NODE_IN_AUGMENT':
       (1,
-       'node %s:%s cannot be augmented'),
+       'node %s::%s cannot be augmented'),
     'EXTENSION_NOT_DEFINED':
       (1,
        'extension "%s" is not defined in module %s'),

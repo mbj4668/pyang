@@ -135,6 +135,7 @@ _validation_map = {
     ('init', 'module'):lambda ctx, s: v_init_module(ctx, s),
     ('init', 'submodule'):lambda ctx, s: v_init_module(ctx, s),
     ('init', '$extension'):lambda ctx, s: v_init_extension(ctx, s),
+    ('init', '$has_children'):lambda ctx, s: v_init_has_children(ctx, s),
     ('init', '*'):lambda ctx, s: v_init_stmt(ctx, s),
 
     ('grammar', 'module'):lambda ctx, s: v_grammar_module(ctx, s),
@@ -150,6 +151,7 @@ _validation_map = {
     ('type', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
     ('type', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
     ('type', 'grouping'):lambda ctx, s: v_type_grouping(ctx, s),
+    ('type', 'augment'):lambda ctx, s: v_type_augment(ctx, s),
     ('type', 'uses'):lambda ctx, s: v_type_uses(ctx, s),
     ('type', 'input'):lambda ctx, s: v_type_input_output(ctx, s),
     ('type', 'output'):lambda ctx, s: v_type_input_output(ctx, s),
@@ -310,6 +312,9 @@ def v_init_extension(ctx, stmt):
 def v_init_stmt(ctx, stmt):
     stmt.i_typedefs = {}
     stmt.i_groupings = {}
+
+def v_init_has_children(ctx, stmt):
+    stmt.i_children = []
 
 ### grammar phase
 
@@ -656,6 +661,12 @@ def v_type_uses(ctx, stmt, no_error_report=False):
     if stmt.i_grouping is not None:
         stmt.i_grouping.i_is_unused = False
 
+def v_type_augment(ctx, stmt):
+    if stmt.parent == stmt.i_module:
+        # this is a top-level augment, make sure the _v_i_children phases
+        # run over this one
+        stmt.i_has_i_children = True
+
 def v_type_input_output(ctx, stmt):
 #    stmt.arg = stmt.keyword
     pass
@@ -689,7 +700,6 @@ def v_expand_1_children(ctx, stmt):
     if stmt.keyword == 'choice':
         # choice is handled in v_expand_2_choice
         return
-    stmt.i_children = []
     for s in stmt.substmts:
         if s.keyword in ['input', 'output']:
             # must create a copy of the statement which sets the argument
@@ -878,9 +888,16 @@ def v_expand_4_augment(ctx, stmt):
     # find the first node
     node = search_child(module.i_children, module.arg, identifier)
     if node is None:
-        err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                (module.arg, identifier))
-        return
+        # check all our submodules
+        for inc in module.search('include'):
+            submod = ctx.get_module(inc.arg)
+            node = search_child(submod.i_children, submod.arg, identifier)
+            if node is not None:
+                break
+        if node is None:
+            err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
+                    (module.arg, identifier))
+            return
 
     # then recurse down the path
     for (prefix, identifier) in stmt.i_path[1:]:

@@ -123,6 +123,32 @@ class Context(object):
             return None
         return module
 
+    def read_module(self, modulename):
+        """Searches for a module named `modulename` in the repository
+
+        The module is just read, and not compiled at all.
+        Returns the module if found, and None otherwise"""
+        if modulename in self.modules:
+            return self.modules[modulename]
+        try:
+            r = self.repository.get_module(modulename)
+            if r == None:
+                return 'not_found'
+        except self.repository.ReadError, ex:
+            return ('read_error', ex)
+
+        (ref, format, text) = r
+
+        if format == None:
+            format = util.guess_format(text)
+
+        if format == 'yin':
+            p = yin_parser.YinParser()
+        else:
+            p = yang_parser.YangParser()
+
+        return p.parse(self, ref, text)
+
     def validate(self):
         uris = {}
         for modname in self.modules:

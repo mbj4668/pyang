@@ -13,5 +13,5 @@ setup(name='pyang',
       scripts=['bin/pyang'],
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],
       data_files=[('share/man/man1', ['man/man1/pyang.1']),
-                  ('share/yang', modules)],
+                  ('share/yang/modules', modules)],
       )
