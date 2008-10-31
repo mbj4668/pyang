@@ -682,7 +682,7 @@ def v_type_extension(ctx, stmt):
     ext = module.search_one('extension', identifier)
     if ext is None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
-                (identifier, stmt.i_module.name))
+                (identifier, stmt.i_module.arg))
         return
     ext_arg = ext.search_one('argument')
     if stmt.arg is not None and ext_arg is None:
@@ -1211,7 +1211,7 @@ def search_typedef(stmt, name):
             for i in stmt.search('include'):
                 modulename = i.arg
                 m = stmt.i_ctx.get_module(modulename)
-                if name in m.i_typedefs:
+                if m is not None and name in m.i_typedefs:
                     return m.i_typedefs[name]
         stmt = stmt.parent
     return None
@@ -1224,7 +1224,7 @@ def search_grouping(stmt, name):
             for i in stmt.search('include'):
                 modulename = i.arg
                 m = stmt.i_ctx.get_module(modulename)
-                if name in m.i_groupings:
+                if m is not None and name in m.i_groupings:
                     return m.i_groupings[name]
         stmt = stmt.parent
     return None
