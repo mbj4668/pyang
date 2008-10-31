@@ -1,3 +1,0 @@
-include LICENSE
-include man/man1/*.1
-include modules/*.yang

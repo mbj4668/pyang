@@ -1,7 +1,7 @@
-sdist: 
+sdist: MANIFEST
 	python setup.py sdist
 
-bdist: 
+bdist: MANIFEST
 	python setup.py bdist
 
 .PHONY:	test
@@ -10,5 +10,9 @@ test:
 
 clean:
 	(cd test && $(MAKE) clean)
+	python setup.py clean --all
 	rm -rf build dist MANIFEST
 	find . -name "*.pyc" -exec rm {} \;
+
+MANIFEST:
+	svn list -R > $@
