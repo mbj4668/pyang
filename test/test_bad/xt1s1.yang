@@ -1,5 +1,5 @@
 submodule xt1s1 {
-  belongs-to xt1 {prefix xt1; };
+  belongs-to xt1 {prefix xt1; }
   import xt3 { prefix xt3p; } // different prefix than in xt1
   organization "hopp";
   contact "hej" {
