@@ -267,7 +267,7 @@ def v_init_module(ctx, stmt):
         prefix = stmt.search_one('prefix')
         modname = stmt.arg
     else:
-        belongs_to = stmt.search_one('belongs_to')
+        belongs_to = stmt.search_one('belongs-to')
         if belongs_to is not None and belongs_to.arg is not None:
             prefix = belongs_to.search_one('prefix')
             modname = belongs_to.arg

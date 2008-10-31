@@ -137,7 +137,8 @@ stmt_map = {
         ('date',
          [('description', '?')]),
     'belongs-to':
-        ('identifier', []),
+        ('identifier',
+         [('prefix', '1')]),
     'organization':
         ('string', []),
     'contact':
