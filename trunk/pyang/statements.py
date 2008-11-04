@@ -159,7 +159,7 @@ _validation_map = {
 
     ('expand_1', '$has_children'):lambda ctx, s: v_expand_1_children(ctx, s),
 
-#    ('expand_2', 'rpc'):lambda ctx, s: v_expand_2_rpc(ctx, s),
+    ('expand_2', 'rpc'):lambda ctx, s: v_expand_2_rpc(ctx, s),
     ('expand_2', 'choice'):lambda ctx, s: v_expand_2_choice(ctx, s),
 
     ('expand_3', 'uses'):lambda ctx, s: v_expand_3_uses(ctx, s),
@@ -707,9 +707,8 @@ def v_expand_1_children(ctx, stmt):
             # must create a copy of the statement which sets the argument
             news = copy.copy(s)
             news.arg = news.keyword
-            v_expand_1_children(ctx, news)
             stmt.i_children.append(news)
-        if s.keyword in data_keywords:
+        elif s.keyword in data_keywords:
             stmt.i_children.append(s)
 
 def v_expand_2_rpc(ctx, stmt):
