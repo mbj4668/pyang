@@ -274,6 +274,18 @@ module/*hej*/xt1 {
         }
     }
   
+    augment /sub1 { // ok: node defined in submodule
+        leaf z {
+            type int32;
+        }
+    }
+
+    augment /sub2 { // error: does not exist
+        leaf z {
+            type int32;
+        }
+    }
+
 }
   
 

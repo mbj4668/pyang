@@ -7,6 +7,13 @@ submodule xt1s1 {
     xt3:test hej {xt3:hemm he;} // error: bad prefix
   }
   revision 2007-06-06 { description "initinla"; }
+
+    container sub1 {
+        leaf q {
+            type int32;
+        }
+    }
+
 }
   
 

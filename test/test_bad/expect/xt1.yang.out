@@ -13,6 +13,7 @@ xt1.yang:244: error: EXPECTED_KEYWORD
 xt1.yang:263: error: TYPE_VALUE
 xt1.yang:269: error: TYPE_VALUE
 xt1.yang:273: error: TYPE_VALUE
+xt1.yang:283: error: NODE_NOT_FOUND
 xt1s1.yang:7: error: PREFIX_NOT_DEFINED
 xt2.yang:2: error: BAD_VALUE
 xt3.yang:4: error: UNEXPECTED_KEYWORD_1

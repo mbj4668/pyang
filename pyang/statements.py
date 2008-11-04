@@ -312,6 +312,7 @@ def v_init_extension(ctx, stmt):
 def v_init_stmt(ctx, stmt):
     stmt.i_typedefs = {}
     stmt.i_groupings = {}
+    stmt.i_origin = None
 
 def v_init_has_children(ctx, stmt):
     stmt.i_children = []
@@ -716,9 +717,8 @@ def v_expand_2_rpc(ctx, stmt):
     if input is None:
         # create the implicitly defined input node
         input = Statement(stmt.top, stmt, stmt.pos, 'input', 'input')
+        v_init_stmt(ctx, input)
         input.i_children = []
-        input.i_typedefs = {}
-        input.i_groupings = {}
         input.i_module = stmt.i_module
         stmt.i_children.append(input)
 
@@ -726,9 +726,8 @@ def v_expand_2_rpc(ctx, stmt):
     if output is None:
         # create the implicitly defined output node
         output = Statement(stmt.top, stmt, stmt.pos, 'output', 'output')
+        v_init_stmt(ctx, output)
         output.i_children = []
-        output.i_typedefs = {}
-        output.i_groupings = {}
         output.i_module = stmt.i_module
         stmt.i_children.append(output)
 
@@ -739,10 +738,9 @@ def v_expand_2_choice(ctx, stmt):
         if s.keyword in shorthands:
             # create an artifical case node for the shorthand
             new_case = Statement(s.top, s.parent, s.pos, 'case', s.arg)
+            v_init_stmt(ctx, new_case)
             new_child = s.copy(new_case)
             new_case.i_children = [new_child]
-            new_case.i_typedefs = {}
-            new_case.i_groupings = {}
             new_case.i_module = s.i_module
             stmt.i_children.append(new_case)
         elif s.keyword == 'case':
@@ -758,7 +756,7 @@ def v_expand_3_uses(ctx, stmt):
                 # create an expanded child and add it to the
                 # list of target children
                 for g in gch:
-                    newx = g.copy(parent, stmt.pos)
+                    newx = g.copy(parent, stmt.pos, nocopy=['type'])
                     # inline the definition into our module
                     def set_attrs(s):
                         s.i_module = stmt.i_module
@@ -779,7 +777,7 @@ def v_expand_3_uses(ctx, stmt):
             err_add(ctx.errors, uch[0].pos, 'NODE_GROUPING_TYPE', uch[0].arg)
             return
         # create an expanded child and add it to the list of expanded chs.
-        newx = g.copy(parent, stmt.pos)
+        newx = g.copy(parent, stmt.pos, nocopy=['type'])
         target_ch.append(newx)
         # inline the definition into our modulde
         newx.i_module = stmt.i_module
@@ -912,6 +910,7 @@ def v_expand_4_augment(ctx, stmt):
                 # create a temporary statement
                 child = Statement(node.top, node, stmt.pos, '__tmp_augment__',
                                   identifier)
+                v_init_stmt(ctx, child)
                 child.i_module = module
                 child.i_children = []
                 child.i_config = node.i_config
@@ -947,6 +946,7 @@ def v_expand_4_augment(ctx, stmt):
                     raise Abort
                 add_tmp_children(ch, tmp.i_children)
             else:
+                tmp.i_origin = 'augment'
                 node.i_children.append(tmp)
 
     for c in stmt.i_children:
@@ -976,6 +976,7 @@ def v_expand_4_augment(ctx, stmt):
                         (stmt.arg, stmt.pos, identifier, ch.pos))
                 return                
         else:
+            c.i_origin = 'augment'
             stmt.i_target_node.i_children.append(c)
 
 
@@ -1435,6 +1436,22 @@ class Statement(object):
                 return ch
         return None
 
+    def copy(self, parent=None, uses_pos=None, nocopy=[]):
+        new = copy.copy(self)
+        if uses_pos is not None:
+            new.i_uses_pos = uses_pos
+        if parent == None:
+            new.parent = self.parent
+        else:
+            new.parent = parent
+        new.substmts = []
+        for s in self.substmts:
+            if s.keyword in nocopy:
+                new.substmts.append(s)
+            else:
+                new.substmts.append(s.copy(new))
+        return new
+
     # FIXME: remove / rewrite
     def full_path(self):
         """Return full path of the receiver.
@@ -1504,19 +1521,6 @@ class Statement(object):
                     self.optional = False
                     return
         self.optional = True
-
-    def copy(self, parent=None, uses_pos=None):
-        new = copy.copy(self)
-        if uses_pos is not None:
-            new.i_uses_pos = uses_pos
-        if parent == None:
-            new.parent = self.parent
-        else:
-            new.parent = parent
-        new.substmts = []
-        for s in self.substmts:
-            new.substmts.append(s.copy(new))
-        return new
 
     def pprint(self, indent='', f=None):
         print indent + self.__class__.__name__ + " " + self.arg
