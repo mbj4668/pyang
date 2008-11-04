@@ -155,6 +155,10 @@ _validation_map = {
     ('type', 'uses'):lambda ctx, s: v_type_uses(ctx, s),
     ('type', 'input'):lambda ctx, s: v_type_input_output(ctx, s),
     ('type', 'output'):lambda ctx, s: v_type_input_output(ctx, s),
+    ('type', 'feature'):lambda ctx, s: v_type_feature(ctx, s),
+    ('type', 'if-feature'):lambda ctx, s: v_type_if_feature(ctx, s),
+    ('type', 'identity'):lambda ctx, s: v_type_identity(ctx, s),
+    ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
 
     ('expand_1', '$has_children'):lambda ctx, s: v_expand_1_children(ctx, s),
@@ -334,6 +338,9 @@ def v_grammar_unique_defs(ctx, stmt):
     """
     defs = [('typedef', 'TYPE_ALREADY_DEFINED', stmt.i_typedefs),
             ('grouping', 'GROUPING_ALREADY_DEFINED', stmt.i_groupings)]
+    if stmt.parent is None:
+        defs.extend([('feature', 'FEATURE_ALREADY_DEFINED', {}),
+                     ('identity', 'IDENTITY_ALREADY_DEFINED', {})])
     for (keyword, errcode, dict) in defs:
         for definition in stmt.search(keyword):
             if definition.arg in dict:
@@ -649,6 +656,7 @@ def v_type_uses(ctx, stmt, no_error_report=False):
         [prefix, name] = name.split(':', 1)
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local groupings
+        pmodule = stmt.i_module
         stmt.i_grouping = search_grouping(stmt, name)
         if stmt.i_grouping is not None:
             v_type_grouping(ctx, stmt.i_grouping)
@@ -660,7 +668,7 @@ def v_type_uses(ctx, stmt, no_error_report=False):
         stmt.i_grouping = search_grouping(pmodule, name)
     if stmt.i_grouping is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
-                'GROUPING_NOT_FOUND', (name, stmt.i_module.arg))
+                'GROUPING_NOT_FOUND', (name, pmodule.arg))
     if stmt.i_grouping is not None:
         stmt.i_grouping.i_is_unused = False
 
@@ -692,6 +700,100 @@ def v_type_extension(ctx, stmt):
     elif stmt.arg is None and ext_arg is not None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_NO_ARGUMENT_PRESENT',
                 identifier)
+
+def v_type_feature(ctx, stmt):
+    if 'i_is_validated' in stmt.__dict__:
+        if stmt.i_is_validated == True:
+            # this feature has already been validated
+            return
+        elif stmt.i_is_validated == 'in_progress':
+            err_add(ctx.errors, stmt.pos,
+                    'CIRCULAR_DEPENDENCY', ('feature', stmt.arg) )
+            return
+
+    stmt.i_is_validated = 'in_progress'
+
+    name = stmt.arg
+
+    # search for circular feature definitions
+    def validate_if_feature(s):
+        if s.keyword == "if-feature":
+            v_type_if_feature(ctx, s, no_error_report=True)
+    iterate_stmt(stmt, validate_if_feature)
+
+    stmt.i_is_validated = True
+
+def v_type_if_feature(ctx, stmt, no_error_report=False):
+    """verify that the referenced feature exists."""
+    # Find the feature
+    name = stmt.arg
+    stmt.i_feature = None
+    if name.find(":") == -1:
+        prefix = None
+    else:
+        [prefix, name] = name.split(':', 1)
+    if prefix is None or stmt.i_module.i_prefix == prefix:
+        # check local features
+        pmodule = stmt.i_module
+        stmt.i_feature = stmt.i_module.search_one('feature', name)
+        if stmt.i_feature is not None:
+            v_type_feature(ctx, stmt.i_feature)
+    else:
+        # this is a prefixed name, check the imported modules
+        pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+        if pmodule is None:
+            return
+        stmt.i_feature = pmodule.search_one('feature', name)
+    if stmt.i_feature is None and no_error_report == False:
+        err_add(ctx.errors, stmt.pos,
+                'FEATURE_NOT_FOUND', (name, pmodule.arg))
+
+def v_type_identity(ctx, stmt):
+    if 'i_is_validated' in stmt.__dict__:
+        if stmt.i_is_validated == True:
+            # this identity has already been validated
+            return
+        elif stmt.i_is_validated == 'in_progress':
+            err_add(ctx.errors, stmt.pos,
+                    'CIRCULAR_DEPENDENCY', ('identity', stmt.arg) )
+            return
+
+    stmt.i_is_validated = 'in_progress'
+
+    name = stmt.arg
+
+    # search for circular identity definitions
+    def validate_base(s):
+        if s.keyword == "base":
+            v_type_base(ctx, s, no_error_report=True)
+    iterate_stmt(stmt, validate_base)
+
+    stmt.i_is_validated = True
+
+def v_type_base(ctx, stmt, no_error_report=False):
+    """verify that the referenced identity exists."""
+    # Find the identity
+    name = stmt.arg
+    stmt.i_identity = None
+    if name.find(":") == -1:
+        prefix = None
+    else:
+        [prefix, name] = name.split(':', 1)
+    if prefix is None or stmt.i_module.i_prefix == prefix:
+        # check local identities
+        pmodule = stmt.i_module
+        stmt.i_identity = stmt.i_module.search_one('identity', name)
+        if stmt.i_identity is not None:
+            v_type_identity(ctx, stmt.i_identity)
+    else:
+        # this is a prefixed name, check the imported modules
+        pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+        if pmodule is None:
+            return
+        stmt.i_identity = pmodule.search_one('identity', name)
+    if stmt.i_identity is None and no_error_report == False:
+        err_add(ctx.errors, stmt.pos,
+                'IDENTITY_NOT_FOUND', (name, pmodule.arg))
 
     
 ### Expand phases
@@ -762,6 +864,10 @@ def v_expand_3_uses(ctx, stmt):
                         s.i_module = stmt.i_module
                     iterate_stmt(newx, set_attrs)
                     target_ch.append(newx)
+# FIXME: this line is necessary to validate execd.yang
+#  We should make a proper test case for this.
+#  The problem is that i_children is not copied on the copy stmt above.
+#                    target_ch.append(g)
             return
         if len(gch) == 0:
             err_add(ctx.errors, uch[0].pos, 'NODE_NOT_IN_GROUPING', uch[0].arg)
@@ -827,7 +933,7 @@ def v_expand_3_uses(ctx, stmt):
 
         validate_uses_children(parent, uch[1:], gch, target_ch)
 
-    validate_uses_children(stmt,
+    validate_uses_children(stmt.parent,
                            stmt.i_children,
                            stmt.i_grouping.i_children,
                            stmt.parent.i_children)

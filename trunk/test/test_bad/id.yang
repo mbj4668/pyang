@@ -1,0 +1,63 @@
+module id {
+  namespace "urn:id";
+  prefix id;
+
+  import "crypto-base" {
+    prefix "crypto";
+  }
+
+  feature x { // error: circular
+    if-feature y;
+  }
+
+  feature y {
+    if-feature x;
+  }
+
+  feature z {
+    if-feature x2; // error: x2 does not exist
+  }
+
+  feature z; // error: already defined
+
+  leaf foo {
+    if-feature x;
+    type string;
+  }
+
+  leaf foo2 {
+    if-feature x2; // error: not defined
+    type string;
+  }
+
+  identity x { // error: circular
+    base y;
+  }
+
+  identity y {
+    base x;
+  }
+
+  identity y; // error: already defined
+
+  identity des {
+    base "crypto:crypto-alg";
+    description "DES crypto algorithm";
+  }
+  
+  identity des3 {
+    base "crypto:crypto-alg";
+    description "Triple DES crypto algorithm";
+  }
+  
+  identity des4 {
+    base "crypto:crypto-alg2"; // error: not defined
+    description "Triple DES crypto algorithm";
+  }
+  
+  identity des5 {
+    base "crypto-alg2"; // error: not defined
+    description "Triple DES crypto algorithm";
+    base "crypto-alg2"; // error: syntax
+  }
+}
