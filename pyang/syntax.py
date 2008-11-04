@@ -43,7 +43,6 @@ path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
 descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
 unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
-augment_arg = "(" + absolute_schema_nodeid + "|" + descendant_schema_nodeid + ")"
 key_arg = identifier + "(\s+" + identifier + ")*"
 re_schema_node_id_part = re.compile('/' + node_id)
 
@@ -107,7 +106,9 @@ re_ordered_by = re.compile(r"^(user|system)$")
 re_node_id = re.compile("^" + node_id + "$")
 re_path = re.compile("^" + path_arg + "$")
 re_unique = re.compile("^" + unique_arg + "$")
-re_augment = re.compile("^" + augment_arg + "$")
+re_absolute_schema_nodeid = re.compile("^" + absolute_schema_nodeid + "$")
+re_descendant_schema_nodeid = re.compile("^" + descendant_schema_nodeid + "$")
+re_deviate = re.compile("^(add|delete|replace|not-supported)$")
 
 arg_type_map = {
     "identifier": lambda s: re_identifier.search(s) is not None,
@@ -126,8 +127,12 @@ arg_type_map = {
     "identifier-ref": lambda s: re_node_id.search(s) is not None,
     "path-arg": lambda s: re_path.search(s) is not None,
     "unique-arg": lambda s: re_unique.search(s) is not None,
-    "augment-arg": lambda s: re_augment.search(s) is not None,
-    "enum-arg": lambda s: chk_enum_arg(s)
+    "absolute-schema-nodeid": lambda s: \
+        re_absolute_schema_nodeid.search(s) is not None,
+    "descendant-schema-nodeid": lambda s: \
+        re_descendant_schema_nodeid.search(s) is not None,
+    "enum-arg": lambda s: chk_enum_arg(s),
+    "deviate-arg": lambda s: re_deviate.search(s) is not None,
     }
 """Argument type definitions.
 
@@ -154,6 +159,7 @@ yin_map = {
     "anyxml": (False, "name"),
     "argument": (False, "name"),
     "augment": (False, "target-node"),
+    "base": (False, "name"),
     "belongs-to": (False, "module"),
     "bit": (False, "name"),
     "case": (False, "name"),
@@ -163,11 +169,16 @@ yin_map = {
     "container": (False, "name"),
     "default": (False, "value"),
     "description": (True, "text"),
+    "deviate": (False, "value"),
+    "deviation": (False, "target-node"),
     "enum": (False, "name"),
     "error-app-tag": (False, "value"),
     "error-message": (True, "value"),
     "extension": (False, "name"),
+    "feature": (False, "name"),
     "grouping": (False, "name"),
+    "identity": (False, "name"),
+    "if-feature": (False, "name"),
     "import": (False, "module"),
     "include": (False, "module"),
     "input": (None, None),
@@ -212,5 +223,5 @@ yin_map = {
 The values are pairs whose first component specifies whether the
 argument is stored in a subelement and the second component is the
 name of the attribute or subelement carrying the argument. See YANG
-draft, Appendix B.
+specification.
 """

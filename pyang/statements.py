@@ -159,7 +159,7 @@ _validation_map = {
 
     ('expand_1', '$has_children'):lambda ctx, s: v_expand_1_children(ctx, s),
 
-    ('expand_2', 'rpc'):lambda ctx, s: v_expand_2_rpc(ctx, s),
+#    ('expand_2', 'rpc'):lambda ctx, s: v_expand_2_rpc(ctx, s),
     ('expand_2', 'choice'):lambda ctx, s: v_expand_2_choice(ctx, s),
 
     ('expand_3', 'uses'):lambda ctx, s: v_expand_3_uses(ctx, s),

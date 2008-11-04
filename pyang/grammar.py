@@ -66,10 +66,13 @@ refinement_stmts = [
 body_stmts = [
     ('$interleave',
      [('extension', '*'),
+      ('feature', '*'),
+      ('identity', '*'),
       ('typedef', '*'),
       ('grouping', '*'),
       ('rpc', '*'),
       ('notification', '*'),
+      ('deviation', '*'),
       ] +
      data_def_stmts
     )
@@ -160,6 +163,22 @@ stmt_map = {
          [('yin-element', '?')]),
     'yin-element':
         ('boolean', []),
+    'feature':
+        ('identifier',
+         [('if-feature', '*'),
+          ('status', '?'),
+          ('description', '?'),
+          ('reference', '?')]),
+    'if-feature':
+        ('identifier-ref', []),
+    'identity':
+        ('identifier',
+         [('base', '?'),
+          ('status', '?'),
+          ('description', '?'),
+          ('reference', '?')]),
+    'base':
+        ('identifier-ref', []),
     'typedef':
         ('identifier',
          [('type', '1'),
@@ -384,8 +403,11 @@ stmt_map = {
           ('$interleave',
            refinement_stmts),
           ]),
+    'refine':
+        ('descendant-schema-nodeid',
+         []),
     'augment':
-        ('augment-arg',
+        ('absolute-schema-nodeid',
          [('when', '?'),
           ('status', '?'),
           ('description', '?'),
@@ -436,6 +458,23 @@ stmt_map = {
            [('typedef', '*'),
             ('grouping', '*')] +
            data_def_stmts),
+          ]),
+    'deviation':
+        ('absolute-schema-nodeid',
+         [('description', '?'),
+          ('reference', '?'),
+          ('deviate', '*')]),
+    'deviate':
+        ('deviate-arg',
+         [('type', '?'),
+          ('units', '?'),
+          ('must', '*'),
+          ('unique', '*'),
+          ('default', '?'),
+          ('config', '?'),
+          ('mandatory', '?'),
+          ('min-elements', '?'),
+          ('max-elements', '?'),
           ]),
     }
 """YANG statement definitions.
