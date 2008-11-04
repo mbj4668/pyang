@@ -105,6 +105,12 @@ error_codes = \
     'TYPE_NOT_FOUND':
       (1,
        'type "%s" not found in module %s'),
+    'FEATURE_NOT_FOUND':
+      (1,
+       'feature "%s" not found in module %s'),
+    'IDENTITY_NOT_FOUND':
+      (1,
+       'identity "%s" not found in module %s'),
     'GROUPING_NOT_FOUND':
       (1,
        'grouping "%s" not found in module %s'),
@@ -216,6 +222,12 @@ error_codes = \
     'GROUPING_ALREADY_DEFINED':
       (1,
        'grouping name "%s" is already defined at %s'),
+    'FEATURE_ALREADY_DEFINED':
+      (1,
+       'feature name "%s" is already defined at %s'),
+    'IDENTITY_ALREADY_DEFINED':
+      (1,
+       'identity name "%s" is already defined at %s'),
     'BAD_RESTRICTION':
       (1,
        'restriction %s not allowed for this base type'),
