@@ -153,6 +153,8 @@ class YinParser(object):
             try:
                 prefix = self.prefixmap[e.ns]
             except KeyError:
+                error.err_add(self.ctx.errors, e.pos,
+                              'UNKNOWN_KEYWORD', e.local_name)
                 return None
             keywd = (prefix, e.local_name)
             keywdstr = util.keyword_to_str(keywd)
@@ -166,7 +168,7 @@ class YinParser(object):
         keywdstr = util.keyword_to_str(keywd)
         if arg_is_elem == True:
             # find the argument element
-            arg_elem = e.find_child(yin_namespace, argname)
+            arg_elem = e.find_child(e.ns, argname)
             if arg_elem is None:
                 arg = None
                 error.err_add(self.ctx.errors, e.pos,
@@ -231,6 +233,9 @@ class YinParser(object):
             p = self.top.find_child(yin_namespace, 'namespace')
             if p is not None:
                 self.uri = p.find_attribute('uri')
+            p = self.top.find_child(yin_namespace, 'prefix')
+            if p is not None:
+                self.prefixmap[self.uri] = p.find_attribute('value')
         elif self.top.local_name == 'submodule':
             p = self.top.find_child(yin_namespace, 'belongs-to')
             modname = p.find_attribute('module')
@@ -295,10 +300,13 @@ class YinParser(object):
                     if argname is None:
                         continue
                     arg_is_elem = arg.find_child(yin_namespace, 'yin-element')
-                    if (arg_is_elem is None or
-                        arg_is_elem.data.strip() == 'false'):
+                    if arg_is_elem is None:
                         self.extensions[extname] = (False, argname)
-                    elif arg_is_elem.data.strip() == 'true':
+                        continue
+                    val = arg_is_elem.find_attribute('value')
+                    if val == 'false':
+                        self.extensions[extname] = (False, argname)
+                    elif val == 'true':
                         self.extensions[extname] = (True, argname)
 
     def find_extension(self, uri, extname):
