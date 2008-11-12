@@ -81,14 +81,14 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
                                   extmodule.search('extension'))
             ext_arg = ext.search_one('argument')
             if ext_arg is not None: 
-                yin_element = ext_arg.search_one('yin_element')
-                if yin_element is not None:
-                    argname = prefix + ':' + ext.argument.arg
-                    argiselem = yin_element.arg == 'true'
+                yin_element = ext_arg.search_one('yin-element')
+                if yin_element is not None and yin_element.arg == 'true':
+                    argname = prefix + ':' + ext_arg.arg
+                    argiselem = True
                 else:
-                    # no yin-element given, default to false
-                    argiselem = False
+                    # explicit false or no yin-element given
                     argname = ext_arg.arg
+                    argiselem = False
             else:
                 argiselem = False
                 argname = None            
