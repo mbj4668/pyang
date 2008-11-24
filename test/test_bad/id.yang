@@ -60,4 +60,35 @@ module id {
     description "Triple DES crypto algorithm";
     base "crypto-alg2"; // error: syntax
   }
+
+  typedef crypto-type {
+    type identityref {
+      base "crypto:crypto-alg";
+    }
+  }
+
+  typedef crypto-type1 {
+    type identityref {
+      base "crypto:crypto-alg2"; // error: not defined
+    }
+  }
+
+  typedef crypto-type2 {
+    type identityref {
+      base "crypto-alg2"; // error: not defined
+    }
+  }
+
+  typedef crypto-type3 {
+    type int32 {
+      base "crypto:crypto-alg"; // error: bad restriction
+    }
+  }
+
+  typedef crypto-type4 {
+    type identityref {
+      pattern "a*"; // error; bad restriction
+    }
+  }
+
 }

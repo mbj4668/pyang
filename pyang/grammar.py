@@ -197,6 +197,7 @@ stmt_map = {
             [('enum', '*')],
             [('bit', '*')],
             [('path', '?')],
+            [('base', '?')],
             [('type', '*')]])]),
     'range':
         ('range-arg',
@@ -421,7 +422,49 @@ stmt_map = {
           ]),
     'refine':
         ('descendant-schema-nodeid',
-         []),
+         [('$choice',
+           [# container
+            [('must', '*'),
+             ('presence', '?'),
+             ('config', '?'),
+             ('description', '?'),
+             ('reference', '?'),
+             ],
+            # leaf
+            [('must', '*'),
+             ('default', '?'),
+             ('config', '?'),
+             ('mandatory', '?'),
+             ('status', '?'),
+             ('description', '?'),
+             ('reference', '?'),
+             ],
+            # leaf-list and list
+            [('must', '*'),
+             ('config', '?'),
+             ('min-elements', '?'),
+             ('max-elements', '?'),
+             ('description', '?'),
+             ('reference', '?'),
+             ],
+            # choice
+            [('default', '?'),
+             ('config', '?'),
+             ('mandatory', '?'),
+             ('description', '?'),
+             ('reference', '?'),
+             ],
+            # case
+            [('description', '?'),
+             ('reference', '?'),
+             ],
+            # anyxml
+            [('config', '?'),
+             ('description', '?'),
+             ('reference', '?'),
+             ],
+            ],
+           )]),
     'augment':
         ('absolute-schema-nodeid',
          [('when', '?'),
