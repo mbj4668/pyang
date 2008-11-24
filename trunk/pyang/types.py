@@ -542,6 +542,7 @@ yang_type_specs = \
    'bits':TypeSpec(),
    'binary':BinaryTypeSpec(),
    'keyref':TypeSpec(),
+   'identityref':TypeSpec(),
    'instance-identifier':TypeSpec(),
    'empty':EmptyTypeSpec(),
    'union':TypeSpec(),

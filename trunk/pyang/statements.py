@@ -525,7 +525,7 @@ def v_type_type(ctx, stmt):
     patterns = stmt.search('pattern')
     if (patterns != [] and
         'pattern' not in stmt.i_type_spec.restrictions()):
-        err_add(ctx.errors, patterns[1].pos, 'BAD_RESTRICTION', 'pattern')
+        err_add(ctx.errors, patterns[0].pos, 'BAD_RESTRICTION', 'pattern')
     elif patterns != []:
         stmt.i_is_derived = True
         pattern_specs = [types.validate_pattern_expr(ctx.errors, p)
@@ -544,6 +544,11 @@ def v_type_type(ctx, stmt):
         path_spec = types.validate_path_expr(ctx.errors, path)
         if path_spec is not None:
             stmt.i_type_spec = types.PathTypeSpec(path_spec, path.pos)
+
+    # check the base restriction
+    base = stmt.search_one('base')
+    if base is not None and stmt.arg != 'identityref':
+        err_add(ctx.errors, base.pos, 'BAD_RESTRICTION', 'base')
 
     # check the enums - only applicable when the type is the builtin
     # enumeration type
@@ -849,6 +854,100 @@ def v_expand_2_choice(ctx, stmt):
             stmt.i_children.append(s)
 
 def v_expand_3_uses(ctx, stmt):
+    return v_expand_3_uses_OLD(ctx, stmt)
+
+    if stmt.i_grouping is None:
+        return
+
+    for g in stmt.i_grouping.i_children:
+        newg = g.copy(stmt.parent, stmt.pos, nocopy=['type']),
+
+    # FIXME: not correct - must copy i_childen as well.
+    def expand_stmt(target_ch, gch):
+        # create an expanded child and add it to the
+        # list of target children
+        for g in gch:
+            newx = g.copy(parent, stmt.pos, nocopy=['type'])
+            # inline the definition into our module
+            def set_attrs(s):
+                s.i_module = stmt.i_module
+            iterate_stmt(newx, set_attrs)
+            target_ch.append(newx)
+                    
+    def find_refine_node(refinement):
+        # parse the path into a list of two-tuples of (prefix,identifier)
+        pstr = '/' + refinement.arg
+        path = [(m[1], m[2]) \
+                    for m in syntax.re_schema_node_id_part.findall(path)]
+        node = stmt
+        # recurse down the path
+        for (prefix, identifier) in path:
+            if 'i_children' in node.__dict__:
+                module = prefix_to_module(stmt.i_module, prefix, refinement.pos,
+                                          ctx.errors)
+                if module is None:
+                    return None
+                child = search_child(node.i_children, module.arg, identifier)
+                if child is None:
+                    err_add(ctx.errors, refinement.pos, 'NODE_NOT_FOUND',
+                            (module.arg, identifier))
+                    return None
+                node = child
+            else:
+                err_add(ctx.errors, refinement.pos, 'BAD_NODE_IN_REFINE',
+                        (module.arg, identifier))
+                return None
+        return node
+
+    def replace_from_refinement(target, refinement, keyword, valid_keywords):
+        new = refinement.search_one(keyword)
+        if new is not None and target.keyword in valid_keywords:
+            old = target.search_one(keyword)
+            if old is not None:
+                target.substmts.remove(old)
+            target.substmts.append(new)
+        elif new is not None:
+            err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
+                    (module.arg, target.keyword, keyword))
+            return
+        
+    # first, copy the grouping into our i_children
+    expand_stmt(stmt.i_children, stmt.i_grouping.i_children)
+
+    # then apply all refinements
+    for refinement in stmt.search('refine'):
+        target = find_refine_node(refinement)
+        if target is None:
+            return
+
+        replace_from_refinement(target, refinement, 'description',
+                                ['container', 'leaf', 'leaf-list', 'list',
+                                 'choice', 'case', 'anyxml'])
+        replace_from_refinement(target, refinement, 'reference',
+                                ['container', 'leaf', 'leaf-list', 'list',
+                                 'choice', 'case', 'anyxml'])
+        replace_from_refinement(target, refinement, 'config',
+                                ['container', 'leaf', 'leaf-list', 'list',
+                                 'choice', 'anyxml'])
+        replace_from_refinement(target, refinement, 'presence',
+                                ['container'])
+        replace_from_refinement(target, refinement, 'must',
+                                ['container', 'leaf', 'leaf-list', 'list'])
+        replace_from_refinement(target, refinement, 'default',
+                                ['leaf', 'choice'])
+        replace_from_refinement(target, refinement, 'mandatory',
+                                ['leaf', 'choice'])
+        replace_from_refinement(target, refinement, 'min-elements',
+                                ['leaf-list', 'list'])
+        replace_from_refinement(target, refinement, 'max-elements',
+                                ['leaf-list', 'list'])
+        replace_from_refinement(target, refinement, 'reference',
+                                ['container', 'leaf', 'leaf-list', 'list',
+                                 'choice', 'case', 'anyxml'])
+
+
+
+def v_expand_3_uses_OLD(ctx, stmt):
     if stmt.i_grouping is None:
         return
 

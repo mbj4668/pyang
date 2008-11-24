@@ -38,7 +38,8 @@ dsdl: $(DSDL_OBJECTS)
 xml: $(XML_OBJECTS)
 
 %.yang:	%.mib
-	$(SMIDUMP) -f yang --yang-smi-extensions $< -o $@
+	$(SMIDUMP) -f yang  $< -o $@
+#	$(SMIDUMP) -f yang --yang-smi-extensions $< -o $@
 
 %.yin:	%.yang
 	$(PYANG) -f yin $< -o $@

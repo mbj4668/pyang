@@ -2,6 +2,7 @@
 
   o  add more stuff to XSD output:
      o  generate xs:unique for 'unique'
+     o  use substitutiongroup for augment
 
   o  handle relative inline augment
 
@@ -14,6 +15,5 @@ BEFORE NEXT RELEASE:
   o  handle local extensions defined in a submodule
 
   o  update to -02:
-     - features
      - deviations
-     - identity / identityref
+     - refine
