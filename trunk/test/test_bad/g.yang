@@ -60,7 +60,7 @@ module g {
         }
         input {
             uses a4 {
-                leaf y {
+                refine y {
                     default 2; // error: bad default
                 }
             }

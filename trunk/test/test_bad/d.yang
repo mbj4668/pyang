@@ -49,12 +49,12 @@ module d {
             type int32;
         }
         uses xxx { // error: z2 already used
-            leaf z2 {
-                default apa;
-            }
-            leaf z2 { // error: z2 alread refined
-                default 42;
-            }
+          refine z2 {
+            default apa; // error: bas type
+          }
+          refine z2 { // error: z2 alread refined
+            default 42;
+          }
         }
         uses e:xxx; // error: z4 already used
     }

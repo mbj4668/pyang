@@ -37,7 +37,7 @@ module yt4 {
         leaf xx { type con1_typ1; }
         leaf xxx { type yt4:con1_typ1; }
         uses con1_grp1 {
-          leaf b { 
+          refine b { 
             description "new b";
             default 4;
             mandatory "fa" + "lse";

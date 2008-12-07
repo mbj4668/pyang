@@ -142,7 +142,7 @@ module/*hej*/xt1 {
     uses Bar {
       description "hej";
       reference "ds";
-      leaf y;
+      refine y;
     }
     leaf c  { type int32; }
     leaf f {
@@ -164,8 +164,8 @@ module/*hej*/xt1 {
 
   container bax {
     uses Foo {
-      leaf x { default 12099;  }
-      leaf c;
+      refine x { default 12099;  }
+      refine c;
     }
 
     list ul {
@@ -173,8 +173,8 @@ module/*hej*/xt1 {
       unique "c/a c/b";
       leaf z {type int32;}
       uses Bar {
-	leaf x {default 103239;}
-	leaf y; 
+	refine x {default 103239;}
+	refine y; 
       }
       list c {
 	config false;

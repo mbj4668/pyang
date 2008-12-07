@@ -21,7 +21,7 @@ module xt7 {
     }
   }
   uses baz {
-    leaf x {
+    refine x {
       default 42;
     }
   }

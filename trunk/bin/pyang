@@ -117,6 +117,9 @@ Validates the YANG module in <filename>, and all its dependencies."""
     ctx.opts = o
     
     if o.format != None:
+        if o.format not in fmts:
+            print >> sys.stderr, "unsupported format '%s'" % o.format
+            sys.exit(1)
         emit_obj = fmts[o.format]
     else:
         emit_obj = None

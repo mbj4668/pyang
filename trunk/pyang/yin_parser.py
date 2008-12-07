@@ -143,7 +143,7 @@ class YinParser(object):
         if e.ns == yin_namespace:
             keywd = e.local_name
             try:
-                (arg_is_elem, argname) = syntax.yin_map[keywd]
+                (argname, arg_is_elem) = syntax.yin_map[keywd]
             except KeyError:
                 error.err_add(self.ctx.errors, e.pos,
                               'UNKNOWN_KEYWORD', keywd)

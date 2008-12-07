@@ -24,7 +24,7 @@ d.yang:45: error: DUPLICATE_CHILD_NAME
 d.yang:48: error: DUPLICATE_CHILD_NAME
 d.yang:51: error: DUPLICATE_CHILD_NAME
 d.yang:53: error: TYPE_VALUE
-d.yang:55: error: NODE_NOT_IN_GROUPING
+d.yang:55: error: MULTIPLE_REFINE
 d.yang:59: error: DUPLICATE_CHILD_NAME
 e.yang:14: warning: UNUSED_TYPEDEF
 e.yang:17: warning: UNUSED_GROUPING

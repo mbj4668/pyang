@@ -9,6 +9,7 @@ import re
 from pyang import plugin
 from pyang import util
 from pyang import grammar
+from pyang import syntax
 from pyang import statements
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
@@ -96,7 +97,7 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
             argiselem = False
             argname = None
     else:
-        (argname, argiselem) = yang_keywords[stmt.raw_keyword]
+        (argname, argiselem) = syntax.yin_map[stmt.raw_keyword]
         tag = stmt.raw_keyword
     if argiselem == False or argname is None:
         if argname is None:
@@ -142,62 +143,3 @@ def fmt_text(indent, data):
         else:
             res.extend(indent + line)
     return ''.join(res)
-
-    # keyword             argument-name  yin-element
-yang_keywords = \
-    {'anyxml':           ('name',        False),
-     'argument':         ('name',        False),
-     'augment':          ('target-node', False),
-     'belongs-to':       ('module',      False),
-     'bit':              ('name',        False),
-     'case':             ('name',        False),
-     'choice':           ('name',        False),
-     'config':           ('value',       False),
-     'contact':          ('info',        True),
-     'container':        ('name',        False),
-     'default':          ('value',       False),
-     'description':      ('text',        True),
-     'enum':             ('name',        False),
-     'error-app-tag':    ('value',       False),
-     'error-message':    ('value',       True),
-     'extension':        ('name',        False),
-     'grouping':         ('name',        False),
-     'import':           ('module',      False),
-     'include':          ('module',      False),
-     'input':            (None,          None),
-     'key':              ('value',       False),
-     'leaf':             ('name',        False),
-     'leaf-list':        ('name',        False),
-     'length':           ('value',       False),
-     'list':             ('name',        False),
-     'mandatory':        ('value',       False),
-     'max-elements':     ('value',       False),
-     'min-elements':     ('value',       False),
-     'module':           ('name',        False),
-     'must':             ('condition',   False),
-     'namespace':        ('uri',         False),
-     'notification':     ('name',        False),
-     'ordered-by':       ('value',       False),
-     'organization':     ('info',        True),
-     'output':           (None,          None),
-     'path':             ('value',       False),
-     'pattern':          ('value',       False),
-     'position':         ('value',       False),
-     'presence':         ('value',       False),
-     'prefix':           ('value',       False),
-     'range':            ('value',       False),
-     'reference':        ('info',        False),
-     'revision':         ('date',        False),
-     'rpc':              ('name',        False),
-     'status':           ('value',       False),
-     'submodule':        ('name',        False),
-     'type':             ('name',        False),
-     'typedef':          ('name',        False),
-     'unique':           ('tag',         False),
-     'units':            ('name',        False),
-     'uses':             ('name',        False),
-     'value':            ('value',       False),
-     'when':             ('condition',   False),
-     'yang-version':     ('value',       False),
-     'yin-element':      ('value',       False),
-     }

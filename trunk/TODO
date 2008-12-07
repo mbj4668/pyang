@@ -4,16 +4,11 @@
      o  generate xs:unique for 'unique'
      o  use substitutiongroup for augment
 
-  o  handle relative inline augment
-
   o  add validation of instance-identifier defaults
 
   o  better handling of multiple input files
-
-BEFORE NEXT RELEASE:
 
   o  handle local extensions defined in a submodule
 
   o  update to -02:
      - deviations
-     - refine
