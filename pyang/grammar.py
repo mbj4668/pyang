@@ -52,17 +52,6 @@ case_data_def_stmts = [
     ('augment', '*'),
 ]
 
-# FIXME: not correct!! but if we introduce new keyword "refine" then
-# this will be better...
-refinement_stmts = [
-    ('container', '*'),
-    ('leaf', '*'),
-    ('leaf-list', '*'),
-    ('list', '*'),
-    ('choice', '*'),
-    ('anyxml', '*'),
-]
-
 body_stmts = [
     ('$interleave',
      [('extension', '*'),
@@ -306,36 +295,11 @@ stmt_map = {
           ('description', '?'),
           ('reference', '?'),
           ]),
-    'refined-leaf':
-        ('identifier',
-         [('type', '?'),
-          ('units', '?'),
-          ('must', '*'),
-          ('default', '?'),
-          ('config', '?'),
-          ('mandatory', '?'),
-          ('status', '?'),
-          ('description', '?'),
-          ('reference', '?'),
-          ]),
     'leaf-list':
         ('identifier',
          [('when', '?'),
           ('if-feature', '*'),
           ('type', '1'),
-          ('units', '?'),
-          ('must', '*'),
-          ('config', '?'),
-          ('min-elements', '?'),
-          ('max-elements', '?'),
-          ('ordered-by', '?'),
-          ('status', '?'),
-          ('description', '?'),
-          ('reference', '?'),
-          ]),
-    'refined-leaf-list':
-        ('identifier',
-         [('type', '?'),
           ('units', '?'),
           ('must', '*'),
           ('config', '?'),
@@ -417,54 +381,22 @@ stmt_map = {
           ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
-          ('$interleave',
-           refinement_stmts),
+          ('refine', '*'),
           ]),
     'refine':
         ('descendant-schema-nodeid',
-         [('$choice',
-           [# container
-            [('must', '*'),
-             ('presence', '?'),
-             ('config', '?'),
-             ('description', '?'),
-             ('reference', '?'),
-             ],
-            # leaf
-            [('must', '*'),
-             ('default', '?'),
-             ('config', '?'),
-             ('mandatory', '?'),
-             ('status', '?'),
-             ('description', '?'),
-             ('reference', '?'),
-             ],
-            # leaf-list and list
-            [('must', '*'),
-             ('config', '?'),
-             ('min-elements', '?'),
-             ('max-elements', '?'),
-             ('description', '?'),
-             ('reference', '?'),
-             ],
-            # choice
-            [('default', '?'),
-             ('config', '?'),
-             ('mandatory', '?'),
-             ('description', '?'),
-             ('reference', '?'),
-             ],
-            # case
-            [('description', '?'),
-             ('reference', '?'),
-             ],
-            # anyxml
-            [('config', '?'),
-             ('description', '?'),
-             ('reference', '?'),
-             ],
-            ],
-           )]),
+         [('$interleave',
+           [('must', '*'),
+            ('presence', '?'),
+            ('default', '?'),
+            ('config', '?'),
+            ('mandatory', '?'),
+            ('min-elements', '?'),
+            ('max-elements', '?'),
+            ('description', '?'),
+            ('reference', '?'),
+            ]),
+          ]),
     'augment':
         ('absolute-schema-nodeid',
          [('when', '?'),
@@ -580,7 +512,7 @@ def chk_statement(ctx, stmt, grammar, canonical=False):
     _chk_stmts(ctx, stmt.pos, [stmt], grammar, canonical)
     return n == len(ctx.errors)
 
-def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
+def _chk_stmts(ctx, pos, stmts, spec, canonical):
     for stmt in stmts:
         stmt.is_grammatically_valid = False
         if not util.is_prefixed(stmt.keyword):
@@ -601,16 +533,6 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
                           util.keyword_to_str(stmt.raw_keyword));
         elif match_res is not None and chk_grammar == True:
             (arg_type, subspec) = stmt_map[stmt.keyword]
-            # FIXME: hack to handle the current situation where some
-            # stmts' grammar is context dependant.  I hope this gets
-            # fixed with a special 'refine' statement.
-            if is_refinement:
-                if stmt.keyword == 'leaf':
-                    (arg_type, subspec) = stmt_map['refined-leaf']
-                elif stmt.keyword == 'leaf-list':
-                    (arg_type, subspec) = stmt_map['refined-leaf-list']
-            if stmt.keyword == 'uses':
-                is_refinement = True
             # verify the statement's argument
             if arg_type is None and stmt.arg is not None:
                 error.err_add(ctx.errors, stmt.pos,
@@ -626,14 +548,12 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical, is_refinement = False):
             else:
                 stmt.is_grammatically_valid = True
 
-            _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical,
-                       is_refinement)
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical)
             spec = match_res
         else:
             # unknown extension
             stmt.is_grammatically_valid = True
-            _chk_stmts(ctx, stmt.pos, stmt.substmts, [('$any', '*')], canonical,
-                       is_refinement)
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, [('$any', '*')], canonical)
         # update last know position
         pos = stmt.pos
     # any non-optional statements left are errors

@@ -120,6 +120,9 @@ error_codes = \
     'DEFAULT_CASE_NOT_FOUND':
       (1,
        'the default case "%s" is not found"'),
+    'MULTIPLE_REFINE':
+      (1,
+       'the node "%s" is already refined at %s'),
     'NODE_NOT_IN_GROUPING':
       (1,
        'the node "%s" is not found in the grouping'),

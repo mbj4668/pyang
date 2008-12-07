@@ -69,8 +69,7 @@ pyang/types.py
 pyang/plugin.py
   Plugin API.  Defines the class PyangPlugin which all plugins
   inherits from.
-  All output handlers are written as plugins.  In the future, plugins
-  will be written for validation of YANG extensions as well.
+  All output handlers are written as plugins.
 
 pyang/plugins/
   Directory where plugins can be installed.  All plugins in this

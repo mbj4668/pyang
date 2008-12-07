@@ -28,7 +28,7 @@ def validate_module(ctx, module):
     def iterate(stmt, phase):
         # if the grammar is not yet checked or if it is checked and
         # valid, then we continue.
-        if ('is_grammatically_valid' in stmt.__dict__ and
+        if (hasattr(stmt, 'is_grammatically_valid') and
             stmt.is_grammatically_valid == False):
             return
         # first check an exact match
@@ -60,11 +60,11 @@ def validate_module(ctx, module):
         else:
             # default is to recurse
             if phase in _v_i_children:
-                if 'i_children' in stmt.__dict__:
+                if hasattr(stmt, 'i_children'):
                     for s in stmt.i_children:
                         iterate(s, phase)
                 for s in stmt.substmts:
-                    if 'i_has_i_children' in s.__dict__:
+                    if hasattr(s, 'i_has_i_children'):
                         iterate(s, phase)
             else:
                 for s in stmt.substmts:
@@ -102,20 +102,15 @@ _validation_phases = [
     'type',
 
     # expansion phases:
-    #   first expansion: copy normal data definition stmts into i_children
+    #   first expansion: copy data definition stmts into i_children
     'expand_1',
-    #   second expansion: set i_children for choice nodes; create an 
-    #   artificial case statement for shorthands
-    'expand_2',
-    #   third expansion: expand uses into i_children
-    'expand_3',
 
     # inherit properties phase:
     #   set i_config
     'inherit_properties',
 
-    #   fourth expansion: expand augmentations into i_children
-    'expand_4',
+    #   second expansion: expand augmentations into i_children
+    'expand_2',
 
     # unique name check phase:
     'unique_name',
@@ -153,27 +148,21 @@ _validation_map = {
     ('type', 'grouping'):lambda ctx, s: v_type_grouping(ctx, s),
     ('type', 'augment'):lambda ctx, s: v_type_augment(ctx, s),
     ('type', 'uses'):lambda ctx, s: v_type_uses(ctx, s),
-    ('type', 'input'):lambda ctx, s: v_type_input_output(ctx, s),
-    ('type', 'output'):lambda ctx, s: v_type_input_output(ctx, s),
     ('type', 'feature'):lambda ctx, s: v_type_feature(ctx, s),
     ('type', 'if-feature'):lambda ctx, s: v_type_if_feature(ctx, s),
     ('type', 'identity'):lambda ctx, s: v_type_identity(ctx, s),
     ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
 
-    ('expand_1', '$has_children'):lambda ctx, s: v_expand_1_children(ctx, s),
-
-    ('expand_2', 'rpc'):lambda ctx, s: v_expand_2_rpc(ctx, s),
-    ('expand_2', 'choice'):lambda ctx, s: v_expand_2_choice(ctx, s),
-
-    ('expand_3', 'uses'):lambda ctx, s: v_expand_3_uses(ctx, s),
+    ('expand_1', 'module'):lambda ctx, s: v_expand_1_children(ctx, s),
+    ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
 
     ('inherit_properties', 'module'): \
         lambda ctx, s: v_inherit_properties_module(ctx, s),
     ('inherit_properties', 'submodule'): \
         lambda ctx, s: v_inherit_properties_module(ctx, s),
 
-    ('expand_4', 'augment'):lambda ctx, s: v_expand_4_augment(ctx, s),
+    ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
 
     ('unique_name', '$has_children'): \
         lambda ctx, s: v_unique_names_children(ctx, s),
@@ -316,7 +305,6 @@ def v_init_extension(ctx, stmt):
 def v_init_stmt(ctx, stmt):
     stmt.i_typedefs = {}
     stmt.i_groupings = {}
-    stmt.i_origin = None
 
 def v_init_has_children(ctx, stmt):
     stmt.i_children = []
@@ -368,7 +356,7 @@ def v_import_module(ctx, stmt):
 ### type phase
 
 def v_type_typedef(ctx, stmt):
-    if 'i_is_validated' in stmt.__dict__:
+    if hasattr(stmt, 'i_is_validated'):
         if stmt.i_is_validated == True:
             # this type has already been validated
             return
@@ -437,7 +425,7 @@ def v_type_typedef(ctx, stmt):
                                       ' for the default value')
 
 def v_type_type(ctx, stmt):
-    if 'i_is_validated' in stmt.__dict__:
+    if hasattr(stmt, 'i_is_validated'):
         # already validated
         return
 
@@ -622,7 +610,7 @@ def _v_type_common_leaf(ctx, stmt):
     add_keyref_path(stmt.i_keyrefs, type)
 
 def v_type_grouping(ctx, stmt):
-    if 'i_is_validated' in stmt.__dict__:
+    if hasattr(stmt, 'i_is_validated'):
         if stmt.i_is_validated == True:
             # this grouping has already been validated
             return
@@ -683,10 +671,6 @@ def v_type_augment(ctx, stmt):
         # run over this one
         stmt.i_has_i_children = True
 
-def v_type_input_output(ctx, stmt):
-#    stmt.arg = stmt.keyword
-    pass
-
 def v_type_extension(ctx, stmt):
     """verify that the extension matches the extension definition"""
     (modulename, identifier) = stmt.keyword
@@ -707,7 +691,7 @@ def v_type_extension(ctx, stmt):
                 identifier)
 
 def v_type_feature(ctx, stmt):
-    if 'i_is_validated' in stmt.__dict__:
+    if hasattr(stmt, 'i_is_validated'):
         if stmt.i_is_validated == True:
             # this feature has already been validated
             return
@@ -754,7 +738,7 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 'FEATURE_NOT_FOUND', (name, pmodule.arg))
 
 def v_type_identity(ctx, stmt):
-    if 'i_is_validated' in stmt.__dict__:
+    if hasattr(stmt, 'i_is_validated'):
         if stmt.i_is_validated == True:
             # this identity has already been validated
             return
@@ -807,84 +791,87 @@ data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
                  'anyxml', 'rpc', 'notification']
 
 def v_expand_1_children(ctx, stmt):
-    if stmt.keyword == 'choice':
-        # choice is handled in v_expand_2_choice
+    if (hasattr(stmt, 'is_grammatically_valid') and
+        stmt.is_grammatically_valid == False):
         return
+    if stmt.keyword == 'grouping' and hasattr(stmt, "i_expanded"):
+        # already expanded
+        return
+    elif stmt.keyword == 'choice':
+        shorthands = ['leaf', 'leaf-list', 'container', 'list', 'anyxml']
+        for s in stmt.substmts:
+            if s.keyword in shorthands:
+                # create an artifical case node for the shorthand
+                new_case = Statement(s.top, s.parent, s.pos, 'case', s.arg)
+                v_init_stmt(ctx, new_case)
+                new_child = s.copy(new_case)
+                new_case.i_children = [new_child]
+                new_case.i_module = s.i_module
+                stmt.i_children.append(new_case)
+                v_expand_1_children(ctx, new_case)
+            elif s.keyword == 'case':
+                stmt.i_children.append(s)
+                v_expand_1_children(ctx, s)
+        return
+    elif stmt.keyword == 'rpc':
+        input = stmt.search_one('input')
+        if input is None:
+            # create the implicitly defined input node
+            input = Statement(stmt.top, stmt, stmt.pos, 'input', 'input')
+            v_init_stmt(ctx, input)
+            input.i_children = []
+            input.i_module = stmt.i_module
+            stmt.i_children.append(input)
+
+        output = stmt.search_one('output')
+        if output is None:
+            # create the implicitly defined output node
+            output = Statement(stmt.top, stmt, stmt.pos, 'output', 'output')
+            v_init_stmt(ctx, output)
+            output.i_children = []
+            output.i_module = stmt.i_module
+            stmt.i_children.append(output)
+
+    if stmt.keyword == 'grouping':
+        stmt.i_expanded = False
     for s in stmt.substmts:
         if s.keyword in ['input', 'output']:
             # must create a copy of the statement which sets the argument
-            news = copy.copy(s)
+            news = s.copy()
+            news.i_groupings = s.i_groupings
+            news.i_typedefs = s.i_typedefs
             news.arg = news.keyword
             stmt.i_children.append(news)
+            v_expand_1_children(ctx, news)
+        elif s.keyword == 'uses':
+            v_expand_1_uses(ctx, s)
         elif s.keyword in data_keywords:
             stmt.i_children.append(s)
-
-def v_expand_2_rpc(ctx, stmt):
-    input = stmt.search_one('input')
-    if input is None:
-        # create the implicitly defined input node
-        input = Statement(stmt.top, stmt, stmt.pos, 'input', 'input')
-        v_init_stmt(ctx, input)
-        input.i_children = []
-        input.i_module = stmt.i_module
-        stmt.i_children.append(input)
-
-    output = stmt.search_one('output')
-    if output is None:
-        # create the implicitly defined output node
-        output = Statement(stmt.top, stmt, stmt.pos, 'output', 'output')
-        v_init_stmt(ctx, output)
-        output.i_children = []
-        output.i_module = stmt.i_module
-        stmt.i_children.append(output)
-
-def v_expand_2_choice(ctx, stmt):
-    shorthands = ['leaf', 'leaf-list', 'container', 'list', 'anyxml']
-    stmt.i_children = []
-    for s in stmt.substmts:
-        if s.keyword in shorthands:
-            # create an artifical case node for the shorthand
-            new_case = Statement(s.top, s.parent, s.pos, 'case', s.arg)
-            v_init_stmt(ctx, new_case)
-            new_child = s.copy(new_case)
-            new_case.i_children = [new_child]
-            new_case.i_module = s.i_module
-            stmt.i_children.append(new_case)
-        elif s.keyword == 'case':
-            stmt.i_children.append(s)
-
-def v_expand_3_uses(ctx, stmt):
-    return v_expand_3_uses_OLD(ctx, stmt)
-
+            v_expand_1_children(ctx, s)
+        elif s.keyword in keyword_with_children:
+            v_expand_1_children(ctx, s)
+    if stmt.keyword == 'grouping':
+        stmt.i_expanded = True
+        return 'continue'
+              
+def v_expand_1_uses(ctx, stmt):
     if stmt.i_grouping is None:
         return
-
-    for g in stmt.i_grouping.i_children:
-        newg = g.copy(stmt.parent, stmt.pos, nocopy=['type']),
-
-    # FIXME: not correct - must copy i_childen as well.
-    def expand_stmt(target_ch, gch):
-        # create an expanded child and add it to the
-        # list of target children
-        for g in gch:
-            newx = g.copy(parent, stmt.pos, nocopy=['type'])
-            # inline the definition into our module
-            def set_attrs(s):
-                s.i_module = stmt.i_module
-            iterate_stmt(newx, set_attrs)
-            target_ch.append(newx)
-                    
+    
+    # possibly expand any uses within the grouping
+    v_expand_1_children(ctx, stmt.i_grouping)
+    
     def find_refine_node(refinement):
         # parse the path into a list of two-tuples of (prefix,identifier)
         pstr = '/' + refinement.arg
         path = [(m[1], m[2]) \
-                    for m in syntax.re_schema_node_id_part.findall(path)]
-        node = stmt
+                    for m in syntax.re_schema_node_id_part.findall(pstr)]
+        node = stmt.parent
         # recurse down the path
         for (prefix, identifier) in path:
-            if 'i_children' in node.__dict__:
-                module = prefix_to_module(stmt.i_module, prefix, refinement.pos,
-                                          ctx.errors)
+            module = prefix_to_module(stmt.i_module, prefix, refinement.pos,
+                                      ctx.errors)
+            if hasattr(node, 'i_children'):
                 if module is None:
                     return None
                 child = search_child(node.i_children, module.arg, identifier)
@@ -899,27 +886,72 @@ def v_expand_3_uses(ctx, stmt):
                 return None
         return node
 
-    def replace_from_refinement(target, refinement, keyword, valid_keywords):
+    def replace_from_refinement(target, refinement, keyword, valid_keywords,
+                                v_fun=None):
         new = refinement.search_one(keyword)
         if new is not None and target.keyword in valid_keywords:
             old = target.search_one(keyword)
             if old is not None:
                 target.substmts.remove(old)
+            if v_fun is not None:
+                v_fun(target, new)
             target.substmts.append(new)
         elif new is not None:
             err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
-                    (module.arg, target.keyword, keyword))
+                    (target.keyword, keyword))
             return
-        
-    # first, copy the grouping into our i_children
-    expand_stmt(stmt.i_children, stmt.i_grouping.i_children)
 
+    # first, copy the grouping into our i_children
+    for g in stmt.i_grouping.i_children:
+        # don't copy the type since it cannot be modified anyway.
+        # not copying the type also works better for some plugins that
+        # generate output from the i_children list, e.g. the XSD plugin.
+        def post_copy(old, new):
+            # inline the definition into our module
+            new.i_module = stmt.i_module
+            new.i_children = []
+            # build the i_children list of pointers
+            if hasattr(old, 'i_children'):
+                for x in old.i_children:
+                    # check if this i_child is a pointer to a substmt
+                    if x in old.substmts:
+                        # if so, create an equivalent pointer
+                        idx = old.substmts.index(x)
+                        new.i_children.append(new.substmts[idx])
+                    else:
+                        # otherwise, copy the i_child
+                        newx = x.copy(new, stmt.pos,
+                                      nocopy=['type','uses',
+                                              'typedef','grouping'],
+                                      copyf=post_copy)
+                        new.i_children.append(newx)
+        newg = g.copy(stmt.parent, stmt.pos,
+                      nocopy=['type','uses','typedef','grouping'],
+                      copyf=post_copy)
+        stmt.parent.i_children.append(newg)
+
+    def v_default(target, default):
+        type = target.search_one('type')
+        if (type is not None and
+            type.i_type_spec is not None):
+            defval = type.i_type_spec.str_to_val(ctx.errors,
+                                                 default.pos,
+                                                 default.arg)
+            if defval is not None:
+                type.i_type_spec.validate(ctx.errors, default.pos,
+                                          defval, ' for the default value')
+    # keep track of already refined nodes
+    refined = {}
     # then apply all refinements
     for refinement in stmt.search('refine'):
         target = find_refine_node(refinement)
         if target is None:
-            return
-
+            continue
+        if target in refined:
+            err_add(ctx.errors, refinement.pos, 'MULTIPLE_REFINE',
+                    (target.arg, refined[target]))
+            continue
+        refined[target] = refinement.pos
         replace_from_refinement(target, refinement, 'description',
                                 ['container', 'leaf', 'leaf-list', 'list',
                                  'choice', 'case', 'anyxml'])
@@ -934,7 +966,7 @@ def v_expand_3_uses(ctx, stmt):
         replace_from_refinement(target, refinement, 'must',
                                 ['container', 'leaf', 'leaf-list', 'list'])
         replace_from_refinement(target, refinement, 'default',
-                                ['leaf', 'choice'])
+                                ['leaf', 'choice'], v_default)
         replace_from_refinement(target, refinement, 'mandatory',
                                 ['leaf', 'choice'])
         replace_from_refinement(target, refinement, 'min-elements',
@@ -944,98 +976,6 @@ def v_expand_3_uses(ctx, stmt):
         replace_from_refinement(target, refinement, 'reference',
                                 ['container', 'leaf', 'leaf-list', 'list',
                                  'choice', 'case', 'anyxml'])
-
-
-
-def v_expand_3_uses_OLD(ctx, stmt):
-    if stmt.i_grouping is None:
-        return
-
-    def validate_uses_children(parent, uch, gch, target_ch):
-        if len(uch) == 0:
-            if len(gch) > 0:
-                # create an expanded child and add it to the
-                # list of target children
-                for g in gch:
-                    newx = g.copy(parent, stmt.pos, nocopy=['type'])
-                    # inline the definition into our module
-                    def set_attrs(s):
-                        s.i_module = stmt.i_module
-                    iterate_stmt(newx, set_attrs)
-                    target_ch.append(newx)
-# FIXME: this line is necessary to validate execd.yang
-#  We should make a proper test case for this.
-#  The problem is that i_children is not copied on the copy stmt above.
-#                    target_ch.append(g)
-            return
-        if len(gch) == 0:
-            err_add(ctx.errors, uch[0].pos, 'NODE_NOT_IN_GROUPING', uch[0].arg)
-            return
-        # check if we found the refined node
-        g = attrsearch(uch[0].arg, 'arg', gch)
-        if g is None:
-            err_add(ctx.errors, uch[0].pos, 'NODE_NOT_IN_GROUPING', uch[0].arg)
-            return
-        gch = util.listsdelete(g, gch)
-        # check that uch[0] and g are of compatible type
-        if uch[0].keyword != g.keyword:
-            err_add(ctx.errors, uch[0].pos, 'NODE_GROUPING_TYPE', uch[0].arg)
-            return
-        # create an expanded child and add it to the list of expanded chs.
-        newx = g.copy(parent, stmt.pos, nocopy=['type'])
-        target_ch.append(newx)
-        # inline the definition into our modulde
-        newx.i_module = stmt.i_module
-        # possibly recurse
-        if uch[0].keyword in ['list', 'container', 'choice', 'case']:
-            newx.i_children = []
-            validate_uses_children(uch[0], uch[0].i_children, g.i_children,
-                                   newx.i_children)
-        # possibly modify the expanded child
-        if uch[0].keyword == 'leaf':
-            default = uch[0].search_one('default')
-            type = g.search_one('type')
-            if (default is not None and
-                type is not None and
-                type.i_type_spec is not None):
-                defval = type.i_type_spec.str_to_val(ctx.errors,
-                                                     default.pos,
-                                                     default.arg)
-                if defval is not None:
-                    type.i_type_spec.validate(ctx.errors, default.pos,
-                                              defval, ' for the default value')
-        elif uch[0].keyword == 'choice':
-            ## FIXME: handle default here!!!
-            pass
-
-        description = uch[0].search_one('description')
-        if description is not None:
-            old_description = newx.search_one('description')
-            if old_description is not None:
-                new.substmts.remove(old_description)
-            newx.substmts.append(description)
-
-        config = uch[0].search_one('config')
-        if config is not None:
-            old_config = newx.search_one('config')
-            if old_config is not None:
-                new.substmts.remove(old_config)
-            newx.substmts.append(config)
-
-
-        mandatory = uch[0].search_one('mandatory')
-        if mandatory is not None:
-            old_mandatory = newx.search_one('mandatory')
-            if old_mandatory is not None:
-                new.substmts.remove(old_mandatory)
-            newx.substmts.append(mandatory)
-
-        validate_uses_children(parent, uch[1:], gch, target_ch)
-
-    validate_uses_children(stmt.parent,
-                           stmt.i_children,
-                           stmt.i_grouping.i_children,
-                           stmt.parent.i_children)
 
 def v_inherit_properties_module(ctx, module):
     def iter(s, config_value):
@@ -1048,7 +988,7 @@ def v_inherit_properties_module(ctx, module):
             elif cfg.arg == 'false':
                 config_value = False
         s.i_config = config_value
-        if ('is_grammatically_valid' in s.__dict__ and
+        if (hasattr(s, 'is_grammatically_valid') and
             s.is_grammatically_valid == False):
             return
         if s.keyword in keyword_with_children:
@@ -1063,7 +1003,7 @@ def v_inherit_properties_module(ctx, module):
     # do not recurse in this phase
     return 'continue'
 
-def v_expand_4_augment(ctx, stmt):
+def v_expand_2_augment(ctx, stmt):
     """
     One-pass augment expansion algorithm: First observation: since we
     validate each imported module, all nodes that are augmented by
@@ -1105,7 +1045,7 @@ def v_expand_4_augment(ctx, stmt):
 
     # then recurse down the path
     for (prefix, identifier) in stmt.i_path[1:]:
-        if 'i_children' in node.__dict__:
+        if hasattr(node, 'i_children'):
             module = prefix_to_module(stmt.i_module, prefix, stmt.pos,
                                       ctx.errors)
             if module is None:
@@ -1132,7 +1072,7 @@ def v_expand_4_augment(ctx, stmt):
                     (module.arg, identifier))
             return
 
-    if 'i_children' not in node.__dict__:
+    if not hasattr(node, 'i_children'):
         err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
                 (module.arg, node.arg))
         return
@@ -1145,13 +1085,12 @@ def v_expand_4_augment(ctx, stmt):
             ch = search_child(node.i_children, stmt.i_module.arg, tmp.arg)
             if ch is not None:
                 del stmt.i_module.i_undefined_augment_nodes[tmp]
-                if 'i_children' not in ch.__dict__:
+                if not hasattr(ch, 'i_children'):
                     err_add(ctx.errors, tmp.pos, 'BAD_NODE_IN_AUGMENT',
                             (stmt.i_module.arg, ch.arg))
                     raise Abort
                 add_tmp_children(ch, tmp.i_children)
             else:
-                tmp.i_origin = 'augment'
                 node.i_children.append(tmp)
 
     for c in stmt.i_children:
@@ -1166,7 +1105,7 @@ def v_expand_4_augment(ctx, stmt):
                 # replace this node with the proper one,
                 # and also do this recursively
                 del stmt.i_module.i_undefined_augment_nodes[ch]
-                if 'i_children' not in c.__dict__:
+                if not hasattr(c, 'i_children'):
                     err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
                             (stmt.i_module.arg, c.arg))
                     return
@@ -1181,7 +1120,6 @@ def v_expand_4_augment(ctx, stmt):
                         (stmt.arg, stmt.pos, identifier, ch.pos))
                 return                
         else:
-            c.i_origin = 'augment'
             stmt.i_target_node.i_children.append(c)
 
 
@@ -1226,7 +1164,7 @@ def v_reference_list(ctx, stmt):
     def v_key():
         key = stmt.search_one('key')
         if (stmt.i_config == True) and (key is None):
-            if 'i_uses_pos' in stmt.__dict__:
+            if hasattr(stmt, 'i_uses_pos'):
                 err_add(ctx.errors, stmt.i_uses_pos, 'NEED_KEY_USES', (stmt.pos))
             else:
                 err_add(ctx.errors, stmt.pos, 'NEED_KEY', ())
@@ -1271,7 +1209,11 @@ def v_reference_list(ctx, stmt):
                         err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
                         return
                     ptr = attrsearch(x, 'arg', ptr.i_children)
+                    if ptr is None:
+                        err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
+                        return
                 if ((ptr is None) or (ptr.keyword != 'leaf')):
+                    print ptr.keyword
                     err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
                     return
                 if ptr in found:
@@ -1338,7 +1280,7 @@ def v_unused_grouping(ctx, stmt):
 ### Utility functions
 
 def chk_uses_pos(s, pos):
-    if 'i_uses_pos' in s.__dict__:
+    if hasattr(s, 'i_uses_pos'):
         return s.i_uses_pos
     else:
         return pos
@@ -1641,7 +1583,7 @@ class Statement(object):
                 return ch
         return None
 
-    def copy(self, parent=None, uses_pos=None, nocopy=[]):
+    def copy(self, parent=None, uses_pos=None, nocopy=[], ignore=[], copyf=None):
         new = copy.copy(self)
         if uses_pos is not None:
             new.i_uses_pos = uses_pos
@@ -1651,10 +1593,14 @@ class Statement(object):
             new.parent = parent
         new.substmts = []
         for s in self.substmts:
-            if s.keyword in nocopy:
+            if s.keyword in ignore:
+                pass
+            elif s.keyword in nocopy:
                 new.substmts.append(s)
             else:
-                new.substmts.append(s.copy(new))
+                new.substmts.append(s.copy(new, uses_pos, nocopy, ignore, copyf))
+        if copyf is not None:
+            copyf(self, new)
         return new
 
     # FIXME: remove / rewrite
