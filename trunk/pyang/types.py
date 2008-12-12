@@ -422,6 +422,8 @@ def validate_path_expr(errors, path):
     
         def parse_identifier(s, is_absolute):
             m = syntax.re_keyword_start.match(s)
+            if m is None:
+                raise Abort
             s = s[m.end():]
             if m.group(2) is None:
                 # no prefix
