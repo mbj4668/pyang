@@ -105,6 +105,7 @@ re_pos_decimal = re.compile(r"^(unbounded|" + pos_decimal + r")$")
 re_ordered_by = re.compile(r"^(user|system)$")
 re_node_id = re.compile("^" + node_id + "$")
 re_path = re.compile("^" + path_arg + "$")
+re_absolute_path = re.compile("^" + absolute_path_arg + "$")
 re_unique = re.compile("^" + unique_arg + "$")
 re_absolute_schema_nodeid = re.compile("^" + absolute_schema_nodeid + "$")
 re_descendant_schema_nodeid = re.compile("^" + descendant_schema_nodeid + "$")
@@ -126,6 +127,7 @@ arg_type_map = {
     "ordered-by-arg": lambda s: re_ordered_by.search(s) is not None,
     "identifier-ref": lambda s: re_node_id.search(s) is not None,
     "path-arg": lambda s: re_path.search(s) is not None,
+    "absolute-path-arg": lambda s: re_absolute_path.search(s) is not None,
     "unique-arg": lambda s: re_unique.search(s) is not None,
     "absolute-schema-nodeid": lambda s: \
         re_absolute_schema_nodeid.search(s) is not None,

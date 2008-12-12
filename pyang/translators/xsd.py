@@ -396,12 +396,12 @@ def print_children(ctx, module, fd, children, indent, path,
                 if c.search_one('presence') != None:
                     mino = ' minOccurs="0"'
             elif cn in ['list', 'leaf-list']:
-                if c.search_one('min_elements') != None:
-                    mino = ' minOccurs="%s"' % c.search_one('min_elements').arg
+                if c.search_one('min-elements') != None:
+                    mino = ' minOccurs="%s"' % c.search_one('min-elements').arg
                 else:
                     mino = ' minOccurs="0"'
-                if c.search_one('max_elements') != None:
-                    maxo = ' maxOccurs="%s"' % c.search_one('max_elements').arg
+                if c.search_one('max-elements') != None:
+                    maxo = ' maxOccurs="%s"' % c.search_one('max-elements').arg
                 else:
                     maxo = ' maxOccurs="unbounded"'
             elif cn in ['anyxml']:

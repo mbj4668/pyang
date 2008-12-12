@@ -309,6 +309,12 @@ error_codes = \
 
     }
 
+def add_error_code(tag, level, fmt):
+    """Add an error code to the framework.
+
+    Can be used by plugins to add special errors."""
+    error_codes[tag] = (level, fmt)
+
 def err_level(tag):
     try:
         (level, fmt) = error_codes[tag]

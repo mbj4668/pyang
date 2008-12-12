@@ -578,6 +578,7 @@ def v_type_type(ctx, stmt):
             return False
         
 def v_type_leaf(ctx, stmt):
+    stmt.i_default = None
     if _v_type_common_leaf(ctx, stmt) == False:
         return
     # check if we have a default value
@@ -587,6 +588,7 @@ def v_type_leaf(ctx, stmt):
         defval = type.i_type_spec.str_to_val(ctx.errors,
                                              default.pos,
                                              default.arg)
+        stmt.i_default = defval
         if defval is not None:
             type.i_type_spec.validate(ctx.errors, default.pos,
                                       defval, ' for the default value')
@@ -680,7 +682,7 @@ def v_type_extension(ctx, stmt):
     ext = module.search_one('extension', identifier)
     if ext is None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
-                (identifier, stmt.i_module.arg))
+                (identifier, module.arg))
         return
     ext_arg = ext.search_one('argument')
     if stmt.arg is not None and ext_arg is None:
