@@ -4,7 +4,7 @@ sdist: MANIFEST
 bdist: MANIFEST
 	python setup.py bdist
 
-.PHONY:	test
+.PHONY:	test tags
 test:
 	(cd test; $(MAKE) test)
 
@@ -16,3 +16,6 @@ clean:
 
 MANIFEST:
 	svn list -R > $@
+
+tags:
+	find . -name "*.py" | etags -
