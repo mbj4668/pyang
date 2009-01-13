@@ -51,7 +51,7 @@ try:
 except ImportError:
     pass
 
-from pyang import plugin, statements
+from pyang import plugin, statements, error
 
 def pyang_plugin_init():
     plugin.register_plugin(DSDLPlugin())
@@ -99,6 +99,12 @@ class DSDLPlugin(plugin.PyangPlugin):
         emit_dsdl(ctx, module, fd)
 
 def emit_dsdl(ctx, module, fd):
+    # No errors are allowed
+    for (epos, etag, eargs) in ctx.errors:
+        if (epos.top_name == module.arg and
+            error.is_error(error.err_level(etag))):
+            print >> sys.stderr, "DSDL translation needs a valid module"
+            sys.exit(1)
     emit = []
     if ctx.opts.dsdl_no_schematron != True:
         emit.append("sch")
