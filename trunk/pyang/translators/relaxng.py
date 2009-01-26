@@ -1,7 +1,7 @@
-# Copyright (c) 2008 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+# Copyright (c) 2009 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 #                       Martin Bjorklund <mbj@tail-f.com>
 #
-# Translator of YANG to DSDL schemas with additional annotations
+# Translator of YANG to RELAX NG with additional annotations
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,31 +15,25 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""This module implements translator from YANG to DSDL & annotations.
+"""Translator from YANG to RELAX NG with annotations.
 
 It is designed as a plugin for the pyang program and defines several
 new command-line options:
 
---dsdl-no-annotations
+--rng-no-annotations
     No output of DTD compatibility annotations
 
---dsdl-no-dublin-core
+--rng-no-dublin-core
     No output of Dublin Core annotations
 
---dsdl-no-schematron
-    No output of Schematron rules
-
--dsdl-no-dsrl
-    No output of DSRL annotations (default-content)
-
--dsdl-no-netmod
+-rng-no-netmod
     No output of NETMOD-specific attributes
 
 Two classes are defined in this module:
 
-* `DSDLPlugin`: pyang plugin interface class
+* `RNGPlugin`: pyang plugin interface class
 
-* `DSDLTranslator`: its instance preforms the translation
+* `RNGTranslator`: its instance preforms the translation
 """
 
 __docformat__ = "reStructuredText"
@@ -54,75 +48,62 @@ except ImportError:
 from pyang import plugin, statements, error
 
 def pyang_plugin_init():
-    plugin.register_plugin(DSDLPlugin())
+    plugin.register_plugin(RNGPlugin())
 
-class DSDLPlugin(plugin.PyangPlugin):
+class RNGPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
-        fmts['dsdl'] = self
+        fmts['rng'] = self
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--dsdl-no-annotations",
-                                 dest="dsdl_no_annotations",
+            optparse.make_option("--rng-no-annotations",
+                                 dest="rng_no_annotations",
                                  action="store_true",
                                  help="No output of DTD compatibility"
                                  " annotations"),
-            optparse.make_option("--dsdl-no-dublin-core",
-                                 dest="dsdl_no_dublin_core",
+            optparse.make_option("--rng-no-dublin-core",
+                                 dest="rng_no_dublin_core",
                                  action="store_true",
                                  help="No output of Dublin Core"
                                  " annotations"),
-            optparse.make_option("--dsdl-no-schematron",
-                                 dest="dsdl_no_schematron",
-                                 action="store_true",
-                                 help="No output of Schematron rules"),
-            optparse.make_option("--dsdl-no-dsrl",
-                                 dest="dsdl_no_dsrl",
-                                 action="store_true",
-                                 help="No output of DSRL annotations"
-                                 " (default-content)"),
-            optparse.make_option("--dsdl-no-netmod",
-                                 dest="dsdl_no_netmod",
+            optparse.make_option("--rng-no-netmod",
+                                 dest="rng_no_netmod",
                                  action="store_true",
                                  help="No output of NETMOD-specific"
                                  " attributes"),
             ]
-        g = optparser.add_option_group("DSDL output specific options")
+        g = optparser.add_option_group("RELAX NG output specific options")
         g.add_options(optlist)
     def emit(self, ctx, module, fd):
         try:
             import xml.etree.ElementTree as ET
         except ImportError:
-            print >> sys.stderr, ("DSDL translation needs the python module "
+            print >> sys.stderr, ("RELAX NG translation needs the python module "
                                   "etree, available in python 2.5")
             sys.exit(1)
 
-        emit_dsdl(ctx, module, fd)
+        emit_rng(ctx, module, fd)
 
-def emit_dsdl(ctx, module, fd):
+def emit_rng(ctx, module, fd):
     # No errors are allowed
     for (epos, etag, eargs) in ctx.errors:
         if (epos.top_name == module.arg and
             error.is_error(error.err_level(etag))):
-            print >> sys.stderr, "DSDL translation needs a valid module"
+            print >> sys.stderr, "RELAX NG translation needs a valid module"
             sys.exit(1)
     emit = []
-    if ctx.opts.dsdl_no_schematron != True:
-        emit.append("sch")
-    if ctx.opts.dsdl_no_dublin_core != True:
+    if ctx.opts.rng_no_dublin_core != True:
         emit.append("dc")
-    if ctx.opts.dsdl_no_annotations != True:
+    if ctx.opts.rng_no_annotations != True:
         emit.append("a")
-    if ctx.opts.dsdl_no_dsrl != True:
-        emit.append("dsrl")
-    if ctx.opts.dsdl_no_netmod != True:
+    if ctx.opts.rng_no_netmod != True:
         emit.append("nm")
-    etree = DSDLTranslator().translate(module, emit, debug=0)
+    etree = RNGTranslator().translate(module, emit, debug=0)
     etree.write(fd, "UTF-8")
 
 
-class DSDLTranslator(object):
+class RNGTranslator(object):
 
-    """Instances of this class translate YANG to DSDL + annotations.
+    """Instances of this class translate YANG to RELAX NG + annotations.
 
     The `translate` method walks recursively down the tree of YANG
     statements and builds one or more resulting ElementTree(s)
@@ -162,9 +143,7 @@ class DSDLTranslator(object):
     schema_languages = {
         "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
         "dc": "http://purl.org/dc/terms",
-        "dsrl": "http://purl.oclc.org/dsdl/dsrl",
-        "nm": "urn:ietf:params:xml:ns:netmod:dsdl-attrib:1",
-        "sch": "http://purl.oclc.org/dsdl/schematron",
+        "nm": "urn:ietf:params:xml:ns:netmod:rng-attrib:1",
     }
     """Mapping of prefixes to schema language namespace URIs."""
 
