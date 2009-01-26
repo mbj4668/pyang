@@ -206,11 +206,11 @@ class RNGTranslator(object):
             "enum" : self.enum_stmt,
             "feature": self.noop,
             "identity": self.noop,
-            "if-feature": self.noop,
+            "if-feature": self.nm_attribute,
             "extension": self.noop,
             "import" : self.noop,
             "include" : self.include_stmt,
-            "input": self.noop,
+            "input": self.input_stmt,
             "grouping" : self.noop,
             "key": self.nm_attribute,
             "leaf": self.leaf_stmt,
@@ -221,15 +221,15 @@ class RNGTranslator(object):
             "max-elements": self.noop,
             "must": self.must_stmt,
             "namespace": self.noop,
-            "notification": self.noop,
+            "notification": self.notification_stmt,
             "ordered-by": self.noop,
             "organization": self.noop,
-            "output": self.noop,
+            "output": self.output_stmt,
             "prefix": self.noop,
             "presence": self.noop,
             "reference": self.reference_stmt,
             "refine": self.noop,
-            "rpc": self.noop,
+            "rpc": self.rpc_stmt,
             "min-elements": self.noop,
             "status" : self.nm_attribute,
             "type": self.type_stmt,
@@ -293,14 +293,15 @@ class RNGTranslator(object):
         self.dc_element("creator", "Pyang, RELAX NG plugin")
         return ET.ElementTree(element=self.grammar_elem)
         
-    def new_element(self, parent, name):
+    def new_element(self, parent, name, prefix=None):
         """
         Declare new element `name` under `parent`.
 
         Current namespace prefix (`self.prefix`) is prepended. Returns
         the corresponding RNG element.
         """
-        return ET.SubElement(parent, "element", name=self.prefix+":"+name)
+        if prefix is None: prefix = self.prefix
+        return ET.SubElement(parent, "element", name=prefix+":"+name)
 
     def setup_conceptual_tree(self):
         """Create the conceptual tree structure.
@@ -417,6 +418,29 @@ class RNGTranslator(object):
                 elem.text = str(len_[1])
         for p in pat_els: p_elem.append(p)
 
+    def _refine(self, grouping, r_stmt):
+        """Refine `grouping` in place with `r_stmt`."""
+        node = grouping
+        for nid in r_stmt.arg.split("/"):
+            nodes = node.search(arg=nid)
+            pos = 0             # search in uses
+            while len(nodes) == 0:
+                sub = node.substmts[pos]
+                if sub.keyword == "uses" and sub.i_grouping.search(arg=nid):
+                    dupl = sub.i_grouping
+                    if len(nodes) > 0:
+                        nodenode.substmts.index(uses)
+        refnod = grouping.get_node(r_stmt.arg)
+        for sub in r_stmt.substmts:
+            if sub.keyword == "must":
+                refnod.substmts.append(sub)
+            else:
+                upst = refnod.search_one(sub.keyword)
+                if upst:
+                    upst.arg = sub.arg
+                else:
+                    refnod.substmts.append(sub)
+
     def resolve_ref(self, stmt, kw):
         """Resolve definition reference in `stmt`, return <ref> element.
 
@@ -489,6 +513,8 @@ class RNGTranslator(object):
             def_ = ET.fromstring(self.anyxml_def)
             self.grammar_elem.append(def_)
             self.has_anyxml = True
+        if stmt.search_one("mandatory", "true") is None:
+            p_elem = ET.SubElement(p_elem, "optional")
         elem = self.new_element(p_elem, stmt.arg)
         self.handle_substmts(stmt, elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
@@ -562,10 +588,14 @@ class RNGTranslator(object):
     def include_stmt(self, stmt, p_elem):
         delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
 
+    def input_stmt(self, stmt, p_elem):
+        elem = self.new_element(p_elem, "input", prefix="nmt")
+        self.handle_substmts(stmt, elem)
+
     def leaf_stmt(self, stmt, p_elem):
-        if (len(stmt.search(keyword="mandatory", arg="true")) == 0 and
+        if (stmt.search_one("mandatory", "true") is None and
             (stmt.parent.keyword != "list" or
-            stmt.arg not in stmt.parent.search(keyword="key")[0].arg)):
+            stmt.arg not in stmt.parent.search_one("key").arg)):
             p_elem = ET.SubElement(p_elem, "optional")
         elem = self.new_element(p_elem, stmt.arg)
         self.handle_substmts(stmt, elem)
@@ -584,6 +614,17 @@ class RNGTranslator(object):
     def noop(self, stmt, p_elem):
         pass
 
+    def notification_stmt(self, stmt, p_elem):
+        elem = self.new_element(self.notifications, "notification",
+                                prefix="nmt")
+        attr = ET.SubElement(elem, "attribute", name="name")
+        ET.SubElement(attr, "value").text = stmt.arg
+        self.handle_substmts(stmt, elem)
+
+    def output_stmt(self, stmt, p_elem):
+        elem = self.new_element(p_elem, "output", prefix="nmt")
+        self.handle_substmts(stmt, elem)
+
     def reference_stmt(self, stmt, p_elem):
         if stmt.i_module != self.module: # ignore imported descriptions
             return
@@ -600,6 +641,12 @@ class RNGTranslator(object):
                 else:
                     break
             p_elem.insert(i, elem)
+
+    def rpc_stmt(self, stmt, p_elem):
+        elem = self.new_element(self.rpcs, "rpc-method", prefix="nmt")
+        attr = ET.SubElement(elem, "attribute", name="name")
+        ET.SubElement(attr, "value").text = stmt.arg
+        self.handle_substmts(stmt, elem)
 
     def type_stmt(self, stmt, p_elem):
         """Handle ``type`` statement.
@@ -626,7 +673,11 @@ class RNGTranslator(object):
         refines = stmt.search(keyword="refine")
         if len(refines) == 0:
             self._handle_ref(stmt.arg, stmt.i_grouping, p_elem)
-        # else: make deep copy of the grouping and do modifications
+#         else: # make deep copy of the grouping and do modifications
+#             gcopy = stmt.i_grouping.copy()
+#             for refst in refines:
+#                 self._refine(gcopy, refst)
+#             self.handle_substmts(gcopy, p_elem)
 
     def yang_version_stmt(self, stmt, p_elem):
         if float(stmt.arg) != self.YANG_version:
