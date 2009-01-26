@@ -585,8 +585,8 @@ class RNGTranslator(object):
     def type_stmt(self, stmt, p_elem):
         """Handle ``type`` statement.
 
-        All types except ``empty`` are handled by a specific type
-        callback method defined below.
+        Built-in types are handled by a specific type callback method
+        defined below.
         """
         typedef = stmt.i_typedef
         if typedef is None: # built-in type
@@ -594,10 +594,14 @@ class RNGTranslator(object):
         elif stmt.i_is_derived: # derived with restrictions
             self._unwind_type(stmt, p_elem)
         else:                   # just refer to type def.
-            if stmt.arg not in self.used_defs:
-                self.used_defs.append(stmt.arg)
-                self._add_def(typedef)
-            ET.SubElement(p_elem, "ref", name=self.unique_def_name(typedef))
+            self._handle_ref(stmt.arg, typedef, p_elem)
+
+    def _handle_ref(self, dname, dstmt, p_elem):
+        """Insert <ref> and add definition if necessary."""
+        if dname not in self.used_defs:
+            self.used_defs.append(dname)
+            self._add_def(dstmt)
+        ET.SubElement(p_elem, "ref", name=self.unique_def_name(dstmt))
 
     def unique_stmt(self, stmt, p_elem):
         leafs = stmt.arg.split()
@@ -609,7 +613,10 @@ class RNGTranslator(object):
         self.schematron_assert(p_elem, cond, err_msg)
 
     def uses_stmt(self, stmt, p_elem):
-        p_elem.append(self.resolve_ref(stmt, "grouping"))
+        refines = stmt.search(keyword="refine")
+        if len(refines) == 0:
+            self._handle_ref(stmt.arg, stmt.i_grouping, p_elem)
+        # else: make deep copy of the grouping and do modifications
 
     def yang_version_stmt(self, stmt, p_elem):
         if float(stmt.arg) != self.YANG_version:

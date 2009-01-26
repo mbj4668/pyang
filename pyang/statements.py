@@ -1672,8 +1672,8 @@ class Statement(object):
                     if prefix == subst.i_module.i_prefix: # local prefix?
                         grp = search_grouping(self, ident)
                     else:
-                        mod_name = subst.module.i_prefixes[prefix]
-                        ext_mod = subst.module.i_ctx.modules[mod_name]
+                        mod_name = subst.i_module.i_prefixes[prefix]
+                        ext_mod = subst.i_module.i_ctx.modules[mod_name]
                         grp = search_grouping(ext_mod, ident)
                 else:
                     grp = search_grouping(self, ref)
