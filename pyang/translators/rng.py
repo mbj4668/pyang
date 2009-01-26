@@ -97,7 +97,7 @@ def emit_rng(ctx, module, fd):
         emit.append("a")
     if ctx.opts.rng_no_netmod != True:
         emit.append("nm")
-    etree = RNGTranslator().translate(module, emit, debug=0)
+    etree = RNGTranslator().translate((module,), emit, debug=0)
     etree.write(fd, "UTF-8")
 
 
@@ -112,11 +112,10 @@ class RNGTranslator(object):
 
     Instance variables:
     
-    * `dc_elements`: dictionary with Dublin core elements (tag -> text)
     * `debug`: integer controlling level of debug messages
     * `emit`: list of prefixes (keys in `schema_languages` dictionary)
       controlling which annotations will be generated.
-    * `first_anyxml`: boolean indicating first occurence of ``anyxml``
+    * `has_anyxml`: boolean indicating occurence of ``anyxml``
       statement (so that `anyxml_def` has to be inserted)
     * `imported_symbols`: list of used external symbols whose definition
       has already been imported 
@@ -136,6 +135,7 @@ class RNGTranslator(object):
 
     grammar_attrs = {
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
+        "xmlns:nmt" : "urn:ietf:params:xml:ns:netmod:tree:1",
         "datatypeLibrary" : "http://www.w3.org/2001/XMLSchema-datatypes",
     }
     """Common attributes of the <grammar> element."""
@@ -143,7 +143,7 @@ class RNGTranslator(object):
     schema_languages = {
         "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
         "dc": "http://purl.org/dc/terms",
-        "nm": "urn:ietf:params:xml:ns:netmod:rng-attrib:1",
+        "nm": "urn:ietf:params:xml:ns:netmod:rng-annot:1",
     }
     """Mapping of prefixes to schema language namespace URIs."""
 
@@ -203,11 +203,11 @@ class RNGTranslator(object):
         """
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
-            "belongs-to": self.belongs_to_stmt,
+            "belongs-to": self.noop,
             "case": self.case_stmt,
             "choice": self.choice_stmt,
             "config": self.attach_nm_att,
-            "contact": self.contact_stmt,
+            "contact": self.noop,
             "container": self.container_stmt,
             "default": self.default_stmt,
             "description": self.description_stmt,
@@ -222,10 +222,10 @@ class RNGTranslator(object):
             "mandatory": self.noop,
             "must": self.must_stmt,
             "namespace": self.noop,
-            "organization": self.organization_stmt,
+            "organization": self.noop,
             "prefix": self.noop,
             "reference": self.reference_stmt,
-            "revision": self.revision_stmt,
+            "revision": self.noop,
             "status" : self.attach_nm_att,
             "type": self.type_stmt,
             "typedef" : self.handle_reusable,
@@ -254,61 +254,69 @@ class RNGTranslator(object):
             "union": self.choice_type,
         }
 
-    def translate(self, module, emit=schema_languages.keys(), debug=0):
-        """Translate `module` to RELAX NG schema with annotations.
+    def translate(self, modules, emit=schema_languages.keys(), debug=0):
+        """Translate `modules` to RELAX NG schema with annotations.
 
         The `emit` argument controls output of individual annotations
         (by default, all are present). The `debug` argument controls
         level of debug messages - 0 (default) supresses them.  
         """
-        self.module = module
         self.emit = emit
         self.debug = debug
-        self.imported_symbols = []
-        self.namespace = module.search(keyword="namespace")[0].arg
-        self.prefix = module.search(keyword="prefix")[0].arg
-        self.first_anyxml = True
-        self.dc_elements = {
-            "source": ("YANG module '%s' (automatic translation)" %
-                       self.module.arg)
-        }
-        self.root_elem = ET.Element("grammar", self.grammar_attrs)
+        self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
         for prefix in self.emit: # used namespaces
-            self.root_elem.attrib["xmlns:" + prefix] = \
+            self.grammar_elem.attrib["xmlns:" + prefix] = \
                 self.schema_languages[prefix]
-        self.root_elem.attrib["xmlns:" + self.prefix] = self.namespace
-        self.root_elem.attrib["ns"] = self.namespace
-        # Write <start> if there are data tree nodes
-        dt_nodes = 0
-        for dtn in self.datatree_nodes:
-            dt_nodes += len(module.search(keyword=dtn))
-        if dt_nodes > 0:
-            topel = ET.SubElement(self.root_elem, "start")
-            if dt_nodes > 1: # Non-unique root element
-                topel = ET.SubElement(topel, "group")
-        else:
-            topel = self.root_elem
-        for sub in module.substmts: self.handle_stmt(sub, topel)
-        self.dublin_core()
-        return ET.ElementTree(element=self.root_elem)
+        self.setup_conceptual_tree()
+        self.has_anyxml = False
+        self.imported_symbols = []
+        for module in modules:
+            self.module = module
+            ns = module.search_one("namespace").arg
+            self.prefix = module.search_one("prefix").arg
+            rev = module.search_one("revision").arg
+            self.grammar_elem.attrib["xmlns:"+self.prefix] = ns
+            self.dc_element("source", ("YANG module '%s', revision %s"
+                                       % (module.arg, rev)))
+            for sub in module.substmts: self.handle_stmt(sub, self.top)
+        self.handle_empty()
+        self.dc_element("creator", "Pyang, RELAX NG plugin")
+        return ET.ElementTree(element=self.grammar_elem)
         
-    def dublin_core(self):
+    def new_element(self, parent, name):
         """
-        Attach Dublin Core elements from `dc_elements` to `root_elem`.
-        """
-        if "dc" in self.emit:
-            for dc in self.dc_elements:
-                dcel = ET.Element("dc:" + dc)
-                dcel.text = self.dc_elements[dc]
-                self.root_elem.insert(0, dcel)
+        Declare new element `name` under `parent`.
 
-    def schematron_assert(self, elem, cond, err_msg=None):
-        """Install <sch:assert> under `elem`.
+        Current namespace prefix (`self.prefix`) is prepended. Returns
+        the corresponding RNG element.
         """
-        if "sch" in self.emit:
-            assert_ = ET.SubElement(elem, "sch:assert", test=cond)
-            if err_msg is not None:
-                assert_.text = err_msg
+        return ET.SubElement(parent, "element", name=self.prefix+":"+name)
+
+    def setup_conceptual_tree(self):
+        """Create the conceptual tree structure.
+        """
+        start = ET.SubElement(self.grammar_elem, "start")
+        self.prefix = "nmt"
+        tree = self.new_element(start, "netmod-tree")
+        self.top = self.new_element(tree, "top")
+        self.rpcs = self.new_element(tree, "rpc-methods")
+        self.notifications = self.new_element(tree, "notifications")
+
+    def handle_empty(self):
+        """Handle empty subtree(s) of conceptual tree.
+
+        If any of the subtrees of the conceptual tree is empty, put
+        <empty/> as its content.
+        """
+        for subtree in (self.top, self.rpcs, self.notifications):
+            if len(subtree) == 0:
+                ET.SubElement(subtree, "empty")
+
+    def dc_element(self, name, text):
+        """Add DC element `name` containing `text` to <grammar>."""
+        dcel = ET.Element("dc:" + name)
+        dcel.text = text
+        self.grammar_elem.insert(0,dcel)
 
     def nm_attribute(self, elem, attr, value):
         """Attach NETMOD attribute `attr` with `value` to `elem`.
@@ -316,14 +324,6 @@ class RNGTranslator(object):
         if "nm" in self.emit:
             elem.attrib["nm:" + attr] = value
         
-    def add_prefix(self, nodeid):
-        """Prepend `self.prefix` to all parts of `nodeid`.
-
-        Argument `nodeid` is a descendant schema identifier.
-        """
-        parts = [ "%s:%s" % (self.prefix,p) for p in nodeid.split("/")]
-        return "/".join(parts)
-
     def unique_def_name(self, stmt):
         """Answer mangled name of the receiver (typedef or grouping).
 
@@ -362,7 +362,7 @@ class RNGTranslator(object):
             if not primary and parent is None: # top-level external def?
                 def_name = stmt.i_module.arg + "__" + ref
                 if def_name not in self.imported_symbols:
-                    self.handle_stmt(def_, self.root_elem)
+                    self.handle_stmt(def_, self.grammar_elem)
                     self.imported_symbols.append(def_name)
             return ET.Element("ref", name=self.unique_def_name(def_))
         mod_name = stmt.i_module.i_prefixes[prefix]
@@ -371,7 +371,7 @@ class RNGTranslator(object):
             # pull the definition
             ext_mod = stmt.i_module.i_ctx.modules[mod_name]
             def_, = ext_mod.search(keyword=kw, arg=ref)
-            self.handle_stmt(def_, self.root_elem)
+            self.handle_stmt(def_, self.grammar_elem)
             self.imported_symbols.append(def_name)
         return ET.Element("ref", name=def_name)
 
@@ -400,12 +400,12 @@ class RNGTranslator(object):
     # Handlers for YANG statements
 
     def anyxml_stmt(self, stmt, p_elem):
-        if self.first_anyxml:
+        if not self.has_anyxml:
             # install definition
             def_ = ET.fromstring(self.anyxml_def)
-            self.root_elem.append(def_)
-            self.first_anyxml = False
-        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+            self.grammar_elem.append(def_)
+            self.has_anyxml = True
+        elem = self.new_element(p_elem, stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
 
@@ -413,9 +413,6 @@ class RNGTranslator(object):
         """Handle ``config``, ``key``, ``status``, ``units``."""
         self.nm_attribute(p_elem, stmt.keyword, stmt.arg)
 
-    def belongs_to_stmt(self, stmt, p_elem):
-        self.dc_elements["isPartOf"] = stmt.arg
-        
     def case_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "group")
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
@@ -424,13 +421,10 @@ class RNGTranslator(object):
         elem = ET.SubElement(p_elem, "choice")
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
-    def contact_stmt(self, stmt, p_elem):
-        self.dc_elements["contributor"] = stmt.arg
-
     def container_stmt(self, stmt, p_elem):
         if stmt.is_optional():
             p_elem = ET.SubElement(p_elem, "optional")
-        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+        elem = self.new_element(p_elem, stmt.arg)
         substmts = stmt.substmts
         if len(substmts) == 0:
             ET.SubElement(elem, "empty")
@@ -443,11 +437,9 @@ class RNGTranslator(object):
             delem.text = stmt.arg
 
     def description_stmt(self, stmt, p_elem):
-        if stmt.i_module != self.module: # ignore imported descriptions
-            return
-        if stmt.parent == self.module: # top-level description
-            self.dc_elements["description"] = stmt.arg
-        elif "a" in self.emit and stmt.parent.keyword != "enum":
+        # ignore imported and top-level descriptions + desc. of enum
+        if ("a" in self.emit and stmt.i_module == self.module != stmt.parent
+            and stmt.parent.keyword != "enum"):
             elem = ET.Element("a:documentation")
             p_elem.insert(0, elem)
             elem.text = stmt.arg
@@ -474,12 +466,12 @@ class RNGTranslator(object):
         ordby = stmt.search("ordered-by")
         if len(ordby) > 0:
             self.nm_attribute(cont, "ordered-by", ordby[0].arg)
-        elem = ET.SubElement(cont, "element", name=stmt.arg)
+        elem = self.new_element(cont, stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def handle_reusable(self, stmt, p_elem):
         """Handle ``typedef`` or ``grouping``."""
-        elem = ET.SubElement(self.root_elem, "define",
+        elem = ET.SubElement(self.grammar_elem, "define",
                              name=self.unique_def_name(stmt))
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
         
@@ -491,7 +483,7 @@ class RNGTranslator(object):
             (stmt.parent.keyword != "list" or
             stmt.arg not in stmt.parent.search(keyword="key")[0].arg)):
             p_elem = ET.SubElement(p_elem, "optional")
-        elem = ET.SubElement(p_elem, "element", name=stmt.arg)
+        elem = self.new_element(p_elem, stmt.arg)
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
 
     def must_stmt(self, stmt, p_elem):
@@ -506,14 +498,11 @@ class RNGTranslator(object):
     def noop(self, stmt, p_elem):
         pass
 
-    def organization_stmt(self, stmt, p_elem):
-        self.dc_elements["creator"] = stmt.arg
-
     def reference_stmt(self, stmt, p_elem):
         if stmt.i_module != self.module: # ignore imported descriptions
             return
         if stmt.parent == self.module: # top-level description
-            self.dc_elements["BibliographicResource"] = stmt.arg
+            self.dc_element("BibliographicResource", stmt.arg)
         if "a" in self.emit and stmt.parent.keyword != "enum":
             elem = ET.Element("a:documentation")
             elem.text = "See: " + stmt.arg
@@ -527,7 +516,7 @@ class RNGTranslator(object):
             p_elem.insert(i, elem)
 
     def revision_stmt(self, stmt, p_elem):
-        self.dc_elements["issued"] = stmt.arg
+        self.dc_element("issued", stmt.arg)
         
     def type_stmt(self, stmt, p_elem):
         """Handle ``type`` statement.
