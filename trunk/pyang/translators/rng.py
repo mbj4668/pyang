@@ -133,6 +133,9 @@ class RNGTranslator(object):
     One static method is defined: `decode_ranges`.
     """
 
+    YANG_version = 1
+    """This is checked against the yang-version statement, if present."""
+
     grammar_attrs = {
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
         "xmlns:nmt" : "urn:ietf:params:xml:ns:netmod:tree:1",
@@ -232,6 +235,7 @@ class RNGTranslator(object):
             "unique" : self.unique_stmt,
             "units" : self.attach_nm_att,
             "uses" : self.uses_stmt,
+            "yang-version": self.yang_version_stmt,
         }
         self.type_handler = {
             "boolean": self.mapped_type,
@@ -515,9 +519,6 @@ class RNGTranslator(object):
                     break
             p_elem.insert(i, elem)
 
-    def revision_stmt(self, stmt, p_elem):
-        self.dc_element("issued", stmt.arg)
-        
     def type_stmt(self, stmt, p_elem):
         """Handle ``type`` statement.
 
@@ -546,6 +547,11 @@ class RNGTranslator(object):
 
     def uses_stmt(self, stmt, p_elem):
         p_elem.append(self.resolve_ref(stmt, "grouping"))
+
+    def yang_version_stmt(self, stmt, p_elem):
+        if float(stmt.arg) != self.YANG_version:
+            print >> sys.stderr, "Unsupported YANG version: %s" % stmt.arg
+            sys.exit(1)
 
     # Handlers for YANG types
 
