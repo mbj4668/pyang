@@ -191,35 +191,53 @@ class RNGTranslator(object):
         """
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
+            "argument": self.noop,
+            "augment": self.noop,
+            "base": self.noop,
             "belongs-to": self.noop,
             "case": self.case_stmt,
             "choice": self.choice_stmt,
-            "config": self.attach_nm_att,
+            "config": self.nm_attribute,
             "contact": self.noop,
             "container": self.container_stmt,
             "default": self.default_stmt,
+            "deviation": self.noop,
             "description": self.description_stmt,
             "enum" : self.enum_stmt,
+            "feature": self.noop,
+            "identity": self.noop,
+            "if-feature": self.noop,
+            "extension": self.noop,
             "import" : self.noop,
             "include" : self.include_stmt,
+            "input": self.noop,
             "grouping" : self.noop,
-            "key": self.attach_nm_att,
+            "key": self.nm_attribute,
             "leaf": self.leaf_stmt,
             "leaf-list": self.handle_list,
             "list": self.handle_list,
             "mandatory": self.noop,
+            "min-elements": self.noop,
+            "max-elements": self.noop,
             "must": self.must_stmt,
             "namespace": self.noop,
+            "notification": self.noop,
+            "ordered-by": self.noop,
             "organization": self.noop,
+            "output": self.noop,
             "prefix": self.noop,
+            "presence": self.noop,
             "reference": self.reference_stmt,
-            "revision": self.noop,
-            "status" : self.attach_nm_att,
+            "refine": self.noop,
+            "rpc": self.noop,
+            "min-elements": self.noop,
+            "status" : self.nm_attribute,
             "type": self.type_stmt,
             "typedef" : self.noop,
-            "unique" : self.unique_stmt,
-            "units" : self.attach_nm_att,
+            "unique" : self.nm_attribute,
+            "units" : self.nm_attribute,
             "uses" : self.uses_stmt,
+            "when" : self.nm_attribute,
             "yang-version": self.yang_version_stmt,
         }
         self.type_handler = {
@@ -235,7 +253,7 @@ class RNGTranslator(object):
             "int16": self.numeric_type,
             "int32": self.numeric_type,
             "int64": self.numeric_type,
-            "keyref": self.keyref_type,
+            "leafref": self.noop,
             "string" : self.string_type,
             "uint8": self.numeric_type,
             "uint16": self.numeric_type,
@@ -270,7 +288,7 @@ class RNGTranslator(object):
             if rev:
                 src_text += "revision %s" % rev.arg
             self.dc_element("source", src_text) 
-            for sub in module.substmts: self.handle_stmt(sub, self.top)
+            self.handle_substmts(module, self.top)
         self.handle_empty()
         self.dc_element("creator", "Pyang, RELAX NG plugin")
         return ET.ElementTree(element=self.grammar_elem)
@@ -306,16 +324,11 @@ class RNGTranslator(object):
 
     def dc_element(self, name, text):
         """Add DC element `name` containing `text` to <grammar>."""
-        dcel = ET.Element("dc:" + name)
-        dcel.text = text
-        self.grammar_elem.insert(0,dcel)
+        if "dc" in self.emit:
+            dcel = ET.Element("dc:" + name)
+            dcel.text = text
+            self.grammar_elem.insert(0,dcel)
 
-    def nm_attribute(self, elem, attr, value):
-        """Attach NETMOD attribute `attr` with `value` to `elem`.
-        """
-        if "nm" in self.emit:
-            elem.attrib["nm:" + attr] = value
-        
     def unique_def_name(self, stmt):
         """Answer mangled name of the receiver (typedef or grouping).
 
@@ -464,6 +477,10 @@ class RNGTranslator(object):
                                   stmt.arg))
             handler(stmt, p_elem)
 
+    def handle_substmts(self, stmt, p_elem):
+        """Handle all substatements of `stmt`."""
+        for sub in stmt.substmts: self.handle_stmt(sub, p_elem)
+
     # Handlers for YANG statements
 
     def anyxml_stmt(self, stmt, p_elem):
@@ -473,30 +490,30 @@ class RNGTranslator(object):
             self.grammar_elem.append(def_)
             self.has_anyxml = True
         elem = self.new_element(p_elem, stmt.arg)
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
 
-    def attach_nm_att(self, stmt, p_elem):
-        """Handle ``config``, ``key``, ``status``, ``units``."""
-        self.nm_attribute(p_elem, stmt.keyword, stmt.arg)
+    def nm_attribute(self, stmt, p_elem):
+        """Map `stmt` to NETMOD-specific attribute."""
+        if "nm" in self.emit:
+            p_elem.attrib["nm:" + stmt.keyword] = stmt.arg
 
     def case_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "group")
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
 
     def choice_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "choice")
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
 
     def container_stmt(self, stmt, p_elem):
         if stmt.is_optional():
             p_elem = ET.SubElement(p_elem, "optional")
         elem = self.new_element(p_elem, stmt.arg)
-        substmts = stmt.substmts
-        if len(substmts) == 0:
+        if len(stmt.substmts) == 0:
             ET.SubElement(elem, "empty")
         else:
-            for sub in substmts: self.handle_stmt(sub, elem)
+            self.handle_substmts(stmt, elem)
 
     def default_stmt(self, stmt, p_elem):
         if "dsrl" in self.emit:
@@ -519,28 +536,28 @@ class RNGTranslator(object):
 
     def handle_list(self, stmt, p_elem):
         """Handle ``leaf-list`` or ``list``."""
-        min_el = stmt.search(keyword="min-elements")
-        if len(min_el) == 0 or int(min_el[0].arg) == 0:
+        min_el = stmt.search_one("min-elements")
+        if min_el is None or int(min_el.arg) == 0:
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
         cont = ET.SubElement(p_elem, rng_card)
-        if rng_card == "oneOrMore":
-            self.nm_attribute(cont, "min-elements", min_el[0].arg)
-        max_el = stmt.search(keyword="max-elements")
-        if len(max_el) > 0:
-            self.nm_attribute(cont, "max-elements", max_el[0].arg)
-        ordby = stmt.search("ordered-by")
-        if len(ordby) > 0:
-            self.nm_attribute(cont, "ordered-by", ordby[0].arg)
+        if min_el and int(min_el.arg) > 1:
+            cont.attrib["nm:min-elements"] = min_el.arg
+        max_el = stmt.search_one("max-elements")
+        if max_el:
+            cont.attrib["nm:max-elements"] = max_el.arg
+        ordby = stmt.search_one("ordered-by")
+        if ordby:
+            cont.attrib["nm:ordered-by"] = ordby.arg
         elem = self.new_element(cont, stmt.arg)
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
 
     def _add_def(self, stmt):
         """Add ``typedef`` or ``grouping``."""
         elem = ET.SubElement(self.grammar_elem, "define",
                              name=self.unique_def_name(stmt))
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
         
     def include_stmt(self, stmt, p_elem):
         delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
@@ -551,16 +568,18 @@ class RNGTranslator(object):
             stmt.arg not in stmt.parent.search(keyword="key")[0].arg)):
             p_elem = ET.SubElement(p_elem, "optional")
         elem = self.new_element(p_elem, stmt.arg)
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
 
     def must_stmt(self, stmt, p_elem):
-        estmt = stmt.search(keyword="error-message")
-        if len(estmt) > 0:
-            err_msg = estmt[0].arg
-        else:
-            err_msg = None
-        self.schematron_assert(p_elem, stmt.arg.replace("$this", "current()"),
-                               err_msg)
+        if "nm" not in self.emit: return
+        mel = ET.SubElement(p_elem, "nm:must")
+        ET.SubElement(mel, "nm:assert").text = stmt.arg
+        em = stmt.search_one("error-message")
+        if em:
+            ET.SubElement(mel, "nm:error-message").text = em.arg
+        eat = stmt.search_one("error-app-tag")
+        if eat:
+            ET.SubElement(mel, "nm:error-app-tag").text = eat.arg
 
     def noop(self, stmt, p_elem):
         pass
@@ -602,15 +621,6 @@ class RNGTranslator(object):
             self.used_defs.append(dname)
             self._add_def(dstmt)
         ET.SubElement(p_elem, "ref", name=self.unique_def_name(dstmt))
-
-    def unique_stmt(self, stmt, p_elem):
-        leafs = stmt.arg.split()
-        clist = [ "%s != current()/%s" % ((self.add_prefix(l),) * 2)
-                  for l in leafs ]
-        cond = ("preceding-sibling::%s:%s[%s]" %
-                (self.prefix, p_elem.attrib["name"], " or ".join(clist)))
-        err_msg = 'Not unique: "%s"' % stmt.arg
-        self.schematron_assert(p_elem, cond, err_msg)
 
     def uses_stmt(self, stmt, p_elem):
         refines = stmt.search(keyword="refine")
@@ -655,20 +665,13 @@ class RNGTranslator(object):
     def choice_type(self, stmt, p_elem):
         """Handle ``enumeration`` and ``union`` types."""
         elem = ET.SubElement(p_elem, "choice")
-        for sub in stmt.substmts: self.handle_stmt(sub, elem)
+        self.handle_substmts(stmt, elem)
 
     def empty_type(self, stmt, p_elem):
         ET.SubElement(p_elem, "empty")
 
-    def keyref_type(self, stmt, p_elem):
-        elem = ET.SubElement(p_elem, "data", type="string")
-        pel, = stmt.search(keyword="path")
-        err_msg = """Missing key '<value-of select="."/>'"""
-        self.schematron_assert(p_elem, pel.arg +"[current()=.]", err_msg)
-
     def mapped_type(self, stmt, p_elem):
-        """Handle types that are simply mapped to RELAX NG.
-        """
+        """Handle types that are simply mapped to RELAX NG."""
         ET.SubElement(p_elem, "data", type=self.datatype_map[stmt.arg])
 
     def numeric_type(self, stmt, p_elem):

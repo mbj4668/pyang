@@ -1585,7 +1585,7 @@ class Statement(object):
                  if ch.keyword in kws and ch.arg == arg ]
 
     def search_one(self, keyword, arg=None):
-        """Return receiver's substmt with `keyword`.
+        """Return receiver's substmt with `keyword` and optionally `arg`.
         """
         for ch in self.substmts:
             if ch.keyword == keyword and (arg is None or ch.arg == arg):
