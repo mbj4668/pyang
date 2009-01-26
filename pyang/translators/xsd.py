@@ -719,9 +719,9 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
             print_simple_type(ctx, module, fd, indent+'    ', t, '', None)
         fd.write(indent + '  </xs:union>\n')
     elif type.search('pattern') != []:
-        def print_pattern(indent, pattern):
+        def print_pattern(indent, patstr):
             fd.write(indent + '  <xs:pattern value=')
-            qstr = quoteattr(pattern.arg)
+            qstr = quoteattr(patstr)
             cnt = 70 - len(indent) - 22
             if ctx.opts.xsd_break_pattern == True and len(qstr) > cnt:
                 while (len(qstr) > 0):
@@ -733,20 +733,20 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                 fd.write(qstr)
             fd.write('/>\n')
             
-        def print_anded_patterns(patterns, indent):
+        def print_ored_patterns(patterns, indent):
             if len(patterns) == 1:
-                fd.write(indent + '  <xs:restriction base="%s">\n' % base)
-                print_pattern(indent + '  ', patterns[0])
-                fd.write(indent + '  </xs:restriction>\n')
+                patstr = patterns[0].arg
             else:
-                fd.write(indent + '  <xs:restriction>\n')
-                fd.write(indent + '    <xs:simpleType>\n')
-                print_anded_patterns(patterns[1:], indent + '    ')
-                fd.write(indent + '    </xs:simpleType>\n')
-                print_pattern(indent + '  ', patterns[0])
-                fd.write(indent + '  </xs:restriction>\n')
+                patstr = ''
+                for p in patterns[:-1]:
+                    patstr += '(' + p.arg + ')|'
+                patstr += '(' + patterns[-1].arg + ')'
 
-        print_anded_patterns(type.search('pattern'), indent)
+            fd.write(indent + '  <xs:restriction base="%s">\n' % base)
+            print_pattern(indent, patstr)
+            fd.write(indent + '  </xs:restriction>\n')
+
+        print_ored_patterns(type.search('pattern'), indent)
     else:
         fd.write(indent + '  <xs:restriction base="%s">\n' % base)
         if len(type.search('enum')) > 0:

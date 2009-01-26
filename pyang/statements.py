@@ -1000,7 +1000,10 @@ def v_inherit_properties_module(ctx, module):
     for s in module.search('grouping'):
         iter(s, None)
     for s in (module.i_children + module.search('augment')):
-        iter(s, True)
+        if s.keyword in ['rpc', 'notification']:
+            iter(s, False)
+        else:
+            iter(s, True)
 
     # do not recurse in this phase
     return 'continue'
@@ -1191,6 +1194,10 @@ def v_reference_list(ctx, stmt):
                         err_add(ctx.errors, key.pos, 'BAD_TYPE_IN_KEY',
                                 (t.arg, x))
                         return
+                default = ptr.search_one('default')
+                if default is not None:
+                    err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
+                    
                 stmt.i_key.append(ptr)
                 found.append(x)
 

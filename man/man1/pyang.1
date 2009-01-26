@@ -31,7 +31,7 @@ used to convert YANG modules into equivalent YIN modules.  From a
 valid module, a W3C XML Schema (XSD) schema can be generated.
 
 If no \fIformat\fP is given, the specified modules are validated, and
-the program exits with exit code 0 if all moduels are valid.
+the program exits with exit code 0 if all modules are valid.
 .SH OPTIONS
 .TP
 .B "-h, --help"
@@ -143,7 +143,10 @@ types:
 The following example converts the yang-types module into YIN:
 
   $ pyang -f yin -o yang-types.yin yang-types.yang
-
+.SH ENVIRONMENT VARIABLES
+pyang searches for referred modules in the colon (:) separated path
+defined by the environment variable YANG_MODPATH and in the
+directory $YANG_INSTALL/yang/modules.
 .SH BUGS
 The XPath arguments for the \fBmust\fP and \fBwhen\fP statements are
 not validated.

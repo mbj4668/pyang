@@ -307,6 +307,10 @@ error_codes = \
       (4,
        'grouping %s not used'),
 
+    'KEY_HAS_DEFAULT':
+      (4,
+       'default value for key is ignored'),
+
     }
 
 def add_error_code(tag, level, fmt):
