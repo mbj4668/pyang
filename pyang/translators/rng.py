@@ -130,7 +130,7 @@ class RNGTranslator(object):
     Class variables are: `anyxml_def`, `datatree_nodes`, `datatype_map`,
     `grammar_attrs`, `schema_languages`.
 
-    One static method is defined: `decode_ranges`.
+    One static method is defined: `summarize_ranges`.
     """
 
     YANG_version = 1
@@ -164,6 +164,7 @@ class RNGTranslator(object):
         "float64": "double",
         "boolean": "boolean",
         "binary": "base64Binary",
+        "string": "string",
     }
     """Mapping of simple datatypes from YANG to W3C datatype library"""
 
@@ -177,21 +178,21 @@ class RNGTranslator(object):
         <text/></choice></zeroOrMore></define>'''
     """RELAX NG pattern representing 'anyxml'"""
 
-    def decode_ranges(range_expr):
-        """Parse `range_expr` and return list of [lo,hi] pairs.
-
-        Argument `range_expr` is either range-expr or length-expr.
-        For range-part with a single component, hi is not present.
-        If range-part is a single ``min`` or ``max``, it is omitted.
-        """
-        raw = range_expr.split("|")
-        res = []
-        for part in raw:
-            strp = [x.strip() for x in part.split("..")]
-            if len(strp) > 1 or strp[0] not in ("min", "max"):
-                res.append(strp)
-        return res
-    decode_ranges = staticmethod(decode_ranges)
+    def summarize_ranges(ranges):
+        """Resolve 'min' and 'max' in a cascade of ranges."""
+        min = 'min'
+        max = 'max'
+        for r in ranges:
+            if r[0][0] == "min":
+                r[0][0] = min
+            else:
+                min = r[0][0]
+            if r[-1][1] == "max":
+                r[-1][1] = max
+            else:
+                max = r[-1][1]
+        return ranges[-1]
+    summarize_ranges = staticmethod(summarize_ranges)
 
     def __init__(self):
         """Initialize the statement and type dispatchers.
@@ -242,6 +243,7 @@ class RNGTranslator(object):
             "binary": self.mapped_type,
             "bits": self.bits_type,
             "enumeration": self.choice_type,
+            "empty": self.empty_type,
             "float32": self.numeric_type,
             "float64": self.numeric_type,
             "instance-identifier": self.mapped_type,
@@ -277,11 +279,13 @@ class RNGTranslator(object):
         for module in modules:
             self.module = module
             ns = module.search_one("namespace").arg
-            self.prefix = module.search_one("prefix").arg
-            rev = module.search_one("revision").arg
             self.grammar_elem.attrib["xmlns:"+self.prefix] = ns
-            self.dc_element("source", ("YANG module '%s', revision %s"
-                                       % (module.arg, rev)))
+            self.prefix = module.search_one("prefix").arg
+            src_text = "YANG module '%s'" % module.arg
+            rev = module.search_one("revision")
+            if rev:
+                src_text += "revision %s" % rev.arg
+            self.dc_element("source", src_text) 
             for sub in module.substmts: self.handle_stmt(sub, self.top)
         self.handle_empty()
         self.dc_element("creator", "Pyang, RELAX NG plugin")
@@ -523,18 +527,14 @@ class RNGTranslator(object):
         """Handle ``type`` statement.
 
         All types except ``empty`` are handled by a specific type
-        callback method defined below. Derived types are recognized by
-        raising the KeyError.
+        callback method defined below.
         """
-        if stmt.arg == "empty":
-            ET.SubElement(p_elem, "empty")
-            return
-        try:
-            thandler = self.type_handler[stmt.arg]
-        except KeyError:
-            p_elem.append(self.resolve_ref(stmt, "typedef"))
-        else:
-            thandler(stmt, p_elem)
+        if stmt.i_typedef is None: # built-in type
+            self.type_handler[stmt.arg](stmt, p_elem)
+        elif stmt.i_is_derived: # derived with restrictions
+            self.unwind_type(stmt, p_elem)
+        else:                   # just refer to type def.
+            ET.SubElement(p_elem, "ref", name=stmt.arg)
 
     def unique_stmt(self, stmt, p_elem):
         leafs = stmt.arg.split()
@@ -555,6 +555,45 @@ class RNGTranslator(object):
 
     # Handlers for YANG types
 
+    def unwind_type(self, stmt, p_elem):
+        """Unwind type formed by multiple derivations."""
+        patterns = []
+        lengths = []
+        ranges = []
+        while 1:
+            rest = stmt.i_type_spec.restrictions()
+            if "pattern" in rest:
+                patterns.extend([ p.arg for p in 
+                                  stmt.search(keyword="pattern")])
+            if "length" in rest:
+                lengths.insert(0, [list(lc) for lc in stmt.i_lengths])
+            if "range" in rest:
+                ranges.insert(0, [list(rc) for rc in stmt.i_ranges])
+            if stmt.i_typedef is None: break
+            stmt = stmt.i_typedef.search_one("type")
+        base = self.datatype_map[stmt.arg]
+        if base == "string":
+            self.add_string_restrictions(lengths, patterns, frag)
+        else:
+            rexp = self.summarize_ranges(ranges)
+            if len(rexp) > 1:
+                p_elem = ET.SubElement(p_elem, "choice")
+            for r in rexp:
+                d_elem = ET.SubElement(p_elem, "data", type=base)
+                self.add_numeric_restriction(r, d_elem)
+
+    def add_numeric_restriction(self, range_, p_elem):
+        """Create fragment of numeric restrictions from ranges."""
+        if range_[0] != "min":
+            lelem = ET.SubElement(p_elem, "param", name="minInclusive")
+            lelem.text = str(range_[0])
+        if range_[1] != "max":
+            helem = ET.SubElement(p_elem, "param", name="maxInclusive")
+        if range_[1] is None:
+            helem.text = str(range_[0])
+        else:
+            helem.text = str(range_[1])
+
     def bits_type(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "list")
         for bit in stmt.search(keyword="bit"):
@@ -566,6 +605,9 @@ class RNGTranslator(object):
         """Handle ``enumeration`` and ``union`` types."""
         elem = ET.SubElement(p_elem, "choice")
         for sub in stmt.substmts: self.handle_stmt(sub, elem)
+
+    def empty_type(self, stmt, p_elem):
+        ET.SubElement(p_elem, "empty")
 
     def keyref_type(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "data", type="string")
@@ -581,30 +623,13 @@ class RNGTranslator(object):
     def numeric_type(self, stmt, p_elem):
         """Handle numeric types."""
         rngtype = self.datatype_map[stmt.arg]
-        rstmt = stmt.search(keyword="range")
-        if len(rstmt) == 0:
-            ET.SubElement(p_elem, "data", type=rngtype)
-            return
-        ranges = self.decode_ranges(rstmt[0].arg)
-        if len(ranges) == 0: # isolated "max" or "min"
-            ET.SubElement(p_elem, "data", type=rngtype)
-            return
-        if len(ranges) > 1:
-            p_elem = ET.SubElement(p_elem, "choice")
-            for sub in rstmt[0].substmts: self.handle_stmt(sub, p_elem)
-        for rc in ranges:
-            elem = ET.SubElement(p_elem, "data", type=rngtype)
-            if len(ranges) == 1:
-                for sub in rstmt[0].substmts: self.handle_stmt(sub, elem)
-            if rc[0] not in ("min", "-INF"):
-                lelem = ET.SubElement(elem, "param", name="minInclusive")
-                lelem.text = rc[0]
-            if len(rc) == 1 or rc[1] not in ("max","INF"):
-                helem = ET.SubElement(elem, "param", name="maxInclusive")
-                if len(rc) == 1:
-                    helem.text = rc[0]
-                else:
-                    helem.text = rc[1]
+        d_elem = ET.SubElement(p_elem, "data", type=rngtype)
+        if stmt.i_is_derived:
+            if len(stmt.i_ranges) > 1:
+                p_elem = ET.SubElement(p_elem, "choice")
+            for r in stmt.i_ranges:
+                d_elem = ET.SubElement(p_elem, "data", type=rngtype)
+                self.add_numeric_restriction(r, d_elem)
 
     def string_type(self, stmt, p_elem):
         pstmt = stmt.search(keyword="pattern")
