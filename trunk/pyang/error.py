@@ -42,6 +42,9 @@ error_codes = \
     'EXPECTED_KEYWORD':
       (1,
        'expected keyword "%s"'),
+    'EXPECTED_KEYWORD_2':
+      (1,
+       'expected keyword "%s" as child to "%s"'),
     'UNEXPECTED_KEYWORD':
       (1,
        'unexpected keyword "%s"'),
