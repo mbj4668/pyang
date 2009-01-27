@@ -11,6 +11,7 @@ YIN_OBJECTS := $(MIB_SOURCES:%.mib=%.yin)
 XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
 RNG_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
+XML2_OBJECTS := $(MIB_SOURCES:%.mib=%.xml.2)
 STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang yang-smi.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
@@ -28,7 +29,7 @@ yang-smi.yang:
 	cp ../../modules/$@ $@
 
 gen-xml: 
-	rm -f $(XML_OBJECTS)
+	rm -f $(XML_OBJECTS) $(XML2_OBJECTS)
 	$(MAKE) xml
 
 yang: $(YANG_OBJECTS)
@@ -53,6 +54,10 @@ xml: $(XML_OBJECTS)
 %.xml: %.yang
 	@echo "generating random xml document for $<..."
 	@$(PYANG) --plugindir ../plugins -f xml $< > $@
+	@echo '<netmod-tree xmlns="urn:ietf:params:xml:ns:netmod:tree:1"><top>' \
+	  > $@.2
+	@cat $@ >> $@.2
+	@echo '</top></netmod-tree>' >> $@.2
 	@echo "validating against generated XSD..."
 	@( if [ ! -s $@ ]; then                                     \
                exit 0;                                              \
@@ -70,7 +75,7 @@ xml: $(XML_OBJECTS)
            fi;                                                      \
 	   exit 0; # FIXME - remove this line \
            rng=`basename $@ .xml`.rng;                              \
-	   str=`xmllint --noout --relaxng $${rng} $@ 2>&1 |         \
+	   str=`xmllint --noout --relaxng $${rng} $@.2 2>&1 |       \
                 grep -v __foo__ | grep -v 'validate'`;              \
 	   if [ ! -z "$${str}" ]; then                              \
 	      echo $${str};                                         \
@@ -78,5 +83,6 @@ xml: $(XML_OBJECTS)
            fi; )
 
 clean:
-	rm -f $(YANG_OBJECTS) $(XSD_OBJECTS) $(YIN_OBJECTS) $(XML_OBJECTS) \
+	rm -f $(YANG_OBJECTS) $(XSD_OBJECTS) $(YIN_OBJECTS) \
+		$(XML_OBJECTS) $(XML2_OBJECTS) \
 		$(STD_MODULES) $(STD_XSD) $(RNG_OBJECTS)
