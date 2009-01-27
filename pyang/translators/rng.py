@@ -45,6 +45,7 @@ try:
 except ImportError:
     pass
 
+import pyang
 from pyang import plugin, statements, error
 
 def pyang_plugin_init():
@@ -286,11 +287,11 @@ class RNGTranslator(object):
             src_text = "YANG module '%s'" % module.arg
             rev = module.search_one("revision")
             if rev:
-                src_text += "revision %s" % rev.arg
+                src_text += " revision %s" % rev.arg
             self.dc_element("source", src_text) 
             self.handle_substmts(module, self.top)
         self.handle_empty()
-        self.dc_element("creator", "Pyang, RELAX NG plugin")
+        self.dc_element("creator", "Pyang %s, RELAX NG plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
         
     def new_element(self, parent, name, prefix=None):

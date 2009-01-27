@@ -983,7 +983,9 @@ def v_inherit_properties_module(ctx, module):
     def iter(s, config_value):
         cfg = s.search_one('config')
         if cfg is not None:
-            if cfg.arg == 'true' and config_value == False:
+            if config_value is None:
+                err_add(ctx.errors, cfg.pos, 'CONFIG_IGNORED', ())
+            elif cfg.arg == 'true' and config_value == False:
                 err_add(ctx.errors, cfg.pos, 'INVALID_CONFIG', ())
             elif cfg.arg == 'true':
                 config_value = True
@@ -1001,7 +1003,7 @@ def v_inherit_properties_module(ctx, module):
         iter(s, None)
     for s in (module.i_children + module.search('augment')):
         if s.keyword in ['rpc', 'notification']:
-            iter(s, False)
+            iter(s, None)
         else:
             iter(s, True)
 
