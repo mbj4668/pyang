@@ -509,10 +509,10 @@ def chk_statement(ctx, stmt, grammar, canonical=False):
     Return True if stmt is valid, False otherwise.
     """
     n = len(ctx.errors)
-    _chk_stmts(ctx, stmt.pos, [stmt], grammar, canonical)
+    _chk_stmts(ctx, stmt.pos, [stmt], None, grammar, canonical)
     return n == len(ctx.errors)
 
-def _chk_stmts(ctx, pos, stmts, spec, canonical):
+def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
     for stmt in stmts:
         stmt.is_grammatically_valid = False
         if not util.is_prefixed(stmt.keyword):
@@ -528,19 +528,18 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical):
         else:
             match_res = None
         if match_res is None and chk_grammar == True:
-            error.err_add(ctx.errors, stmt.pos,
-                          'UNEXPECTED_KEYWORD', 
-                          util.keyword_to_str(stmt.raw_keyword));
+            error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD', 
+                          util.keyword_to_str(stmt.raw_keyword))
         elif match_res is not None and chk_grammar == True:
             (arg_type, subspec) = stmt_map[stmt.keyword]
             # verify the statement's argument
             if arg_type is None and stmt.arg is not None:
                 error.err_add(ctx.errors, stmt.pos,
-                              'UNEXPECTED_ARGUMENT', stmt.arg);
+                              'UNEXPECTED_ARGUMENT', stmt.arg)
             elif arg_type is not None and stmt.arg is None:
                 error.err_add(ctx.errors, stmt.pos,
                               'EXPECTED_ARGUMENT',
-                              util.keyword_to_str(stmt.keyword));
+                              util.keyword_to_str(stmt.keyword))
             elif (arg_type is not None and arg_type != 'string' and
                   syntax.arg_type_map[arg_type](stmt.arg) == False):
                 error.err_add(ctx.errors, stmt.pos,
@@ -548,19 +547,25 @@ def _chk_stmts(ctx, pos, stmts, spec, canonical):
             else:
                 stmt.is_grammatically_valid = True
 
-            _chk_stmts(ctx, stmt.pos, stmt.substmts, subspec, canonical)
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, stmt, subspec, canonical)
             spec = match_res
         else:
             # unknown extension
             stmt.is_grammatically_valid = True
-            _chk_stmts(ctx, stmt.pos, stmt.substmts, [('$any', '*')], canonical)
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, stmt, 
+                       [('$any', '*')], canonical)
         # update last know position
         pos = stmt.pos
     # any non-optional statements left are errors
     for (keywd, occurance) in spec:
         if occurance == '1' or occurance == '+':
-            error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD',
-                          util.keyword_to_str(keywd))
+            if parent is None:
+                error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD',
+                              util.keyword_to_str(keywd))
+            else:
+                error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD_2',
+                              (util.keyword_to_str(keywd),
+                               util.keyword_to_str(parent.raw_keyword)))
 
 def _match_stmt(ctx, stmt, spec, canonical):
     """Match stmt against the spec.
