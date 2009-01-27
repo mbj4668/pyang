@@ -254,6 +254,7 @@ class RNGTranslator(object):
             "int16": self.numeric_type,
             "int32": self.numeric_type,
             "int64": self.numeric_type,
+            "keyref": self.noop,   # FIXME: remove when pyang handles leafrefs
             "leafref": self.noop,
             "string" : self.string_type,
             "uint8": self.numeric_type,
