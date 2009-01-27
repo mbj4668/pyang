@@ -294,6 +294,9 @@ error_codes = \
     'INVALID_CONFIG':
       (2,
        'config true cannot be set when the parent is config false'),
+    'CONFIG_IGNORED':
+      (4,
+       'explicit config statement is ignored'),
 
     'UNUSED_IMPORT':
       (4,

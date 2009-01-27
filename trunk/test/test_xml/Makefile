@@ -9,12 +9,12 @@ MIB_SOURCES  := $(wildcard *.mib)
 YANG_OBJECTS := $(MIB_SOURCES:%.mib=%.yang)
 YIN_OBJECTS := $(MIB_SOURCES:%.mib=%.yin)
 XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
-DSDL_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
+RNG_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
 STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang yang-smi.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
-all: $(STD_XSD) yang yin xsd dsdl
+all: $(STD_XSD) yang yin xsd rng
 
 test: all gen-xml
 
@@ -34,7 +34,7 @@ gen-xml:
 yang: $(YANG_OBJECTS)
 yin: $(YIN_OBJECTS)
 xsd: $(XSD_OBJECTS)
-dsdl: $(DSDL_OBJECTS)
+rng: $(RNG_OBJECTS)
 xml: $(XML_OBJECTS)
 
 %.yang:	%.mib
@@ -48,7 +48,7 @@ xml: $(XML_OBJECTS)
 	$(PYANG) -f xsd $< -o $@
 
 %.rng:	%.yang
-	$(PYANG) -f dsdl $< -o $@
+	$(PYANG) -f rng $< -o $@
 
 %.xml: %.yang
 	@echo "generating random xml document for $<..."
@@ -79,4 +79,4 @@ xml: $(XML_OBJECTS)
 
 clean:
 	rm -f $(YANG_OBJECTS) $(XSD_OBJECTS) $(YIN_OBJECTS) $(XML_OBJECTS) \
-		$(STD_MODULES) $(STD_XSD) $(DSDL_OBJECTS)
+		$(STD_MODULES) $(STD_XSD) $(RNG_OBJECTS)

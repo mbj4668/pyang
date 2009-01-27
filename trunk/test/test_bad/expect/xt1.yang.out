@@ -3,6 +3,7 @@ xt1.yang:6: warning: UNUSED_IMPORT
 xt1.yang:23: error: BAD_TYPE_NAME
 xt1.yang:81: error: TYPE_VALUE
 xt1.yang:127: error: DUPLICATE_CHILD_NAME
+xt1.yang:176: warning: KEY_HAS_DEFAULT
 xt1.yang:194: error: DUPLICATE_CHILD_NAME
 xt1.yang:204: error: DUPLICATE_CHILD_NAME
 xt1.yang:214: error: NEED_KEY_USES
