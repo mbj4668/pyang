@@ -290,7 +290,7 @@ class RNGTranslator(object):
             if rev:
                 src_text += " revision %s" % rev.arg
             self.dc_element("source", src_text) 
-            self.handle_substmts(module, self.top)
+            self.handle_substmts(module, self.data)
         self.handle_empty()
         self.dc_element("creator", "Pyang %s, RELAX NG plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
@@ -311,7 +311,8 @@ class RNGTranslator(object):
         start = ET.SubElement(self.grammar_elem, "start")
         self.prefix = "nmt"
         tree = self.new_element(start, "netmod-tree")
-        self.top = self.new_element(tree, "top")
+        top = self.new_element(tree, "top")
+        self.data = ET.SubElement(top, "interleave")
         self.rpcs = self.new_element(tree, "rpc-methods")
         self.notifications = self.new_element(tree, "notifications")
 
@@ -321,7 +322,7 @@ class RNGTranslator(object):
         If any of the subtrees of the conceptual tree is empty, put
         <empty/> as its content.
         """
-        for subtree in (self.top, self.rpcs, self.notifications):
+        for subtree in (self.data, self.rpcs, self.notifications):
             if len(subtree) == 0:
                 ET.SubElement(subtree, "empty")
 
@@ -333,21 +334,13 @@ class RNGTranslator(object):
             self.grammar_elem.insert(0,dcel)
 
     def unique_def_name(self, stmt):
-        """Answer mangled name of the receiver (typedef or grouping).
-
-        Identifiers of all ancestor nodes are prepended, separated by
-        ``__``. Moreover, symbols from foreign modules start with
-        their module name (local names thus start with ``__``).
-        """
-        path = stmt.full_path()
-        if stmt.i_module == self.module:
-            local = "__".join(path[1:])
-            if len(path) == 2:
-                return local
-            else:
-                return "__" + local
+        """Answer mangled name of the receiver (typedef or grouping)."""
+        mod = stmt.i_module
+        if mod.keyword == "submodule":
+            pref = mod.search_one("belongs-to").arg
         else:
-            return "__".join(path)
+            pref = mod.arg
+        return pref + "__" + "__".join(stmt.full_path())
 
     def _summarize_ranges(self, ranges):
         """Resolve 'min' and 'max' in a cascade of ranges."""
@@ -581,14 +574,9 @@ class RNGTranslator(object):
         elem = self.new_element(cont, stmt.arg)
         self.handle_substmts(stmt, elem)
 
-    def _add_def(self, stmt):
-        """Add ``typedef`` or ``grouping``."""
-        elem = ET.SubElement(self.grammar_elem, "define",
-                             name=self.unique_def_name(stmt))
-        self.handle_substmts(stmt, elem)
-        
     def include_stmt(self, stmt, p_elem):
-        delem = ET.SubElement(p_elem, "include", href = stmt.arg + ".rng")
+        subm = self.module.i_ctx.modules[stmt.arg]
+        self.handle_substmts(subm, p_elem)
 
     def input_stmt(self, stmt, p_elem):
         elem = self.new_element(p_elem, "input", prefix="nmt")
@@ -666,10 +654,12 @@ class RNGTranslator(object):
 
     def _handle_ref(self, dname, dstmt, p_elem):
         """Insert <ref> and add definition if necessary."""
-        if dname not in self.used_defs:
-            self.used_defs.append(dname)
-            self._add_def(dstmt)
-        ET.SubElement(p_elem, "ref", name=self.unique_def_name(dstmt))
+        uname = self.unique_def_name(dstmt)
+        if uname not in self.used_defs: # add definition
+            self.used_defs.append(uname)
+            elem = ET.SubElement(self.grammar_elem, "define", name=uname)
+            self.handle_substmts(dstmt, elem)
+        ET.SubElement(p_elem, "ref", name=uname)
 
     def uses_stmt(self, stmt, p_elem):
         refines = stmt.search(keyword="refine")
