@@ -97,7 +97,7 @@ def emit_rng(ctx, module, fd):
     if ctx.opts.rng_no_annotations != True:
         emit.append("a")
     if ctx.opts.rng_no_netmod != True:
-        emit.append("nm")
+        emit.append("nma")
     etree = RNGTranslator().translate((module,), emit, debug=0)
     etree.write(fd, "UTF-8")
 
@@ -147,7 +147,7 @@ class RNGTranslator(object):
     schema_languages = {
         "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
         "dc": "http://purl.org/dc/terms",
-        "nm": "urn:ietf:params:xml:ns:netmod:rng-annot:1",
+        "nma": "urn:ietf:params:xml:ns:netmod:rng-annot:1",
     }
     """Mapping of prefixes to schema language namespace URIs."""
 
@@ -223,7 +223,7 @@ class RNGTranslator(object):
             "must": self.must_stmt,
             "namespace": self.noop,
             "notification": self.notification_stmt,
-            "ordered-by": self.noop,
+            "ordered-by": self.nm_attribute,
             "organization": self.noop,
             "output": self.output_stmt,
             "prefix": self.noop,
@@ -526,9 +526,14 @@ class RNGTranslator(object):
 
     def case_stmt(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "group")
+        ds = stmt.parent.search_one("default")
+        if ds and ds.arg == stmt.arg:
+            elem.attrib["nma:default"] = "true"
         self.handle_substmts(stmt, elem)
 
     def choice_stmt(self, stmt, p_elem):
+        if stmt.search_one("mandatory", "true") is None:
+            p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "choice")
         self.handle_substmts(stmt, elem)
 
@@ -536,15 +541,11 @@ class RNGTranslator(object):
         if stmt.is_optional():
             p_elem = ET.SubElement(p_elem, "optional")
         elem = self.new_element(p_elem, stmt.arg)
-        if len(stmt.substmts) == 0:
-            ET.SubElement(elem, "empty")
-        else:
-            self.handle_substmts(stmt, elem)
+        self.handle_substmts(stmt, elem)
 
     def default_stmt(self, stmt, p_elem):
-        if "dsrl" in self.emit:
-            delem = ET.SubElement(p_elem, "dsrl:default-content")
-            delem.text = stmt.arg
+        if stmt.parent.keyword != "choice":
+            self.nm_attribute(stmt, p_elem)
 
     def description_stmt(self, stmt, p_elem):
         # ignore imported and top-level descriptions + desc. of enum
@@ -573,9 +574,6 @@ class RNGTranslator(object):
         max_el = stmt.search_one("max-elements")
         if max_el:
             cont.attrib["nm:max-elements"] = max_el.arg
-        ordby = stmt.search_one("ordered-by")
-        if ordby:
-            cont.attrib["nm:ordered-by"] = ordby.arg
         elem = self.new_element(cont, stmt.arg)
         self.handle_substmts(stmt, elem)
 
@@ -598,7 +596,7 @@ class RNGTranslator(object):
     def must_stmt(self, stmt, p_elem):
         if "nm" not in self.emit: return
         mel = ET.SubElement(p_elem, "nm:must")
-        ET.SubElement(mel, "nm:assert").text = stmt.arg
+        mel.attrib["assert"] = stmt.arg
         em = stmt.search_one("error-message")
         if em:
             ET.SubElement(mel, "nm:error-message").text = em.arg
