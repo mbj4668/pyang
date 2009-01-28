@@ -1621,8 +1621,8 @@ class Statement(object):
         This function makes sense mostly for definition statements
         ('typedef' and 'grouping'). The returned value is a list of
         data tree node identifiers containing receiver's argument and
-        arguments of all ancestor statements up to 'module' (in
-        reverse order).
+        arguments of all ancestor statements up to but not including
+        'module' or 'submodule' (in reverse order).
         """
         path = [self.arg]
         node = self.parent
