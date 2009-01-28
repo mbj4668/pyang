@@ -1624,9 +1624,9 @@ class Statement(object):
         arguments of all ancestor statements up to 'module' (in
         reverse order).
         """
-        path = []
-        node = self
-        while node is not None:
+        path = [self.arg]
+        node = self.parent
+        while node.parent is not None:
             path.insert(0, node.arg)
             node = node.parent
         return path
