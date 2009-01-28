@@ -286,9 +286,9 @@ class RNGTranslator(object):
             self.prefix = module.search_one("prefix").arg
             self.grammar_elem.attrib["xmlns:"+self.prefix] = ns
             src_text = "YANG module '%s'" % module.arg
-            rev = module.search_one("revision")
-            if rev:
-                src_text += " revision %s" % rev.arg
+            revs = module.search(keyword="revision")
+            if len(revs) > 0:
+                src_text += " revision %s" % self._current_revision(revs)
             self.dc_element("source", src_text) 
             self.handle_substmts(module, self.data)
         self.handle_empty()
@@ -341,6 +341,11 @@ class RNGTranslator(object):
         else:
             pref = mod.arg
         return pref + "__" + "__".join(stmt.full_path())
+
+    def _current_revision(self, r_stmts):
+        """Pick the most recent revision date from `r_stmts`."""
+        cur = max([[int(p) for p in r.arg.split("-")] for r in r_stmts])
+        return "%4d-%02d-%02d" % tuple(cur)
 
     def _summarize_ranges(self, ranges):
         """Resolve 'min' and 'max' in a cascade of ranges."""
