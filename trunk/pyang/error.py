@@ -105,6 +105,9 @@ error_codes = \
     'BAD_NODE_IN_REFINE':
       (1,
        'node %s::%s cannot be refined'),
+    'BAD_REFINEMENT':
+      (1,
+       '"%s" node "%s::%s" cannot be refined with "%s"'),
     'EXTENSION_NOT_DEFINED':
       (1,
        'extension "%s" is not defined in module %s'),

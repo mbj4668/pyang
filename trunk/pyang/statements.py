@@ -900,7 +900,7 @@ def v_expand_1_uses(ctx, stmt):
             target.substmts.append(new)
         elif new is not None:
             err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
-                    (target.keyword, keyword))
+                    (target.keyword, target.i_module.arg, target.arg, keyword))
             return
 
     # first, copy the grouping into our i_children
