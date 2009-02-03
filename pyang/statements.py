@@ -810,7 +810,7 @@ def v_expand_1_children(ctx, stmt):
                 new_case.i_children = [new_child]
                 new_case.i_module = s.i_module
                 stmt.i_children.append(new_case)
-                v_expand_1_children(ctx, new_case)
+                v_expand_1_children(ctx, new_child)
             elif s.keyword == 'case':
                 stmt.i_children.append(s)
                 v_expand_1_children(ctx, s)
@@ -1224,7 +1224,6 @@ def v_reference_list(ctx, stmt):
                         err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
                         return
                 if ((ptr is None) or (ptr.keyword != 'leaf')):
-                    print ptr.keyword
                     err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
                     return
                 if ptr in found:
