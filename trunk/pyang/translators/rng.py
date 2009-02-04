@@ -20,8 +20,8 @@
 It is designed as a plugin for the pyang program and defines several
 new command-line options:
 
---rng-no-annotations
-    No output of DTD compatibility annotations
+--rng-no-documentation
+    No output of DTD compatibility documentation annotations
 
 --rng-no-dublin-core
     No output of Dublin Core annotations
@@ -56,11 +56,11 @@ class RNGPlugin(plugin.PyangPlugin):
         fmts['rng'] = self
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--rng-no-annotations",
-                                 dest="rng_no_annotations",
+            optparse.make_option("--rng-no-documentation",
+                                 dest="rng_no_documentation",
                                  action="store_true",
                                  help="No output of DTD compatibility"
-                                 " annotations"),
+                                 " documentation annotations"),
             optparse.make_option("--rng-no-dublin-core",
                                  dest="rng_no_dublin_core",
                                  action="store_true",
@@ -78,8 +78,8 @@ class RNGPlugin(plugin.PyangPlugin):
         try:
             import xml.etree.ElementTree as ET
         except ImportError:
-            print >> sys.stderr, ("RELAX NG translation needs the python module "
-                                  "etree, available in python 2.5")
+            print >> sys.stderr, ("RELAX NG translation needs etree module "
+                                  "available since python 2.5")
             sys.exit(1)
 
         emit_rng(ctx, module, fd)
@@ -94,7 +94,7 @@ def emit_rng(ctx, module, fd):
     emit = []
     if ctx.opts.rng_no_dublin_core != True:
         emit.append("dc")
-    if ctx.opts.rng_no_annotations != True:
+    if ctx.opts.rng_no_documentation != True:
         emit.append("a")
     if ctx.opts.rng_no_netmod != True:
         emit.append("nma")
@@ -198,7 +198,7 @@ class RNGTranslator(object):
             "belongs-to": self.noop,
             "case": self.case_stmt,
             "choice": self.choice_stmt,
-            "config": self.nm_attribute,
+            "config": self.nma_attribute,
             "contact": self.noop,
             "container": self.container_stmt,
             "default": self.default_stmt,
@@ -207,13 +207,13 @@ class RNGTranslator(object):
             "enum" : self.enum_stmt,
             "feature": self.noop,
             "identity": self.noop,
-            "if-feature": self.nm_attribute,
+            "if-feature": self.nma_attribute,
             "extension": self.noop,
             "import" : self.noop,
             "include" : self.include_stmt,
             "input": self.input_stmt,
             "grouping" : self.noop,
-            "key": self.nm_attribute,
+            "key": self.nma_attribute,
             "leaf": self.leaf_stmt,
             "leaf-list": self.handle_list,
             "list": self.handle_list,
@@ -223,7 +223,7 @@ class RNGTranslator(object):
             "must": self.must_stmt,
             "namespace": self.noop,
             "notification": self.notification_stmt,
-            "ordered-by": self.nm_attribute,
+            "ordered-by": self.nma_attribute,
             "organization": self.noop,
             "output": self.output_stmt,
             "prefix": self.noop,
@@ -232,13 +232,13 @@ class RNGTranslator(object):
             "refine": self.noop,
             "rpc": self.rpc_stmt,
             "min-elements": self.noop,
-            "status" : self.nm_attribute,
+            "status" : self.nma_attribute,
             "type": self.type_stmt,
             "typedef" : self.noop,
-            "unique" : self.nm_attribute,
-            "units" : self.nm_attribute,
+            "unique" : self.nma_attribute,
+            "units" : self.nma_attribute,
             "uses" : self.uses_stmt,
-            "when" : self.nm_attribute,
+            "when" : self.nma_attribute,
             "yang-version": self.yang_version_stmt,
         }
         self.type_handler = {
@@ -292,7 +292,8 @@ class RNGTranslator(object):
             self.dc_element("source", src_text) 
             self.handle_substmts(module, self.data)
         self.handle_empty()
-        self.dc_element("creator", "Pyang %s, RELAX NG plugin" % pyang.__version__)
+        self.dc_element("creator",
+                        "Pyang %s, RELAX NG plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
         
     def new_element(self, parent, name, prefix=None):
@@ -418,68 +419,38 @@ class RNGTranslator(object):
                 elem.text = str(len_[1])
         for p in pat_els: p_elem.append(p)
 
-    def _refine(self, grouping, r_stmt):
-        """Refine `grouping` in place with `r_stmt`."""
-        node = grouping
-        for nid in r_stmt.arg.split("/"):
-            nodes = node.search(arg=nid)
-            pos = 0             # search in uses
-            while len(nodes) == 0:
-                sub = node.substmts[pos]
-                if sub.keyword == "uses" and sub.i_grouping.search(arg=nid):
-                    dupl = sub.i_grouping
-                    if len(nodes) > 0:
-                        nodenode.substmts.index(uses)
-        refnod = grouping.get_node(r_stmt.arg)
-        for sub in r_stmt.substmts:
-            if sub.keyword == "must":
-                refnod.substmts.append(sub)
-            else:
-                upst = refnod.search_one(sub.keyword)
-                if upst:
-                    upst.arg = sub.arg
-                else:
-                    refnod.substmts.append(sub)
+    def _min_elements(self, lst):
+        """Return minimum number of elements for `lst`."""
+        minel = lst.search_one("min-elements")
+        if minel is None: return 0
+        return int(minel.arg)
 
-    def resolve_ref(self, stmt, kw):
-        """Resolve definition reference in `stmt`, return <ref> element.
+    def _max_elements(self, lst):
+        """Return minimum number of elements for `lst`."""
+        maxel = lst.search_one("max-elements")
+        if maxel is None: return -1
+        return int(maxel.arg)
 
-        The method returns an ETree Element <ref name="mangled_name"/>. 
-        As a side effect, all used foreign definitions are copied to
-        the resulting schema.
+    def _is_mandatory(self, stmt):
+        """Return boolean saying whether `stmt` is mandatory."""
+        if stmt.keyword == "leaf":
+            return (stmt.search_one("mandatory", "true") is not None
+                    or (stmt.parent.keyword == "list" and
+                        stmt.arg in stmt.parent.search_one("key").arg))
+        elif stmt.keyword in ("list", "leaf-list"):
+            return self._min_elements(stmt) > 0
+        elif stmt.keyword == "container":
+            if stmt.search_one("presence"):
+                return False
+        elif stmt.keyword == "uses":
+            stmt = stmt.i_grouping
+        else:
+            return False
+        for sub in stmt.substmts:
+            if self._is_mandatory(sub): return True
+        return False
 
-        The `kw` argument must be either ``typedef`` or ``grouping``.
-        """
-        primary = (self.module == stmt.i_module) # ref in main module?
-        ref = stmt.arg
-        same = True
-        if ":" in ref:          # prefixed?
-            prefix, ref = ref.split(":")
-            same = (prefix == stmt.i_module.i_prefix)
-        if same:
-            parent = stmt.parent
-            while parent is not None:
-                deflist = parent.search(keyword=kw, arg=ref)
-                parent = parent.parent
-                if len(deflist) > 0: break
-            def_ = deflist[0]
-            if not primary and parent is None: # top-level external def?
-                def_name = stmt.i_module.arg + "__" + ref
-                if def_name not in self.used_defs:
-                    self.handle_stmt(def_, self.grammar_elem)
-                    self.used_defs.append(def_name)
-            return ET.Element("ref", name=self.unique_def_name(def_))
-        mod_name = stmt.i_module.i_prefixes[prefix]
-        def_name =  mod_name + "__" + ref
-        if def_name not in self.used_defs:
-            # pull the definition
-            ext_mod = stmt.i_module.i_ctx.modules[mod_name]
-            def_, = ext_mod.search(keyword=kw, arg=ref)
-            self.handle_stmt(def_, self.grammar_elem)
-            self.used_defs.append(def_name)
-        return ET.Element("ref", name=def_name)
-
-    def handle_stmt(self, stmt, p_elem):
+    def handle_stmt(self, stmt, p_elem, patch={}):
         """
         Run handler method for `stmt` in the context of `p_elem`.
 
@@ -488,26 +459,19 @@ class RNGTranslator(object):
         corresponding to `stmt`, insert it under `p_elem` and perform
         all side effects as necessary.
         """
-        try:
-            handler = self.stmt_handler[stmt.keyword]
-        except KeyError:
-            if self.debug > 0:
-                sys.stderr.write("%s not handled\n" %
-                                 util.keyword_to_str(stmt.raw_keyword))
-        else:
-            if self.debug > 0:
-                sys.stderr.write("Handling '%s %s'\n" %
-                                 (util.keyword_to_str(stmt.raw_keyword),
-                                  stmt.arg))
-            handler(stmt, p_elem)
+        if self.debug > 0:
+            sys.stderr.write("Handling '%s %s'\n" %
+                             (util.keyword_to_str(stmt.raw_keyword), stmt.arg))
+        self.stmt_handler[stmt.keyword](stmt, p_elem, patch)
 
-    def handle_substmts(self, stmt, p_elem):
+    def handle_substmts(self, stmt, p_elem, patch={}):
         """Handle all substatements of `stmt`."""
-        for sub in stmt.substmts: self.handle_stmt(sub, p_elem)
+        for sub in stmt.substmts:
+            self.handle_stmt(sub, p_elem, patch)
 
     # Handlers for YANG statements
 
-    def anyxml_stmt(self, stmt, p_elem):
+    def anyxml_stmt(self, stmt, p_elem, patch):
         if not self.has_anyxml:
             # install definition
             def_ = ET.fromstring(self.anyxml_def)
@@ -519,129 +483,143 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
 
-    def nm_attribute(self, stmt, p_elem):
+    def nma_attribute(self, stmt, p_elem, patch):
         """Map `stmt` to NETMOD-specific attribute."""
-        if "nm" in self.emit:
-            p_elem.attrib["nm:" + stmt.keyword] = stmt.arg
+        if "nma" in self.emit:
+            p_elem.attrib["nma:" + stmt.keyword] = stmt.arg
 
-    def case_stmt(self, stmt, p_elem):
+    def case_stmt(self, stmt, p_elem, patch):
         elem = ET.SubElement(p_elem, "group")
         ds = stmt.parent.search_one("default")
         if ds and ds.arg == stmt.arg:
             elem.attrib["nma:default"] = "true"
         self.handle_substmts(stmt, elem)
 
-    def choice_stmt(self, stmt, p_elem):
+    def choice_stmt(self, stmt, p_elem, patch):
         if stmt.search_one("mandatory", "true") is None:
             p_elem = ET.SubElement(p_elem, "optional")
         elem = ET.SubElement(p_elem, "choice")
         self.handle_substmts(stmt, elem)
 
-    def container_stmt(self, stmt, p_elem):
-        if stmt.is_optional():
-            p_elem = ET.SubElement(p_elem, "optional")
-        elem = self.new_element(p_elem, stmt.arg)
-        self.handle_substmts(stmt, elem)
+    def container_stmt(self, stmt, p_elem, patch):
+        elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
+        is_opt = not self._is_mandatory(stmt)
+        new_patch = {}
+        for ch in patch.pop(stmt.arg, []):
+            if ch[0] == "":   # augment or refine
+                if ch[1].search_one("presence"): is_opt = True
+                self.handle_substmts(ch[1], elem)
+            else:
+                self._update_patch(new_patch, ch)
+        if is_opt: p_elem = ET.SubElement(p_elem, "optional")
+        p_elem.append(elem)
+        self.handle_substmts(stmt, elem, new_patch)
 
-    def default_stmt(self, stmt, p_elem):
-        if stmt.parent.keyword != "choice":
-            self.nm_attribute(stmt, p_elem)
+    def _update_patch(self, patch, change):
+        """Prepare patch for the next level."""
+        car, slash, change[0] = change[0].partition("/")
+        if car in patch:
+            patch[car].append(change)
+        else:
+            patch[car] = [change]
+        return patch
 
-    def description_stmt(self, stmt, p_elem):
+    def default_stmt(self, stmt, p_elem, patch):
+        if ("nma" in self.emit and
+            stmt.parent.keyword != "choice" and
+            "nma:default" not in p_elem.attrib):
+            self.nma_attribute(stmt, p_elem, patch)
+
+    def description_stmt(self, stmt, p_elem, patch):
         # ignore imported and top-level descriptions + desc. of enum
-        if ("a" in self.emit and stmt.i_module == self.module != stmt.parent
-            and stmt.parent.keyword != "enum"):
+        if ("a" in self.emit and
+            stmt.i_module == self.module != stmt.parent and
+            stmt.parent.keyword != "enum"):
             elem = ET.Element("a:documentation")
             p_elem.insert(0, elem)
             elem.text = stmt.arg
 
-    def enum_stmt(self, stmt, p_elem):
+    def enum_stmt(self, stmt, p_elem, patch):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
         for sub in stmt.search(keyword="status"):
             self.handle_stmt(sub, elem)
 
-    def handle_list(self, stmt, p_elem):
+    def handle_list(self, stmt, p_elem, patch):
         """Handle ``leaf-list`` or ``list``."""
-        min_el = stmt.search_one("min-elements")
-        if min_el is None or int(min_el.arg) == 0:
+        min_el = self._min_elements(stmt)
+        if min_el == 0:
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
         cont = ET.SubElement(p_elem, rng_card)
-        if min_el and int(min_el.arg) > 1:
-            cont.attrib["nm:min-elements"] = min_el.arg
-        max_el = stmt.search_one("max-elements")
-        if max_el:
-            cont.attrib["nm:max-elements"] = max_el.arg
+        if min_el > 1:
+            cont.attrib["nma:min-elements"] = min_el
+        max_el = self._max_elements(stmt)
+        if max_el > -1:
+            cont.attrib["nma:max-elements"] = max_el
         elem = self.new_element(cont, stmt.arg)
         self.handle_substmts(stmt, elem)
 
-    def include_stmt(self, stmt, p_elem):
+    def include_stmt(self, stmt, p_elem, patch):
         subm = self.module.i_ctx.modules[stmt.arg]
         self.handle_substmts(subm, p_elem)
 
-    def input_stmt(self, stmt, p_elem):
+    def input_stmt(self, stmt, p_elem, patch):
         elem = self.new_element(p_elem, "input", prefix="nmt")
         self.handle_substmts(stmt, elem)
 
-    def leaf_stmt(self, stmt, p_elem):
-        if (stmt.search_one("mandatory", "true") is None and
-            (stmt.parent.keyword != "list" or
-            stmt.arg not in stmt.parent.search_one("key").arg)):
-            p_elem = ET.SubElement(p_elem, "optional")
-        elem = self.new_element(p_elem, stmt.arg)
+    def leaf_stmt(self, stmt, p_elem, patch):
+        elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
+        is_opt = not self._is_mandatory(stmt)
+        for ch in patch.pop(stmt.arg, []):
+            if ch[1].search_one("mandatory", "true"): is_opt = False
+            self.handle_substmts(ch[1], elem)
+        if is_opt: p_elem = ET.SubElement(p_elem, "optional")
+        p_elem.append(elem)
         self.handle_substmts(stmt, elem)
 
-    def must_stmt(self, stmt, p_elem):
-        if "nm" not in self.emit: return
-        mel = ET.SubElement(p_elem, "nm:must")
+    def must_stmt(self, stmt, p_elem, patch):
+        if "nma" not in self.emit: return
+        mel = ET.SubElement(p_elem, "nma:must")
         mel.attrib["assert"] = stmt.arg
         em = stmt.search_one("error-message")
         if em:
-            ET.SubElement(mel, "nm:error-message").text = em.arg
+            ET.SubElement(mel, "nma:error-message").text = em.arg
         eat = stmt.search_one("error-app-tag")
         if eat:
-            ET.SubElement(mel, "nm:error-app-tag").text = eat.arg
+            ET.SubElement(mel, "nma:error-app-tag").text = eat.arg
 
-    def noop(self, stmt, p_elem):
+    def noop(self, stmt, p_elem, patch):
         pass
 
-    def notification_stmt(self, stmt, p_elem):
+    def notification_stmt(self, stmt, p_elem, patch):
         elem = self.new_element(self.notifications, "notification",
                                 prefix="nmt")
         attr = ET.SubElement(elem, "attribute", name="name")
         ET.SubElement(attr, "value").text = stmt.arg
         self.handle_substmts(stmt, elem)
 
-    def output_stmt(self, stmt, p_elem):
+    def output_stmt(self, stmt, p_elem, patch):
         elem = self.new_element(p_elem, "output", prefix="nmt")
         self.handle_substmts(stmt, elem)
 
-    def reference_stmt(self, stmt, p_elem):
-        if stmt.i_module != self.module: # ignore imported descriptions
-            return
-        if stmt.parent == self.module: # top-level description
-            self.dc_element("BibliographicResource", stmt.arg)
-        if "a" in self.emit and stmt.parent.keyword != "enum":
+    def reference_stmt(self, stmt, p_elem, patch):
+        # ignore imported and top-level descriptions + desc. of enum
+        if ("a" in self.emit and
+            stmt.i_module == self.module != stmt.parent and
+            stmt.parent.keyword != "enum"):
             elem = ET.Element("a:documentation")
+            p_elem.append(elem)
             elem.text = "See: " + stmt.arg
-            i = 0
-            # insert after description
-            for ch in p_elem:
-                if ch.tag == "a:documentation":
-                    i += 1
-                else:
-                    break
-            p_elem.insert(i, elem)
 
-    def rpc_stmt(self, stmt, p_elem):
+    def rpc_stmt(self, stmt, p_elem, patch):
         elem = self.new_element(self.rpcs, "rpc-method", prefix="nmt")
         attr = ET.SubElement(elem, "attribute", name="name")
         ET.SubElement(attr, "value").text = stmt.arg
         self.handle_substmts(stmt, elem)
 
-    def type_stmt(self, stmt, p_elem):
+    def type_stmt(self, stmt, p_elem, patch):
         """Handle ``type`` statement.
 
         Built-in types are handled by a specific type callback method
@@ -664,17 +642,25 @@ class RNGTranslator(object):
             self.handle_substmts(dstmt, elem)
         ET.SubElement(p_elem, "ref", name=uname)
 
-    def uses_stmt(self, stmt, p_elem):
-        refines = stmt.search(keyword="refine")
-        if len(refines) == 0:
+    def uses_stmt(self, stmt, p_elem, patch):
+        noexpand = True
+        for ref in stmt.search(keyword="refine"):
+            noexpand = False
+            self._update_patch(patch, [ref.arg, ref])
+        for aug in stmt.search(keyword="augment"):
+            noexpand = False
+            self._update_patch(patch, [aug.arg, aug])
+        if noexpand and patch:
+            for nid in patch:
+                if stmt.i_grouping.search(arg=nid):
+                    noexpand = False
+                    break
+        if noexpand:
             self._handle_ref(stmt.arg, stmt.i_grouping, p_elem)
-#         else: # make deep copy of the grouping and do modifications
-#             gcopy = stmt.i_grouping.copy()
-#             for refst in refines:
-#                 self._refine(gcopy, refst)
-#             self.handle_substmts(gcopy, p_elem)
+        else:
+            self.handle_substmts(stmt.i_grouping, p_elem, patch)
 
-    def yang_version_stmt(self, stmt, p_elem):
+    def yang_version_stmt(self, stmt, p_elem, patch):
         if float(stmt.arg) != self.YANG_version:
             print >> sys.stderr, "Unsupported YANG version: %s" % stmt.arg
             sys.exit(1)
