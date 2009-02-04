@@ -1630,59 +1630,6 @@ class Statement(object):
             node = node.parent
         return path
 
-    # FIXME: remove / rewrite
-    def is_optional(self):
-        """Determine whether receiver (container or grouping) is optional.
-
-        Returns `True` or `False`.
-        """
-        try:
-            return self.optional
-        except AttributeError:
-            self._mark_optional()
-            return self.optional
-
-    # FIXME: remove / rewrite
-    def _mark_optional(self):
-        """Set recursively `self.optional` in the receiver and descendants.
-        """
-        for subst in self.substmts:
-            if subst.keyword == "container":
-                if len(subst.search(keyword="presence")) == 0:
-                    subst._mark_optional()
-                    if not subst.optional:
-                        self.optional = False
-                        return
-            elif subst.keyword == "leaf":
-                if subst.search(keyword="mandatory", arg="true"):
-                    self.optional = False
-                    return
-            elif subst.keyword in ("list", "leaf-list"):
-                minel = subst.search(keyword="min-elements")
-                if len(minel) > 0 and int(minel[0].arg) > 0:
-                    self.optional = False
-                    return
-                subst._mark_optional()
-                if not subst.optional:
-                    self.optional = False
-                    return
-            elif subst.keyword == "uses":
-                ref = subst.arg
-                if ":" in ref:  # prefixed?
-                    prefix, ident = ref.split(":")
-                    if prefix == subst.i_module.i_prefix: # local prefix?
-                        grp = search_grouping(self, ident)
-                    else:
-                        mod_name = subst.i_module.i_prefixes[prefix]
-                        ext_mod = subst.i_module.i_ctx.modules[mod_name]
-                        grp = search_grouping(ext_mod, ident)
-                else:
-                    grp = search_grouping(self, ref)
-                if not grp.is_optional():
-                    self.optional = False
-                    return
-        self.optional = True
-
     def pprint(self, indent='', f=None):
         print indent + self.__class__.__name__ + " " + self.arg
         if f is not None:
