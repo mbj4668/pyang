@@ -56,7 +56,7 @@ def emit_arg(arg, fd, indent, indentstep):
     arg = arg.replace('"', r'\"')
     arg = arg.replace('\t', r'\t')
     lines = arg.splitlines()
-    if len(lines) == 1:
+    if len(lines) <= 1:
         fd.write(' "' + arg + '"')
     else:
         fd.write('\n')
