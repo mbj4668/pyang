@@ -381,7 +381,7 @@ def v_type_typedef(ctx, stmt):
             err_add(ctx.errors, stmt.pos, 'TYPE_ALREADY_DEFINED',
                     (name, ptype.pos))
     type = stmt.search_one('type')
-    if type is None:
+    if type is None or type.is_grammatically_valid == False:
         # error is already reported by grammar check
         return
     # ensure our type is validated
@@ -391,7 +391,8 @@ def v_type_typedef(ctx, stmt):
         # ensure the type is validated
         v_type_type(ctx, type)
         # check the direct typedef
-        if type.i_typedef is not None:
+        if (type.i_typedef is not None and 
+            type.i_typedef.is_grammatically_valid == True):
             v_type_typedef(ctx, type.i_typedef)
         # check all union's types
         membertypes = type.search('type')
@@ -453,7 +454,8 @@ def v_type_type(ctx, stmt):
                 return
         else:
             # ensure the typedef is validated
-            v_type_typedef(ctx, stmt.i_typedef)
+            if stmt.i_typedef.is_grammatically_valid == True:
+                v_type_typedef(ctx, stmt.i_typedef)
             stmt.i_typedef.i_is_unused = False
     else:
         # this is a prefixed name, check the imported modules
@@ -570,7 +572,8 @@ def v_type_type(ctx, stmt):
     elif membertypes != []:
         stmt.i_is_derived = True
         for t in membertypes:
-            v_type_type(ctx, t)
+            if t.is_grammatically_valid == True:
+                v_type_type(ctx, t)
         stmt.i_type_spec = types.UnionTypeSpec(membertypes)
         t = has_type(stmt, ['empty', 'keyref'])
         if t is not None:
@@ -601,7 +604,7 @@ def _v_type_common_leaf(ctx, stmt):
     stmt.i_keyref_ptrs = [] # pointers to the keys the keyrefs refer to
     # check our type
     type = stmt.search_one('type')
-    if type is None:
+    if type is None or type.is_grammatically_valid == False:
         # error is already reported by grammar check
         return False
 
@@ -635,7 +638,7 @@ def v_type_grouping(ctx, stmt):
 
     # search for circular grouping definitions
     def validate_uses(s):
-        if s.keyword == "uses":
+        if s.keyword == "uses" and s.is_grammatically_valid == True:
             v_type_uses(ctx, s, no_error_report=True)
     iterate_stmt(stmt, validate_uses)
 
@@ -653,7 +656,7 @@ def v_type_uses(ctx, stmt, no_error_report=False):
         # check local groupings
         pmodule = stmt.i_module
         stmt.i_grouping = search_grouping(stmt, name)
-        if stmt.i_grouping is not None:
+        if stmt.i_grouping is not None and stmt.is_grammatically_valid == True:
             v_type_grouping(ctx, stmt.i_grouping)
     else:
         # this is a prefixed name, check the imported modules
