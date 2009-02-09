@@ -248,7 +248,7 @@ class RNGTranslator(object):
             "config": self.nma_attribute,
             "contact": self.noop,
             "container": self.container_stmt,
-            "default": self.default_stmt,
+            "default": self.nma_attribute,
             "deviation": self.noop,
             "description": self.description_stmt,
             "enum" : self.enum_stmt,
@@ -517,6 +517,24 @@ class RNGTranslator(object):
             if min_el != -1 and max_el != -1: break
         return (min_el, max_el)
 
+    def _strip_local_prefix(self, stmt, qname):
+        """Strip local prefix of `stmt` from `qname` and return the result."""
+        pref, colon, name = qname.partition(":")
+        if colon and pref == stmt.i_module.i_prefix:
+            return name
+        else:
+            return qname
+
+    def _check_default_case(self, stmt, p_elem):
+        """Check whether `stmt` is the default case of choice."""
+        if ("nma:default" in p_elem.attrib and stmt.arg ==
+            self._strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
+            grp = ET.SubElement(p_elem, "group")
+            grp.attrib["nma:default-case"] = "true"
+            del p_elem.attrib["nma:default"]
+            return grp
+        return p_elem
+
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
         Run handler method for `stmt` in the context of `p_elem`.
@@ -539,6 +557,7 @@ class RNGTranslator(object):
     # Handlers for YANG statements
 
     def anyxml_stmt(self, stmt, p_elem, pset):
+        p_elem = self._check_default_case(stmt, p_elem)
         if not self.has_anyxml:
             # install definition
             def_ = ET.fromstring(self.anyxml_def)
@@ -556,11 +575,16 @@ class RNGTranslator(object):
 
     def nma_attribute(self, stmt, p_elem, pset=None):
         """Map `stmt` to NETMOD-specific attribute."""
-        if "nma" in self.emit:
-            p_elem.attrib["nma:" + stmt.keyword] = stmt.arg
+        att = "nma:" + stmt.keyword
+        if "nma" in self.emit and att not in p_elem.attrib:
+            p_elem.attrib[att] = stmt.arg
 
     def case_stmt(self, stmt, p_elem, pset):
         elem = ET.SubElement(p_elem, "group")
+        if ("nma:default" in p_elem.attrib and stmt.arg ==
+            self._strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
+            elem.attrib["nma:default-case"] = "true"
+            del p_elem.attrib["nma:default"]
         new_pset = {}
         todo = []
         for p in pset.pop(stmt.arg, []):
@@ -590,6 +614,7 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
+        p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         is_opt = not self._is_mandatory(stmt)
         new_pset = {}
@@ -604,10 +629,6 @@ class RNGTranslator(object):
         p_elem.append(elem)
         for st in todo: self.handle_stmt(st, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
-
-    def default_stmt(self, stmt, p_elem, pset):
-        if "nma:default" not in p_elem.attrib:
-            self.nma_attribute(stmt, p_elem)
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -633,6 +654,7 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
+        p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         is_opt = (stmt.search_one("mandatory", "true") is None and
                   stmt.arg not in p_elem.attrib.get("nma:key",[]))
@@ -644,6 +666,7 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
+        p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         min_el, max_el = self._min_max(stmt.substmts)
         new_pset = {}
@@ -665,6 +688,7 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem, new_pset)
 
     def list_stmt(self, stmt, p_elem, pset):
+        p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         self.nma_attribute(stmt.search_one("key"), elem)
         min_el, max_el = self._min_max(stmt.substmts)
