@@ -195,7 +195,7 @@ class RNGTranslator(object):
     schema_languages = {
         "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
         "dc": "http://purl.org/dc/terms",
-        "nma": "urn:ietf:params:xml:ns:netmod:rng-annot:1",
+        "nma": "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1",
     }
     """Mapping of prefixes to schema language namespace URIs."""
 
