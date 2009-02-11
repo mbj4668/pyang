@@ -371,7 +371,7 @@ def emit_xsd(ctx, module, fd):
     fd.write('\n</xs:schema>\n')
 
 def print_children(ctx, module, fd, children, indent, path,
-                   uniq=[''], uindent=''):
+                   uniq=[], uindent=''):
     for c in children:
         cn = c.keyword
         if cn in ['container', 'list', 'leaf', 'leaf-list', 'anyxml',
@@ -456,25 +456,42 @@ def print_children(ctx, module, fd, children, indent, path,
                     if c.i_key != []:
                         # record the key constraints to be used by our
                         # parent element
-                        uniq[0] = uniq[0] + uindent + \
+                        ustr = uindent + \
                                   '<xs:key name="key_%s">\n' % \
                                   '_'.join(path + [c.arg])
-                        uniq[0] = uniq[0] + uindent + \
+                        ustr += uindent + \
                                   '  <xs:selector xpath="%s:%s"/>\n' % \
                                   (module.i_prefix, c.arg)
                         for cc in c.i_key:
-                            uniq[0] = uniq[0] + uindent + \
+                            ustr += uindent + \
                                       '  <xs:field xpath="%s:%s"/>\n' % \
                                       (module.i_prefix, cc.arg)
-                        uniq[0] = uniq[0] + uindent + '</xs:key>\n'
+                        ustr += uindent + '</xs:key>\n'
+                        uniq.append(ustr)
+                    i = 0
+                    for u in c.search('unique'):
+                        ustr = uindent + \
+                                 '<xs:unique name="unique_%s_%s">\n' % \
+                                 ('_'.join(path + [c.arg]), i)
+                        ustr += uindent + \
+                                  '  <xs:selector xpath="%s:%s"/>\n' % \
+                                  (module.i_prefix, c.arg)
+                        for expr in u.arg.split():
+                            f = '/'.join([module.i_prefix + ':' + x
+                                          for x in expr.split('/')])
+                            ustr += uindent + \
+                                      '  <xs:field xpath="%s"/>\n' % f
+                        ustr += uindent + '</xs:unique>\n'
+                        uniq.append(ustr)
+                        i += 1                        
                 else:
                     chs = c.i_children
                 # allocate a new object for constraint recording
-                uniqkey=['']
+                uniqes=[]
                 print_children(ctx, module, fd, chs,
                                indent + extindent + '      ',
                                [c.arg] + path,
-                               uniqkey, indent + extindent + '  ')
+                               uniqes, indent + extindent + '  ')
                 # allow for augments
                 fd.write(indent + extindent + '      <xs:any minOccurs="0" '\
                                'maxOccurs="unbounded"\n')
@@ -487,7 +504,8 @@ def print_children(ctx, module, fd, children, indent, path,
                     fd.write(indent + '    </xs:complexContent>\n')
                 fd.write(indent + '  </xs:complexType>\n')
                 # write the recorded key and unique constraints (if any)
-                fd.write(uniqkey[0])
+                for u in uniqes:
+                    fd.write(u)
             elif cn in ['leaf', 'leaf-list']:
                 if c.search_one('type').i_is_derived == True:
                     print_simple_type(ctx, module, fd, indent + '  ',
