@@ -1,7 +1,6 @@
   o  add validation of XPath (lower prio) (when, must)
 
   o  add more stuff to XSD output:
-     o  generate xs:unique for 'unique'
      o  use substitutiongroup for augment
 
   o  add validation of instance-identifier defaults
