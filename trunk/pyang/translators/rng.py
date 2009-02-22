@@ -507,13 +507,20 @@ class RNGTranslator(object):
         return False
 
     def _min_max(self, slist):
-        """Return value pair (min-elements, max-elements)."""
+        """Return value pair (min-elements, max-elements).
+
+        Value -1 signals absence of either restriction and -2 for
+        max-elements means 'unbounded'.
+        """
         min_el = max_el = -1
         for st in slist:
             if min_el == -1 and st.keyword == "min-elements":
                 min_el = int(st.arg)
             if max_el == -1 and st.keyword == "max-elements":
-                max_el = int(st.arg)
+                if st.arg == "unbounded":
+                    max_el = -2
+                else:
+                    max_el = int(st.arg)
             if min_el != -1 and max_el != -1: break
         return (min_el, max_el)
 
