@@ -175,7 +175,8 @@ def validate_length_expr(errors, stmt):
             else:
                 lo = int(lostr)
         except ValueError:
-            err_add(errors, pos, 'TYPE_VALUE', (lostr, '', 'not an integer'))
+            err_add(errors, stmt.pos, 'TYPE_VALUE',
+                    (lostr, '', 'not an integer'))
             return (None, None)
         try:
             if histr == '':
@@ -187,7 +188,8 @@ def validate_length_expr(errors, stmt):
             else:
                 hi = int(histr)
         except ValueError:
-            err_add(errors, pos, 'TYPE_VALUE', (histr, '', 'not an integer'))
+            err_add(errors, stmt.pos, 'TYPE_VALUE',
+                    (histr, '', 'not an integer'))
             return None
         return (lo, hi)
     lengths = [f(m[1], m[3]) for m in syntax.re_length_part.findall(stmt.arg)]
@@ -196,10 +198,10 @@ def validate_length_expr(errors, stmt):
     for (lo, hi) in lengths:
         # check that cur_lo < lo < hi
         if not is_smaller(cur_lo, lo):
-            err_add(errors, pos, 'LENGTH_BOUNDS', (str(lo), cur_lo))
+            err_add(errors, stmt.pos, 'LENGTH_BOUNDS', (str(lo), cur_lo))
             return None
         if not is_smaller(lo, hi):
-            err_add(errors, pos, 'length_bounds', (str(hi), str(lo)))
+            err_add(errors, stmt.pos, 'LENGTH_BOUNDS', (str(hi), str(lo)))
             return None
         # FIXME: we should check that the lengths are just restrictions
         # of any base type's lengths.  Have to figure out some way to do
@@ -211,7 +213,7 @@ def validate_length_expr(errors, stmt):
         else:
             cur_lo = hi
         if type(cur_lo) == type(0) and cur_lo > 18446744073709551615:
-            err_add(errors, pos, 'LENGTH_VALUE', str(cur_lo))
+            err_add(errors, stmt.pos, 'LENGTH_VALUE', str(cur_lo))
             return None
     return (lengths, stmt.pos)
 
