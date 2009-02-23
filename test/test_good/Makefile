@@ -28,7 +28,7 @@ test: clean
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
 		echo -n " generating RNG...";				\
-#		$(PYANG) -f rng -o $$m.rng $$m || exit 0;		\
+		$(PYANG) -f rng -o $$m.rng $$m || exit 0;		\
 		echo " ok";						\
 	done
 
