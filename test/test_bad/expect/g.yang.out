@@ -2,7 +2,6 @@ g.yang:12: error: NEED_KEY_USES
 g.yang:15: error: KEYREF_NOT_LEAF_KEY
 g.yang:30: error: UNEXPECTED_ARGUMENT
 g.yang:34: error: NODE_NOT_FOUND
-g.yang:34: error: NODE_NOT_FOUND
 g.yang:44: warning: UNUSED_GROUPING
 g.yang:47: error: TYPE_VALUE
 g.yang:58: error: TYPE_VALUE

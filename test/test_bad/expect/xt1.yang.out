@@ -10,7 +10,7 @@ xt1.yang:214: error: NEED_KEY_USES
 xt1.yang:224: error: RANGE_BOUNDS
 xt1.yang:230: error: TYPE_VALUE
 xt1.yang:230: error: RANGE_BOUNDS
-xt1.yang:244: error: EXPECTED_KEYWORD
+xt1.yang:244: error: EXPECTED_KEYWORD_2
 xt1.yang:263: error: TYPE_VALUE
 xt1.yang:269: error: TYPE_VALUE
 xt1.yang:273: error: TYPE_VALUE
