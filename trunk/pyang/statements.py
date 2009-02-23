@@ -983,10 +983,10 @@ def v_expand_1_uses(ctx, stmt):
                                  'choice', 'case', 'anyxml'])
 
 def v_inherit_properties_module(ctx, module):
-    def iter(s, config_value):
+    def iter(s, config_value, allow_explicit):
         cfg = s.search_one('config')
         if cfg is not None:
-            if config_value is None:
+            if config_value is None and not allow_explicit:
                 err_add(ctx.errors, cfg.pos, 'CONFIG_IGNORED', ())
             elif cfg.arg == 'true' and config_value == False:
                 err_add(ctx.errors, cfg.pos, 'INVALID_CONFIG', ())
@@ -1000,15 +1000,15 @@ def v_inherit_properties_module(ctx, module):
             return
         if s.keyword in keyword_with_children:
             for ch in s.i_children:
-                iter(ch, config_value)
+                iter(ch, config_value, allow_explicit)
 
     for s in module.search('grouping'):
-        iter(s, None)
+        iter(s, None, True)
     for s in (module.i_children + module.search('augment')):
         if s.keyword in ['rpc', 'notification']:
-            iter(s, None)
+            iter(s, None, False)
         else:
-            iter(s, True)
+            iter(s, True, True)
 
     # do not recurse in this phase
     return 'continue'
