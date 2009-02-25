@@ -9,6 +9,8 @@ module xt6 {
 
   uses xt5:x;
 
+  xt5:foo "barbar";
+
   leaf y {
     type xt5:xc;
   }

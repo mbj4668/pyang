@@ -323,16 +323,18 @@ class RNGTranslator(object):
         self.debug = debug
         self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
         for prefix in self.emit: # used namespaces
-            self.grammar_elem.attrib["xmlns:" + prefix] = \
-                self.schema_languages[prefix]
+            self._declare_ns(prefix, self.schema_languages[prefix])
         self.setup_conceptual_tree()
         self.has_anyxml = False
         self.used_defs = []
+        self.mod_prefixes = []
         for module in modules:
             self.module = module
-            ns = module.search_one("namespace").arg
             self.prefix = module.search_one("prefix").arg
-            self.grammar_elem.attrib["xmlns:"+self.prefix] = ns
+            if self.prefix not in self.mod_prefixes:
+                self.mod_prefixes.append(self.prefix)
+                self._declare_ns(self.prefix,
+                                 module.search_one("namespace").arg)
             src_text = "YANG module '%s'" % module.arg
             revs = module.search(keyword="revision")
             if len(revs) > 0:
@@ -346,10 +348,9 @@ class RNGTranslator(object):
         
     def new_element(self, parent, name, prefix=None):
         """
-        Declare new element `name` under `parent`.
+        Make <rng:element name="`prefix`:`name`"> under `parent`.
 
-        Current namespace prefix (`self.prefix`) is prepended. Returns
-        the corresponding RNG element.
+        Return the RNG element.
         """
         if prefix is None: prefix = self.prefix
         return ET.SubElement(parent, "element", name=prefix+":"+name)
@@ -542,6 +543,22 @@ class RNGTranslator(object):
             return grp
         return p_elem
 
+    def _handle_ref(self, dname, dstmt, p_elem):
+        """Insert <ref> and add definition if necessary."""
+        uname = self.unique_def_name(dstmt)
+        if uname not in self.used_defs: # add definition
+            self.used_defs.append(uname)
+            elem = ET.SubElement(self.grammar_elem, "define", name=uname)
+            self.handle_substmts(dstmt, elem)
+        ET.SubElement(p_elem, "ref", name=uname)
+
+    def noop(self, stmt, p_elem, pset):
+        pass
+
+    def _declare_ns(self, prefix, uri):
+        """Add namespace declaration to the grammar element."""
+        self.grammar_elem.attrib["xmlns:" + prefix] = uri
+
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
         Run handler method for `stmt` in the context of `p_elem`.
@@ -554,12 +571,35 @@ class RNGTranslator(object):
         if self.debug > 0:
             sys.stderr.write("Handling '%s %s'\n" %
                              (util.keyword_to_str(stmt.raw_keyword), stmt.arg))
-        self.stmt_handler[stmt.keyword](stmt, p_elem, pset)
+        try:
+            self.stmt_handler[stmt.keyword](stmt, p_elem, pset)
+        except KeyError:
+            if isinstance(stmt.keyword, tuple): # extension
+                self.handle_extension(stmt, p_elem)
+            else:
+                sys.stderr.write("Unknown keyword %s (this should not happen)\n"
+                                 % stmt.keyword)
 
     def handle_substmts(self, stmt, p_elem, pset={}):
         """Handle all substatements of `stmt`."""
         for sub in stmt.substmts:
             self.handle_stmt(sub, p_elem, pset)
+
+    def handle_extension(self, stmt, p_elem):
+        """Append YIN representation of an extension statement."""
+        ext = stmt.i_extension
+        prefix = stmt.raw_keyword[0]
+        if prefix not in self.mod_prefixes: # add NS declaration
+            self.mod_prefixes.append(prefix)
+            self._declare_ns(prefix, ext.i_module.search_one("namespace").arg)
+        eel = ET.SubElement(p_elem, ":".join(stmt.raw_keyword))
+        argst = ext.search_one("argument")
+        if argst:
+            if argst.search_one("yin_element", "true"):
+                ET.SubElement(eel, prefix + argst.arg).text = stmt.arg
+            else:
+                eel.attrib[argst.arg] = stmt.arg
+        self.handle_substmts(stmt, eel)
 
     # Handlers for YANG statements
 
@@ -733,9 +773,6 @@ class RNGTranslator(object):
         if eat:
             ET.SubElement(mel, "nma:error-app-tag").text = eat.arg
 
-    def noop(self, stmt, p_elem, pset):
-        pass
-
     def notification_stmt(self, stmt, p_elem, pset):
         elem = self.new_element(self.notifications, "notification",
                                 prefix="nmt")
@@ -775,15 +812,6 @@ class RNGTranslator(object):
             self._unwind_type(stmt, p_elem)
         else:                   # just refer to type def.
             self._handle_ref(stmt.arg, typedef, p_elem)
-
-    def _handle_ref(self, dname, dstmt, p_elem):
-        """Insert <ref> and add definition if necessary."""
-        uname = self.unique_def_name(dstmt)
-        if uname not in self.used_defs: # add definition
-            self.used_defs.append(uname)
-            elem = ET.SubElement(self.grammar_elem, "define", name=uname)
-            self.handle_substmts(dstmt, elem)
-        ET.SubElement(p_elem, "ref", name=uname)
 
     def uses_stmt(self, stmt, p_elem, pset):
         noexpand = True
