@@ -687,6 +687,7 @@ def v_type_extension(ctx, stmt):
         err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
                 (identifier, module.arg))
         return
+    stmt.i_extension = ext
     ext_arg = ext.search_one('argument')
     if stmt.arg is not None and ext_arg is None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_ARGUMENT_PRESENT',
