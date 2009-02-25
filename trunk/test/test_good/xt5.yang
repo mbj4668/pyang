@@ -20,7 +20,7 @@ module xt5 {
 
    extension foo {
      argument bar {
-       yin-element false;
+       yin-element true;
      }
    }
 

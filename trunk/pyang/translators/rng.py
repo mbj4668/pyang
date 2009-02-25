@@ -595,8 +595,8 @@ class RNGTranslator(object):
         eel = ET.SubElement(p_elem, ":".join(stmt.raw_keyword))
         argst = ext.search_one("argument")
         if argst:
-            if argst.search_one("yin_element", "true"):
-                ET.SubElement(eel, prefix + argst.arg).text = stmt.arg
+            if argst.search_one("yin-element", "true"):
+                ET.SubElement(eel, prefix + ":" + argst.arg).text = stmt.arg
             else:
                 eel.attrib[argst.arg] = stmt.arg
         self.handle_substmts(stmt, eel)
