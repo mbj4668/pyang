@@ -36,7 +36,14 @@ def emit_stmt(ctx, stmt, fd, indent, indentstep):
         keyword = stmt.keyword
     fd.write(indent + keyword)
     if stmt.arg != None:
-        emit_arg(stmt.arg, fd, indent, indentstep)
+        if keyword in grammar.stmt_map:
+            (arg_type, _subspec) = grammar.stmt_map[keyword]
+            if arg_type in ['identifier', 'identifier-ref', 'boolean']:
+                fd.write(' ' + stmt.arg)
+            else:
+                emit_arg(stmt.arg, fd, indent, indentstep)
+        else:
+            emit_arg(stmt.arg, fd, indent, indentstep)
     if len(stmt.substmts) == 0:
         fd.write(';\n')
     else:

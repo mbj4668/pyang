@@ -393,8 +393,10 @@ def print_children(ctx, module, fd, children, indent, path,
                      c.search_one('mandatory').arg != 'true')):
                     mino = ' minOccurs="0"'
             elif cn in ['container']:
-                if c.search_one('presence') != None:
-                    mino = ' minOccurs="0"'
+                # both presence and organizational containers gets
+                # a minOccurs 0, b/c empty organizational containers
+                # don't have to appear in the XML
+                mino = ' minOccurs="0"'
             elif cn in ['list', 'leaf-list']:
                 if c.search_one('min-elements') != None:
                     mino = ' minOccurs="%s"' % c.search_one('min-elements').arg

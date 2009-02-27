@@ -305,6 +305,7 @@ def v_init_extension(ctx, stmt):
 def v_init_stmt(ctx, stmt):
     stmt.i_typedefs = {}
     stmt.i_groupings = {}
+    stmt.i_uniques = []
 
 def v_init_has_children(ctx, stmt):
     stmt.i_children = []
@@ -595,6 +596,12 @@ def v_type_leaf(ctx, stmt):
         if defval is not None:
             type.i_type_spec.validate(ctx.errors, default.pos,
                                       defval, ' for the default value')
+    if default is not None:
+        m = stmt.search_one('mandatory')
+        if m is not None and m.arg == 'true':
+            err_add(ctx.errors, stmt.pos, 'DEFAULT_AND_MANDATORY', ())
+            return False
+            
 
 def v_type_leaf_list(ctx, stmt):
     _v_type_common_leaf(ctx, stmt)
@@ -1232,6 +1239,7 @@ def v_reference_list(ctx, stmt):
                     return
                 if ptr in found:
                     err_add(ctx.errors, u.pos, 'DUPLICATE_UNIQUE', expr)
+                ptr.i_uniques.append(u)
                 found.append(ptr)
             if found == []:
                 err_add(ctx.errors, u.pos, 'BAD_UNIQUE', u.arg)

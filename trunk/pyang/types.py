@@ -249,11 +249,12 @@ def validate_pattern_expr(errors, stmt):
     # check that it's syntactically correct
     try:
         import libxml2
-        re = libxml2.regexpCompile(stmt.arg)
-        return (re, stmt.pos)
-    except libxml2.treeError, v:
-        err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
-        return None
+        try:
+            re = libxml2.regexpCompile(stmt.arg)
+            return (re, stmt.pos)
+        except libxml2.treeError, v:
+            err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
+            return None
     except ImportError:
         err_add(errors, stmt.pos, 'PATTERN_FAILURE',
                 "Could not import python module libxml2 "
