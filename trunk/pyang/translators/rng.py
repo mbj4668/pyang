@@ -187,7 +187,7 @@ class RNGTranslator(object):
 
     grammar_attrs = {
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
-        "xmlns:nmt" : "urn:ietf:params:xml:ns:netmod:tree:1",
+        "xmlns:nmt" : "urn:ietf:params:xml:ns:netmod:conceptual-tree:1",
         "datatypeLibrary" : "http://www.w3.org/2001/XMLSchema-datatypes",
     }
     """Common attributes of the <grammar> element."""
