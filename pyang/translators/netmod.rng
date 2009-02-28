@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+ns="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+<define name="config-attribute">
+  <attribute name="config">
+    <data type="boolean"/>
+  </attribute>
+</define>
+
+<define name="default-attribute">
+  <attribute name="default"/>
+</define>
+
+<define name="default-case-attribute">
+  <attribute name="default-case">
+    <data type="boolean"/>
+  </attribute>
+</define>
+
+<define name="error-app-tag-element">
+  <optional>
+    <element name="error-app-tag">
+      <text/>
+    </element>
+  </optional>
+</define>
+
+<define name="error-message-element">
+  <optional>
+    <element name="error-message">
+      <text/>
+    </element>
+  </optional>
+</define>
+
+<define name="instance-identifier-element">
+  <element name="instance-identifier">
+    <optional>
+      <attribute name="require-instance">
+	<data type="boolean"/>
+      </attribute>
+    </optional>
+  </element>
+</define>
+
+<define name="key-attribute">
+  <attribute name="key">
+    <list>
+      <data type="QName"/>
+    </list>
+  </attribute>
+</define>
+
+<define name="leafref-element">
+  <element name="leafref">
+    <optional>
+      <attribute name="require-instance">
+	<data type="boolean"/>
+      </attribute>
+    </optional>
+    <data type="string"/>
+  </element>
+</define>
+
+<define name="min-elements-attribute">
+  <attribute name="min-elements">
+    <data type="integer"/>
+  </attribute>
+</define>
+
+<define name="max-elements-attribute">
+  <attribute name="max-elements">
+    <data type="integer"/>
+  </attribute>
+</define>
+
+<define name="must-element">
+  <element name="must">
+    <attribute name="assert">
+      <data type="string"/>
+    </attribute>
+    <interleave>
+      <ref name="err-app-tag-element"/>
+      <ref name="err-message-element"/>
+    </interleave>
+  </element>
+</define>
+
+<define name="ordered-by-attribute">
+  <attribute name="ordered-by">
+    <choice>
+      <value>user</value>
+      <value>system</value>
+    </choice>
+  </attribute>
+</define>
+
+<define name="status-attribute">
+  <attribute name="status">
+    <choice>
+      <value>current</value>
+      <value>deprecated</value>
+      <value>obsolete</value>
+    </choice>
+  </attribute>
+</define>
+
+<define name="unique-attribute">
+  <attribute name="unique">
+    <list>
+      <data type="string"/>
+    </list>
+  </attribute>
+</define>
+
+<define name="units-attribute">
+  <attribute name="units">
+    <data type="string"/>
+  </attribute>
+</define>
+
+<define name="when-attribute">
+  <attribute name="when">
+    <data type="string"/>
+  </attribute>
+</define>
+
+</grammar>
