@@ -386,10 +386,14 @@ class RNGTranslator(object):
     def unique_def_name(self, stmt):
         """Answer mangled name of the receiver (typedef or grouping)."""
         mod = stmt.i_module
-        if mod.keyword == "submodule":
-            pref = mod.search_one("belongs-to").arg
+        if stmt.keyword == "typedef":
+            pref = ""
         else:
-            pref = mod.arg
+            pref = "_"
+        if mod.keyword == "submodule":
+            pref += mod.search_one("belongs-to").arg
+        else:
+            pref += mod.arg
         return pref + "__" + "__".join(stmt.full_path())
 
     def _add_patch(self, pset, patch):
