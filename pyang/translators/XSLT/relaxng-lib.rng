@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Library of RELAX NG pattern definitions -->
+
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+	 xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+	 xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <define name="message-id-attribute">
+    <attribute name="message-id">
+      <data type="string">
+	<param name="maxLength">4095</param>
+      </data>
+    </attribute>
+  </define>
+
+  <define name="ok-element">
+    <element name="nc:ok">
+      <empty/>
+    </element>
+  </define>
+
+  <define name="eventTime-element">
+    <element name="en:eventTime">
+      <data type="dateTime"/>
+    </element>
+  </define>
+</grammar>
