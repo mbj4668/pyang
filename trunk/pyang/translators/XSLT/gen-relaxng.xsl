@@ -20,18 +20,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		xmlns:rng="http://relaxng.org/ns/structure/1.0"
-		xmlns:nmt="urn:ietf:params:xml:ns:netmod:conceptual-tree:1"
-		xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-		xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
-		xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
+                xmlns:rng="http://relaxng.org/ns/structure/1.0"
+                xmlns:nmt="urn:ietf:params:xml:ns:netmod:conceptual-tree:1"
+                xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+                xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+                xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
                 version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
   <xsl:strip-space elements="*"/>
 
   <xsl:key name="rpc" match="//rng:element[@name='nmt:rpc-method']"
-	   use="rng:element[@name='nmt:input']/rng:element/@name"/>
+           use="rng:element[@name='nmt:input']/rng:element/@name"/>
 
   <!-- Command line parameters -->
   <!-- Validation target: one of "get-reply", "rpc", "notif" -->
@@ -45,40 +45,40 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="check-input-pars">
     <xsl:if test="not($target='get-reply' or $target='rpc'
-		  or $target='notif')">
+                  or $target='notif')">
       <xsl:message terminate="yes">
-	<xsl:text>Bad 'target' parameter: </xsl:text>
-	<xsl:value-of select="$target"/>
+        <xsl:text>Bad 'target' parameter: </xsl:text>
+        <xsl:value-of select="$target"/>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='rpc' or $target='notif') and $name=''">
       <xsl:message terminate="yes">
-	<xsl:text>Parameter 'name' must be supplied for target '</xsl:text>
-	<xsl:value-of select="$target"/>
-	<xsl:text>'</xsl:text>
+        <xsl:text>Parameter 'name' must be supplied for target '</xsl:text>
+        <xsl:value-of select="$target"/>
+        <xsl:text>'</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="$target='notif'">
       <xsl:if test="not(//rng:element[@name='nmt:notification']
-		    /rng:element[@name=$name])">
-	<xsl:message terminate="yes">
-	  <xsl:text>Notification not found: </xsl:text>
-	  <xsl:value-of select="$name"/>
-	</xsl:message>
+                    /rng:element[@name=$name])">
+        <xsl:message terminate="yes">
+          <xsl:text>Notification not found: </xsl:text>
+          <xsl:value-of select="$name"/>
+        </xsl:message>
       </xsl:if>
     </xsl:if>
     <xsl:if test="$target='rpc'">
       <xsl:if test="not(key('rpc',$name))">
-	<xsl:message terminate="yes">
-	  <xsl:text>RPC method not found: </xsl:text>
-	  <xsl:value-of select="$name"/>
-	</xsl:message>
+        <xsl:message terminate="yes">
+          <xsl:text>RPC method not found: </xsl:text>
+          <xsl:value-of select="$name"/>
+        </xsl:message>
       </xsl:if>
       <xsl:if test="not($dir='input' or $dir='output')">
-	<xsl:message terminate="yes">
-	  <xsl:text>Bad 'dir' parameter: </xsl:text>
-	  <xsl:value-of select="$dir"/>
-	</xsl:message>
+        <xsl:message terminate="yes">
+          <xsl:text>Bad 'dir' parameter: </xsl:text>
+          <xsl:value-of select="$dir"/>
+        </xsl:message>
       </xsl:if>
     </xsl:if>
   </xsl:template>
@@ -87,10 +87,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <!-- Ugly hack to get the namespaces delared in the schema -->
     <xsl:choose>
       <xsl:when test="$target='get-reply' or $target='rpc'">
-	<xsl:attribute name="nc:used">true</xsl:attribute>
+        <xsl:attribute name="nc:used">true</xsl:attribute>
       </xsl:when>
       <xsl:when test="$target='notif'">
-	<xsl:attribute name="en:used">true</xsl:attribute>
+        <xsl:attribute name="en:used">true</xsl:attribute>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -104,9 +104,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:element name="rng:include">
-	<xsl:attribute name="href">
-	  <xsl:value-of select="$rng-lib"/>
-	</xsl:attribute>
+        <xsl:attribute name="href">
+          <xsl:value-of select="$rng-lib"/>
+        </xsl:attribute>
       </xsl:element>
       <xsl:apply-templates select="rng:*"/>
     </xsl:copy>
@@ -122,15 +122,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element[@name='nmt:netmod-tree']">
     <xsl:choose>
       <xsl:when test="$target='get-reply'">
-	<xsl:apply-templates select="rng:element[@name='nmt:top']"/>
+        <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-	<xsl:apply-templates select="key('rpc',$name)"/>
+        <xsl:apply-templates select="key('rpc',$name)"/>
       </xsl:when>
       <xsl:when test="$target='notif'">
-	  <xsl:apply-templates
-	      select="rng:element[@name='nmt:notifications']/
-		      rng:element[rng:element/@name=$name]"/>
+          <xsl:apply-templates
+              select="rng:element[@name='nmt:notifications']/
+                      rng:element[rng:element/@name=$name]"/>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -139,7 +139,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <rng:element name="nc:rpc-reply">
       <rng:ref name="message-id-attribute"/>
       <rng:element name="nc:data">
-	<xsl:apply-templates/>
+        <xsl:apply-templates/>
       </rng:element>
     </rng:element>
   </xsl:template>
@@ -147,25 +147,25 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element[@name='nmt:rpc-method']">
     <xsl:choose>
       <xsl:when test="$dir='input'">
-	<rng:element name="nc:rpc">
-	  <rng:ref name="message-id-attribute"/>
-	  <xsl:apply-templates
-	      select="rng:element[@name='nmt:input']/*"/>
-	</rng:element>
+        <rng:element name="nc:rpc">
+          <rng:ref name="message-id-attribute"/>
+          <xsl:apply-templates
+              select="rng:element[@name='nmt:input']/*"/>
+        </rng:element>
       </xsl:when>
       <xsl:otherwise>
-	<rng:element name="nc:rpc-reply">
-	  <rng:ref name="message-id-attribute"/>
-	  <xsl:choose>
-	    <xsl:when test="rng:element[@name='nmt:output']">
-	      <xsl:apply-templates
-		  select="rng:element[@name='nmt:output']/*"/>
-	    </xsl:when>
-	    <xsl:otherwise>
-	      <rng:ref name="ok-element"/>
-	    </xsl:otherwise>
-	  </xsl:choose>
-	</rng:element>
+        <rng:element name="nc:rpc-reply">
+          <rng:ref name="message-id-attribute"/>
+          <xsl:choose>
+            <xsl:when test="rng:element[@name='nmt:output']">
+              <xsl:apply-templates
+                  select="rng:element[@name='nmt:output']/*"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <rng:ref name="ok-element"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </rng:element>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
