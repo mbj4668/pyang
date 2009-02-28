@@ -258,7 +258,7 @@ class RNGTranslator(object):
             "extension": self.noop,
             "import" : self.noop,
             "include" : self.include_stmt,
-            "input": self.input_stmt,
+            "input": self.noop,
             "grouping" : self.noop,
             "key": self.noop,
             "leaf": self.leaf_stmt,
@@ -700,10 +700,6 @@ class RNGTranslator(object):
         subm = self.module.i_ctx.modules[stmt.arg]
         self.handle_substmts(subm, p_elem)
 
-    def input_stmt(self, stmt, p_elem, pset):
-        elem = self.new_element(p_elem, "input", prefix="nmt")
-        self.handle_substmts(stmt, elem)
-
     def leaf_stmt(self, stmt, p_elem, pset):
         p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
@@ -778,10 +774,9 @@ class RNGTranslator(object):
             ET.SubElement(mel, "nma:error-app-tag").text = eat.arg
 
     def notification_stmt(self, stmt, p_elem, pset):
-        elem = self.new_element(self.notifications, "notification",
+        notel = self.new_element(self.notifications, "notification",
                                 prefix="nmt")
-        attr = ET.SubElement(elem, "attribute", name="name")
-        ET.SubElement(attr, "value").text = stmt.arg
+        elem = self.new_element(notel, stmt.arg)
         self.handle_substmts(stmt, elem)
 
     def output_stmt(self, stmt, p_elem, pset):
@@ -798,10 +793,12 @@ class RNGTranslator(object):
             elem.text = "See: " + stmt.arg
 
     def rpc_stmt(self, stmt, p_elem, pset):
-        elem = self.new_element(self.rpcs, "rpc-method", prefix="nmt")
-        attr = ET.SubElement(elem, "attribute", name="name")
-        ET.SubElement(attr, "value").text = stmt.arg
-        self.handle_substmts(stmt, elem)
+        rpcel = self.new_element(self.rpcs, "rpc-method", prefix="nmt")
+        inpel = self.new_element(rpcel, "input", prefix="nmt")
+        elem = self.new_element(inpel, stmt.arg)
+        ist = stmt.search_one("input")
+        if ist: self.handle_substmts(ist, elem)
+        self.handle_substmts(stmt, rpcel)
 
     def type_stmt(self, stmt, p_elem, pset):
         """Handle ``type`` statement.
