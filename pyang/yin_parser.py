@@ -154,7 +154,7 @@ class YinParser(object):
                 prefix = self.prefixmap[e.ns]
             except KeyError:
                 error.err_add(self.ctx.errors, e.pos,
-                              'UNKNOWN_KEYWORD', e.local_name)
+                              'MODULE_NOT_IMPORTED', e.ns)
                 return None
             keywd = (prefix, e.local_name)
             keywdstr = util.keyword_to_str(keywd)
