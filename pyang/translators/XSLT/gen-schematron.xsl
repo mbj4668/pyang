@@ -26,14 +26,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 		xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
 
-  <xsl:output method="xml" encoding="utf-8"/>
+  <xsl:import href="gen-common.xsl"/>
 
-  <!-- Command line parameters -->
-  <xsl:param name="target">get-reply</xsl:param>
-  <xsl:param name="name"/>
-  <xsl:param name="dir">input</xsl:param>
-
-  <!-- Namespace URIs to be ignored -->
+  <!-- Namespace URIs -->
   <xsl:param name="ns-rng">http://relaxng.org/ns/structure/1.0</xsl:param>
   <xsl:param
       name="ns-nmt">urn:ietf:params:xml:ns:netmod:conceptual-tree:1</xsl:param>
@@ -43,47 +38,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:param name="ns-dc">http://purl.org/dc/terms</xsl:param>
   <xsl:param
       name="ns-nma">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
-
-  <xsl:template name="check-input-pars">
-    <xsl:if test="not($target='get-reply' or $target='rpc'
-		  or $target='notif')">
-      <xsl:message terminate="yes">
-	<xsl:text>Bad 'target' parameter: </xsl:text>
-	<xsl:value-of select="$target"/>
-      </xsl:message>
-    </xsl:if>
-    <xsl:if test="($target='rpc' or $target='notif') and $name=''">
-      <xsl:message terminate="yes">
-	<xsl:text>Parameter 'name' must be supplied for target '</xsl:text>
-	<xsl:value-of select="$target"/>
-	<xsl:text>'</xsl:text>
-      </xsl:message>
-    </xsl:if>
-    <xsl:if test="$target='notif'">
-      <xsl:if test="not(//rng:element[@name='nmt:notification']/
-		    rng:attribute[rng:value=$name])">
-	<xsl:message terminate="yes">
-	  <xsl:text>Notification not found: </xsl:text>
-	  <xsl:value-of select="$name"/>
-	</xsl:message>
-      </xsl:if>
-    </xsl:if>
-    <xsl:if test="$target='rpc'">
-      <xsl:if test="not(//rng:element[@name='nmt:rpc-method']/
-		    rng:attribute[rng:value=$name])">
-	<xsl:message terminate="yes">
-	  <xsl:text>RPC method not found: </xsl:text>
-	  <xsl:value-of select="$name"/>
-	</xsl:message>
-      </xsl:if>
-      <xsl:if test="not($dir='input' or $dir='output')">
-	<xsl:message terminate="yes">
-	  <xsl:text>Bad 'dir' parameter: </xsl:text>
-	  <xsl:value-of select="$dir"/>
-	</xsl:message>
-      </xsl:if>
-    </xsl:if>
-  </xsl:template>
+  <xsl:param name="ns-nc">"urn:ietf:params:xml:ns:netconf:base:1.0"</xsl:param>
+  <xsl:param name="nc-en">"urn:ietf:params:xml:ns:netconf:notification:1.0"</xsl:param>
 
   <xsl:template name="elem-path">
     <xsl:param name="tail"/>
@@ -92,6 +48,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="yam-namespaces">
+    <!-- Make <ns> elements for all YANG module namespaces -->
     <xsl:for-each select="namespace::*[not(name()='xml' or .=$ns-rng or
 			  .=$ns-nmt or .=$ns-dtdc or .=$ns-dc or .=$ns-nma)]">
       <xsl:element name="sch:ns">
@@ -108,13 +65,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="sch:schema">
-      <xsl:apply-templates select="rng:grammar"/>
+      <xsl:call-template name="yam-namespaces"/>
     </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:grammar">
-    <xsl:call-template name="yam-namespaces"/>
-    <xsl:apply-templates select="//rng:element[@name='nmt:netmod-tree']"/>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:netmod-tree']">
