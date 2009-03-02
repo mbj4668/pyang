@@ -377,12 +377,12 @@ class RNGTranslator(object):
     def setup_conceptual_tree(self):
         """Create the conceptual tree structure."""
         start = ET.SubElement(self.grammar_elem, "start")
-        self.prefix = "nmt"
-        tree = self.new_element(start, "netmod-tree")
-        top = self.new_element(tree, "top")
+        prefix = "nmt"
+        tree = self.new_element(start, "netmod-tree", prefix)
+        top = self.new_element(tree, "top", prefix)
         self.data = ET.SubElement(top, "interleave")
-        self.rpcs = self.new_element(tree, "rpc-methods")
-        self.notifications = self.new_element(tree, "notifications")
+        self.rpcs = self.new_element(tree, "rpc-methods", prefix)
+        self.notifications = self.new_element(tree, "notifications",prefix)
 
     def handle_empty(self):
         """Handle empty subtree(s) of conceptual tree.
