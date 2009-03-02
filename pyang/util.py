@@ -24,7 +24,7 @@ def is_prefixed(identifier):
     return type(identifier) == type(()) and len(identifier) == 2
 
 def is_local(identifier):
-    return type(identifier) == type('')
+    return type(identifier) == type('') or type(identifier) == type(u'')
 
 def keyword_to_str(keyword):
     if is_prefixed(keyword):

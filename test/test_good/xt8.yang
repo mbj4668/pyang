@@ -1,0 +1,55 @@
+module xt8 {
+  prefix x;
+  namespace "urn:test:xt8";
+  
+  container x {
+    list a {
+      key a1;
+      leaf a1 {
+        type string;
+      }
+
+      list b {
+        key "b1 b2";
+        leaf b1 {
+          type string;
+        }
+        leaf b2 {
+          type string;
+        }
+
+        list c {
+          key c1;
+          leaf c1 {
+            type string;
+          }
+        }
+      }
+    }
+
+    container ref1 {
+      leaf ra1 {
+        type keyref {
+          path "/x/a/a1";
+        }
+      }
+      leaf rb1 {
+        type keyref {
+          path "/x/a[a1 = current()/../ra1]/b/b1";
+        }
+      }
+      leaf rb2 {
+        type keyref {
+          path "/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1]/b2";
+        }
+      }
+      leaf rc1 {
+        type keyref {
+          path "/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1]"
+             + "[b2 = current()/../rb2]/c/c1";
+        }
+      }
+    }
+  }
+}
+

@@ -37,7 +37,7 @@ path_key_expr = r"(current\s*\(\s*\)/" + rel_path_keyexpr + ")"
 path_equality_expr = node_id + r"\s*=\s*" + path_key_expr
 path_predicate = r"\[\s*" + path_equality_expr + r"\s*\]"
 absolute_path_arg = "(/" + node_id + "(" + path_predicate + ")*)+"
-descendant_path_arg = node_id + "(" + path_predicate + ")?" + absolute_path_arg
+descendant_path_arg = node_id + "(" + path_predicate + ")*" + absolute_path_arg
 relative_path_arg = r"(\.\./)*" + descendant_path_arg
 path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
