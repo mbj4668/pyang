@@ -84,6 +84,9 @@ error_codes = \
     'MODULE_NOT_FOUND':
       (1,
        'module "%s" not found in search path'),
+    'MODULE_NOT_IMPORTED':
+      (1,
+       'no module with the namespace "%s" is imported'),
     'BAD_MODULE_FILENAME':
     (2,
        'unexpected modulename "%s" in file %s should be %s'),
