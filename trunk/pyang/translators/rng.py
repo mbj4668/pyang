@@ -332,7 +332,7 @@ class RNGTranslator(object):
         self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
         for prefix in self.emit: # used namespaces
             self._declare_ns(prefix, self.schema_languages[prefix])
-        self.setup_conceptual_tree()
+        self.no_data = True
         self.has_anyxml = False
         self.used_defs = []
         self.mod_prefixes = []
@@ -349,7 +349,11 @@ class RNGTranslator(object):
                 src_text += " revision %s" % self._current_revision(revs)
             self.dc_element("source", src_text)
             if record_defs: self.preload_defs()
-            self.handle_substmts(module, self.data)
+            if self._has_data_node(module):
+                if self.no_data:
+                    self.no_data = False
+                    self.setup_conceptual_tree()
+                self.handle_substmts(module, self.data)
         self.handle_empty()
         self.dc_element("creator",
                         "Pyang %s, RELAX NG plugin" % pyang.__version__)
@@ -371,8 +375,7 @@ class RNGTranslator(object):
         return ET.SubElement(parent, "element", name=prefix+":"+name)
 
     def setup_conceptual_tree(self):
-        """Create the conceptual tree structure.
-        """
+        """Create the conceptual tree structure."""
         start = ET.SubElement(self.grammar_elem, "start")
         self.prefix = "nmt"
         tree = self.new_element(start, "netmod-tree")
@@ -387,6 +390,7 @@ class RNGTranslator(object):
         If any of the subtrees of the conceptual tree is empty, put
         <empty/> as its content.
         """
+        if self.no_data: return
         for subtree in (self.data, self.rpcs, self.notifications):
             if len(subtree) == 0:
                 ET.SubElement(subtree, "empty")
@@ -410,6 +414,19 @@ class RNGTranslator(object):
         else:
             pref += mod.arg
         return pref + "__" + "__".join(stmt.full_path())
+
+    def _has_data_node(self, stmt):
+        """Does `stmt` have any data nodes?"""
+        maybe = []
+        for st in self.module.substmts:
+            if st.keyword in ("leaf", "container", "leaf-list",
+                              "list","rpc", "notification"):
+                return True
+            if st.keyword in ["choice", "case"]:
+                choices.append(st)
+        for m in maybe:
+            if self._has_data_node(m): return True
+        return False
 
     def _add_patch(self, pset, patch):
         """Add `patch` to `pset`."""
