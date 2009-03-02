@@ -112,15 +112,15 @@ module yt3a {
     }
 
     leaf l17 {
-      description keyref;
-      type keyref {
+      description leafref;
+      type leafref {
         path "/foo/foo/bar"; // should be error
       }
     }
 
     leaf l17a {
-      description keyref;
-      type keyref {
+      description leafref;
+      type leafref {
         path "/foo/foo/baz"; // should be error
       }
     }
@@ -181,7 +181,7 @@ module yt3a {
     container foo {
       container foo {
          leaf bar { type int32; }
-         leaf baz { type keyref { path /l17; } } // should be error
+         leaf baz { type leafref { path /l17; } } // should be error
       }
     }
     

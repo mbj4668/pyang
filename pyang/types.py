@@ -434,10 +434,10 @@ def validate_path_expr(errors, path):
             elif m.group(2) == path.i_module.i_prefix and is_absolute == False:
                 # reference to local module in a relative keypath -
                 # remove the prefix.  this makes it easier to handle
-                # keyrefs in groupings.  local identifiers in relative keypaths
+                # leafrefs in groupings.  local identifiers in relative keypaths
                 # in groupings are resolved to point:
                 #   (i) within the grouping only (checked by
-                #       statements.validate_keyref_path()) and
+                #       statements.validate_leafref_path()) and
                 #  (ii) to elements where the grouping is used.  this is
                 #       easier to handle if the prefix is removed here.
                 return (m.group(3), s)
@@ -546,7 +546,7 @@ yang_type_specs = \
    'enumeration':TypeSpec(),
    'bits':TypeSpec(),
    'binary':BinaryTypeSpec(),
-   'keyref':TypeSpec(),
+   'leafref':TypeSpec(),
    'identityref':TypeSpec(),
    'instance-identifier':TypeSpec(),
    'empty':EmptyTypeSpec(),

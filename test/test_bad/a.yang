@@ -119,7 +119,7 @@ module a {
             type a:cc;
         }
         leaf bar {
-            type keyref {
+            type leafref {
 //                path "../h/b[x:foo = current()/../a]";
                 path "../h/b[a:foo = current()/../a]";
             }

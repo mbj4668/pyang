@@ -122,8 +122,8 @@ module yt3 {
     }
 
     typedef t17 {
-      description keyref;
-      type keyref {
+      description leafref;
+      type leafref {
         path "/interfaces/interface/ifMtu";
       }
     }

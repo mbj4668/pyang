@@ -195,35 +195,36 @@ error_codes = \
     'PATTERN_FAILURE':
       (3,
        'could not verify pattern: %s'),
-    'KEYREF_TOO_MANY_UP':
+    'LEAFREF_TOO_MANY_UP':
       (1,
-       'the keyref path for %s at %s has too many ".."'),
-    'KEYREF_IDENTIFIER_NOT_FOUND':
+       'the leafref path for %s at %s has too many ".."'),
+    'LEAFREF_IDENTIFIER_NOT_FOUND':
       (1,
-       '%s:%s in the keyref path for %s at %s is not found'),
-    'KEYREF_IDENTIFIER_BAD_NODE':
+       '%s:%s in the leafref path for %s at %s is not found'),
+    'LEAFREF_IDENTIFIER_BAD_NODE':
       (1,
-       '%s:%s in the keyref path for %s at %s references a %s node'),
-    'KEYREF_BAD_PREDICATE':
+       '%s:%s in the leafref path for %s at %s references a %s node'),
+    'LEAFREF_BAD_PREDICATE':
       (1,
-       '%s:%s in the keyref path for %s at %s has a predicate, '
+       '%s:%s in the leafref path for %s at %s has a predicate, '
        'but is not a list'),
-    'KEYREF_BAD_PREDICATE_PTR':
+    'LEAFREF_BAD_PREDICATE_PTR':
       (1,
-       '%s:%s in the keyref path\'s predicate for %s at %s is compared '
-       'with a leaf that is not a correct keyref'),
-    'KEYREF_NOT_LEAF_KEY':
+       '%s:%s in the leafref path\'s predicate for %s at %s is compared '
+       'with a leaf that is not a correct leafref'),
+    'LEAFREF_NOT_LEAF_KEY':
       (1,
-       'the keyref path for %s at %s does not refer to a key leaf in a list'),
-    'KEYREF_NO_KEY':
+       'the leafref path for %s at %s does not refer to a key leaf in a list'),
+    'LEAFREF_NO_KEY':
       (1,
-       '%s:%s in the keyref path for %s at %s is not the name of a key leaf'),
-    'KEYREF_MULTIPLE_KEYS':
+       '%s:%s in the leafref path for %s at %s is not the name of a key leaf'),
+    'LEAFREF_MULTIPLE_KEYS':
       (1,
-       '%s:%s in the keyref path for %s at %s is referenced more than once'),
-    'KEYREF_BAD_CONFIG':
+       '%s:%s in the leafref path for %s at %s is referenced more than once'),
+    'LEAFREF_BAD_CONFIG':
       (1,
-       'the keyref path for %s at %s is config but refers to a non-config key'),
+       'the leafref path for %s at %s is config but refers to a '
+       'non-config leaf'),
     'DUPLICATE_CHILD_NAME':
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '

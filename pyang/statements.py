@@ -116,7 +116,7 @@ _validation_phases = [
     'unique_name',
 
     # reference phase:
-    #   verifies all references; e.g. keyref, unique, key for config
+    #   verifies all references; e.g. leafref, unique, key for config
     'reference_1',
     'reference_2',
     'reference_3',
@@ -168,8 +168,8 @@ _validation_map = {
         lambda ctx, s: v_unique_names_children(ctx, s),
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
-    ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_keyref(ctx, s),
-    ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_keyref(ctx, s),
+    ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
+    ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_3', 'must'):lambda ctx, s:v_reference_must(ctx, s),
     ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
 
@@ -528,7 +528,7 @@ def v_type_type(ctx, stmt):
 
     # check the path restriction
     path = stmt.search_one('path')
-    if path is not None and stmt.arg != 'keyref':
+    if path is not None and stmt.arg != 'leafref':
         err_add(ctx.errors, path.pos, 'BAD_RESTRICTION', 'path')
     elif path is not None:
         stmt.i_is_derived = True
@@ -576,7 +576,7 @@ def v_type_type(ctx, stmt):
             if t.is_grammatically_valid == True:
                 v_type_type(ctx, t)
         stmt.i_type_spec = types.UnionTypeSpec(membertypes)
-        t = has_type(stmt, ['empty', 'keyref'])
+        t = has_type(stmt, ['empty', 'leafref'])
         if t is not None:
             err_add(ctx.errors, stmt.pos, 'BAD_TYPE_IN_UNION', (t.arg, t.pos))
             return False
@@ -607,8 +607,8 @@ def v_type_leaf_list(ctx, stmt):
     _v_type_common_leaf(ctx, stmt)
 
 def _v_type_common_leaf(ctx, stmt):
-    stmt.i_keyrefs = [] # if this is a union, there might be several
-    stmt.i_keyref_ptrs = [] # pointers to the keys the keyrefs refer to
+    stmt.i_leafrefs = [] # if this is a union, there might be several
+    stmt.i_leafref_ptrs = [] # pointers to the leafs the leafrefs refer to
     # check our type
     type = stmt.search_one('type')
     if type is None or type.is_grammatically_valid == False:
@@ -618,8 +618,8 @@ def _v_type_common_leaf(ctx, stmt):
     # ensure our type is validated
     v_type_type(ctx, type)
 
-    # keep track of our keyrefs
-    add_keyref_path(stmt.i_keyrefs, type)
+    # keep track of our leafrefs
+    add_leafref_path(stmt.i_leafrefs, type)
 
 def v_type_grouping(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
@@ -1249,13 +1249,13 @@ def v_reference_list(ctx, stmt):
     v_key()
     v_unique()
 
-def v_reference_leaf_keyref(ctx, stmt):
-    """Verify that all keyrefs in a leaf or leaf-list have correct path"""
+def v_reference_leaf_leafref(ctx, stmt):
+    """Verify that all leafrefs in a leaf or leaf-list have correct path"""
 
-    for (path, pos) in stmt.i_keyrefs:
-        ptr = validate_keyref_path(ctx, stmt, path, pos)
+    for (path, pos) in stmt.i_leafrefs:
+        ptr = validate_leafref_path(ctx, stmt, path, pos)
         if ptr is not None:
-            stmt.i_keyref_ptrs.append((ptr, pos))
+            stmt.i_leafref_ptrs.append((ptr, pos))
         
 
 def v_reference_must(ctx, stmt):
@@ -1415,15 +1415,15 @@ def iterate_stmt(stmt, f):
     except Abort:
         pass
 
-def add_keyref_path(keyrefs, type_):
+def add_leafref_path(leafrefs, type_):
     type_spec = type_.i_type_spec
     if type(type_spec) == types.PathTypeSpec:
-        keyrefs.append((type_spec.path, type_spec.pos))
+        leafrefs.append((type_spec.path, type_spec.pos))
     if type(type_spec) == types.UnionTypeSpec:
         for t in type_spec.types: # union
-            add_keyref_path(keyrefs, t)
+            add_leafref_path(leafrefs, t)
 
-def validate_keyref_path(ctx, stmt, path, pathpos):
+def validate_leafref_path(ctx, stmt, path, pathpos):
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
@@ -1452,14 +1452,14 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
             (pmodule, name) = find_identifier(dn[0])
             ptr = search_child(pmodule.i_children, pmodule.arg, name)
             if ptr is None:
-                err_add(ctx.errors, pathpos, 'KEYREF_IDENTIFIER_NOT_FOUND',
+                err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
                         (pmodule.arg, name, stmt.arg, stmt.pos))
                 raise NotFound
             dn = dn[1:]
         else:
             while up > 0:
                 if ptr is None or ptr.keyword == 'grouping':
-                    err_add(ctx.errors, pathpos, 'KEYREF_TOO_MANY_UP',
+                    err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
                 ptr = ptr.parent
@@ -1482,43 +1482,43 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
                     # make sure the keyleaf is really a key in the list
                     pleaf = search_child(ptr.i_key, pmodule.arg, pname)
                     if pleaf is None:
-                        err_add(ctx.errors, pathpos, 'KEYREF_NO_KEY',
+                        err_add(ctx.errors, pathpos, 'LEAFREF_NO_KEY',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
                         raise NotFound
                     # make sure it's not already referenced
                     if keyleaf in keys:
-                        err_add(ctx.errors, pathpos, 'KEYREF_MULTIPLE_KEYS',
+                        err_add(ctx.errors, pathpos, 'LEAFREF_MULTIPLE_KEYS',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
                         raise NotFound
                     keys.append((pmodule.arg, pname))
                     # check what this predicate refers to; make sure it's
-                    # another leaf; either of type keyref to keyleaf, OR same
+                    # another leaf; either of type leafref to keyleaf, OR same
                     # type as the keyleaf
                     (xkey_list, x_key, xleaf) = follow_path(stmt, pup, pdn)
-                    if xleaf.i_keyref_ptrs == []:
-                        err_add(ctx.errors, pathpos, 'KEYREF_BAD_PREDICATE_PTR',
+                    if xleaf.i_leafref_ptrs == []:
+                        err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE_PTR',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
-                    for (xptr, xpos) in xleaf.i_keyref_ptrs:
+                    for (xptr, xpos) in xleaf.i_leafref_ptrs:
                         if xptr != pleaf:
                             err_add(ctx.errors, xpos,
-                                    'KEYREF_BAD_PREDICATE_PTR',
+                                    'LEAFREF_BAD_PREDICATE_PTR',
                                     (pmodule.arg, pname, stmt.arg, stmt.pos))
                             raise NotFound
                     i = i + 1
                 continue
             else:
-                err_add(ctx.errors, pathpos, 'KEYREF_BAD_PREDICATE',
+                err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE',
                         (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
                 raise NotFound
             if ptr.keyword in ['list', 'container', 'case', 'grouping',
                                'module', 'submodule']:
                 ptr = search_data_node(ptr.i_children, module_name, name)
                 if ptr is None:
-                    err_add(ctx.errors, pathpos, 'KEYREF_IDENTIFIER_NOT_FOUND',
+                    err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
                             (module_name, name, stmt.arg, stmt.pos))
                     raise NotFound
             else:
-                err_add(ctx.errors, pathpos, 'KEYREF_IDENTIFIER_BAD_NODE',
+                err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_BAD_NODE',
                         (module_name, name, stmt.arg, stmt.pos,
                          util.keyword_to_str(ptr.keyword)))
                 raise NotFound
@@ -1530,19 +1530,17 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
             return None
         (up, dn) = path
         (key_list, keys, ptr) = follow_path(stmt, up, dn)
-        # ptr is now the node that the keyref path points to
+        # ptr is now the node that the leafref path points to
         # check that it is a key in a list
-        if not (ptr.keyword == 'leaf' and
-                ptr.parent.keyword == 'list' and
-                ptr in ptr.parent.i_key):
-            err_add(ctx.errors, pathpos, 'KEYREF_NOT_LEAF_KEY',
+        if ptr.keyword != 'leaf':
+            err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF_KEY',
                     (stmt.arg, stmt.pos))
             return None
         if key_list == ptr.parent and (ptr.i_module.arg, ptr.arg) in keys:
-            err_add(ctx.errors, pathpos, 'KEYREF_MULTIPLE_KEYS',
+            err_add(ctx.errors, pathpos, 'LEAFREF_MULTIPLE_KEYS',
                     (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
         if stmt.i_config == True and ptr.i_config == False:
-            err_add(ctx.errors, pathpos, 'KEYREF_BAD_CONFIG',
+            err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, stmt.pos))
         return ptr
     except NotFound:
