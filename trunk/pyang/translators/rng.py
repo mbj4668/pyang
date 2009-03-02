@@ -588,7 +588,7 @@ class RNGTranslator(object):
             self.handle_substmts(dstmt, elem)
         return uname
 
-    def noop(self, stmt, p_elem, pset):
+    def noop(self, stmt, p_elem, pset=''):
         pass
 
     def _declare_ns(self, prefix, uri):
