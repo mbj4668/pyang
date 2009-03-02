@@ -121,7 +121,7 @@ _validation_phases = [
     'reference_2',
     'reference_3',
 
-    # ununsed definitions phase:
+    # unused definitions phase:
     #   add warnings for unused definitions
     'unused',
     ]
@@ -251,7 +251,7 @@ def v_init_module(ctx, stmt):
     # create a prefix map in the module: <prefix string> -> <module statement>
     stmt.i_prefixes = {}
     # keep track of unused prefixes: <prefix string> -> <import statement>
-    stmt.i_ununused_prefixes = {}
+    stmt.i_unused_prefixes = {}
     # keep track of missing prefixes, to supress mulitple errors
     stmt.i_missing_prefixes = {}
     # insert our own prefix into the map
@@ -283,7 +283,7 @@ def v_init_module(ctx, stmt):
             # add the prefix to the unused prefixes
             if i.arg is not None and p.arg is not None:
                 stmt.i_prefixes[p.arg] = i.arg
-                stmt.i_ununused_prefixes[p.arg] = i
+                stmt.i_unused_prefixes[p.arg] = i
 
     # save a pointer to the context
     stmt.i_ctx = ctx
@@ -1275,8 +1275,8 @@ def v_reference_when(ctx, stmt):
 ### Unused definitions phase
 
 def v_unused_module(ctx, module):
-    for prefix in module.i_ununused_prefixes:
-        import_ = module.i_ununused_prefixes[prefix]
+    for prefix in module.i_unused_prefixes:
+        import_ = module.i_unused_prefixes[prefix]
         err_add(ctx.errors, import_.pos,
                 'UNUSED_IMPORT', import_.arg)
 
@@ -1318,8 +1318,8 @@ def prefix_to_modulename(module, prefix, pos, errors):
         module.i_missing_prefixes[prefix] = True
         return None
     # remove the prefix from the unused
-    if prefix in module.i_ununused_prefixes:
-        del module.i_ununused_prefixes[prefix]
+    if prefix in module.i_unused_prefixes:
+        del module.i_unused_prefixes[prefix]
     return modulename
 
 def prefix_to_module(module, prefix, pos, errors):
@@ -1494,8 +1494,7 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
                     # check what this predicate refers to; make sure it's
                     # another leaf; either of type keyref to keyleaf, OR same
                     # type as the keyleaf
-                    (xkey_list, x_key, xleaf) = follow_path(ptr, pup, pdn)
-                    xleaf.validate_post_augment(ctx.errors)
+                    (xkey_list, x_key, xleaf) = follow_path(stmt, pup, pdn)
                     if xleaf.i_keyref_ptrs == []:
                         err_add(ctx.errors, pathpos, 'KEYREF_BAD_PREDICATE_PTR',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
@@ -1509,9 +1508,10 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
                 continue
             else:
                 err_add(ctx.errors, pathpos, 'KEYREF_BAD_PREDICATE',
-                        (ptr.module.arg, ptr.arg, stmt.arg, stmt.pos))
+                        (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
                 raise NotFound
-            if ptr.keyword in ['list', 'container', 'case', 'grouping']:
+            if ptr.keyword in ['list', 'container', 'case', 'grouping',
+                               'module', 'submodule']:
                 ptr = search_data_node(ptr.i_children, module_name, name)
                 if ptr is None:
                     err_add(ctx.errors, pathpos, 'KEYREF_IDENTIFIER_NOT_FOUND',
@@ -1538,9 +1538,9 @@ def validate_keyref_path(ctx, stmt, path, pathpos):
             err_add(ctx.errors, pathpos, 'KEYREF_NOT_LEAF_KEY',
                     (stmt.arg, stmt.pos))
             return None
-        if key_list == ptr.parent and (ptr.module.arg, ptr.arg) in keys:
+        if key_list == ptr.parent and (ptr.i_module.arg, ptr.arg) in keys:
             err_add(ctx.errors, pathpos, 'KEYREF_MULTIPLE_KEYS',
-                    (ptr.module.arg, ptr.arg, stmt.arg, stmt.pos))
+                    (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
         if stmt.i_config == True and ptr.i_config == False:
             err_add(ctx.errors, pathpos, 'KEYREF_BAD_CONFIG',
                     (stmt.arg, stmt.pos))
