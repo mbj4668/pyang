@@ -29,7 +29,7 @@ yang_to_xsd_types = \
    # enumeration is handled separately
    # bits is handled separately
    'binary':'base64Binary',
-   'keyref':'string',
+   'leafref':'string',
    'instance-identifier':'string',
    # empty is handled separately
    # union is handled separately

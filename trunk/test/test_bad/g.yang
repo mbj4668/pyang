@@ -11,7 +11,7 @@ module g {
     container f {
         uses ww; // error: list a needs a key
         leaf bar {
-            type keyref {
+            type leafref {
                 path "../h/b"; // error: b not key
             }
         }
