@@ -7,5 +7,6 @@ Modules:
 * xsd: W3C XML Schema translator plugin
 * yin: YIN output plugin
 * yang: YANG output plugin
+* tree: Tree output plugin
 
 """
