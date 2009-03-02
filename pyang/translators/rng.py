@@ -71,6 +71,12 @@ class RNGPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  help="No output of NETMOD-specific"
                                  " attributes"),
+            optparse.make_option("--rng-record-defs",
+                                 dest="rng_record_defs",
+                                 action="store_true",
+                                 default=False,
+                                 help="Record all top-level defs"
+                                 " (even if not used)"),
             ]
         g = optparser.add_option_group("RELAX NG output specific options")
         g.add_options(optlist)
@@ -92,13 +98,14 @@ def emit_rng(ctx, module, fd):
             print >> sys.stderr, "RELAX NG translation needs a valid module"
             sys.exit(1)
     emit = []
-    if ctx.opts.rng_no_dublin_core != True:
+    if not ctx.opts.rng_no_dublin_core:
         emit.append("dc")
-    if ctx.opts.rng_no_documentation != True:
+    if not ctx.opts.rng_no_documentation:
         emit.append("a")
-    if ctx.opts.rng_no_netmod != True:
+    if not ctx.opts.rng_no_netmod:
         emit.append("nma")
-    etree = RNGTranslator().translate((module,), emit, debug=0)
+    etree = RNGTranslator().translate((module,), emit,
+                                      ctx.opts.rng_record_defs, debug=0)
     etree.write(fd, "UTF-8")
 
 class Patch(object):
@@ -312,7 +319,8 @@ class RNGTranslator(object):
             "union": self.choice_type,
         }
 
-    def translate(self, modules, emit=schema_languages.keys(), debug=0):
+    def translate(self, modules, emit=schema_languages.keys(),
+                  record_defs=False, debug=0):
         """Translate `modules` to RELAX NG schema with annotations.
 
         The `emit` argument controls output of individual annotations
@@ -339,12 +347,19 @@ class RNGTranslator(object):
             revs = module.search(keyword="revision")
             if len(revs) > 0:
                 src_text += " revision %s" % self._current_revision(revs)
-            self.dc_element("source", src_text) 
+            self.dc_element("source", src_text)
+            if record_defs: self.preload_defs()
             self.handle_substmts(module, self.data)
         self.handle_empty()
         self.dc_element("creator",
                         "Pyang %s, RELAX NG plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
+
+    def preload_defs(self):
+        """Preload all top-level definitions."""
+        for d in (self.module.search(keyword="grouping") +
+                  self.module.search(keyword="typedef")):
+            self._handle_ref(d)
         
     def new_element(self, parent, name, prefix=None):
         """
@@ -547,14 +562,14 @@ class RNGTranslator(object):
             return grp
         return p_elem
 
-    def _handle_ref(self, dname, dstmt, p_elem):
-        """Insert <ref> and add definition if necessary."""
+    def _handle_ref(self, dstmt):
+        """Install definition for if it's not there yet ."""
         uname = self.unique_def_name(dstmt)
-        if uname not in self.used_defs: # add definition
+        if uname not in self.used_defs:
             self.used_defs.append(uname)
             elem = ET.SubElement(self.grammar_elem, "define", name=uname)
             self.handle_substmts(dstmt, elem)
-        ET.SubElement(p_elem, "ref", name=uname)
+        return uname
 
     def noop(self, stmt, p_elem, pset):
         pass
@@ -812,7 +827,8 @@ class RNGTranslator(object):
         elif stmt.i_is_derived: # derived with restrictions
             self._unwind_type(stmt, p_elem)
         else:                   # just refer to type def.
-            self._handle_ref(stmt.arg, typedef, p_elem)
+            uname = self._handle_ref(typedef)
+            ET.SubElement(p_elem, "ref", name=uname)
 
     def uses_stmt(self, stmt, p_elem, pset):
         noexpand = True
@@ -826,7 +842,8 @@ class RNGTranslator(object):
                     noexpand = False
                     break
         if noexpand:
-            self._handle_ref(stmt.arg, stmt.i_grouping, p_elem)
+            uname = self._handle_ref(stmt.i_grouping)
+            ET.SubElement(p_elem, "ref", name=uname)
         else:
             self.handle_substmts(stmt.i_grouping, p_elem, pset)
 
