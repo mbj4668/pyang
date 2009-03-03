@@ -766,9 +766,9 @@ class RNGTranslator(object):
             rng_card = "oneOrMore"
         cont = ET.SubElement(p_elem, rng_card)
         if min_el > 1:
-            cont.attrib["nma:min-elements"] = str(min_el)
+            elem.attrib["nma:min-elements"] = str(min_el)
         if max_el > -1:
-            cont.attrib["nma:max-elements"] = str(max_el)
+            elem.attrib["nma:max-elements"] = str(max_el)
         cont.append(elem)
         self.handle_substmts(stmt, elem, new_pset)
 
@@ -796,9 +796,9 @@ class RNGTranslator(object):
             rng_card = "oneOrMore"
         cont = ET.SubElement(p_elem, rng_card)
         if min_el > 1:
-            cont.attrib["nma:min-elements"] = str(min_el)
+            elem.attrib["nma:min-elements"] = str(min_el)
         if max_el > -1:
-            cont.attrib["nma:max-elements"] = str(max_el)
+            elem.attrib["nma:max-elements"] = str(max_el)
         cont.append(elem)
         for st in todo: self.handle_stmt(st, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
