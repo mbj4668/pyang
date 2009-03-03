@@ -768,7 +768,10 @@ class RNGTranslator(object):
     def list_stmt(self, stmt, p_elem, pset):
         p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
-        self.nma_attribute(stmt.search_one("key"), elem)
+        keyst = stmt.search_one("key")
+        if keyst:               # also add local prefix
+            elem.attrib['nma:key'] = ' '.join(
+                [ self.prefix + ":" + k for k in keyst.arg.split() ])
         min_el, max_el = self._min_max(stmt.substmts)
         new_pset = {}
         todo = []
