@@ -26,7 +26,7 @@ new command-line options:
 --rng-no-dublin-core
     No output of Dublin Core annotations
 
--rng-no-netmod
+--rng-no-netmod
     No output of NETMOD-specific attributes
 
 Two classes are defined in this module:
@@ -290,7 +290,7 @@ class RNGTranslator(object):
             "status" : self.nma_attribute,
             "type": self.type_stmt,
             "typedef" : self.noop,
-            "unique" : self.nma_attribute,
+            "unique" : self.unique_stmt,
             "units" : self.nma_attribute,
             "uses" : self.uses_stmt,
             "when" : self.nma_attribute,
@@ -372,6 +372,13 @@ class RNGTranslator(object):
         """
         if prefix is None: prefix = self.prefix
         return ET.SubElement(parent, "element", name=prefix+":"+name)
+
+    def prefix_desc_nodeid(self, nodeid):
+        """Add local prefix to all components of `nodeid`."""
+        def pref_comp(c):
+            if ":" in c: return c
+            return self.prefix + ":" + c
+        return "/".join([pref_comp(c) for c in nodeid.split("/")])
 
     def setup_conceptual_tree(self):
         """Create the conceptual tree structure."""
@@ -771,7 +778,7 @@ class RNGTranslator(object):
         keyst = stmt.search_one("key")
         if keyst:               # also add local prefix
             elem.attrib['nma:key'] = ' '.join(
-                [ self.prefix + ":" + k for k in keyst.arg.split() ])
+                [self.prefix_desc_nodeid(k) for k in keyst.arg.split()])
         min_el, max_el = self._min_max(stmt.substmts)
         new_pset = {}
         todo = []
@@ -848,6 +855,10 @@ class RNGTranslator(object):
         else:                   # just refer to type def.
             uname = self._handle_ref(typedef)
             ET.SubElement(p_elem, "ref", name=uname)
+
+    def unique_stmt(self, stmt, p_elem, pset):
+        p_elem.attrib["nma:unique"] = ' '.join(
+            [self.prefix_desc_nodeid(nid) for nid in stmt.arg.split()])
 
     def uses_stmt(self, stmt, p_elem, pset):
         noexpand = True
