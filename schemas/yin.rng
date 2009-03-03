@@ -1,0 +1,1312 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- source file: yin.rng -->
+
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+	 ns="urn:ietf:params:xml:ns:yang:yin:1"
+	 xmlns:dc="http://purl.org/dc/terms"
+	 xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <dc:title>RELAX NG Schema for YIN</dc:title>
+  <dc:creator>Ladislav Lhotka</dc:creator>
+  <dc:date>2009-03-03</dc:date>
+  <dc:subject>YIN, XML syntax for YANG</dc:subject>
+  <dc:identifier>urn:ietf:params:xml:ns:yang:yin:1</dc:identifier>
+  <dc:description>RELAX NG schema defines grammar for data models
+  expressed in YIN, an XML syntax equivalent to YANG.</dc:description>
+
+  <start>
+    <a:documentation>The document element may be either "module" or "submodule.</a:documentation>
+    <choice>
+      <ref name="module-stmt"/>
+      <ref name="submodule-stmt"/>
+    </choice>
+  </start>
+
+  <define name="module-stmt">
+    <element name="module">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <ref name="module-header-stmts"/>
+      <ref name="linkage-stmts"/>
+      <ref name="meta-stmts"/>
+      <ref name="revision-stmts"/>
+      <ref name="body-stmts"/>
+    </element>
+  </define>
+  
+  <define name="submodule-stmt">
+    <element name="submodule">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <ref name="submodule-header-stmts"/>
+      <ref name="linkage-stmts"/>
+      <ref name="meta-stmts"/>
+      <ref name="revision-stmts"/>
+      <ref name="body-stmts"/>
+    </element>
+  </define>
+
+  <define name="module-header-stmts">
+    <interleave>
+      <optional>
+	<ref name="yang-version-stmt"/>
+      </optional>
+      <ref name="namespace-stmt"/>
+      <ref name="prefix-stmt"/>
+    </interleave>
+  </define>
+  
+  <define name="submodule-header-stmts">
+    <interleave>
+      <optional>
+	<ref name="yang-version-stmt"/>
+      </optional>
+      <ref name="belongs-to-stmt"/>
+    </interleave>
+  </define>
+
+  <define name="meta-stmts">
+    <interleave>
+      <optional>
+	<ref name="organization-stmt"/>
+      </optional>
+      <optional>
+	<ref name="contact-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+  
+  <define name="linkage-stmts">
+      <zeroOrMore>
+	<choice>
+	  <ref name="import-stmt"/>
+	  <ref name="include-stmt"/>
+	</choice>
+      </zeroOrMore>
+  </define>
+
+  <define name="revision-stmts">
+    <zeroOrMore>
+      <ref name="revision-stmt"/>
+    </zeroOrMore>
+  </define>
+  
+  <define name="body-stmts">
+    <zeroOrMore>
+      <choice>
+	<ref name="extension-stmt"/>
+	<ref name="typedef-stmt"/>
+	<ref name="grouping-stmt"/>
+	<ref name="data-def-stmt"/>
+	<ref name="rpc-stmt"/>
+	<ref name="notification-stmt"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+
+  <define name="data-def-stmt">
+    <choice>
+      <ref name="container-stmt"/>
+      <ref name="leaf-stmt"/>
+      <ref name="leaf-list-stmt"/>
+      <ref name="list-stmt"/>
+      <ref name="choice-stmt"/>
+      <ref name="anyxml-stmt"/>
+      <ref name="uses-stmt"/>
+      <ref name="augment-stmt"/>
+    </choice>
+  </define>
+
+  <define name="case-data-def-stmt">
+    <choice>
+      <ref name="container-stmt"/>
+      <ref name="leaf-stmt"/>
+      <ref name="leaf-list-stmt"/>
+      <ref name="list-stmt"/>
+      <ref name="anyxml-stmt"/>
+      <ref name="uses-stmt"/>
+      <ref name="augment-stmt"/>
+    </choice>
+  </define>
+
+  <define name="yang-version-stmt">
+    <element name="yang-version">
+      <attribute name="value">
+	<value>1</value>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="import-stmt">
+    <element name="import">
+      <attribute name="module">
+	<ref name="identifier"/>
+      </attribute>
+      <ref name="prefix-stmt"/>
+    </element>
+  </define>
+
+  <define name="include-stmt">
+    <element name="include">
+      <attribute name="module">
+	<ref name="identifier"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="namespace-stmt">
+    <element name="namespace">
+      <attribute name="uri">
+	<data type="anyURI"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="prefix-stmt">
+    <element name="prefix">
+      <attribute name="value">
+	<ref name="identifier"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="belongs-to-stmt">
+    <element name="belongs-to">
+      <attribute name="module">
+	<ref name="identifier"/>
+      </attribute>
+      <ref name="prefix-stmt"/>
+    </element>
+  </define>
+
+  <define name="organization-stmt">
+    <element name="organization">
+      <element name="info">
+	<text/>
+      </element>
+    </element>
+  </define>
+
+  <define name="contact-stmt">
+    <element name="contact">
+      <element name="info">
+	<text/>
+      </element>
+    </element>
+  </define>
+
+  <define name="description-stmt">
+    <element name="description">
+      <element name="text">
+	<text/>
+      </element>
+    </element>
+  </define>
+
+  <define name="reference-stmt">
+    <element name="reference">
+      <attribute name="info">
+	<data type="string"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="units-stmt">
+    <element name="units">
+      <attribute name="name">
+	<data type="string"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="revision-stmt">
+    <element name="revision">
+      <attribute name="date">
+	<data type="date"/>
+      </attribute>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="extension-stmt">
+    <element name="extension">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <optional>
+	<ref name="argument-stmt"/>
+      </optional>
+      <optional>
+	<ref name="status-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="argument-stmt">
+    <element name="argument">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <optional>
+	<ref name="yin-element-stmt"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="yin-element-stmt">
+    <element name="yin-element">
+      <attribute name="value">
+	<data type="boolean"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="typedef-stmt">
+    <element name="typedef">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<ref name="type-stmt"/>
+	<optional>
+	  <ref name="units-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="default-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="type-stmt">
+    <element name="type">
+      <attribute name="name">
+	<ref name="identifier-ref"/>
+      </attribute>
+      <optional>
+	<choice>
+	  <ref name="numerical-restrictions"/>
+	  <ref name="string-restrictions"/>
+	  <ref name="enum-specification"/>
+	  <ref name="keyref-specification"/>
+	  <ref name="bits-specification"/>
+	  <ref name="union-specification"/>
+	</choice>
+      </optional>
+    </element>
+  </define>
+
+  <define name="numerical-restrictions">
+    <ref name="range-stmt"/>
+  </define>
+
+  <define name="range-stmt">
+    <element name="range">
+      <attribute name="value">
+	<ref name="range-expr"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="error-message-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="error-app-tag-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="string-restrictions">
+    <interleave>
+      <optional>
+	<ref name="length-stmt"/>
+      </optional>
+      <optional>
+	<ref name="pattern-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="length-stmt">
+    <element name="length">
+      <attribute name="value">
+	<ref name="length-expr"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="error-message-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="error-app-tag-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="pattern-stmt">
+    <element name="pattern">
+      <attribute name="value">
+	<data type="string"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="error-message-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="error-app-tag-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="default-stmt">
+    <element name="default">
+      <attribute name="value">
+	<data type="string"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="enum-specification">
+    <oneOrMore>
+      <ref name="enum-stmt"/>
+    </oneOrMore>
+  </define>
+
+  <define name="enum-stmt">
+    <element name="enum">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="value-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="keyref-specification">
+    <element name="path">
+      <attribute name="value">
+	<ref name="path-arg"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="union-specification">
+    <oneOrMore>
+      <ref name="type-stmt"/>
+    </oneOrMore>
+  </define>
+
+  <define name="bits-specification">
+    <oneOrMore>
+      <ref name="bit-stmt"/>
+    </oneOrMore>
+  </define>
+
+  <define name="bit-stmt">
+    <element name="bit">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="position-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="position-stmt">
+    <element name="position">
+      <attribute name="value">
+	<data type="nonNegativeInteger"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="status-stmt">
+    <element name="status">
+      <attribute name="value">
+	<ref name="status-arg"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="status-arg">
+    <choice>
+      <value>current</value>
+      <value>obsolete</value>
+      <value>deprecated</value>
+    </choice>
+  </define>
+  
+  <define name="config-stmt">
+    <element name="config">
+      <attribute name="value">
+	<data type="boolean"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="mandatory-stmt">
+    <element name="mandatory">
+      <attribute name="value">
+	<data type="boolean"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="presence-stmt">
+    <element name="presence">
+      <attribute name="value">
+	<data type="string"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="ordered-by-stmt">
+    <element name="ordered-by">
+      <attribute name="value">
+	<ref name="ordered-by-arg"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="ordered-by-arg">
+    <choice>
+      <value>user</value>
+      <value>system</value>
+    </choice>
+  </define>
+
+  <define name="must-stmt">
+    <element name="must">
+      <attribute name="condition">
+	<data type="string"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="error-message-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="error-app-tag-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="error-message-stmt">
+    <element name="error-message">
+      <element name="value">
+	<text/>
+      </element>
+    </element>
+  </define>
+  
+  <define name="error-app-tag-stmt">
+    <element name="error-app-tag">
+      <attribute name="value">
+	<data type="string"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="min-elements-stmt">
+    <element name="min-elements">
+      <attribute name="value">
+	<data type="nonNegativeInteger"/>
+      </attribute>
+    </element>
+  </define>
+  
+  <define name="max-elements-stmt">
+    <element name="max-elements">
+      <attribute name="value">
+	<choice>
+	  <value>unbounded</value>
+	  <data type="positiveInteger"/>
+	</choice>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="value-stmt">
+    <element name="value">
+      <attribute name="value">
+	<data type="integer"/>
+      </attribute>
+    </element>
+  </define>
+  
+  <define name="grouping-stmt">
+    <element name="grouping">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	    <ref name="data-def-stmt"/>
+	  </choice>
+	</zeroOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="container-stmt">
+    <element name="container">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-statement"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="presence-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	    <ref name="data-def-stmt"/>
+	  </choice>
+	</zeroOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="leaf-stmt">
+    <element name="leaf">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-statement"/>
+	</optional>
+	<ref name="type-stmt"/>
+	<optional>
+	  <ref name="units-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="default-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="mandatory-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="leaf-list-stmt">
+    <element name="leaf-list">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-statement"/>
+	</optional>
+	<ref name="type-stmt"/>
+	<optional>
+	  <ref name="units-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="min-elements-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="max-elements-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="ordered-by-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="list-stmt">
+    <element name="list">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-statement"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="key-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="unique-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="min-elements-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="max-elements-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="ordered-by-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	  </choice>
+	</zeroOrMore>
+	<oneOrMore>
+	  <ref name="data-def-stmt"/>
+	</oneOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="key-stmt">
+    <element name="key">
+      <attribute name="value">
+	<list>
+	  <oneOrMore>
+	    <ref name="identifier"/>
+	  </oneOrMore>
+	</list>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="unique-stmt">
+    <element name="unique">
+      <attribute name="tag">
+	<list>
+	  <oneOrMore>
+	    <ref name="descendant-schema-nodeid"/>
+	  </oneOrMore>
+	</list>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="choice-stmt">
+    <element name="choice">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-statement"/>
+	</optional>
+	<optional>
+	  <ref name="default-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="mandatory-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="short-case-stmt"/>
+	    <ref name="case-stmt"/>
+	  </choice>
+	</zeroOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="short-case-stmt">
+    <choice>
+      <ref name="container-stmt"/>
+      <ref name="leaf-stmt"/>
+      <ref name="leaf-list-stmt"/>
+      <ref name="list-stmt"/>
+      <ref name="anyxml-stmt"/>
+    </choice>
+  </define>
+
+  <define name="case-stmt">
+    <element name="case">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="case-data-def-stmt"/>
+	</zeroOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="anyxml-stmt">
+    <element name="anyxml">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="mandatory-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="uses-stmt">
+    <element name="uses">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="refine-stmt"/>
+	</zeroOrMore>
+	<zeroOrMore>
+	  <ref name="uses-augment-stmt"/>
+	</zeroOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="refine-stmt">
+    <choice>
+      <ref name="refine-container-stmts"/>
+      <ref name="refine-leaf-stmts"/>
+      <ref name="refine-leaf-list-stmts"/>
+      <ref name="refine-list-stmts"/>
+      <ref name="refine-choice-stmts"/>
+      <ref name="refine-case-stmts"/>
+      <ref name="refine-anyxml-stmts"/>
+    </choice>
+  </define>
+
+  <define name="refine-container-stmts">
+    <interleave>
+      <zeroOrMore>
+	<ref name="must-stmt"/>
+      </zeroOrMore>
+      <optional>
+	<ref name="presence-stmt"/>
+      </optional>
+      <optional>
+	<ref name="config-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="refine-leaf-stmts">
+    <interleave>
+      <zeroOrMore>
+	<ref name="must-stmt"/>
+      </zeroOrMore>
+      <optional>
+	<ref name="default-stmt"/>
+      </optional>
+      <optional>
+	<ref name="config-stmt"/>
+      </optional>
+      <optional>
+	<ref name="mandatory-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+  
+  <define name="refine-leaf-list-stmts">
+    <interleave>
+      <zeroOrMore>
+	<ref name="must-stmt"/>
+      </zeroOrMore>
+      <optional>
+	<ref name="config-stmt"/>
+      </optional>
+      <optional>
+	<ref name="min-elements-stmt"/>
+      </optional>
+      <optional>
+	<ref name="max-elements-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="refine-list-stmts">
+    <interleave>
+      <zeroOrMore>
+	<ref name="must-stmt"/>
+      </zeroOrMore>
+      <optional>
+	<ref name="config-stmt"/>
+      </optional>
+      <optional>
+	<ref name="min-elements-stmt"/>
+      </optional>
+      <optional>
+	<ref name="max-elements-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="refine-choice-stmts">
+    <interleave>
+      <optional>
+	<ref name="default-stmt"/>
+      </optional>
+      <optional>
+	<ref name="config-stmt"/>
+      </optional>
+      <optional>
+	<ref name="mandatory-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="refine-case-stmts">
+    <interleave>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="refine-anyxml-stmts">
+    <interleave>
+      <optional>
+	<ref name="config-stmt"/>
+      </optional>
+      <optional>
+	<ref name="mandatory-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="uses-augment-stmt">
+    <element name="augment">
+      <attribute name="target-node">
+	<choice>
+	  <ref name="descendant-schema-nodeid"/>
+	</choice>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<oneOrMore>
+	  <choice>
+	    <ref name="data-def-stmt"/>
+	    <ref name="case-stmt"/>
+	  </choice>
+	</oneOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="augment-stmt">
+    <element name="augment">
+      <attribute name="target-node">
+	<choice>
+	  <ref name="absolute-schema-nodeid"/>
+	</choice>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="when-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<oneOrMore>
+	  <choice>
+	    <ref name="data-def-stmt"/>
+	    <ref name="case-stmt"/>
+	  </choice>
+	</oneOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="when-stmt">
+    <element name="when">
+      <attribute name="condition">
+	<data type="string"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="rpc-stmt">
+    <element name="rpc">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	  </choice>
+	</zeroOrMore>
+      </interleave>
+      <optional>
+	<ref name="input-stmt"/>
+      </optional>
+      <optional>
+	<ref name="output-stmt"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="input-stmt">
+    <element name="input">
+      <interleave>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	  </choice>
+	</zeroOrMore>
+	<oneOrMore>
+	  <ref name="data-def-stmt"/>
+	</oneOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="output-stmt">
+    <element name="output">
+      <interleave>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	  </choice>
+	</zeroOrMore>
+	<oneOrMore>
+	  <ref name="data-def-stmt"/>
+	</oneOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="notification-stmt">
+    <element name="notification">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <choice>
+	    <ref name="typedef-stmt"/>
+	    <ref name="grouping-stmt"/>
+	    <ref name="data-def-stmt"/>
+	  </choice>
+	</zeroOrMore>
+      </interleave>
+    </element>
+  </define>
+
+  <!-- Regular expressions for lexical terms -->
+
+  <define name="identifier">
+    <data type="NCName">
+      <param name="pattern">[_A-Za-z][_\-A-Za-z0-9.]*</param>
+    </data>
+  </define>
+
+  <define name="identifier-ref">
+    <data type="Name">
+      <param name="pattern">([_A-Za-z][_\-A-Za-z0-9.]*:)?[_A-Za-z][_\-A-Za-z0-9.]*</param>
+    </data>
+  </define>
+
+  <define name="range-expr">
+    <data type="string">
+      <param name="pattern">\s*(-INF|INF|min|max|\-?(0|[1-9][0-9]*)(\.[0-9]+(E[\-+]?[0-9]+)?)?)(\s*\.\.\s*(-INF|INF|min|max|\-?(0|[1-9][0-9]*)(\.[0-9]+(E[\-+]?[0-9]+)?)?))?(\s*\|\s*(-INF|INF|min|max|\-?(0|[1-9][0-9]*)(\.[0-9]+(E[\-+]?[0-9]+)?)?)(\s*\.\.\s*(-INF|INF|min|max|\-?(0|[1-9][0-9]*)(\.[0-9]+(E[\-+]?[0-9]+)?)?))?)*\s*</param>
+    </data>
+  </define>
+
+  <define name="length-expr">
+    <data type="string">
+      <param name="pattern">\s*(min|max|(0|[1-9][0-9]*))(\s*\.\.\s*(min|max|(0|[1-9][0-9]*)))?(\s*\|\s*(min|max|(0|[1-9][0-9]*))(\s*\.\.\s*(min|max|(0|[1-9][0-9]*)))?)*\s*</param>
+    </data>
+  </define>
+
+  <define name="path-arg">
+    <data type="string">
+      <param name="pattern">((/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*([$]this/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])*)+|(\.\./)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*([$]this/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])?(/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*([$]this/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])*)+)</param>
+    </data>
+  </define>
+
+  <define name="absolute-schema-nodeid">
+    <data type="string">
+      <param name="pattern">(/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)+</param>
+    </data>
+  </define>
+
+  <define name="descendant-schema-nodeid">
+    <data type="string">
+      <param name="pattern">([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*((/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)+)?</param>
+    </data>
+  </define>
+</grammar>
