@@ -643,7 +643,7 @@
       </attribute>
       <interleave>
 	<optional>
-	  <ref name="when-statement"/>
+	  <ref name="when-stmt"/>
 	</optional>
 	<zeroOrMore>
 	  <ref name="must-stmt"/>
@@ -681,7 +681,7 @@
       </attribute>
       <interleave>
 	<optional>
-	  <ref name="when-statement"/>
+	  <ref name="when-stmt"/>
 	</optional>
 	<ref name="type-stmt"/>
 	<optional>
@@ -719,7 +719,7 @@
       </attribute>
       <interleave>
 	<optional>
-	  <ref name="when-statement"/>
+	  <ref name="when-stmt"/>
 	</optional>
 	<ref name="type-stmt"/>
 	<optional>
@@ -760,7 +760,7 @@
       </attribute>
       <interleave>
 	<optional>
-	  <ref name="when-statement"/>
+	  <ref name="when-stmt"/>
 	</optional>
 	<zeroOrMore>
 	  <ref name="must-stmt"/>
@@ -836,7 +836,7 @@
       </attribute>
       <interleave>
 	<optional>
-	  <ref name="when-statement"/>
+	  <ref name="when-stmt"/>
 	</optional>
 	<optional>
 	  <ref name="default-stmt"/>
@@ -935,7 +935,7 @@
   <define name="uses-stmt">
     <element name="uses">
       <attribute name="name">
-	<ref name="identifier"/>
+	<ref name="identifier-ref"/>
       </attribute>
       <interleave>
 	<optional>
