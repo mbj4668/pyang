@@ -1007,6 +1007,8 @@ def v_inherit_properties_module(ctx, module):
             s.is_grammatically_valid == False):
             return
         if s.keyword in keyword_with_children:
+            for ch in s.search('grouping'):
+                iter(ch, None, True)
             for ch in s.i_children:
                 iter(ch, config_value, allow_explicit)
 
@@ -1181,7 +1183,7 @@ def v_unique_names_children(ctx, stmt):
 def v_reference_list(ctx, stmt):
     def v_key():
         key = stmt.search_one('key')
-        if (stmt.i_config == True) and (key is None):
+        if stmt.i_config == True and key is None:
             if hasattr(stmt, 'i_uses_pos'):
                 err_add(ctx.errors, stmt.i_uses_pos, 'NEED_KEY_USES', (stmt.pos))
             else:
@@ -1193,7 +1195,15 @@ def v_reference_list(ctx, stmt):
             for x in key.arg.split():
                 if x == '':
                     continue
-                ptr = attrsearch(x, 'arg', stmt.i_children)
+                # This is not yet valid YANG - syntax.py will not allow it
+                if x.find(":") == -1:
+                    name = x
+                else:
+                    [prefix, name] = x.split(':', 1)
+                    if prefix != stmt.i_module.i_prefix:
+                        err_add(ctx.errors, u.pos, 'BAD_KEY', x)
+                        return
+                ptr = attrsearch(name, 'arg', stmt.i_children)
                 if x in found:
                     err_add(ctx.errors, key.pos, 'DUPLICATE_KEY', x)
                     return
@@ -1230,9 +1240,16 @@ def v_reference_list(ctx, stmt):
                                            'choice', 'case']:
                         err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
                         return
-                    ptr = attrsearch(x, 'arg', ptr.i_children)
+                    if x.find(":") == -1:
+                        name = x
+                    else:
+                        [prefix, name] = x.split(':', 1)
+                        if prefix != stmt.i_module.i_prefix:
+                            err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
+                            return
+                    ptr = attrsearch(name, 'arg', ptr.i_children)
                     if ptr is None:
-                        err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
+                        err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
                         return
                 if ((ptr is None) or (ptr.keyword != 'leaf')):
                     err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
