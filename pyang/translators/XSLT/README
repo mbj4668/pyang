@@ -1,30 +1,31 @@
 This directory contains XSLT stylesheets that take the conceptual tree
-schema (output of the 'rng' plugin) and generate various validation
-schemas from it. Only RELAX NG output is available now.
+schema (output of pyang's 'rng' plugin) and generate various DSDL
+validation schemas from it.
 
 A dispatcher shell script 'yang2schema' is provided, which helps to
-automate the tasks. It uses XSLT processor 'xsltproc' from 'libxml2'
-toolset. Modified versions tested with other processors will be
-appreciated.
+automate the tasks. As an XSLT processor it uses 'xsltproc' [1].
+Modified versions tested with other processors will be appreciated.
 
 Typical invocation:
 
-$ ./yang2schema -t rpc -n rock:rock-the-house -i rpc-rock.yang
+$ ./yang2schema -s sch -t rpc -n rock:rock-the-house -i rpc-rock.yang
 
-This command writes a RELAX NG schema to the standard output, and this
-schema can be used for validating complete NETCONF PDUs containing RPC
-request (=input) for the method 'rock-the-house' that must be defined
-in rpc-rock.yang. Note that the method name has to include the
-namespace prefix declared in the YANG module (the same holds for
-notification names).
+This command writes a Schematron schema to the standard output, and
+this schema can be used for validating complete NETCONF PDUs
+containing RPC request (=input) for the method 'rock-the-house' that
+must be defined in rpc-rock.yang. Note that the method name has to
+include the namespace prefix declared in the YANG module that defines
+the RPC method (the same holds for notification names).
 
 A complete list of options may be obtained by running
 
 $ ./yang2schema -h
 
-Thee validation targets are currently supported:
+These validation targets are currently supported:
 
 "get-reply"  Reply to <get> method without any filters.
+
+"getconf-reply"  Reply to <get-config> method without any filters.
 
 "rpc"        RPC method whose name must be specified using the
              -n option. Depending on the switch -i (default) or -o
@@ -32,6 +33,10 @@ Thee validation targets are currently supported:
 
 "notif"      Notification whose name must be specified using the
              -n option.
+
+The conditions appearing in YANG statements 'must' and 'when'
+currently must have all node identifiers with an explicit namespace
+prefix, otherwise they won't work.
 
 The script assumes that the XSLT stylesheets are placed in the current
 directory. Another directory can be specified using the XSLT_DIR
@@ -43,4 +48,12 @@ common NETCONF elements and attributes from the library schema
 current directory. Another directory can be specified using the
 RNG_LIBDIR environment variable.
 
--- Lada Lhotka, 28.2.2009
+Sometimes it is useful to pass options to xsltproc, for example "-v"
+or "--debug". This can be achieved by setting the XSLT_OPTS
+environment variable, e.g., like this:
+
+$ XSLT_OPTS="-v" ./yang2schema ...
+
+[1] http://xmlsoft.org/XSLT/
+
+-- Lada Lhotka, 4.3.2009
