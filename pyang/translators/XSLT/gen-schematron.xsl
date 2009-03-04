@@ -19,9 +19,9 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 <!DOCTYPE xsl:stylesheet [
-<!ENTITY nma-annot "nma:must|@nma:key">
+<!ENTITY nma-annot "nma:must|@nma:key|@nma:unique">
 <!ENTITY all-todo "descendant::rng:ref|
-descendant::rng:element[nma:must or @nma:key]">
+descendant::rng:element[nma:must or @nma:key or @nma:unique]">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -226,7 +226,7 @@ descendant::rng:element[nma:must or @nma:key]">
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="@nma:key">
+  <xsl:template match="@nma:unique">
     <xsl:call-template name="list-unique">
       <xsl:with-param
 	  name="message">Violated uniqueness for list</xsl:with-param>
@@ -234,13 +234,14 @@ descendant::rng:element[nma:must or @nma:key]">
   </xsl:template>
 
   <xsl:template name="list-unique">
+    <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
 	<xsl:call-template name="check-dup-expr">
 	  <xsl:with-param name="nodelist" select="."/>
 	</xsl:call-template>
       </xsl:attribute>
-      <xsl:value-of select="concat('Duplicate key of list ',../@name)"/>
+      <xsl:value-of select="concat($message, ' ',../@name)"/>
     </xsl:element>
   </xsl:template>
 
