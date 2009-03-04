@@ -21,25 +21,23 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
-                xmlns:nmt="urn:ietf:params:xml:ns:netmod:conceptual-tree:1"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-                xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
-                xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
                 version="1.0">
 
   <xsl:include href="gen-common.xsl"/>
 
-  <xsl:template name="force-namespaces">
-    <!-- Ugly hack to get the namespaces delared in the schema -->
-    <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='getconf-reply'
-		      or $target='rpc'">
-        <xsl:attribute name="nc:used">true</xsl:attribute>
+  <xsl:template name="ns-attribute">
+    <xsl:attribute name="ns">
+      <xsl:choose>
+	<xsl:when test="$target='get-reply' or $target='getconf-reply'
+			or $target='rpc'">
+        <xsl:text>urn:ietf:params:xml:ns:netconf:base:1.0</xsl:text>
       </xsl:when>
       <xsl:when test="$target='notif'">
-        <xsl:attribute name="en:used">true</xsl:attribute>
+        <xsl:text>urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:text>
       </xsl:when>
     </xsl:choose>
+    </xsl:attribute>
   </xsl:template>
 
   <xsl:template match="/">
@@ -50,6 +48,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:grammar">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
+      <xsl:call-template name="ns-attribute"/>
       <xsl:element name="rng:include">
         <xsl:attribute name="href">
           <xsl:value-of select="$rng-lib"/>
@@ -61,16 +60,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:start">
     <xsl:copy>
-      <xsl:call-template name="force-namespaces"/>
       <!-- The netmod-tree template is in gen-common.xsl -->
       <xsl:apply-templates select="rng:element[@name='nmt:netmod-tree']"/>
     </xsl:copy>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:top']">
-    <rng:element name="nc:rpc-reply">
+    <rng:element name="rpc-reply">
       <rng:ref name="message-id-attribute"/>
-      <rng:element name="nc:data">
+      <rng:element name="data">
         <xsl:apply-templates/>
       </rng:element>
     </rng:element>
@@ -79,14 +77,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element[@name='nmt:rpc-method']">
     <xsl:choose>
       <xsl:when test="$dir='input'">
-        <rng:element name="nc:rpc">
+        <rng:element name="rpc">
           <rng:ref name="message-id-attribute"/>
           <xsl:apply-templates
               select="rng:element[@name='nmt:input']/*"/>
         </rng:element>
       </xsl:when>
       <xsl:otherwise>
-        <rng:element name="nc:rpc-reply">
+        <rng:element name="rpc-reply">
           <rng:ref name="message-id-attribute"/>
           <xsl:choose>
             <xsl:when test="rng:element[@name='nmt:output']">
@@ -104,7 +102,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
   <xsl:template match="rng:element[@name='nmt:notification']">
-    <rng:element name="en:notification">
+    <rng:element name="notification">
       <rng:ref name="eventTime-element"/>
       <xsl:apply-templates/>
     </rng:element>
