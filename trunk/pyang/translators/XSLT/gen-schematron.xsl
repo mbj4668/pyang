@@ -19,9 +19,10 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 <!DOCTYPE xsl:stylesheet [
-<!ENTITY nma-annot "nma:must|@nma:key|@nma:unique|@nma:max-elements">
+<!ENTITY nma-annot
+"nma:must|@nma:key|@nma:unique|@nma:max-elements|@nma:when">
 <!ENTITY all-todo "descendant::rng:ref|descendant::rng:element
-[nma:must or @nma:key or @nma:unique or @nma:max-elements]">
+[nma:must or @nma:key or @nma:unique or @nma:max-elements or @nma:when]">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -45,6 +46,20 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       name="nma-uri">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
   <xsl:param name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
   <xsl:param name="en-uri">urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:param>
+
+  <xsl:template name="assert-element">
+    <xsl:param name="test"/>
+    <xsl:param name="message">
+      <xsl:value-of
+	  select="concat('Condition &quot;', $test, '&quot; must be true')"/>
+    </xsl:param>
+    <xsl:element name="sch:assert">
+      <xsl:attribute name="test">
+	<xsl:value-of select="$test"/>
+      </xsl:attribute>
+      <xsl:value-of select="$message"/>
+    </xsl:element>
+  </xsl:template>
 
   <xsl:template name="netconf-part">
     <xsl:choose>
@@ -203,19 +218,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="nma:must">
-    <xsl:element name="sch:assert">
-      <xsl:attribute name="test">
-        <xsl:value-of select="@assert"/>
-      </xsl:attribute>
-      <xsl:choose>
-        <xsl:when test="nma:error-message">
-          <xsl:value-of select="nma:error-message"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="concat('Failed assert: ', @assert)"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:element>
+    <xsl:choose>
+      <xsl:when test="nma:error-message">
+	<xsl:call-template name="assert-element">
+	  <xsl:with-param name="test" select="@assert"/>
+	  <xsl:with-param name="message" select="nma:error-message"/>
+	</xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="assert-element">
+	  <xsl:with-param name="test" select="@assert"/>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="@nma:key">
@@ -248,25 +263,39 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@nma:max-elements">
-    <xsl:element name="sch:assert">
-      <xsl:attribute name="test">
-	<xsl:value-of select="concat('count(../',../@name,
-			      ')&lt;=',.)"/>
-      </xsl:attribute>
-      <xsl:value-of select="concat('List ',../@name,
-			    '- item count must be at most ',.)"/>
-    </xsl:element>
+    <xsl:call-template name="assert-element">
+      <xsl:with-param
+	  name="test"
+	  select="concat('count(../',../@name,')&lt;=',.)"/>
+      <xsl:with-param
+	  name="message"
+	  select="concat('List &quot;',../@name,
+		  '&quot; - item count must be at most ',.)"/>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:min-elements">
-    <xsl:element name="sch:assert">
-      <xsl:attribute name="test">
-	<xsl:value-of select="concat('count(../',../@name,
-			      ')&gt;=',.)"/>
-      </xsl:attribute>
-      <xsl:value-of select="concat('List ',../@name,
-			    '- item count must be at least ',.)"/>
-    </xsl:element>
+    <xsl:call-template name="assert-element">
+      <xsl:with-param
+	  name="test"
+	  select="concat('count(../',../@name,')&gt;=',.)"/>
+      <xsl:with-param
+	  name="message"
+	  select="concat('List &quot;',../@name,
+		  '&quot; - item count must be at least ',.)"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="@nma:when">
+    <xsl:call-template name="assert-element">
+      <xsl:with-param
+	  name="test"
+	  select="concat('(',.,') or not(..)')"/>
+      <xsl:with-param
+	  name="message"
+	  select="concat('Node &quot;',../@name,
+		  '&quot; requires &quot;',.,'&quot;')"/>
+    </xsl:call-template>
   </xsl:template>
 
 </xsl:stylesheet>

@@ -8,7 +8,6 @@ name="_NO_NAME_"
 
 xslt_dir=${XSLT_DIR:-.}
 rng_lib=${RNG_LIBDIR:-.}/relaxng-lib.rng
-sch_lib=${SCH_LIBDIR:-.}/schematron-lib.rng
 
 usage() {
     cat <<EOF
