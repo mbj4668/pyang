@@ -18,6 +18,10 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
+<!DOCTYPE xsl:stylesheet [
+<!ENTITY elem-todo "descendant::rng:ref|
+descendant::rng:element[nma:must]">
+]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 		xmlns:rng="http://relaxng.org/ns/structure/1.0"
@@ -26,120 +30,163 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 		xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
 
-  <xsl:import href="gen-common.xsl"/>
+  <xsl:include href="gen-common.xsl"/>
 
   <!-- Namespace URIs -->
-  <xsl:param name="ns-rng">http://relaxng.org/ns/structure/1.0</xsl:param>
+  <xsl:param name="rng-uri">http://relaxng.org/ns/structure/1.0</xsl:param>
   <xsl:param
-      name="ns-nmt">urn:ietf:params:xml:ns:netmod:conceptual-tree:1</xsl:param>
+      name="nmt-uri">urn:ietf:params:xml:ns:netmod:conceptual-tree:1</xsl:param>
   <xsl:param
-      name="ns-dtdc">http://relaxng.org/ns/compatibility/annotations/1.0</xsl:param>
+      name="dtdc-uri">http://relaxng.org/ns/compatibility/annotations/1.0</xsl:param>
   
-  <xsl:param name="ns-dc">http://purl.org/dc/terms</xsl:param>
+  <xsl:param name="dc-uri">http://purl.org/dc/terms</xsl:param>
   <xsl:param
-      name="ns-nma">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
-  <xsl:param name="ns-nc">"urn:ietf:params:xml:ns:netconf:base:1.0"</xsl:param>
-  <xsl:param name="nc-en">"urn:ietf:params:xml:ns:netconf:notification:1.0"</xsl:param>
+      name="nma-uri">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
+  <xsl:param name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
+  <xsl:param name="en-uri">urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:param>
 
-  <xsl:template name="elem-path">
-    <xsl:param name="tail"/>
-    <xsl:variable name="anc"
-		  select="ancestor::rng:define"/>
+  <xsl:template name="netconf-part">
+    <xsl:choose>
+      <xsl:when
+	  test="$target='get-reply' or
+		$target='getconf-reply'">/nc:rpc-reply/nc:data</xsl:when>
+      <xsl:when test="$target='rpc'">/nc:rpc</xsl:when>
+      <xsl:when test="$target='notif'">/en:notification</xsl:when>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="nc-namespace">
+    <xsl:choose>
+      <xsl:when test="$target='get-reply' or $target='getconf-reply'
+		      or $target='rpc'">
+	  <sch:ns uri="{$nc-uri}" prefix="nc"/>
+      </xsl:when>
+      <xsl:when test="$target='notif'">
+	  <sch:ns uri="{$en-uri}" prefix="en"/>
+      </xsl:when>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="append-path">
+    <!-- Concat $start and XPath of the context element in the data tree -->
+    <xsl:param name="start">
+      <xsl:call-template name="netconf-part"/>
+    </xsl:param>
+    <xsl:value-of select="$start"/>
+    <xsl:for-each select="ancestor-or-self::rng:element
+			  [not(starts-with(@name,'nmt:'))]">
+      <xsl:value-of select="concat('/',@name)"/>
+    </xsl:for-each>
   </xsl:template>
 
   <xsl:template name="yam-namespaces">
-    <!-- Make <ns> elements for all YANG module namespaces -->
-    <xsl:for-each select="namespace::*[not(name()='xml' or .=$ns-rng or
-			  .=$ns-nmt or .=$ns-dtdc or .=$ns-dc or .=$ns-nma)]">
-      <xsl:element name="sch:ns">
-	<xsl:attribute name="uri">
-	  <xsl:value-of select="."/>
-	</xsl:attribute>
-	<xsl:attribute name="prefix">
-	  <xsl:value-of select="name()"/>
-	</xsl:attribute>
-      </xsl:element>
+    <!-- Make <ns> elements for all YANG module namespaces by
+	 excluding others declared in the input schema -->
+    <xsl:for-each
+	select="namespace::*[not(name()='xml' or .=$rng-uri or
+		.=$nmt-uri or .=$dtdc-uri or .=$dc-uri or
+		.=$nma-uri)]">
+      <sch:ns uri="{.}" prefix="{name()}"/>
     </xsl:for-each>
   </xsl:template>
 
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="sch:schema">
-      <xsl:call-template name="yam-namespaces"/>
+      <xsl:apply-templates select="rng:grammar"/>
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:element[@name='nmt:netmod-tree']">
-    <xsl:choose>
-      <xsl:when test="$target='get-reply'">
-	<xsl:apply-templates select="rng:element[@name='nmt:top']"/>
-      </xsl:when>
-      <xsl:when test="$target='rpc'">
-	<xsl:apply-templates
-	    select="rng:element[@name='nmt:rpc-methods']/
-		    rng:element[rng:attribute/rng:value=$name]"/>
-      </xsl:when>
-      <xsl:when test="$target='notif'">
-	<xsl:apply-templates
-	    select="rng:element[@name='nmt:notifications']/
-		    rng:element[rng:attribute/rng:value=$name]"/>
-      </xsl:when>
-    </xsl:choose>
+  <xsl:template match="rng:grammar">
+    <xsl:call-template name="yam-namespaces"/>
+    <xsl:call-template name="nc-namespace"/>
+    <xsl:element name="sch:pattern">
+      <xsl:apply-templates mode="abstract"
+			   select="rng:define//rng:element[nma:must]"/>
+      <!-- Template below is in gen-common.xsl -->
+      <xsl:apply-templates
+	  select="rng:start/rng:element[@name='nmt:netmod-tree']"/>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:top']">
-    <xsl:apply-templates/>
+    <xsl:apply-templates
+	select="&elem-todo;"/>
   </xsl:template>
 
-  <xsl:template match="rng:element[@name='nmt:rpc-method']">
-    <xsl:apply-templates/>
-  </xsl:template>
-
-  <xsl:template match="rng:element[@name='nmt:notification']">
-    <xsl:apply-templates/>
+  <xsl:template match="rng:element" mode="abstract">
+    <xsl:element name="sch:rule">
+      <xsl:attribute name="id">
+	<xsl:value-of select="generate-id()"/>
+      </xsl:attribute>
+      <xsl:attribute name="abstract">true</xsl:attribute>
+      <xsl:apply-templates select="nma:must"/>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:element">
-    <xsl:element name="element">
-      <xsl:attribute name="name">
-	<xsl:value-of select="@name"/>
+    <xsl:element name="sch:rule">
+      <xsl:attribute name="context">
+	<xsl:call-template name="append-path"/>
       </xsl:attribute>
-      <xsl:apply-templates/>
+      <xsl:apply-templates select="nma:must"/>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:ref">
-    <xsl:apply-templates select="//rng:define[@name=current()/@name]"/>
+    <xsl:apply-templates select="." mode="ref"/>
   </xsl:template>
 
-  <xsl:template match="rng:optional|rng:interleave|rng:choice|rng:define
-		       |rng:zeroOrMore|rng:oneOrMore|rng:group">
-    <xsl:apply-templates/>
+  <xsl:template match="rng:ref" mode="ref">
+    <xsl:param name="estart">
+      <xsl:call-template name="netconf-part"/>
+    </xsl:param>
+    <xsl:apply-templates select="//rng:define[@name=current()/@name]">
+      <xsl:with-param name="dstart">
+	<xsl:call-template name="append-path">
+	  <xsl:with-param name="start" select="$estart"/>
+	</xsl:call-template>
+      </xsl:with-param>
+    </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:*"/>	        <!-- ignore the rest -->
+  <xsl:template match="rng:define">
+    <xsl:param name="dstart"/>
+    <xsl:apply-templates select="&elem-todo;" mode="ref">
+      <xsl:with-param name="estart" select="$dstart"/>
+    </xsl:apply-templates>
+  </xsl:template>
 
-  <xsl:template match="rng:define" mode="path">
-    <xsl:variable name="name" select="@name"/>
-    <xsl:variable name="refs" select="//rng:ref[@name=$name]"/>
-    <xsl:choose>
-      <xsl:when test="not($refs)">
-	<xsl:value-of select="$name"/>
-      </xsl:when>
-      <xsl:when test="count($refs)=1">
-	<xsl:apply-templates select="$refs" mode="path"/>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:text>(</xsl:text>
-	<xsl:for-each select="$refs">
-	  <xsl:apply-templates select="." mode="path"/>
-	  <xsl:if test="position()!=last()">
-	    <xsl:text>|</xsl:text>
-	  </xsl:if>
-	</xsl:for-each>
-	<xsl:text>)</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
+  <xsl:template match="rng:element" mode="ref">
+    <xsl:param name="estart"/>
+    <xsl:element name="sch:rule">
+      <xsl:attribute name="context">
+	<xsl:call-template name="append-path">
+	  <xsl:with-param name="start" select="$estart"/>
+	</xsl:call-template>
+      </xsl:attribute>
+      <xsl:element name="sch:extends">
+	<xsl:attribute name="rule">
+	  <xsl:value-of select="generate-id()"/>
+	</xsl:attribute>
+      </xsl:element>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="nma:must">
+    <xsl:element name="sch:assert">
+      <xsl:attribute name="test">
+	<xsl:value-of select="@assert"/>
+      </xsl:attribute>
+      <xsl:choose>
+	<xsl:when test="nma:error-message">
+	  <xsl:value-of select="nma:error-message"/>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:value-of select="concat('Failed assert: ', @assert)"/>
+	</xsl:otherwise>
+      </xsl:choose>
+    </xsl:element>
   </xsl:template>
 
 </xsl:stylesheet>

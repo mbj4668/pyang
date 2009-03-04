@@ -8,6 +8,8 @@ name="_NO_NAME_"
 
 xslt_dir=${XSLT_DIR:-.}
 rng_lib=${RNG_LIBDIR:-.}/relaxng-lib.rng
+sch_lib=${SCH_LIBDIR:-.}/schematron-lib.rng
+
 usage() {
     cat <<EOF
 
@@ -20,19 +22,31 @@ Options:
   -s <schema>  Select the schema to generate (default "rng").
                [NOTE: Only "rng" is currently supported.]
   -t <target>  Specify the validation target (default "get-reply").
-               Must be one of "get-reply", "rpc" and "notif".
-               Option -n <name> is required for the latter two.
+               Must be one of "get-reply", "getconf-reply",
+               "rpc" and "notif". Option -n <name> is required
+               for the latter two.
   -n <name>    Specify the name of notification or RPC method.
                The name has to include the standard NS prefix.
   -i|-o        Specify RPC request (-i) or reply (-o) (default -i).
 EOF
 }
 
+gen_schema() {
+    pyang -f rng $yam | xsltproc $XSLT_OPTS $extra_pars \
+	--stringparam target $target --stringparam name $name \
+	--stringparam dir $dir $xslt_dir/$stylesheet -
+}
+
 gen_relaxng() {
-    pyang -f rng $yam | xsltproc --stringparam rng-lib $rng_lib \
-	--stringparam schema $schema --stringparam target $target \
-	--stringparam name $name --stringparam dir $dir \
-	$xslt_dir/gen-relaxng.xsl -
+    stylesheet="gen-relaxng.xsl"
+    extra_pars="--stringparam rng-lib $rng_lib"
+    gen_schema
+}
+
+gen_schematron() {
+    stylesheet="gen-schematron.xsl"
+    extrapars=""
+    gen_schema
 }
 
 while getopts ":hs:t:n:io" opt ; do
@@ -47,7 +61,8 @@ while getopts ":hs:t:n:io" opt ; do
 	t)
 	    target=$OPTARG
 	    if [[ $target != "get-reply" && $target != "rpc" \
-		&& $target != "notif" ]] ; then
+		&& $target != "getconf-reply" && $target != "notif" ]]
+	    then
 		echo "Invalid argument for -t: $target."
 		exit 1
 	    fi
@@ -71,7 +86,7 @@ while getopts ":hs:t:n:io" opt ; do
     esac
 done
 shift $(($OPTIND-1))
-yam=$1
+yam=$*
 if [[ ($target == "rpc" || $target == "notif") && $name == "_NO_NAME_" ]]
 then
     echo "Requires $target name (option -n)." >&2
@@ -90,6 +105,9 @@ fi
 case $schema in
     rng)
 	gen_relaxng
+	;;
+    sch)
+	gen_schematron
 	;;
     *)
 	echo "Invalid argument for -s: $schema."
