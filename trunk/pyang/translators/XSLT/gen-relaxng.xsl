@@ -27,12 +27,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
                 version="1.0">
 
-  <xsl:import href="gen-common.xsl"/>
+  <xsl:include href="gen-common.xsl"/>
 
   <xsl:template name="force-namespaces">
     <!-- Ugly hack to get the namespaces delared in the schema -->
     <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='rpc'">
+      <xsl:when test="$target='get-reply' or $target='getconf-reply'
+		      or $target='rpc'">
         <xsl:attribute name="nc:used">true</xsl:attribute>
       </xsl:when>
       <xsl:when test="$target='notif'">
@@ -61,24 +62,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:start">
     <xsl:copy>
       <xsl:call-template name="force-namespaces"/>
+      <!-- The netmod-tree template is in gen-common.xsl -->
       <xsl:apply-templates select="rng:element[@name='nmt:netmod-tree']"/>
     </xsl:copy>
-  </xsl:template>
-
-  <xsl:template match="rng:element[@name='nmt:netmod-tree']">
-    <xsl:choose>
-      <xsl:when test="$target='get-reply'">
-        <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
-      </xsl:when>
-      <xsl:when test="$target='rpc'">
-        <xsl:apply-templates select="key('rpc',$name)"/>
-      </xsl:when>
-      <xsl:when test="$target='notif'">
-          <xsl:apply-templates
-              select="rng:element[@name='nmt:notifications']/
-                      rng:element[rng:element/@name=$name]"/>
-      </xsl:when>
-    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:top']">
@@ -124,7 +110,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </rng:element>
   </xsl:template>
 
-  <xsl:template match="@nma:*"/>
+  <xsl:template match="@nma:*|nma:*"/>
 
   <xsl:template match="@*">
     <xsl:copy/>
@@ -132,7 +118,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:*">
     <xsl:copy>
-      <xsl:apply-templates select="*|@*|text()"/>
+      <xsl:apply-templates select="@*"/>
+      <xsl:choose>
+	<xsl:when test="$target='getconf-reply'
+			and @nma:config='false'">
+	  <xsl:element name="rng:notAllowed"/>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:apply-templates select="*|text()"/>
+	</xsl:otherwise>
+      </xsl:choose>
     </xsl:copy>
   </xsl:template> 
 

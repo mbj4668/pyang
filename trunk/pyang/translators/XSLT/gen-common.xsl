@@ -3,6 +3,8 @@
 <!-- Common templates for schema-generating stylesheets. -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:rng="http://relaxng.org/ns/structure/1.0"
+                xmlns:nmt="urn:ietf:params:xml:ns:netmod:conceptual-tree:1"
                 version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
@@ -12,7 +14,8 @@
            use="rng:element[@name='nmt:input']/rng:element/@name"/>
 
   <!-- Command line parameters -->
-  <!-- Validation target: one of "get-reply", "rpc", "notif" -->
+  <!-- Validation target: one of "get-reply", "getconf-reply",
+       "rpc", "notif" -->
   <xsl:param name="target">get-reply</xsl:param>
   <!-- RPC or notification name (including standard NS prefix) -->
   <xsl:param name="name"/>
@@ -23,7 +26,7 @@
 
   <xsl:template name="check-input-pars">
     <xsl:if test="not($target='get-reply' or $target='rpc'
-                  or $target='notif')">
+                  or $target='getconf-reply' or $target='notif')">
       <xsl:message terminate="yes">
         <xsl:text>Bad 'target' parameter: </xsl:text>
         <xsl:value-of select="$target"/>
@@ -60,5 +63,22 @@
       </xsl:if>
     </xsl:if>
   </xsl:template>
+
+  <xsl:template match="rng:element[@name='nmt:netmod-tree']">
+    <xsl:choose>
+      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
+        <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
+      </xsl:when>
+      <xsl:when test="$target='rpc'">
+        <xsl:apply-templates select="key('rpc',$name)"/>
+      </xsl:when>
+      <xsl:when test="$target='notif'">
+          <xsl:apply-templates
+              select="rng:element[@name='nmt:notifications']/
+                      rng:element[rng:element/@name=$name]"/>
+      </xsl:when>
+    </xsl:choose>
+  </xsl:template>
+
 </xsl:stylesheet>
 
