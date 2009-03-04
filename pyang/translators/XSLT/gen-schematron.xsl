@@ -19,9 +19,9 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 <!DOCTYPE xsl:stylesheet [
-<!ENTITY nma-annot "nma:must|@nma:key|@nma:unique">
-<!ENTITY all-todo "descendant::rng:ref|
-descendant::rng:element[nma:must or @nma:key or @nma:unique]">
+<!ENTITY nma-annot "nma:must|@nma:key|@nma:unique|@nma:max-elements">
+<!ENTITY all-todo "descendant::rng:ref|descendant::rng:element
+[nma:must or @nma:key or @nma:unique or @nma:max-elements]">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -93,8 +93,7 @@ descendant::rng:element[nma:must or @nma:key or @nma:unique]">
 
   <xsl:template name="uniq-expr-comp">
     <xsl:param name="key"/>
-    <xsl:value-of
-	select="concat($key,'=preceding-sibling::',../@name,'/',$key)"/>
+    <xsl:value-of select="concat($key,'=current()/',$key)"/>
   </xsl:template>
 
   <xsl:template name="check-dup-expr">
@@ -237,11 +236,36 @@ descendant::rng:element[nma:must or @nma:key or @nma:unique]">
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
+	<xsl:value-of
+	    select="concat('preceding-sibling::',../@name,'[')"/>
 	<xsl:call-template name="check-dup-expr">
 	  <xsl:with-param name="nodelist" select="."/>
 	</xsl:call-template>
+	<xsl:text>]</xsl:text>
       </xsl:attribute>
       <xsl:value-of select="concat($message, ' ',../@name)"/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="@nma:max-elements">
+    <xsl:element name="sch:assert">
+      <xsl:attribute name="test">
+	<xsl:value-of select="concat('count(../',../@name,
+			      ')&lt;=',.)"/>
+      </xsl:attribute>
+      <xsl:value-of select="concat('List ',../@name,
+			    '- item count must be at most ',.)"/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="@nma:min-elements">
+    <xsl:element name="sch:assert">
+      <xsl:attribute name="test">
+	<xsl:value-of select="concat('count(../',../@name,
+			      ')&gt;=',.)"/>
+      </xsl:attribute>
+      <xsl:value-of select="concat('List ',../@name,
+			    '- item count must be at least ',.)"/>
     </xsl:element>
   </xsl:template>
 
