@@ -151,7 +151,17 @@ class Patch(object):
         add = [n for n in patch.slist if n.keyword not in kws]
         self.slist.extend(add)
 
-    def search(self, keyword, arg=None):
+    def decide_mandatory(self, previous):
+        """Return the net result for mandatory.
+
+        Argument `previous` carries the property from main context.
+        """
+        for st in self.slist:
+            if st.keyword == "mandatory":
+                return st.arg == "true"
+        return previous
+
+    def has(self, keyword, arg=None):
         """Does `self.slist` contain stmt with `keyword` (and `arg`)?"""
         for st in self.slist:
             if st.keyword == keyword:
@@ -531,8 +541,12 @@ class RNGTranslator(object):
                 elem.text = str(len_[1])
         for p in pat_els: p_elem.append(p)
 
-    def _is_mandatory(self, stmt):
-        """Return boolean saying whether `stmt` is mandatory."""
+    def is_mandatory(self, stmt):
+        """Is `stmt` is mandatory?
+
+        This test is done without the outer context, so additional
+        checks may be necessary, e.g., whether a leaf is a list key.
+        """
         if stmt.keyword == "leaf":
             return stmt.search_one("mandatory", "true") is not None
         elif stmt.keyword in ("list", "leaf-list"):
@@ -543,11 +557,18 @@ class RNGTranslator(object):
                 return False
         elif stmt.keyword == "uses":
             stmt = stmt.i_grouping
+        elif stmt.keyword == "choice":
+            return stmt.search_one("mandatory", "true") is not None
         else:
             return False
         for sub in stmt.substmts:
-            if self._is_mandatory(sub): return True
+            if self.is_mandatory(sub): return True
         return False
+
+    def mandatory_short_case(self, stmt):
+        """Is `stmt` a mandatory short case in a choice?"""
+        return (stmt.parent.keyword == "choice" and
+                stmt.parent.search_one("mandatory", "true"))
 
     def _min_max(self, slist):
         """Return value pair (min-elements, max-elements).
@@ -653,11 +674,12 @@ class RNGTranslator(object):
             self.grammar_elem.append(def_)
             self.has_anyxml = True
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
-        is_opt = stmt.search_one("mandatory", "true") is None
+        is_mand = stmt.search_one("mandatory", "true")
         for p in pset.pop(stmt.arg, []):
-            if p.search("mandatory", "true"): is_opt = False
+            is_mand = p.decide_mandatory(is_mand)
             for st in p.slist: self.handle_stmt(st, elem)
-        if is_opt: p_elem = ET.SubElement(p_elem, "optional")
+        if not (is_mand or self.mandatory_short_case(stmt)):
+            p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
         self.handle_substmts(stmt, elem)
@@ -686,7 +708,7 @@ class RNGTranslator(object):
 
     def choice_stmt(self, stmt, p_elem, pset):
         elem = ET.Element("choice")
-        is_opt = stmt.search_one("mandatory", "true") is None
+        is_mand = stmt.search_one("mandatory", "true")
         new_pset = {}
         todo = []
         for p in pset.pop(stmt.arg, []):
@@ -696,8 +718,8 @@ class RNGTranslator(object):
                     for p in new_pset[cid]: p.pop()
             else:
                 todo = p.slist
-                if p.search("mandatory", "true"): is_opt = False
-        if is_opt: p_elem = ET.SubElement(p_elem, "optional")
+                is_mand = p.decide_mandatory(is_mand)
+        if not is_mand: p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
         for st in todo: self.handle_stmt(st, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
@@ -705,7 +727,7 @@ class RNGTranslator(object):
     def container_stmt(self, stmt, p_elem, pset):
         p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
-        is_opt = not self._is_mandatory(stmt)
+        is_opt = not self.is_mandatory(stmt)
         new_pset = {}
         todo = []
         for p in pset.pop(stmt.arg, []):
@@ -713,8 +735,9 @@ class RNGTranslator(object):
                 self._sift_pset(new_pset, p)
             else:
                 todo = p.slist
-                if p.search("presence"): is_opt = True
-        if is_opt: p_elem = ET.SubElement(p_elem, "optional")
+                is_opt = is_opt or p.has("presence")
+        if is_opt and not self.mandatory_short_case(stmt):
+            p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
         for st in todo: self.handle_stmt(st, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
@@ -741,12 +764,13 @@ class RNGTranslator(object):
     def leaf_stmt(self, stmt, p_elem, pset):
         p_elem = self._check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
-        is_opt = (stmt.search_one("mandatory", "true") is None and
-                  stmt.arg not in p_elem.attrib.get("nma:key",[]))
+        is_mand = stmt.search_one("mandatory", "true")
         for p in pset.pop(stmt.arg, []):
-            if p.search("mandatory", "true"): is_opt = False
+            is_mand = p.decide_mandatory(is_mand)
             for st in p.slist: self.handle_stmt(st, elem)
-        if is_opt: p_elem = ET.SubElement(p_elem, "optional")
+        if not (is_mand or self.mandatory_short_case(stmt) or
+                stmt.arg in p_elem.attrib.get("nma:key",[])):
+            p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
         self.handle_substmts(stmt, elem)
 
@@ -760,7 +784,7 @@ class RNGTranslator(object):
             if mi >= 0: min_el = mi
             if ma >= 0: max_el = ma
             for st in p.slist: self.handle_stmt(st, elem)
-        if min_el <= 0:
+        if min_el <= 0 and not self.mandatory_short_case(stmt):
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
@@ -790,7 +814,7 @@ class RNGTranslator(object):
                 mi, ma = self._min_max(p.slist)
                 if mi >= 0: min_el = mi
                 if ma >= 0: max_el = ma
-        if min_el <= 0:
+        if min_el <= 0 and not self.mandatory_short_case(stmt):
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
