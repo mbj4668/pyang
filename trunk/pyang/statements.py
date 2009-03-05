@@ -372,6 +372,7 @@ def v_type_typedef(ctx, stmt):
     stmt.i_is_circular = False
     stmt.i_is_validated = 'in_progress'
     stmt.i_default = None
+    stmt.i_default_str = ""
     stmt.i_is_unused = True
 
     name = stmt.arg
@@ -412,6 +413,7 @@ def v_type_typedef(ctx, stmt):
         type.i_typedef.i_default is not None):
         # validate that the base type's default value is still valid
         stmt.i_default = type.i_typedef.i_default
+        stmt.i_default_str = type.i_typedef.i_default_str
         type.i_type_spec.validate(ctx.errors, stmt.pos,
                                   stmt.i_default,
                                   ' for the inherited default value ')
@@ -421,6 +423,7 @@ def v_type_typedef(ctx, stmt):
         stmt.i_default = type.i_type_spec.str_to_val(ctx.errors,
                                                      default.pos,
                                                      default.arg)
+        stmt.i_default_str = default.arg
         if stmt.i_default is not None:
             type.i_type_spec.validate(ctx.errors, default.pos,
                                       stmt.i_default,
@@ -583,6 +586,7 @@ def v_type_type(ctx, stmt):
         
 def v_type_leaf(ctx, stmt):
     stmt.i_default = None
+    stmt.i_default_str = ""
     if _v_type_common_leaf(ctx, stmt) == False:
         return
     # check if we have a default value
@@ -593,6 +597,7 @@ def v_type_leaf(ctx, stmt):
                                              default.pos,
                                              default.arg)
         stmt.i_default = defval
+        stmt.i_default_str = default.arg
         if defval is not None:
             type.i_type_spec.validate(ctx.errors, default.pos,
                                       defval, ' for the default value')
