@@ -14,7 +14,7 @@ a.yang:71: error: DUPLICATE_ENUM_NAME
 a.yang:83: error: DUPLICATE_BIT_POSITION
 a.yang:99: error: BAD_TYPE_IN_UNION
 a.yang:106: error: BAD_TYPE_IN_UNION
-a.yang:124: error: KEYREF_IDENTIFIER_NOT_FOUND
+a.yang:124: error: LEAFREF_IDENTIFIER_NOT_FOUND
 a.yang:134: error: DUPLICATE_CHILD_NAME
 a.yang:138: error: CIRCULAR_DEPENDENCY
 d.yang:31: error: DUPLICATE_CHILD_NAME
@@ -35,4 +35,4 @@ e.yang:82: error: BAD_NODE_IN_AUGMENT
 f.yang:11: error: NEED_KEY
 f.yang:25: error: INVALID_CONFIG
 f.yang:36: error: BAD_TYPE_IN_KEY
-f.yang:38: error: BAD_UNIQUE
+f.yang:38: error: BAD_UNIQUE_PART

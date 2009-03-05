@@ -39,7 +39,7 @@ rng: $(RNG_OBJECTS)
 xml: $(XML_OBJECTS)
 
 %.yang:	%.mib
-	$(SMIDUMP) -f yang  $< -o $@
+	$(SMIDUMP) -f yang  $< | sed s/keyref/leafref/g > $@
 #	$(SMIDUMP) -f yang --yang-smi-extensions $< -o $@
 
 %.yin:	%.yang
