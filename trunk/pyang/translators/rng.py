@@ -541,6 +541,16 @@ class RNGTranslator(object):
                 elem.text = str(len_[1])
         for p in pat_els: p_elem.append(p)
 
+    def insert_doc(self, p_elem, docstring):
+        """Add <a:documentation> with `docstring` to `p_elem`."""
+        elem = ET.Element("a:documentation")
+        elem.text = docstring
+        pos = 0
+        for ch in p_elem:
+            if ch.tag == "a:documentation": pos += 1
+        p_elem.insert(pos, elem)
+
+
     def is_mandatory(self, stmt):
         """Is `stmt` is mandatory?
 
@@ -747,9 +757,7 @@ class RNGTranslator(object):
         if ("a" in self.emit and
             stmt.i_module == self.module != stmt.parent and
             stmt.parent.keyword != "enum"):
-            elem = ET.Element("a:documentation")
-            p_elem.insert(0, elem)
-            elem.text = stmt.arg
+            self.insert_doc(p_elem, stmt.arg)
 
     def enum_stmt(self, stmt, p_elem, pset):
         elem = ET.SubElement(p_elem, "value")
@@ -853,9 +861,7 @@ class RNGTranslator(object):
         if ("a" in self.emit and
             stmt.i_module == self.module != stmt.parent and
             stmt.parent.keyword != "enum"):
-            elem = ET.Element("a:documentation")
-            p_elem.append(elem)
-            elem.text = "See: " + stmt.arg
+            self.insert_doc(p_elem, "See: " + stmt.arg)
 
     def rpc_stmt(self, stmt, p_elem, pset):
         rpcel = self.new_element(self.rpcs, "rpc-method", prefix="nmt")
