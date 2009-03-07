@@ -104,6 +104,8 @@
   <define name="body-stmts">
     <zeroOrMore>
       <choice>
+	<ref name="feature-stmt"/>
+	<ref name="identity-stmt"/>
 	<ref name="extension-stmt"/>
 	<ref name="typedef-stmt"/>
 	<ref name="grouping-stmt"/>
@@ -112,6 +114,49 @@
 	<ref name="notification-stmt"/>
       </choice>
     </zeroOrMore>
+  </define>
+
+  <define name="feature-stmt">
+    <element name="feature">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <zeroOrMore>
+	<ref name="if-feature-stmt"/>
+      </zeroOrMore>
+      <optional>
+	<ref name="status-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+      <ref name="reference-stmt"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="if-feature-stmt">
+    <element name="if-feature">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="identity-stmt">
+    <element name="identity">
+      <attribute name="name">
+	<ref name="identifier"/>
+      </attribute>
+      <ref name="base-stmt"/>
+    </element>
+  </define>
+
+  <define name="base-stmt">
+    <element name="base">
+      <ref name="identifier-ref"/>
+    </element>
   </define>
 
   <define name="data-def-stmt">
@@ -307,24 +352,44 @@
 
   <define name="type-stmt">
     <element name="type">
-      <attribute name="name">
-	<ref name="identifier-ref"/>
-      </attribute>
-      <optional>
-	<choice>
-	  <ref name="numerical-restrictions"/>
-	  <ref name="string-restrictions"/>
-	  <ref name="enum-specification"/>
-	  <ref name="keyref-specification"/>
-	  <ref name="bits-specification"/>
-	  <ref name="union-specification"/>
-	</choice>
-      </optional>
+      <choice>
+	<attribute name="name">
+	  <choice>
+	  <value>boolean</value>
+	  <value>empty</value>
+	  </choice>
+	</attribute>
+	<ref name="numeric-type"/>
+	<ref name="string-type"/>
+	<ref name="enumeration-type"/>
+	<ref name="bits-type"/>
+	<ref name="binary-type"/>
+	<ref name="leafref-type"/>
+	<ref name="identityref-type"/>
+	<ref name="union-type"/>
+	<ref name="instance-identifier-type"/>
+      </choice>
     </element>
   </define>
 
-  <define name="numerical-restrictions">
-    <ref name="range-stmt"/>
+  <define name="numeric-type">
+    <attribute name="name">
+      <choice>
+	<value>int8</value>
+	<value>int16</value>
+	<value>int32</value>
+	<value>int64</value>
+	<value>uint8</value>
+	<value>uint16</value>
+	<value>uint32</value>
+	<value>uint64</value>
+	<value>float32</value>
+	<value>float64</value>
+      </choice>
+    </attribute>
+    <optional>
+      <ref name="range-stmt"/>
+    </optional>
   </define>
 
   <define name="range-stmt">
@@ -349,7 +414,10 @@
     </element>
   </define>
 
-  <define name="string-restrictions">
+  <define name="string-type">
+    <attribute name="name">
+      <value>string</value>
+    </attribute>
     <interleave>
       <optional>
 	<ref name="length-stmt"/>
@@ -412,7 +480,10 @@
     </element>
   </define>
 
-  <define name="enum-specification">
+  <define name="enumeration-type">
+    <attribute name="name">
+      <value>enumeration</value>
+    </attribute>
     <oneOrMore>
       <ref name="enum-stmt"/>
     </oneOrMore>
@@ -440,21 +511,10 @@
     </element>
   </define>
 
-  <define name="keyref-specification">
-    <element name="path">
-      <attribute name="value">
-	<ref name="path-arg"/>
-      </attribute>
-    </element>
-  </define>
-
-  <define name="union-specification">
-    <oneOrMore>
-      <ref name="type-stmt"/>
-    </oneOrMore>
-  </define>
-
-  <define name="bits-specification">
+  <define name="bits-type">
+    <attribute name="name">
+      <value>bits</value>
+    </attribute>
     <oneOrMore>
       <ref name="bit-stmt"/>
     </oneOrMore>
@@ -488,6 +548,62 @@
 	<data type="nonNegativeInteger"/>
       </attribute>
     </element>
+  </define>
+
+  <define name="binary-type">
+    <attribute name="name">
+      <value>binary</value>
+    </attribute>
+    <optional>
+      <ref name="length-stmt"/>
+    </optional>
+  </define>
+
+  <define name="leafref-type">
+    <attribute name="name">
+      <value>leafref</value>
+    </attribute>
+    <interleave>
+      <element name="path">
+	<attribute name="value">
+	  <ref name="path-arg"/>
+	</attribute>
+      </element>
+      <optional>
+	<ref name="require-instance-element"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="require-instance-element">
+    <element name="require-instance">
+      <data type="boolean"/>
+    </element>
+  </define>
+
+  <define name="identityref-type">
+    <attribute name="name">
+      <value>leafref</value>
+    </attribute>
+    <ref name="base-stmt"/>
+  </define>
+
+  <define name="union-specification">
+    <attribute name="name">
+      <value>union</value>
+    </attribute>
+    <oneOrMore>
+      <ref name="type-stmt"/>
+    </oneOrMore>
+  </define>
+
+  <define name="instance-identifier-type">
+    <attribute name="name">
+      <value>instance-identifier</value>
+    </attribute>
+    <optional>
+      <ref name="require-instance"/>
+    </optional>
   </define>
 
   <define name="status-stmt">
@@ -646,6 +762,9 @@
 	  <ref name="when-stmt"/>
 	</optional>
 	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
+	<zeroOrMore>
 	  <ref name="must-stmt"/>
 	</zeroOrMore>
 	<optional>
@@ -683,6 +802,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<ref name="type-stmt"/>
 	<optional>
 	  <ref name="units-stmt"/>
@@ -721,6 +843,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<ref name="type-stmt"/>
 	<optional>
 	  <ref name="units-stmt"/>
@@ -762,6 +887,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<zeroOrMore>
 	  <ref name="must-stmt"/>
 	</zeroOrMore>
@@ -838,6 +966,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="default-stmt"/>
 	</optional>
@@ -885,6 +1016,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="status-stmt"/>
 	</optional>
@@ -910,6 +1044,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<zeroOrMore>
 	  <ref name="must-stmt"/>
 	</zeroOrMore>
@@ -941,6 +1078,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="status-stmt"/>
 	</optional>
@@ -1120,6 +1260,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="status-stmt"/>
 	</optional>
@@ -1150,6 +1293,9 @@
 	<optional>
 	  <ref name="when-stmt"/>
 	</optional>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="status-stmt"/>
 	</optional>
@@ -1183,6 +1329,9 @@
 	<ref name="identifier"/>
       </attribute>
       <interleave>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="status-stmt"/>
 	</optional>
@@ -1246,6 +1395,9 @@
 	<ref name="identifier"/>
       </attribute>
       <interleave>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
 	<optional>
 	  <ref name="status-stmt"/>
 	</optional>
