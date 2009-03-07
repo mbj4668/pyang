@@ -588,7 +588,7 @@
     <ref name="base-stmt"/>
   </define>
 
-  <define name="union-specification">
+  <define name="union-type">
     <attribute name="name">
       <value>union</value>
     </attribute>
@@ -602,7 +602,7 @@
       <value>instance-identifier</value>
     </attribute>
     <optional>
-      <ref name="require-instance"/>
+      <ref name="require-instance-element"/>
     </optional>
   </define>
 

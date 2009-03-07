@@ -60,9 +60,24 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:start">
     <xsl:copy>
-      <!-- The netmod-tree template is in gen-common.xsl -->
       <xsl:apply-templates select="rng:element[@name='nmt:netmod-tree']"/>
     </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="rng:element[@name='nmt:netmod-tree']">
+    <xsl:choose>
+      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
+        <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
+      </xsl:when>
+      <xsl:when test="$target='rpc'">
+        <xsl:apply-templates select="key('rpc',$name)"/>
+      </xsl:when>
+      <xsl:when test="$target='notif'">
+          <xsl:apply-templates
+              select="rng:element[@name='nmt:notifications']/
+                      rng:element[rng:element/@name=$name]"/>
+      </xsl:when>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:top']">
