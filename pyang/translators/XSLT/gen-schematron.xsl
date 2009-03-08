@@ -431,13 +431,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="nma:leafref">
     <xsl:call-template name="assert-element">
       <xsl:with-param name="test">
-	<xsl:text>@require-instance='false' and not(</xsl:text>
-	<xsl:value-of select="concat(.,') or ',.,'=..')"/>
+	<xsl:if test="@require-instance='false'">
+	  <xsl:value-of select="concat('not(',.,') or ')"/>
+	</xsl:if>
+	<xsl:value-of select="concat(.,'=..')"/>
       </xsl:with-param>
       <xsl:with-param
 	  name="message"
-	  select="concat('Leafref &quot;', name(..),
-		  '&quot; must have the same value as',.)"/>
+	  select="concat('Leafref &quot;',name(..),
+		  '&quot; must have the same value as &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
+
 </xsl:stylesheet>
