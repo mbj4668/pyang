@@ -434,12 +434,14 @@ class RNGTranslator(object):
     def _has_data_node(self, stmt):
         """Does `stmt` have any data nodes?"""
         maybe = []
-        for st in self.module.substmts:
+        for st in stmt.substmts:
             if st.keyword in ("leaf", "container", "leaf-list",
                               "list","rpc", "notification"):
                 return True
             if st.keyword in ["choice", "case"]:
-                choices.append(st)
+                maybe.append(st)
+            elif st.keyword == "uses":
+                maybe.append(st.i_grouping)
         for m in maybe:
             if self._has_data_node(m): return True
         return False
