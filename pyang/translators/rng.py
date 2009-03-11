@@ -26,14 +26,17 @@ new command-line options:
 --rng-no-dublin-core
     No output of Dublin Core annotations
 
---rng-no-netmod
-    No output of NETMOD-specific attributes
+--rng-record-defs
+    Record all top-level defs, even if they are not used
 
-Two classes are defined in this module:
+Three classes are defined in this module:
 
 * `RNGPlugin`: pyang plugin interface class
 
-* `RNGTranslator`: its instance preforms the translation
+* `RNGTranslator`: provides instance that preforms the mapping
+
+* `Patch`: utility class representing a patch to the YANG tree
+  where augment and refine statements are recorded
 """
 
 __docformat__ = "reStructuredText"
@@ -59,18 +62,15 @@ class RNGPlugin(plugin.PyangPlugin):
             optparse.make_option("--rng-no-documentation",
                                  dest="rng_no_documentation",
                                  action="store_true",
+                                 default=False,
                                  help="No output of DTD compatibility"
                                  " documentation annotations"),
             optparse.make_option("--rng-no-dublin-core",
                                  dest="rng_no_dublin_core",
                                  action="store_true",
+                                 default=False,
                                  help="No output of Dublin Core"
                                  " annotations"),
-            optparse.make_option("--rng-no-netmod",
-                                 dest="rng_no_netmod",
-                                 action="store_true",
-                                 help="No output of NETMOD-specific"
-                                 " attributes"),
             optparse.make_option("--rng-record-defs",
                                  dest="rng_record_defs",
                                  action="store_true",
@@ -97,14 +97,9 @@ def emit_rng(ctx, module, fd):
             error.is_error(error.err_level(etag))):
             print >> sys.stderr, "RELAX NG translation needs a valid module"
             sys.exit(1)
-    emit = []
-    if not ctx.opts.rng_no_dublin_core:
-        emit.append("dc")
-    if not ctx.opts.rng_no_documentation:
-        emit.append("a")
-    if not ctx.opts.rng_no_netmod:
-        emit.append("nma")
-    etree = RNGTranslator().translate((module,), emit,
+    etree = RNGTranslator().translate((module,),
+                                      ctx.opts.rng_no_dublin_core,
+                                      ctx.opts.rng_no_documentation,
                                       ctx.opts.rng_record_defs, debug=0)
     etree.write(fd, "UTF-8")
 
@@ -112,16 +107,21 @@ class Patch(object):
 
     """Instances of this class represent a patch to the YANG tree.
 
+    A Patch is filled with statements from 'refine' and/or 'augment'
+    that must be applied to a single node.
+
     Instance variables:
 
-    * `path`: list specifying the node where to apply the patch
+    * `path`: list specifying the relative path to the node where the
+      patch is to be applied
+
     * `slist`: list of statements to apply
     """
 
     def __init__(self, refaug, prefix=None):
         """Initialize the instance from `refaug` statement.
 
-        `refaug` must be refinement or augment statement.
+        `refaug` must be 'refine' or 'augment' statement.
         Also remove `prefix` from all path components.
         """
         self.path = []
@@ -154,7 +154,8 @@ class Patch(object):
     def decide_mandatory(self, previous):
         """Return the net result for mandatory.
 
-        Argument `previous` carries the property from main context.
+        Argument `previous` carries the status of mandatory property
+        from main context.
         """
         for st in self.slist:
             if st.keyword == "mandatory":
@@ -172,35 +173,53 @@ class RNGTranslator(object):
     """Instances of this class translate YANG to RELAX NG + annotations.
 
     The `translate` method walks recursively down the tree of YANG
-    statements and builds one or more resulting ElementTree(s)
-    containing the corresponding schemas. For each YANG statement, a
-    callback method for the statement's keyword is dispatched.
+    statements and builds resulting ElementTree(s) containing the
+    annotated RELAX NG schemas. For each YANG statement, a callback
+    method for the statement's keyword is dispatched.
 
     Instance variables:
     
+    * `confdata`: root element of the main schema subtree for
+      configuration data
+
     * `debug`: integer controlling level of debug messages
-    * `emit`: list of prefixes (keys in `schema_languages` dictionary)
-      controlling which annotations will be generated.
-    * `has_anyxml`: boolean indicating occurence of ``anyxml``
+
+    * `annots`: list of prefixes (keys in `schema_languages`
+      dictionary) controlling which annotations will be generated.
+
+    * `has_anyxml`: boolean indicating occurence of 'anyxml'
       statement (so that `anyxml_def` has to be inserted)
-    * `used_defs`: list of used typedefs and groupings whose
-      definition has already been imported
+
     * `module`: YANG module that is being translated
-    * `root_elem`: <grammar> ETree Element, which is the root of the
-      resulting RELAX NG ETree
+
+    * `mod_prefixes`: prefixes of modules that have already been
+      encountered and their namespace declared
+
+    * `grammar_elem`: <grammar> ETree Element, which is the root of
+      the resulting RELAX NG ETree
+
+    * `notifications`: root element of the schema subtree for
+      notifications
+
+    * `no_data`: boolean signalling that no data nodes have been
+      encountered and conceptual tree skeleton is not in place yet
+
+    * `prefix`: prefix of the current module
+
+    * `rpcs`: root element of the schema subtree for RPCs
+
     * `stmt_handler`: dictionary dispatching callback methods for
       handling YANG statements (keyword -> method)
+
     * `type_handler`: dictionary dispatching callback methods for
       YANG built-in types (type -> method)
 
-    Class variables are: `anyxml_def`, `datatree_nodes`, `datatype_map`,
-    `grammar_attrs`, `schema_languages`.
-
-    One static method is defined: `summarize_ranges`.
+    * `used_defs`: list of used typedefs and groupings whose
+      definition has already been imported
     """
 
     YANG_version = 1
-    """This is checked against the yang-version statement, if present."""
+    """Checked against the yang-version statement, if present."""
 
     grammar_attrs = {
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
@@ -234,25 +253,21 @@ class RNGTranslator(object):
     }
     """Mapping of simple datatypes from YANG to W3C datatype library"""
 
-    datatree_nodes = ["container", "leaf", "leaf-list", "list",
-                      "choice", "anyxml", "uses"]
-    """List of YANG statementes that form the data tree"""
-
     anyxml_def = ('<define name="__anyxml__"><zeroOrMore><choice>' +
                   '<attribute><anyName/></attribute>' +
                   '<element><anyName/><ref name="__anyxml__"/></element>' +
                   '<text/></choice></zeroOrMore></define>')
+    """This definition is inserted first time 'anyxml' is found ."""
 
     def __init__(self):
         """Initialize the statement and type dispatchers.
 
-        The same instance may be used for translating multiple YANG
-        modules since all instance variables are initialized by the
-        `translate` method.
+        The same instance may be used repeatedly since all specific
+        instance variables are initialized by the `translate` method.
 
         To change the behaviour of the translator, make a subclass and
-        replace appropriate callback methods in the `stmt_handler`
-        and/or `type_handler` dictionaries.
+        replace appropriate callback methods and/or change the
+        `stmt_handler` or `type_handler` dictionaries.
         """
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
@@ -328,19 +343,23 @@ class RNGTranslator(object):
             "union": self.choice_type,
         }
 
-    def translate(self, modules, emit=schema_languages.keys(),
+    def translate(self, modules, no_dc=False, no_a=False,
                   record_defs=False, debug=0):
         """Translate `modules` to RELAX NG schema with annotations.
 
-        The `emit` argument controls output of individual annotations
-        (by default, all are present). The `debug` argument controls
-        level of debug messages - 0 (default) supresses them.  
+        Return value: ElementTree with the resulting schema. If
+        `no_dc`/`no_a` is true, Dublin Core/documentation
+        annotations are omitted. Argument `record_defs` controls
+        whether unused groupings and typedefs from the top level of
+        `modules` are mapped to the output schema.
         """
-        self.emit = emit
+        self.annots = ["nma"]
+        if not no_dc: self.annots.append("dc")
+        if not no_a: self.annots.append("a")
         self.debug = debug
         self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
-        for prefix in self.emit: # used namespaces
-            self._declare_ns(prefix, self.schema_languages[prefix])
+        for prefix in self.annots: # used namespaces
+            self.declare_ns(prefix, self.schema_languages[prefix])
         self.no_data = True
         self.has_anyxml = False
         self.used_defs = []
@@ -350,19 +369,19 @@ class RNGTranslator(object):
             self.prefix = module.search_one("prefix").arg
             if self.prefix not in self.mod_prefixes:
                 self.mod_prefixes.append(self.prefix)
-                self._declare_ns(self.prefix,
+                self.declare_ns(self.prefix,
                                  module.search_one("namespace").arg)
             src_text = "YANG module '%s'" % module.arg
             revs = module.search(keyword="revision")
             if len(revs) > 0:
-                src_text += " revision %s" % self._current_revision(revs)
+                src_text += " revision %s" % self.current_revision(revs)
             self.dc_element("source", src_text)
             if record_defs: self.preload_defs()
-            if self._has_data_node(module):
+            if self.has_data_node(module):
                 if self.no_data:
                     self.no_data = False
                     self.setup_conceptual_tree()
-                self.handle_substmts(module, self.data)
+                self.handle_substmts(module, self.confdata)
         self.handle_empty()
         self.dc_element("creator",
                         "Pyang %s, RELAX NG plugin" % pyang.__version__)
@@ -372,13 +391,13 @@ class RNGTranslator(object):
         """Preload all top-level definitions."""
         for d in (self.module.search(keyword="grouping") +
                   self.module.search(keyword="typedef")):
-            self._handle_ref(d)
+            self.handle_ref(d)
         
     def new_element(self, parent, name, prefix=None):
         """
-        Make <rng:element name="`prefix`:`name`"> under `parent`.
+        Create <rng:element name="`prefix`:`name`"> under `parent`.
 
-        Return the RNG element.
+        Return value: the new RNG element.
         """
         if prefix is None: prefix = self.prefix
         return ET.SubElement(parent, "element", name=prefix+":"+name)
@@ -396,7 +415,7 @@ class RNGTranslator(object):
         prefix = "nmt"
         tree = self.new_element(start, "netmod-tree", prefix)
         top = self.new_element(tree, "top", prefix)
-        self.data = ET.SubElement(top, "interleave")
+        self.confdata = ET.SubElement(top, "interleave")
         self.rpcs = self.new_element(tree, "rpc-methods", prefix)
         self.notifications = self.new_element(tree, "notifications",prefix)
 
@@ -407,13 +426,13 @@ class RNGTranslator(object):
         <empty/> as its content.
         """
         if self.no_data: return
-        for subtree in (self.data, self.rpcs, self.notifications):
+        for subtree in (self.confdata, self.rpcs, self.notifications):
             if len(subtree) == 0:
                 ET.SubElement(subtree, "empty")
 
     def dc_element(self, name, text):
         """Add DC element `name` containing `text` to <grammar>."""
-        if "dc" in self.emit:
+        if "dc" in self.annots:
             dcel = ET.Element("dc:" + name)
             dcel.text = text
             self.grammar_elem.insert(0,dcel)
@@ -431,7 +450,7 @@ class RNGTranslator(object):
             pref += mod.arg
         return pref + "__" + "__".join(stmt.full_path())
 
-    def _has_data_node(self, stmt):
+    def has_data_node(self, stmt):
         """Does `stmt` have any data nodes?"""
         maybe = []
         for st in stmt.substmts:
@@ -443,10 +462,10 @@ class RNGTranslator(object):
             elif st.keyword == "uses":
                 maybe.append(st.i_grouping)
         for m in maybe:
-            if self._has_data_node(m): return True
+            if self.has_data_node(m): return True
         return False
 
-    def _add_patch(self, pset, patch):
+    def add_patch(self, pset, patch):
         """Add `patch` to `pset`."""
         car = patch.pop()
         if car in pset:
@@ -458,7 +477,7 @@ class RNGTranslator(object):
         else:
             pset[car] = [patch]
 
-    def _sift_pset(self, pset, patch):
+    def sift_pset(self, pset, patch):
         """Prepare patch for the next level."""
         car = patch.pop()
         if car in pset:
@@ -467,29 +486,42 @@ class RNGTranslator(object):
             pset[car] = [patch]
         return car
 
-    def _current_revision(self, r_stmts):
+    def current_revision(self, r_stmts):
         """Pick the most recent revision date from `r_stmts`."""
         cur = max([[int(p) for p in r.arg.split("-")] for r in r_stmts])
         return "%4d-%02d-%02d" % tuple(cur)
 
-    def _summarize_ranges(self, ranges):
-        """Resolve 'min' and 'max' in a cascade of ranges."""
+    def summarize_ranges(self, ranges):
+        """Resolve 'min' and 'max' in a cascade of ranges.
+
+        Argument `ranges` is a list of lists of pairs.  Example: if we
+        have two consecutive restrictions '1..12' and 'min..3|7..max',
+        then the argument is [[[1, 12]], [['min', 3], [7, 'max']]]
+        and [[1,3], [7,12]] will be returned.
+        """
         if len(ranges) == 0: return []
-        min = 'min'
-        max = 'max'
+        min_ = 'min'
+        max_ = 'max'
         for r in ranges:
             if r[0][0] == "min":
-                r[0][0] = min
+                r[0][0] = min_
             else:
-                min = r[0][0]
+                min_ = r[0][0]
             if r[-1][1] == "max":
-                r[-1][1] = max
+                r[-1][1] = max_
             else:
-                max = r[-1][1]
+                max_ = r[-1][1]
         return ranges[-1]
 
-    def _numeric_type(self, y_type, ranges, p_elem):
-        """Create <data> element with numeric type under `p_elem`."""
+    def numeric_data(self, y_type, ranges, p_elem):
+        """Create <data> element with numeric type under `p_elem`.
+
+        Argument `y_type` is a YANG numeric type identifier and
+        `ranges` is a list of range restrictions. If `ranges` contains
+        more than one interval, multiple <data> elements have to be
+        combined in a <choice> where each <data> element specifies one
+        interval.
+        """
         r_type = self.datatype_map[y_type]
         if len(ranges) == 0:
             ET.SubElement(p_elem, "data", type=r_type)
@@ -498,10 +530,17 @@ class RNGTranslator(object):
             p_elem = ET.SubElement(p_elem, "choice")
         for r in ranges:
             d_elem = ET.SubElement(p_elem, "data", type=r_type)
-            self._numeric_restriction(r, d_elem)
+            self.numeric_restriction(r, d_elem)
 
-    def _string_type(self, lengths, patterns, p_elem):
-        """Create <data> element with string type under `p_elem`."""
+    def string_data(self, lengths, patterns, p_elem):
+        """Create <data> element with string type under `p_elem`.
+
+        Argument `lengths` is a list of range restrictions and
+        `patterns` list of regex patterns. If `lengths` contains more
+        than one interval, multiple <data> elements have to be
+        combined in a <choice> where each <data> element specifies
+        together one interval and all patterns.
+        """
         pat_els = []
         for rexp in patterns:
             pel = ET.Element("param", name="pattern")
@@ -515,10 +554,13 @@ class RNGTranslator(object):
             p_elem = ET.SubElement(p_elem, "choice")
         for l in lengths:
             d_elem = ET.SubElement(p_elem, "data", type="string")
-            self._string_restriction(l, pat_els, d_elem)
+            self.string_restriction(l, pat_els, d_elem)
 
-    def _numeric_restriction(self, range_, p_elem):
-        """Create numeric restriction(s) for `p_elem`."""
+    def numeric_restriction(self, range_, p_elem):
+        """Create numeric range restriction for `p_elem`.
+
+        Argument `range_` is a single range interval (pair).
+        """
         if range_[0] != "min":
             elem = ET.SubElement(p_elem, "param", name="minInclusive")
             elem.text = str(range_[0])
@@ -529,8 +571,12 @@ class RNGTranslator(object):
             else:
                 elem.text = str(range_[1])
 
-    def _string_restriction(self, len_, pat_els, p_elem):
-        """Create string restriction(s) for `p_elem`."""
+    def string_restriction(self, len_, pat_els, p_elem):
+        """Create string restriction(s) for `p_elem`.
+
+        Argument `len_` is a single length interval and `pat_els` is a
+        list of patterns that will be combined with the length facets.
+        """
         if len_[1] is None:
             elem = ET.SubElement(p_elem, "param", name="length")
             elem.text = str(len_[0])
@@ -558,6 +604,7 @@ class RNGTranslator(object):
 
         This test is done without the outer context, so additional
         checks may be necessary, e.g., whether a leaf is a list key.
+        This recursive function is used only for containers.
         """
         if stmt.keyword == "leaf":
             return stmt.search_one("mandatory", "true") is not None
@@ -582,11 +629,11 @@ class RNGTranslator(object):
         return (stmt.parent.keyword == "choice" and
                 stmt.parent.search_one("mandatory", "true"))
 
-    def _min_max(self, slist):
+    def min_max(self, slist):
         """Return value pair (min-elements, max-elements).
 
-        Value -1 signals absence of either restriction and -2 for
-        max-elements means 'unbounded'.
+        Value -1 signals absence of the corresponding restriction and
+        -2 for max-elements means 'unbounded'.
         """
         min_el = max_el = -1
         for st in slist:
@@ -600,7 +647,7 @@ class RNGTranslator(object):
             if min_el != -1 and max_el != -1: break
         return (min_el, max_el)
 
-    def _strip_local_prefix(self, stmt, qname):
+    def strip_local_prefix(self, stmt, qname):
         """Strip local prefix of `stmt` from `qname` and return the result."""
         pref, colon, name = qname.partition(":")
         if colon and pref == stmt.i_module.i_prefix:
@@ -608,18 +655,18 @@ class RNGTranslator(object):
         else:
             return qname
 
-    def _check_default_case(self, stmt, p_elem):
-        """Check whether `stmt` is the default case of choice."""
+    def check_default_case(self, stmt, p_elem):
+        """Check whether `stmt` is the default short case of a choice."""
         if ("nma:default" in p_elem.attrib and stmt.arg ==
-            self._strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
+            self.strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
             grp = ET.SubElement(p_elem, "group")
             grp.attrib["nma:default-case"] = "true"
             del p_elem.attrib["nma:default"]
             return grp
         return p_elem
 
-    def _handle_ref(self, dstmt):
-        """Install definition for if it's not there yet ."""
+    def handle_ref(self, dstmt):
+        """Install definition for `dstmt` if it's not there yet ."""
         uname = self.unique_def_name(dstmt)
         if uname not in self.used_defs:
             self.used_defs.append(uname)
@@ -627,10 +674,23 @@ class RNGTranslator(object):
             self.handle_substmts(dstmt, elem)
         return uname
 
-    def noop(self, stmt, p_elem, pset=''):
-        pass
+    def handle_extension(self, stmt, p_elem):
+        """Append YIN representation of an extension statement."""
+        ext = stmt.i_extension
+        prefix = stmt.raw_keyword[0]
+        if prefix not in self.mod_prefixes: # add NS declaration
+            self.mod_prefixes.append(prefix)
+            self.declare_ns(prefix, ext.i_module.search_one("namespace").arg)
+        eel = ET.SubElement(p_elem, ":".join(stmt.raw_keyword))
+        argst = ext.search_one("argument")
+        if argst:
+            if argst.search_one("yin-element", "true"):
+                ET.SubElement(eel, prefix + ":" + argst.arg).text = stmt.arg
+            else:
+                eel.attrib[argst.arg] = stmt.arg
+        self.handle_substmts(stmt, eel)
 
-    def _declare_ns(self, prefix, uri):
+    def declare_ns(self, prefix, uri):
         """Add namespace declaration to the grammar element."""
         self.grammar_elem.attrib["xmlns:" + prefix] = uri
 
@@ -640,8 +700,9 @@ class RNGTranslator(object):
 
         All handler methods are defined below and have the same
         arguments. They should create the schema fragment
-        corresponding to `stmt`, insert it under `p_elem` and perform
-        all side effects as necessary.
+        corresponding to `stmt`, apply all patches from `pset`
+        belonging to `stmt`, insert the fragment under `p_elem` and
+        perform all side effects as necessary.
         """
         if self.debug > 0:
             sys.stderr.write("Handling '%s %s'\n" %
@@ -660,26 +721,14 @@ class RNGTranslator(object):
         for sub in stmt.substmts:
             self.handle_stmt(sub, p_elem, pset)
 
-    def handle_extension(self, stmt, p_elem):
-        """Append YIN representation of an extension statement."""
-        ext = stmt.i_extension
-        prefix = stmt.raw_keyword[0]
-        if prefix not in self.mod_prefixes: # add NS declaration
-            self.mod_prefixes.append(prefix)
-            self._declare_ns(prefix, ext.i_module.search_one("namespace").arg)
-        eel = ET.SubElement(p_elem, ":".join(stmt.raw_keyword))
-        argst = ext.search_one("argument")
-        if argst:
-            if argst.search_one("yin-element", "true"):
-                ET.SubElement(eel, prefix + ":" + argst.arg).text = stmt.arg
-            else:
-                eel.attrib[argst.arg] = stmt.arg
-        self.handle_substmts(stmt, eel)
-
     # Handlers for YANG statements
 
+    def noop(self, stmt, p_elem, pset=''):
+        """`stmt` is not handled in the regular way."""
+        pass
+
     def anyxml_stmt(self, stmt, p_elem, pset):
-        p_elem = self._check_default_case(stmt, p_elem)
+        p_elem = self.check_default_case(stmt, p_elem)
         if not self.has_anyxml:
             # install definition
             def_ = ET.fromstring(self.anyxml_def)
@@ -699,20 +748,20 @@ class RNGTranslator(object):
     def nma_attribute(self, stmt, p_elem, pset=None):
         """Map `stmt` to NETMOD-specific attribute."""
         att = "nma:" + stmt.keyword
-        if "nma" in self.emit and att not in p_elem.attrib:
+        if att not in p_elem.attrib:
             p_elem.attrib[att] = stmt.arg
 
     def case_stmt(self, stmt, p_elem, pset):
         elem = ET.SubElement(p_elem, "group")
         if ("nma:default" in p_elem.attrib and stmt.arg ==
-            self._strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
+            self.strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
             elem.attrib["nma:default-case"] = "true"
             del p_elem.attrib["nma:default"]
         new_pset = {}
         todo = []
         for p in pset.pop(stmt.arg, []):
             if p.path:
-                self._sift_pset(new_pset, p)
+                self.sift_pset(new_pset, p)
             else:
                 todo = p.slist
         for st in todo: self.handle_stmt(st, elem, new_pset)
@@ -725,7 +774,7 @@ class RNGTranslator(object):
         todo = []
         for p in pset.pop(stmt.arg, []):
             if p.path:
-                cid = self._sift_pset(new_pset, p)
+                cid = self.sift_pset(new_pset, p)
                 if not stmt.search(keyword="case", arg=cid):
                     for p in new_pset[cid]: p.pop()
             else:
@@ -737,14 +786,14 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
-        p_elem = self._check_default_case(stmt, p_elem)
+        p_elem = self.check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         is_opt = not self.is_mandatory(stmt)
         new_pset = {}
         todo = []
         for p in pset.pop(stmt.arg, []):
             if p.path:
-                self._sift_pset(new_pset, p)
+                self.sift_pset(new_pset, p)
             else:
                 todo = p.slist
                 is_opt = is_opt or p.has("presence")
@@ -756,7 +805,7 @@ class RNGTranslator(object):
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
-        if ("a" in self.emit and
+        if ("a" in self.annots and
             stmt.i_module == self.module != stmt.parent and
             stmt.parent.keyword != "enum"):
             self.insert_doc(p_elem, stmt.arg)
@@ -772,7 +821,7 @@ class RNGTranslator(object):
         self.handle_substmts(subm, p_elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
-        p_elem = self._check_default_case(stmt, p_elem)
+        p_elem = self.check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         is_mand = stmt.search_one("mandatory", "true")
         for p in pset.pop(stmt.arg, []):
@@ -785,12 +834,12 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
-        p_elem = self._check_default_case(stmt, p_elem)
+        p_elem = self.check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
-        min_el, max_el = self._min_max(stmt.substmts)
+        min_el, max_el = self.min_max(stmt.substmts)
         new_pset = {}
         for p in pset.pop(stmt.arg, []):
-            mi, ma = self._min_max(p.slist)
+            mi, ma = self.min_max(p.slist)
             if mi >= 0: min_el = mi
             if ma >= 0: max_el = ma
             for st in p.slist: self.handle_stmt(st, elem)
@@ -807,21 +856,21 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem, new_pset)
 
     def list_stmt(self, stmt, p_elem, pset):
-        p_elem = self._check_default_case(stmt, p_elem)
+        p_elem = self.check_default_case(stmt, p_elem)
         elem = ET.Element("element", name=self.prefix+":"+stmt.arg)
         keyst = stmt.search_one("key")
         if keyst:               # also add local prefix
             elem.attrib['nma:key'] = ' '.join(
                 [self.prefix_desc_nodeid(k) for k in keyst.arg.split()])
-        min_el, max_el = self._min_max(stmt.substmts)
+        min_el, max_el = self.min_max(stmt.substmts)
         new_pset = {}
         todo = []
         for p in pset.pop(stmt.arg, []):
             if p.path:
-                self._sift_pset(new_pset, p)
+                self.sift_pset(new_pset, p)
             else:
                 todo = p.slist
-                mi, ma = self._min_max(p.slist)
+                mi, ma = self.min_max(p.slist)
                 if mi >= 0: min_el = mi
                 if ma >= 0: max_el = ma
         if min_el <= 0 and not self.mandatory_short_case(stmt):
@@ -838,7 +887,6 @@ class RNGTranslator(object):
         self.handle_substmts(stmt, elem, new_pset)
 
     def must_stmt(self, stmt, p_elem, pset):
-        if "nma" not in self.emit: return
         mel = ET.SubElement(p_elem, "nma:must")
         mel.attrib["assert"] = stmt.arg
         em = stmt.search_one("error-message")
@@ -860,7 +908,7 @@ class RNGTranslator(object):
 
     def reference_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
-        if ("a" in self.emit and
+        if ("a" in self.annots and
             stmt.i_module == self.module != stmt.parent and
             stmt.parent.keyword != "enum"):
             self.insert_doc(p_elem, "See: " + stmt.arg)
@@ -883,9 +931,9 @@ class RNGTranslator(object):
         if typedef is None: # built-in type
             self.type_handler[stmt.arg](stmt, p_elem)
         elif stmt.i_is_derived: # derived with restrictions
-            self._unwind_type(stmt, p_elem)
+            self.unwind_type(stmt, p_elem)
         else:                   # just refer to type def.
-            uname = self._handle_ref(typedef)
+            uname = self.handle_ref(typedef)
             ET.SubElement(p_elem, "ref", name=uname)
 
     def unique_stmt(self, stmt, p_elem, pset):
@@ -897,14 +945,14 @@ class RNGTranslator(object):
         for sub in stmt.substmts:
             if sub.keyword in ("refine", "augment"):
                 noexpand = False
-                self._add_patch(pset, Patch(sub, prefix=self.prefix))
+                self.add_patch(pset, Patch(sub, prefix=self.prefix))
         if noexpand and pset:
             for nid in pset:
                 if stmt.i_grouping.search(arg=nid):
                     noexpand = False
                     break
         if noexpand:
-            uname = self._handle_ref(stmt.i_grouping)
+            uname = self.handle_ref(stmt.i_grouping)
             ET.SubElement(p_elem, "ref", name=uname)
         else:
             self.handle_substmts(stmt.i_grouping, p_elem, pset)
@@ -916,7 +964,7 @@ class RNGTranslator(object):
 
     # Handlers for YANG types
 
-    def _unwind_type(self, stmt, p_elem):
+    def unwind_type(self, stmt, p_elem):
         """Unwind type formed by multiple derivations."""
         patterns = []
         lengths = []
@@ -930,11 +978,11 @@ class RNGTranslator(object):
             if stmt.i_typedef is None: break
             stmt = stmt.i_typedef.search_one("type")
         if stmt.arg == "string":
-            slen = self._summarize_ranges(lengths)
-            self._string_type(slen, patterns, p_elem)
+            slen = self.summarize_ranges(lengths)
+            self.string_data(slen, patterns, p_elem)
         else:
-            srang = self._summarize_ranges(ranges)
-            self._numeric_type(stmt.arg, srang, p_elem)
+            srang = self.summarize_ranges(ranges)
+            self.numeric_data(stmt.arg, srang, p_elem)
 
     def bits_type(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "list")
@@ -957,8 +1005,8 @@ class RNGTranslator(object):
 
     def numeric_type(self, stmt, p_elem):
         """Handle numeric types."""
-        self._numeric_type(stmt.arg, stmt.i_ranges, p_elem)
+        self.numeric_data(stmt.arg, stmt.i_ranges, p_elem)
 
     def string_type(self, stmt, p_elem):
         patterns = [p.arg for p in stmt.search(keyword="pattern")]
-        self._string_type(stmt.i_lengths, patterns, p_elem)
+        self.string_data(stmt.i_lengths, patterns, p_elem)
