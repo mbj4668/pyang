@@ -1,0 +1,12 @@
+submodule xt1s2 {
+  belongs-to foo { // error: bad belongs-to
+    prefix xt1; 
+  } 
+  
+  typedef foo {
+    type int32;
+  }
+
+}
+  
+

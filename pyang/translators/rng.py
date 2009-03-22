@@ -88,6 +88,10 @@ class RNGPlugin(plugin.PyangPlugin):
                                   "available since python 2.5")
             sys.exit(1)
 
+        if module.keyword == 'submodule':
+            print "Cannot translate submodules"
+            sys.exit(0)
+
         emit_rng(ctx, module, fd)
 
 def emit_rng(ctx, module, fd):
@@ -680,7 +684,13 @@ class RNGTranslator(object):
         prefix = stmt.raw_keyword[0]
         if prefix not in self.mod_prefixes: # add NS declaration
             self.mod_prefixes.append(prefix)
-            self.declare_ns(prefix, ext.i_module.search_one("namespace").arg)
+            if ext.i_module.keyword == 'module':
+                ns = ext.i_module.search_one("namespace").arg
+            else:
+                parentname = ext.i_module.search_one('belongs-to').arg
+                parentm = self.module.i_ctx.modules[parentname]
+                ns = parentm.search_one('namespace').arg
+            self.declare_ns(prefix, ns)
         eel = ET.SubElement(p_elem, ":".join(stmt.raw_keyword))
         argst = ext.search_one("argument")
         if argst:

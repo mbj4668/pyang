@@ -165,13 +165,16 @@ _validation_map = {
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
 
     ('unique_name', '$has_children'): \
-        lambda ctx, s: v_unique_names_children(ctx, s),
+        lambda ctx, s: v_unique_name_children(ctx, s),
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
+    ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_3', 'must'):lambda ctx, s:v_reference_must(ctx, s),
     ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
+    ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
+    ('reference_3', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
 
     ('unused', 'module'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
@@ -258,12 +261,10 @@ def v_init_module(ctx, stmt):
     prefix = None
     if stmt.keyword == 'module':
         prefix = stmt.search_one('prefix')
-        modname = stmt.arg
     else:
         belongs_to = stmt.search_one('belongs-to')
         if belongs_to is not None and belongs_to.arg is not None:
             prefix = belongs_to.search_one('prefix')
-            modname = belongs_to.arg
 
     if prefix is not None and prefix.arg is not None:
         stmt.i_prefixes[prefix.arg] = stmt.arg
@@ -301,6 +302,7 @@ def v_init_extension(ctx, stmt):
     (prefix, identifier) = stmt.raw_keyword
     modname = prefix_to_modulename(stmt.i_module, prefix, stmt.pos, ctx.errors)
     stmt.keyword = (modname, identifier)
+    stmt.i_extension = None
 
 def v_init_stmt(ctx, stmt):
     stmt.i_typedefs = {}
@@ -315,6 +317,13 @@ def v_init_has_children(ctx, stmt):
 def v_grammar_module(ctx, stmt):
     # check the statement hierarchy
     grammar.chk_module_statements(ctx, stmt, ctx.canonical)
+    # check revision statements order
+    prev = None
+    for r in stmt.search('revision'):
+        if prev is not None and r.arg > prev:
+            err_add(ctx.errors, r.pos, 'REVISION_ORDER', ())
+        prev = r.arg
+
 
 def v_grammar_typedef(ctx, stmt):
     if types.is_base_type(stmt.arg):
@@ -344,6 +353,14 @@ def v_grammar_unique_defs(ctx, stmt):
 def v_import_module(ctx, stmt):
     imports = stmt.search('import')
     includes = stmt.search('include')
+    if stmt.keyword == 'module':
+        mymodulename = stmt.arg
+    else:
+        b = stmt.search_one('belongs-to')
+        if b is not None:
+            mymodulename = b.arg
+        else:
+            mymodulename = None
     for i in imports + includes:
         # check if the module to import is already added
         modulename = i.arg
@@ -353,6 +370,12 @@ def v_import_module(ctx, stmt):
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
         module = ctx.search_module(i.pos, modulename)
+        
+        if module is not None and module.keyword == 'submodule':
+            b = module.search_one('belongs-to')
+            if b is not None and b.arg != mymodulename:
+                err_add(ctx.errors, b.pos,
+                    'BAD_SUB_BELONGS_TO', (stmt.arg, modulename, modulename))
 
 ### type phase
 
@@ -694,7 +717,7 @@ def v_type_extension(ctx, stmt):
     module = modulename_to_module(stmt.i_module, modulename)
     if module is None:
         return
-    ext = module.search_one('extension', identifier)
+    ext = search_definition(module, 'extension', identifier)
     if ext is None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
                 (identifier, module.arg))
@@ -742,7 +765,7 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local features
         pmodule = stmt.i_module
-        stmt.i_feature = stmt.i_module.search_one('feature', name)
+        stmt.i_feature = search_definition(stmt.i_module, 'feature', name)
         if stmt.i_feature is not None:
             v_type_feature(ctx, stmt.i_feature)
     else:
@@ -750,7 +773,7 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
         pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
-        stmt.i_feature = pmodule.search_one('feature', name)
+        stmt.i_feature = search_definition(pmodule, 'feature', name)
     if stmt.i_feature is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'FEATURE_NOT_FOUND', (name, pmodule.arg))
@@ -789,7 +812,7 @@ def v_type_base(ctx, stmt, no_error_report=False):
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local identities
         pmodule = stmt.i_module
-        stmt.i_identity = stmt.i_module.search_one('identity', name)
+        stmt.i_identity = search_definition(stmt.i_module, 'identity', name)
         if stmt.i_identity is not None:
             v_type_identity(ctx, stmt.i_identity)
     else:
@@ -797,7 +820,7 @@ def v_type_base(ctx, stmt, no_error_report=False):
         pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
-        stmt.i_identity = pmodule.search_one('identity', name)
+        stmt.i_identity = search_definition(pmodule, 'identity', name)
     if stmt.i_identity is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
@@ -1043,66 +1066,13 @@ def v_expand_2_augment(ctx, stmt):
     augment statements, the list of temporary nodes should be empty,
     otherwise it is an error.
     """
-    stmt.i_target_node = None
-
-    # parse the path into a list of two-tuples of (prefix,identifier)
-    stmt.i_path = [(m[1], m[2]) \
-                   for m in syntax.re_schema_node_id_part.findall(stmt.arg)]
-    # find the module of the first node in the path 
-    (prefix, identifier) = stmt.i_path[0]
-    module = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
-    if module is None:
-        # error is reported by prefix_to_module
+    stmt.i_target_node = find_target_node(ctx, stmt, is_augment=True)
+    if stmt.i_target_node is None:
         return
-    # find the first node
-    node = search_child(module.i_children, module.arg, identifier)
-    if node is None:
-        # check all our submodules
-        for inc in module.search('include'):
-            submod = ctx.get_module(inc.arg)
-            node = search_child(submod.i_children, submod.arg, identifier)
-            if node is not None:
-                break
-        if node is None:
-            err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                    (module.arg, identifier))
-            return
-
-    # then recurse down the path
-    for (prefix, identifier) in stmt.i_path[1:]:
-        if hasattr(node, 'i_children'):
-            module = prefix_to_module(stmt.i_module, prefix, stmt.pos,
-                                      ctx.errors)
-            if module is None:
-                return
-            child = search_child(node.i_children, module.arg, identifier)
-            if child is None and module == stmt.i_module:
-                # create a temporary statement
-                child = Statement(node.top, node, stmt.pos, '__tmp_augment__',
-                                  identifier)
-                v_init_stmt(ctx, child)
-                child.i_module = module
-                child.i_children = []
-                child.i_config = node.i_config
-                node.i_children.append(child)
-                # keep track of this temporary statement
-                stmt.i_module.i_undefined_augment_nodes[child] = child
-            elif child is None:
-                err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                        (module.arg, identifier))
-                return
-            node = child
-        else:
-            err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
-                    (module.arg, identifier))
-            return
-
-    if not hasattr(node, 'i_children'):
+    if not hasattr(stmt.i_target_node, 'i_children'):
         err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
-                (module.arg, node.arg))
+                (module.arg, stmt.i_target_node.arg))
         return
-        
-    stmt.i_target_node = node
 
     # copy the expanded children into the target node
     def add_tmp_children(node, tmp_children):
@@ -1150,7 +1120,7 @@ def v_expand_2_augment(ctx, stmt):
 
 ### Unique name check phase
 
-def v_unique_names_children(ctx, stmt):
+def v_unique_name_children(ctx, stmt):
     """Make sure that each child of stmt has a unique name"""
 
     def sort_pos(p1, p2):
@@ -1271,6 +1241,15 @@ def v_reference_list(ctx, stmt):
     v_key()
     v_unique()
 
+def v_reference_choice(ctx, stmt):
+    """Make sure that the default case exists"""
+    d = stmt.search_one('default')
+    if d is not None:
+        ptr = attrsearch(d.arg, 'arg', stmt.i_children)
+        if ptr is None:
+            err_add(ctx.errors, d.pos, 'DEFAULT_CASE_NOT_FOUND', d.arg)
+
+
 def v_reference_leaf_leafref(ctx, stmt):
     """Verify that all leafrefs in a leaf or leaf-list have correct path"""
 
@@ -1279,7 +1258,6 @@ def v_reference_leaf_leafref(ctx, stmt):
         if ptr is not None:
             stmt.i_leafref_ptrs.append((ptr, pos))
         
-
 def v_reference_must(ctx, stmt):
     # we should do a proper parsing of the xpath expression.
     # right now, we do a conservative search for all prefixes; and
@@ -1293,6 +1271,23 @@ def v_reference_when(ctx, stmt):
     # see comment in v_reference_must
     for (_p, prefix, _identifier) in syntax.re_keyword.findall(stmt.arg):
         prefix_to_module(stmt.i_module, prefix, stmt.pos, [])
+
+def v_reference_deviation(ctx, stmt):
+    stmt.i_target_node = find_target_node(ctx, stmt)
+
+def v_reference_deviate(ctx, stmt):
+    if stmt.parent.i_target_node is None:
+        return
+    t = stmt.parent.i_target_node
+    if stmt.arg == 'not-supported':
+        if ((t.parent.keyword == 'list') and
+            (t in t.parent.i_key)):
+            err_add(ctx.errors, stmt.pos, 'BAD_DEVIATE_KEY',
+                    (t.i_module.arg, t.arg))
+            return
+        idx = t.parent.i_children.index(t)
+        del t.parent.i_children[idx]
+
 
 ### Unused definitions phase
 
@@ -1395,6 +1390,8 @@ def search_data_node(children, modulename, identifier):
     return None
 
 def search_typedef(stmt, name):
+    """Search for a typedef in scope
+    First search the hierarchy, then the module and its submodules."""
     while stmt is not None:
         if name in stmt.i_typedefs:
             return stmt.i_typedefs[name]
@@ -1408,6 +1405,8 @@ def search_typedef(stmt, name):
     return None
 
 def search_grouping(stmt, name):
+    """Search for a grouping in scope
+    First search the hierarchy, then the module and its submodules."""
     while stmt is not None:
         if name in stmt.i_groupings:
             return stmt.i_groupings[name]
@@ -1419,6 +1418,77 @@ def search_grouping(stmt, name):
                     return m.i_groupings[name]
         stmt = stmt.parent
     return None
+
+def search_definition(module, keyword, arg):
+    """Search for a defintion with `keyword` `name`
+    Search the module and its submodules."""
+    r = module.search_one(keyword, arg)
+    if r is not None:
+        return r
+    for i in module.search('include'):
+        modulename = i.arg
+        m = module.i_ctx.get_module(modulename)
+        if m is not None:
+            r = m.search_one(keyword, arg)
+            if r is not None:
+                return r
+    return None
+
+def find_target_node(ctx, stmt, is_augment=False):
+    # parse the path into a list of two-tuples of (prefix,identifier)
+    path = [(m[1], m[2]) \
+                for m in syntax.re_schema_node_id_part.findall(stmt.arg)]
+    # find the module of the first node in the path 
+    (prefix, identifier) = path[0]
+    module = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+    if module is None:
+        # error is reported by prefix_to_module
+        return None
+    # find the first node
+    node = search_child(module.i_children, module.arg, identifier)
+    if node is None:
+        # check all our submodules
+        for inc in module.search('include'):
+            submod = ctx.get_module(inc.arg)
+            if submod is not None:
+                node = search_child(submod.i_children, submod.arg, identifier)
+                if node is not None:
+                    break
+        if node is None:
+            err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
+                    (module.arg, identifier))
+            return None
+
+    # then recurse down the path
+    for (prefix, identifier) in path[1:]:
+        if hasattr(node, 'i_children'):
+            module = prefix_to_module(stmt.i_module, prefix, stmt.pos,
+                                      ctx.errors)
+            if module is None:
+                return None
+            child = search_child(node.i_children, module.arg, identifier)
+            if child is None and module == stmt.i_module and is_augment:
+                # create a temporary statement
+                child = Statement(node.top, node, stmt.pos, '__tmp_augment__',
+                                  identifier)
+                v_init_stmt(ctx, child)
+                child.i_module = module
+                child.i_children = []
+                child.i_config = node.i_config
+                node.i_children.append(child)
+                # keep track of this temporary statement
+                stmt.i_module.i_undefined_augment_nodes[child] = child
+            elif child is None:
+                err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
+                        (module.arg, identifier))
+                return None
+            node = child
+        else:
+            err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
+                    (module.arg, identifier))
+            return None
+    return node
+
 
 def iterate_stmt(stmt, f):
     def _iterate(stmt):

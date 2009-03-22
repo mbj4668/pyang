@@ -46,11 +46,12 @@ class YinParser(object):
     ns_sep = "}"
     """namespace separator"""
 
-    def __init__(self):
+    def __init__(self, extra={}):
         self.parser = expat.ParserCreate("UTF-8", self.ns_sep)
         self.parser.CharacterDataHandler = self.char_data
         self.parser.StartElementHandler = self.start_element
         self.parser.EndElementHandler = self.end_element
+        self.extra = extra
 
     def split_qname(qname):
         """Split `qname` into namespace URI and local name
@@ -225,8 +226,6 @@ class YinParser(object):
         # 
         # If we're a submodule, we need to find our module's
         # namespace, so we need to parse the module :(
-        # This could be fixed if the spec required the XML prefix
-        # be the same as the YANG belongs-to prefix.
 
         # 1.  find our own namespace URI
         if self.top.local_name == 'module':
@@ -240,7 +239,7 @@ class YinParser(object):
             p = self.top.find_child(yin_namespace, 'belongs-to')
             modname = p.find_attribute('module')
             # read the parent module in order to find the namespace uri
-            res = self.ctx.read_module(modname)
+            res = self.ctx.read_module(modname, {'no_include':True})
             if res == 'not_found':
                 error.err_add(self.ctx.errors, p.pos,
                               'MODULE_NOT_FOUND', modname)
@@ -279,7 +278,8 @@ class YinParser(object):
                                 if prefix is not None:
                                     self.prefixmap[ns.arg] = prefix
                             
-            elif ch.ns == yin_namespace and ch.local_name == 'include':
+            elif (ch.ns == yin_namespace and ch.local_name == 'include' and
+                  'no_include' not in self.extra):
                 modname = ch.find_attribute('module')
                 if modname is not None:
                     mod = self.ctx.search_module(ch.pos, modname)
@@ -311,7 +311,7 @@ class YinParser(object):
 
     def find_extension(self, uri, extname):
         def find_in_mod(mod):
-            ext = mod.search_one('extension', extname)
+            ext = statements.search_definition(mod, 'extension', extname)
             if ext is None:
                 return None
             ext_arg = ext.search_one('argument')

@@ -21,10 +21,6 @@ pyang \- validate and convert YANG modules to various formats
 
 Only the most common options are listed here.  See below for a
 complete list of options.
-
-If pyang plugins are installed, these plugins may define their own
-options, or add new formats to the \fI-f\fR option.  These options and
-formats are listed in \fIpyang -h\fP.
 .SH DESCRIPTION
 The \fBpyang\fP program is used to validate YANG modules.  It is also
 used to convert YANG modules into equivalent YIN modules.  From a
@@ -56,10 +52,8 @@ Validate the module(s) according the canonical YANG order.
 .BI "-f " format ", --format " format
 Convert the module into \fIformat\fP.  When this parameter is present,
 a single module must be given.  If no \fIoutput\fP file is specified,
-the result is printed on stdout.
-
-\fIformat\fP is one of \fIyin\fR (the XML syntax of YANG), \fIyang\fR,
-\fIdsdl\fR (ISO/IEC 19757), or \fIxsd\fR (W3C XML Schema).
+the result is printed on stdout.  The supported formats are listed in
+OUTPUT FORMATS below.
 .TP
 .BI "-o " outfile ", --output " outfile
 Write the output to the file \fIoutfile\fP instead of stdout.
@@ -87,12 +81,33 @@ Turn on debugging of the pyang code.
 .I module...
 These are the names of the files containing the modules to be
 validated, or the module to be converted.
-.SH YANG OUTPUT SPECIFIC OPTIONS
+.SH OUTPUT FORMATS
+If pyang plugins are installed, these plugins may define their own
+options, or add new formats to the \fI-f\fR option.  These options and
+formats are listed in \fIpyang -h\fP.
+.TP 12
+\fIyin\fR
+the XML syntax of YANG
+.TP 
+\fIyang\fR
+.TP
+\fIdsdl\fR
+ISO/IEC 19757
+.TP
+\fIxsd\fR
+W3C XML Schema
+.TP
+\fIdepend\fR 
+Prints a Makefile dependency rule for the module
+.TP
+\fItree\fR
+tree structure of the module
+.SH YANG OUTPUT
 Options for the \fIyang\fR output format.
 .TP
 .B "--yang-canonical"
 Generate all statements in the canonical order.
-.SH YIN OUTPUT SPECIFIC OPTIONS
+.SH YIN OUTPUT
 Options for the \fIyin\fR output format.
 .TP
 .B "--yin-canonical"
@@ -102,7 +117,7 @@ Generate all statements in the canonical order.
 Pretty print strings, i.e. print with extra whitespace in the string.
 This is not strictly correct, since the whitespace is significant
 within the strings in XML, but the output is more readable.
-.SH DSDL OUTPUT SPECIFIC OPTIONS
+.SH DSDL OUTPUT
 Options for the \fIdsdl\fR output format.
 .TP
 .B "--dsdl-no-annotations"
@@ -119,7 +134,7 @@ Do not print DSRL annotations (default-content)
 .TP
 .B "--dsdl-no-netmod"
 Do not print NETMOD-specific attributes
-.SH XSD OUTPUT SPECIFIC OPTIONS
+.SH XSD OUTPUT
 Options for the \fIxsd\fR output format.
 .TP
 .B "--xsd-no-appinfo"
@@ -134,15 +149,41 @@ Do not generate any xs:imports.
 .B "--xsd-break-pattern"
 Break long patterns so that they fit into RFCs. The resulting patterns
 might not always be valid XSD, so use with care.
+.SH DEPEND OUTPUT
+The \fIdepend\fR output generates a Makefile dependency rule for files
+based on a YANG module.  This is useful if files are generated from
+the module.  For example, suppose a .c file is generated from each
+YANG module.  If the YANG module imports other modules, or includes
+submodules, the .c file needs to be regenerated if any of the imported
+or included modules change.  Such a dependency rule can be generated
+like this:
+
+.nf
+  $ pyang -f depend --depend-target mymod.c
+      --depend-extension .yang mymod.yang
+  mymod.c : ietf-yang-types.yang my-types.yang
+.fi
+
+Options for the \fIdepend\fR output format.
+.TP
+.B "--depend-target"
+Makefile rule target.  Default is the modulename.
+.TP
+.B "--depend-extension"
+YANG module file name extension.  Default is no extension.
 .SH Example
 The following example validates the standard YANG modules with derived
 types:
 
-  $ pyang yang-types.yang ieee-types.yang inet-types.yang
+.nf
+  $ pyang ietf-yang-types.yang ietf-ieee-types.yang ietf-inet-types.yang
+.fi
 
-The following example converts the yang-types module into YIN:
+The following example converts the ietf-yang-types module into YIN:
 
-  $ pyang -f yin -o yang-types.yin yang-types.yang
+.nf
+  $ pyang -f yin -o ietf-yang-types.yin ietf-yang-types.yang
+.fi
 .SH ENVIRONMENT VARIABLES
 pyang searches for referred modules in the colon (:) separated path
 defined by the environment variable YANG_MODPATH and in the

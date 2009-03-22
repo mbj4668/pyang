@@ -13,15 +13,6 @@ def pyang_plugin_init():
     plugin.register_plugin(TreePlugin())
 
 class TreePlugin(plugin.PyangPlugin):
-    def add_opts(self, optparser):
-        optlist = [
-            optparse.make_option("--tree-no-leafs",
-                                 dest="tree_no_leafs",
-                                 action="store_true",
-                                 help="Do not print any leafs"),
-            ]
-        g = optparser.add_option_group("Tree output specific options")
-        g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['tree'] = self
     def emit(self, ctx, module, fd):
@@ -56,13 +47,15 @@ def print_node(s, fd, prefix, typewidth):
             fd.write(s.arg)
         else:
             fd.write(s.arg + '?')
-    elif s.keyword in ['choice', 'case']:
-        fd.write('(' + s.arg + ')')
+    elif s.keyword  == 'choice':
+        fd.write('(' + s.arg + ')?')
+    elif s.keyword == 'case':
+        fd.write(':(' + s.arg + ')')
     else:
         fd.write(" %s %-*s   %s" % (get_flags_str(s), typewidth,
                                     get_typename(s), s.arg))
 
-    if s.keyword == 'list':
+    if s.keyword == 'list' and s.search_one('key') is not None:
         fd.write(" [%s]" % s.search_one('key').arg)
     fd.write('\n')
     print_children(s, fd, prefix)

@@ -7,10 +7,5 @@
 
   o  better handling of multiple input files
 
-  o  handle local extensions defined in a submodule
-
   o  update to -02:
      - deviations
-
-  o  REVISION_ORDER
-     check for unused errors!

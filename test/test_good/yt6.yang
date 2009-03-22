@@ -72,6 +72,7 @@ module yt6 {
         default 10;
      }
      choice a {
+       default x;
        leaf x { type int32; }
        leaf y { type string; }
        container z;

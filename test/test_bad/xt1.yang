@@ -5,14 +5,15 @@ module/*hej*/xt1 {
   import xt3 { prefix xt3; }
   import yang-types { prefix yang; } // warning: unused import
   include xt1s1;
+  include xt1s2;
   organization "hopp";
   contact "hej" {
     xt3:test hej {xt3:hemm he;}
     xt3:test hej {xt3:hemm he;}
   }
   description "arne" + /* hmm*/ ' ' + 'anka';
-  revision 2001-01-01 { description "2"; }
   revision 2000-01-11 { description "initinla"; }
+  revision 2001-01-01 { description "2"; } // warning: not reverse order
 
   typedef gg {
     type xt3:t0 {
@@ -136,6 +137,7 @@ module/*hej*/xt1 {
 
   grouping Foo {
     choice xx {
+      default c; // error: no such case
       leaf a { type int32; }
       leaf b { type int32; }
     }
