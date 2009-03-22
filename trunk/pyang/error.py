@@ -57,15 +57,6 @@ error_codes = \
     'UNEXPECTED_KEYWORD_N':
       (1,
        'unexpected keyword "%s", expected one of %s'),
-    'UNEXPECTED_TOKEN':
-      (1,
-       'unexpected token "%s"'),
-    'UNEXPECTED_TOKEN_1':
-      (1,
-       'unexpected token "%s", expected "%s"'),
-    'UNEXPECTED_TOKEN_N':
-      (1,
-       'unexpected token "%s", expected one of %s'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),
@@ -111,6 +102,9 @@ error_codes = \
     'BAD_REFINEMENT':
       (1,
        '"%s" node "%s::%s" cannot be refined with "%s"'),
+    'BAD_DEVIATE_KEY':
+      (2,
+       'key node "%s::%s" cannot be deviated with "not-supported"'),
     'EXTENSION_NOT_DEFINED':
       (1,
        'extension "%s" is not defined in module %s'),
@@ -132,12 +126,6 @@ error_codes = \
     'MULTIPLE_REFINE':
       (1,
        'the node "%s" is already refined at %s'),
-    'NODE_NOT_IN_GROUPING':
-      (1,
-       'the node "%s" is not found in the grouping'),
-    'NODE_GROUPING_TYPE':
-      (1,
-       'the node "%s" does not match the type in the grouping'),
     'RANGE_BOUNDS':
       (2,
        'range error: "%s" is not larger than %s'),
@@ -259,9 +247,6 @@ error_codes = \
     'BAD_TYPE_IN_KEY':
       (1,
        'the type %s cannot be part of a key, used by leaf %s'),
-    'DUPLICATE_STATEMENT':
-      (1,
-       'multiple statements with the same argument "%s" found'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
@@ -275,7 +260,7 @@ error_codes = \
       (3,
        'the %s definiton is deprecated, but the %s it references is obsolete'),
     'REVISION_ORDER':
-      (3,
+      (4,
        'the revision statements are not given in reverse chronological order'),
     'EXTENSION_ARGUMENT_PRESENT':
       (1,

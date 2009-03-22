@@ -76,12 +76,9 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
         # this is an extension.  need to find its definition
         (prefix, identifier) = stmt.raw_keyword
         tag = prefix + ':' + identifier
-        extmodule = statements.prefix_to_module(module, prefix, None, [])
-        if extmodule is not None:
-            ext = util.attrsearch(identifier, 'arg',
-                                  extmodule.search('extension'))
-            ext_arg = ext.search_one('argument')
-            if ext_arg is not None: 
+        if stmt.i_extension is not None:
+            ext_arg = stmt.i_extension.search_one('argument')
+            if ext_arg is not None:
                 yin_element = ext_arg.search_one('yin-element')
                 if yin_element is not None and yin_element.arg == 'true':
                     argname = prefix + ':' + ext_arg.arg
@@ -92,7 +89,7 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
                     argiselem = False
             else:
                 argiselem = False
-                argname = None            
+                argname = None
         else:
             argiselem = False
             argname = None

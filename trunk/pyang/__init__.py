@@ -67,7 +67,6 @@ class Context(object):
             error.err_add(self.errors, module.pos,
                           'UNEXPECTED_KEYWORD_N', (module.keyword, top_keywords))
             return None
-            
 
         module.i_adler32 = zlib.adler32(text)
 
@@ -125,7 +124,7 @@ class Context(object):
             return None
         return module
 
-    def read_module(self, modulename):
+    def read_module(self, modulename, extra={}):
         """Searches for a module named `modulename` in the repository
 
         The module is just read, and not compiled at all.
@@ -145,9 +144,9 @@ class Context(object):
             format = util.guess_format(text)
 
         if format == 'yin':
-            p = yin_parser.YinParser()
+            p = yin_parser.YinParser(extra)
         else:
-            p = yang_parser.YangParser()
+            p = yang_parser.YangParser(extra)
 
         return p.parse(self, ref, text)
 
@@ -164,9 +163,6 @@ class Context(object):
                                       'DUPLICATE_NAMESPACE', (uri, uris[uri]))
                     else:
                         uris[uri] = m.arg
-   #     for m in self.module_list:
-   #         if m != None:
-   #             m.validate()
 
 class Repository(object):
     """Abstract base class that represents a module repository"""

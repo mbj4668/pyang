@@ -189,11 +189,10 @@ def expand_locally_defined_typedefs(ctx, module):
 
 def emit_xsd(ctx, module, fd):
     if module.keyword == 'submodule':
-        belongs_to = module.search_one('belongs_to')
+        belongs_to = module.search_one('belongs-to')
         parent_modulename = belongs_to.arg
-        ctx.search_module(belongs_to.pos, modulename=parent_modulename)
-        parent_module = ctx.modules[parent_modulename]
-        if parent_module != None:
+        parent_module = ctx.read_module(parent_modulename)
+        if parent_module != 'not_found':
             i_namespace = parent_module.search_one('namespace').arg
             i_prefix = parent_module.search_one('prefix').arg
         else:
@@ -263,18 +262,19 @@ def emit_xsd(ctx, module, fd):
     for pre in module.i_prefixes:
         modname = module.i_prefixes[pre]
         mod = ctx.modules[modname]
-        if pre in ['xs', 'yin', 'nc', 'ncn']:
-            # someone uses one of our prefixes
-            # generate a new prefix for that module
-            i = 0
-            pre = "p" + i
-            while pre in prefixes:
-                i = i + 1
+        if mod.keyword == 'module':
+            if pre in ['xs', 'yin', 'nc', 'ncn']:
+                # someone uses one of our prefixes
+                # generate a new prefix for that module
+                i = 0
                 pre = "p" + i
-            prefixes.append(pre)
-        mod.i_prefix = pre
-        uri = mod.search_one('namespace').arg
-        fd.write('\n           xmlns:' + pre + '=' + quoteattr(uri))
+                while pre in prefixes:
+                    i = i + 1
+                    pre = "p" + i
+                prefixes.append(pre)
+            mod.i_prefix = pre
+            uri = mod.search_one('namespace').arg
+            fd.write('\n           xmlns:' + pre + '=' + quoteattr(uri))
     fd.write('>\n\n')
     
     if ctx.opts.xsd_no_imports != True:
