@@ -89,8 +89,8 @@ class RNGPlugin(plugin.PyangPlugin):
             sys.exit(1)
 
         if module.keyword == 'submodule':
-            print "Cannot translate submodules"
-            sys.exit(0)
+            print >> sys.stderr, "Cannot translate submodules"
+            sys.exit(1)
 
         emit_rng(ctx, module, fd)
 
