@@ -354,10 +354,7 @@
     <element name="type">
       <choice>
 	<attribute name="name">
-	  <choice>
-	  <value>boolean</value>
-	  <value>empty</value>
-	  </choice>
+	  <ref name="identifier-ref"/>
 	</attribute>
 	<ref name="numeric-type"/>
 	<ref name="string-type"/>
@@ -422,9 +419,9 @@
       <optional>
 	<ref name="length-stmt"/>
       </optional>
-      <optional>
+      <oneOrMore>
 	<ref name="pattern-stmt"/>
-      </optional>
+      </oneOrMore>
     </interleave>
   </define>
 
