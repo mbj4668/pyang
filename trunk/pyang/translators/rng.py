@@ -188,19 +188,15 @@ class RNGTranslator(object):
 
     * `debug`: integer controlling level of debug messages
 
-    * `annots`: list of prefixes (keys in `schema_languages`
-      dictionary) controlling which annotations will be generated.
+    * `grammar_elem`: <grammar> ETree Element, which is the root of
+      the resulting RELAX NG ETree
 
     * `has_anyxml`: boolean indicating occurence of 'anyxml'
       statement (so that `anyxml_def` has to be inserted)
 
     * `module`: YANG module that is being translated
 
-    * `mod_prefixes`: prefixes of modules that have already been
-      encountered and their namespace declared
-
-    * `grammar_elem`: <grammar> ETree Element, which is the root of
-      the resulting RELAX NG ETree
+    * `namespaces`: mapping of used NS URIs to prefixes
 
     * `notifications`: root element of the schema subtree for
       notifications
@@ -209,6 +205,8 @@ class RNGTranslator(object):
       encountered and conceptual tree skeleton is not in place yet
 
     * `prefix`: prefix of the current module
+
+    * `prefix_map`: map module-local prefixes to schema prefixes
 
     * `rpcs`: root element of the schema subtree for RPCs
 
@@ -225,19 +223,16 @@ class RNGTranslator(object):
     YANG_version = 1
     """Checked against the yang-version statement, if present."""
 
+    dc_uri = "http://purl.org/dc/terms"
+    """Dublin Core URI"""
+    a_uri =  "http://relaxng.org/ns/compatibility/annotations/1.0"
+    """DTD compatibility annotattions URI"""
+
     grammar_attrs = {
         "xmlns" : "http://relaxng.org/ns/structure/1.0",
-        "xmlns:nmt" : "urn:ietf:params:xml:ns:netmod:conceptual-tree:1",
         "datatypeLibrary" : "http://www.w3.org/2001/XMLSchema-datatypes",
     }
     """Common attributes of the <grammar> element."""
-
-    schema_languages = {
-        "a": "http://relaxng.org/ns/compatibility/annotations/1.0",
-        "dc": "http://purl.org/dc/terms",
-        "nma": "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1",
-    }
-    """Mapping of prefixes to schema language namespace URIs."""
 
     datatype_map = {
         "instance-identifier": "string",
@@ -273,6 +268,12 @@ class RNGTranslator(object):
         replace appropriate callback methods and/or change the
         `stmt_handler` or `type_handler` dictionaries.
         """
+        self.namespaces = {
+            "urn:ietf:params:xml:ns:netmod:conceptual-tree:1" : "nmt",
+            "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
+            self.a_uri : "a",
+            self.dc_uri : "dc",
+        }
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
             "argument": self.noop,
@@ -357,24 +358,19 @@ class RNGTranslator(object):
         whether unused groupings and typedefs from the top level of
         `modules` are mapped to the output schema.
         """
-        self.annots = ["nma"]
-        if not no_dc: self.annots.append("dc")
-        if not no_a: self.annots.append("a")
+        if no_dc: del self.namespaces["dc"]
+        if no_a: del self.prefix_map["a"]
         self.debug = debug
         self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
-        for prefix in self.annots: # used namespaces
-            self.declare_ns(prefix, self.schema_languages[prefix])
         self.no_data = True
         self.has_anyxml = False
         self.used_defs = []
-        self.mod_prefixes = []
         for module in modules:
             self.module = module
-            self.prefix = module.search_one("prefix").arg
-            if self.prefix not in self.mod_prefixes:
-                self.mod_prefixes.append(self.prefix)
-                self.declare_ns(self.prefix,
-                                 module.search_one("namespace").arg)
+            self.prefix_map = {}
+            prefix = module.search_one("prefix").arg
+            ns_uri = module.search_one("namespace").arg
+            self.prefix = self.add_namespace(ns_uri, prefix)
             src_text = "YANG module '%s'" % module.arg
             revs = module.search(keyword="revision")
             if len(revs) > 0:
@@ -387,9 +383,29 @@ class RNGTranslator(object):
                     self.setup_conceptual_tree()
                 self.handle_substmts(module, self.confdata)
         self.handle_empty()
+        self.declare_namespaces()
         self.dc_element("creator",
                         "Pyang %s, RELAX NG plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
+
+    def add_namespace(self, uri, prefix):
+        """Add new item `prefix`:`uri` to `self.namespaces`.
+
+        The prefix to be actually used for `uri` is returned.  If the
+        namespace is already known, the old prefix should be used.
+        Prefix clashes are resolved by disambiguating `prefix`.
+        """
+        if uri in self.namespaces:
+            new = self.namespaces[uri]
+        else:
+            end = 1
+            new = prefix
+            while new in self.namespaces.values():
+                new = "%s%x" % (prefix,end)
+                end += 1
+            self.namespaces[uri] = new
+        self.prefix_map[prefix] = new
+        return new
 
     def preload_defs(self):
         """Preload all top-level definitions."""
@@ -436,8 +452,8 @@ class RNGTranslator(object):
 
     def dc_element(self, name, text):
         """Add DC element `name` containing `text` to <grammar>."""
-        if "dc" in self.annots:
-            dcel = ET.Element("dc:" + name)
+        if self.dc_uri in self.namespaces:
+            dcel = ET.Element(self.namespaces[self.dc_uri] + ":" + name)
             dcel.text = text
             self.grammar_elem.insert(0,dcel)
 
@@ -595,11 +611,12 @@ class RNGTranslator(object):
 
     def insert_doc(self, p_elem, docstring):
         """Add <a:documentation> with `docstring` to `p_elem`."""
-        elem = ET.Element("a:documentation")
+        dtag = self.namespaces[self.a_uri] + ":documentation"
+        elem = ET.Element(dtag)
         elem.text = docstring
         pos = 0
         for ch in p_elem:
-            if ch.tag == "a:documentation": pos += 1
+            if ch.tag == dtag: pos += 1
         p_elem.insert(pos, elem)
 
 
@@ -679,19 +696,20 @@ class RNGTranslator(object):
         return uname
 
     def handle_extension(self, stmt, p_elem):
-        """Append YIN representation of an extension statement."""
+        """Append YIN representation of `stmt`."""
         ext = stmt.i_extension
         prefix = stmt.raw_keyword[0]
-        if prefix not in self.mod_prefixes: # add NS declaration
-            self.mod_prefixes.append(prefix)
+        if prefix in self.prefix_map:
+            prefix = self.prefix_map[prefix]
+        else:
             if ext.i_module.keyword == 'module':
                 ns = ext.i_module.search_one("namespace").arg
             else:
                 parentname = ext.i_module.search_one('belongs-to').arg
                 parentm = self.module.i_ctx.modules[parentname]
                 ns = parentm.search_one('namespace').arg
-            self.declare_ns(prefix, ns)
-        eel = ET.SubElement(p_elem, ":".join(stmt.raw_keyword))
+            prefix = self.add_namespace(ns, prefix)
+        eel = ET.SubElement(p_elem, prefix + ":" + stmt.raw_keyword[1])
         argst = ext.search_one("argument")
         if argst:
             if argst.search_one("yin-element", "true"):
@@ -700,9 +718,10 @@ class RNGTranslator(object):
                 eel.attrib[argst.arg] = stmt.arg
         self.handle_substmts(stmt, eel)
 
-    def declare_ns(self, prefix, uri):
-        """Add namespace declaration to the grammar element."""
-        self.grammar_elem.attrib["xmlns:" + prefix] = uri
+    def declare_namespaces(self):
+        """Declare namespace contained in `self.namespaces`."""
+        for uri in self.namespaces:
+            self.grammar_elem.attrib["xmlns:" + self.namespaces[uri]] = uri
 
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
@@ -815,7 +834,7 @@ class RNGTranslator(object):
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
-        if ("a" in self.annots and
+        if (self.a_uri in self.namespaces and
             stmt.i_module == self.module != stmt.parent and
             stmt.parent.keyword != "enum"):
             self.insert_doc(p_elem, stmt.arg)
@@ -918,7 +937,7 @@ class RNGTranslator(object):
 
     def reference_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
-        if ("a" in self.annots and
+        if (self.a_uri in self.namespaces and
             stmt.i_module == self.module != stmt.parent and
             stmt.parent.keyword != "enum"):
             self.insert_doc(p_elem, "See: " + stmt.arg)
