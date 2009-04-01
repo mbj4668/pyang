@@ -218,10 +218,10 @@ def add_validation_phase(phase, before=None, after=None):
     Can be used by plugins to do special validation of extensions."""
     idx = 0
     for x in _validation_phases:
-        if x[1] == before:
+        if x == before:
             _validation_phases.insert(idx, phase)
             return
-        elif x[1] == after:
+        elif x == after:
             _validation_phases.insert(idx+1, phase)
             return
         idx = idx + 1
