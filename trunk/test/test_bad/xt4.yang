@@ -8,6 +8,63 @@ module xt4 {
       pattern "[x-y]";
     }
   }
+  typedef dc1 {
+    type decimal64 {
+      fraction-digits 2;
+      range "1..5.5000";
+    }
+    default 1.506;  // error, too many fraction digits
+  }
+  typedef dc2 {
+    type dc1 {
+      range "2..max";
+    }
+    default 3.14;
+  }
+  typedef dc3 {
+    type dc2 {
+      range "min..3.11"; // error, default doesn' match range
+    }
+  }
+  leaf a {
+    type dc1;
+  }
+
+  leaf b {
+    type dc1 {
+      require-instance true; // error, not allowed here
+    }
+  }
+
+  leaf c {
+    type leafref {
+      path "/a";
+      require-instance true;
+    }
+  }
+
+  leaf d {
+    type instance-identifier {
+      require-instance true;
+    }
+  }
+
+  typedef ii {
+    type instance-identifier;
+  }
+
+    
+  leaf e {
+    type instance-identifier {
+      require-instance true;
+    }
+  }
+
+  deviation /a {
+    deviate add {
+      default "foo";  // error, not a decimal
+    }
+  }
 
 }
   

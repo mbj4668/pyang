@@ -120,6 +120,7 @@ _validation_phases = [
     'reference_1',
     'reference_2',
     'reference_3',
+    'reference_4',
 
     # unused definitions phase:
     #   add warnings for unused definitions
@@ -175,6 +176,7 @@ _validation_map = {
     ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
     ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
     ('reference_3', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
+    ('reference_4', 'deviation'):lambda ctx, s:v_reference_deviation_4(ctx, s),
 
     ('unused', 'module'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
@@ -510,6 +512,15 @@ def v_type_type(ctx, stmt):
         # an error has been added already; skip further validation
         return
         
+    # check the fraction-digits - only applicable when the type is the builtin
+    # decimal64
+    frac = stmt.search_one('fraction-digits')
+    if frac is not None and stmt.arg != 'decimal64':
+        err_add(ctx.errors, frac.pos, 'BAD_RESTRICTION', 'fraction_digits')
+    elif stmt.arg == 'decimal64' and frac.is_grammatically_valid:
+        stmt.i_is_derived = True
+        stmt.i_type_spec = types.Decimal64TypeSpec(frac)
+
     # check the range restriction
     stmt.i_ranges = []
     range = stmt.search_one('range')
@@ -566,6 +577,12 @@ def v_type_type(ctx, stmt):
     base = stmt.search_one('base')
     if base is not None and stmt.arg != 'identityref':
         err_add(ctx.errors, base.pos, 'BAD_RESTRICTION', 'base')
+
+    # check the require-instance restriction
+    req_inst = stmt.search_one('require-instance')
+    if req_inst is not None and (stmt.arg != 'instance-identifier' and
+                                 stmt.arg != 'leafref'):
+        err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
 
     # check the enums - only applicable when the type is the builtin
     # enumeration type
@@ -1071,7 +1088,7 @@ def v_expand_2_augment(ctx, stmt):
         return
     if not hasattr(stmt.i_target_node, 'i_children'):
         err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
-                (module.arg, stmt.i_target_node.arg))
+                (stmt.i_target_node.i_module.arg, stmt.i_target_node.arg))
         return
 
     # copy the expanded children into the target node
@@ -1112,7 +1129,7 @@ def v_expand_2_augment(ctx, stmt):
                     return
             else:
                 err_add(ctx.errors, c.pos, 'DUPLICATE_CHILD_NAME',
-                        (stmt.arg, stmt.pos, identifier, ch.pos))
+                        (stmt.arg, stmt.pos, c.arg, ch.pos))
                 return                
         else:
             stmt.i_target_node.i_children.append(c)
@@ -1275,8 +1292,31 @@ def v_reference_when(ctx, stmt):
 def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
 
+_singleton_keywords = {
+    'units':True,
+    'default':True,
+    'config':True,
+    'mandatory':True,
+    'min-elements':True,
+    'max-elemenrs':True
+    }
+
+_valid_deviations = {
+    'type':['leaf', 'leaf-list'],
+    'units':['leaf', 'leaf-list'],
+    'default':['leaf', 'choice'],
+    'config':['leaf', 'choice', 'container', 'list', 'leaf-list'],
+    'mandatory':['leaf', 'choice'],
+    'min-elements':['leaf-list', 'list'],
+    'max-elements':['leaf-list', 'list'],
+    'must':['leaf', 'choice', 'container', 'list', 'leaf-list'],
+    'unique':['list'],
+}
+
 def v_reference_deviate(ctx, stmt):
     if stmt.parent.i_target_node is None:
+        # this is set in v_reference_deviation above.  if none
+        # is found, an error has already been reported.
         return
     t = stmt.parent.i_target_node
     if stmt.arg == 'not-supported':
@@ -1287,6 +1327,50 @@ def v_reference_deviate(ctx, stmt):
             return
         idx = t.parent.i_children.index(t)
         del t.parent.i_children[idx]
+    elif stmt.arg == 'add':
+        for c in stmt.substmts:
+            if c.keyword in _singleton_keywords:
+                if t.search_one(c.keyword) != None:
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
+                            (t.i_module.arg, t.arg))
+                elif t.keyword not in _valid_deviations[c.keyword]:
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
+                            (t.i_module.arg, t.arg))
+                else:
+                    t.substmts.append(c)
+            else:
+                # multi-valued keyword; just add the statement
+                t.substmts.append(c)
+    else: # delete or replace
+        for c in stmt.substmts:
+            if c.keyword in _singleton_keywords:
+                old = t.search_one(c.keyword)
+            else:
+                old = t.search_one(c.keyword, c.arg)
+            if old == None:
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
+                        (t.i_module.arg, t.arg))
+            else:
+                idx = t.substmts(old)
+                del t.substmts[idx]
+                if stmt.arg == 'replace':
+                    t.substmts.append(c)
+            
+                
+# FIXME: after deviation, we need to re-run some of the tests, e.g. if
+# the deviation added a default value it needs to be checked.
+def v_reference_deviation_4(ctx, stmt):
+    if stmt.i_target_node is None:
+        # this is set in v_reference_deviation above.  if none
+        # is found, an error has already been reported.
+        return
+    t = stmt.i_target_node
+    if t.keyword == 'leaf':
+        v_type_leaf(ctx, t)
+    elif t.keyword == 'leaf-list':
+        v_type_leaf_list(ctx, t)
+    elif t.keyword == 'list':
+        v_reference_list(ctx, t) 
 
 
 ### Unused definitions phase

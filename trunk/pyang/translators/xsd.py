@@ -22,8 +22,9 @@ yang_to_xsd_types = \
    'uint16':'unsignedShort',
    'uint32':'unsignedInt',
    'uint64':'unsignedLong',
-   'float32':'float',
-   'float64':'double',
+   'decimal64':'decimal',
+#   'float32':'float',
+#   'float64':'double',
    'string':'string',
    'boolean':'boolean',
    # enumeration is handled separately
@@ -57,6 +58,7 @@ yang_keywords = \
      'error-message':    ('value',       True,       True),
      'extension':        ('name',        False,      False),
      'feature':          ('name',        False,      False),
+     'fraction-digits':  ('value',       False,      False),
      'grouping':         ('name',        False,      False),
      'identity':         ('name',        False,      False),
      'if-feature':       ('name',        False,      False),
@@ -86,6 +88,7 @@ yang_keywords = \
      'range':            ('value',       False,      False),
      'reference':        ('info',        False,      True),
      'refine':           ('target-node', False,      False),
+     'require-instance': ('value',       False,      True),
      'revision':         ('date',        False,      True),
      'rpc':              ('name',        False,      False),
      'status':           ('value',       False,      True),
@@ -795,6 +798,9 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                 hi = lo
             if hi not in ['min', 'max']:
                 fd.write(indent + '    <xs:maxInclusive value="%s"/>\n' % hi)
+        elif type.search_one('fraction-digits') is not None:
+            fd.write(indent + '    <xs:fractionDigits value="%s"/>\n' % 
+                     type.search_one('fraction-digits').arg)
         fd.write(indent + '  </xs:restriction>\n')
     fd.write(indent + '</xs:simpleType>\n')
 

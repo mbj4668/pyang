@@ -56,15 +56,19 @@ module yt3a {
       type uint64;
     }
 
+/* no longer allowed!!!
     leaf l9 {
       description float32;
       type float32;
     }
+*/
 
+/* no longer allowed!!!
     leaf l10 {
       description float64;
       type float64;
     }
+*/
 
     leaf l11 {
       description boolean;

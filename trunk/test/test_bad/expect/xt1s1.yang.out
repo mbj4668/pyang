@@ -1,2 +1,6 @@
 xt1s1.yang:7: error: PREFIX_NOT_DEFINED
 xt3.yang:4: error: UNEXPECTED_KEYWORD_1
+xt4.yang:16: error: TYPE_VALUE
+xt4.yang:24: error: TYPE_VALUE
+xt4.yang:35: error: BAD_RESTRICTION
+xt4.yang:65: error: TYPE_VALUE

@@ -31,7 +31,7 @@ e.yang:17: warning: UNUSED_GROUPING
 e.yang:63: error: INVALID_CONFIG
 e.yang:69: error: BAD_NODE_IN_AUGMENT
 e.yang:76: error: BAD_NODE_IN_AUGMENT
-e.yang:82: error: BAD_NODE_IN_AUGMENT
+e.yang:82: error: NODE_NOT_FOUND
 f.yang:11: error: NEED_KEY
 f.yang:25: error: INVALID_CONFIG
 f.yang:36: error: BAD_TYPE_IN_KEY

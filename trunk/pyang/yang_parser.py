@@ -36,29 +36,39 @@ class YangTokenizer(object):
         i = 0
         pos = 0
         buflen = len(self.buf)
-        while i < buflen and self.buf[i].isspace():
-            if self.buf[i] == '\t':
-                pos = pos + 8
-            else:
-                pos = pos + 1
-            i = i + 1
-        if i == buflen:
-            self.readline()
-            return self.skip()
-        else:
-            self.set_buf(i, pos)
-        # skip line comment
-        if self.buf.startswith('//'):
-            self.readline()
-            return self.skip()
-        # skip block comment
-        elif self.buf.startswith('/*'):
-            i = self.buf.find('*/')
-            while i == -1:
+
+#        while i < buflen and self.buf[i].isspace():
+#            if self.buf[i] == '\t':
+#                pos = pos + 8
+#            else:
+#                pos = pos + 1
+#            i = i + 1
+#        if i == buflen:
+#            self.readline()
+#            return self.skip()
+#        else:
+#            self.set_buf(i, pos)
+        while True:
+            self.buf = self.buf.lstrip()
+            if self.buf == '':
                 self.readline()
+            else:
+                break
+        self.offset += buflen - len(self.buf)
+            
+        # skip line comment
+        if self.buf[0] == '/':
+            if self.buf[1] == '/':
+                self.readline()
+                return self.skip()
+        # skip block comment
+            elif self.buf[1] == '*':
                 i = self.buf.find('*/')
-            self.set_buf(i+2)
-            return self.skip()
+                while i == -1:
+                    self.readline()
+                    i = self.buf.find('*/')
+                self.set_buf(i+2)
+                return self.skip()
 
     def get_keyword(self):
         """ret: identifier | (prefix, identifier)"""

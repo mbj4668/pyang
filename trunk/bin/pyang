@@ -183,4 +183,6 @@ Validates the YANG module in <filename>, and all its dependencies."""
 
 
 if __name__ == '__main__':
-    run()
+#    run()
+    import cProfile
+    cProfile.run('run()', 'prof')
