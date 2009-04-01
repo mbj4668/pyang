@@ -48,7 +48,81 @@ class IntTypeSpec(TypeSpec):
     def restrictions(self):
         return ['range']
     
+class Decimal64Value(object):
+    def __init__(self, value, s=None):
+        self.value = value
+        self.s = s
+        if s == None:
+            self.s = str(value)
+    def __str__(self):
+        return self.s
 
+    def __cmp__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return -1
+        return cmp(self.value, other.value)
+
+    def __eq__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return False
+        return self.__cmp__(other) == 0
+
+    def __ne__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return True
+        return self.__cmp__(other) != 0
+
+class Decimal64TypeSpec(TypeSpec):
+    def __init__(self, fraction_digits):
+        TypeSpec.__init__(self)
+        self.fraction_digits = int(fraction_digits.arg)
+        self.min = Decimal64Value(-9223372036854775808)
+        self.max = Decimal64Value(9223372036854775807)
+
+    def str_to_val(self, errors, pos, s):
+        dbg('trying to convert "%s" to a decimal...' % s)
+        if s in ('min', 'max'):
+            return s
+        # make sure it is syntactically correct
+        if syntax.re_decimal.search(s) is None:
+            err_add(errors, pos, 'TYPE_VALUE',
+                    (s, self.definition, 'not a decimal'))
+            return None
+        p = s.find('.')
+        if p == -1:
+            v = int(s)
+            i = self.fraction_digits
+            while i > 0:
+                v = v * 10
+                i -= 1
+        else:
+            v = int(s[:p])
+            i = self.fraction_digits
+            j = p + 1
+            slen = len(s.rstrip('0')) # ignore trailing zeroes
+            while i > 0:
+                v *= 10
+                i -= 1
+                if j < slen:
+                    v += int(s[j])
+                j += 1
+            if j < slen:
+                err_add(errors, pos, 'TYPE_VALUE',
+                        (s, self.definition, 'too many fraction digits'))
+                return None
+        return Decimal64Value(v, s)
+
+    def validate(self, errors, pos, val, errstr = ''):
+        if val < self.min or val > self.max:
+            err_add(errors, pos, 'TYPE_VALUE',
+                    (str(val), self.definition, 'range error' + errstr))
+            return False
+        else:
+            return True
+    
+    def restrictions(self):
+        return ['range']
+    
 class FloatTypeSpec(TypeSpec):
     def __init__(self, bits):
         TypeSpec.__init__(self)
@@ -539,6 +613,7 @@ yang_type_specs = \
    'uint16':IntTypeSpec(0, 65535),
    'uint32':IntTypeSpec(0, 4294967295),
    'uint64':IntTypeSpec(0, 18446744073709551615),
+   'decimal64':TypeSpec(),
    'float32':FloatTypeSpec(32),
    'float64':FloatTypeSpec(64),
    'string':StringTypeSpec(),

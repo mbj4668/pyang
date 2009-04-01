@@ -56,6 +56,7 @@ module yt3 {
       type uint64;
     }
 
+/* no longer allowed!!!
     typedef t9 {
       description float32;
       type float32;
@@ -64,6 +65,14 @@ module yt3 {
     typedef t10 {
       description float64;
       type float64;
+    }
+*/
+
+    typedef t10 {
+      description decimal64;
+      type decimal64 {
+        fraction-digits 5;
+      }
     }
 
     typedef t11 {

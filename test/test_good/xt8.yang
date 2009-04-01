@@ -58,6 +58,13 @@ module xt8 {
              + "[b2 = current()/../rb2]/c/c2";
         }
       }
+      leaf dc1 {
+        type decimal64 {
+          fraction-digits 3;
+          range "1..5.5";
+        }
+        default 1.506;
+      }
     }
   }
 }

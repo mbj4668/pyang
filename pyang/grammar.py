@@ -168,6 +168,10 @@ stmt_map = {
           ('reference', '?')]),
     'base':
         ('identifier-ref', []),
+    'require-instance':
+        ('boolean', []),
+    'fraction-digits':
+        ('fraction-digits-arg', []),
     'typedef':
         ('identifier',
          [('type', '1'),
@@ -180,12 +184,15 @@ stmt_map = {
     'type':
         ('identifier-ref',
          [('$choice',
-           [[('range', '?')],
+           [[('fraction-digits', '?'),
+             ('range', '?')],
             [('length', '?'),
              ('pattern', '*')],
             [('enum', '*')],
             [('bit', '*')],
-            [('path', '?')],
+            [('path', '?'),
+             ('require-instance', '?')],
+            [('require-instance', '?')],
             [('base', '?')],
             [('type', '*')]])]),
     'range':
@@ -228,7 +235,7 @@ stmt_map = {
           ('reference', '?'),
           ]),
     'position':
-        ('non-negative-decimal', []),
+        ('non-negative-integer', []),
     'status':
         ('status-arg', []),
     'config':
@@ -251,11 +258,11 @@ stmt_map = {
     'error-app-tag':
         ('string', []),
     'min-elements':
-        ('non-negative-decimal', []),
+        ('non-negative-integer', []),
     'max-elements':
         ('max-value', []),
     'value':
-        ('decimal', []),
+        ('integer', []),
     'grouping':
         ('identifier',
          [('status', '?'),
