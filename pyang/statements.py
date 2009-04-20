@@ -918,6 +918,10 @@ def v_expand_1_children(ctx, stmt):
         return 'continue'
               
 def v_expand_1_uses(ctx, stmt):
+    if (hasattr(stmt, 'is_grammatically_valid') and
+        stmt.is_grammatically_valid == False):
+        return
+
     if stmt.i_grouping is None:
         return
     
