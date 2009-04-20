@@ -670,11 +670,11 @@ def v_type_grouping(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
         if stmt.i_is_validated == True:
             # this grouping has already been validated
-            return
+            return True
         elif stmt.i_is_validated == 'in_progress':
             err_add(ctx.errors, stmt.pos,
                     'CIRCULAR_DEPENDENCY', ('grouping', stmt.arg) )
-            return
+            return False
 
     stmt.i_is_validated = 'in_progress'
     stmt.i_is_unused = True
@@ -695,10 +695,13 @@ def v_type_grouping(ctx, stmt):
     iterate_stmt(stmt, validate_uses)
 
     stmt.i_is_validated = True
+    return True
 
 def v_type_uses(ctx, stmt, no_error_report=False):
     # Find the grouping
     name = stmt.arg
+    if hasattr(stmt, 'i_grouping'):
+        return
     stmt.i_grouping = None
     if name.find(":") == -1:
         prefix = None
@@ -707,9 +710,11 @@ def v_type_uses(ctx, stmt, no_error_report=False):
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local groupings
         pmodule = stmt.i_module
-        stmt.i_grouping = search_grouping(stmt, name)
-        if stmt.i_grouping is not None and stmt.is_grammatically_valid == True:
-            v_type_grouping(ctx, stmt.i_grouping)
+        i_grouping = search_grouping(stmt, name)
+        if i_grouping is not None and i_grouping.is_grammatically_valid == True:
+            if v_type_grouping(ctx, i_grouping) == True:
+                stmt.i_grouping = i_grouping
+            
     else:
         # this is a prefixed name, check the imported modules
         pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)

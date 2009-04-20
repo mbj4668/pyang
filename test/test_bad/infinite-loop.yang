@@ -1,0 +1,10 @@
+module inifineloop {
+  namespace "urn:test";
+  prefix "infinite";
+  
+  grouping target {
+    container c;
+    uses target;
+  }
+
+}
