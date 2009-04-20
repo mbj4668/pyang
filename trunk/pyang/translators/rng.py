@@ -271,8 +271,6 @@ class RNGTranslator(object):
         self.namespaces = {
             "urn:ietf:params:xml:ns:netmod:conceptual-tree:1" : "nmt",
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
-            self.a_uri : "a",
-            self.dc_uri : "dc",
         }
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
@@ -358,8 +356,8 @@ class RNGTranslator(object):
         whether unused groupings and typedefs from the top level of
         `modules` are mapped to the output schema.
         """
-        if no_dc: del self.namespaces["dc"]
-        if no_a: del self.prefix_map["a"]
+        if not no_dc: self.namespaces[self.dc_uri] = "dc"
+        if not no_a: self.namespaces[self.a_uri] = "a"
         self.debug = debug
         self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
         self.no_data = True
@@ -389,7 +387,7 @@ class RNGTranslator(object):
         return ET.ElementTree(element=self.grammar_elem)
 
     def add_namespace(self, uri, prefix):
-        """Add new item `prefix`:`uri` to `self.namespaces`.
+        """Add new item `uri`:`prefix` to `self.namespaces`.
 
         The prefix to be actually used for `uri` is returned.  If the
         namespace is already known, the old prefix should be used.
