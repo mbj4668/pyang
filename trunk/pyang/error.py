@@ -161,6 +161,9 @@ error_codes = \
     'NEED_KEY_USES':
       (1,
        'the list at "%s" needs at least one key because it is used as config'),
+    'KEY_BAD_CONFIG':
+      (1,
+       'the key "%s" does not have same "config" as its list'),
     'BAD_KEY':
       (1,
        'the key "%s" does not reference an existing leaf'),
