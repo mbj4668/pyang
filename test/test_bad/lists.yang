@@ -1,0 +1,19 @@
+module lists {
+  namespace "urn:test:lists";
+  prefix "lists";
+	
+  list interface {
+    key "name observed-speed";
+    config true;
+
+    leaf name {
+      type string;
+    }
+
+    leaf observed-speed {
+      type uint32;
+      config false; // error: bad config
+    }
+  }
+  
+}

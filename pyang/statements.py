@@ -1222,6 +1222,10 @@ def v_reference_list(ctx, stmt):
                 if default is not None:
                     err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
                     
+                if ptr.i_config != stmt.i_config:
+                    err_add(ctx.errors, ptr.search_one('config').pos,
+                            'KEY_BAD_CONFIG', name)
+                    
                 stmt.i_key.append(ptr)
                 found.append(x)
 
