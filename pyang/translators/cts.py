@@ -1,7 +1,8 @@
 # Copyright (c) 2009 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 #                       Martin Bjorklund <mbj@tail-f.com>
 #
-# Translator of YANG to RELAX NG with additional annotations
+# Translator of YANG to conceptual tree schema
+# (RELAX NG with additional annotations)
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,25 +16,25 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""Translator from YANG to RELAX NG with annotations.
+"""Translator from YANG to conceptual tree schema.
 
 It is designed as a plugin for the pyang program and defines several
 new command-line options:
 
---rng-no-documentation
+--cts-no-documentation
     No output of DTD compatibility documentation annotations
 
---rng-no-dublin-core
+--cts-no-dublin-core
     No output of Dublin Core annotations
 
---rng-record-defs
+--cts-record-defs
     Record all top-level defs, even if they are not used
 
 Three classes are defined in this module:
 
-* `RNGPlugin`: pyang plugin interface class
+* `CTSPlugin`: pyang plugin interface class
 
-* `RNGTranslator`: provides instance that preforms the mapping
+* `CTSTranslator`: provides instance that preforms the mapping
 
 * `Patch`: utility class representing a patch to the YANG tree
   where augment and refine statements are recorded
@@ -52,39 +53,40 @@ import pyang
 from pyang import plugin, statements, error
 
 def pyang_plugin_init():
-    plugin.register_plugin(RNGPlugin())
+    plugin.register_plugin(CTSPlugin())
 
-class RNGPlugin(plugin.PyangPlugin):
+class CTSPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
-        fmts['rng'] = self
+        fmts['cts'] = self
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--rng-no-documentation",
-                                 dest="rng_no_documentation",
+            optparse.make_option("--cts-no-documentation",
+                                 dest="cts_no_documentation",
                                  action="store_true",
                                  default=False,
                                  help="No output of DTD compatibility"
                                  " documentation annotations"),
-            optparse.make_option("--rng-no-dublin-core",
-                                 dest="rng_no_dublin_core",
+            optparse.make_option("--cts-no-dublin-core",
+                                 dest="cts_no_dublin_core",
                                  action="store_true",
                                  default=False,
                                  help="No output of Dublin Core"
                                  " annotations"),
-            optparse.make_option("--rng-record-defs",
-                                 dest="rng_record_defs",
+            optparse.make_option("--cts-record-defs",
+                                 dest="cts_record_defs",
                                  action="store_true",
                                  default=False,
                                  help="Record all top-level defs"
                                  " (even if not used)"),
             ]
-        g = optparser.add_option_group("RELAX NG output specific options")
+        g = optparser.add_option_group("Conceptual tree schema "
+                                       "output specific options")
         g.add_options(optlist)
     def emit(self, ctx, module, fd):
         try:
             import xml.etree.ElementTree as ET
         except ImportError:
-            print >> sys.stderr, ("RELAX NG translation needs etree module "
+            print >> sys.stderr, ("CTS translation needs etree module "
                                   "available since python 2.5")
             sys.exit(1)
 
@@ -92,19 +94,19 @@ class RNGPlugin(plugin.PyangPlugin):
             print >> sys.stderr, "Cannot translate submodules"
             sys.exit(1)
 
-        emit_rng(ctx, module, fd)
+        emit_cts(ctx, module, fd)
 
-def emit_rng(ctx, module, fd):
+def emit_cts(ctx, module, fd):
     # No errors are allowed
     for (epos, etag, eargs) in ctx.errors:
         if (epos.top_name == module.arg and
             error.is_error(error.err_level(etag))):
-            print >> sys.stderr, "RELAX NG translation needs a valid module"
+            print >> sys.stderr, "CTS translation needs a valid module"
             sys.exit(1)
-    etree = RNGTranslator().translate((module,),
-                                      ctx.opts.rng_no_dublin_core,
-                                      ctx.opts.rng_no_documentation,
-                                      ctx.opts.rng_record_defs, debug=0)
+    etree = CTSTranslator().translate((module,),
+                                      ctx.opts.cts_no_dublin_core,
+                                      ctx.opts.cts_no_documentation,
+                                      ctx.opts.cts_record_defs, debug=0)
     etree.write(fd, "UTF-8")
 
 class Patch(object):
@@ -172,14 +174,14 @@ class Patch(object):
             if st.keyword == keyword:
                 return arg == None or st.arg == arg
 
-class RNGTranslator(object):
+class CTSTranslator(object):
 
-    """Instances of this class translate YANG to RELAX NG + annotations.
+    """
+    Instances of this class translate YANG to conceptual tree schema.
 
     The `translate` method walks recursively down the tree of YANG
-    statements and builds resulting ElementTree(s) containing the
-    annotated RELAX NG schemas. For each YANG statement, a callback
-    method for the statement's keyword is dispatched.
+    statements and builds the resulting ElementTree containing the
+    annotated RELAX NG schema for the conceptual tree.
 
     Instance variables:
     
@@ -348,7 +350,7 @@ class RNGTranslator(object):
 
     def translate(self, modules, no_dc=False, no_a=False,
                   record_defs=False, debug=0):
-        """Translate `modules` to RELAX NG schema with annotations.
+        """Translate `modules` to conceptual tree schema.
 
         Return value: ElementTree with the resulting schema. If
         `no_dc`/`no_a` is true, Dublin Core/documentation
@@ -383,7 +385,7 @@ class RNGTranslator(object):
         self.handle_empty()
         self.declare_namespaces()
         self.dc_element("creator",
-                        "Pyang %s, RELAX NG plugin" % pyang.__version__)
+                        "Pyang %s, CTS plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
 
     def add_namespace(self, uri, prefix):
