@@ -24,7 +24,8 @@ complete list of options.
 .SH DESCRIPTION
 The \fBpyang\fP program is used to validate YANG modules.  It is also
 used to convert YANG modules into equivalent YIN modules.  From a
-valid module, a W3C XML Schema (XSD) schema can be generated.
+valid module, a W3C XML Schema (XSD) or conceptual tree schema (RELAX
+NG with additional annotations) can be generated.
 
 If no \fIformat\fP is given, the specified modules are validated, and
 the program exits with exit code 0 if all modules are valid.
@@ -47,7 +48,7 @@ Treat warnings as errors.
 Do not print any warnings.
 .TP
 .B "--canonical"
-Validate the module(s) according the canonical YANG order.
+Validate the module(s) according to the canonical YANG order.
 .TP
 .BI "-f " format ", --format " format
 Convert the module into \fIformat\fP.  When this parameter is present,
@@ -91,8 +92,8 @@ the XML syntax of YANG
 .TP 
 \fIyang\fR
 .TP
-\fIdsdl\fR
-ISO/IEC 19757
+\fIcts\fR
+Conceptual tree schema (RELAX NG with annotations)
 .TP
 \fIxsd\fR
 W3C XML Schema
@@ -117,23 +118,19 @@ Generate all statements in the canonical order.
 Pretty print strings, i.e. print with extra whitespace in the string.
 This is not strictly correct, since the whitespace is significant
 within the strings in XML, but the output is more readable.
-.SH DSDL OUTPUT
-Options for the \fIdsdl\fR output format.
+.SH CTS OUTPUT
+Options for the \fIcts\fR output format.
 .TP
-.B "--dsdl-no-annotations"
+.B "--cts-no-documentation"
 Do not print documentation annotations
 .TP
-.B "--dsdl-no-dublin-core"
-Do not print Dublin Core elements
+.B "--cts-no-dublin-core"
+Do not print Dublin Core metadata terms
 .TP
-.B "--dsdl-no-schematron"
-Do not print Schematron rules
-.TP
-.B "--dsdl-no-dsrl"
-Do not print DSRL annotations (default-content)
-.TP
-.B "--dsdl-no-netmod"
-Do not print NETMOD-specific attributes
+.B "--cts-record-defs"
+Record translations of all top-level typedefs and groupings in the
+output schema, even if they are not used. This is useful for
+translating library modules.
 .SH XSD OUTPUT
 Options for the \fIxsd\fR output format.
 .TP
