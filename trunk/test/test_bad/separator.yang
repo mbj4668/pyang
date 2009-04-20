@@ -1,0 +1,16 @@
+module "separator" {
+  namespace "urn:test:sep";
+  prefix sep; 
+
+  sep:ext2{ } // ok
+
+  sep:ext:separatorRequired; // error: separator required
+
+  extension ext {
+    argument test;
+    status current;
+  }
+
+  extension ext2;
+
+}

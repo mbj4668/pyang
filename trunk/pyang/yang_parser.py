@@ -81,6 +81,18 @@ class YangTokenizer(object):
             raise error.Abort
         else:
             self.set_buf(m.end())
+            # check the separator
+            if (self.buf[0].isspace() or
+                (self.buf[0] == '/' and self.buf[1] in ('/', '*')) or
+                (self.buf[0] in (';','{'))):
+                pass
+            else:
+                error.err_add(self.errors, self.pos,
+                              'SYNTAX_ERROR', 'expected spearator, got: "' +
+                              self.buf[:6] + '..."')
+                raise error.Abort
+            
+
             if m.group(2) == None: # no prefix
                 return m.group(3)
             else:
@@ -90,7 +102,7 @@ class YangTokenizer(object):
         """Return next real character in input stream.
 
         Skips whitespace and comments, and returns next character
-        withoyt consuming it.  Use skip_tok() to consume the characater.
+        without consuming it.  Use skip_tok() to consume the characater.
         """
         self.skip()
         try:
