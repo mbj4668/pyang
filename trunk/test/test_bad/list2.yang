@@ -16,6 +16,14 @@ module list2 {
           type string;
         }
       }
+      container x {
+        container y {
+          leaf-list m {
+            min-elements "1"; // error: no mandatory under default case
+            type string;
+          }
+        }
+      }
     }
   }
   
