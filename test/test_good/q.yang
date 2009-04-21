@@ -1,0 +1,6 @@
+module q {
+  namespace urn:q;
+  prefix q;
+
+  include qs;
+}
