@@ -1,0 +1,15 @@
+submodule augment {
+	belongs-to augment-super {
+		prefix "as";
+	}
+
+	container interfaces {
+		leaf ifEntry {				
+            type int32;
+		}
+	}
+   
+}                                                                                                    
+
+
+

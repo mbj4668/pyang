@@ -1,0 +1,15 @@
+ module augment-super {
+	namespace "http://example.com/augmentsuper";
+	prefix "as";
+
+	include augment;
+
+	augment "/as:interfaces" {
+		leaf ifEntry {
+			type int8;
+		}
+	}
+}                                                                                                    
+
+
+
