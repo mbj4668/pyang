@@ -78,8 +78,14 @@ error_codes = \
     'MODULE_NOT_IMPORTED':
       (1,
        'no module with the namespace "%s" is imported'),
+    'BAD_IMPORT':
+      (1,
+       'cannot import %s "%s", must be a module'),
+    'BAD_INCLUDE':
+      (1,
+       'cannot include %s "%s", must be a submodule'),
     'BAD_MODULE_FILENAME':
-    (2,
+      (2,
        'unexpected modulename "%s" in file %s should be %s'),
     'BAD_SUB_BELONGS_TO':
       (1,
@@ -235,6 +241,9 @@ error_codes = \
     'IDENTITY_ALREADY_DEFINED':
       (1,
        'identity name "%s" is already defined at %s'),
+    'EXTENSION_ALREADY_DEFINED':
+      (1,
+       'extension name "%s" is already defined at %s'),
     'BAD_RESTRICTION':
       (1,
        'restriction %s not allowed for this base type'),

@@ -311,7 +311,7 @@ class YinParser(object):
 
     def find_extension(self, uri, extname):
         def find_in_mod(mod):
-            ext = statements.search_definition(mod, 'extension', extname)
+            ext = self.search_definition(mod, 'extension', extname)
             if ext is None:
                 return None
             ext_arg = ext.search_one('argument')
@@ -341,3 +341,19 @@ class YinParser(object):
                 return find_in_mod(mod)
             except KeyError:
                 return None
+
+    def search_definition(self, module, keyword, arg):
+        """Search for a defintion with `keyword` `name`
+        Search the module and its submodules."""
+        r = module.search_one(keyword, arg)
+        if r is not None:
+            return r
+        for i in module.search('include'):
+            modulename = i.arg
+            m = module.i_ctx.get_module(modulename)
+            if m is not None:
+                r = m.search_one(keyword, arg)
+                if r is not None:
+                    return r
+        return None
+

@@ -165,6 +165,8 @@ _validation_map = {
 
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
 
+    ('unique_name', 'module'): \
+        lambda ctx, s: v_unique_name_defintions(ctx, s),
     ('unique_name', '$has_children'): \
         lambda ctx, s: v_unique_name_children(ctx, s),
 
@@ -288,6 +290,10 @@ def v_init_module(ctx, stmt):
                 stmt.i_prefixes[p.arg] = i.arg
                 stmt.i_unused_prefixes[p.arg] = i
 
+    stmt.i_features = {}
+    stmt.i_identities = {}
+    stmt.i_extensions = {}
+
     # save a pointer to the context
     stmt.i_ctx = ctx
     # keep track of created augment nodes
@@ -339,8 +345,10 @@ def v_grammar_unique_defs(ctx, stmt):
     defs = [('typedef', 'TYPE_ALREADY_DEFINED', stmt.i_typedefs),
             ('grouping', 'GROUPING_ALREADY_DEFINED', stmt.i_groupings)]
     if stmt.parent is None:
-        defs.extend([('feature', 'FEATURE_ALREADY_DEFINED', {}),
-                     ('identity', 'IDENTITY_ALREADY_DEFINED', {})])
+        defs.extend(
+            [('feature', 'FEATURE_ALREADY_DEFINED', stmt.i_features),
+             ('identity', 'IDENTITY_ALREADY_DEFINED', stmt.i_identities),
+             ('extension', 'EXTENSION_ALREADY_DEFINED', stmt.i_extensions)])
     for (keyword, errcode, dict) in defs:
         for definition in stmt.search(keyword):
             if definition.arg in dict:
@@ -363,7 +371,7 @@ def v_import_module(ctx, stmt):
             mymodulename = b.arg
         else:
             mymodulename = None
-    for i in imports + includes:
+    def add_module(i):
         # check if the module to import is already added
         modulename = i.arg
         m = ctx.get_module(modulename)
@@ -372,12 +380,49 @@ def v_import_module(ctx, stmt):
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
         module = ctx.search_module(i.pos, modulename)
+        return module
         
-        if module is not None and module.keyword == 'submodule':
-            b = module.search_one('belongs-to')
+    for i in imports:
+        module = add_module(i)
+        if module is not None and module.keyword != 'module':
+            err_add(ctx.errors, i.pos,
+                    'BAD_IMPORT', (module.keyword, i.arg))
+    
+    for i in includes:
+        submodule = add_module(i)
+        if submodule is not None and submodule.keyword != 'submodule':
+            err_add(ctx.errors, i.pos,
+                    'BAD_INCLUDE', (submodule.keyword, i.arg))
+            return
+        if submodule is not None:
+            b = submodule.search_one('belongs-to')
             if b is not None and b.arg != mymodulename:
                 err_add(ctx.errors, b.pos,
-                    'BAD_SUB_BELONGS_TO', (stmt.arg, modulename, modulename))
+                    'BAD_SUB_BELONGS_TO',
+                        (stmt.arg, submodule.arg, submodule.arg))
+            elif stmt.keyword == 'module':
+                # verify that the submodule's definitions does not collide
+                # with the module's definitions
+                defs = \
+                    [(submodule.i_typedefs, stmt.i_typedefs,
+                      'TYPE_ALREADY_DEFINED'),
+                     (submodule.i_groupings, stmt.i_groupings,
+                      'GROUPING_ALREADY_DEFINED'),
+                     (submodule.i_features, stmt.i_features,
+                      'FEATURE_ALREADY_DEFINED'),
+                     (submodule.i_identities, stmt.i_identities,
+                      'IDENTITY_ALREADY_DEFINED'),
+                     (submodule.i_extensions, stmt.i_extensions,
+                      'EXTENSION_ALREADY_DEFINED')]
+                for (subdict, dict, errcode) in defs:
+                    for name in subdict:
+                        subdefinition = subdict[name]
+                        if name in dict:
+                            other = subdict[name]
+                            err_add(ctx.errors, dict[name].pos,
+                                    errcode, (name, other.pos))
+                        else:
+                            dict[name] = subdefinition
 
 ### type phase
 
@@ -739,13 +784,12 @@ def v_type_extension(ctx, stmt):
     module = modulename_to_module(stmt.i_module, modulename)
     if module is None:
         return
-    ext = search_definition(module, 'extension', identifier)
-    if ext is None:
+    if identifier not in module.i_extensions:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
                 (identifier, module.arg))
         return
-    stmt.i_extension = ext
-    ext_arg = ext.search_one('argument')
+    stmt.i_extension = module.i_extensions[identifier]
+    ext_arg = stmt.i_extension.search_one('argument')
     if stmt.arg is not None and ext_arg is None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_ARGUMENT_PRESENT',
                 identifier)
@@ -784,18 +828,18 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
         prefix = None
     else:
         [prefix, name] = name.split(':', 1)
+    stmt.i_feature = None
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local features
         pmodule = stmt.i_module
-        stmt.i_feature = search_definition(stmt.i_module, 'feature', name)
-        if stmt.i_feature is not None:
-            v_type_feature(ctx, stmt.i_feature)
     else:
         # this is a prefixed name, check the imported modules
         pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
-        stmt.i_feature = search_definition(pmodule, 'feature', name)
+    if name in pmodule.i_features:
+        stmt.i_feature = pmodule.i_features[name]
+        v_type_feature(ctx, stmt.i_feature)
     if stmt.i_feature is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'FEATURE_NOT_FOUND', (name, pmodule.arg))
@@ -834,19 +878,17 @@ def v_type_base(ctx, stmt, no_error_report=False):
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local identities
         pmodule = stmt.i_module
-        stmt.i_identity = search_definition(stmt.i_module, 'identity', name)
-        if stmt.i_identity is not None:
-            v_type_identity(ctx, stmt.i_identity)
     else:
         # this is a prefixed name, check the imported modules
         pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
-        stmt.i_identity = search_definition(pmodule, 'identity', name)
+    if name in pmodule.i_identities:
+        stmt.i_identity = pmodule.i_identities[name]
+        v_type_identity(ctx, stmt.i_identity)
     if stmt.i_identity is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
-
     
 ### Expand phases
 
@@ -1146,6 +1188,17 @@ def v_expand_2_augment(ctx, stmt):
 
 ### Unique name check phase
 
+def v_unique_name_defintions(ctx, stmt):
+    """Make sure that all top-level definitions in a module are unique"""
+    return
+# HERE.  See v_grammar_unique_defs
+    for i in stmt.search('include'):
+        submodulename = i.arg
+        subm = ctx.get_module(submodulename)
+        if subm is not None:
+            chs += subm.i_children
+
+
 def v_unique_name_children(ctx, stmt):
     """Make sure that each child of stmt has a unique name"""
 
@@ -1156,7 +1209,16 @@ def v_unique_name_children(ctx, stmt):
             return (p2,p1)
 
     dict = {}
-    for c in stmt.i_children:
+    chs = stmt.i_children
+    if stmt.keyword == 'module':
+        # also check all submodules
+        for i in stmt.search('include'):
+            submodulename = i.arg
+            subm = ctx.get_module(submodulename)
+            if subm is not None:
+                chs += subm.i_children
+        
+    for c in chs:
         if c.arg in dict:
             dup = dict[c.arg]
             (minpos, maxpos) = sort_pos(c.pos, dup.pos)
@@ -1492,12 +1554,6 @@ def search_typedef(stmt, name):
     while stmt is not None:
         if name in stmt.i_typedefs:
             return stmt.i_typedefs[name]
-        if stmt.parent == None: # module or submodule
-            for i in stmt.search('include'):
-                modulename = i.arg
-                m = stmt.i_ctx.get_module(modulename)
-                if m is not None and name in m.i_typedefs:
-                    return m.i_typedefs[name]
         stmt = stmt.parent
     return None
 
@@ -1507,28 +1563,7 @@ def search_grouping(stmt, name):
     while stmt is not None:
         if name in stmt.i_groupings:
             return stmt.i_groupings[name]
-        if stmt.parent == None: # module or submodule
-            for i in stmt.search('include'):
-                modulename = i.arg
-                m = stmt.i_ctx.get_module(modulename)
-                if m is not None and name in m.i_groupings:
-                    return m.i_groupings[name]
         stmt = stmt.parent
-    return None
-
-def search_definition(module, keyword, arg):
-    """Search for a defintion with `keyword` `name`
-    Search the module and its submodules."""
-    r = module.search_one(keyword, arg)
-    if r is not None:
-        return r
-    for i in module.search('include'):
-        modulename = i.arg
-        m = module.i_ctx.get_module(modulename)
-        if m is not None:
-            r = m.search_one(keyword, arg)
-            if r is not None:
-                return r
     return None
 
 def find_target_node(ctx, stmt, is_augment=False):

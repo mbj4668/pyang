@@ -1,0 +1,12 @@
+submodule submodule2 {
+
+  belongs-to composite {
+    prefix c; 
+  }
+
+  import submodule1 { // error: submodule1 is a submodule
+    prefix x;
+  }
+
+  grouping g1;
+}
