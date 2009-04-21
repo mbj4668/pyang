@@ -1354,9 +1354,9 @@ def v_reference_choice(ctx, stmt):
                         if m is not None and int(m.arg) > 0:
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
-                    if c.keyword == 'container':
+                    elif c.keyword == 'container':
                         p = c.search_one('presence')
-                        if p == None or p.arg == 'False':
+                        if p == None or p.arg == 'false':
                             chk_no_defaults(c)
             chk_no_defaults(ptr)
 
