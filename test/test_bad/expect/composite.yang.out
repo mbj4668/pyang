@@ -1,0 +1,7 @@
+composite.yang:8: error: BAD_INCLUDE
+composite.yang:10: error: TYPE_ALREADY_DEFINED
+composite.yang:14: error: IDENTITY_ALREADY_DEFINED
+composite.yang:16: error: FEATURE_ALREADY_DEFINED
+submodule1.yang:15: error: GROUPING_ALREADY_DEFINED
+submodule2.yang:7: error: BAD_IMPORT
+submodule2.yang:7: warning: UNUSED_IMPORT
