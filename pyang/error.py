@@ -129,6 +129,9 @@ error_codes = \
     'DEFAULT_CASE_NOT_FOUND':
       (1,
        'the default case "%s" is not found"'),
+    'MANDATORY_NODE_IN_DEFAULT_CASE':
+      (1,
+       'mandatory node in default case'),
     'MULTIPLE_REFINE':
       (1,
        'the node "%s" is already refined at %s'),
