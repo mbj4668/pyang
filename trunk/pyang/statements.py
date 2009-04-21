@@ -1340,6 +1340,25 @@ def v_reference_choice(ctx, stmt):
         ptr = attrsearch(d.arg, 'arg', stmt.i_children)
         if ptr is None:
             err_add(ctx.errors, d.pos, 'DEFAULT_CASE_NOT_FOUND', d.arg)
+        else:
+            # make sure there are no mandatory nodes in the default case
+            def chk_no_defaults(s):
+                for c in s.i_children:
+                    if c.keyword == 'leaf':
+                        m = c.search_one('mandatory')
+                        if m is not None and m.arg == 'true':
+                            err_add(ctx.errors, c.pos,
+                                    'MANDATORY_NODE_IN_DEFAULT_CASE', ())
+                    elif c.keyword in ('list', 'leaf-list'):
+                        m = c.search_one('min-elements')
+                        if m is not None and int(m.arg) > 0:
+                            err_add(ctx.errors, c.pos,
+                                    'MANDATORY_NODE_IN_DEFAULT_CASE', ())
+                    if c.keyword == 'container':
+                        p = c.search_one('presence')
+                        if p == None or p.arg == 'False':
+                            chk_no_defaults(c)
+            chk_no_defaults(ptr)
 
 
 def v_reference_leaf_leafref(ctx, stmt):
@@ -1528,6 +1547,20 @@ def has_type(type, names):
             return has_type(t, names)
     return None
 
+def is_mandatory_node(stmt):
+    if stmt.keyword == 'leaf':
+        m = stmt.search_one('mandatory')
+        if m is not None and m.arg == 'True':
+            return True
+    elif stmt.keyword in ('list', 'leaf-list'):
+        m = stmt.search_one('min-elements')
+        if m is not None and int(m.arg) > 0:
+            return True
+    elif stmt.keyword == 'container':
+        for c in stmt.i_children:
+            if is_mandatory_node(c):
+                return True
+    return False
 
 def search_child(children, modulename, identifier):
     for child in children:
@@ -1620,7 +1653,6 @@ def find_target_node(ctx, stmt, is_augment=False):
                     (module.arg, identifier))
             return None
     return node
-
 
 def iterate_stmt(stmt, f):
     def _iterate(stmt):
