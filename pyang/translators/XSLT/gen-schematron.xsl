@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Program name: sep-schematron.xsl
+<!-- Program name: gen-schematron.xsl
 
 Copyright © 2009 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
