@@ -58,6 +58,14 @@ module d {
         }
         uses e:xxx; // error: z4 already used
     }
+  container xxx {
+    choice arne {
+      mandatory true;
+      default x; // error: mandatory and default
+      leaf x { type string; }
+      leaf y { type string; }
+    }
+  }
 }
 
    

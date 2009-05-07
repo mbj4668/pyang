@@ -1360,6 +1360,9 @@ def v_reference_choice(ctx, stmt):
     """Make sure that the default case exists"""
     d = stmt.search_one('default')
     if d is not None:
+        m = stmt.search_one('mandatory')
+        if m is not None and m.arg == 'true':
+            err_add(ctx.errors, stmt.pos, 'DEFAULT_AND_MANDATORY', ())
         ptr = attrsearch(d.arg, 'arg', stmt.i_children)
         if ptr is None:
             err_add(ctx.errors, d.pos, 'DEFAULT_CASE_NOT_FOUND', d.arg)
