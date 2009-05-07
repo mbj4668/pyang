@@ -2,7 +2,6 @@ import re
 import copy
 import time
 
-from debug import dbg
 import util
 from util import attrsearch, keysearch
 from error import err_add
@@ -404,7 +403,7 @@ def v_import_module(ctx, stmt):
                     'BAD_SUB_BELONGS_TO',
                         (stmt.arg, submodule.arg, submodule.arg))
             elif stmt.keyword == 'module':
-                # verify that the submodule's definitions does not collide
+                # verify that the submodule's definitions do not collide
                 # with the module's definitions
                 defs = \
                     [(submodule.i_typedefs, stmt.i_typedefs,
@@ -1213,13 +1212,21 @@ def v_expand_2_augment(ctx, stmt):
 
 def v_unique_name_defintions(ctx, stmt):
     """Make sure that all top-level definitions in a module are unique"""
-    return
-# HERE.  See v_grammar_unique_defs
+    defs = [('typedef', 'TYPE_ALREADY_DEFINED', stmt.i_typedefs),
+            ('grouping', 'GROUPING_ALREADY_DEFINED', stmt.i_groupings)]
+    def f(s):
+        for (keyword, errcode, dict) in defs:
+            if s.keyword == keyword and s.arg in dict:
+                err_add(ctx.errors, dict[s.arg].pos,
+                        errcode, (s.arg, s.pos))
+
     for i in stmt.search('include'):
         submodulename = i.arg
         subm = ctx.get_module(submodulename)
         if subm is not None:
-            chs += subm.i_children
+            for s in subm.substmts:
+                for ss in s.substmts:
+                    iterate_stmt(ss, f)
 
 
 def v_unique_name_children(ctx, stmt):

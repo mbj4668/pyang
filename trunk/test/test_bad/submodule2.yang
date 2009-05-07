@@ -9,4 +9,14 @@ submodule submodule2 {
   }
 
   grouping g1;
+  
+  container new {
+    typedef t1 {
+      type string;
+    }
+    leaf x {
+      type t1;
+    }
+  }
 }
+    
