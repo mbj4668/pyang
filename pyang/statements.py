@@ -294,6 +294,8 @@ def v_init_module(ctx, stmt):
     stmt.i_identities = {}
     stmt.i_extensions = {}
 
+    stmt.i_including_module = None
+
     # save a pointer to the context
     stmt.i_ctx = ctx
     # keep track of created augment nodes
@@ -395,6 +397,7 @@ def v_import_module(ctx, stmt):
                     'BAD_INCLUDE', (submodule.keyword, i.arg))
             return
         if submodule is not None:
+            submodule.i_including_module = stmt
             b = submodule.search_one('belongs-to')
             if b is not None and b.arg != mymodulename:
                 err_add(ctx.errors, b.pos,
@@ -1584,9 +1587,11 @@ def is_mandatory_node(stmt):
 
 def search_child(children, modulename, identifier):
     for child in children:
-        if ((child.arg == identifier) and
-            (child.i_module.arg == modulename)):
-            return child
+        if child.arg == identifier:
+            if ((child.i_module.arg == modulename) or
+                child.i_module.i_including_module is not None and
+                child.i_module.i_including_module.arg == modulename):
+                return child
     return None
 
 def search_data_node(children, modulename, identifier):
@@ -1629,6 +1634,7 @@ def find_target_node(ctx, stmt, is_augment=False):
     if module is None:
         # error is reported by prefix_to_module
         return None
+
     # find the first node
     node = search_child(module.i_children, module.arg, identifier)
     if node is None:

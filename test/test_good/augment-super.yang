@@ -1,0 +1,16 @@
+ module augment-super {
+   namespace "urn:test";
+   prefix "as";
+   
+   include augment-sub0;
+   include augment-sub1;
+        
+   augment "/interfaces/ifEntry" {
+     leaf someNode {
+       type string;
+     }
+   }
+ }
+
+
+
