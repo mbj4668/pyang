@@ -895,6 +895,10 @@ def v_type_base(ctx, stmt, no_error_report=False):
 data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
                  'anyxml', 'rpc', 'notification']
 
+data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
+                            'choice', 'anyxml', 'uses', 'augment']
+
+
 def v_expand_1_children(ctx, stmt):
     if (hasattr(stmt, 'is_grammatically_valid') and
         stmt.is_grammatically_valid == False):
@@ -927,6 +931,14 @@ def v_expand_1_children(ctx, stmt):
             input.i_children = []
             input.i_module = stmt.i_module
             stmt.i_children.append(input)
+        else:
+            # check that there is at least one data definition statement
+            found = False
+            for c in input.substmts:
+                if c.keyword in data_definition_keywords:
+                    found = True
+            if not found:
+                err_add(ctx.errors, input.pos,'EXPECTED_DATA_DEF', 'input')
 
         output = stmt.search_one('output')
         if output is None:
@@ -936,6 +948,14 @@ def v_expand_1_children(ctx, stmt):
             output.i_children = []
             output.i_module = stmt.i_module
             stmt.i_children.append(output)
+        else:
+            # check that there is at least one data definition statement
+            found = False
+            for c in output.substmts:
+                if c.keyword in data_definition_keywords:
+                    found = True
+            if not found:
+                err_add(ctx.errors, output.pos,'EXPECTED_DATA_DEF', 'output')
 
     if stmt.keyword == 'grouping':
         stmt.i_expanded = False

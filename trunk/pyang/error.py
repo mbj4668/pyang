@@ -45,6 +45,9 @@ error_codes = \
     'EXPECTED_KEYWORD_2':
       (1,
        'expected keyword "%s" as child to "%s"'),
+    'EXPECTED_DATA_DEF':
+      (1,
+       'expected a data definition statement as child to "%s"'),
     'UNEXPECTED_KEYWORD':
       (1,
        'unexpected keyword "%s"'),

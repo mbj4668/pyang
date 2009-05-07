@@ -1,0 +1,15 @@
+module rpc1 {
+	namespace "urn:test:rpc";
+	prefix "rpc";
+
+	rpc activate-software-image {
+		input {
+		}
+		output {
+		}
+	}
+
+}                                                                                                    
+
+
+
