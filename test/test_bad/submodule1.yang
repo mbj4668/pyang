@@ -8,6 +8,10 @@ submodule submodule1 {
     type string;
   }
 
+  typedef t1 {
+    type string;
+  }
+
   identity id1;
 
   feature f1;
