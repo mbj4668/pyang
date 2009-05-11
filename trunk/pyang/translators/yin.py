@@ -43,9 +43,6 @@ def emit_yin(ctx, module, fd):
 
     prefix = module.search_one('prefix')
     if prefix is not None:
-        # FIXME: if the prefix really can be used in the submodule
-        # then we need to grab it from the module
-        # currently if we get here it is a module (not submodule)
         namespace = module.search_one('namespace')
         fd.write('\n')
         fd.write(' ' * len(module.keyword))
@@ -54,7 +51,11 @@ def emit_yin(ctx, module, fd):
     for imp in module.search('import'):
         prefix = imp.search_one('prefix')
         if prefix is not None:
-            mod = statements.modulename_to_module(module, imp.arg)
+            rev = None
+            r = imp.search_one('revision-date')
+            if r is not None:
+                rev = r.arg
+            mod = statements.modulename_to_module(module, imp.arg, rev)
             if mod is not None:
                 ns = mod.search_one('namespace')
                 if ns is not None:

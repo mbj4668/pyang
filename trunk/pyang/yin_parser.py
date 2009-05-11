@@ -239,7 +239,7 @@ class YinParser(object):
             p = self.top.find_child(yin_namespace, 'belongs-to')
             modname = p.find_attribute('module')
             # read the parent module in order to find the namespace uri
-            res = self.ctx.read_module(modname, {'no_include':True})
+            res = self.ctx.read_module(modname, extra={'no_include':True})
             if res == 'not_found':
                 error.err_add(self.ctx.errors, p.pos,
                               'MODULE_NOT_FOUND', modname)

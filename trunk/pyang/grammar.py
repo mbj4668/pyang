@@ -122,9 +122,13 @@ stmt_map = {
         ('identifier', []),
     'import':
         ('identifier',
-         [('prefix', '1')]),
+         [('prefix', '1'),
+          ('revision-date', '?')]),
     'include':
-        ('identifier', []),
+        ('identifier',
+         [('revision-date', '?')]),
+    'revision-date':
+        ('date', []),
     'revision':
         ('date',
          [('description', '?')]),

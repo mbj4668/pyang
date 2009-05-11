@@ -254,7 +254,8 @@ def set_phase_i_children(phase):
 
 def v_init_module(ctx, stmt):
     ## remember that the grammar is not validated
-    # create a prefix map in the module: <prefix string> -> <module statement>
+    # create a prefix map in the module:
+    #   <prefix string> -> (<modulename>, <revision-date> | None)
     stmt.i_prefixes = {}
     # keep track of unused prefixes: <prefix string> -> <import statement>
     stmt.i_unused_prefixes = {}
@@ -270,7 +271,7 @@ def v_init_module(ctx, stmt):
             prefix = belongs_to.search_one('prefix')
 
     if prefix is not None and prefix.arg is not None:
-        stmt.i_prefixes[prefix.arg] = stmt.arg
+        stmt.i_prefixes[prefix.arg] = (stmt.arg, None)
         stmt.i_prefix = prefix.arg
     else:
         stmt.i_prefix = None
@@ -280,13 +281,18 @@ def v_init_module(ctx, stmt):
         # verify that the prefix is not used
         if p is not None:
             prefix = p.arg
+            r = i.search_one('revision-date')
+            if r is not None:
+                revision = r.arg
+            else:
+                revision = None
             # check if the prefix is already used by someone else
             if prefix in stmt.i_prefixes:
                 err_add(ctx.errors, p.pos, 'PREFIX_ALREADY_USED',
                         (prefix, stmt.i_prefixes[prefix]))
             # add the prefix to the unused prefixes
             if i.arg is not None and p.arg is not None:
-                stmt.i_prefixes[p.arg] = i.arg
+                stmt.i_prefixes[p.arg] = (i.arg, revision)
                 stmt.i_unused_prefixes[p.arg] = i
 
     stmt.i_features = {}
@@ -309,8 +315,12 @@ def v_init_module(ctx, stmt):
 def v_init_extension(ctx, stmt):
     """find the modulename of the prefix, and set `stmt.keyword`"""
     (prefix, identifier) = stmt.raw_keyword
-    modname = prefix_to_modulename(stmt.i_module, prefix, stmt.pos, ctx.errors)
+    (modname, revision) = \
+        prefix_to_modulename_and_revision(stmt.i_module, prefix,
+                                          stmt.pos, ctx.errors)
     stmt.keyword = (modname, identifier)
+    stmt.i_extension_modulename = modname
+    stmt.i_extension_revision = revision
     stmt.i_extension = None
 
 def v_init_stmt(ctx, stmt):
@@ -375,12 +385,16 @@ def v_import_module(ctx, stmt):
     def add_module(i):
         # check if the module to import is already added
         modulename = i.arg
-        m = ctx.get_module(modulename)
+        r = i.search_one('revision-date')
+        rev = None
+        if r is not None:
+            rev = r.arg
+        m = ctx.get_module(modulename, rev)
         if m is not None and m.i_is_validated == 'in_progress':
             err_add(ctx.errors, i.pos,
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
-        module = ctx.search_module(i.pos, modulename)
+        module = ctx.search_module(i.pos, modulename, rev)
         return module
         
     for i in imports:
@@ -783,7 +797,8 @@ def v_type_augment(ctx, stmt):
 def v_type_extension(ctx, stmt):
     """verify that the extension matches the extension definition"""
     (modulename, identifier) = stmt.keyword
-    module = modulename_to_module(stmt.i_module, modulename)
+    revision = stmt.i_extension_revision
+    module = modulename_to_module(stmt.i_module, modulename, revision)
     if module is None:
         return
     if identifier not in module.i_extensions:
@@ -1535,35 +1550,36 @@ def chk_uses_pos(s, pos):
     else:
         return pos
 
-def prefix_to_modulename(module, prefix, pos, errors):
+def prefix_to_modulename_and_revision(module, prefix, pos, errors):
     if prefix == '':
-        return module.arg
+        return module.arg, None
     try:
-        modulename = module.i_prefixes[prefix]
+        (modulename, revision) = module.i_prefixes[prefix]
     except KeyError:
         if prefix not in module.i_missing_prefixes:
             err_add(errors, pos, 'PREFIX_NOT_DEFINED', prefix)
         module.i_missing_prefixes[prefix] = True
-        return None
+        return None, None
     # remove the prefix from the unused
     if prefix in module.i_unused_prefixes:
         del module.i_unused_prefixes[prefix]
-    return modulename
+    return modulename, revision
 
 def prefix_to_module(module, prefix, pos, errors):
-    modulename = prefix_to_modulename(module, prefix, pos, errors)
-    return modulename_to_module(module, modulename)
+    if prefix == '':
+        return module
+    modulename, revision = \
+        prefix_to_modulename_and_revision(module, prefix, pos, errors)
+    if modulename is None:
+        return None
+    return module.i_ctx.get_module(modulename, revision)
 
-def modulename_to_module(module, modulename):
+def modulename_to_module(module, modulename, revision):
     if modulename == module.arg:
         return module
     # even if the prefix is defined, the module might not be
     # loaded; the load might have failed
-    try:
-        module = module.i_ctx.modules[modulename]
-    except KeyError:
-        return None
-    return module
+    return module.i_ctx.get_module(modulename, revision)
 
 def has_type(type, names):
     """Return type with name if `type` has name as one of its base types,
