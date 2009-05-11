@@ -39,7 +39,6 @@ data_def_stmts = [
     ('choice', '*'),
     ('anyxml', '*'),
     ('uses', '*'),
-    ('augment', '*'),
 ]
 
 case_data_def_stmts = [
@@ -49,7 +48,6 @@ case_data_def_stmts = [
     ('list', '*'),
     ('anyxml', '*'),
     ('uses', '*'),
-    ('augment', '*'),
 ]
 
 body_stmts = [
@@ -62,6 +60,7 @@ body_stmts = [
       ('rpc', '*'),
       ('notification', '*'),
       ('deviation', '*'),
+      ('augment', '*'),
       ] +
      data_def_stmts
     )
@@ -393,6 +392,7 @@ stmt_map = {
           ('description', '?'),
           ('reference', '?'),
           ('refine', '*'),
+          ('augment', '*'),
           ]),
     'refine':
         ('descendant-schema-nodeid',
@@ -409,7 +409,7 @@ stmt_map = {
             ]),
           ]),
     'augment':
-        ('absolute-schema-nodeid',
+        ('schema-nodeid',
          [('when', '?'),
           ('if-feature', '*'),
           ('status', '?'),
