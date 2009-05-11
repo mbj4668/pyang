@@ -7,8 +7,6 @@
 
   o  better handling of multiple input files
 
-  o  allow augment under uses
-
   o  remove floats
   
   o  move all plugin API functions to plugin.py
