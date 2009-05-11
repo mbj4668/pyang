@@ -230,6 +230,7 @@ yin_map = \
      'refine':           ('target-node', False),
      'require-instance': ('value',       False),
      'revision':         ('date',        False),
+     'revision-date':    ('date',        False),
      'rpc':              ('name',        False),
      'status':           ('value',       False),
      'submodule':        ('name',        False),

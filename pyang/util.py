@@ -1,3 +1,5 @@
+import datetime
+
 def attrsearch(tag, attr, list):
     for x in list:
         if x.__dict__[attr] == tag:
@@ -51,3 +53,13 @@ def listsdelete(x, xs):
     """Return a new list with x removed from xs"""
     i = xs.index(x)
     return xs[:i] + xs[(i+1):]
+
+def get_latest_revision(module):
+    latest = None
+    for r in module.search('revision'):
+        if latest is None or r.arg > latest:
+            latest = r.arg
+    if latest is None:
+        return datetime.date.today().isoformat()
+    else:
+        return latest

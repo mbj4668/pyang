@@ -9,12 +9,6 @@
 
   o  allow augment under uses
 
-  o  import/include by revision
-
-  o  update to -02:
-     - deviations
-
   o  remove floats
   
   o  move all plugin API functions to plugin.py
-

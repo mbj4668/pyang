@@ -4,6 +4,7 @@ import os
 import string
 import sys
 import zlib
+import re
 
 import error
 import yang_parser
@@ -20,16 +21,22 @@ class Context(object):
         """`repository` is a `Repository` instance"""
         
         self.modules = {}
-        """dict of modulename:<class Module>)
+        """dict of (modulename,revision):<class Statement>
         contains all modules and submodule found"""
         
-        self.module_list = []
-        """list of modules added explicitly to the Context"""
-        
+        self.revs = {}
+        """dict of modulename:(revision,handle)
+        contains all modulenames and revisions found in the repository"""
+
         self.repository = repository
         self.errors = []
         self.canonical = False
-        self.submodule_expansion = True
+
+        for mod, rev, handle in self.repository.get_modules_and_revisions(self):
+            if mod not in self.revs:
+                self.revs[mod] = []
+            revs = self.revs[mod]
+            revs.append((rev, handle))
 
     def add_module(self, ref, text, format=None):
         """Parse a module text and add the module data to the context
@@ -41,12 +48,6 @@ class Context(object):
 
         Returns the parsed and validated module on success, and None on error.
         """
-        module = self._add_module(ref, text, format)
-        if module != None:
-            self.module_list.append(module)
-            return module
-
-    def _add_module(self, ref, text, format=None):
         if format == None:
             format = util.guess_format(text)
 
@@ -56,6 +57,13 @@ class Context(object):
             p = yang_parser.YangParser()
 
         module = p.parse(self, ref, text)
+        if module is None:
+            return None
+        
+        module.i_adler32 = zlib.adler32(text)
+        return self.add_parsed_module(module)
+
+    def add_parsed_module(self, module):
         if module is None:
             return None
         if module.arg is None:
@@ -68,10 +76,9 @@ class Context(object):
                           'UNEXPECTED_KEYWORD_N', (module.keyword, top_keywords))
             return None
 
-        module.i_adler32 = zlib.adler32(text)
-
-        if module.arg in self.modules:
-            other = self.modules[module.arg]
+        rev = util.get_latest_revision(module)
+        if (module.arg, rev) in self.modules:
+            other = self.modules[(module.arg, rev)]
             if other.i_adler32 != module.i_adler32:
                 error.err_add(self.errors, module.pos,
                               'DUPLICATE_MODULE', (module.arg, other.pos))
@@ -79,88 +86,187 @@ class Context(object):
             # exactly same module
             return other
 
-        self.modules[module.arg] = module
+        self.modules[(module.arg, rev)] = module
         statements.validate_module(self, module)
 
         return module
 
     def del_module(self, module):
         """Remove a module from the context"""
+        rev = util.get_latest_revision(module)
+        del self.modules[(module.arg, rev)]
 
-        del self.modules[module.arg]
-        if module in self.module_list:
-            self.module_list.remove(module)
-
-    def get_module(self, modulename):
-        if modulename in self.modules:
-            return self.modules[modulename]
+    def get_module(self, modulename, revision=None):
+        """Return the module if it exists in the context"""
+        if revision is None and modulename in self.revs:
+            (revision, _handle) = self._get_latest_rev(self.revs[modulename])
+        if revision is not None:
+            if (modulename,revision) in self.modules:
+                return self.modules[(modulename, revision)]
         else:
             return None
+    
+    def _get_latest_rev(self, revs):
+        self._ensure_revs(revs)
+        latest = None
+        lhandle = None
+        for (rev, handle) in revs:
+            if latest is None or rev > latest:
+                latest = rev
+                lhandle = handle
+        return (latest, lhandle)
 
-    def search_module(self, pos, modulename):
+    def _ensure_revs(self, revs):
+        i = 0
+        length = len(revs)
+        while i < length:
+            (rev, handle) = revs[i]
+            if rev is None:
+                # now we must read the revision from the module
+                try:
+                    r = self.repository.get_module_from_handle(handle)
+                except self.repository.ReadError, ex:
+                    continue
+                (ref, format, text) = r
+
+                if format == None:
+                    format = util.guess_format(text)
+                    
+                if format == 'yin':
+                    p = yin_parser.YinParser({'no_include':True})
+                else:
+                    p = yang_parser.YangParser()
+
+                module = p.parse(self, ref, text)
+                rev = util.get_latest_revision(module)
+                revs[i] = (rev, ('parsed', module))
+            i += 1
+
+    def search_module(self, pos, modulename, revision=None):
         """Searches for a module named `modulename` in the repository
 
         If the module is found, it is added to the context.
         Returns the module if found, and None otherwise"""
-        if modulename in self.modules:
-            return self.modules[modulename]
-        try:
-            r = self.repository.get_module(modulename)
-            if r == None:
-                error.err_add(self.errors, pos, 'MODULE_NOT_FOUND', modulename)
-                self.modules[modulename] = None
+        if modulename not in self.revs:
+            # this module doesn't exist in the repos at all
+            error.err_add(self.errors, pos, 'MODULE_NOT_FOUND', modulename)
+            # keep track of this to avoid multiple errors
+            self.revs[modulename] = []
+            return None
+        elif self.revs[modulename] == []:
+            # this module doesn't exist in the repos at all, error reported
+            return None
+
+        if revision is not None:
+            if (modulename,revision) in self.modules:
+                return self.modules[(modulename, revision)]
+            self._ensure_revs(self.revs[modulename])
+            x = util.keysearch(revision, 0, self.revs[modulename])
+            if x is not None:
+                (_revision, handle) = x
+                if handle == None:
+                    # this revision doesn't exist in the repos, error reported
+                    return None
+            else:
+                # this revision doesn't exist in the repos
+                error.err_add(self.errors, pos, 'MODULE_NOT_FOUND_REV',
+                              (modulename, revision))
+                # keep track of this to avoid multiple errors
+                self.revs[modulename].append((revision, None))
                 return None
-        except self.repository.ReadError, ex:
-            error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
-        (ref, format, text) = r
-        module = self._add_module(ref, text, format)
+        else:
+            # get the latest revision
+            (revision, handle) = self._get_latest_rev(self.revs[modulename])
+            if (modulename, revision) in self.modules:
+                return self.modules[(modulename, revision)]
+            
+        if handle[0] == 'parsed':
+            module = self.add_parsed_module(handle[1])
+        else:
+            # get it from the repos
+            try:
+                r = self.repository.get_module_from_handle(handle)
+                (ref, format, text) = r
+                module = self.add_module(ref, text, format)
+            except self.repository.ReadError, ex:
+                error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
+                return None
         if module == None:
             return None
         if modulename != module.arg:
             error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
                           (module.arg, ref, modulename))
+            rev = util.get_latest_revision(module)
             self.del_module(module)
-            self.modules[modulename] = None
+            self.modules[(modulename, rev)] = None
             return None
         return module
 
-    def read_module(self, modulename, extra={}):
+    def read_module(self, modulename, revision=None, extra={}):
         """Searches for a module named `modulename` in the repository
 
         The module is just read, and not compiled at all.
         Returns the module if found, and None otherwise"""
-        if modulename in self.modules:
-            return self.modules[modulename]
-        try:
-            r = self.repository.get_module(modulename)
-            if r == None:
-                return 'not_found'
-        except self.repository.ReadError, ex:
-            return ('read_error', str(ex))
 
-        (ref, format, text) = r
+        if modulename not in self.revs:
+            # this module doesn't exist in the repos at all
+            return None
+        elif self.revs[modulename] == []:
+            # this module doesn't exist in the repos at all, error reported
+            return None
 
-        if format == None:
-            format = util.guess_format(text)
-
-        if format == 'yin':
-            p = yin_parser.YinParser(extra)
+        if revision is not None:
+            if (modulename,revision) in self.modules:
+                return self.modules[(modulename, revision)]
+            self._ensure_revs(self.revs[modulename])
+            x = util.keysearch(revision, 1, self.revs[modulename])
+            if x is not None:
+                (_revision, handle) = x
+                if handle == None:
+                    # this revision doesn't exist in the repos, error reported
+                    return None
+            else:
+                # this revision doesn't exist in the repos
+                return None
         else:
-            p = yang_parser.YangParser(extra)
+            # get the latest revision
+            (revision, handle) = self._get_latest_rev(self.revs[modulename])
+            if (modulename, revision) in self.modules:
+                return self.modules[(modulename, revision)]
+            
+        if handle[0] == 'parsed':
+            module = handle[1]
+            return module
+        else:
+            # get it from the repos
+            try:
+                r = self.repository.get_module_from_handle(handle)
+                (ref, format, text) = r
+                if format == None:
+                    format = util.guess_format(text)
 
-        return p.parse(self, ref, text)
+                if format == 'yin':
+                    p = yin_parser.YinParser(extra)
+                else:
+                    p = yang_parser.YangParser(extra)
+
+                return p.parse(self, ref, text)
+            except self.repository.ReadError, ex:
+                return None
 
     def validate(self):
         uris = {}
-        for modname in self.modules:
-            m = self.modules[modname]
+        for k in self.modules:
+            m = self.modules[k]
             if m != None:
                 namespace = m.search_one('namespace')
                 if namespace != None:
                     uri = namespace.arg
                     if uri in uris:
-                        error.err_add(self.errors, namespace.pos,
-                                      'DUPLICATE_NAMESPACE', (uri, uris[uri]))
+                        if uris[uri] != m.arg:
+                            error.err_add(self.errors, namespace.pos,
+                                          'DUPLICATE_NAMESPACE',
+                                          (uri, uris[uri]))
                     else:
                         uris[uri] = m.arg
 
@@ -170,7 +276,15 @@ class Repository(object):
     def __init__(self):
         pass
 
-    def get_module(self, modulename):
+    def get_modules_and_revisions(self, ctx):
+        """Return a list of all modules and their revisons
+
+        Returns a tuple (`modulename`, `revision`, `handle`), where
+        `handle' is used in the call to get_module_from_handle() to
+        retrieve the module.
+        """
+
+    def get_module_from_handle(self, handle):
         """Return the raw module text from the repository
 
         Returns (`ref`, `format`, `text`) if found, or None if not found.
@@ -195,56 +309,80 @@ class FileRepository(Repository):
         `path` is a `os.pathsep`-separated string of directories
         """
 
+        Repository.__init__(self)
+        self.dirs = string.split(path, os.pathsep)
+        
         # add standard search path
-        path += os.pathsep + '.'
+        self.dirs.append('.')
 
         modpath = os.getenv('YANG_MODPATH')
         if modpath is not None:
-            path += os.pathsep + modpath
+            self.dirs.extend(string.split(modpath, os.pathsep))
 
         home = os.getenv('HOME')
         if home is not None:
-            path += os.pathsep + os.path.join(home, 'yang', 'modules')
+            self.dirs.append(os.path.join(home, 'yang', 'modules'))
 
         inst = os.getenv('YANG_INSTALL')
         if inst is not None:
-            path += os.pathsep + os.path.join(inst, 'yang', 'modules')
+            self.dirs.append(os.path.join(inst, 'yang', 'modules'))
         else:
-            path += os.pathsep + \
-                os.path.join(sys.prefix, 'share', 'yang', 'modules')
+            self.dirs.append(os.path.join(sys.prefix,'share','yang','modules'))
 
-        Repository.__init__(self)
-        self.path = path
+        self.modules = None
 
-    def _search_file(self, filename):
-        """Given a search path, find file"""
-
-        paths = string.split(self.path, os.pathsep)
-        for path in paths:
-            fname = os.path.join(path, filename)
-            if fname.startswith("./"):
-                fname = fname[2:]
-            if os.path.exists(fname):
-                return fname
-        return None
-
-    def get_module(self, modulename):
-        filename = self._search_file(modulename + ".yang")
-        format = 'yang'
-        if filename == None:
-            filename = self._search_file(modulename + ".yin")
-            format = 'yin'
-        if filename == None:
-            filename = self._search_file(modulename)
-            format = None
-        if filename == None:
-            return None
+    def _setup(self, ctx):
+        # check all dirs for yang and yin files
+        self.modules = []
+        r = re.compile(r"^(.*?)(\.(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
+        for d in self.dirs:
+            try:
+                files = os.listdir(d)
+            except OSError:
+                files = []
+            for fname in files:
+                m = r.search(fname)
+                if m is not None:
+                    (name, _dummy, rev, format) = m.groups()
+                    absfilename = os.path.join(d, fname)
+                    if absfilename.startswith("./"):
+                        absfilename = absfilename[2:]
+                    handle = (format, absfilename)
+                    self.modules.append((name, rev, handle))
+                    
+    # FIXME: bad strategy; when revisions are not used in the filename
+    # this code parses all modules :(  need to do this lazily
+    def _peek_revision(self, absfilename, format, ctx):
         try:
-            fd = file(filename)
+            fd = file(absfilename)
             text = fd.read()
         except IOError, ex:
-            raise self.ReadError(filename + ": " + str(ex))
+            return None
+        if format == 'yin':
+            p = yin_parser.YinParser()
+        else:
+            p = yang_parser.YangParser()
+        
+        # FIXME: optimization - do not parse the entire text
+        # just to read the revisiosn...
+        module = p.parse(ctx, absfilename, text)
+        if module is None:
+            return None
+        return (util.get_latest_revision(module), module)
+
+    def get_modules_and_revisions(self, ctx):
+        if self.modules is None:
+            self._setup(ctx)
+        return self.modules
+
+    def get_module_from_handle(self, handle):
+        (format, absfilename) = handle
+        try:
+            fd = file(absfilename)
+            text = fd.read()
+        except IOError, ex:
+            raise self.ReadError(absfilename + ": " + str(ex))
 
         if format is None:
             format = util.guess_format(text)
-        return (filename, format, text)
+        return (absfilename, format, text)

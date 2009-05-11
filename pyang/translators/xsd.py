@@ -90,6 +90,7 @@ yang_keywords = \
      'refine':           ('target-node', False,      False),
      'require-instance': ('value',       False,      True),
      'revision':         ('date',        False,      True),
+     'revision-date':    ('date',        False,      True),
      'rpc':              ('name',        False,      False),
      'status':           ('value',       False,      True),
      'submodule':        ('name',        False,      False),
@@ -133,8 +134,6 @@ class XSDPlugin(plugin.PyangPlugin):
         g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['xsd'] = self
-    def setup_context(self, ctx):
-        ctx.submodule_expansion = False        
     def emit(self, ctx, module, fd):
         # cannot do XSD unless everything is ok for our module
         for (epos, etag, eargs) in ctx.errors:
@@ -144,8 +143,8 @@ class XSDPlugin(plugin.PyangPlugin):
                 sys.exit(1)
         # we also need to have all other modules found
         for pre in module.i_prefixes:
-            modname = module.i_prefixes[pre]
-            mod = ctx.modules[modname]
+            (modname, revision) = module.i_prefixes[pre]
+            mod = statements.modulename_to_module(module, modname, revision)
             if mod == None:
                 print >> sys.stderr, ("cannot find module %s, needed by XSD"
                                       " translation" % modname)
@@ -163,7 +162,11 @@ def expand_locally_defined_typedefs(ctx, module):
     for c in module.search('typedef'):
         c.i_xsd_name = c.arg
     for inc in module.search('include'):
-        m = ctx.modules[inc.arg]
+        rev = None
+        r = inc.search_one('revision-date')
+        if r is not None:
+            rev = r.arg
+        m = ctx.get_module(inc.arg, rev)
         for c in m.search('typedef'):
             c.i_xsd_name = c.arg
 
@@ -195,7 +198,7 @@ def emit_xsd(ctx, module, fd):
         belongs_to = module.search_one('belongs-to')
         parent_modulename = belongs_to.arg
         parent_module = ctx.read_module(parent_modulename)
-        if parent_module != 'not_found':
+        if parent_module is not None:
             i_namespace = parent_module.search_one('namespace').arg
             i_prefix = parent_module.search_one('prefix').arg
         else:
@@ -263,8 +266,11 @@ def emit_xsd(ctx, module, fd):
                  module.search('revision')[0].arg)
     fd.write('           xml:lang="en"')
     for pre in module.i_prefixes:
-        modname = module.i_prefixes[pre]
-        mod = ctx.modules[modname]
+        (modname, revision) = module.i_prefixes[pre]
+        if modname == module.arg:
+            mod = module
+        else:
+            mod = ctx.get_module(modname, revision)
         if mod.keyword == 'module':
             if pre in ['xs', 'yin', 'nc', 'ncn']:
                 # someone uses one of our prefixes
@@ -283,7 +289,11 @@ def emit_xsd(ctx, module, fd):
     if ctx.opts.xsd_no_imports != True:
         imports = module.search('import') + module.i_gen_import
         for x in imports:
-            mod = ctx.modules[x.arg]
+            rev = None
+            r = x.search_one('revision-date')
+            if r is not None:
+                rev = r.arg
+            mod = ctx.get_module(x.arg, rev)
             uri = mod.search_one('namespace').arg
             fd.write('  <xs:import namespace="%s"\n' \
                      '             schemaLocation="%s.xsd"/>\n' %
@@ -597,14 +607,18 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         module.i_gen_typedef.append(typedef)
         return name
 
-    def gen_new_import(module, modname):
+    def gen_new_import(module, modname, revision):
         i = 0
         pre = "p" + str(i)
         while pre in module.i_prefixes:
             i = i + 1
             pre = "p" + str(i)
-        module.i_prefixes[pre] = modname
+        module.i_prefixes[pre] = (modname, revision)
         imp = statements.Statement(module, module, None, 'import', modname)
+        if revision is not None:
+            rev = statements.Statement(module, imp, None, 'revision-date',
+                                       revision)
+            imp.substmts.append(rev)
         module.i_gen_import.append(imp)
 
     if type.search('bit') != []:
@@ -683,16 +697,17 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                             # we have to add an import in order to cover
                             # this case properly
                             [newprefix, newname] = new_type.arg.split(':', 1)
-                            newmodname = new_type.i_module.i_prefixes[newprefix]
+                            (newmodname, newrevision) = \
+                                new_type.i_module.i_prefixes[newprefix]
                             # first, check if we already have the module
                             # imported
-                            newprefix = util.dictsearch(newmodname,
+                            newprefix = util.dictsearch((newmodname,newrevision),
                                                         module.i_prefixes)
                             if newprefix != None:
                                 # it is imported, use our prefix
                                 new_type.arg = newprefix + ':' + newname
                             else:
-                                gen_new_import(module, newmodname)
+                                gen_new_import(module, newmodname, newrevision)
                                 
                     if ctx.i_pass == 'first':
                         base = ''
