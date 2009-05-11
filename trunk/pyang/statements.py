@@ -789,10 +789,12 @@ def v_type_uses(ctx, stmt, no_error_report=False):
         stmt.i_grouping.i_is_unused = False
 
 def v_type_augment(ctx, stmt):
-    if stmt.parent == stmt.i_module:
-        # this is a top-level augment, make sure the _v_i_children phases
-        # run over this one
-        stmt.i_has_i_children = True
+    # make sure the _v_i_children phases run over this one
+    stmt.i_has_i_children = True
+    if stmt.parent.keyword == 'uses' and stmt.arg.startswith("/"):
+        err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
+                (stmt.arg, "descendant-node-id"))
+            
 
 def v_type_extension(ctx, stmt):
     """verify that the extension matches the extension definition"""
@@ -987,6 +989,8 @@ def v_expand_1_children(ctx, stmt):
             v_expand_1_children(ctx, news)
         elif s.keyword == 'uses':
             v_expand_1_uses(ctx, s)
+            for a in s.search('augment'):
+                v_expand_1_children(ctx, a)
         elif s.keyword in data_keywords:
             stmt.i_children.append(s)
             v_expand_1_children(ctx, s)
@@ -1066,12 +1070,12 @@ def v_expand_1_uses(ctx, stmt):
                         new.i_children.append(new.substmts[idx])
                     else:
                         # otherwise, copy the i_child
-                        newx = x.copy(new, stmt.pos,
+                        newx = x.copy(new, stmt,
                                       nocopy=['type','uses',
                                               'typedef','grouping'],
                                       copyf=post_copy)
                         new.i_children.append(newx)
-        newg = g.copy(stmt.parent, stmt.pos,
+        newg = g.copy(stmt.parent, stmt,
                       nocopy=['type','uses','typedef','grouping'],
                       copyf=post_copy)
         stmt.parent.i_children.append(newg)
@@ -1221,7 +1225,6 @@ def v_expand_2_augment(ctx, stmt):
                 return                
         else:
             stmt.i_target_node.i_children.append(c)
-
 
 ### Unique name check phase
 
@@ -1651,9 +1654,12 @@ def search_grouping(stmt, name):
     return None
 
 def find_target_node(ctx, stmt, is_augment=False):
+    if stmt.arg.startswith("/"):
+        arg = stmt.arg
+    else:
+        arg = "/" + stmt.arg # to make node_id_part below work
     # parse the path into a list of two-tuples of (prefix,identifier)
-    path = [(m[1], m[2]) \
-                for m in syntax.re_schema_node_id_part.findall(stmt.arg)]
+    path = [(m[1], m[2]) for m in syntax.re_schema_node_id_part.findall(arg)]
     # find the module of the first node in the path 
     (prefix, identifier) = path[0]
     module = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
@@ -1661,21 +1667,30 @@ def find_target_node(ctx, stmt, is_augment=False):
         # error is reported by prefix_to_module
         return None
 
-    # find the first node
-    node = search_child(module.i_children, module.arg, identifier)
-    if node is None:
-        # check all our submodules
-        for inc in module.search('include'):
-            submod = ctx.get_module(inc.arg)
-            if submod is not None:
-                node = search_child(submod.i_children, submod.arg, identifier)
-                if node is not None:
-                    break
+    if stmt.parent.keyword in ('module', 'submodule'):
+        # find the first node
+        node = search_child(module.i_children, module.arg, identifier)
+        if node is None:
+            # check all our submodules
+            for inc in module.search('include'):
+                submod = ctx.get_module(inc.arg)
+                if submod is not None:
+                    node = search_child(submod.i_children, submod.arg,identifier)
+                    if node is not None:
+                        break
+            if node is None:
+                err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
+                        (module.arg, identifier))
+                return None
+    else:
+        chs = [c for c in stmt.parent.parent.i_children \
+                   if hasattr(c, 'i_uses') and c.i_uses == stmt.parent]
+        node = search_child(chs, module.arg, identifier)
         if node is None:
             err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
                     (module.arg, identifier))
             return None
-
+        
     # then recurse down the path
     for (prefix, identifier) in path[1:]:
         if hasattr(node, 'i_children'):
@@ -1911,10 +1926,11 @@ class Statement(object):
                 return ch
         return None
 
-    def copy(self, parent=None, uses_pos=None, nocopy=[], ignore=[], copyf=None):
+    def copy(self, parent=None, uses=None, nocopy=[], ignore=[], copyf=None):
         new = copy.copy(self)
-        if uses_pos is not None:
-            new.i_uses_pos = uses_pos
+        if uses is not None:
+            new.i_uses = uses
+            new.i_uses_pos = uses.pos
         if parent == None:
             new.parent = self.parent
         else:
@@ -1926,7 +1942,7 @@ class Statement(object):
             elif s.keyword in nocopy:
                 new.substmts.append(s)
             else:
-                new.substmts.append(s.copy(new, uses_pos, nocopy, ignore, copyf))
+                new.substmts.append(s.copy(new, uses, nocopy, ignore, copyf))
         if copyf is not None:
             copyf(self, new)
         return new

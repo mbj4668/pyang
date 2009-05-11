@@ -288,6 +288,52 @@ module/*hej*/xt1 {
         }
     }
 
+
+  grouping x {
+    container a {
+      container b {
+        leaf c {
+          type uint32;
+        }
+      }
+    }
+  }
+
+  container yy {
+    container r {}
+    uses x {
+      augment r { // error: can augment from the uses only
+        leaf d {
+          type int32;
+        }
+      }
+      augment a/b {
+        leaf c { // error: c already defined
+          type string;
+        }
+      }
+      augment a/b {
+        leaf d { 
+          type string;
+        }
+      }
+      augment /a/b { // error: absolute form not allowed
+        leaf e { 
+          type string;
+        }
+      }
+    }
+  }
+
+
+  augment "bar" { // descendant form is ok
+    container bar {
+      leaf e1 { type int32; }
+    }
+  }
+
+
+
 }
   
 
