@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
-ns="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+	 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+	 datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
 <define name="config-attribute">
-  <attribute name="config">
+  <attribute name="nma:config">
     <data type="boolean"/>
   </attribute>
 </define>
 
 <define name="default-attribute">
-  <attribute name="default"/>
+  <attribute name="nma:default"/>
 </define>
 
 <define name="default-case-attribute">
-  <attribute name="default-case">
+  <attribute name="nma:default-case">
     <data type="boolean"/>
   </attribute>
 </define>
 
 <define name="error-app-tag-element">
   <optional>
-    <element name="error-app-tag">
+    <element name="nma:error-app-tag">
       <text/>
     </element>
   </optional>
@@ -29,16 +29,16 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
 <define name="error-message-element">
   <optional>
-    <element name="error-message">
+    <element name="nma:error-message">
       <text/>
     </element>
   </optional>
 </define>
 
 <define name="instance-identifier-element">
-  <element name="instance-identifier">
+  <element name="nma:instance-identifier">
     <optional>
-      <attribute name="require-instance">
+      <attribute name="nma:require-instance">
 	<data type="boolean"/>
       </attribute>
     </optional>
@@ -46,7 +46,7 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 </define>
 
 <define name="key-attribute">
-  <attribute name="key">
+  <attribute name="nma:key">
     <list>
       <data type="QName"/>
     </list>
@@ -54,9 +54,9 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 </define>
 
 <define name="leafref-element">
-  <element name="leafref">
+  <element name="nma:leafref">
     <optional>
-      <attribute name="require-instance">
+      <attribute name="nma:require-instance">
 	<data type="boolean"/>
       </attribute>
     </optional>
@@ -65,20 +65,20 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 </define>
 
 <define name="min-elements-attribute">
-  <attribute name="min-elements">
+  <attribute name="nma:min-elements">
     <data type="integer"/>
   </attribute>
 </define>
 
 <define name="max-elements-attribute">
-  <attribute name="max-elements">
+  <attribute name="nma:max-elements">
     <data type="integer"/>
   </attribute>
 </define>
 
 <define name="must-element">
-  <element name="must">
-    <attribute name="assert">
+  <element name="nma:must">
+    <attribute name="nma:assert">
       <data type="string"/>
     </attribute>
     <interleave>
@@ -89,7 +89,7 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 </define>
 
 <define name="ordered-by-attribute">
-  <attribute name="ordered-by">
+  <attribute name="nma:ordered-by">
     <choice>
       <value>user</value>
       <value>system</value>
@@ -97,8 +97,14 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   </attribute>
 </define>
 
+<define name="presence-attribute">
+  <attribute name="nma:presence">
+    <value>true</value>
+  </attribute>
+</define>
+
 <define name="status-attribute">
-  <attribute name="status">
+  <attribute name="nma:status">
     <choice>
       <value>current</value>
       <value>deprecated</value>
@@ -108,7 +114,7 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 </define>
 
 <define name="unique-attribute">
-  <attribute name="unique">
+  <attribute name="nma:unique">
     <list>
       <data type="string"/>
     </list>
@@ -116,13 +122,13 @@ datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 </define>
 
 <define name="units-attribute">
-  <attribute name="units">
+  <attribute name="nma:units">
     <data type="string"/>
   </attribute>
 </define>
 
 <define name="when-attribute">
-  <attribute name="when">
+  <attribute name="nma:when">
     <data type="string"/>
   </attribute>
 </define>
