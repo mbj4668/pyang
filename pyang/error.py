@@ -199,7 +199,7 @@ error_codes = \
       (2,
        'syntax error in pattern: %s'),
     'PATTERN_FAILURE':
-      (3,
+      (4,
        'could not verify pattern: %s'),
     'LEAFREF_TOO_MANY_UP':
       (1,

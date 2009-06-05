@@ -1,4 +1,4 @@
-module yang-types {
+module ietf-yang-types {
   
   namespace "urn:ietf:params:xml:ns:yang:yang-types";
   prefix "yang";
@@ -13,8 +13,8 @@ module yang-types {
     WG Chair: David Partain
               <mailto:david.partain@ericsson.com>
 
-    WG Chair: David Harrington
-              <mailto:ietfdbh@comcast.net>
+    WG Chair: David Kessens
+              <mailto: david.kessens@nsn.com>
 
     Editor:   Juergen Schoenwaelder
               <mailto:j.schoenwaelder@jacobs-university.de>";
@@ -23,12 +23,47 @@ module yang-types {
    "This module contains a collection of generally useful derived
     YANG data types.
 
-    Copyright (C) The IETF Trust (2008).  This version of this
-    YANG module is part of RFC XXXX; see the RFC itself for full
-    legal notices.";
+    Copyright (c) 2009 IETF Trust and the persons identified as
+    the document authors.  All rights reserved.
+
+    Redistribution and use in source and binary forms, with or
+    without modification, are permitted provided that the
+    following conditions are met:
+
+    - Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the
+      following disclaimer.
+
+    - Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the
+      following disclaimer in the documentation and/or other
+      materials provided with the distribution.
+
+    - Neither the name of Internet Society, IETF or IETF
+      Trust, nor the names of specific contributors, may be
+      used to endorse or promote products derived from this
+      software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+    CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED
+    WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+    GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    This version of this YANG module is part of RFC XXXX; see
+    the RFC itself for full legal notices.";
   // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
-  revision 2008-08-26 {
+  revision 2009-05-13 {
     description
      "Initial revision, published as RFC XXXX.";
   }
@@ -198,7 +233,7 @@ module yang-types {
 
   typedef object-identifier {
     type string {
-      pattern '(([0-1](\.[1-3]?[0-9]))|(2.(0|([1-9]\d*))))'
+      pattern '(([0-1](\.[1-3]?[0-9]))|(2\.(0|([1-9]\d*))))'
             + '(\.(0|([1-9]\d*)))*';
     }
     description
@@ -227,14 +262,14 @@ module yang-types {
 
   typedef object-identifier-128 {
     type object-identifier {
-      pattern '\d*(.\d){1,127}';
+      pattern '\d*(.\d*){1,127}';
     }
     description
      "This type represents object-identifiers restricted to 128
       sub-identifiers.
 
-      This type is in the value set and its semantics equivalent to
-      the OBJECT IDENTIFIER type of the SMIv2.";
+      This type is in the value set and its semantics equivalent
+      to the OBJECT IDENTIFIER type of the SMIv2.";
     reference
      "RFC 2578: Structure of Management Information Version 2 (SMIv2)";
   }
@@ -269,17 +304,31 @@ module yang-types {
 
       date-time       = full-date "T" full-time
 
-      The date-and-time type is compatible with the dateTime XML
-      schema type except that dateTime allows negative years
-      which are not allowed by RFC 3339.
+      The date-and-time type is consistent with the semantics defined
+      in RFC 3339. The data-and-time type is compatible with the
+      dateTime XML schema type with the following two notable
+      exceptions:
+
+      (a) The data-and-time type does not allow negative years.
+
+      (b) The data-and-time time-offset -00:00 indicates an unknown
+          time zone (see RFC 3339) while -00:00 and +00:00 and Z all
+          represent the same time zone in dateTime.
 
       This type is not equivalent to the DateAndTime textual 
       convention of the SMIv2 since RFC 3339 uses a different
       separator between full-date and full-time and provides
-      higher resolution of time-secfrac.';
+      higher resolution of time-secfrac.
+
+      The canonical format for date-and-time values mandates the UTC
+      time format with the time-offset is indicated by the letter "Z".
+      This is consistent with the canonical format used by the
+      dateTime XML schema type.';
     reference
      "RFC 3339: Date and Time on the Internet: Timestamps
-      RFC 2579: Textual Conventions for SMIv2";
+      RFC 2579: Textual Conventions for SMIv2
+      W3C REC-xmlschema-2-20041028: XML Schema Part 2: Datatypes
+                Second Edition";
   }
     
   typedef timeticks {
@@ -291,10 +340,10 @@ module yang-types {
       are defined which use this type, the description of the
       object identifies both of the reference epochs.
 
-      This type is in the value set and its semantics equivalent to
-      the TimeStamp textual convention of the SMIv2.";
+      This type is in the value set and its semantics equivalent
+      to the TimeTicks type of the SMIv2.";
     reference
-     "RFC 2579: Textual Conventions for SMIv2";
+     "RFC 2578: Structure of Management Information Version 2 (SMIv2)";
   }
 
   typedef timestamp {
@@ -313,8 +362,8 @@ module yang-types {
       The associated timeticks object must be specified
       in the description of any object using this type.
 
-      This type is in the value set and its semantics equivalent to
-      the TimeStamp textual convention of the SMIv2.";
+      This type is in the value set and its semantics equivalent
+      to the TimeStamp textual convention of the SMIv2.";
     reference
      "RFC 2579: Textual Conventions for SMIv2";
   }
@@ -330,10 +379,35 @@ module yang-types {
       as a sequence octets, each octet represented by two hexadecimal
       numbers. Octets are separated by colons.
 
-      This type is in the value set and its semantics equivalent to
-      the PhysAddress textual convention of the SMIv2.";
+      This type is in the value set and its semantics equivalent 
+      to the PhysAddress textual convention of the SMIv2.";
     reference 
      "RFC 2579: Textual Conventions for SMIv2";
+  }
+
+  typedef mac-address {
+    type string {
+      pattern '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}';
+    }
+    description
+     "The mac-address type represents an IEEE 802 MAC address.
+
+      This type is in the value set and its semantics equivalent to
+      the MacAddress textual convention of the SMIv2.";
+    reference
+      "IEEE 802: IEEE Standard for Local and Metropolitan Area
+                 Networks: Overview and Architecture
+       RFC 2579: Textual Conventions for SMIv2";
+  }
+
+  /*** collection of XML specific types ***/
+
+  typedef xpath1.0 {
+    type string;
+    description
+     "This type represents an XPATH 1.0 expression.";
+    reference
+     "W3C REC-xpath-19991116: XML Path Language (XPath) Version 1.0";
   }
 
 }

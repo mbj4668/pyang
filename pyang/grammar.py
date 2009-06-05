@@ -542,7 +542,12 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
             error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD', 
                           util.keyword_to_str(stmt.raw_keyword))
         elif match_res is not None and chk_grammar == True:
-            (arg_type, subspec) = stmt_map[stmt.keyword]
+            try:
+                (arg_type, subspec) = stmt_map[stmt.keyword]
+            except KeyError:
+                error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD', 
+                              util.keyword_to_str(stmt.raw_keyword))
+                return
             # verify the statement's argument
             if arg_type is None and stmt.arg is not None:
                 error.err_add(ctx.errors, stmt.pos,

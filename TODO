@@ -10,3 +10,5 @@
   o  remove floats
   
   o  move all plugin API functions to plugin.py
+
+  o  give a warning if the default case does not have any default leafs=======

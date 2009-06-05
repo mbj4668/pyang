@@ -3,7 +3,7 @@ module/*hej*/xt1 {
   prefix "xt1";
   import xt2 { prefix xt2; } // warning: unused import
   import xt3 { prefix xt3; }
-  import yang-types { prefix yang; } // warning: unused import
+  import ietf-yang-types { prefix yang; } // warning: unused import
   include xt1s1;
   include xt1s2;
   organization "hopp";
@@ -317,7 +317,7 @@ module/*hej*/xt1 {
           type string;
         }
       }
-      augment /a/b { // error: absolute form not allowed
+      augment /bar/interface { // error: absolute form not allowed
         leaf e { 
           type string;
         }

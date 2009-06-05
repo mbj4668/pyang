@@ -12,18 +12,16 @@ XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
 RNG_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
 XML2_OBJECTS := $(MIB_SOURCES:%.mib=%.xml.2)
-STD_MODULES := yang-types.yang inet-types.yang ieee-types.yang yang-smi.yang
+STD_MODULES := ietf-yang-types.yang ietf-inet-types.yang yang-smi.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
 all: $(STD_XSD) yang yin xsd rng
 
 test: all gen-xml
 
-yang-types.yang:
+ietf-yang-types.yang:
 	cp ../../modules/$@ $@
-inet-types.yang:
-	cp ../../modules/$@ $@
-ieee-types.yang:
+ietf-inet-types.yang:
 	cp ../../modules/$@ $@
 yang-smi.yang:
 	cp ../../modules/$@ $@
