@@ -16,7 +16,7 @@ module yt5a {
     namespace "urn:ietf:params:xml:ns:yang:yt5a";
     prefix "yt5a";
 
-    import yang-types { prefix yt; }
+    import ietf-yang-types { prefix yt; }
     import yt3 { prefix yt3; }
 
     organization

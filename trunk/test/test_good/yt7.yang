@@ -3,7 +3,7 @@ module yt7 {
     namespace "urn:ietf:params:xml:ns:yang:yt7";
     prefix "yt7";
 
-    import yang-types { prefix y; }
+    import ietf-yang-types { prefix y; }
 
     organization
         "YANG Language Design Team";

@@ -1,4 +1,4 @@
-module inet-types {
+module ietf-inet-types {
 
   namespace "urn:ietf:params:xml:ns:yang:inet-types";
   prefix "inet";
@@ -13,8 +13,8 @@ module inet-types {
     WG Chair: David Partain
               <mailto:david.partain@ericsson.com>
 
-    WG Chair: David Harrington
-              <mailto:ietfdbh@comcast.net>
+    WG Chair: David Kessens
+              <mailto:david.kessens@nsn.com>
 
     Editor:   Juergen Schoenwaelder
               <mailto:j.schoenwaelder@jacobs-university.de>";
@@ -23,12 +23,47 @@ module inet-types {
    "This module contains a collection of generally useful derived
     YANG data types for Internet addresses and related things.
 
-    Copyright (C) The IETF Trust (2008).  This version of this
-    YANG module is part of RFC XXXX; see the RFC itself for full
-    legal notices.";
+    Copyright (c) 2009 IETF Trust and the persons identified as
+    the document authors.  All rights reserved.
+
+    Redistribution and use in source and binary forms, with or
+    without modification, are permitted provided that the
+    following conditions are met:
+
+    - Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the
+      following disclaimer.
+
+    - Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the
+      following disclaimer in the documentation and/or other
+      materials provided with the distribution.
+
+    - Neither the name of Internet Society, IETF or IETF
+      Trust, nor the names of specific contributors, may be
+      used to endorse or promote products derived from this
+      software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+    CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED
+    WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+    GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    This version of this YANG module is part of RFC XXXX; see 
+    the RFC itself for full legal notices.";
   // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
-  revision 2008-08-26 {
+  revision 2009-05-13 {
     description
      "Initial revision, published as RFC XXXX.";
   }
@@ -73,7 +108,7 @@ module inet-types {
     }
     description
      "The dscp type represents a Differentiated Services Code-Point
-      that may be used for marking a traffic stream.
+      that may be used for marking packets in a traffic stream.
 
       This type is in the value set and its semantics equivalent
       to the Dscp textual convention of the SMIv2.";
@@ -86,7 +121,7 @@ module inet-types {
                 the Internet Protocol and Related Headers";
   }
   
-  typedef flow-label {
+  typedef ipv6-flow-label {
     type uint32 {
       range "0..1048575";
     }
@@ -128,7 +163,7 @@ module inet-types {
     
   /*** collection of autonomous system related types ***/
 
-  typedef autonomous-system-number {
+  typedef as-number {
     type uint32;
     description
       "The as-number type represents autonomous system numbers
@@ -137,15 +172,14 @@ module inet-types {
        an interior gateway protocol and common metrics to route
        packets within the AS, and using an exterior gateway
        protocol to route packets to other ASs'. IANA maintains
-;       the AS number space and has delegated large parts to the
+       the AS number space and has delegated large parts to the
        regional registries.
 
-       Autonomous system numbers are currently limited to 16 bits
-       (0..65535). There is however work in progress to enlarge
-       the autonomous system number space to 32 bits. This
-       textual convention therefore uses an uint32 base type
-       without a range restriction in order to support a larger
-       autonomous system number space.
+       Autonomous system numbers were originally limited to 16 
+       bits. BGP extensions have enlarged the autonomous system
+       number space to 32 bits. This type therefore uses an uint32
+       base type without a range restriction in order to support
+       a larger autonomous system number space.
 
        This type is in the value set and its semantics equivalent
        to the InetAutonomousSystemNumber textual convention of 
@@ -154,6 +188,7 @@ module inet-types {
      "RFC 1930: Guidelines for creation, selection, and registration
                 of an Autonomous System (AS)
       RFC 4271: A Border Gateway Protocol 4 (BGP-4)
+      RFC 4893: BGP Support for Four-octet AS Number Space
       RFC 4001: Textual Conventions for Internet Network Addresses";
   }
   
@@ -193,28 +228,22 @@ module inet-types {
        values.  For link-local addresses, the zone index will
        typically be the interface index number or the name of an
        interface. If the zone index is not present, the default
-       zone of the device will be used.";
+       zone of the device will be used.
+
+       The canonical format for the zone index is the numerical
+       format";
   }
 
   typedef ipv6-address {
     type string {
-      pattern
-       /* full */
-       '((([0-9a-fA-F]{1,4}:){7})([0-9a-fA-F]{1,4})'
-    +   '(%[\p{N}\p{L}]+)?)'
-       /* mixed */
-    +  '|((([0-9a-fA-F]{1,4}:){6})(([0-9]{1,3}\.'
-    +      '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))'
-    +    '(%[\p{N}\p{L}]+)?)'
-       /* shortened */
-    +  '|((([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*(::)'
-    +    '(([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*'
-    +    '(%[\p{N}\p{L}]+)?)'
-       /* shortened mixed */
-    + '|((([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*(::)'
-    +   '(([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*'
-    +   '(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))'
-    +    '(%[\p{N}\p{L}]+)?)';
+      pattern '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
+            + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
+            + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
+            + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
+            + '(%[\p{N}\p{L}]+)?';
+      pattern '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
+            + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
+            + '(%.+)?';
     }
     description
      "The ipv6-address type represents an IPv6 address in full,
@@ -225,13 +254,23 @@ module inet-types {
       values.  For link-local addresses, the zone index will
       typically be the interface index number or the name of an
       interface. If the zone index is not present, the default
-      zone of the device will be used.";
-    reference
-     "RFC 4007: IPv6 Scoped Address Architecture";
-  }
+      zone of the device will be used.
 
-  // [TODO: The pattern needs to be checked; once YANG supports
-  // multiple pattern, we can perhaps be more precise.]
+      The canonical format of IPv6 addresses uses the compressed
+      format described in RFC 4291 section 2.2 item 2 with the
+      following additional rules: The :: substitution must be
+      applied to the longest sequence of all-zero 16-bit chunks
+      in an IPv6 address. If there is a tie, the first sequence
+      of all-zero 16-bit chunks is replaced by ::. Single 
+      all-zero 16-bit chunks are not compressed. The normalized
+      format uses lower-case characters and leading zeros are
+      not allowed. The canonical format for the zone index is
+      the numerical format as described in RFC 4007 section
+      11.2.";
+    reference
+     "RFC 4291: IP Version 6 Addressing Architecture
+      RFC 4007: IPv6 Scoped Address Architecture";
+  }
 
   typedef ip-prefix {
     type union {
@@ -248,7 +287,7 @@ module inet-types {
     type string {
       pattern '(([0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){3}'
             + '([0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])'
-            + '/\d+';
+            + '/(([0-9])|([1-2][0-9])|(3[0-2]))';
     }
     description
      "The ipv4-prefix type represents an IPv4 address prefix.
@@ -259,30 +298,21 @@ module inet-types {
       mask which has n contiguous 1-bits from the most
       significant bit (MSB) and all other bits set to 0.
 
-      The IPv4 address represented in dotted quad notation 
-      should have all bits that do not belong to the prefix
-      set to zero.";
+      The canonical format of an IPv4 prefix has all bits of
+      the IPv4 address set to zero that are not part of the
+      IPv4 prefix.";
   }
 
   typedef ipv6-prefix {
     type string {
-      pattern
-       /* full */
-       '((([0-9a-fA-F]{1,4}:){7})([0-9a-fA-F]{1,4})'
-     +  '/\d+)'
-       /* mixed */
-     +  '|((([0-9a-fA-F]{1,4}:){6})(([0-9]{1,3}\.'
-     +      '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))'
-     +   '/\d+)'
-       /* shortened */
-     +  '|((([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*(::)'
-     +   '(([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*'
-     +   '/\d+)'
-       /* shortened mixed */
-     + '|((([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*(::)'
-     +   '(([0-9a-fA-F]{1,4}:)*([0-9a-fA-F]{1,4}))*'
-     +   '(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))'
-     +    '/\d+)';
+      pattern '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
+            + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
+            + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
+            + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
+            + '(/(([0-9])|([0-9]{2})|(1[0-1][0-9])|(12[0-8])))';
+      pattern '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
+            + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
+            + '(/.+)';
     }
     description
      "The ipv6-prefix type represents an IPv6 address prefix.
@@ -294,41 +324,74 @@ module inet-types {
       significant bit (MSB) and all other bits set to 0.
 
       The IPv6 address should have all bits that do not belong
-      to the prefix set to zero.";
-  }
+      to the prefix set to zero.
 
-  // [TODO: The pattern needs to be checked; once YANG supports
-  // multiple pattern, we can perhaps be more precise.]
+      The canonical format of an IPv6 prefix has all bits of
+      the IPv6 address set to zero that are not part of the
+      IPv6 prefix. Furthermore, IPv6 address is represented
+      in the compressed format described in RFC 4291 section
+      2.2 item 2 with the following additional rules: The :: 
+      substitution must be applied to the longest sequence of
+      all-zero 16-bit chunks in an IPv6 address. If there is
+      a tie, the first sequence of all-zero 16-bit chunks is
+      replaced by ::. Single all-zero 16-bit chunks are not
+      compressed. The normalized format uses lower-case
+      characters and leading zeros are not allowed.";
+    reference
+     "RFC 4291: IP Version 6 Addressing Architecture";
+  }
 
   /*** collection of domain name and URI types ***/
 
   typedef domain-name {
     type string {
-      pattern '([a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]\.)*'
-           +  '[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]';
+      pattern '((([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.)*'
+           +  '([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.?)'
+           +  '|\.';
+      length "1..253";
     }
     description
      "The domain-name type represents a DNS domain name. The 
       name SHOULD be fully qualified whenever possible.
 
+      Internet domain names are only loosely specified. Section
+      3.5 of RFC 1034 recommends a syntax (modified in section 
+      2.1 of RFC 1123). The pattern above is intended to allow
+      for current practise in domain name use, and some possible
+      future expansion. It is designed to hold various types of
+      domain names, including names used for A or AAAA records
+      (host names) and other records, such as SRV records. Note
+      that Internet host names have a stricter syntax (described
+      in RFC 952) than the DNS recommendations in RFCs 1034 and
+      1123, and that systems that want to store host names in
+      objects using the domain-name type are recommended to adhere
+      to this stricter standard to ensure interoperability.
+
+      The encoding of DNS names in the DNS protocol is limited
+      to 255 characters. Since the encoding consists of labels
+      prefixed by a length bytes and there is a trailing NULL
+      byte, only 253 characters can appear in the textual dotted
+      notation.
+
       The description clause of objects using the domain-name
       type MUST describe how (and when) these names are 
-      resolved to IP addresses.
+      resolved to IP addresses. Note that the resolution of a
+      domain-name value may require to query multiple DNS records
+      (e.g., A for IPv4 and AAAA for IPv6). The order of the
+      resolution process and which DNS record takes precedence
+      depends on the configuration of the resolver.
 
-      Note that the resolution of a domain-name value may 
-      require to query multiple DNS records (e.g., A for IPv4
-      and AAAA for IPv6). The order of the resolution process
-      and which DNS record takes precedence depends on the
-      configuration of the resolver.";
+      The canonical format for domain-name values uses the
+      US-ASCII encoding and case-insensitive characters are set
+      to lowercase.";
     reference
-     "RFC 1034: Domain Names - Concepts and Facilities
+     "RFC  952: DoD Internet Host Table Specification
+      RFC 1034: Domain Names - Concepts and Facilities
       RFC 1123: Requirements for Internet Hosts -- Application 
-                and Support";
+                and Support
+      RFC 3490: Internationalizing Domain Names in Applications
+                (IDNA)";
   }
-
-  // [TODO: RFC 2181 says there are no restrictions on DNS
-  // labels. Need to check whether the pattern is too 
-  // restrictive.]
 
   typedef host {
     type union {
@@ -341,7 +404,7 @@ module inet-types {
   }
 
   typedef uri {
-    type string;    // [TODO: add the regex from RFC 3986 here?]
+    type string;
     description
      "The uri type represents a Uniform Resource Identifier
       (URI) as defined by STD 66.
@@ -368,7 +431,7 @@ module inet-types {
       express 'URI absent' where required
 
       This type is in the value set and its semantics equivalent
-      to the Uri textual convention of the SMIv2.";
+      to the Uri SMIv2 textual convention defined in RFC 5017.";
     reference
      "RFC 3986: Uniform Resource Identifier (URI): Generic Syntax
       RFC 3305: Report from the Joint W3C/IETF URI Planning Interest

@@ -154,7 +154,9 @@ Validates the YANG module in <filename>, and all its dependencies."""
             return -1;
         return 1
 
-    for (epos, etag, eargs) in sorted(ctx.errors, cmp_error):
+    ctx.errors.sort(cmp_error)
+
+    for (epos, etag, eargs) in ctx.errors:
         elevel = error.err_level(etag)
         if error.is_warning(elevel):
             type = "warning"

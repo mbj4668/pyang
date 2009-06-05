@@ -332,7 +332,7 @@ def validate_pattern_expr(errors, stmt):
     except ImportError:
         err_add(errors, stmt.pos, 'PATTERN_FAILURE',
                 "Could not import python module libxml2 "
-                    "(see http://xmlsoft.org)")
+                    "(see http://xmlsoft.org for installation help)")
         return None
 
 class PatternTypeSpec(TypeSpec):
@@ -578,10 +578,10 @@ class PathTypeSpec(TypeSpec):
         self.pos = pos
 
     def str_to_val(self, errors, pos, str):
-        return self.target_node.type.i_type_spec.str_to_val(errors, pos, str)
+        return self.i_target_node.type.i_type_spec.str_to_val(errors, pos, str)
 
     def validate(self, errors, pos, val, errstr = ''):
-        return self.target_node.type.i_type_spec.validate(errors, pos, str)
+        return self.i_target_node.type.i_type_spec.validate(errors, pos, str)
 
 class UnionTypeSpec(TypeSpec):
     def __init__(self, types):

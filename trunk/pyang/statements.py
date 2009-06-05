@@ -40,13 +40,12 @@ def validate_module(ctx, module):
                 raise Abort
         # then also run match by special variable
         for (var_name, var_f) in _validation_variables:
-            if var_f(stmt.keyword) == True:
-                key = (phase, var_name)
-                if key in _validation_map:
-                    f = _validation_map[key]
-                    res = f(ctx, stmt)
-                    if res == 'stop':
-                        raise Abort
+            key = (phase, var_name)
+            if key in _validation_map and var_f(stmt.keyword) == True:
+                f = _validation_map[key]
+                res = f(ctx, stmt)
+                if res == 'stop':
+                    raise Abort
         # then run wildcard
         wildcard = (phase, '*')
         if wildcard in _validation_map:
@@ -84,6 +83,8 @@ _validation_phases = [
     #   from this point, extensions will be validated just as the
     #   other statements
     'init',
+    # second init phase initializes statements, including extensions
+    'init2',
 
     # grammar phase:
     #   verifies that the statement hierarchy is correct
@@ -130,8 +131,9 @@ _validation_map = {
     ('init', 'module'):lambda ctx, s: v_init_module(ctx, s),
     ('init', 'submodule'):lambda ctx, s: v_init_module(ctx, s),
     ('init', '$extension'):lambda ctx, s: v_init_extension(ctx, s),
-    ('init', '$has_children'):lambda ctx, s: v_init_has_children(ctx, s),
-    ('init', '*'):lambda ctx, s: v_init_stmt(ctx, s),
+    ('init2', 'import'):lambda ctx, s: v_init_import(ctx, s),
+    ('init2', '$has_children'):lambda ctx, s: v_init_has_children(ctx, s),
+    ('init2', '*'):lambda ctx, s: v_init_stmt(ctx, s),
 
     ('grammar', 'module'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'submodule'):lambda ctx, s: v_grammar_module(ctx, s),
@@ -192,7 +194,7 @@ _v_i_children = {
 }
 """Phases in this dict are run over the stmts which has i_children."""
 
-keyword_with_children = {
+_keyword_with_children = {
     'module':True,
     'submodule':True,
     'container':True,
@@ -209,9 +211,15 @@ keyword_with_children = {
     }
 
 _validation_variables = [
-    ('$has_children', lambda keyword: keyword in keyword_with_children),
+    ('$has_children', lambda keyword: keyword in _keyword_with_children),
     ('$extension', lambda keyword: util.is_prefixed(keyword)),
     ]
+
+_data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
+                  'anyxml', 'rpc', 'notification']
+
+_keywords_with_no_explicit_config = ['rpc', 'notification']
+
 
 def add_validation_phase(phase, before=None, after=None):
     """Add a validation phase to the framework.
@@ -249,6 +257,15 @@ def set_phase_i_children(phase):
     
     Default is to run over substmts."""
     _v_i_children[phase] = True
+
+def add_data_keyword(keyword):
+    _data_keywords.append(keyword)
+
+def add_keyword_with_children(keyword):
+    _keyword_with_children[keyword] = True
+
+def add_keywords_with_no_explicit_config(keyword):
+    _keywords_with_no_explicit_config.append(keyword)
 
 ###
 
@@ -331,6 +348,9 @@ def v_init_stmt(ctx, stmt):
 def v_init_has_children(ctx, stmt):
     stmt.i_children = []
 
+def v_init_import(ctx, stmt):
+    stmt.i_is_safe_import = False
+
 ### grammar phase
 
 def v_grammar_module(ctx, stmt):
@@ -390,7 +410,9 @@ def v_import_module(ctx, stmt):
         if r is not None:
             rev = r.arg
         m = ctx.get_module(modulename, rev)
-        if m is not None and m.i_is_validated == 'in_progress':
+        if m is not None and i.keyword == 'import' and i.i_is_safe_import:
+            pass
+        elif m is not None and m.i_is_validated == 'in_progress':
             err_add(ctx.errors, i.pos,
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
@@ -911,9 +933,6 @@ def v_type_base(ctx, stmt, no_error_report=False):
     
 ### Expand phases
 
-data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
-                 'anyxml', 'rpc', 'notification']
-
 data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
                             'choice', 'anyxml', 'uses', 'augment']
 
@@ -991,11 +1010,12 @@ def v_expand_1_children(ctx, stmt):
             v_expand_1_uses(ctx, s)
             for a in s.search('augment'):
                 v_expand_1_children(ctx, a)
-        elif s.keyword in data_keywords:
+        elif s.keyword in _data_keywords and hasattr(stmt, 'i_children'):
             stmt.i_children.append(s)
             v_expand_1_children(ctx, s)
-        elif s.keyword in keyword_with_children:
+        elif s.keyword in _keyword_with_children:
             v_expand_1_children(ctx, s)
+
     if stmt.keyword == 'grouping':
         stmt.i_expanded = True
         return 'continue'
@@ -1143,16 +1163,21 @@ def v_inherit_properties_module(ctx, module):
         if (hasattr(s, 'is_grammatically_valid') and
             s.is_grammatically_valid == False):
             return
-        if s.keyword in keyword_with_children:
+        if s.keyword in _keyword_with_children:
+            for ch in s.search('grouping'):
+                iter(ch, None, True)
             for ch in s.search('grouping'):
                 iter(ch, None, True)
             for ch in s.i_children:
-                iter(ch, config_value, allow_explicit)
+                if ch.keyword in _keywords_with_no_explicit_config:
+                    iter(ch, None, False)
+                else:
+                    iter(ch, config_value, allow_explicit)
 
     for s in module.search('grouping'):
         iter(s, None, True)
     for s in (module.i_children + module.search('augment')):
-        if s.keyword in ['rpc', 'notification']:
+        if s.keyword in _keywords_with_no_explicit_config:
             iter(s, None, False)
         else:
             iter(s, True, True)
@@ -1415,10 +1440,12 @@ def v_reference_choice(ctx, stmt):
 def v_reference_leaf_leafref(ctx, stmt):
     """Verify that all leafrefs in a leaf or leaf-list have correct path"""
 
-    for (path, pos) in stmt.i_leafrefs:
-        ptr = validate_leafref_path(ctx, stmt, path, pos)
+    for path_type_spec in stmt.i_leafrefs:
+        ptr = validate_leafref_path(ctx, stmt,
+                                    path_type_spec.path, path_type_spec.pos)
+        path_type_spec.i_target_node = ptr
         if ptr is not None:
-            stmt.i_leafref_ptrs.append((ptr, pos))
+            stmt.i_leafref_ptrs.append((ptr, path_type_spec.pos))
         
 def v_reference_must(ctx, stmt):
     # we should do a proper parsing of the xpath expression.
@@ -1653,10 +1680,20 @@ def search_grouping(stmt, name):
         stmt = stmt.parent
     return None
 
+def search_data_keyword_child(children, modulename, identifier):
+    for child in children:
+        if ((child.arg == identifier) and
+            (child.i_module.arg == modulename) and
+            child.keyword in _data_keywords):
+            return child
+    return None
+
 def find_target_node(ctx, stmt, is_augment=False):
     if stmt.arg.startswith("/"):
+        is_absolute = True
         arg = stmt.arg
     else:
+        is_absolute = False
         arg = "/" + stmt.arg # to make node_id_part below work
     # parse the path into a list of two-tuples of (prefix,identifier)
     path = [(m[1], m[2]) for m in syntax.re_schema_node_id_part.findall(arg)]
@@ -1667,7 +1704,8 @@ def find_target_node(ctx, stmt, is_augment=False):
         # error is reported by prefix_to_module
         return None
 
-    if stmt.parent.keyword in ('module', 'submodule'):
+    if (stmt.parent.keyword in ('module', 'submodule') or
+        is_absolute):
         # find the first node
         node = search_child(module.i_children, module.arg, identifier)
         if node is None:
@@ -1741,12 +1779,12 @@ def iterate_stmt(stmt, f):
 def add_leafref_path(leafrefs, type_):
     type_spec = type_.i_type_spec
     if type(type_spec) == types.PathTypeSpec:
-        leafrefs.append((type_spec.path, type_spec.pos))
+        leafrefs.append(type_spec)
     if type(type_spec) == types.UnionTypeSpec:
         for t in type_spec.types: # union
             add_leafref_path(leafrefs, t)
 
-def validate_leafref_path(ctx, stmt, path, pathpos):
+def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
@@ -1818,7 +1856,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
                     # another leaf; either of type leafref to keyleaf, OR same
                     # type as the keyleaf
                     (xkey_list, x_key, xleaf) = follow_path(stmt, pup, pdn)
-                    if xleaf.i_leafref_ptrs == []:
+                    if check_key_target and xleaf.i_leafref_ptrs == []:
                         err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE_PTR',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
                     for (xptr, xpos) in xleaf.i_leafref_ptrs:
@@ -1855,7 +1893,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
         (key_list, keys, ptr) = follow_path(stmt, up, dn)
         # ptr is now the node that the leafref path points to
         # check that it is a key in a list
-        if ptr.keyword != 'leaf':
+        if check_key_target and ptr.keyword != 'leaf':
             err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF_KEY',
                     (stmt.arg, stmt.pos))
             return None
