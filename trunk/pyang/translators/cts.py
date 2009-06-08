@@ -260,6 +260,10 @@ class CTSTranslator(object):
                   '<text/></choice></zeroOrMore></define>')
     """This definition is inserted first time 'anyxml' is found ."""
 
+    data_nodes = ("leaf", "container", "leaf-list", "list",
+                  "anyxml", "rpc", "notification")
+    """Keywords of YANG data nodes."""
+
     def __init__(self):
         """Initialize the statement and type dispatchers.
 
@@ -474,9 +478,7 @@ class CTSTranslator(object):
         """Does `stmt` have any data nodes?"""
         maybe = []
         for st in stmt.substmts:
-            if st.keyword in ("leaf", "container", "leaf-list",
-                              "list","rpc", "notification"):
-                return True
+            if st.keyword in self.data_nodes: return True
             if st.keyword in ["choice", "case"]:
                 maybe.append(st)
             elif st.keyword == "uses":
@@ -645,10 +647,12 @@ class CTSTranslator(object):
             if self.is_mandatory(sub): return True
         return False
 
-    def mandatory_short_case(self, stmt):
-        """Is `stmt` a mandatory short case in a choice?"""
-        return (stmt.parent.keyword == "choice" and
-                stmt.parent.search_one("mandatory", "true"))
+    def complete_case(self, stmt):
+        """Is `stmt` a complete case in a choice?"""
+        return (stmt.parent.keyword == "choice" or
+                stmt.parent.keyword == "case" and
+                len([sub for sub in stmt.parent.substmts
+                     if sub.keyword in self.data_nodes]) == 1)
 
     def min_max(self, slist):
         """Return value pair (min-elements, max-elements).
@@ -768,7 +772,7 @@ class CTSTranslator(object):
         for p in pset.pop(stmt.arg, []):
             is_mand = p.decide_mandatory(is_mand)
             for st in p.slist: self.handle_stmt(st, elem)
-        if not (is_mand or self.mandatory_short_case(stmt)):
+        if not (is_mand or self.complete_case(stmt)):
             p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
         ET.SubElement(elem, "ref", name="__anyxml__")
@@ -826,7 +830,7 @@ class CTSTranslator(object):
             else:
                 todo = p.slist
                 is_opt = is_opt or p.has("presence")
-        if is_opt and not self.mandatory_short_case(stmt):
+        if is_opt and not self.complete_case(stmt):
             p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
         for st in todo: self.handle_stmt(st, elem, new_pset)
@@ -856,7 +860,7 @@ class CTSTranslator(object):
         for p in pset.pop(stmt.arg, []):
             is_mand = p.decide_mandatory(is_mand)
             for st in p.slist: self.handle_stmt(st, elem)
-        if not (is_mand or self.mandatory_short_case(stmt) or
+        if not (is_mand or self.complete_case(stmt) or
                 stmt.arg in p_elem.attrib.get("nma:key",[])):
             p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
@@ -872,7 +876,7 @@ class CTSTranslator(object):
             if mi >= 0: min_el = mi
             if ma >= 0: max_el = ma
             for st in p.slist: self.handle_stmt(st, elem)
-        if min_el <= 0 and not self.mandatory_short_case(stmt):
+        if min_el <= 0 and not self.complete_case(stmt):
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
@@ -902,7 +906,7 @@ class CTSTranslator(object):
                 mi, ma = self.min_max(p.slist)
                 if mi >= 0: min_el = mi
                 if ma >= 0: max_el = ma
-        if min_el <= 0 and not self.mandatory_short_case(stmt):
+        if min_el <= 0 and not self.complete_case(stmt):
             rng_card = "zeroOrMore"
         else:
             rng_card = "oneOrMore"
