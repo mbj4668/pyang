@@ -724,6 +724,11 @@ def v_type_leaf(ctx, stmt):
         if defval is not None:
             type.i_type_spec.validate(ctx.errors, default.pos,
                                       defval, ' for the default value')
+    elif (default is None and
+          type.i_typedef is not None and
+          type.i_typedef.i_default is not None):
+        stmt.i_default = type.i_typedef.i_default
+        stmt.i_default_str = type.i_typedef.i_default_str
     if default is not None:
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
