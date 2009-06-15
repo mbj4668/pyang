@@ -600,6 +600,9 @@ def v_type_type(ctx, stmt):
     frac = stmt.search_one('fraction-digits')
     if frac is not None and stmt.arg != 'decimal64':
         err_add(ctx.errors, frac.pos, 'BAD_RESTRICTION', 'fraction_digits')
+    elif stmt.arg == 'decimal64' and frac is None:
+        err_add(ctx.errors, stmt.pos, 'MISSING_TYPE_SPEC_1',
+                ('decimal64', 'fraction-digits'))
     elif stmt.arg == 'decimal64' and frac.is_grammatically_valid:
         stmt.i_is_derived = True
         stmt.i_type_spec = types.Decimal64TypeSpec(frac)
