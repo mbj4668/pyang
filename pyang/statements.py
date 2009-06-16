@@ -1947,22 +1947,10 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
-    def search(self, keyword=None, arg=None):
-        """Return list of receiver's substmts with `keyword` and/or `arg`.
-
-        If `keyword` is ``None``, only the following substatements are
-        taken into account: ``leaf``, ``leaf-list``, ``list``,
-        ``container``, ``choice``, ``rpc``, ``notification``.
+    def search(self, keyword):
+        """Return list of receiver's substmts with `keyword`.
         """
-        if arg is None:
-            return [ ch for ch in self.substmts if ch.keyword == keyword ]
-        elif keyword is None:
-            kws = ["leaf", "leaf-list", "list", "container",
-                   "choice", "rpc", "notification"]
-        else:                   # both specified
-            kws = [keyword]
-        return [ ch for ch in self.substmts
-                 if ch.keyword in kws and ch.arg == arg ]
+        return [ ch for ch in self.substmts if ch.keyword == keyword ]
 
     def search_one(self, keyword, arg=None):
         """Return receiver's substmt with `keyword` and optionally `arg`.
