@@ -376,7 +376,7 @@ class CTSTranslator(object):
             ns_uri = module.search_one("namespace").arg
             self.prefix = self.add_namespace(ns_uri, prefix)
             src_text = "YANG module '%s'" % module.arg
-            revs = module.search(keyword="revision")
+            revs = module.search("revision")
             if len(revs) > 0:
                 src_text += " revision %s" % self.current_revision(revs)
             self.dc_element("source", src_text)
@@ -413,8 +413,8 @@ class CTSTranslator(object):
 
     def preload_defs(self):
         """Preload all top-level definitions."""
-        for d in (self.module.search(keyword="grouping") +
-                  self.module.search(keyword="typedef")):
+        for d in (self.module.search("grouping") +
+                  self.module.search("typedef")):
             self.handle_ref(d)
         
     def new_element(self, parent, name, prefix=None):
@@ -741,13 +741,15 @@ class CTSTranslator(object):
             sys.stderr.write("Handling '%s %s'\n" %
                              (util.keyword_to_str(stmt.raw_keyword), stmt.arg))
         try:
-            self.stmt_handler[stmt.keyword](stmt, p_elem, pset)
+            method = self.stmt_handler[stmt.keyword]
         except KeyError:
             if isinstance(stmt.keyword, tuple): # extension
                 self.handle_extension(stmt, p_elem)
             else:
                 sys.stderr.write("Unknown keyword %s (this should not happen)\n"
                                  % stmt.keyword)
+                sys.exit(1)
+        method(stmt, p_elem, pset)
 
     def handle_substmts(self, stmt, p_elem, pset={}):
         """Handle all substatements of `stmt`."""
@@ -808,7 +810,7 @@ class CTSTranslator(object):
         for p in pset.pop(stmt.arg, []):
             if p.path:
                 cid = self.sift_pset(new_pset, p)
-                if not stmt.search(keyword="case", arg=cid):
+                if not stmt.search_one("case", arg=cid):
                     for p in new_pset[cid]: p.pop()
             else:
                 todo = p.slist
@@ -846,7 +848,7 @@ class CTSTranslator(object):
     def enum_stmt(self, stmt, p_elem, pset):
         elem = ET.SubElement(p_elem, "value")
         elem.text = stmt.arg
-        for sub in stmt.search(keyword="status"):
+        for sub in stmt.search("status"):
             self.handle_stmt(sub, elem)
 
     def include_stmt(self, stmt, p_elem, pset):
@@ -981,7 +983,8 @@ class CTSTranslator(object):
                 self.add_patch(pset, Patch(sub, prefix=self.prefix))
         if noexpand and pset:
             for nid in pset:
-                if stmt.i_grouping.search(arg=nid):
+                if [ s for s in stmt.i_grouping.substmts if s.arg == nid
+                     and s.keyword in self.data_nodes + ("choice",) ]:
                     noexpand = False
                     break
         if noexpand:
@@ -1003,7 +1006,7 @@ class CTSTranslator(object):
         lengths = []
         ranges = []
         while 1:
-            patterns.extend([p.arg for p in stmt.search(keyword="pattern")])
+            patterns.extend([p.arg for p in stmt.search("pattern")])
             if stmt.i_lengths:
                 lengths[0:0] = [[list(lc) for lc in stmt.i_lengths]]
             if stmt.i_ranges:
@@ -1019,7 +1022,7 @@ class CTSTranslator(object):
 
     def bits_type(self, stmt, p_elem):
         elem = ET.SubElement(p_elem, "list")
-        for bit in stmt.search(keyword="bit"):
+        for bit in stmt.search("bit"):
             optel = ET.SubElement(elem, "optional")
             velem = ET.SubElement(optel, "value")
             velem.text = bit.arg
@@ -1041,5 +1044,5 @@ class CTSTranslator(object):
         self.numeric_data(stmt.arg, stmt.i_ranges, p_elem)
 
     def string_type(self, stmt, p_elem):
-        patterns = [p.arg for p in stmt.search(keyword="pattern")]
+        patterns = [p.arg for p in stmt.search("pattern")]
         self.string_data(stmt.i_lengths, patterns, p_elem)
