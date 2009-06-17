@@ -710,7 +710,7 @@ class CTSTranslator(object):
                 ns = ext.i_module.search_one("namespace").arg
             else:
                 parentname = ext.i_module.search_one('belongs-to').arg
-                parentm = self.module.i_ctx.modules[parentname]
+                parentm = self.module.i_ctx.get_module(parentname)
                 ns = parentm.search_one('namespace').arg
             prefix = self.add_namespace(ns, prefix)
         eel = ET.SubElement(p_elem, prefix + ":" + stmt.raw_keyword[1])
@@ -745,6 +745,7 @@ class CTSTranslator(object):
         except KeyError:
             if isinstance(stmt.keyword, tuple): # extension
                 self.handle_extension(stmt, p_elem)
+                return
             else:
                 sys.stderr.write("Unknown keyword %s (this should not happen)\n"
                                  % stmt.keyword)
@@ -852,7 +853,7 @@ class CTSTranslator(object):
             self.handle_stmt(sub, elem)
 
     def include_stmt(self, stmt, p_elem, pset):
-        subm = self.module.i_ctx.modules[stmt.arg]
+        subm = self.module.i_ctx.get_module(stmt.arg)
         self.handle_substmts(subm, p_elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
