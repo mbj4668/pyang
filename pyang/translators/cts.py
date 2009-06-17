@@ -246,8 +246,7 @@ class CTSTranslator(object):
         "uint16": "unsignedShort",
         "uint32": "unsignedInt",
         "uint64": "unsignedLong",
-        "float32": "float",
-        "float64": "double",
+        "decimal64": "decimal",
         "boolean": "boolean",
         "binary": "base64Binary",
         "string": "string",
@@ -334,10 +333,9 @@ class CTSTranslator(object):
             "boolean": self.mapped_type,
             "binary": self.mapped_type,
             "bits": self.bits_type,
+            "decimal64": self.numeric_type,
             "enumeration": self.choice_type,
             "empty": self.empty_type,
-            "float32": self.numeric_type,
-            "float64": self.numeric_type,
             "instance-identifier": self.mapped_type,
             "int8": self.numeric_type,
             "int16": self.numeric_type,
@@ -534,25 +532,6 @@ class CTSTranslator(object):
             else:
                 max_ = r[-1][1]
         return ranges[-1]
-
-    def numeric_data(self, y_type, ranges, p_elem):
-        """Create <data> element with numeric type under `p_elem`.
-
-        Argument `y_type` is a YANG numeric type identifier and
-        `ranges` is a list of range restrictions. If `ranges` contains
-        more than one interval, multiple <data> elements have to be
-        combined in a <choice> where each <data> element specifies one
-        interval.
-        """
-        r_type = self.datatype_map[y_type]
-        if len(ranges) == 0:
-            ET.SubElement(p_elem, "data", type=r_type)
-            return
-        if len(ranges) > 1:
-            p_elem = ET.SubElement(p_elem, "choice")
-        for r in ranges:
-            d_elem = ET.SubElement(p_elem, "data", type=r_type)
-            self.numeric_restriction(r, d_elem)
 
     def string_data(self, lengths, patterns, p_elem):
         """Create <data> element with string type under `p_elem`.
@@ -1042,7 +1021,23 @@ class CTSTranslator(object):
 
     def numeric_type(self, stmt, p_elem):
         """Handle numeric types."""
-        self.numeric_data(stmt.arg, stmt.i_ranges, p_elem)
+        if len(stmt.i_ranges) == 0:
+            return self.numeric_data(stmt, p_elem)
+        if len(stmt.i_ranges) > 1:
+            p_elem = ET.SubElement(p_elem, "choice")
+        for r in stmt.i_ranges:
+            d_elem = self.numeric_data(stmt, p_elem)
+            self.numeric_restriction(r, d_elem)
+
+    def numeric_data(self, stmt, p_elem):
+        """Return <data> pattern corresponding to a numeric type."""
+        elem = ET.SubElement(p_elem, "data",
+                             type=self.datatype_map[stmt.arg])
+        if stmt.arg == "decimal64":
+            ET.SubElement(elem, "param", name="totalDigits").text="19"
+            frd = stmt.search_one("fraction-digits")
+            ET.SubElement(elem, "param", name="fractionDigits").text=frd.arg
+        return elem
 
     def string_type(self, stmt, p_elem):
         patterns = [p.arg for p in stmt.search("pattern")]
