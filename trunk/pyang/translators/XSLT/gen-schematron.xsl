@@ -184,7 +184,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element[@name='nmt:netmod-tree']"
 		mode="std">
     <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
+      <xsl:when test="$target='dstore' or $target='get-reply'
+		      or $target='getconf-reply'">
         <xsl:apply-templates select="rng:element[@name='nmt:top']"
 			     mode="std"/>
       </xsl:when>

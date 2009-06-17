@@ -48,7 +48,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:grammar">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
-      <xsl:call-template name="ns-attribute"/>
+      <xsl:if test="$target!='dstore'">
+	<xsl:call-template name="ns-attribute"/>
+      </xsl:if>
       <xsl:element name="rng:include">
         <xsl:attribute name="href">
           <xsl:value-of select="$rng-lib"/>
@@ -66,7 +68,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:element[@name='nmt:netmod-tree']">
     <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
+      <xsl:when test="$target='dstore' or $target='get-reply'
+		      or $target='getconf-reply'">
         <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
@@ -81,12 +84,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:top']">
-    <rng:element name="rpc-reply">
-      <rng:ref name="message-id-attribute"/>
-      <rng:element name="data">
+    <xsl:choose>
+      <xsl:when test="$target='dstore'">
         <xsl:apply-templates/>
-      </rng:element>
-    </rng:element>
+      </xsl:when>
+      <xsl:otherwise>
+	<rng:element name="rpc-reply">
+	  <rng:ref name="message-id-attribute"/>
+	  <rng:element name="data">
+	    <xsl:apply-templates/>
+	  </rng:element>
+	</rng:element>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:rpc-method']">
