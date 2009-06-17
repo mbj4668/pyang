@@ -23,16 +23,19 @@ $ ./yang2schema -h
 
 These validation targets are currently supported:
 
-"get-reply"  Reply to <get> method without any filters.
+"get-reply"      Reply to <get> method without any filters. This is the
+                 default.
 
 "getconf-reply"  Reply to <get-config> method without any filters.
 
-"rpc"        RPC method whose name must be specified using the
-             -n option. Depending on the switch -i (default) or -o
-	     a schema for either request or reply is generated.
+"dstore"         'Raw' datastore without any encapsulating elements.
 
-"notif"      Notification whose name must be specified using the
-             -n option.
+"rpc"            RPC method whose name must be specified using the
+                 -n option. Depending on the switch -i (default) or -o
+	         a schema for either request or reply is generated.
+
+"notif"          Notification whose name must be specified using the
+                 -n option.
 
 The conditions appearing in YANG statements 'must' and 'when'
 currently must have all node identifiers with an explicit namespace
@@ -56,4 +59,4 @@ $ XSLT_OPTS="-v" ./yang2schema ...
 
 [1] http://xmlsoft.org/XSLT/
 
--- Lada Lhotka, 4.3.2009
+-- Lada Lhotka, 17.6.2009
