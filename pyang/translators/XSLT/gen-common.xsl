@@ -25,7 +25,7 @@
   <xsl:param name="rng-lib">relaxng-lib.rng</xsl:param>
 
   <xsl:template name="check-input-pars">
-    <xsl:if test="not($target='get-reply' or $target='rpc'
+    <xsl:if test="not($target='get-reply' or $target='dstore' or $target='rpc'
                   or $target='getconf-reply' or $target='notif')">
       <xsl:message terminate="yes">
         <xsl:text>Bad 'target' parameter: </xsl:text>

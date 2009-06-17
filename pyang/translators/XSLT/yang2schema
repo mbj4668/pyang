@@ -21,7 +21,7 @@ Options:
   -s <schema>  Select the schema to generate (default "rng").
                Must be one of "rng", "sch" and "dsrl".
   -t <target>  Specify the validation target (default "get-reply").
-               Must be one of "get-reply", "getconf-reply",
+               Must be one of "dstore", "get-reply", "getconf-reply",
                "rpc" and "notif". Option -n <name> is required
                for the latter two.
   -n <name>    Specify the name of notification or RPC method.
@@ -66,7 +66,8 @@ while getopts ":hs:t:n:io" opt ; do
 	    ;;
 	t)
 	    target=$OPTARG
-	    if [[ $target != "get-reply" && $target != "rpc" \
+	    if [[ $target != "dstore" && $target != "get-reply" \
+		&& $target != "rpc" \
 		&& $target != "getconf-reply" && $target != "notif" ]]
 	    then
 		echo "Invalid argument for -t: $target."
