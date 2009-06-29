@@ -341,7 +341,7 @@ class CTSTranslator(object):
             "int16": self.numeric_type,
             "int32": self.numeric_type,
             "int64": self.numeric_type,
-            "leafref": self.noop,
+            "leafref": self.leafref_type,
             "string" : self.string_type,
             "uint8": self.numeric_type,
             "uint16": self.numeric_type,
@@ -1014,6 +1014,11 @@ class CTSTranslator(object):
 
     def empty_type(self, stmt, p_elem):
         ET.SubElement(p_elem, "empty")
+
+    def leafref_type(self, stmt, p_elem):
+        self.handle_stmt(stmt.i_type_spec.i_target_node.search_one("type"),
+                         p_elem)
+        p_elem.attrib["nma:leafref"] = stmt.search_one("path").arg
 
     def mapped_type(self, stmt, p_elem):
         """Handle types that are simply mapped to RELAX NG."""
