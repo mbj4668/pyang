@@ -23,9 +23,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 "nma:must|@nma:key|@nma:unique|@nma:max-elements|@nma:when">
 <!ENTITY std-todo "descendant::rng:ref|descendant::rng:element
 [nma:must or @nma:key or @nma:unique or @nma:max-elements or @nma:when]">
-<!ENTITY refint-annot "nma:leafref">
+<!ENTITY refint-annot "@nma:leafref">
 <!ENTITY refint-todo "descendant::rng:ref|descendant::rng:element
-[nma:leafref]">
+[@nma:leafref]">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -429,14 +429,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template name="nma:leafref">
+  <xsl:template match="@nma:leafref">
     <xsl:call-template name="assert-element">
-      <xsl:with-param name="test">
-	<xsl:if test="@require-instance='false'">
-	  <xsl:value-of select="concat('not(',.,') or ')"/>
-	</xsl:if>
-	<xsl:value-of select="concat(.,'=..')"/>
-      </xsl:with-param>
+      <xsl:with-param name="test" select="concat(.,'=.')"/>
       <xsl:with-param
 	  name="message"
 	  select="concat('Leafref &quot;',name(..),
