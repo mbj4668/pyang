@@ -434,7 +434,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:with-param name="test" select="concat(.,'=.')"/>
       <xsl:with-param
 	  name="message"
-	  select="concat('Leafref &quot;',name(..),
+	  select="concat('Leafref &quot;',../@name,
 		  '&quot; must have the same value as &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>

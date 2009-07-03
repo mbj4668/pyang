@@ -326,7 +326,7 @@ class CTSTranslator(object):
             "unique" : self.unique_stmt,
             "units" : self.nma_attribute,
             "uses" : self.uses_stmt,
-            "when" : self.nma_attribute,
+            "when" : self.when_stmt,
             "yang-version": self.yang_version_stmt,
         }
         self.type_handler = {
@@ -389,6 +389,53 @@ class CTSTranslator(object):
         self.dc_element("creator",
                         "Pyang %s, CTS plugin" % pyang.__version__)
         return ET.ElementTree(element=self.grammar_elem)
+
+    def yang_to_xpath(self, xpath):
+        """Transform `xpath` by adding local NS prefixes.
+
+        Prefixes are only added to unqualified node names.
+        """
+        state = 0
+        result = ""
+        for c in xpath:
+            if state == 0:      # everything except below
+                if c.isalpha() or c == "_":
+                    state = 1
+                    name = c
+                elif c == "'":
+                    state = 2
+                    result += c
+                elif c == '"':
+                    state = 3
+                    result += c
+                else:
+                    result += c
+            elif state == 1:    # inside name
+                if c.isalnum() or c in "_-.:":
+                    name += c
+                elif c == "(":  # function
+                    state = 0
+                    result += name + c
+                else:
+                    state = 0
+                    if ":" not in name: result += self.prefix + ":"
+                    result += name + c
+            elif state == 2:    # single-quoted string
+                if c == "'":
+                    state = 0
+                    result += c
+                else:
+                    result += c
+            elif state == 3:    # double-quoted string
+                if c == '"':
+                    state = 0
+                    result += c
+                else:
+                    result += c
+        if state == 1:
+            if ":" not in name: result += self.prefix + ":"
+            result += name
+        return result
 
     def add_namespace(self, uri, prefix):
         """Add new item `uri`:`prefix` to `self.namespaces`.
@@ -903,7 +950,7 @@ class CTSTranslator(object):
 
     def must_stmt(self, stmt, p_elem, pset):
         mel = ET.SubElement(p_elem, "nma:must")
-        mel.attrib["assert"] = stmt.arg
+        mel.attrib["assert"] = self.yang_to_xpath(stmt.arg)
         em = stmt.search_one("error-message")
         if em:
             ET.SubElement(mel, "nma:error-message").text = em.arg
@@ -973,6 +1020,9 @@ class CTSTranslator(object):
         else:
             self.handle_substmts(stmt.i_grouping, p_elem, pset)
 
+    def when_stmt(self, stmt, p_elem, pset=None):
+        p_elem.attrib["nma:when"] = self.yang_to_xpath(stmt.arg)
+
     def yang_version_stmt(self, stmt, p_elem, pset):
         if float(stmt.arg) != self.YANG_version:
             print >> sys.stderr, "Unsupported YANG version: %s" % stmt.arg
@@ -1018,7 +1068,8 @@ class CTSTranslator(object):
     def leafref_type(self, stmt, p_elem):
         self.handle_stmt(stmt.i_type_spec.i_target_node.search_one("type"),
                          p_elem)
-        p_elem.attrib["nma:leafref"] = stmt.search_one("path").arg
+        p_elem.attrib["nma:leafref"] = self.yang_to_xpath(
+            stmt.search_one("path").arg)
 
     def mapped_type(self, stmt, p_elem):
         """Handle types that are simply mapped to RELAX NG."""
