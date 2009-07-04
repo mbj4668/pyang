@@ -276,10 +276,10 @@ def emit_xsd(ctx, module, fd):
                 # someone uses one of our prefixes
                 # generate a new prefix for that module
                 i = 0
-                pre = "p" + i
+                pre = "p" + str(i)
                 while pre in prefixes:
                     i = i + 1
-                    pre = "p" + i
+                    pre = "p" + str(i)
                 prefixes.append(pre)
             mod.i_prefix = pre
             uri = mod.search_one('namespace').arg
@@ -298,7 +298,13 @@ def emit_xsd(ctx, module, fd):
             fd.write('  <xs:import namespace="%s"\n' \
                      '             schemaLocation="%s.xsd"/>\n' %
                        (uri, x.arg))
-        if has_rpc:
+        if has_rpc and module.arg == 'ietf-netconf':
+            # this is the YANG mdoule for the NETCONF operations
+            # FIXME: when 4741bis has been published, change
+            # the schema location to a http uri
+            fd.write('  <xs:include\n')
+            fd.write('    schemaLocation="netconf.xsd"/>')
+        elif has_rpc:
             fd.write('  <xs:import\n')
             fd.write('     namespace=' \
                            '"urn:ietf:params:xml:ns:netconf:base:1.0"\n')
@@ -530,7 +536,7 @@ def print_children(ctx, module, fd, children, indent, path,
             elif cn in ['anyxml']:
                 fd.write(indent + '  <xs:complexType>\n')
                 fd.write(indent + '    <xs:complexContent>\n')
-                fd.write(indent + '      <xs:extension base="xs:anyType">\n')
+                fd.write(indent + '      <xs:extension base="xs:anyType"/>\n')
                 fd.write(indent + '    </xs:complexContent>\n')
                 fd.write(indent + '  </xs:complexType>\n')
                 
