@@ -1098,15 +1098,20 @@
   </define>
 
   <define name="refine-stmt">
-    <choice>
-      <ref name="refine-container-stmts"/>
-      <ref name="refine-leaf-stmts"/>
-      <ref name="refine-leaf-list-stmts"/>
-      <ref name="refine-list-stmts"/>
-      <ref name="refine-choice-stmts"/>
-      <ref name="refine-case-stmts"/>
-      <ref name="refine-anyxml-stmts"/>
-    </choice>
+    <element name="refine">
+      <attribute name="target-node">
+	<ref name="descendant-schema-nodeid"/>
+      </attribute>
+      <choice>
+	<ref name="refine-container-stmts"/>
+	<ref name="refine-leaf-stmts"/>
+	<ref name="refine-leaf-list-stmts"/>
+	<ref name="refine-list-stmts"/>
+	<ref name="refine-choice-stmts"/>
+	<ref name="refine-case-stmts"/>
+	<ref name="refine-anyxml-stmts"/>
+      </choice>
+    </element>
   </define>
 
   <define name="refine-container-stmts">
@@ -1249,9 +1254,7 @@
   <define name="uses-augment-stmt">
     <element name="augment">
       <attribute name="target-node">
-	<choice>
-	  <ref name="descendant-schema-nodeid"/>
-	</choice>
+	<ref name="descendant-schema-nodeid"/>
       </attribute>
       <interleave>
 	<optional>
@@ -1455,7 +1458,7 @@
 
   <define name="descendant-schema-nodeid">
     <data type="string">
-      <param name="pattern">([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*((/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)+)?</param>
+      <param name="pattern">([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)*</param>
     </data>
   </define>
 </grammar>
