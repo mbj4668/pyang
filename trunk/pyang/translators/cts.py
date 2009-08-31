@@ -1016,7 +1016,8 @@ class CTSTranslator(object):
                     break
         if noexpand:
             uname = self.handle_ref(stmt.i_grouping)
-            ET.SubElement(p_elem, "ref", name=uname)
+            elem = ET.SubElement(p_elem, "ref", name=uname)
+            self.handle_substmts(stmt, elem)
         else:
             self.handle_substmts(stmt.i_grouping, p_elem, pset)
 
