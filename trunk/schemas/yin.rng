@@ -149,7 +149,9 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="base-stmt"/>
+      <optional>
+	<ref name="base-stmt"/>
+      </optional>
     </element>
   </define>
 
