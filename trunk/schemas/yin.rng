@@ -357,9 +357,18 @@
   <define name="type-stmt">
     <element name="type">
       <choice>
-	<attribute name="name">
-	  <ref name="identifier-ref"/>
-	</attribute>
+	<group>
+	  <attribute name="name">
+	    <ref name="identifier-ref"/>
+	  </attribute>
+	  <choice>
+	    <ref name="range-stmt"/>
+	    <interleave>
+	      <ref name="length-stmt"/>
+	      <ref name="pattern-stmts"/>
+	    </interleave>
+	  </choice>
+	</group>
 	<ref name="numeric-type"/>
 	<ref name="string-type"/>
 	<ref name="enumeration-type"/>
@@ -388,31 +397,31 @@
 	<value>float64</value>
       </choice>
     </attribute>
-    <optional>
-      <ref name="range-stmt"/>
-    </optional>
+    <ref name="range-stmt"/>
   </define>
 
   <define name="range-stmt">
-    <element name="range">
-      <attribute name="value">
-	<ref name="range-expr"/>
-      </attribute>
-      <interleave>
-	<optional>
-	  <ref name="error-message-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="error-app-tag-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
-      </interleave>
-    </element>
+    <optional>
+      <element name="range">
+	<attribute name="value">
+	  <ref name="range-expr"/>
+	</attribute>
+	<interleave>
+	  <optional>
+	    <ref name="error-message-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="error-app-tag-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="description-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="reference-stmt"/>
+	  </optional>
+	</interleave>
+      </element>
+    </optional>
   </define>
 
   <define name="string-type">
@@ -420,57 +429,57 @@
       <value>string</value>
     </attribute>
     <interleave>
-      <optional>
-	<ref name="length-stmt"/>
-      </optional>
-      <oneOrMore>
-	<ref name="pattern-stmt"/>
-      </oneOrMore>
+      <ref name="length-stmt"/>
+      <ref name="pattern-stmts"/>
     </interleave>
   </define>
 
   <define name="length-stmt">
-    <element name="length">
-      <attribute name="value">
-	<ref name="length-expr"/>
-      </attribute>
-      <interleave>
-	<optional>
-	  <ref name="error-message-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="error-app-tag-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
-      </interleave>
-    </element>
+    <optional>
+      <element name="length">
+	<attribute name="value">
+	  <ref name="length-expr"/>
+	</attribute>
+	<interleave>
+	  <optional>
+	    <ref name="error-message-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="error-app-tag-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="description-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="reference-stmt"/>
+	  </optional>
+	</interleave>
+      </element>
+    </optional>
   </define>
 
-  <define name="pattern-stmt">
-    <element name="pattern">
-      <attribute name="value">
-	<data type="string"/>
-      </attribute>
-      <interleave>
-	<optional>
-	  <ref name="error-message-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="error-app-tag-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
-      </interleave>
-    </element>
+  <define name="pattern-stmts">
+    <zeroOrMore>
+      <element name="pattern">
+	<attribute name="value">
+	  <data type="string"/>
+	</attribute>
+	<interleave>
+	  <optional>
+	    <ref name="error-message-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="error-app-tag-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="description-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="reference-stmt"/>
+	  </optional>
+	</interleave>
+      </element>
+    </zeroOrMore>
   </define>
 
   <define name="default-stmt">
