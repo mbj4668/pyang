@@ -157,7 +157,9 @@
 
   <define name="base-stmt">
     <element name="base">
-      <ref name="identifier-ref"/>
+      <attribute name="name">
+	<ref name="identifier-ref"/>
+      </attribute>
     </element>
   </define>
 
@@ -582,7 +584,7 @@
 
   <define name="identityref-type">
     <attribute name="name">
-      <value>leafref</value>
+      <value>identityref</value>
     </attribute>
     <ref name="base-stmt"/>
   </define>
