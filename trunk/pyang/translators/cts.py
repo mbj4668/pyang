@@ -331,7 +331,7 @@ class CTSTranslator(object):
         }
         self.type_handler = {
             "boolean": self.mapped_type,
-            "binary": self.mapped_type,
+            "binary": self.binary_type,
             "bits": self.bits_type,
             "decimal64": self.numeric_type,
             "enumeration": self.choice_type,
@@ -580,63 +580,6 @@ class CTSTranslator(object):
                 max_ = r[-1][1]
         return ranges[-1]
 
-    def string_data(self, lengths, patterns, p_elem):
-        """Create <data> element with string type under `p_elem`.
-
-        Argument `lengths` is a list of range restrictions and
-        `patterns` list of regex patterns. If `lengths` contains more
-        than one interval, multiple <data> elements have to be
-        combined in a <choice> where each <data> element specifies
-        together one interval and all patterns.
-        """
-        pat_els = []
-        for rexp in patterns:
-            pel = ET.Element("param", name="pattern")
-            pel.text = rexp
-            pat_els.append(pel)
-        if len(lengths) == 0:
-            d_elem = ET.SubElement(p_elem, "data", type="string")
-            for p in pat_els: d_elem.append(p) 
-            return
-        if len(lengths) > 1:
-            p_elem = ET.SubElement(p_elem, "choice")
-        for l in lengths:
-            d_elem = ET.SubElement(p_elem, "data", type="string")
-            self.string_restriction(l, pat_els, d_elem)
-
-    def numeric_restriction(self, range_, p_elem):
-        """Create numeric range restriction for `p_elem`.
-
-        Argument `range_` is a single range interval (pair).
-        """
-        if range_[0] != "min":
-            elem = ET.SubElement(p_elem, "param", name="minInclusive")
-            elem.text = str(range_[0])
-        if range_[1] != "max":
-            elem = ET.SubElement(p_elem, "param", name="maxInclusive")
-            if range_[1] is None:
-                elem.text = str(range_[0])
-            else:
-                elem.text = str(range_[1])
-
-    def string_restriction(self, len_, pat_els, p_elem):
-        """Create string restriction(s) for `p_elem`.
-
-        Argument `len_` is a single length interval and `pat_els` is a
-        list of patterns that will be combined with the length facets.
-        """
-        if len_[1] is None:
-            elem = ET.SubElement(p_elem, "param", name="length")
-            elem.text = str(len_[0])
-        else:
-            if len_[0] != "min":
-                elem = ET.SubElement(p_elem, "param", name="minLength")
-                elem.text = str(len_[0])
-            if len_[1] != "max":
-                elem = ET.SubElement(p_elem, "param", name="maxLength")
-                elem.text = str(len_[1])
-        for p in pat_els: p_elem.append(p)
-
     def insert_doc(self, p_elem, docstring):
         """Add <a:documentation> with `docstring` to `p_elem`."""
         dtag = self.namespaces[self.a_uri] + ":documentation"
@@ -646,7 +589,6 @@ class CTSTranslator(object):
         for ch in p_elem:
             if ch.tag == dtag: pos += 1
         p_elem.insert(pos, elem)
-
 
     def is_mandatory(self, stmt):
         """Is `stmt` is mandatory?
@@ -990,13 +932,16 @@ class CTSTranslator(object):
         defined below.
         """
         typedef = stmt.i_typedef
-        if typedef is None: # built-in type
-            self.type_handler[stmt.arg](stmt, p_elem)
-        elif stmt.i_is_derived: # derived with restrictions
-            self.unwind_type(stmt, p_elem)
-        else:                   # just refer to type def.
+        if typedef and not stmt.i_is_derived: # just ref
             uname = self.handle_ref(typedef)
             ET.SubElement(p_elem, "ref", name=uname)
+            return
+        chain = [stmt]
+        while typedef:
+            type_ = typedef.search_one("type")
+            chain.insert(0, type_)
+            typedef = type_.i_typedef
+        self.type_handler[chain[0].arg](chain, p_elem)
 
     def unique_stmt(self, stmt, p_elem, pset):
         p_elem.attrib["nma:unique"] = ' '.join(
@@ -1031,71 +976,112 @@ class CTSTranslator(object):
 
     # Handlers for YANG types
 
-    def unwind_type(self, stmt, p_elem):
-        """Unwind type formed by multiple derivations."""
-        patterns = []
-        lengths = []
-        ranges = []
-        while 1:
-            patterns.extend([p.arg for p in stmt.search("pattern")])
-            if stmt.i_lengths:
-                lengths[0:0] = [[list(lc) for lc in stmt.i_lengths]]
-            if stmt.i_ranges:
-                ranges[0:0] = [[list(rc) for rc in stmt.i_ranges]]
-            if stmt.i_typedef is None: break
-            stmt = stmt.i_typedef.search_one("type")
-        if stmt.arg == "string":
-            slen = self.summarize_ranges(lengths)
-            self.string_data(slen, patterns, p_elem)
-        else:
-            srang = self.summarize_ranges(ranges)
-            self.numeric_data(stmt.arg, srang, p_elem)
+    def binary_type(self, tchain, p_elem):
+        self.type_with_ranges(tchain, p_elem, "length",
+                              lambda: ET.Element("data", type="base64Binary"))
 
-    def bits_type(self, stmt, p_elem):
+    def bits_type(self, tchain, p_elem):
         elem = ET.SubElement(p_elem, "list")
-        for bit in stmt.search("bit"):
+        for bit in tchain[0].search("bit"):
             optel = ET.SubElement(elem, "optional")
             velem = ET.SubElement(optel, "value")
             velem.text = bit.arg
 
-    def choice_type(self, stmt, p_elem):
+    def choice_type(self, tchain, p_elem):
         """Handle ``enumeration`` and ``union`` types."""
         elem = ET.SubElement(p_elem, "choice")
-        self.handle_substmts(stmt, elem)
+        self.handle_substmts(tchain[0], elem)
 
-    def empty_type(self, stmt, p_elem):
+    def empty_type(self, tchain, p_elem):
         ET.SubElement(p_elem, "empty")
 
-    def leafref_type(self, stmt, p_elem):
+    def leafref_type(self, tchain, p_elem):
+        stmt = tchain[0]
         self.handle_stmt(stmt.i_type_spec.i_target_node.search_one("type"),
                          p_elem)
         p_elem.attrib["nma:leafref"] = self.yang_to_xpath(
             stmt.search_one("path").arg)
 
-    def mapped_type(self, stmt, p_elem):
+    def mapped_type(self, tchain, p_elem):
         """Handle types that are simply mapped to RELAX NG."""
-        ET.SubElement(p_elem, "data", type=self.datatype_map[stmt.arg])
+        ET.SubElement(p_elem, "data",
+                      type=self.datatype_map[tchain[0].arg])
 
-    def numeric_type(self, stmt, p_elem):
+    def numeric_type(self, tchain, p_elem):
         """Handle numeric types."""
-        if len(stmt.i_ranges) == 0:
-            return self.numeric_data(stmt, p_elem)
-        if len(stmt.i_ranges) > 1:
+        typ = tchain[0].arg
+        def gen_data():
+            elem = ET.Element("data", type=self.datatype_map[typ])
+            if typ == "decimal64":
+                fd = tchain[0].search_one("fraction-digits").arg
+                ET.SubElement(elem, "param", name="totalDigits").text="19"
+                ET.SubElement(elem, "param",
+                              name="fractionDigits").text=fd
+            return elem
+        self.type_with_ranges(tchain, p_elem, "range", gen_data)
+
+    def type_with_ranges(self, tchain, p_elem, rangekw, gen_data):
+        """Handle types with 'range' or 'length' restrictions."""
+        ranges = self.get_ranges(tchain, rangekw)
+        if not ranges: return p_elem.append(gen_data())
+        if len(ranges) > 1:
             p_elem = ET.SubElement(p_elem, "choice")
-        for r in stmt.i_ranges:
-            d_elem = self.numeric_data(stmt, p_elem)
-            self.numeric_restriction(r, d_elem)
+        for r in ranges:
+            d_elem = gen_data()
+            for p in self.range_params(r, rangekw):
+                d_elem.append(p)
+            p_elem.append(d_elem)
 
-    def numeric_data(self, stmt, p_elem):
-        """Return <data> pattern corresponding to a numeric type."""
-        elem = ET.SubElement(p_elem, "data",
-                             type=self.datatype_map[stmt.arg])
-        if stmt.arg == "decimal64":
-            ET.SubElement(elem, "param", name="totalDigits").text="19"
-            frd = stmt.search_one("fraction-digits")
-            ET.SubElement(elem, "param", name="fractionDigits").text=frd.arg
-        return elem
+    def get_ranges(self, tchain, kw):
+        """Return list of `kw` ranges defined in `tchain`."""
+        (lo, hi) = ("min", "max")
+        ran = None
+        for t in tchain:
+            rstmt = t.search_one(kw)
+            if rstmt is None: continue
+            ran = [ i.split("..") for i in rstmt.arg.split("|") ]
+            if ran[0][0] != 'min': lo = ran[0][0]
+            if ran[-1][-1] != 'max': hi = ran[-1][-1]
+        if ran is None: return None
+        if len(ran) == 1:
+            return [(lo, hi)]
+        else:
+            return [(lo, ran[0][-1])] + ran[1:-1] + [(ran[-1][0], hi)]
 
-    def string_type(self, stmt, p_elem):
-        patterns = [p.arg for p in stmt.search("pattern")]
-        self.string_data(stmt.i_lengths, patterns, p_elem)
+    def range_params(self, ran, kw):
+        """Return list of <param>s corresponding to `kw` range `ran`.
+        """
+        specs = {"range": (ET.Element("value"),
+                           ET.Element("param", name="minInclusive"),
+                           ET.Element("param", name="maxInclusive")),
+                 "length": (ET.Element("param", name="length"),
+                            ET.Element("param", name="minLength"),
+                            ET.Element("param", name="maxLength"))}
+        (exact, min_, max_) = specs[kw]
+        if (len(ran) == 1 or ran[0] == ran[1]) and ran[0][0] != "m":
+            elem = exact
+            elem.text = ran[0]
+            return [elem]
+        res = []
+        if ran[0][0] != "m":
+            elem = min_
+            elem.text = ran[0]
+            res.append(elem)
+        if ran[1][0] != "m":
+            elem = max_
+            elem.text = ran[1]
+            res.append(elem)
+        return res
+
+    def string_type(self, tchain, p_elem):
+        pels = []
+        for t in tchain:
+            for pst in t.search("pattern"):
+                pel = ET.Element("param", name="pattern")
+                pel.text = pst.arg
+                pels.append(pel)
+        def get_data():
+            elem = ET.Element("data", type="string")
+            for p in pels: elem.append(p)
+            return elem
+        self.type_with_ranges(tchain, p_elem, "length", get_data)
