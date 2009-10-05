@@ -7,8 +7,14 @@ class Position(object):
         self.ref = ref
         self.line = 0
         self.top_name = None
+        self.uses_pos = None
     def __str__(self):
-        return self.ref + ':' + str(self.line)
+        s = self.ref + ':' + str(self.line)
+        if self.uses_pos is None:
+            return s
+        else:
+            return str(self.uses_pos) + ' (at ' + s + ')'
+            
 
 ### Exceptions
 
@@ -107,7 +113,7 @@ error_codes = \
        'node %s::%s is not found'),
     'BAD_NODE_IN_AUGMENT':
       (1,
-       'node %s::%s cannot be augmented'),
+       'node %s::%s of type %s cannot be augmented'),
     'BAD_NODE_IN_REFINE':
       (1,
        'node %s::%s cannot be refined'),
@@ -143,10 +149,10 @@ error_codes = \
        'the node "%s" is already refined at %s'),
     'RANGE_BOUNDS':
       (2,
-       'range error: "%s" is not larger than %s'),
+       'range error: "%s" is not larger than "%s"'),
     'LENGTH_BOUNDS':
       (2,
-       'length error: "%s" is not larger than %s'),
+       'length error: "%s" is not larger than "%s"'),
     'LENGTH_VALUE':
       (2,
        'length error: "%s" is too large'),
@@ -262,6 +268,9 @@ error_codes = \
     'MISSING_TYPE_SPEC':
       (1,
        'a type %s must have at least one %s statement'),
+    'MISSING_TYPE_SPEC_1':
+      (1,
+       'a type %s must have a %s statement'),
     'BAD_TYPE_IN_UNION':
       (1,
        'the type %s (defined at %s) cannot be part of a union'),

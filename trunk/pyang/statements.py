@@ -1,6 +1,4 @@
-import re
 import copy
-import time
 
 import util
 from util import attrsearch, keysearch
@@ -58,6 +56,8 @@ def validate_module(ctx, module):
         else:
             # default is to recurse
             if phase in _v_i_children:
+                if stmt.keyword == 'grouping':
+                    return
                 if hasattr(stmt, 'i_children'):
                     for s in stmt.i_children:
                         iterate(s, phase)
@@ -192,7 +192,8 @@ _v_i_children = {
     'reference_1':True,
     'reference_2':True,
 }
-"""Phases in this dict are run over the stmts which has i_children."""
+"""Phases in this dict are run over the stmts which has i_children.
+Note that the tests are not run in grouping definitions."""
 
 _keyword_with_children = {
     'module':True,
@@ -282,10 +283,14 @@ def v_init_module(ctx, stmt):
     prefix = None
     if stmt.keyword == 'module':
         prefix = stmt.search_one('prefix')
+        stmt.i_modulename = stmt.arg
     else:
         belongs_to = stmt.search_one('belongs-to')
         if belongs_to is not None and belongs_to.arg is not None:
             prefix = belongs_to.search_one('prefix')
+            stmt.i_modulename = belongs_to.arg
+        else:
+            stmt.i_modulename = ""
 
     if prefix is not None and prefix.arg is not None:
         stmt.i_prefixes[prefix.arg] = (stmt.arg, None)
@@ -316,7 +321,7 @@ def v_init_module(ctx, stmt):
     stmt.i_identities = {}
     stmt.i_extensions = {}
 
-    stmt.i_including_module = None
+    stmt.i_including_modulename = None
 
     # save a pointer to the context
     stmt.i_ctx = ctx
@@ -432,13 +437,20 @@ def v_import_module(ctx, stmt):
                     'BAD_INCLUDE', (submodule.keyword, i.arg))
             return
         if submodule is not None:
-            submodule.i_including_module = stmt
+            if stmt.keyword == 'module':
+                submodule.i_including_modulename = stmt.arg
+            else:
+                submodule.i_including_modulename = mymodulename
             b = submodule.search_one('belongs-to')
             if b is not None and b.arg != mymodulename:
                 err_add(ctx.errors, b.pos,
                     'BAD_SUB_BELONGS_TO',
                         (stmt.arg, submodule.arg, submodule.arg))
-            elif stmt.keyword == 'module':
+            else:
+                # add typedefs, groupings, nodes etc to this module
+                for ch in submodule.i_children:
+                    if ch not in stmt.i_children:
+                        stmt.i_children.append(ch)
                 # verify that the submodule's definitions do not collide
                 # with the module's definitions
                 defs = \
@@ -456,9 +468,13 @@ def v_import_module(ctx, stmt):
                     for name in subdict:
                         subdefinition = subdict[name]
                         if name in dict:
-                            other = subdict[name]
-                            err_add(ctx.errors, dict[name].pos,
-                                    errcode, (name, other.pos))
+                            # when the same submodule is inlcuded twice
+                            # (e.g. by the module and by another submodule)
+                            # the same definition will exist multiple times.
+                            other = dict[name]
+                            if other != subdefinition:
+                                err_add(ctx.errors, other.pos,
+                                        errcode, (name, subdefinition.pos))
                         else:
                             dict[name] = subdefinition
 
@@ -583,7 +599,7 @@ def v_type_type(ctx, stmt):
 
     if stmt.i_typedef is not None:
         typedef_type = stmt.i_typedef.search_one('type')
-        if typedef_type is not None:
+        if typedef_type is not None and hasattr(typedef_type, 'i_type_spec'):
             # copy since we modify the typespec's definition
             stmt.i_type_spec = copy.copy(typedef_type.i_type_spec)
             if stmt.i_type_spec is not None:
@@ -783,6 +799,7 @@ def v_type_grouping(ctx, stmt):
     def validate_uses(s):
         if s.keyword == "uses" and s.is_grammatically_valid == True:
             v_type_uses(ctx, s, no_error_report=True)
+            
     iterate_stmt(stmt, validate_uses)
 
     stmt.i_is_validated = True
@@ -791,13 +808,25 @@ def v_type_grouping(ctx, stmt):
 def v_type_uses(ctx, stmt, no_error_report=False):
     # Find the grouping
     name = stmt.arg
-    if hasattr(stmt, 'i_grouping'):
-        return
-    stmt.i_grouping = None
     if name.find(":") == -1:
         prefix = None
     else:
         [prefix, name] = name.split(':', 1)
+    if hasattr(stmt, 'i_grouping'):
+        if stmt.i_grouping is None and no_error_report == False:
+            if prefix is None or stmt.i_module.i_prefix == prefix:
+                # check local groupings
+                pmodule = stmt.i_module
+            else:
+                pmodule = prefix_to_module(stmt.i_module, prefix,
+                                           stmt.pos, ctx.errors)
+                if pmodule is None:
+                    return
+            err_add(ctx.errors, stmt.pos,
+                    'GROUPING_NOT_FOUND', (name, pmodule.arg))
+        return
+
+    stmt.i_grouping = None
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local groupings
         pmodule = stmt.i_module
@@ -1052,15 +1081,16 @@ def v_expand_1_uses(ctx, stmt):
             if hasattr(node, 'i_children'):
                 if module is None:
                     return None
-                child = search_child(node.i_children, module.arg, identifier)
+                child = search_child(node.i_children, module.i_modulename,
+                                     identifier)
                 if child is None:
                     err_add(ctx.errors, refinement.pos, 'NODE_NOT_FOUND',
-                            (module.arg, identifier))
+                            (module.i_modulename, identifier))
                     return None
                 node = child
             else:
                 err_add(ctx.errors, refinement.pos, 'BAD_NODE_IN_REFINE',
-                        (module.arg, identifier))
+                        (module.i_modulename, identifier))
                 return None
         return node
 
@@ -1076,7 +1106,8 @@ def v_expand_1_uses(ctx, stmt):
             target.substmts.append(new)
         elif new is not None:
             err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
-                    (target.keyword, target.i_module.arg, target.arg, keyword))
+                    (target.keyword, target.i_module.i_modulename,
+                     target.arg, keyword))
             return
 
     # first, copy the grouping into our i_children
@@ -1088,6 +1119,8 @@ def v_expand_1_uses(ctx, stmt):
             # inline the definition into our module
             new.i_module = stmt.i_module
             new.i_children = []
+            new.i_uniques = []
+            new.pos.uses_pos = stmt.pos
             # build the i_children list of pointers
             if hasattr(old, 'i_children'):
                 for x in old.i_children:
@@ -1099,12 +1132,12 @@ def v_expand_1_uses(ctx, stmt):
                     else:
                         # otherwise, copy the i_child
                         newx = x.copy(new, stmt,
-                                      nocopy=['type','uses',
+                                      nocopy=['type','uses', 'unique',
                                               'typedef','grouping'],
                                       copyf=post_copy)
                         new.i_children.append(newx)
         newg = g.copy(stmt.parent, stmt,
-                      nocopy=['type','uses','typedef','grouping'],
+                      nocopy=['type','uses','unique','typedef','grouping'],
                       copyf=post_copy)
         stmt.parent.i_children.append(newg)
 
@@ -1213,18 +1246,21 @@ def v_expand_2_augment(ctx, stmt):
         return
     if not hasattr(stmt.i_target_node, 'i_children'):
         err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
-                (stmt.i_target_node.i_module.arg, stmt.i_target_node.arg))
+                (stmt.i_target_node.i_module.arg, stmt.i_target_node.arg,
+                 stmt.i_target_node.keyword))
         return
 
     # copy the expanded children into the target node
     def add_tmp_children(node, tmp_children):
         for tmp in tmp_children:
-            ch = search_child(node.i_children, stmt.i_module.arg, tmp.arg)
+            ch = search_child(node.i_children, stmt.i_module.i_modulename,
+                              tmp.arg)
             if ch is not None:
                 del stmt.i_module.i_undefined_augment_nodes[tmp]
                 if not hasattr(ch, 'i_children'):
                     err_add(ctx.errors, tmp.pos, 'BAD_NODE_IN_AUGMENT',
-                            (stmt.i_module.arg, ch.arg))
+                            (stmt.i_module.i_modulename, ch.arg,
+                             ch.keyword))
                     raise Abort
                 add_tmp_children(ch, tmp.i_children)
             else:
@@ -1235,8 +1271,8 @@ def v_expand_2_augment(ctx, stmt):
             c.i_config == True):
             err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
 
-        ch = search_child(stmt.i_target_node.i_children, stmt.i_module.arg,
-                          c.arg)
+        ch = search_child(stmt.i_target_node.i_children,
+                          stmt.i_module.i_modulename, c.arg)
         if ch is not None:
             if ch.keyword == '__tmp_augment__':
                 # replace this node with the proper one,
@@ -1244,7 +1280,8 @@ def v_expand_2_augment(ctx, stmt):
                 del stmt.i_module.i_undefined_augment_nodes[ch]
                 if not hasattr(c, 'i_children'):
                     err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
-                            (stmt.i_module.arg, c.arg))
+                            (stmt.i_module.i_modulename, c.arg,
+                             c.keyword))
                     return
                 idx = stmt.i_target_node.i_children.index(ch)
                 stmt.i_target_node.i_children[idx] = c
@@ -1291,13 +1328,13 @@ def v_unique_name_children(ctx, stmt):
 
     dict = {}
     chs = stmt.i_children
-    if stmt.keyword == 'module':
+#    if stmt.keyword == 'module':
         # also check all submodules
-        for i in stmt.search('include'):
-            submodulename = i.arg
-            subm = ctx.get_module(submodulename)
-            if subm is not None:
-                chs += subm.i_children
+#        for i in stmt.search('include'):
+#            submodulename = i.arg
+#            subm = ctx.get_module(submodulename)
+#            if subm is not None:
+#                chs += subm.i_children
         
     for c in chs:
         if c.arg in dict:
@@ -1373,6 +1410,9 @@ def v_reference_list(ctx, stmt):
                 found.append(x)
 
     def v_unique():
+        # i_unique is a list of entries, one entry per 'unique' stmt.
+        # each entry is a list of pointers to the nodes that make up
+        # the unique constraint.
         stmt.i_unique = []
         uniques = stmt.search('unique')
         for u in uniques:
@@ -1404,6 +1444,8 @@ def v_reference_list(ctx, stmt):
                     return
                 if ptr in found:
                     err_add(ctx.errors, u.pos, 'DUPLICATE_UNIQUE', expr)
+                # add this unique statement to ptr's list of unique conditions
+                # it is part of.
                 ptr.i_uniques.append(u)
                 found.append(ptr)
             if found == []:
@@ -1443,7 +1485,6 @@ def v_reference_choice(ctx, stmt):
                         if p == None or p.arg == 'false':
                             chk_no_defaults(c)
             chk_no_defaults(ptr)
-
 
 def v_reference_leaf_leafref(ctx, stmt):
     """Verify that all leafrefs in a leaf or leaf-list have correct path"""
@@ -1652,9 +1693,9 @@ def is_mandatory_node(stmt):
 def search_child(children, modulename, identifier):
     for child in children:
         if child.arg == identifier:
-            if ((child.i_module.arg == modulename) or
-                child.i_module.i_including_module is not None and
-                child.i_module.i_including_module.arg == modulename):
+            if ((child.i_module.i_modulename == modulename) or
+                child.i_module.i_including_modulename is not None and
+                child.i_module.i_including_modulename == modulename):
                 return child
     return None
 
@@ -1666,7 +1707,7 @@ def search_data_node(children, modulename, identifier):
             if r is not None:
                 return r
         elif ((child.arg == identifier) and
-              (child.i_module.arg == modulename)):
+              (child.i_module.i_modulename == modulename)):
             return child
     return None
 
@@ -1691,7 +1732,7 @@ def search_grouping(stmt, name):
 def search_data_keyword_child(children, modulename, identifier):
     for child in children:
         if ((child.arg == identifier) and
-            (child.i_module.arg == modulename) and
+            (child.i_module.i_modulename == modulename) and
             child.keyword in _data_keywords):
             return child
     return None
@@ -1715,26 +1756,27 @@ def find_target_node(ctx, stmt, is_augment=False):
     if (stmt.parent.keyword in ('module', 'submodule') or
         is_absolute):
         # find the first node
-        node = search_child(module.i_children, module.arg, identifier)
+        node = search_child(module.i_children, module.i_modulename, identifier)
         if node is None:
             # check all our submodules
             for inc in module.search('include'):
                 submod = ctx.get_module(inc.arg)
                 if submod is not None:
-                    node = search_child(submod.i_children, submod.arg,identifier)
+                    node = search_child(submod.i_children, submod.i_modulename,
+                                        identifier)
                     if node is not None:
                         break
             if node is None:
                 err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                        (module.arg, identifier))
+                        (module.i_modulename, identifier))
                 return None
     else:
         chs = [c for c in stmt.parent.parent.i_children \
                    if hasattr(c, 'i_uses') and c.i_uses == stmt.parent]
-        node = search_child(chs, module.arg, identifier)
+        node = search_child(chs, module.i_modulename, identifier)
         if node is None:
             err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                    (module.arg, identifier))
+                    (module.i_modulename, identifier))
             return None
         
     # then recurse down the path
@@ -1744,7 +1786,8 @@ def find_target_node(ctx, stmt, is_augment=False):
                                       ctx.errors)
             if module is None:
                 return None
-            child = search_child(node.i_children, module.arg, identifier)
+            child = search_child(node.i_children, module.i_modulename,
+                                 identifier)
             if child is None and module == stmt.i_module and is_augment:
                 # create a temporary statement
                 child = Statement(node.top, node, stmt.pos, '__tmp_augment__',
@@ -1758,12 +1801,12 @@ def find_target_node(ctx, stmt, is_augment=False):
                 stmt.i_module.i_undefined_augment_nodes[child] = child
             elif child is None:
                 err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                        (module.arg, identifier))
+                        (module.i_modulename, identifier))
                 return None
             node = child
         else:
             err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                    (module.arg, identifier))
+                    (module.i_modulename, identifier))
             return None
     return node
 
@@ -1819,7 +1862,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
     def follow_path(ptr, up, dn):
         if up == -1: # absolute path
             (pmodule, name) = find_identifier(dn[0])
-            ptr = search_child(pmodule.i_children, pmodule.arg, name)
+            ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
             if ptr is None:
                 err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
                         (pmodule.arg, name, stmt.arg, stmt.pos))
@@ -1827,19 +1870,25 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
             dn = dn[1:]
         else:
             while up > 0:
-                if ptr is None or ptr.keyword == 'grouping':
+                if ptr is None: # or ptr.keyword == 'grouping':
                     err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
+                if ptr.keyword in ('augment', 'grouping'):
+                    # don't check the path here - check in the expanded tree
+                    raise Abort
                 ptr = ptr.parent
                 up = up - 1
+        if ptr.keyword in ('augment', 'grouping'):
+            # don't check the path here - check in the expanded tree
+            raise Abort
         i = 0
         key_list = None
         keys = []
         while i < len(dn):
             if is_identifier(dn[i]) == True:
                 (pmodule, name) = find_identifier(dn[i])
-                module_name = pmodule.arg
+                module_name = pmodule.i_modulename
             elif ptr.keyword == 'list': # predicate on a list, good
                 key_list = ptr
                 keys = []
@@ -1849,7 +1898,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
                     (_tag, keyleaf, pup, pdn) = dn[i]
                     (pmodule, pname) = find_identifier(keyleaf)
                     # make sure the keyleaf is really a key in the list
-                    pleaf = search_child(ptr.i_key, pmodule.arg, pname)
+                    pleaf = search_child(ptr.i_key, pmodule.i_modulename, pname)
                     if pleaf is None:
                         err_add(ctx.errors, pathpos, 'LEAFREF_NO_KEY',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
@@ -1905,14 +1954,17 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
             err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF_KEY',
                     (stmt.arg, stmt.pos))
             return None
-        if key_list == ptr.parent and (ptr.i_module.arg, ptr.arg) in keys:
+        if (key_list == ptr.parent and
+            (ptr.i_module.i_modulename, ptr.arg) in keys):
             err_add(ctx.errors, pathpos, 'LEAFREF_MULTIPLE_KEYS',
-                    (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
+                    (ptr.i_module.i_modulename, ptr.arg, stmt.arg, stmt.pos))
         if stmt.i_config == True and ptr.i_config == False:
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, stmt.pos))
         return ptr
     except NotFound:
+        return None
+    except Abort:
         return None
 
 ### structs used to represent a YANG module
@@ -1999,11 +2051,16 @@ class Statement(object):
         return path
 
     def pprint(self, indent='', f=None):
-        print indent + self.__class__.__name__ + " " + self.arg
+        print indent + self.keyword + " " + self.arg
         if f is not None:
              f(self, indent)
         for x in self.substmts:
             x.pprint(indent + ' ', f)
+        if hasattr(self, 'i_children'):
+            print indent + '--- i_children ---'
+            for x in self.i_children:
+                x.pprint(indent + ' ', f)
+
 
 ## FIXME: not used
 def validate_status(errors, x, y, defn, ref):

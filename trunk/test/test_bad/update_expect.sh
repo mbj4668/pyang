@@ -4,14 +4,16 @@
 
 for f in *.diff
 do
-  less $f
   fileName=`basename "$f" ".diff"`
   expectFileName="expect/${fileName}.out"
   output="${fileName}.out"
 
-  echo -n "Replace $expectFileName [y]nq: "
-  read -n 1 answer
-  echo
+  if [ "$1" != "-f" ]; then
+      less $f
+      echo -n "Replace $expectFileName [y]nq: "
+      read -n 1 answer
+      echo
+  fi
 
   if [ "${answer}" = "y" -o "${answer}" = "" ]
   then

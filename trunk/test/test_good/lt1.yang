@@ -35,13 +35,13 @@ module lt1 {
         default "oak";
     }
     grouping bar {
-        leaf feuille {
-            type int8;
-            must ". > 40";
-        }
         leaf blatt {
 	    default "linden";
             type trees;
+        }
+        leaf feuille {
+            type int8;
+            must ". > 40";
         }
     }
     grouping baz {
@@ -77,7 +77,7 @@ module lt1 {
         }
 	refine "feuillage/leaves/lt1:cz/lupen" {
             description "Refined desc. of lupen";
-	    min-elements 1;
+//	    min-elements 1;
 	    max-elements 2;
 	}
         refine feuillage {

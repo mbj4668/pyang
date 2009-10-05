@@ -6,8 +6,6 @@
   o  add validation of instance-identifier defaults
 
   o  better handling of multiple input files
-
-  o  remove floats
   
   o  move all plugin API functions to plugin.py
 
