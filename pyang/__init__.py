@@ -138,8 +138,9 @@ class Context(object):
                     p = yang_parser.YangParser()
 
                 module = p.parse(self, ref, text)
-                rev = util.get_latest_revision(module)
-                revs[i] = (rev, ('parsed', module))
+                if module is not None:
+                    rev = util.get_latest_revision(module)
+                    revs[i] = (rev, ('parsed', module, ref))
             i += 1
 
     def search_module(self, pos, modulename, revision=None):
@@ -182,6 +183,7 @@ class Context(object):
             
         if handle[0] == 'parsed':
             module = self.add_parsed_module(handle[1])
+            ref = handle[2]
         else:
             # get it from the repos
             try:

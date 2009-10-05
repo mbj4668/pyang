@@ -77,4 +77,10 @@ module yt2 {
         }
     }
 
+  leaf dec {
+    type decimal64 {
+      fraction-digits 1;
+      range "-0.3..0.0";
+    }
+  }
 }

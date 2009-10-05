@@ -17,6 +17,7 @@ a.yang:106: error: BAD_TYPE_IN_UNION
 a.yang:124: error: LEAFREF_IDENTIFIER_NOT_FOUND
 a.yang:134: error: DUPLICATE_CHILD_NAME
 a.yang:138: error: CIRCULAR_DEPENDENCY
+a.yang:142: error: GROUPING_NOT_FOUND
 d.yang:31: error: DUPLICATE_CHILD_NAME
 d.yang:35: error: DUPLICATE_CHILD_NAME
 d.yang:39: error: DUPLICATE_CHILD_NAME

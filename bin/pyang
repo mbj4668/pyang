@@ -12,9 +12,9 @@ from pyang import util
 
 def run():
 
-    usage = """%prog [options] <filename>...
+    usage = """%prog [options] [<filename>...]
 
-Validates the YANG module in <filename>, and all its dependencies."""
+Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     plugindirs = []
     # check for --plugindir
@@ -102,9 +102,6 @@ Validates the YANG module in <filename>, and all its dependencies."""
     if o.format != None and len(args) > 1:
         print >> sys.stderr, "too many files to convert"
         sys.exit(1)
-    if len(args) == 0:
-        print >> sys.stderr, "no file given"
-        sys.exit(1)
 
     filenames = args
 
@@ -129,6 +126,11 @@ Validates the YANG module in <filename>, and all its dependencies."""
 
     exit_code = 0
 
+    if len(filenames) == 0:
+        text = sys.stdin.read()
+        module = ctx.add_module('<stdin>', text)
+        if module is None:
+            exit_code = 1
     for filename in filenames:
         try:
             fd = file(filename)

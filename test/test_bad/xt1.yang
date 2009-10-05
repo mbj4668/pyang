@@ -148,7 +148,7 @@ module/*hej*/xt1 {
     }
     leaf c  { type int32; }
     leaf f {
-      type float32;
+      type decimal64 { fraction-digits 2; }
       default 2.0;
     }
     leaf bb {

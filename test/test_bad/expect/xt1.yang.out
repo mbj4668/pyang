@@ -4,7 +4,7 @@ xt1.yang:16: warning: REVISION_ORDER
 xt1.yang:24: error: BAD_TYPE_NAME
 xt1.yang:82: error: TYPE_VALUE
 xt1.yang:128: error: DUPLICATE_CHILD_NAME
-xt1.yang:140: error: DEFAULT_CASE_NOT_FOUND
+xt1.yang:168 (at xt1.yang:140): error: DEFAULT_CASE_NOT_FOUND
 xt1.yang:178: warning: KEY_HAS_DEFAULT
 xt1.yang:196: error: DUPLICATE_CHILD_NAME
 xt1.yang:206: error: DUPLICATE_CHILD_NAME

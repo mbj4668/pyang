@@ -80,7 +80,6 @@ class Decimal64TypeSpec(TypeSpec):
         self.max = Decimal64Value(9223372036854775807)
 
     def str_to_val(self, errors, pos, s):
-        dbg('trying to convert "%s" to a decimal...' % s)
         if s in ('min', 'max'):
             return s
         # make sure it is syntactically correct
@@ -88,6 +87,11 @@ class Decimal64TypeSpec(TypeSpec):
             err_add(errors, pos, 'TYPE_VALUE',
                     (s, self.definition, 'not a decimal'))
             return None
+        if s[0] == '-':
+            is_negative = True
+            s = s[1:]
+        else:
+            is_negative = False
         p = s.find('.')
         if p == -1:
             v = int(s)
@@ -110,6 +114,8 @@ class Decimal64TypeSpec(TypeSpec):
                 err_add(errors, pos, 'TYPE_VALUE',
                         (s, self.definition, 'too many fraction digits'))
                 return None
+        if is_negative:
+            v = -v
         return Decimal64Value(v, s)
 
     def validate(self, errors, pos, val, errstr = ''):
@@ -120,27 +126,6 @@ class Decimal64TypeSpec(TypeSpec):
         else:
             return True
     
-    def restrictions(self):
-        return ['range']
-    
-class FloatTypeSpec(TypeSpec):
-    def __init__(self, bits):
-        TypeSpec.__init__(self)
-        self.bits = bits
-
-    def str_to_val(self, errors, pos, str):
-        try:
-            dbg('trying to convert "%s" to a float...' % str)
-            if str in ['min', 'max']:
-                return str
-            return float(str)
-        except ValueError:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str, self.definition, 'not a float'))
-            return None
-
-    # FIXME: validate 32/64 bit floats
-
     def restrictions(self):
         return ['range']
     
@@ -471,7 +456,8 @@ class BitsTypeSpec(TypeSpec):
 def validate_path_expr(errors, path):
 
     # PRE: s matches syntax.path_arg
-    # Ret: (up::int(), [identifier | [(identifier, up::int(), [identifier])]])
+    # Ret: (up::int(),
+    #       [identifier | ('predicate', identifier, up::int(), [identifier])])
     def parse_keypath(s):
 
         def parse_dot_dot(s):
@@ -533,9 +519,13 @@ def validate_path_expr(errors, path):
             s = skip_space(s)
             s = s[1:] # skip '='
             s = skip_space(s)
-            s = s[10:] # skip 'current()/'
-            (up, s) = parse_dot_dot(s)
-            s = skip_space(s)
+            if s[:10] == 'current()/':
+                s = s[10:] # skip 'current()/'
+                (up, s) = parse_dot_dot(s)
+                s = skip_space(s)
+            else:
+                b = s.find(']') + 1
+                s = s[b:]
             dn = []
             while True:
                 (xidentifier, s) = parse_identifier(s[i:], is_absolute)
@@ -577,11 +567,21 @@ class PathTypeSpec(TypeSpec):
         self.path = path
         self.pos = pos
 
+
     def str_to_val(self, errors, pos, str):
-        return self.i_target_node.type.i_type_spec.str_to_val(errors, pos, str)
+        if hasattr(self, 'i_target_node'):
+            return self.i_target_node.type.i_type_spec.str_to_val(errors, pos,
+                                                                  str)
+        else:
+            # if a default value is verified
+            return str
 
     def validate(self, errors, pos, val, errstr = ''):
-        return self.i_target_node.type.i_type_spec.validate(errors, pos, str)
+        if hasattr(self, 'i_target_node'):
+            return self.i_target_node.type.i_type_spec.validate(errors, pos, str)
+        else:
+            # if a default value is verified
+            return True
 
 class UnionTypeSpec(TypeSpec):
     def __init__(self, types):
@@ -614,8 +614,6 @@ yang_type_specs = \
    'uint32':IntTypeSpec(0, 4294967295),
    'uint64':IntTypeSpec(0, 18446744073709551615),
    'decimal64':TypeSpec(),
-   'float32':FloatTypeSpec(32),
-   'float64':FloatTypeSpec(64),
    'string':StringTypeSpec(),
    'boolean':BooleanTypeSpec(),
    'enumeration':TypeSpec(),

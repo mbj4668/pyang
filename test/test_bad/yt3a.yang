@@ -56,7 +56,7 @@ module yt3a {
       type uint64;
     }
 
-    leaf l9 {
+/*    leaf l9 {
       description float32;
       type float32;
     }
@@ -64,7 +64,7 @@ module yt3a {
     leaf l10 {
       description float64;
       type float64;
-    }
+      } */
 
     leaf l11 {
       description boolean;
