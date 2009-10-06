@@ -32,6 +32,7 @@ yang_to_xsd_types = \
    'binary':'base64Binary',
    'leafref':'string',
    'instance-identifier':'string',
+   'identityref':'QName',
    # empty is handled separately
    # union is handled separately
    }
