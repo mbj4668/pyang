@@ -349,7 +349,6 @@ def v_init_stmt(ctx, stmt):
     stmt.i_typedefs = {}
     stmt.i_groupings = {}
     stmt.i_uniques = []
-    stmt.i_key = []
 
 def v_init_has_children(ctx, stmt):
     stmt.i_children = []
@@ -1121,7 +1120,6 @@ def v_expand_1_uses(ctx, stmt):
             new.i_module = stmt.i_module
             new.i_children = []
             new.i_uniques = []
-            new.i_key = []
             new.pos.uses_pos = stmt.pos
             # build the i_children list of pointers
             if hasattr(old, 'i_children'):
@@ -1372,6 +1370,7 @@ def v_reference_list(ctx, stmt):
             else:
                 err_add(ctx.errors, stmt.pos, 'NEED_KEY', ())
 
+        stmt.i_key = []
         if key is not None:
             found = []
             for x in key.arg.split():

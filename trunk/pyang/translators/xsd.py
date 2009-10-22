@@ -406,7 +406,8 @@ def print_children(ctx, module, fd, children, indent, path,
             elif cn in ['leaf']:
                 is_key = False
                 if ((c.parent.keyword == 'list') and
-                    (c in c.parent.i_key)):
+                    (c.parent.search_one('key') is not None) and
+                    (c.arg in c.parent.search_one('key').arg.split())):
                     is_key = True
                 if ((is_key == False) and
                     (c.search_one('mandatory') == None or 
@@ -469,13 +470,21 @@ def print_children(ctx, module, fd, children, indent, path,
                         chs = []
                 elif cn == 'list':
                     # sort children so that all keys come first
-                    chs = []
-                    for k in c.i_key:
-                        chs.append(k)
-                    for k in c.i_children:
-                        if k not in chs:
-                            chs.append(k)
-                    if c.i_key != []:
+                    k = c.search_one('key')
+                    if k is not None:
+                        kchs = []
+                        chs = []
+                        keynames = k.arg.split()
+                        for ch in c.i_children:
+                            if ch.arg in keynames:
+                                kchs.append(ch)
+                            else:
+                                chs.append(ch)
+                        chs = kchs + chs
+                    else:
+                        chs = c.i_children
+                    k = c.search_one('key')
+                    if k is not None:
                         # record the key constraints to be used by our
                         # parent element
                         ustr = uindent + \
@@ -484,10 +493,11 @@ def print_children(ctx, module, fd, children, indent, path,
                         ustr += uindent + \
                                   '  <xs:selector xpath="%s:%s"/>\n' % \
                                   (module.i_prefix, c.arg)
-                        for cc in c.i_key:
+                        for expr in k.arg.split():
+                            f = '/'.join([module.i_prefix + ':' + x
+                                          for x in expr.split('/')])
                             ustr += uindent + \
-                                      '  <xs:field xpath="%s:%s"/>\n' % \
-                                      (module.i_prefix, cc.arg)
+                                      '  <xs:field xpath="%s"/>\n' % f
                         ustr += uindent + '</xs:key>\n'
                         uniq.append(ustr)
                     i = 0
