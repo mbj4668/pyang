@@ -1148,6 +1148,8 @@ def v_expand_1_uses(ctx, stmt):
             defval = type.i_type_spec.str_to_val(ctx.errors,
                                                  default.pos,
                                                  default.arg)
+            target.i_default = defval
+            target.i_default_str = default.arg
             if defval is not None:
                 type.i_type_spec.validate(ctx.errors, default.pos,
                                           defval, ' for the default value')
@@ -1187,6 +1189,13 @@ def v_expand_1_uses(ctx, stmt):
         replace_from_refinement(target, refinement, 'reference',
                                 ['container', 'leaf', 'leaf-list', 'list',
                                  'choice', 'case', 'anyxml'])
+        # replace all vendor-specific statements
+        for s in refinement.substmts:
+            if util.is_prefixed(s.keyword):
+                old = target.search_one(s.keyword)
+                if old is not None:
+                    target.substmts.remove(old)
+                target.substmts.append(s)
 
 def v_inherit_properties_module(ctx, module):
     def iter(s, config_value, allow_explicit):
