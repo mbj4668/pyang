@@ -130,7 +130,8 @@ stmt_map = {
         ('date', []),
     'revision':
         ('date',
-         [('description', '?')]),
+         [('description', '?'),
+          ('reference', '?')]),
     'belongs-to':
         ('identifier',
          [('prefix', '1')]),
