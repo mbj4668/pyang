@@ -16,6 +16,11 @@ class DependPlugin(plugin.PyangPlugin):
             optparse.make_option("--depend-target",
                                  dest="depend_target",
                                  help="Makefile rule target"),
+            optparse.make_option("--depend-no-submodules",
+                                 dest="depend_no_submodules",
+                                 action="store_true",
+                                 help="Do not generate dependencies for " \
+                                 "included submodules"),
             optparse.make_option("--depend-extension",
                                  dest="depend_extension",
                                  default="",
@@ -35,6 +40,7 @@ def emit_depend(ctx, module, fd):
         fd.write('%s :' % ctx.opts.depend_target)
     for i in module.search("import"):
         fd.write(' %s%s' % (i.arg, ctx.opts.depend_extension))
-    for i in module.search("include"):
-        fd.write(' %s%s' % (i.arg, ctx.opts.depend_extension))
+    if not ctx.opts.depend_no_submodules:
+        for i in module.search("include"):
+            fd.write(' %s%s' % (i.arg, ctx.opts.depend_extension))
     fd.write('\n')
