@@ -336,6 +336,7 @@ class CTSTranslator(object):
             "decimal64": self.numeric_type,
             "enumeration": self.choice_type,
             "empty": self.empty_type,
+            "identityref": self.identityref_type,
             "instance-identifier": self.mapped_type,
             "int8": self.numeric_type,
             "int16": self.numeric_type,
@@ -994,6 +995,10 @@ class CTSTranslator(object):
 
     def empty_type(self, tchain, p_elem):
         ET.SubElement(p_elem, "empty")
+
+    def identityref_type(self, tchain, p_elem):
+        ET.SubElement(p_elem, "data", type="QName")
+        # TODO: Add annotations with all possible values of (nsuri,idname)
 
     def leafref_type(self, tchain, p_elem):
         stmt = tchain[0]
