@@ -119,7 +119,11 @@ class XSDPlugin(plugin.PyangPlugin):
             optparse.make_option("--xsd-no-imports",
                                  dest="xsd_no_imports",
                                  action="store_true",
-                                 help="Do not generate any xs:imports"),
+                                 help="Do not generate xs:import elements"),
+            optparse.make_option("--xsd-no-includes",
+                                 dest="xsd_no_includes",
+                                 action="store_true",
+                                 help="Do not generate xs:include elements"),
             optparse.make_option("--xsd-break-pattern",
                                  dest="xsd_break_pattern",
                                  action="store_true",
@@ -320,8 +324,9 @@ def emit_xsd(ctx, module, fd):
         if len(imports) > 0 or has_rpc or has_notifications:
             fd.write('\n')
 
-    for inc in module.search('include'):
-        fd.write('  <xs:include schemaLocation="%s.xsd"/>\n' % inc.arg)
+    if ctx.opts.xsd_no_includes != True:
+        for inc in module.search('include'):
+            fd.write('  <xs:include schemaLocation="%s.xsd"/>\n' % inc.arg)
 
     if ctx.opts.xsd_no_lecture != True:
         fd.write('  <xs:annotation>\n')
