@@ -142,6 +142,21 @@ module a {
     uses foox;
   }
 
+  typedef u64ErrorEnum{
+    type enumeration {
+      enum overload {value 18446744073709551613;} // error - too big
+      enum na;
+      enum unknown;
+    }
+  }
+
+  typedef xErrorEnum{
+    type enumeration {
+      enum overload {value 2147483646;}
+      enum na;
+      enum unknown; // error -- too big auto value
+    }
+  }
 
 }
 
