@@ -79,19 +79,20 @@ class Decimal64TypeSpec(TypeSpec):
         self.min = Decimal64Value(-9223372036854775808)
         self.max = Decimal64Value(9223372036854775807)
 
-    def str_to_val(self, errors, pos, s):
-        if s in ('min', 'max'):
-            return s
+    def str_to_val(self, errors, pos, s0):
+        if s0 in ('min', 'max'):
+            return s0
         # make sure it is syntactically correct
-        if syntax.re_decimal.search(s) is None:
+        if syntax.re_decimal.search(s0) is None:
             err_add(errors, pos, 'TYPE_VALUE',
-                    (s, self.definition, 'not a decimal'))
+                    (s0, self.definition, 'not a decimal'))
             return None
-        if s[0] == '-':
+        if s0[0] == '-':
             is_negative = True
-            s = s[1:]
+            s = s0[1:]
         else:
             is_negative = False
+            s = s0
         p = s.find('.')
         if p == -1:
             v = int(s)
@@ -103,7 +104,9 @@ class Decimal64TypeSpec(TypeSpec):
             v = int(s[:p])
             i = self.fraction_digits
             j = p + 1
-            slen = len(s.rstrip('0')) # ignore trailing zeroes
+#            slen = len(s.rstrip('0')) # ignore trailing zeroes
+# No, do not ignore trailing zeroes!
+            slen = len(s)
             while i > 0:
                 v *= 10
                 i -= 1
@@ -116,7 +119,7 @@ class Decimal64TypeSpec(TypeSpec):
                 return None
         if is_negative:
             v = -v
-        return Decimal64Value(v, s)
+        return Decimal64Value(v, s0)
 
     def validate(self, errors, pos, val, errstr = ''):
         if val < self.min or val > self.max:
@@ -357,11 +360,11 @@ def validate_enums(errors, enums, stmt):
         if value is not None:
             try:
                 x = int(value.arg)
+                e.i_value = x
                 if x < -2147483648 or x > 2147483647:
                     raise ValueError
                 if x >= next:
                     next = x + 1
-                e.i_value = x
                 if x in values:
                     err_add(errors, value.pos, 'DUPLICATE_ENUM_VALUE', 
                             (x, values[x]))
@@ -373,6 +376,8 @@ def validate_enums(errors, enums, stmt):
         else:
             # auto-assign a value
             values[next] = e.pos
+            if next > 2147483647:
+                err_add(errors, e.pos, 'ENUM_VALUE', str(next))
             e.i_value = next
             next = next + 1
         if e.arg in names:

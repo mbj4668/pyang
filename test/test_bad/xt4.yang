@@ -11,7 +11,7 @@ module xt4 {
   typedef dc1 {
     type decimal64 {
       fraction-digits 2;
-      range "1..5.5000";
+      range "1..5.50";
     }
     default 1.506;  // error, too many fraction digits
   }
