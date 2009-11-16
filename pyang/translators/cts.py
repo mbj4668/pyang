@@ -529,6 +529,8 @@ class CTSTranslator(object):
                 maybe.append(st)
             elif st.keyword == "uses":
                 maybe.append(st.i_grouping)
+            elif stmt.keyword == "module" and st.keyword == "include":
+                maybe.append(st.i_module.i_ctx.get_module(st.arg))
         for m in maybe:
             if self.has_data_node(m): return True
         return False
@@ -822,8 +824,9 @@ class CTSTranslator(object):
             self.handle_stmt(sub, elem)
 
     def include_stmt(self, stmt, p_elem, pset):
-        subm = self.module.i_ctx.get_module(stmt.arg)
-        self.handle_substmts(subm, p_elem)
+        if stmt.parent.keyword == "module":
+            subm = self.module.i_ctx.get_module(stmt.arg)
+            self.handle_substmts(subm, p_elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
         p_elem = self.check_default_case(stmt, p_elem)
