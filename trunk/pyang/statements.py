@@ -986,13 +986,7 @@ def v_expand_1_children(ctx, stmt):
         for s in stmt.substmts:
             if s.keyword in shorthands:
                 # create an artifical case node for the shorthand
-                new_case = Statement(s.top, s.parent, s.pos, 'case', s.arg)
-                v_init_stmt(ctx, new_case)
-                new_child = s.copy(new_case)
-                new_case.i_children = [new_child]
-                new_case.i_module = s.i_module
-                stmt.i_children.append(new_case)
-                v_expand_1_children(ctx, new_child)
+                create_new_case(ctx, stmt, s)
             elif s.keyword == 'case':
                 stmt.i_children.append(s)
                 v_expand_1_children(ctx, s)
@@ -1096,6 +1090,7 @@ def v_expand_1_uses(ctx, stmt):
 
     def replace_from_refinement(target, refinement, keyword, valid_keywords,
                                 v_fun=None):
+        """allow `keyword` as a refinement in `valid_keywords`"""
         new = refinement.search_one(keyword)
         if new is not None and target.keyword in valid_keywords:
             old = target.search_one(keyword)
@@ -1272,8 +1267,13 @@ def v_expand_2_augment(ctx, stmt):
                              ch.keyword))
                     raise Abort
                 add_tmp_children(ch, tmp.i_children)
+            elif node.keyword == 'choice' and tmp.keyword != 'case':
+                # create an artifical case node for the shorthand
+                new_case = create_new_case(ctx, node, tmp)
+                new_case.parent = node
             else:
                 node.i_children.append(tmp)
+                tmp.parent = node
 
     for c in stmt.i_children:
         if (stmt.i_target_node.i_config == False and
@@ -1294,6 +1294,7 @@ def v_expand_2_augment(ctx, stmt):
                     return
                 idx = stmt.i_target_node.i_children.index(ch)
                 stmt.i_target_node.i_children[idx] = c
+                c.parent = stmt.i_target_node
                 try:
                     add_tmp_children(c, ch.i_children)
                 except Abort:
@@ -1302,8 +1303,23 @@ def v_expand_2_augment(ctx, stmt):
                 err_add(ctx.errors, c.pos, 'DUPLICATE_CHILD_NAME',
                         (stmt.arg, stmt.pos, c.arg, ch.pos))
                 return                
+        elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
+            # create an artifical case node for the shorthand
+            new_case = create_new_case(ctx, stmt.i_target_node, c)
+            new_case.parent = stmt.i_target_node
         else:
             stmt.i_target_node.i_children.append(c)
+            c.parent = stmt.i_target_node
+
+def create_new_case(ctx, choice, child):
+    new_case = Statement(child.top, child.parent, child.pos, 'case', child.arg)
+    v_init_stmt(ctx, new_case)
+    new_child = child.copy(new_case)
+    new_case.i_children = [new_child]
+    new_case.i_module = child.i_module
+    choice.i_children.append(new_case)
+    v_expand_1_children(ctx, new_child)
+    return new_case
 
 ### Unique name check phase
 
@@ -1888,6 +1904,10 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
                     raise Abort
                 ptr = ptr.parent
                 up = up - 1
+            if ptr is None: # or ptr.keyword == 'grouping':
+                err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                        (stmt.arg, stmt.pos))
+                raise NotFound
         if ptr.keyword in ('augment', 'grouping'):
             # don't check the path here - check in the expanded tree
             raise Abort
