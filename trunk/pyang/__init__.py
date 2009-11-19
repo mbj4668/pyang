@@ -79,7 +79,9 @@ class Context(object):
         rev = util.get_latest_revision(module)
         if (module.arg, rev) in self.modules:
             other = self.modules[(module.arg, rev)]
-            if hasattr(other, 'i_adler32') and other.i_adler32 != module.i_adler32:
+            if (hasattr(other, 'i_adler32') and
+                hasattr(module, 'i_adler32') and
+                other.i_adler32 != module.i_adler32):
                 error.err_add(self.errors, module.pos,
                               'DUPLICATE_MODULE', (module.arg, other.pos))
                 return None
