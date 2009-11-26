@@ -8,6 +8,8 @@ submodule submodule2 {
     prefix x;
   }
 
+  include submodule3; // error: not included by composite
+
   grouping g1;
   
   container new {

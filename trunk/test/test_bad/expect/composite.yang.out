@@ -6,3 +6,4 @@ submodule1.yang:11: error: TYPE_ALREADY_DEFINED
 submodule1.yang:19: error: GROUPING_ALREADY_DEFINED
 submodule2.yang:7: error: BAD_IMPORT
 submodule2.yang:7: warning: UNUSED_IMPORT
+submodule2.yang:11: error: MISSING_INCLUDE
