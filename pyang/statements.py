@@ -447,6 +447,14 @@ def v_import_module(ctx, stmt):
                     'BAD_SUB_BELONGS_TO',
                         (stmt.arg, submodule.arg, submodule.arg))
             else:
+                # check that each submodule included by this submodule
+                # is also included bt the module
+                for s in submodule.search('include'):
+                    if stmt.search_one('include', s.arg) is None:
+                        err_add(ctx.errors, s.pos,
+                                'MISSING_INCLUDE',
+                                (s.arg, submodule.arg, stmt.arg))
+
                 # add typedefs, groupings, nodes etc to this module
                 for ch in submodule.i_children:
                     if ch not in stmt.i_children:

@@ -102,6 +102,9 @@ error_codes = \
     'BAD_SUB_BELONGS_TO':
       (1,
        'module %s includes %s, but %s does not specifiy a correct belongs-to'),
+    'MISSING_INCLUDE':
+      (1,
+       'submodule %s is included by %s, but not by the module %s'),
     'PREFIX_ALREADY_USED':
       (1,
        'prefix "%s" already used for module %s'),
