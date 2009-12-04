@@ -58,6 +58,10 @@ def validate_module(ctx, module):
             if phase in _v_i_children:
                 if stmt.keyword == 'grouping':
                     return
+                if stmt.i_module is not None and stmt.i_module != module:
+                    # this means that the stmt is from an included, expanded
+                    # submodule - already validated.
+                    return
                 if hasattr(stmt, 'i_children'):
                     for s in stmt.i_children:
                         iterate(s, phase)
@@ -1702,6 +1706,8 @@ def has_type(type, names):
         r = has_type(t, names)
         if r is not None:
             return r
+    if not hasattr(type, 'i_typedef'):
+        return None
     if type.i_typedef is not None and type.i_typedef.i_is_circular == False:
         t = type.i_typedef.search_one('type')
         if t is not None:
