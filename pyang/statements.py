@@ -683,9 +683,10 @@ def v_type_type(ctx, stmt):
         err_add(ctx.errors, path.pos, 'BAD_RESTRICTION', 'path')
     elif path is not None:
         stmt.i_is_derived = True
-        path_spec = types.validate_path_expr(ctx.errors, path)
-        if path_spec is not None:
-            stmt.i_type_spec = types.PathTypeSpec(path_spec, path.pos)
+        if path.is_grammatically_valid == True:
+            path_spec = types.validate_path_expr(ctx.errors, path)
+            if path_spec is not None:
+                stmt.i_type_spec = types.PathTypeSpec(path_spec, path.pos)
 
     # check the base restriction
     base = stmt.search_one('base')
