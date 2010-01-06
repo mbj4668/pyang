@@ -196,6 +196,8 @@ class CTSTranslator(object):
     * `has_anyxml`: boolean indicating occurence of 'anyxml'
       statement (so that `anyxml_def` has to be inserted)
 
+    * `in_rpc`: boolean that signals processing inside rpc
+
     * `module`: YANG module that is being translated
 
     * `namespaces`: mapping of used NS URIs to prefixes
@@ -365,6 +367,7 @@ class CTSTranslator(object):
         self.grammar_elem = ET.Element("grammar", self.grammar_attrs)
         self.no_data = True
         self.has_anyxml = False
+        self.in_rpc = False
         self.used_defs = []
         for module in modules:
             self.module = module
@@ -753,7 +756,10 @@ class CTSTranslator(object):
             p_elem.attrib[att] = stmt.arg
 
     def case_stmt(self, stmt, p_elem, pset):
-        elem = ET.SubElement(p_elem, "group")
+        if self.in_rpc:
+            elem = ET.SubElement(p_elem, "group")
+        else:
+            elem = ET.SubElement(p_elem, "interleave")
         if ("nma:default" in p_elem.attrib and stmt.arg ==
             self.strip_local_prefix(stmt, p_elem.attrib["nma:default"])):
             elem.attrib["nma:default-case"] = "true"
@@ -801,6 +807,8 @@ class CTSTranslator(object):
         if is_opt and not self.complete_case(stmt):
             p_elem = ET.SubElement(p_elem, "optional")
         p_elem.append(elem)
+        if not self.in_rpc:
+            elem = ET.SubElement(elem, "interleave")
         for st in todo: self.handle_stmt(st, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
 
@@ -885,6 +893,8 @@ class CTSTranslator(object):
         if max_el > -1:
             elem.attrib["nma:max-elements"] = str(max_el)
         cont.append(elem)
+        if not self.in_rpc:
+            elem = ET.SubElement(elem, "interleave")
         for st in todo: self.handle_stmt(st, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
 
@@ -916,12 +926,14 @@ class CTSTranslator(object):
             self.insert_doc(p_elem, "See: " + stmt.arg)
 
     def rpc_stmt(self, stmt, p_elem, pset):
+        self.in_rpc = True
         rpcel = self.new_element(self.rpcs, "rpc-method", prefix="nmt")
         inpel = self.new_element(rpcel, "input", prefix="nmt")
         elem = self.new_element(inpel, stmt.arg)
         ist = stmt.search_one("input")
         if ist: self.handle_substmts(ist, elem)
         self.handle_substmts(stmt, rpcel)
+        self.in_rpc = False
 
     def type_stmt(self, stmt, p_elem, pset):
         """Handle ``type`` statement.
