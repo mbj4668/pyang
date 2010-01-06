@@ -208,8 +208,6 @@ class CTSTranslator(object):
 
     * `prefix`: prefix of the current module
 
-    * `prefix_map`: map module-local prefixes to schema prefixes
-
     * `rpcs`: root element of the schema subtree for RPCs
 
     * `stmt_handler`: dictionary dispatching callback methods for
@@ -370,7 +368,6 @@ class CTSTranslator(object):
         self.used_defs = []
         for module in modules:
             self.module = module
-            self.prefix_map = {}
             prefix = module.search_one("prefix").arg
             ns_uri = module.search_one("namespace").arg
             self.prefix = self.add_namespace(ns_uri, prefix)
@@ -442,7 +439,7 @@ class CTSTranslator(object):
         """Add new item `uri`:`prefix` to `self.namespaces`.
 
         The prefix to be actually used for `uri` is returned.  If the
-        namespace is already known, the old prefix should be used.
+        namespace is already known, the old prefix is used.
         Prefix clashes are resolved by disambiguating `prefix`.
         """
         if uri in self.namespaces:
@@ -454,8 +451,13 @@ class CTSTranslator(object):
                 new = "%s%x" % (prefix,end)
                 end += 1
             self.namespaces[uri] = new
-        self.prefix_map[prefix] = new
         return new
+
+    def prefix_to_ns(self, prefix):
+        """Return NS URI for `prefix` in the current context."""
+        defin = self.module.i_ctx.get_module(
+            self.module.i_prefixes[prefix][0])
+        return defin.search_one("namespace").arg
 
     def preload_defs(self):
         """Preload all top-level definitions."""
@@ -673,18 +675,10 @@ class CTSTranslator(object):
     def handle_extension(self, stmt, p_elem):
         """Append YIN representation of `stmt`."""
         ext = stmt.i_extension
-        prefix = stmt.raw_keyword[0]
-        if prefix in self.prefix_map:
-            prefix = self.prefix_map[prefix]
-        else:
-            if ext.i_module.keyword == 'module':
-                ns = ext.i_module.search_one("namespace").arg
-            else:
-                parentname = ext.i_module.search_one('belongs-to').arg
-                parentm = self.module.i_ctx.get_module(parentname)
-                ns = parentm.search_one('namespace').arg
-            prefix = self.add_namespace(ns, prefix)
-        eel = ET.SubElement(p_elem, prefix + ":" + stmt.raw_keyword[1])
+        (prf, extkw) = stmt.raw_keyword
+        prefix = self.add_namespace(self.prefix_to_ns(prf), prf)
+        print self.namespaces
+        eel = ET.SubElement(p_elem, prefix + ":" + extkw)
         argst = ext.search_one("argument")
         if argst:
             if argst.search_one("yin-element", "true"):
