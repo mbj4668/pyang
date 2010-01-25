@@ -680,7 +680,6 @@ class CTSTranslator(object):
         ext = stmt.i_extension
         (prf, extkw) = stmt.raw_keyword
         prefix = self.add_namespace(self.prefix_to_ns(prf), prf)
-        print self.namespaces
         eel = ET.SubElement(p_elem, prefix + ":" + extkw)
         argst = ext.search_one("argument")
         if argst:
