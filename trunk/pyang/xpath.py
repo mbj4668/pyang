@@ -52,12 +52,17 @@ re_axis = re.compile(r'\s*::')
 
 def validate(s):
     """Validate the XPath expression in the string `s`
-    Return True if the expression is correctm and throw
+    Return True if the expression is correct, and throw
     SyntaxError on failure."""
     tokens(s)
     return True
 
 def tokens(s):
+    """Return a list of tokens, or throw SyntaxError on failure.
+    A token is one of the patterns or:
+      ('wildcard', '*')
+      ('axis', axisname)
+    """
     pos = 0
     toks = []
     while pos < len(s):
@@ -108,7 +113,7 @@ def tokens(s):
                 break
         if matched == False:
             # no patterns matched
-            raise SyntaxError, pos+1
+            raise SyntaxError, "at position %s" % str(pos+1)
     return toks
 
 def _preceding_token(toks):

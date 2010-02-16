@@ -121,6 +121,14 @@ class YinParser(object):
             # this is the top-level element
             self.top = e
             self.element_stack.append(e)
+            # special case - the top-level statement has its argument
+            # as an attribute, so we can save it here
+            try:
+                (argname, _arg_is_elem) = syntax.yin_map[e.local_name]
+                arg = e.find_attribute(argname)
+                self.pos.top_name = arg
+            except:
+                pass
             return
         else:
             parent = self.element_stack[-1]
@@ -193,7 +201,6 @@ class YinParser(object):
             
         stmt = statements.Statement(self.top, parent, e.pos, keywd, arg)
         if self.top is None:
-            self.pos.top_name = arg
             self.top = stmt
         else:
             parent.substmts.append(stmt)
