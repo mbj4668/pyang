@@ -2024,7 +2024,7 @@ class Statement(object):
         """pointer to the parent Statement"""
 
         self.pos = copy.copy(pos)
-        """position in input strea, for error reporting"""
+        """position in input stream, for error reporting"""
 
         self.raw_keyword = keyword
         """the name of the statement
