@@ -164,9 +164,9 @@ _validation_map = {
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
 
     ('inherit_properties', 'module'): \
-        lambda ctx, s: v_inherit_properties_module(ctx, s),
+        lambda ctx, s: v_inherit_properties(ctx, s),
     ('inherit_properties', 'submodule'): \
-        lambda ctx, s: v_inherit_properties_module(ctx, s),
+        lambda ctx, s: v_inherit_properties(ctx, s),
 
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
 
@@ -864,6 +864,7 @@ def v_type_augment(ctx, stmt):
     # make sure the _v_i_children phases run over this one
     stmt.i_has_i_children = True
     if stmt.parent.keyword == 'uses' and stmt.arg.startswith("/"):
+        stmt.i_target_node = None
         err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
                 (stmt.arg, "descendant-node-id"))
             
@@ -1050,10 +1051,15 @@ def v_expand_1_children(ctx, stmt):
             news.arg = news.keyword
             stmt.i_children.append(news)
             v_expand_1_children(ctx, news)
-        elif s.keyword == 'uses':
+        elif (s.keyword == 'uses' and hasattr(s, 'is_grammatically_valid') and
+              s.is_grammatically_valid):
             v_expand_1_uses(ctx, s)
             for a in s.search('augment'):
                 v_expand_1_children(ctx, a)
+            v_inherit_properties(ctx, stmt)
+            for a in s.search('augment'):
+                v_expand_2_augment(ctx, a)
+
         elif s.keyword in _data_keywords and hasattr(stmt, 'i_children'):
             stmt.i_children.append(s)
             v_expand_1_children(ctx, s)
@@ -1205,7 +1211,7 @@ def v_expand_1_uses(ctx, stmt):
                     target.substmts.remove(old)
                 target.substmts.append(s)
 
-def v_inherit_properties_module(ctx, module):
+def v_inherit_properties(ctx, stmt):
     def iter(s, config_value, allow_explicit):
         cfg = s.search_one('config')
         if cfg is not None:
@@ -1232,9 +1238,9 @@ def v_inherit_properties_module(ctx, module):
                 else:
                     iter(ch, config_value, allow_explicit)
 
-    for s in module.search('grouping'):
+    for s in stmt.search('grouping'):
         iter(s, None, True)
-    for s in (module.i_children + module.search('augment')):
+    for s in (stmt.i_children + stmt.search('augment')):
         if s.keyword in _keywords_with_no_explicit_config:
             iter(s, None, False)
         else:
@@ -1258,7 +1264,11 @@ def v_expand_2_augment(ctx, stmt):
     augment statements, the list of temporary nodes should be empty,
     otherwise it is an error.
     """
+    if hasattr(stmt, 'i_target_node'):
+        # already expanded
+        return
     stmt.i_target_node = find_target_node(ctx, stmt, is_augment=True)
+
     if stmt.i_target_node is None:
         return
     if not hasattr(stmt.i_target_node, 'i_children'):
