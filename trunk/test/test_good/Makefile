@@ -1,6 +1,6 @@
 PYANG = pyang -Wnone
 
-MODULES = $(wildcard *.yang)
+MODULES ?= $(wildcard *.yang)
 
 test: clean
 	@for m in $(MODULES); do 					\

@@ -109,12 +109,12 @@ _validation_phases = [
     #   first expansion: copy data definition stmts into i_children
     'expand_1',
 
+    #   second expansion: expand augmentations into i_children
+    'expand_2',
+
     # inherit properties phase:
     #   set i_config
     'inherit_properties',
-
-    #   second expansion: expand augmentations into i_children
-    'expand_2',
 
     # unique name check phase:
     'unique_name',
@@ -164,9 +164,9 @@ _validation_map = {
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
 
     ('inherit_properties', 'module'): \
-        lambda ctx, s: v_inherit_properties(ctx, s),
+        lambda ctx, s: v_inherit_properties_module(ctx, s),
     ('inherit_properties', 'submodule'): \
-        lambda ctx, s: v_inherit_properties(ctx, s),
+        lambda ctx, s: v_inherit_properties_module(ctx, s),
 
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
 
@@ -1056,8 +1056,6 @@ def v_expand_1_children(ctx, stmt):
             v_expand_1_uses(ctx, s)
             for a in s.search('augment'):
                 v_expand_1_children(ctx, a)
-            v_inherit_properties(ctx, stmt)
-            for a in s.search('augment'):
                 v_expand_2_augment(ctx, a)
 
         elif s.keyword in _data_keywords and hasattr(stmt, 'i_children'):
@@ -1211,7 +1209,7 @@ def v_expand_1_uses(ctx, stmt):
                     target.substmts.remove(old)
                 target.substmts.append(s)
 
-def v_inherit_properties(ctx, stmt):
+def v_inherit_properties_module(ctx, stmt):
     def iter(s, config_value, allow_explicit):
         cfg = s.search_one('config')
         if cfg is not None:
@@ -1299,10 +1297,6 @@ def v_expand_2_augment(ctx, stmt):
                 tmp.parent = node
 
     for c in stmt.i_children:
-        if (stmt.i_target_node.i_config == False and
-            c.i_config == True):
-            err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
-
         ch = search_child(stmt.i_target_node.i_children,
                           stmt.i_module.i_modulename, c.arg)
         if ch is not None:
@@ -1845,7 +1839,6 @@ def find_target_node(ctx, stmt, is_augment=False):
                 v_init_stmt(ctx, child)
                 child.i_module = module
                 child.i_children = []
-                child.i_config = node.i_config
                 node.i_children.append(child)
                 # keep track of this temporary statement
                 stmt.i_module.i_undefined_augment_nodes[child] = child
