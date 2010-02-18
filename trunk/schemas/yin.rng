@@ -5,7 +5,6 @@
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
 	 ns="urn:ietf:params:xml:ns:yang:yin:1"
 	 xmlns:dc="http://purl.org/dc/terms"
-	 xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
   <dc:title>RELAX NG Schema for YIN</dc:title>
@@ -17,7 +16,6 @@
   expressed in YIN, an XML syntax equivalent to YANG.</dc:description>
 
   <start>
-    <a:documentation>The document element may be either "module" or "submodule.</a:documentation>
     <choice>
       <ref name="module-stmt"/>
       <ref name="submodule-stmt"/>
@@ -369,7 +367,8 @@
 	    </interleave>
 	  </choice>
 	</group>
-	<ref name="numeric-type"/>
+	<ref name="integer-type"/>
+	<ref name="decimal64-type"/>
 	<ref name="string-type"/>
 	<ref name="enumeration-type"/>
 	<ref name="bits-type"/>
@@ -382,7 +381,7 @@
     </element>
   </define>
 
-  <define name="numeric-type">
+  <define name="integer-type">
     <attribute name="name">
       <choice>
 	<value>int8</value>
@@ -393,8 +392,6 @@
 	<value>uint16</value>
 	<value>uint32</value>
 	<value>uint64</value>
-	<value>float32</value>
-	<value>float64</value>
       </choice>
     </attribute>
     <ref name="range-stmt"/>
@@ -422,6 +419,23 @@
 	</interleave>
       </element>
     </optional>
+  </define>
+
+  <define name="decimal64-type">
+    <attribute name="name">
+      <value>decimal64</value>
+    </attribute>
+    <interleave>
+      <ref name="range-stmt"/>
+      <element name="fraction-digits">
+	<attribute name="value">
+	  <data type="unsignedByte">
+	    <param name="minInclusive">1</param>
+	    <param name="maxInclusive">18</param>
+	  </data>
+	</attribute>
+      </element>
+    </interleave>
   </define>
 
   <define name="string-type">
