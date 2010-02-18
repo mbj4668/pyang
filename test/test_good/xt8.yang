@@ -67,5 +67,34 @@ module xt8 {
       }
     }
   }
+
+  grouping g {
+    container c1 {
+      config false;
+    }
+  }
+  
+  uses g {
+    augment "c1" {
+      container c2;
+    }
+  }
+
+
+   grouping g2 {
+       container c12 {
+       }
+   }
+
+   uses g2 {
+       augment "c12" {
+           container c22 {}
+       }
+   }
+
+   augment "/c12/c22" {
+       container c32 {}
+   }
+
 }
 

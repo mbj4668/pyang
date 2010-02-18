@@ -61,7 +61,7 @@ module e {
 
     augment "/e:y/e:z/e:q/e:w/e:s" {
         leaf f {
-            config true;
+            config true;  // error: invalid config
             type string;
         }
     }
