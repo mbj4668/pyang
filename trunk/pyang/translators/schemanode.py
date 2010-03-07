@@ -45,6 +45,7 @@ class SchemaNode(object):
         """Create choice node."""
         node = cls("choice", parent)
         node.occur = 0
+        node.default_case = None
         return node
     choice = classmethod(choice)
 
@@ -53,6 +54,12 @@ class SchemaNode(object):
         node = cls("case", parent)
         return node
     case = classmethod(case)
+
+    def define(cls, name):
+        """Create define node."""
+        node = cls("define")
+        node.attr["name"] = name
+        return node
 
     def __init__(self, name, parent=None, text=""):
         """Initialize the object under `parent`.
@@ -124,7 +131,7 @@ class SchemaNode(object):
         else:
             fmt = "%s"
         fmt = self.start_tag() + fmt + self.end_tag()
-        if self.occur != 2:
+        if self.occur != 2 and self.parent.name != "choice":
             return "<optional>" + fmt + "</optional>"
         else:
             return fmt
