@@ -314,7 +314,7 @@ class ConceptualTreeSchema(object):
                 ns = self.module.search_one("namespace").arg
                 self.prefix = self.module_prefixes[module.arg]
                 self.handle_substmts(module, self.confdata)
-        for l in self.lists: l.collect_keys()
+        for l in self.lists: self.collect_keys(l)
         self.handle_empty()
         self.dc_element("creator",
                         "Pyang %s, CTS plugin" % pyang.__version__)
@@ -594,6 +594,36 @@ class ConceptualTreeSchema(object):
             if maxst:
                 maxel = maxst.arg
         return (minel, maxel)
+
+    def collect_keys(self, list_):
+        """Collect all keys of `list_`."""
+        keys = list_.keys[:]
+        todo = [list_]
+        while 1:
+            node = todo.pop()
+            refs = []
+            for ch in node.children:
+                if ch.name == "ref": refs.append(ch)
+                elif ch.name == "element" and ch.attr["name"] in keys:
+                    k = ch.attr["name"]
+                    list_.keymap[k] = ch
+                    keys.remove(k)
+            if not keys: break
+            for r in refs:
+                d = self.defs[r.attr["name"]]
+                d.ref = r
+                todo.append(d)
+        for k in list_.keymap:
+            out = list_.keymap[k]
+            in_ = []
+            while out.parent != list_:
+                chs = out.parent.children[:]
+                pos = chs.index(out)
+                chs[pos:pos+1] = in_
+                in_ = chs
+                out = out.parent.ref
+            pos = list_.children.index(out)
+            list_.children[pos:pos+1] = in_
 
     def contains_any(self, gstmt, names):
         """Does `gstmt` contain any node with a name from `names`?

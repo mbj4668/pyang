@@ -93,40 +93,10 @@ class SchemaNode(object):
         self.attr[key] = value
         return self
 
-    def collect_keys(self):
-        """Collect all keys of the receiver (must be a list)."""
-        keys = self.keys[:]
-        todo = [self]
-        while 1:
-            node = todo.pop()
-            refs = []
-            for ch in node.children:
-                if ch.name == "ref": refs.append(ch)
-                elif ch.name == "element" and ch.attr["name"] in keys:
-                    k = ch.attr["name"]
-                    self.keymap[k] = ch
-                    keys.remove(k)
-            if not keys: break
-            for r in refs:
-                d = self.defs[r.attr["name"]]
-                d.ref = r
-                todo.append(d)
-        for k in self.keymap:
-            out = self.keymap[k]
-            in_ = []
-            while out.parent != self:
-                chs = out.parent.children[:]
-                pos = chs.index(out)
-                chs[pos:pos+1] = in_
-                in_ = chs
-                out = out.parent.ref
-            pos = self.children.index(out)
-            self.children[pos:pos+1] = in_
-
     def data_nodes_count(self):
         """Return the number of receiver's data subnodes."""
         return len([ch for ch in self.children
-                    if ch.name in ("element", "choice", "list")])
+                    if ch.name in ("element", "choice", "_list_", "ref")])
 
     def start_tag(self, alt=None, empty=False):
         """Return XML start tag for the receiver."""
@@ -166,7 +136,7 @@ class SchemaNode(object):
     def _define_format(self, occur):
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
-        return self._default_format(None)
+        return self.start_tag() + self._chorder() + self.end_tag()
 
     def _element_format(self, occur):
         if occur:
@@ -200,11 +170,12 @@ class SchemaNode(object):
             keys = ""
         if self.maxEl:
             self.attr["nma:max-elements"] = self.maxEl
-        if self.minEl == "0":
+        if int(self.minEl) == 0:
             ord_ = "zeroOrMore"
         else:
             ord_ = "oneOrMore"
-            self.attr["nma:min-elements"] = self.minEl
+            if int(self.minEl) > 1:
+                self.attr["nma:min-elements"] = self.minEl
         return ("<" + ord_ + ">" + self.start_tag("element") + keys +
                 self._chorder() + self.end_tag("element") + "</" + ord_ + ">")
 
