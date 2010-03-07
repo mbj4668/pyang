@@ -592,20 +592,21 @@ class ConceptualTreeSchema(object):
                 maxel = maxst.arg
         return (minel, maxel)
 
-    def find_key(self, lstmt, key):
-        """Find keys and mark 'uses' for expansion."""
-        maybe = [lstmt]
-        upath = []
-        while maybe:
-            stmt = maybe.pop()
-            for sub in stmt.substmts:
-                if sub.keyword == "leaf" and sub.arg == "key":
-                    maybe = None
-                    break
-                elif sub.keyword == "uses":
-                    maybe.append(sub.i_grouping)
-        while sub.parent.keyword == "grouping":
-            sub = sub.parent
+    def find_leaf(self, stmt, key):
+        """Find leaf `key` as a child of `stmt`.
+
+        The search must traverse any uses/grouping and
+        leave breadcrumbs at such indirections.
+        """
+        for sub in stmt.substmts:
+            if sub.keyword == "leaf" and sub.arg == key:
+                return sub
+            elif sub.keyword == "uses":
+                grp = sub.i_grouping
+                grp.d_uses = sub
+                res = self.find_leaf(grp, key)
+                if res: return res
+        return None
 
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
@@ -724,20 +725,16 @@ class ConceptualTreeSchema(object):
         qname = self.prefix_id(stmt.arg)
         elem = SchemaNode.element(qname)
         plist = self.select_patch(pset, stmt.arg)[0]
-        if p_elem.name == "_list_" and qname in p_elem.keymap:
-            elem.occur = 2
-            p_elem.keymap[qname] = elem
-        else:
-            p_elem.subnode(elem)
-            if p_elem.name == "choice":
-                if p_elem.default_case == stmt.arg:
-                    handle_default()
-                else:
-                    elem.occur = 3
-            elif self.is_mandatory(stmt, plist):
-                self.propagate_occur(elem, 2)
-            else:
+        p_elem.subnode(elem)
+        if p_elem.name == "choice":
+            if p_elem.default_case == stmt.arg:
                 handle_default()
+            else:
+                elem.occur = 3
+        elif self.is_mandatory(stmt, plist):
+            self.propagate_occur(elem, 2)
+        else:
+            handle_default()
         for s in plist: self.handle_stmt(s, elem)
         self.handle_substmts(stmt, elem)
 
@@ -752,9 +749,9 @@ class ConceptualTreeSchema(object):
         lelem = SchemaNode.list(self.prefix_id(stmt.arg), p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
-        lelem.keys = [self.prefix_id(k)
-                      for k in stmt.search_one("key").arg.split()]
-        lelem.keymap = dict.fromkeys(lelem.keys)
+        keyst = stmt.search_one("key")
+        if keyst:
+            lelem.keys = [self.prefix_id(k) for k in keyst.arg.split()]
         for s in plist: self.handle_stmt(s, lelem, new_pset)
         self.handle_substmts(stmt, lelem, new_pset)
 
