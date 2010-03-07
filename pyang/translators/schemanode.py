@@ -52,14 +52,17 @@ class SchemaNode(object):
     def case(cls, parent=None):
         """Create case node."""
         node = cls("case", parent)
+        node.occur = 0
         return node
     case = classmethod(case)
 
-    def define(cls, name):
+    def define(cls, name, parent=None):
         """Create define node."""
-        node = cls("define")
+        node = cls("define", parent)
+        node.occur = 0
         node.attr["name"] = name
         return node
+    define = classmethod(define)
 
     def __init__(self, name, parent=None, text=""):
         """Initialize the object under `parent`.
@@ -121,6 +124,11 @@ class SchemaNode(object):
         else:
             return self.start_tag(empty=True) + "%s"
 
+    def _define_format(self):
+        if hasattr(self, "default"):
+            self.attr["nma:default"] = self.default
+        return self._default_format()
+
     def _element_format(self):
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
@@ -131,10 +139,11 @@ class SchemaNode(object):
         else:
             fmt = "%s"
         fmt = self.start_tag() + fmt + self.end_tag()
-        if self.occur != 2 and self.parent.name != "choice":
-            return "<optional>" + fmt + "</optional>"
-        else:
+        if (self.occur == 2 or self.parent.name == "choice"
+            or self.parent.name == "case" and len(self.parent.children) == 1):
             return fmt
+        else:
+            return "<optional>" + fmt + "</optional>"
 
     def _list_format(self):
         mc = int(self.minEl)
@@ -168,4 +177,5 @@ class SchemaNode(object):
                    "list": _list_format,
                    "choice": _choice_format,
                    "case": _case_format,
+                   "define": _define_format,
                    }

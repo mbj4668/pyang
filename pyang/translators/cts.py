@@ -203,7 +203,7 @@ class ConceptualTreeSchema(object):
             "config": self.nma_attribute,
             "contact": self.noop,
             "container": self.container_stmt,
-            "default": self.default_stmt,
+            "default": self.noop,
             "deviation": self.noop,
             "description": self.description_stmt,
             "enum" : self.enum_stmt,
@@ -219,7 +219,7 @@ class ConceptualTreeSchema(object):
             "leaf": self.leaf_stmt,
             "leaf-list": self.leaf_list_stmt,
             "list": self.list_stmt,
-            "mandatory": self.mandatory_stmt,
+            "mandatory": self.noop,
             "min-elements": self.noop,
             "max-elements": self.noop,
             "must": self.must_stmt,
@@ -277,7 +277,7 @@ class ConceptualTreeSchema(object):
             res += self.rpcs.serialize()
             res += self.notifications.serialize() + "</start>"
         for d in self.defs:
-            res += d.serialize()
+            res += self.defs[d].serialize()
         if self.has_anyxml:
             res += self.anyxml_def
         return res + self.grammar_elem.end_tag()
@@ -291,7 +291,6 @@ class ConceptualTreeSchema(object):
         if not no_dc: self.namespaces[self.dc_uri] = "dc"
         if not no_a: self.namespaces[self.a_uri] = "a"
         self.defs = {}
-        self.refstack = []
         self.has_anyxml = False
         self.in_rpc = False
         self.no_data = True
@@ -412,7 +411,7 @@ class ConceptualTreeSchema(object):
         """Preload all top-level definitions."""
         for d in (self.module.search("grouping") +
                   self.module.search("typedef")):
-            self.handle_ref(d)
+            self.install_def(self.unique_def_name(d))
 
     def prefix_id(self, name):
         """Add local prefix to `name`, it it doesn't have any prefix."""
@@ -441,13 +440,9 @@ class ConceptualTreeSchema(object):
             dcel.text = text
             self.grammar_elem.children.insert(0,dcel)
 
-    def unique_def_name(self, stmt):
-        """Answer mangled name of the receiver (typedef or grouping)."""
+    def unique_def_name(self, stmt, pref=""):
+        """Answer mangled name of `stmt` (typedef or grouping)."""
         mod = stmt.i_module
-        if stmt.keyword == "typedef":
-            pref = ""
-        else:
-            pref = "_"
         if mod.keyword == "submodule":
             pref += mod.search_one("belongs-to").arg
         else:
@@ -534,15 +529,12 @@ class ConceptualTreeSchema(object):
         else:
             return qname
 
-    def handle_ref(self, dstmt):
-        """Install definition for `dstmt` if it's not there yet ."""
-        uname = self.unique_def_name(dstmt)
-        if uname not in self.defs:
-            delem = SchemaNode("define", self.grammar_elem)
-            delem.attr["name"] = uname
-            self.defs[uname] = delem
-            self.handle_substmts(dstmt, delem)
-        return uname
+    def install_def(self, name, dstmt):
+        """Install definition `name` representing `dstmt`."""
+        delem = SchemaNode.define(name)
+        delem.attr["name"] = name
+        self.defs[name] = delem
+        self.handle_substmts(dstmt, delem)
 
     def handle_extension(self, stmt, p_elem):
         """Append YIN representation of `stmt`."""
@@ -561,9 +553,15 @@ class ConceptualTreeSchema(object):
     def handle_default_case(self, stmt, p_elem):
         if stmt.parent.keyword != "choice" or p_elem.default_case != stmt.arg:
             return p_elem
-        gelem = SchemaNode("group", p_elem)
-        gelem.occur = 1
-        return gelem
+        return SchemaNode.case(p_elem)
+
+    def propagate_occur(self, node, value):
+        """Propagate occurence `value` to `node` and its ancestors."""
+        while node.occur < value:
+            node.occur = value
+            if node.name == "define":
+                break
+            node = node.parent
 
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
@@ -619,8 +617,16 @@ class ConceptualTreeSchema(object):
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
-        defst = stmt.search_one("default")
-        if defst: chelem.default_case = defst.arg
+        for subst in stmt.substmts:
+            if subst.keyword == "mandatory" and subst.arg == "true":
+                chelem.occur = 2
+                chelem.propagate_occur(chelem.parent, 2)
+                break
+            elif subst.keyword == "default":
+                chelem.default_case = subst.arg
+                break
+            else:
+                chelem.occur = 3
         self.handle_substmts(stmt, chelem)
         
     def container_stmt(self, stmt, p_elem, pset):
@@ -629,18 +635,6 @@ class ConceptualTreeSchema(object):
         if stmt.search_one("presence"):
             celem.occur = 3
         self.handle_substmts(stmt, celem)
-
-    def default_stmt(self, stmt, p_elem, pset):
-        kw = stmt.parent.keyword
-        if kw == "choice": return
-        p_elem.attr["nma:default"] = stmt.arg
-        node = p_elem.parent
-        while node.occur == 0:
-            node.occur = 1
-            if node.name == "define":
-                node = self.refstack.pop()
-            else:
-                node = node.parent
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -668,6 +662,16 @@ class ConceptualTreeSchema(object):
         else:
             p_elem = self.handle_default_case(stmt, p_elem)
             elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
+        for subst in stmt.substmts:
+            if subst.keyword == "mandatory" and subst.arg == "true":
+                elem.occur = 2
+                self.propagate_occur(elem.parent, 2)
+                break
+            elif subst.keyword == "default":
+                elem.occur = 1
+                elem.default = subst.arg
+                self.propagate_occur(elem.parent, 1)
+                break
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
@@ -734,14 +738,32 @@ class ConceptualTreeSchema(object):
         """
         typedef = stmt.i_typedef
         if typedef and not stmt.i_is_derived: # just ref
-            uname = self.handle_ref(typedef)
+            uname = self.unique_def_name(typedef)
+            if uname not in self.defs:
+                self.install_def(uname, typedef)
             SchemaNode("ref", p_elem).attr["name"]=uname
+            defst = typedef.search_one("default")
+            if defst:
+                self.defs[uname].default = defst.arg
+                occur = 1
+            else:
+                occur = self.defs[uname].occur
+            if occur > 0: self.propagate_occur(p_elem, occur)
             return
         chain = [stmt]
+        tdefault = None
         while typedef:
             type_ = typedef.search_one("type")
             chain.insert(0, type_)
+            if tdefault is None:
+                tdef = typedef.search_one("default")
+                if tdef:
+                    tdefault = tdef.arg
             typedef = type_.i_typedef
+        if tdefault and p_elem.occur == 0:
+            p_elem.default = tdefault
+            p_elem.occur = 1
+            self.propagate_occur(p_elem.parent, 1)
         self.type_handler[chain[0].arg](chain, p_elem)
 
     def unique_stmt(self, stmt, p_elem, pset):
@@ -761,9 +783,13 @@ class ConceptualTreeSchema(object):
                     noexpand = False
                     break
         if noexpand:
-            uname = self.handle_ref(stmt.i_grouping)
+            uname = self.unique_def_name(stmt.i_grouping, pref="_")
+            if uname not in self.defs:
+                self.install_def(uname, stmt.i_grouping)
             elem = SchemaNode("ref", p_elem)
             elem.attr["name"]=uname
+            occur = self.defs[uname].occur
+            if occur > 0: self.propagate_occur(p_elem, occur)
             self.handle_substmts(stmt, elem)
         else:
             self.handle_substmts(stmt.i_grouping, p_elem, pset)
