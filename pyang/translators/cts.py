@@ -291,6 +291,7 @@ class ConceptualTreeSchema(object):
         self.in_rpc = False
         self.no_data = True
         self.debug = debug
+        self.lists = []
         self.module_prefixes = {}
         for module in modules:
             ns = module.search_one("namespace").arg
@@ -313,6 +314,7 @@ class ConceptualTreeSchema(object):
                 ns = self.module.search_one("namespace").arg
                 self.prefix = self.module_prefixes[module.arg]
                 self.handle_substmts(module, self.confdata)
+        for l in self.lists: self.collect_keys(l)
         self.handle_empty()
         self.dc_element("creator",
                         "Pyang %s, CTS plugin" % pyang.__version__)
@@ -512,9 +514,10 @@ class ConceptualTreeSchema(object):
         else:
             return qname
 
-    def install_def(self, name, dstmt):
+    def install_def(self, name, dstmt, interleave=False):
         """Install definition `name` representing `dstmt`."""
-        delem = SchemaNode.define(name).set_attr("name", name)
+        delem = SchemaNode.define(name, interleave=interleave)
+        delem.attr["name"] = name
         self.defs[name] = delem
         self.handle_substmts(dstmt, delem)
 
@@ -591,6 +594,37 @@ class ConceptualTreeSchema(object):
             if maxst:
                 maxel = maxst.arg
         return (minel, maxel)
+
+    def collect_keys(self, list_):
+        """Collect all keys of `list_`."""
+        keys = list_.keys[:]
+        list_.keymap = {}
+        todo = [list_]
+        while 1:
+            node = todo.pop()
+            refs = []
+            for ch in node.children:
+                if ch.name == "ref": refs.append(ch)
+                elif ch.name == "element" and ch.attr["name"] in keys:
+                    k = ch.attr["name"]
+                    list_.keymap[k] = ch
+                    keys.remove(k)
+            if not keys: break
+            for r in refs:
+                d = self.defs[r.attr["name"]]
+                d.ref = r
+                todo.append(d)
+        for k in list_.keymap:
+            out = list_.keymap[k]
+            in_ = []
+            while out.parent != list_:
+                chs = out.parent.children[:]
+                pos = chs.index(out)
+                chs[pos:pos+1] = in_
+                in_ = chs
+                out = out.parent.ref
+            pos = list_.children.index(out)
+            list_.children[pos:pos+1] = in_
 
     def find_leaf(self, stmt, key):
         """Find leaf `key` as a child of `stmt`.
@@ -751,6 +785,7 @@ class ConceptualTreeSchema(object):
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         keyst = stmt.search_one("key")
         if keyst:
+            self.lists.append(lelem)
             lelem.keys = [self.prefix_id(k) for k in keyst.arg.split()]
         for s in plist: self.handle_stmt(s, lelem, new_pset)
         self.handle_substmts(stmt, lelem, new_pset)
@@ -853,8 +888,9 @@ class ConceptualTreeSchema(object):
                     break
         if noexpand:
             uname = self.unique_def_name(stmt.i_grouping, pref="_")
+            if p_elem.interleave == False: uname += "_rpc"
             if uname not in self.defs:
-                self.install_def(uname, stmt.i_grouping)
+                self.install_def(uname, stmt.i_grouping, p_elem.interleave)
             elem = SchemaNode("ref", p_elem).set_attr("name", uname)
             occur = self.defs[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
