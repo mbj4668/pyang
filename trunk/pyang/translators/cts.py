@@ -203,7 +203,7 @@ class ConceptualTreeSchema(object):
             "config": self.nma_attribute,
             "contact": self.noop,
             "container": self.container_stmt,
-            "default": self.nma_attribute,
+            "default": self.default_stmt,
             "deviation": self.noop,
             "description": self.description_stmt,
             "enum" : self.enum_stmt,
@@ -219,7 +219,7 @@ class ConceptualTreeSchema(object):
             "leaf": self.leaf_stmt,
             "leaf-list": self.leaf_list_stmt,
             "list": self.list_stmt,
-            "mandatory": self.noop,
+            "mandatory": self.mandatory_stmt,
             "min-elements": self.noop,
             "max-elements": self.noop,
             "must": self.must_stmt,
@@ -313,9 +313,7 @@ class ConceptualTreeSchema(object):
             if self.has_data_node(module):
                 if self.no_data:
                     self.no_data = False
-                    self.confdata = SchemaNode.element("nmt:top")
-                    self.rpcs = SchemaNode.element("nmt:rpc-methods")
-                    self.notifications = SchemaNode.element("nmt:notifications")
+                    self.create_roots()
                 ns = self.module.search_one("namespace").arg
                 self.prefix = self.module_prefixes[module.arg]
                 self.handle_substmts(module, self.confdata)
@@ -333,6 +331,13 @@ class ConceptualTreeSchema(object):
         for ns in self.namespaces:
             grel.attr["xmlns:" + self.namespaces[ns]] = ns
         return grel
+
+    def create_roots(self):
+        """Create root elements for conf. data, RPCs and notifications."""
+        self.confdata = SchemaNode.element("nmt:top")
+        self.rpcs = SchemaNode.element("nmt:rpc-methods")
+        self.notifications = SchemaNode.element("nmt:notifications")
+        self.confdata.occur = self.rpcs.occur = self.notifications.occur = 2
 
     def yang_to_xpath(self, xpath):
         """Transform `xpath` by adding local NS prefixes.
@@ -606,13 +611,22 @@ class ConceptualTreeSchema(object):
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
-        if stmt.search_one("mandatory", "true"):
-            chelem.occur = 2
-        self.handle_substmts(stmt, elem)
+        self.handle_substmts(stmt, chelem)
         
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
+        if stmt.search_one("presence"):
+            celem.occur = 3
         self.handle_substmts(stmt, celem)
+
+    def default_stmt(self, stmt, p_elem, pset):
+        kw = stmt.parent.keyword
+        if kw == "choice": return
+        p_elem.attr["nma:default"] = stmt.arg
+        elem = p_elem.parent
+        while elem and elem.occur == 0:
+            elem.occur = 1
+            elem = elem.parent
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -650,6 +664,13 @@ class ConceptualTreeSchema(object):
         keys = stmt.search_one("key").arg.split()
         lelem.keys = dict.fromkeys([self.prefix_id(k) for k in keys])
         self.handle_substmts(stmt, lelem)
+
+    def mandatory_stmt(self, stmt, p_elem, pset):
+        if stmt.arg == "false": return
+        elem = p_elem
+        while elem.occur < 2:
+            elem.occur = 2
+            elem = elem.parent
 
     def must_stmt(self, stmt, p_elem, pset):
         mel = SchemaNode("nma:must", p_elem)

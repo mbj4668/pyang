@@ -1,3 +1,5 @@
+from xml.sax.saxutils import escape
+
 class SchemaNode(object):
 
     """Generic node in the schema.
@@ -83,8 +85,8 @@ class SchemaNode(object):
         else:
             name = self.name
         result = "<" + name 
-        for it in self.attr.items():
-            result += ' %s="%s"' % it
+        for it in self.attr:
+            result += ' %s="%s"' % (it, escape(self.attr[it]))
         if empty:
             return result + "/>"
         else:
@@ -103,7 +105,7 @@ class SchemaNode(object):
         """
         return (self.ser_format.get(self.name,
                                     SchemaNode._default_format)(self) %
-                (self.text +
+                (escape(self.text) +
                  ''.join([ch.serialize() for ch in self.children])))
 
     def _default_format(self):
@@ -122,7 +124,7 @@ class SchemaNode(object):
         else:
             fmt = "%s"
         fmt = self.start_tag() + fmt + self.end_tag()
-        if self.occur < 2:
+        if self.occur != 2:
             return "<optional>" + fmt + "</optional>"
         else:
             return fmt
