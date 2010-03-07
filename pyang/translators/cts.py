@@ -291,6 +291,7 @@ class ConceptualTreeSchema(object):
         if not no_dc: self.namespaces[self.dc_uri] = "dc"
         if not no_a: self.namespaces[self.a_uri] = "a"
         self.defs = {}
+        self.refstack = []
         self.has_anyxml = False
         self.in_rpc = False
         self.no_data = True
@@ -557,6 +558,13 @@ class ConceptualTreeSchema(object):
                 eel.attr[argst.arg] = stmt.arg
         self.handle_substmts(stmt, eel)
 
+    def handle_default_case(self, stmt, p_elem):
+        if stmt.parent.keyword != "choice" or p_elem.default_case != stmt.arg:
+            return p_elem
+        gelem = SchemaNode("group", p_elem)
+        gelem.occur = 1
+        return gelem
+
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
         Run handler method for `stmt` in the context of `p_elem`.
@@ -611,9 +619,12 @@ class ConceptualTreeSchema(object):
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
+        defst = stmt.search_one("default")
+        if defst: chelem.default_case = defst.arg
         self.handle_substmts(stmt, chelem)
         
     def container_stmt(self, stmt, p_elem, pset):
+        p_elem = self.handle_default_case(stmt, p_elem)
         celem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
         if stmt.search_one("presence"):
             celem.occur = 3
@@ -623,10 +634,13 @@ class ConceptualTreeSchema(object):
         kw = stmt.parent.keyword
         if kw == "choice": return
         p_elem.attr["nma:default"] = stmt.arg
-        elem = p_elem.parent
-        while elem and elem.occur == 0:
-            elem.occur = 1
-            elem = elem.parent
+        node = p_elem.parent
+        while node.occur == 0:
+            node.occur = 1
+            if node.name == "define":
+                node = self.refstack.pop()
+            else:
+                node = node.parent
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -652,6 +666,7 @@ class ConceptualTreeSchema(object):
             elem.occur = 2
             p_elem.keys[qname] = elem
         else:
+            p_elem = self.handle_default_case(stmt, p_elem)
             elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
         self.handle_substmts(stmt, elem)
 
@@ -667,10 +682,15 @@ class ConceptualTreeSchema(object):
 
     def mandatory_stmt(self, stmt, p_elem, pset):
         if stmt.arg == "false": return
-        elem = p_elem
-        while elem.occur < 2:
-            elem.occur = 2
-            elem = elem.parent
+        node = p_elem
+        while node.occur < 2:
+            if node.parent.name == "choice": break
+            node.occur = 2
+            if node.name == "define":
+                node = self.refstack.pop()
+            else:
+                node = node.parent
+
 
     def must_stmt(self, stmt, p_elem, pset):
         mel = SchemaNode("nma:must", p_elem)
