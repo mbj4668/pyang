@@ -57,9 +57,9 @@ class SchemaNode(object):
         return node
     case = classmethod(case)
 
-    def define(cls, name, parent=None):
+    def define(cls, name, parent=None, interleave=False):
         """Create define node."""
-        node = cls("define", parent)
+        node = cls("define", parent, interleave=interleave)
         node.occur = 0
         node.attr["name"] = name
         return node
@@ -120,32 +120,36 @@ class SchemaNode(object):
             name = self.name
         return "</" + name + ">"
 
-    def serialize(self):
+    def serialize(self, occur=None):
         """Return RELAX NG representation of the receiver and subtree.
         """
-        return (self.ser_format.get(self.name,
-                                    SchemaNode._default_format)(self) %
-                (escape(self.text) +
-                 ''.join([ch.serialize() for ch in self.children])))
+        return (self.ser_format.get(self.name, SchemaNode._default_format)
+                (self, occur) % (escape(self.text) + ''.join
+                                 ([ch.serialize() for ch in self.children])))
 
-    def _default_format(self):
+    def _default_format(self, occur):
         if self.text or self.children:
             return self.start_tag() + "%s" + self.end_tag()
         else:
             return self.start_tag(empty=True) + "%s"
 
-    def _define_format(self):
+    def _define_format(self, occur):
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
-        return self._default_format()
+        return self._default_format(None)
 
-    def _element_format(self):
-        if hasattr(self, "default"):
-            self.attr["nma:default"] = self.default
-        elif self.occur == 1:
-            self.attr["nma:implicit"] = "true"
+    def _element_format(self, occur):
+        if occur:
+            occ = occur
+        else:
+            occ = self.occur
+        if occ == 1:
+            if hasattr(self, "default"):
+                self.attr["nma:default"] = self.default
+            else:
+                self.attr["nma:implicit"] = "true"
         fmt = self.start_tag() + self._chorder() + self.end_tag()
-        if (self.occur == 2 or self.parent.name == "choice"
+        if (occ == 2 or self.parent.name == "choice"
             or self.parent.name == "case" and self.data_nodes_count() == 1):
             return fmt
         else:
@@ -157,13 +161,13 @@ class SchemaNode(object):
             return "<interleave>%s</interleave>"
         return "%s"
 
-    def _list_format(self):
+    def _list_format(self, occur):
         if self.keys:
             self.attr["nma:keys"] = " ".join(self.keys)
-        #     keys = ''.join([self.keymap[k].serialize()
-        #                     for k in self.keys])
-        # else:
-        keys = ""
+            keys = ''.join([self.keymap[k].serialize(occur=2)
+                            for k in self.keys])
+        else:
+            keys = ""
         if self.maxEl:
             self.attr["nma:max-elements"] = self.maxEl
         if self.minEl == "0":
@@ -174,14 +178,14 @@ class SchemaNode(object):
         return ("<" + ord_ + ">" + self.start_tag("element") + keys +
                 self._chorder() + self.end_tag("element") + "</" + ord_ + ">")
 
-    def _choice_format(self):
+    def _choice_format(self, occur):
         fmt = self.start_tag() + "%s" + self.end_tag()
         if self.occur < 2:
             return "<optional>" + fmt + "</optional>"
         else:
             return fmt
 
-    def _case_format(self):
+    def _case_format(self, occur):
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
         if len(self.children) == 1 or not self.interleave:
