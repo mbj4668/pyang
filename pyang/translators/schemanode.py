@@ -31,6 +31,7 @@ class SchemaNode(object):
         node = cls("list", parent)
         node.attr["name"] = name
         node.minEl = "0"
+        node.maxEl = None
         return node
     leaf_list = classmethod(leaf_list)
 
@@ -38,6 +39,7 @@ class SchemaNode(object):
         """Create list node for a list."""
         node = cls.leaf_list(name, parent)
         node.keys = {}
+        node.occur = 3
         return node
     list = classmethod(list)
 
@@ -146,10 +148,9 @@ class SchemaNode(object):
             return "<optional>" + fmt + "</optional>"
 
     def _list_format(self):
-        mc = int(self.minEl)
-        if hasattr(self, "maxEl"):
+        if self.maxEl:
             self.attr["nma:max-elements"] = self.maxEl
-        if mc > 1:
+        if self.minEl != "0":
             self.attr["nma:min-elements"] = self.minEl
         fmt = self.start_tag("element") + "%s" + self.end_tag("element")
         if mc > 0:
