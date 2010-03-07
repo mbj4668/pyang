@@ -163,7 +163,7 @@ class SchemaNode(object):
 
     def _list_format(self, occur):
         if self.keys:
-            self.attr["nma:keys"] = " ".join(self.keys)
+            self.attr["nma:key"] = " ".join(self.keys)
             keys = ''.join([self.keymap[k].serialize(occur=2)
                             for k in self.keys])
         else:
