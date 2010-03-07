@@ -537,11 +537,6 @@ class ConceptualTreeSchema(object):
                 eel.attr[argst.arg] = stmt.arg
         self.handle_substmts(stmt, eel)
 
-    def handle_default_case(self, stmt, p_elem):
-        if stmt.parent.keyword != "choice" or p_elem.default_case != stmt.arg:
-            return p_elem
-        return SchemaNode.case(p_elem)
-
     def propagate_occur(self, node, value):
         """Propagate occurence `value` to `node` and its ancestors."""
         while node.occur < value:
@@ -561,7 +556,7 @@ class ConceptualTreeSchema(object):
         local = []
         for p in pset.pop(name, []):
             if p.path:
-                new_pset[p.pop()] = p
+                new_pset[p.pop()] = [p]
             else:
                 local = p.slist
         return (local, new_pset)
@@ -643,7 +638,9 @@ class ConceptualTreeSchema(object):
         elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
         SchemaNode("ref", elem).attr["name"] = "__anyxml__"
         plist = self.select_patch(pset, stmt.arg)[0]
-        if self.is_mandatory(stmt, plist):
+        if p_elem.name == "choice":
+            elem.occur = 3
+        elif self.is_mandatory(stmt, plist):
                 elem.occur = 2
                 self.propagate_occur(p_elem, 2)
         for s in plist: self.handle_stmt(s, elem)
@@ -657,6 +654,8 @@ class ConceptualTreeSchema(object):
 
     def case_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.case(p_elem)
+        if p_elem.default_case != stmt.arg:
+            celem.occur = 3
         plist, new_pset = self.select_patch(pset, stmt.arg)
         for s in plist: self.handle_stmt(s, celem)
         self.handle_substmts(stmt, celem, new_pset)
@@ -677,12 +676,16 @@ class ConceptualTreeSchema(object):
         self.handle_substmts(stmt, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
-        p_elem = self.handle_default_case(stmt, p_elem)
-        celem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
-        if ([ s for s in plist if s.keyword == "presence"] or
+        if p_elem.name == "choice":
+            if p_elem.default_case == stmt.arg:
+                p_elem = SchemaNode.case(p_elem)
+            else:
+                celem.occur = 3
+        elif ([ s for s in plist if s.keyword == "presence"] or
             stmt.search_one("presence")):
             celem.occur = 3
+        celem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
         for s in plist: self.handle_stmt(s, celem)
         self.handle_substmts(stmt, celem, new_pset)
 
@@ -707,21 +710,25 @@ class ConceptualTreeSchema(object):
         qname = self.prefix_id(stmt.arg)
         elem = SchemaNode.element(qname)
         plist = self.select_patch(pset, stmt.arg)[0]
-        if stmt.parent.keyword == "list" and qname in p_elem.keys:
+        if p_elem.name == "choice":
+            if p_elem.default_case == stmt.arg:
+                p_elem = SchemaNode.case(p_elem)
+            else:
+                elem.occur = 3
+        p_elem.subnode(elem)
+        if p_elem.name == "list" and qname in p_elem.keys:
+            p_elem.subnode(elem)
             elem.occur = 2
             p_elem.keys[qname] = elem
+        elif self.is_mandatory(stmt, plist):
+            elem.occur = 2
+            self.propagate_occur(elem, 2)
         else:
-            p_elem = self.handle_default_case(stmt, p_elem)
-            p_elem.subnode(elem)
-            if self.is_mandatory(stmt, plist):
-                elem.occur = 2
-                self.propagate_occur(elem.parent, 2)
-            else:
-                defv = self.get_default(stmt, plist)
-                if defv:
-                    elem.occur = 1
-                    elem.default = defv
-                    self.propagate_occur(elem.parent, 1)
+            defv = self.get_default(stmt, plist)
+            if defv and elem.occur == 0:
+                elem.occur = 1
+                elem.default = defv
+                self.propagate_occur(elem.parent, 1)
         for s in plist: self.handle_stmt(s, elem)
         self.handle_substmts(stmt, elem)
 
