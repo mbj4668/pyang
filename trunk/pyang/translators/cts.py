@@ -94,7 +94,7 @@ def emit_cts(ctx, module, fd):
             error.is_error(error.err_level(etag))):
             print >> sys.stderr, "CTS translation needs a valid module"
             sys.exit(1)
-    schema = ConceptualTreeSchema().fromModules((module,),
+    schema = ConceptualTreeSchema().from_modules((module,),
                                   ctx.opts.cts_no_dublin_core,
                                   ctx.opts.cts_no_documentation,
                                   ctx.opts.cts_record_defs, debug=0)
@@ -148,12 +148,6 @@ class Patch(object):
         add = [n for n in patch.slist if n.keyword not in kws]
         self.slist.extend(add)
 
-    def has(self, keyword, arg=None):
-        """Does `self.slist` contain stmt with `keyword` (and `arg`)?"""
-        for st in self.slist:
-            if st.keyword == keyword:
-                return arg == None or st.arg == arg
-
 class ConceptualTreeSchema(object):
 
     YANG_version = 1
@@ -190,6 +184,8 @@ class ConceptualTreeSchema(object):
     data_nodes = ("leaf", "container", "leaf-list", "list",
                   "anyxml", "rpc", "notification")
     """Keywords of YANG data nodes."""
+
+    schema_nodes = data_nodes + ("choice", "case")
 
     def __init__(self):
         self.stmt_handler = {
@@ -282,7 +278,7 @@ class ConceptualTreeSchema(object):
             res += self.anyxml_def
         return res + self.grammar_elem.end_tag()
 
-    def fromModules(self, modules, no_dc=False, no_a=False, record_defs=False,
+    def from_modules(self, modules, no_dc=False, no_a=False, record_defs=False,
                   debug=0):
         self.namespaces = {
             "urn:ietf:params:xml:ns:netmod:conceptual-tree:1" : "nmt",
@@ -476,15 +472,6 @@ class ConceptualTreeSchema(object):
         else:
             pset[car] = [patch]
 
-    def sift_pset(self, pset, patch):
-        """Prepare patch for the next level."""
-        car = patch.pop()
-        if car in pset:
-            pset[car].append(patch)
-        else:
-            pset[car] = [patch]
-        return car
-
     def current_revision(self, r_stmts):
         """Pick the most recent revision date from `r_stmts`."""
         cur = max([[int(p) for p in r.arg.split("-")] for r in r_stmts])
@@ -563,6 +550,58 @@ class ConceptualTreeSchema(object):
                 break
             node = node.parent
 
+    def select_patch(self, pset, name):
+        """Select patch for `name` from `pset`.
+
+        Return tuple consisting of the selected patch statement list
+        and transformed `pset` in which `name` is removed from the
+        paths of all patches.
+        """
+        new_pset = {}
+        local = []
+        for p in pset.pop(name, []):
+            if p.path:
+                new_pset[p.pop()] = p
+            else:
+                local = p.slist
+        return (local, new_pset)
+
+    def is_mandatory(self, stmt, slist):
+        """Decide whether `stmt` is mandatory."""
+        for st in slist:
+            if st.keyword == "mandatory":
+                return st.arg == "true"
+        if stmt.search_one("mandatory", "true"): return True
+        return False
+
+    def get_default(self, stmt, slist):
+        """Return default value for `stmt`."""
+        for s in slist:
+            if s.keyword == "default": return s.arg
+        dst = stmt.search_one("default")
+        if dst: return dst.arg
+        return None
+
+    def get_minmax(self, stmt, slist):
+        """Return pair (min,max)-elements for `stmt`."""
+        minel = maxel = None
+        for s in slist:
+            if s.keyword == "min-elements":
+                minel = s.arg
+            elif s.keyword == "max-elements":
+                maxel = s.arg
+        if minel is None:
+            minst = stmt.search_one("min_elements")
+            if minst:
+                minel = minst.arg
+            else:
+                minel = "0"
+        if maxel is None:
+            maxst = stmt.search_one("max_elements")
+            if maxst:
+                maxel = maxst.arg
+        return (minel, maxel)
+
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
         Run handler method for `stmt` in the context of `p_elem`.
@@ -603,6 +642,11 @@ class ConceptualTreeSchema(object):
         self.has_anyxml = True
         elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
         SchemaNode("ref", elem).attr["name"] = "__anyxml__"
+        plist = self.select_patch(pset, stmt.arg)[0]
+        if self.is_mandatory(stmt, plist):
+                elem.occur = 2
+                self.propagate_occur(p_elem, 2)
+        for s in plist: self.handle_stmt(s, elem)
         self.handle_substmts(stmt, elem)
 
     def nma_attribute(self, stmt, p_elem, pset=None):
@@ -613,28 +657,34 @@ class ConceptualTreeSchema(object):
 
     def case_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.case(p_elem)
-        self.handle_substmts(stmt, celem)
+        plist, new_pset = self.select_patch(pset, stmt.arg)
+        for s in plist: self.handle_stmt(s, celem)
+        self.handle_substmts(stmt, celem, new_pset)
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
-        for subst in stmt.substmts:
-            if subst.keyword == "mandatory" and subst.arg == "true":
-                chelem.occur = 2
-                chelem.propagate_occur(chelem.parent, 2)
-                break
-            elif subst.keyword == "default":
-                chelem.default_case = subst.arg
-                break
+        plist, new_pset = self.select_patch(pset, stmt.arg)
+        if self.is_mandatory(stmt, plist):
+            chelem.occur = 2
+            chelem.propagate_occur(chelem.parent, 2)
+        else:
+            defv = self.get_default(stmt, plist)
+            if defv:
+                chelem.default_case = defv
             else:
                 chelem.occur = 3
-        self.handle_substmts(stmt, chelem)
+        for s in plist: self.handle_stmt(s, chelem)
+        self.handle_substmts(stmt, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
         p_elem = self.handle_default_case(stmt, p_elem)
         celem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
-        if stmt.search_one("presence"):
+        plist, new_pset = self.select_patch(pset, stmt.arg)
+        if ([ s for s in plist if s.keyword == "presence"] or
+            stmt.search_one("presence")):
             celem.occur = 3
-        self.handle_substmts(stmt, celem)
+        for s in plist: self.handle_stmt(s, celem)
+        self.handle_substmts(stmt, celem, new_pset)
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -655,46 +705,41 @@ class ConceptualTreeSchema(object):
 
     def leaf_stmt(self, stmt, p_elem, pset):
         qname = self.prefix_id(stmt.arg)
+        elem = SchemaNode.element(qname)
+        plist = self.select_patch(pset, stmt.arg)[0]
         if stmt.parent.keyword == "list" and qname in p_elem.keys:
-            elem = SchemaNode("element")
             elem.occur = 2
             p_elem.keys[qname] = elem
         else:
             p_elem = self.handle_default_case(stmt, p_elem)
-            elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
-        for subst in stmt.substmts:
-            if subst.keyword == "mandatory" and subst.arg == "true":
+            p_elem.subnode(elem)
+            if self.is_mandatory(stmt, plist):
                 elem.occur = 2
                 self.propagate_occur(elem.parent, 2)
-                break
-            elif subst.keyword == "default":
-                elem.occur = 1
-                elem.default = subst.arg
-                self.propagate_occur(elem.parent, 1)
-                break
+            else:
+                defv = self.get_default(stmt, plist)
+                if defv:
+                    elem.occur = 1
+                    elem.default = defv
+                    self.propagate_occur(elem.parent, 1)
+        for s in plist: self.handle_stmt(s, elem)
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.leaf_list(self.prefix_id(stmt.arg), p_elem)
+        plist = self.select_patch(pset, stmt.arg)[0]
+        lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
+        for s in plist: self.handle_stmt(s, lelem)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.list(self.prefix_id(stmt.arg), p_elem)
+        plist, new_pset = self.select_patch(pset, stmt.arg)
+        lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         keys = stmt.search_one("key").arg.split()
         lelem.keys = dict.fromkeys([self.prefix_id(k) for k in keys])
-        self.handle_substmts(stmt, lelem)
-
-    def mandatory_stmt(self, stmt, p_elem, pset):
-        if stmt.arg == "false": return
-        node = p_elem
-        while node.occur < 2:
-            if node.parent.name == "choice": break
-            node.occur = 2
-            if node.name == "define":
-                node = self.refstack.pop()
-            else:
-                node = node.parent
-
+        for s in plist: self.handle_stmt(s, lelem)
+        self.handle_substmts(stmt, lelem, new_pset)
 
     def must_stmt(self, stmt, p_elem, pset):
         mel = SchemaNode("nma:must", p_elem)
