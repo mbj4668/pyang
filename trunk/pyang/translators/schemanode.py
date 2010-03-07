@@ -160,10 +160,10 @@ class SchemaNode(object):
     def _list_format(self):
         if self.keys:
             self.attr["nma:keys"] = " ".join(self.keys)
-            keys = ''.join([self.keymap[k].serialize()
-                            for k in self.keys])
-        else:
-            keys = ""
+        #     keys = ''.join([self.keymap[k].serialize()
+        #                     for k in self.keys])
+        # else:
+        keys = ""
         if self.maxEl:
             self.attr["nma:max-elements"] = self.maxEl
         if self.minEl == "0":
