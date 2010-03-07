@@ -136,10 +136,6 @@ class Patch(object):
         """Pop and return the first element of `self.path`."""
         return self.path.pop(0)
 
-    def colocated(self, patch):
-        """Do patch and receiver have the same path?"""
-        return self.path == patch.path
-
     def combine(self, patch):
         """Add `patch.slist` to `self.slist`; avoid duplication."""
         exclusive = set(["config", "default", "mandatory", "presence",
@@ -265,13 +261,17 @@ class ConceptualTreeSchema(object):
     def serialize(self):
         """Return the string representation of the receiver."""
         res = '<?xml version="1.0" encoding="UTF-8"?>'
+        self.grammar_elem.attr["xmlns"] = \
+            "http://relaxng.org/ns/structure/1.0"
+        self.grammar_elem.attr["datatypeLibrary"] = \
+            "http://www.w3.org/2001/XMLSchema-datatypes"
+        for ns in self.namespaces:
+            self.grammar_elem.attr["xmlns:" + self.namespaces[ns]] = ns
         res += self.grammar_elem.start_tag()
         for ch in self.grammar_elem.children:
             res += ch.serialize()
         if not self.no_data:
-            res += "<start>" + self.confdata.serialize()
-            res += self.rpcs.serialize()
-            res += self.notifications.serialize() + "</start>"
+            res += "<start>" + self.root.serialize() + "</start>"
         for d in self.defs:
             res += self.defs[d].serialize()
         if self.has_anyxml:
@@ -297,7 +297,7 @@ class ConceptualTreeSchema(object):
             pref = module.search_one("prefix").arg
             self.add_namespace(ns, pref)
             self.module_prefixes[module.arg] = pref
-        self.grammar_elem = self.setup_grammar()
+        self.grammar_elem = SchemaNode("grammar")
         for module in modules:
             self.module = module
             src_text = "YANG module '%s'" % module.arg
@@ -318,22 +318,16 @@ class ConceptualTreeSchema(object):
                         "Pyang %s, CTS plugin" % pyang.__version__)
         return self
 
-    def setup_grammar(self):
-        """Return <grammar> element with all attributes."""
-        grel = SchemaNode("grammar")
-        grel.attr["xmlns"] = "http://relaxng.org/ns/structure/1.0"
-        grel.attr["datatypeLibrary"] = \
-            "http://www.w3.org/2001/XMLSchema-datatypes"
-        for ns in self.namespaces:
-            grel.attr["xmlns:" + self.namespaces[ns]] = ns
-        return grel
-
     def create_roots(self):
         """Create root elements for conf. data, RPCs and notifications."""
-        self.confdata = SchemaNode.element("nmt:top")
-        self.rpcs = SchemaNode.element("nmt:rpc-methods")
-        self.notifications = SchemaNode.element("nmt:notifications")
-        self.confdata.occur = self.rpcs.occur = self.notifications.occur = 2
+        self.root = SchemaNode.element("nmt:netmod-tree",
+                                       interleave=False, occur=2)
+        self.confdata = SchemaNode.element("nmt:top", self.root,
+                                           interleave=True, occur=2)
+        self.rpcs = SchemaNode.element("nmt:rpc-methods", self.root,
+                                       interleave=False, occur=2)
+        self.notifications = SchemaNode.element("nmt:notifications", self.root,
+                                                interleave=True, occur=2)
 
     def yang_to_xpath(self, xpath):
         """Transform `xpath` by adding local NS prefixes.
@@ -396,6 +390,8 @@ class ConceptualTreeSchema(object):
                 new = "%s%x" % (prefix,end)
                 end += 1
             self.namespaces[uri] = new
+            return new
+        return self.namespaces[uri]
 
     def prefix_to_ns(self, prefix):
         """Return NS URI for `prefix` in the current context."""
@@ -432,8 +428,8 @@ class ConceptualTreeSchema(object):
     def dc_element(self, name, text):
         """Add DC element `name` containing `text` to <grammar>."""
         if self.dc_uri in self.namespaces:
-            dcel = SchemaNode(self.namespaces[self.dc_uri] + ":" + name)
-            dcel.text = text
+            dcel = SchemaNode(self.namespaces[self.dc_uri] + ":" + name,
+                              text=text)
             self.grammar_elem.children.insert(0,dcel)
 
     def unique_def_name(self, stmt, pref=""):
@@ -464,7 +460,7 @@ class ConceptualTreeSchema(object):
         """Add `patch` to `pset`."""
         car = patch.pop()
         if car in pset:
-            sel = [ x for x in pset[car] if patch.colocated(x) ]
+            sel = [ x for x in pset[car] if patch.path == x.path ]
             if sel:
                 sel[0].combine(patch)
             else:
@@ -518,15 +514,14 @@ class ConceptualTreeSchema(object):
 
     def install_def(self, name, dstmt):
         """Install definition `name` representing `dstmt`."""
-        delem = SchemaNode.define(name)
-        delem.attr["name"] = name
+        delem = SchemaNode.define(name).set_attr("name", name)
         self.defs[name] = delem
         self.handle_substmts(dstmt, delem)
 
     def handle_extension(self, stmt, p_elem):
         """Append YIN representation of `stmt`."""
         ext = stmt.i_extension
-        (prf, extkw) = stmt.raw_keyword
+        prf, extkw = stmt.raw_keyword
         prefix = self.add_namespace(self.prefix_to_ns(prf), prf)
         eel = SchemaNode(prefix + ":" + extkw, p_elem)
         argst = ext.search_one("argument")
@@ -597,6 +592,21 @@ class ConceptualTreeSchema(object):
                 maxel = maxst.arg
         return (minel, maxel)
 
+    def find_key(self, lstmt, key):
+        """Find keys and mark 'uses' for expansion."""
+        maybe = [lstmt]
+        upath = []
+        while maybe:
+            stmt = maybe.pop()
+            for sub in stmt.substmts:
+                if sub.keyword == "leaf" and sub.arg == "key":
+                    maybe = None
+                    break
+                elif sub.keyword == "uses":
+                    maybe.append(sub.i_grouping)
+        while sub.parent.keyword == "grouping":
+            sub = sub.parent
+
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
         Run handler method for `stmt` in the context of `p_elem`.
@@ -636,7 +646,7 @@ class ConceptualTreeSchema(object):
     def anyxml_stmt(self, stmt, p_elem, pset):
         self.has_anyxml = True
         elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
-        SchemaNode("ref", elem).attr["name"] = "__anyxml__"
+        SchemaNode("ref", elem).set_attr("name", "__anyxml__")
         plist = self.select_patch(pset, stmt.arg)[0]
         if p_elem.name == "choice":
             elem.occur = 3
@@ -657,7 +667,7 @@ class ConceptualTreeSchema(object):
         if p_elem.default_case != stmt.arg:
             celem.occur = 3
         plist, new_pset = self.select_patch(pset, stmt.arg)
-        for s in plist: self.handle_stmt(s, celem)
+        for s in plist: self.handle_stmt(s, celem, new_pset)
         self.handle_substmts(stmt, celem, new_pset)
 
     def choice_stmt(self, stmt, p_elem, pset):
@@ -665,28 +675,26 @@ class ConceptualTreeSchema(object):
         plist, new_pset = self.select_patch(pset, stmt.arg)
         if self.is_mandatory(stmt, plist):
             chelem.occur = 2
-            chelem.propagate_occur(chelem.parent, 2)
+            self.propagate_occur(chelem.parent, 2)
         else:
             defv = self.get_default(stmt, plist)
             if defv:
                 chelem.default_case = defv
             else:
                 chelem.occur = 3
-        for s in plist: self.handle_stmt(s, chelem)
+        for s in plist: self.handle_stmt(s, chelem, new_pset)
         self.handle_substmts(stmt, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
+        celem = SchemaNode.element(self.prefix_id(stmt.arg),p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         if p_elem.name == "choice":
-            if p_elem.default_case == stmt.arg:
-                p_elem = SchemaNode.case(p_elem)
-            else:
+            if p_elem.default_case != stmt.arg:
                 celem.occur = 3
         elif ([ s for s in plist if s.keyword == "presence"] or
             stmt.search_one("presence")):
             celem.occur = 3
-        celem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
-        for s in plist: self.handle_stmt(s, celem)
+        for s in plist: self.handle_stmt(s, celem, new_pset)
         self.handle_substmts(stmt, celem, new_pset)
 
     def description_stmt(self, stmt, p_elem, pset):
@@ -707,28 +715,29 @@ class ConceptualTreeSchema(object):
             self.handle_substmts(subm, p_elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
-        qname = self.prefix_id(stmt.arg)
-        elem = SchemaNode.element(qname)
-        plist = self.select_patch(pset, stmt.arg)[0]
-        if p_elem.name == "choice":
-            if p_elem.default_case == stmt.arg:
-                p_elem = SchemaNode.case(p_elem)
-            else:
-                elem.occur = 3
-        p_elem.subnode(elem)
-        if p_elem.name == "list" and qname in p_elem.keys:
-            p_elem.subnode(elem)
-            elem.occur = 2
-            p_elem.keys[qname] = elem
-        elif self.is_mandatory(stmt, plist):
-            elem.occur = 2
-            self.propagate_occur(elem, 2)
-        else:
+        def handle_default():
             defv = self.get_default(stmt, plist)
             if defv and elem.occur == 0:
                 elem.occur = 1
                 elem.default = defv
                 self.propagate_occur(elem.parent, 1)
+        qname = self.prefix_id(stmt.arg)
+        elem = SchemaNode.element(qname)
+        plist = self.select_patch(pset, stmt.arg)[0]
+        if p_elem.name == "_list_" and qname in p_elem.keymap:
+            elem.occur = 2
+            p_elem.keymap[qname] = elem
+        else:
+            p_elem.subnode(elem)
+            if p_elem.name == "choice":
+                if p_elem.default_case == stmt.arg:
+                    handle_default()
+                else:
+                    elem.occur = 3
+            elif self.is_mandatory(stmt, plist):
+                self.propagate_occur(elem, 2)
+            else:
+                handle_default()
         for s in plist: self.handle_stmt(s, elem)
         self.handle_substmts(stmt, elem)
 
@@ -743,9 +752,10 @@ class ConceptualTreeSchema(object):
         lelem = SchemaNode.list(self.prefix_id(stmt.arg), p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
-        keys = stmt.search_one("key").arg.split()
-        lelem.keys = dict.fromkeys([self.prefix_id(k) for k in keys])
-        for s in plist: self.handle_stmt(s, lelem)
+        lelem.keys = [self.prefix_id(k)
+                      for k in stmt.search_one("key").arg.split()]
+        lelem.keymap = dict.fromkeys(lelem.keys)
+        for s in plist: self.handle_stmt(s, lelem, new_pset)
         self.handle_substmts(stmt, lelem, new_pset)
 
     def must_stmt(self, stmt, p_elem, pset):
@@ -759,15 +769,18 @@ class ConceptualTreeSchema(object):
             SchemaNode("nma:error-app-tag", mel, eat.arg)
 
     def notification_stmt(self, stmt, p_elem, pset):
-        notel = SchemaNode.element("nmt:notification", self.notifications)
-        elem = SchemaNode.element(self.prefix_id(stmt.arg), notel)
-        elem.occur = notel.occur = 2
-        self.handle_substmts(stmt, elem)
+        notel = SchemaNode.element("nmt:notification", self.notifications,
+                                   occur=2)
+        elem = SchemaNode.element(self.prefix_id(stmt.arg), notel, occur=2)
+        plist, new_pset = self.select_patch(pset, stmt.arg)
+        for s in plist: self.handle_stmt(s, elem, new_pset)
+        self.handle_substmts(stmt, elem, new_pset)
 
     def output_stmt(self, stmt, p_elem, pset):
-        elem = SchemaNode.element("nmt:output", p_elem)
-        elem.occur = 2
-        self.handle_substmts(stmt, elem)
+        elem = SchemaNode.element("nmt:output", p_elem, occur=2)
+        plist, new_pset = self.select_patch(pset, "output")
+        for s in plist: self.handle_stmt(s, elem, new_pset)
+        self.handle_substmts(stmt, elem, new_pset)
 
     def reference_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -777,10 +790,17 @@ class ConceptualTreeSchema(object):
             self.insert_doc(p_elem, "See: " + stmt.arg)
 
     def rpc_stmt(self, stmt, p_elem, pset):
-        rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs)
-        inpel = SchemaNode.element("nmt:input", rpcel)
-        elem = SchemaNode.element(self.prefix_id(stmt.arg), inpel)
-        self.handle_substmts(stmt, rpcel)
+        rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs, occur=2)
+        rlist, r_pset = self.select_patch(pset, stmt.arg)
+        inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
+        elem = SchemaNode.element(self.prefix_id(stmt.arg), inpel, occur=2)
+        inst = stmt.search_one("input")
+        if inst:
+            ilist, i_pset = self.select_patch(r_pset, "input")
+            for s in ilist: self.handle_stmt(s, elem, i_pset)
+            self.handle_substmts(inst, elem, i_pset)
+        for s in rlist: self.handle_stmt(s, elem, r_pset)
+        self.handle_substmts(stmt, rpcel, r_pset)
 
     def type_stmt(self, stmt, p_elem, pset):
         """Handle ``type`` statement.
@@ -793,7 +813,7 @@ class ConceptualTreeSchema(object):
             uname = self.unique_def_name(typedef)
             if uname not in self.defs:
                 self.install_def(uname, typedef)
-            SchemaNode("ref", p_elem).attr["name"]=uname
+            SchemaNode("ref", p_elem).set_attr("name", uname)
             defst = typedef.search_one("default")
             if defst:
                 self.defs[uname].default = defst.arg
@@ -828,8 +848,8 @@ class ConceptualTreeSchema(object):
             if sub.keyword in ("refine", "augment"):
                 noexpand = False
                 self.add_patch(pset, Patch(sub, prefix=self.prefix))
-        if noexpand and pset:
-            for nid in pset:
+        if noexpand and pset: 
+            for nid in pset: # any patch applies to the grouping?
                 if [ s for s in stmt.i_grouping.substmts if s.arg == nid
                      and s.keyword in self.data_nodes + ("choice",) ]:
                     noexpand = False
@@ -838,8 +858,7 @@ class ConceptualTreeSchema(object):
             uname = self.unique_def_name(stmt.i_grouping, pref="_")
             if uname not in self.defs:
                 self.install_def(uname, stmt.i_grouping)
-            elem = SchemaNode("ref", p_elem)
-            elem.attr["name"]=uname
+            elem = SchemaNode("ref", p_elem).set_attr("name", uname)
             occur = self.defs[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
             self.handle_substmts(stmt, elem)
@@ -858,27 +877,25 @@ class ConceptualTreeSchema(object):
 
     def binary_type(self, tchain, p_elem):
         def gen_data():
-            res = SchemaNode("data")
-            res.attr["type"]="base64Binary"
-            return res
+            return SchemaNode("data").set_attr("type", "base64Binary")
         self.type_with_ranges(tchain, p_elem, "length", gen_data)
 
     def bits_type(self, tchain, p_elem):
         elem = SchemaNode("list", p_elem)
         for bit in tchain[0].search("bit"):
             optel = SchemaNode("optional", elem)
-            velem = Schema("value", optel, bit.arg)
+            SchemaNode("value", optel, bit.arg)
 
     def choice_type(self, tchain, p_elem):
         """Handle ``enumeration`` and ``union`` types."""
-        elem = SchemaNode("choice", p_elem)
+        elem = SchemaNode.choice(p_elem, occur=2)
         self.handle_substmts(tchain[0], elem)
 
     def empty_type(self, tchain, p_elem):
         SchemaNode("empty", p_elem)
 
     def identityref_type(self, tchain, p_elem):
-        SchemaNode("data", p_elem).attr["type"]="QName"
+        SchemaNode("data", p_elem).set_attr("type", "QName")
 
     def leafref_type(self, tchain, p_elem):
         stmt = tchain[0]
@@ -889,18 +906,18 @@ class ConceptualTreeSchema(object):
 
     def mapped_type(self, tchain, p_elem):
         """Handle types that are simply mapped to RELAX NG."""
-        SchemaNode("data", p_elem).attr["type"]=self.datatype_map[tchain[0].arg]
+        SchemaNode("data", p_elem).set_attr("type",
+                                            self.datatype_map[tchain[0].arg])
 
     def numeric_type(self, tchain, p_elem):
         """Handle numeric types."""
         typ = tchain[0].arg
         def gen_data():
-            elem = SchemaNode("data")
-            elem.attr["type"]=self.datatype_map[typ]
+            elem = SchemaNode("data").set_attr("type", self.datatype_map[typ])
             if typ == "decimal64":
                 fd = tchain[0].search_one("fraction-digits").arg
-                SchemaNode("param", elem, "19").attr["name"]="totalDigits"
-                SchemaNode("param", elem, fd).attr["name"]="fractionDigits"
+                SchemaNode("param",elem,"19").set_attr("name","totalDigits")
+                SchemaNode("param",elem,fd).set_attr("name","fractionDigits")
             return elem
         self.type_with_ranges(tchain, p_elem, "range", gen_data)
 
@@ -962,13 +979,10 @@ class ConceptualTreeSchema(object):
         pels = []
         for t in tchain:
             for pst in t.search("pattern"):
-                pel = SchemaNode("param")
-                pel.attr["name"]="pattern"
-                pel.text = pst.arg
-                pels.append(pel)
+                pels.append(SchemaNode("param",
+                                       text=pst.arg).set_attr("name","pattern"))
         def get_data():
-            elem = SchemaNode("data")
-            elem.attr["type"]="string"
+            elem = SchemaNode("data").set_attr("type", "string")
             for p in pels: elem.subnode(p)
             return elem
         self.type_with_ranges(tchain, p_elem, "length", get_data)
