@@ -6,47 +6,46 @@ class SchemaNode(object):
 
     Instance variables:
 
+    * `interleave` - signal whether children should be interleaved.
+
     * `occur` - 0=optional, 1=implicit, 2=mandatory, 3=presence
 
     Class variables:
 
-    * `interleave` - signal whether children should be interleaved.
-
     * `ser_format` - dictionary of methods returning string
       serialization formats
     """
-
-    interleave = True
-
-    def element(cls, name, parent=None):
+    def element(cls, name, parent=None, interleave=None, occur=0):
         """Create an element node."""
-        node = cls("element", parent)
+        node = cls("element", parent, interleave=interleave)
         node.attr["name"] = name
-        node.occur = 0
+        node.occur = occur
         return node
     element = classmethod(element)
 
-    def leaf_list(cls, name, prefix, parent=None):
+    def leaf_list(cls, name, parent=None, interleave=None):
         """Create list node for a leaf-list."""
-        node = cls("list", parent)
+        node = cls("_list_", parent, interleave=interleave)
         node.attr["name"] = name
+        node.keys = None
         node.minEl = "0"
         node.maxEl = None
         return node
     leaf_list = classmethod(leaf_list)
 
-    def list(cls, name, parent=None):
+    def list(cls, name, parent=None, interleave=None):
         """Create list node for a list."""
-        node = cls.leaf_list(name, parent)
-        node.keys = {}
+        node = cls.leaf_list(name, parent, interleave=interleave)
+        node.keys = None
+        node.keymap = {}
         node.occur = 3
         return node
     list = classmethod(list)
 
-    def choice(cls, parent=None):
+    def choice(cls, parent=None, occur=0):
         """Create choice node."""
         node = cls("choice", parent)
-        node.occur = 0
+        node.occur = occur
         node.default_case = None
         return node
     choice = classmethod(choice)
@@ -66,29 +65,38 @@ class SchemaNode(object):
         return node
     define = classmethod(define)
 
-    def __init__(self, name, parent=None, text=""):
+    def __init__(self, name, parent=None, text="", interleave=None):
         """Initialize the object under `parent`.
         """
         self.name = name
         self.parent = parent
         if parent is not None: parent.children.append(self)
+        self.text = text
+        self.adjust_interleave(interleave)
         self.children = []
         self.attr = {}
-        self.text = text
+
+    def adjust_interleave(self, interleave):
+        """Inherit interleave status from parent if undefined."""
+        if interleave == None and self.parent:
+            self.interleave = self.parent.interleave
+        else:
+            self.interleave = interleave
 
     def subnode(self, node):
         """Make `node` receiver's child."""
         self.children.append(node)
         node.parent = self
+        node.adjust_interleave(None)
 
     def set_attr(self, key, value):
         self.attr[key] = value
         return self
 
-    def data_children_count(self):
-        """Check whether the receiver has more data children."""
-        return len([ ch for ch in self.children
-                     if ch.name in ("element", "choice", "list") ])
+    def data_nodes_count(self):
+        """Return the number of receiver's data subnodes."""
+        return len([ch for ch in self.children
+                    if ch.name in ("element", "choice", "list")])
 
     def start_tag(self, alt=None, empty=False):
         """Return XML start tag for the receiver."""
@@ -96,7 +104,7 @@ class SchemaNode(object):
             name = alt
         else:
             name = self.name
-        result = "<" + name 
+        result = "<" + name
         for it in self.attr:
             result += ' %s="%s"' % (it, escape(self.attr[it]))
         if empty:
@@ -110,7 +118,7 @@ class SchemaNode(object):
             name = alt
         else:
             name = self.name
-        return "</" + name + ">" 
+        return "</" + name + ">"
 
     def serialize(self):
         """Return RELAX NG representation of the receiver and subtree.
@@ -136,27 +144,35 @@ class SchemaNode(object):
             self.attr["nma:default"] = self.default
         elif self.occur == 1:
             self.attr["nma:implicit"] = "true"
-        if self.interleave and self.data_children_count() > 1:
-            fmt = "<interleave>%s</interleave>"
-        else:
-            fmt = "%s"
-        fmt = self.start_tag() + fmt + self.end_tag()
+        fmt = self.start_tag() + self._chorder() + self.end_tag()
         if (self.occur == 2 or self.parent.name == "choice"
-            or self.parent.name == "case" and len(self.parent.children) == 1):
+            or self.parent.name == "case" and self.data_nodes_count() == 1):
             return fmt
         else:
             return "<optional>" + fmt + "</optional>"
 
+    def _chorder(self):
+        """Add <interleave> if child order is arbitrary."""
+        if self.interleave and self.data_nodes_count() > 1:
+            return "<interleave>%s</interleave>"
+        return "%s"
+
     def _list_format(self):
+        if self.keys:
+            self.attr["nma:keys"] = " ".join(self.keys)
+            keys = ''.join([self.keymap[k].serialize()
+                            for k in self.keys])
+        else:
+            keys = ""
         if self.maxEl:
             self.attr["nma:max-elements"] = self.maxEl
-        if self.minEl != "0":
-            self.attr["nma:min-elements"] = self.minEl
-        fmt = self.start_tag("element") + "%s" + self.end_tag("element")
-        if mc > 0:
-            return "<oneOrMore>" + fmt + "</oneOrMore>"
+        if self.minEl == "0":
+            ord_ = "zeroOrMore"
         else:
-            return "<zeroOrMore>" + fmt + "</zeroOrMore>"
+            ord_ = "oneOrMore"
+            self.attr["nma:min-elements"] = self.minEl
+        return ("<" + ord_ + ">" + self.start_tag("element") + keys +
+                self._chorder() + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self):
         fmt = self.start_tag() + "%s" + self.end_tag()
@@ -168,14 +184,14 @@ class SchemaNode(object):
     def _case_format(self):
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
-        if self.data_children_count() == 1 or not self.interleave:
+        if len(self.children) == 1 or not self.interleave:
             return self.start_tag("group") + "%s" + self.end_tag("group")
         else:
             return (self.start_tag("interleave") + "%s" +
                     self.end_tag("interleave"))
 
     ser_format = { "element": _element_format,
-                   "list": _list_format,
+                   "_list_": _list_format,
                    "choice": _choice_format,
                    "case": _case_format,
                    "define": _define_format,
