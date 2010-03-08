@@ -15,7 +15,13 @@ clean:
 	find . -name "*.pyc" -exec rm {} \;
 
 MANIFEST:
-	svn list -R > $@
+	@if [ -d .svn ] ; then \
+	    svn list -R > $@; \
+	elif [ -d .git ] ; then \
+	    git ls-files > $@; \
+	else \
+	    echo "MANIFEST can only be generated from SVN or git."; \
+	fi
 
 tags:
 	find . -name "*.py" | etags -
