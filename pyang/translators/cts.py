@@ -83,8 +83,7 @@ class CTSPlugin(plugin.PyangPlugin):
 
     def emit(self, ctx, module, fd):
         if module.keyword == 'submodule':
-            print >> sys.stderr, "Cannot translate submodules"
-            sys.exit(1)
+            raise error.EmitError("Cannot translate submodules")
         emit_cts(ctx, module, fd)
 
 def emit_cts(ctx, module, fd):
@@ -92,8 +91,7 @@ def emit_cts(ctx, module, fd):
     for (epos, etag, eargs) in ctx.errors:
         if (epos.top_name == module.arg and
             error.is_error(error.err_level(etag))):
-            print >> sys.stderr, "CTS translation needs a valid module"
-            sys.exit(1)
+            raise error.EmitError("CTS translation needs a valid module")
     schema = ConceptualTreeSchema().from_modules((module,),
                                   ctx.opts.cts_no_dublin_core,
                                   ctx.opts.cts_no_documentation,
@@ -658,9 +656,10 @@ class ConceptualTreeSchema(object):
                 self.handle_extension(stmt, p_elem)
                 return
             else:
-                sys.stderr.write("Unknown keyword %s (this should not happen)\n"
-                                 % stmt.keyword)
-                sys.exit(1)
+                raise error.EmitError(
+                    "Unknown keyword %s (this should not happen)\n"
+                    % stmt.keyword)
+
         method(stmt, p_elem, pset)
 
     def handle_substmts(self, stmt, p_elem, pset={}):
@@ -896,8 +895,7 @@ class ConceptualTreeSchema(object):
 
     def yang_version_stmt(self, stmt, p_elem, pset):
         if float(stmt.arg) != self.YANG_version:
-            print >> sys.stderr, "Unsupported YANG version: %s" % stmt.arg
-            sys.exit(1)
+            raise error.EmitError("Unsupported YANG version: %s" % stmt.arg)
 
     # Handlers for YANG types
 

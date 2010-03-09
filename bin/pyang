@@ -176,12 +176,20 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             print >> sys.stderr, \
                 str(epos) + ': %s: ' % type + \
                 error.err_to_str(etag, eargs)
-    if o.outfile == None:
-        fd = sys.stdout
-    else:
-        fd = open(o.outfile, "w+")
     if emit_obj != None and module != None:
-        emit_obj.emit(ctx, module, fd)
+        if o.outfile == None:
+            fd = sys.stdout
+        else:
+            fd = open(o.outfile, "w+")
+        try:
+            emit_obj.emit(ctx, module, fd)
+        except error.EmitError as e:
+            if e.msg != "":
+                print >> sys.stderr, e.msg
+            if o.outfile != None:
+                fd.close()
+                os.remove(o.outfile)
+            sys.exit(e.exit_code)
 
     sys.exit(exit_code)
 
