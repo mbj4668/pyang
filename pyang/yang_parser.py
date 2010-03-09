@@ -25,10 +25,8 @@ class YangTokenizer(object):
         self.pos.line += 1
         self.offset = 0
 
-    def set_buf(self, i, pos=None):
-        if pos == None:
-            pos = i
-        self.offset = self.offset + pos
+    def set_buf(self, i):
+        self.offset = self.offset + i
         self.buf = self.buf[i:]
 
     def skip(self):
@@ -37,24 +35,14 @@ class YangTokenizer(object):
         pos = 0
         buflen = len(self.buf)
 
-#        while i < buflen and self.buf[i].isspace():
-#            if self.buf[i] == '\t':
-#                pos = pos + 8
-#            else:
-#                pos = pos + 1
-#            i = i + 1
-#        if i == buflen:
-#            self.readline()
-#            return self.skip()
-#        else:
-#            self.set_buf(i, pos)
         while True:
             self.buf = self.buf.lstrip()
+            self.offset += (buflen - len(self.buf))
             if self.buf == '':
                 self.readline()
+                buflen = len(self.buf)
             else:
                 break
-        self.offset += buflen - len(self.buf)
             
         # skip line comment
         if self.buf[0] == '/':
@@ -88,7 +76,7 @@ class YangTokenizer(object):
                 pass
             else:
                 error.err_add(self.errors, self.pos,
-                              'SYNTAX_ERROR', 'expected spearator, got: "' +
+                              'SYNTAX_ERROR', 'expected separator, got: "' +
                               self.buf[:6] + '..."')
                 raise error.Abort
             
