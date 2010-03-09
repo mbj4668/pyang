@@ -1795,6 +1795,9 @@ def search_data_keyword_child(children, modulename, identifier):
     return None
 
 def find_target_node(ctx, stmt, is_augment=False):
+    if (hasattr(stmt, 'is_grammatically_valid') and
+        stmt.is_grammatically_valid == False):
+        return None
     if stmt.arg.startswith("/"):
         is_absolute = True
         arg = stmt.arg
