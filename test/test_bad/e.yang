@@ -61,7 +61,7 @@ module e {
 
     augment "/e:y/e:z/e:q/e:w/e:s" {
         leaf f {
-            config true;  // error: invalid config
+            config true;
             type string;
         }
     }
@@ -95,6 +95,9 @@ module e {
     }
   }
 
-
+  leaf xx {
+    type string;
+    must "/a:bar[[";  // error: prefix a not defined
+  }
 
 }

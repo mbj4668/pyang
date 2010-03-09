@@ -328,6 +328,9 @@ error_codes = \
     'INVALID_CONFIG':
       (2,
        'config true cannot be set when the parent is config false'),
+    'XPATH_SYNTAX_ERROR':
+      (1,
+       'XPath syntax error: %s'),
     'CONFIG_IGNORED':
       (4,
        'explicit config statement is ignored'),

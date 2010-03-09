@@ -74,7 +74,12 @@ search path:
 .TP
 .BI "--plugindir " plugindir
 Load all YANG plugins found in the directory \fIplugindir\fR.  This
-option may be given multiple times.
+option may be given multiple times.  The following directories are
+always added to the load path:
+
+  1.  pyang/plugins from where pyang is installed
+  2.  $PYANG_PLUGINPATH
+
 .TP
 .B "-d, --debug"
 Turn on debugging of the pyang code.
@@ -179,7 +184,7 @@ The following example validates the standard YANG modules with derived
 types:
 
 .nf
-  $ pyang ietf-yang-types.yang ietf-ieee-types.yang ietf-inet-types.yang
+  $ pyang ietf-yang-types.yang ietf-inet-types.yang
 .fi
 
 The following example converts the ietf-yang-types module into YIN:
@@ -191,9 +196,12 @@ The following example converts the ietf-yang-types module into YIN:
 pyang searches for referred modules in the colon (:) separated path
 defined by the environment variable YANG_MODPATH and in the
 directory $YANG_INSTALL/yang/modules.
+
+pyang searches for plugins in the colon (:) separated path defined by
+the environment variable PYANG_PLUGINDIR.
 .SH BUGS
 The XPath arguments for the \fBmust\fP and \fBwhen\fP statements are
-not validated.
+checked only for basic syntax errors.
 .SH Authors
 Martin Bjorklund, Tail-f Systems, <mbj@tail-f.com>
 .br
