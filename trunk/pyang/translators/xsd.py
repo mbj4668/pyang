@@ -5,7 +5,6 @@ from xml.sax.saxutils import escape
 
 import optparse
 import re
-import sys
 
 import pyang
 from pyang import plugin
@@ -144,16 +143,14 @@ class XSDPlugin(plugin.PyangPlugin):
         for (epos, etag, eargs) in ctx.errors:
             if (epos.top_name == module.arg and
                 error.is_error(error.err_level(etag))):
-                print >> sys.stderr, "XSD translation needs a valid module"
-                sys.exit(1)
+                raise error.EmitError("XSD translation needs a valid module")
         # we also need to have all other modules found
         for pre in module.i_prefixes:
             (modname, revision) = module.i_prefixes[pre]
             mod = statements.modulename_to_module(module, modname, revision)
             if mod == None:
-                print >> sys.stderr, ("cannot find module %s, needed by XSD"
+                raise error.EmitError("cannot find module %s, needed by XSD"
                                       " translation" % modname)
-                sys.exit(1)
             
         emit_xsd(ctx, module, fd)
 
@@ -207,9 +204,8 @@ def emit_xsd(ctx, module, fd):
             i_namespace = parent_module.search_one('namespace').arg
             i_prefix = parent_module.search_one('prefix').arg
         else:
-            print >> sys.stderr, ("cannot find module %s, needed by XSD"
+            raise error.EmitError("cannot find module %s, needed by XSD"
                                   " translation" % parent_modulename)
-            sys.exit(1)
     else:
         i_namespace = module.search_one('namespace').arg
         i_prefix = module.search_one('prefix').arg
