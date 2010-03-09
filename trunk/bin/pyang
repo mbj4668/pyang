@@ -142,7 +142,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         if module is None:
             exit_code = 1
 
+    if emit_obj != None and module != None:
+        emit_obj.pre_validate(ctx, module)
+
     ctx.validate()
+
+    if emit_obj != None:
+        emit_obj.post_validate(ctx, module)
 
     def cmp_error(e1, e2):
         pos1 = e1[0]

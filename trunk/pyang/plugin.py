@@ -2,6 +2,7 @@
 
 import os
 import sys
+import string
 
 plugins = []
 """List of registered PyangPlugin instances"""
@@ -20,6 +21,11 @@ def init(plugindirs=[]):
     basedir = os.path.split(sys.modules['pyang'].__file__)[0]
     plugindirs.insert(0, basedir + "/plugins")
     
+    # add paths from env
+    pluginpath = os.getenv('PYANG_PLUGINPATH')
+    if pluginpath is not None:
+        plugindirs.extend(string.split(pluginpath, os.pathsep))
+
     syspath = sys.path
     for plugindir in plugindirs:
         sys.path = [plugindir] + syspath
@@ -84,13 +90,26 @@ class PyangPlugin(object):
         repository is accessed.
         """
         return
+
+    def pre_validate(self, ctx, module):
+        """Called before the module is validated"""
+        return
+
+    def post_validate(self, ctx, module):
+        """Called after the module has been validated"""
+        return
+
     def emit(self, ctx, module, writef):
         """Produce the plugin output.
 
         Override this method to perform the output conversion.
         `writef` is a function that takes one string to print as argument.
+
+        Raise error.EmitError on failure.
         """
         return
+
+
     
 
     

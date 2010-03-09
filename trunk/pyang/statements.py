@@ -6,6 +6,7 @@ from error import err_add
 import types
 import syntax
 import grammar
+import xpath
 
 ### Exceptions
 
@@ -109,12 +110,12 @@ _validation_phases = [
     #   first expansion: copy data definition stmts into i_children
     'expand_1',
 
-    #   second expansion: expand augmentations into i_children
-    'expand_2',
-
     # inherit properties phase:
     #   set i_config
     'inherit_properties',
+
+    #   second expansion: expand augmentations into i_children
+    'expand_2',
 
     # unique name check phase:
     'unique_name',
@@ -164,9 +165,9 @@ _validation_map = {
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
 
     ('inherit_properties', 'module'): \
-        lambda ctx, s: v_inherit_properties_module(ctx, s),
+        lambda ctx, s: v_inherit_properties(ctx, s),
     ('inherit_properties', 'submodule'): \
-        lambda ctx, s: v_inherit_properties_module(ctx, s),
+        lambda ctx, s: v_inherit_properties(ctx, s),
 
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
 
@@ -453,11 +454,12 @@ def v_import_module(ctx, stmt):
             else:
                 # check that each submodule included by this submodule
                 # is also included bt the module
-                for s in submodule.search('include'):
-                    if stmt.search_one('include', s.arg) is None:
-                        err_add(ctx.errors, s.pos,
-                                'MISSING_INCLUDE',
-                                (s.arg, submodule.arg, stmt.arg))
+                if stmt.keyword == 'module':
+                    for s in submodule.search('include'):
+                        if stmt.search_one('include', s.arg) is None:
+                            err_add(ctx.errors, s.pos,
+                                    'MISSING_INCLUDE',
+                                    (s.arg, submodule.arg, stmt.arg))
 
                 # add typedefs, groupings, nodes etc to this module
                 for ch in submodule.i_children:
@@ -1056,6 +1058,8 @@ def v_expand_1_children(ctx, stmt):
             v_expand_1_uses(ctx, s)
             for a in s.search('augment'):
                 v_expand_1_children(ctx, a)
+            v_inherit_properties(ctx, stmt)
+            for a in s.search('augment'):
                 v_expand_2_augment(ctx, a)
 
         elif s.keyword in _data_keywords and hasattr(stmt, 'i_children'):
@@ -1209,7 +1213,7 @@ def v_expand_1_uses(ctx, stmt):
                     target.substmts.remove(old)
                 target.substmts.append(s)
 
-def v_inherit_properties_module(ctx, stmt):
+def v_inherit_properties(ctx, stmt):
     def iter(s, config_value, allow_explicit):
         cfg = s.search_one('config')
         if cfg is not None:
@@ -1297,6 +1301,10 @@ def v_expand_2_augment(ctx, stmt):
                 tmp.parent = node
 
     for c in stmt.i_children:
+        if (stmt.i_target_node.i_config == False and
+            c.i_config == True):
+            err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
+
         ch = search_child(stmt.i_target_node.i_children,
                           stmt.i_module.i_modulename, c.arg)
         if ch is not None:
@@ -1539,18 +1547,23 @@ def v_reference_leaf_leafref(ctx, stmt):
             stmt.i_leafref_ptrs.append((ptr, path_type_spec.pos))
         
 def v_reference_must(ctx, stmt):
-    # we should do a proper parsing of the xpath expression.
-    # right now, we do a conservative search for all prefixes; and
-    # if we find something that looks likes a prefix, we check it in
-    # order to avoid the warning about unused import, but we do not
-    # report the error since it might be a false alarm.
-    for (_p, prefix, _identifier) in syntax.re_keyword.findall(stmt.arg):
-        prefix_to_module(stmt.i_module, prefix, stmt.pos, [])
+    # verify that the xpath expression is correct, and that
+    # each prefix is defined
+    # NOTE: currently only primitive tokenization is done; we should
+    # also parse the expression to detect more errors
+    try:
+        toks = xpath.tokens(stmt.arg)
+        for (tokname, s) in toks:
+            if tokname == 'name' or tokname == 'prefix-match':
+                i = s.find(':')
+                if i != -1:
+                    prefix = s[:i]
+                    prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+    except SyntaxError, e:
+          err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
 def v_reference_when(ctx, stmt):
-    # see comment in v_reference_must
-    for (_p, prefix, _identifier) in syntax.re_keyword.findall(stmt.arg):
-        prefix_to_module(stmt.i_module, prefix, stmt.pos, [])
+    v_reference_must(ctx, stmt)
 
 def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
@@ -1839,6 +1852,7 @@ def find_target_node(ctx, stmt, is_augment=False):
                 v_init_stmt(ctx, child)
                 child.i_module = module
                 child.i_children = []
+                child.i_config = node.i_config
                 node.i_children.append(child)
                 # keep track of this temporary statement
                 stmt.i_module.i_undefined_augment_nodes[child] = child
@@ -1976,7 +1990,8 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
                         (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
                 raise NotFound
             if ptr.keyword in ['list', 'container', 'case', 'grouping',
-                               'module', 'submodule']:
+                               'module', 'submodule', 'input', 'output',
+                               'notification']:
                 ptr = search_data_node(ptr.i_children, module_name, name)
                 if ptr is None:
                     err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
