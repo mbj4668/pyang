@@ -189,7 +189,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             fd = open(o.outfile, "w+")
         try:
             emit_obj.emit(ctx, module, fd)
-        except error.EmitError as e:
+        except error.EmitError, e:
             if e.msg != "":
                 print >> sys.stderr, e.msg
             if o.outfile != None:
