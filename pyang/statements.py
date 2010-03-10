@@ -270,6 +270,9 @@ def add_data_keyword(keyword):
 def add_keyword_with_children(keyword):
     _keyword_with_children[keyword] = True
 
+def is_keyword_with_children(keyword):
+    return keyword in _keyword_with_children
+
 def add_keywords_with_no_explicit_config(keyword):
     _keywords_with_no_explicit_config.append(keyword)
 
@@ -1071,6 +1074,49 @@ def v_expand_1_children(ctx, stmt):
     if stmt.keyword == 'grouping':
         stmt.i_expanded = True
         return 'continue'
+
+refinements = [
+    # (<keyword>, <list of refinements that can be applied to the <keyword>>,
+    #  <validation function>)
+    ('description',
+     ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
+     None),
+    ('reference',
+     ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
+     None),
+    ('config',
+     ['container', 'leaf', 'leaf-list', 'list', 'choice', 'anyxml'],
+     None),
+    ('presence', ['container'], None),
+    ('must', ['container', 'leaf', 'leaf-list', 'list'], None),
+    ('default', ['leaf', 'choice'],
+     lambda ctx, target, default: v_default(ctx, target, default)),
+    ('mandatory', ['leaf', 'choice'], None),
+    ('min-elements', ['leaf-list', 'list'], None),
+    ('max-elements', ['leaf-list', 'list'], None),
+    ('reference',
+     ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
+     None)
+]
+
+def add_refinement_element(keyword, element):
+    """Add an element to the <keyword>'s list of refinements"""
+    for (key, valid_keywords, v_fun) in refinements:
+        if key == keyword:
+            valid_keywords.append(element)
+
+def v_default(ctx, target, default):
+    type = target.search_one('type')
+    if (type is not None and
+        type.i_type_spec is not None):
+        defval = type.i_type_spec.str_to_val(ctx.errors,
+                                             default.pos,
+                                             default.arg)
+        target.i_default = defval
+        target.i_default_str = default.arg
+        if defval is not None:
+            type.i_type_spec.validate(ctx.errors, default.pos,
+                                      defval, ' for the default value')
               
 def v_expand_1_uses(ctx, stmt):
     if (hasattr(stmt, 'is_grammatically_valid') and
@@ -1118,7 +1164,7 @@ def v_expand_1_uses(ctx, stmt):
             if old is not None:
                 target.substmts.remove(old)
             if v_fun is not None:
-                v_fun(target, new)
+                v_fun(ctx, target, new)
             target.substmts.append(new)
         elif new is not None:
             err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
@@ -1157,18 +1203,6 @@ def v_expand_1_uses(ctx, stmt):
                       copyf=post_copy)
         stmt.parent.i_children.append(newg)
 
-    def v_default(target, default):
-        type = target.search_one('type')
-        if (type is not None and
-            type.i_type_spec is not None):
-            defval = type.i_type_spec.str_to_val(ctx.errors,
-                                                 default.pos,
-                                                 default.arg)
-            target.i_default = defval
-            target.i_default_str = default.arg
-            if defval is not None:
-                type.i_type_spec.validate(ctx.errors, default.pos,
-                                          defval, ' for the default value')
     # keep track of already refined nodes
     refined = {}
     # then apply all refinements
@@ -1181,30 +1215,10 @@ def v_expand_1_uses(ctx, stmt):
                     (target.arg, refined[target]))
             continue
         refined[target] = refinement.pos
-        replace_from_refinement(target, refinement, 'description',
-                                ['container', 'leaf', 'leaf-list', 'list',
-                                 'choice', 'case', 'anyxml'])
-        replace_from_refinement(target, refinement, 'reference',
-                                ['container', 'leaf', 'leaf-list', 'list',
-                                 'choice', 'case', 'anyxml'])
-        replace_from_refinement(target, refinement, 'config',
-                                ['container', 'leaf', 'leaf-list', 'list',
-                                 'choice', 'anyxml'])
-        replace_from_refinement(target, refinement, 'presence',
-                                ['container'])
-        replace_from_refinement(target, refinement, 'must',
-                                ['container', 'leaf', 'leaf-list', 'list'])
-        replace_from_refinement(target, refinement, 'default',
-                                ['leaf', 'choice'], v_default)
-        replace_from_refinement(target, refinement, 'mandatory',
-                                ['leaf', 'choice'])
-        replace_from_refinement(target, refinement, 'min-elements',
-                                ['leaf-list', 'list'])
-        replace_from_refinement(target, refinement, 'max-elements',
-                                ['leaf-list', 'list'])
-        replace_from_refinement(target, refinement, 'reference',
-                                ['container', 'leaf', 'leaf-list', 'list',
-                                 'choice', 'case', 'anyxml'])
+
+        for (keyword, valid_keywords, v_fun) in refinements:
+            replace_from_refinement(target, refinement, keyword, valid_keywords, v_fun)
+
         # replace all vendor-specific statements
         for s in refinement.substmts:
             if util.is_prefixed(s.keyword):
