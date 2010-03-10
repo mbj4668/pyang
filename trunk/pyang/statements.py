@@ -1302,7 +1302,7 @@ def v_expand_2_augment(ctx, stmt):
 
     for c in stmt.i_children:
         if (stmt.i_target_node.i_config == False and
-            c.i_config == True):
+            hasattr(c, 'i_config') and c.i_config == True):
             err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
 
         ch = search_child(stmt.i_target_node.i_children,
