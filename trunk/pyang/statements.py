@@ -1392,36 +1392,25 @@ def v_unique_name_children(ctx, stmt):
 
     dict = {}
     chs = stmt.i_children
-#    if stmt.keyword == 'module':
-        # also check all submodules
-#        for i in stmt.search('include'):
-#            submodulename = i.arg
-#            subm = ctx.get_module(submodulename)
-#            if subm is not None:
-#                chs += subm.i_children
         
-    for c in chs:
-        if c.arg in dict:
-            dup = dict[c.arg]
+    def check(c):
+        key = (c.i_module.i_modulename, c.arg)
+        if key in dict:
+            dup = dict[key]
             (minpos, maxpos) = sort_pos(c.pos, dup.pos)
-            pos = chk_uses_pos(c, maxpos)
+            pos = statements.chk_uses_pos(c, maxpos)
             err_add(ctx.errors, pos,
                     'DUPLICATE_CHILD_NAME', (stmt.arg, stmt.pos, c.arg, minpos))
         else:
-            dict[c.arg] = c
+            dict[key] = c
+
+    for c in chs:
+        check(c)
         # also check all data nodes in the cases
         if c.keyword == 'choice':
             for case in c.i_children:
-                for c in case.i_children:
-                    if c.arg in dict:
-                        dup = dict[c.arg]
-                        (minpos, maxpos) = sort_pos(c.pos, dup.pos)
-                        pos = chk_uses_pos(stmt, maxpos)
-                        err_add(ctx.errors, pos,
-                                'DUPLICATE_CHILD_NAME',
-                                (stmt.arg, stmt.pos, c.arg, minpos))
-                    else:
-                        dict[c.arg] = c
+                for cc in case.i_children:
+                    check(cc)
 
 ### Reference phase
 
