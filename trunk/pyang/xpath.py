@@ -40,7 +40,7 @@ patterns = [
     ('literal', re.compile(r'(\".*\")|(\'.*\')')),
     ]
 
-operators = [ 'div', 'and', 'or', 'div' ]
+operators = [ 'div', 'and', 'or', 'mod' ]
 node_types = [ 'comment', 'text', 'processing-instruction', 'node' ]
 axes = [ 'ancestor-or-self', 'ancestor', 'attribute', 'child',
          'descendant-or-self', 'descendant', 'following-sibling',
