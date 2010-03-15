@@ -1398,7 +1398,7 @@ def v_unique_name_children(ctx, stmt):
         if key in dict:
             dup = dict[key]
             (minpos, maxpos) = sort_pos(c.pos, dup.pos)
-            pos = statements.chk_uses_pos(c, maxpos)
+            pos = chk_uses_pos(c, maxpos)
             err_add(ctx.errors, pos,
                     'DUPLICATE_CHILD_NAME', (stmt.arg, stmt.pos, c.arg, minpos))
         else:
