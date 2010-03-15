@@ -1630,7 +1630,7 @@ def v_reference_deviate(ctx, stmt):
                 err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
                         (t.i_module.arg, t.arg))
             else:
-                idx = t.substmts(old)
+                idx = t.substmts.index(old)
                 del t.substmts[idx]
                 if stmt.arg == 'replace':
                     t.substmts.append(c)
