@@ -6,8 +6,8 @@ target=get-reply
 dir=input
 name="_NO_NAME_"
 
-xslt_dir=${XSLT_DIR:-/usr/local/share/yang/xslt}
-rng_lib=${RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
+xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
+rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
 
 usage() {
     cat <<EOF
