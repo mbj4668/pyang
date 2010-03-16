@@ -1075,7 +1075,7 @@ def v_expand_1_children(ctx, stmt):
         stmt.i_expanded = True
         return 'continue'
 
-refinements = [
+_refinements = [
     # (<keyword>, <list of refinements that can be applied to the <keyword>>,
     #  <validation function>)
     ('description',
@@ -1099,11 +1099,13 @@ refinements = [
      None)
 ]
 
-def add_refinement_element(keyword, element):
+def add_refinement_element(keyword, element, v_fun=None):
     """Add an element to the <keyword>'s list of refinements"""
-    for (key, valid_keywords, v_fun) in refinements:
+    for (key, valid_keywords, v_fun) in _refinements:
         if key == keyword:
             valid_keywords.append(element)
+            return
+    _refinements.append((keyword, [element], v_fun))
 
 def v_default(ctx, target, default):
     type = target.search_one('type')
@@ -1216,8 +1218,9 @@ def v_expand_1_uses(ctx, stmt):
             continue
         refined[target] = refinement.pos
 
-        for (keyword, valid_keywords, v_fun) in refinements:
-            replace_from_refinement(target, refinement, keyword, valid_keywords, v_fun)
+        for (keyword, valid_keywords, v_fun) in _refinements:
+            replace_from_refinement(target, refinement, keyword,
+                                    valid_keywords, v_fun)
 
         # replace all vendor-specific statements
         for s in refinement.substmts:
@@ -1591,6 +1594,13 @@ _valid_deviations = {
     'must':['leaf', 'choice', 'container', 'list', 'leaf-list'],
     'unique':['list'],
 }
+
+def add_deviation_element(keyword, element):
+  """Add an element to the <keyword>'s list of deviations"""
+  if keyword in _valid_deviations:
+      _valid_deviations[keyword].append(element)
+  else:
+      _valid_deviations[keyword] = [element]
 
 def v_reference_deviate(ctx, stmt):
     if stmt.parent.i_target_node is None:
