@@ -22,15 +22,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-		xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"                version="1.0">
+                xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"                version="1.0">
 
   <xsl:include href="gen-common.xsl"/>
 
   <xsl:template name="ns-attribute">
     <xsl:attribute name="ns">
       <xsl:choose>
-	<xsl:when test="$target='get-reply' or $target='getconf-reply'
-			or $target='rpc'">
+        <xsl:when test="$target='get-reply' or $target='getconf-reply'
+                        or $target='rpc'">
         <xsl:text>urn:ietf:params:xml:ns:netconf:base:1.0</xsl:text>
       </xsl:when>
       <xsl:when test="$target='notif'">
@@ -49,7 +49,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:if test="$target!='dstore'">
-	<xsl:call-template name="ns-attribute"/>
+        <xsl:call-template name="ns-attribute"/>
       </xsl:if>
       <xsl:element name="rng:include">
         <xsl:attribute name="href">
@@ -69,7 +69,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element[@name='nmt:netmod-tree']">
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
-		      or $target='getconf-reply'">
+                      or $target='getconf-reply'">
         <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
@@ -89,12 +89,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:apply-templates/>
       </xsl:when>
       <xsl:otherwise>
-	<rng:element name="rpc-reply">
-	  <rng:ref name="message-id-attribute"/>
-	  <rng:element name="data">
-	    <xsl:apply-templates/>
-	  </rng:element>
-	</rng:element>
+        <rng:element name="rpc-reply">
+          <rng:ref name="message-id-attribute"/>
+          <rng:element name="data">
+            <xsl:apply-templates/>
+          </rng:element>
+        </rng:element>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -143,15 +143,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:choose>
-	<xsl:when test="$target='getconf-reply'
-			and @nma:config='false'">
-	  <xsl:element name="rng:notAllowed"/>
-	</xsl:when>
-	<xsl:otherwise>
-	  <xsl:apply-templates select="*|text()"/>
-	</xsl:otherwise>
+        <xsl:when test="$target='getconf-reply'
+                        and @nma:config='false'">
+          <xsl:element name="rng:notAllowed"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="*|text()"/>
+        </xsl:otherwise>
       </xsl:choose>
     </xsl:copy>
-  </xsl:template> 
+  </xsl:template>
 
 </xsl:stylesheet>

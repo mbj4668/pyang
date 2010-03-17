@@ -42,7 +42,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       name="nmt-uri">urn:ietf:params:xml:ns:netmod:conceptual-tree:1</xsl:param>
   <xsl:param
       name="dtdc-uri">http://relaxng.org/ns/compatibility/annotations/1.0</xsl:param>
-  
   <xsl:param name="dc-uri">http://purl.org/dc/terms</xsl:param>
   <xsl:param
       name="nma-uri">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
@@ -53,11 +52,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="test"/>
     <xsl:param name="message">
       <xsl:value-of
-	  select="concat('Condition &quot;', $test, '&quot; must be true')"/>
+          select="concat('Condition &quot;', $test, '&quot; must be true')"/>
     </xsl:param>
     <xsl:element name="sch:assert">
       <xsl:attribute name="test">
-	<xsl:value-of select="$test"/>
+        <xsl:value-of select="$test"/>
       </xsl:attribute>
       <xsl:value-of select="$message"/>
     </xsl:element>
@@ -117,21 +116,21 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="nodelist"/>
     <xsl:choose>
       <xsl:when test="contains($nodelist,' ')">
-	<xsl:call-template name="uniq-expr-comp">
-	  <xsl:with-param name="key"
-			  select="substring-before($nodelist, ' ')"/>
-	</xsl:call-template>
-	<xsl:text> and </xsl:text>
-	<xsl:call-template name="check-dup-expr">
-	  <xsl:with-param name="nodelist"
-			  select="substring-after($nodelist,' ')"/>
-	</xsl:call-template>
+        <xsl:call-template name="uniq-expr-comp">
+          <xsl:with-param name="key"
+                          select="substring-before($nodelist, ' ')"/>
+        </xsl:call-template>
+        <xsl:text> and </xsl:text>
+        <xsl:call-template name="check-dup-expr">
+          <xsl:with-param name="nodelist"
+                          select="substring-after($nodelist,' ')"/>
+        </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>  <!-- just one node -->
-	<xsl:call-template name="uniq-expr-comp">
-	  <xsl:with-param name="key"
-			  select="$nodelist"/>
-	</xsl:call-template>
+        <xsl:call-template name="uniq-expr-comp">
+          <xsl:with-param name="key"
+                          select="$nodelist"/>
+        </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -140,16 +139,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:element name="sch:phase">
       <xsl:attribute name="id">full</xsl:attribute>
       <xsl:element name="sch:active">
-	<xsl:attribute name="pattern">standard</xsl:attribute>
+        <xsl:attribute name="pattern">standard</xsl:attribute>
       </xsl:element>
       <xsl:element name="sch:active">
-	<xsl:attribute name="pattern">ref-integrity</xsl:attribute>
+        <xsl:attribute name="pattern">ref-integrity</xsl:attribute>
       </xsl:element>
     </xsl:element>
     <xsl:element name="sch:phase">
       <xsl:attribute name="id">noref</xsl:attribute>
       <xsl:element name="sch:active">
-	<xsl:attribute name="pattern">standard</xsl:attribute>
+        <xsl:attribute name="pattern">standard</xsl:attribute>
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -182,19 +181,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:netmod-tree']"
-		mode="std">
+                mode="std">
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
-		      or $target='getconf-reply'">
+                      or $target='getconf-reply'">
         <xsl:apply-templates select="rng:element[@name='nmt:top']"
-			     mode="std"/>
+                             mode="std"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
         <xsl:apply-templates select="key('rpc',$name)" mode="std"/>
       </xsl:when>
       <xsl:when test="$target='notif'">
           <xsl:apply-templates
-	      mode="std"
+              mode="std"
               select="rng:element[@name='nmt:notifications']/
                       rng:element[rng:element/@name=$name]"/>
       </xsl:when>
@@ -202,18 +201,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:netmod-tree']"
-		mode="refint">
+                mode="refint">
     <xsl:choose>
       <xsl:when test="$target='get-reply' or $target='getconf-reply'">
         <xsl:apply-templates select="rng:element[@name='nmt:top']"
-			     mode="refint"/>
+                             mode="refint"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
         <xsl:apply-templates select="key('rpc',$name)" mode="refint"/>
       </xsl:when>
       <xsl:when test="$target='notif'">
           <xsl:apply-templates
-	      mode="refint"
+              mode="refint"
               select="rng:element[@name='nmt:notifications']/
                       rng:element[rng:element/@name=$name]"/>
       </xsl:when>
@@ -276,12 +275,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:ref" mode="std-ref">
     <xsl:apply-templates select="//rng:define[@name=current()/@name]"
-			 mode="std">
+                         mode="std">
       <xsl:with-param name="dstart">
         <xsl:call-template name="append-path">
           <xsl:with-param name="start">
-	    <xsl:call-template name="netconf-part"/>
-	  </xsl:with-param>
+            <xsl:call-template name="netconf-part"/>
+          </xsl:with-param>
         </xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
@@ -289,12 +288,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:ref" mode="refint-ref">
     <xsl:apply-templates select="//rng:define[@name=current()/@name]"
-			 mode="refint">
+                         mode="refint">
       <xsl:with-param name="dstart">
         <xsl:call-template name="append-path">
           <xsl:with-param name="start">
-	    <xsl:call-template name="netconf-part"/>
-	  </xsl:with-param>
+            <xsl:call-template name="netconf-part"/>
+          </xsl:with-param>
         </xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
@@ -303,7 +302,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:define" mode="std">
     <xsl:param name="dstart"/>
     <xsl:apply-templates select="&std-todo;"
-			 mode="std-ref">
+                         mode="std-ref">
       <xsl:with-param name="estart" select="$dstart"/>
     </xsl:apply-templates>
   </xsl:template>
@@ -311,7 +310,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:define" mode="refint">
     <xsl:param name="dstart"/>
     <xsl:apply-templates select="&refint-todo;"
-			 mode="refint-ref">
+                         mode="refint-ref">
       <xsl:with-param name="estart" select="$dstart"/>
     </xsl:apply-templates>
   </xsl:template>
@@ -351,15 +350,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="nma:must">
     <xsl:choose>
       <xsl:when test="nma:error-message">
-	<xsl:call-template name="assert-element">
-	  <xsl:with-param name="test" select="@assert"/>
-	  <xsl:with-param name="message" select="nma:error-message"/>
-	</xsl:call-template>
+        <xsl:call-template name="assert-element">
+          <xsl:with-param name="test" select="@assert"/>
+          <xsl:with-param name="message" select="nma:error-message"/>
+        </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:call-template name="assert-element">
-	  <xsl:with-param name="test" select="@assert"/>
-	</xsl:call-template>
+        <xsl:call-template name="assert-element">
+          <xsl:with-param name="test" select="@assert"/>
+        </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -367,14 +366,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="@nma:key">
     <xsl:call-template name="list-unique">
       <xsl:with-param
-	  name="message">Duplicate key of list</xsl:with-param>
+          name="message">Duplicate key of list</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:unique">
     <xsl:call-template name="list-unique">
       <xsl:with-param
-	  name="message">Violated uniqueness for list</xsl:with-param>
+          name="message">Violated uniqueness for list</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
@@ -382,12 +381,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:value-of
-	    select="concat('preceding-sibling::',../@name,'[')"/>
-	<xsl:call-template name="check-dup-expr">
-	  <xsl:with-param name="nodelist" select="."/>
-	</xsl:call-template>
-	<xsl:text>]</xsl:text>
+        <xsl:value-of
+            select="concat('preceding-sibling::',../@name,'[')"/>
+        <xsl:call-template name="check-dup-expr">
+          <xsl:with-param name="nodelist" select="."/>
+        </xsl:call-template>
+        <xsl:text>]</xsl:text>
       </xsl:attribute>
       <xsl:value-of select="concat($message, ' ',../@name)"/>
     </xsl:element>
@@ -396,36 +395,36 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="@nma:max-elements">
     <xsl:call-template name="assert-element">
       <xsl:with-param
-	  name="test"
-	  select="concat('count(../',../@name,')&lt;=',.)"/>
+          name="test"
+          select="concat('count(../',../@name,')&lt;=',.)"/>
       <xsl:with-param
-	  name="message"
-	  select="concat('List &quot;',../@name,
-		  '&quot; - item count must be at most ',.)"/>
+          name="message"
+          select="concat('List &quot;',../@name,
+                  '&quot; - item count must be at most ',.)"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:min-elements">
     <xsl:call-template name="assert-element">
       <xsl:with-param
-	  name="test"
-	  select="concat('count(../',../@name,')&gt;=',.)"/>
+          name="test"
+          select="concat('count(../',../@name,')&gt;=',.)"/>
       <xsl:with-param
-	  name="message"
-	  select="concat('List &quot;',../@name,
-		  '&quot; - item count must be at least ',.)"/>
+          name="message"
+          select="concat('List &quot;',../@name,
+                  '&quot; - item count must be at least ',.)"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:when">
     <xsl:call-template name="assert-element">
       <xsl:with-param
-	  name="test"
-	  select="concat('(',.,') or not(..)')"/>
+          name="test"
+          select="concat('(',.,') or not(..)')"/>
       <xsl:with-param
-	  name="message"
-	  select="concat('Node &quot;',../@name,
-		  '&quot; requires &quot;',.,'&quot;')"/>
+          name="message"
+          select="concat('Node &quot;',../@name,
+                  '&quot; requires &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -433,9 +432,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:call-template name="assert-element">
       <xsl:with-param name="test" select="concat(.,'=.')"/>
       <xsl:with-param
-	  name="message"
-	  select="concat('Leafref &quot;',../@name,
-		  '&quot; must have the same value as &quot;',.,'&quot;')"/>
+          name="message"
+          select="concat('Leafref &quot;',../@name,
+                  '&quot; must have the same value as &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
 

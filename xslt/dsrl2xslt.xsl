@@ -23,7 +23,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
      used in NETMOD, i.e. specification of default content. -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		xmlns:dsrl="http://purl.oclc.org/dsdl/dsrl"
+                xmlns:dsrl="http://purl.oclc.org/dsdl/dsrl"
                 version="1.0">
 
   <xsl:output method="xml"/>
@@ -33,18 +33,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:copy-of select="namespace::*"/>
       <xsl:attribute name="version">1.0</xsl:attribute>
       <xsl:element name="xsl:output">
-	<xsl:attribute name="method">xml</xsl:attribute>
+        <xsl:attribute name="method">xml</xsl:attribute>
       </xsl:element>
       <xsl:apply-templates
-	  select="dsrl:element-map[not(dsrl:parent =
-		  preceding-sibling::dsrl:element-map/dsrl-parent)]"/>
+          select="dsrl:element-map[not(dsrl:parent =
+                  preceding-sibling::dsrl:element-map/dsrl-parent)]"/>
       <xsl:element name="xsl:template">
-	<xsl:attribute name="match">*|@*</xsl:attribute>
-	<xsl:element name="xsl:copy">
-	  <xsl:element name="xsl:apply-templates">
-	    <xsl:attribute name="select">*|@*|text()</xsl:attribute>
-	  </xsl:element>
-	</xsl:element>
+        <xsl:attribute name="match">*|@*</xsl:attribute>
+        <xsl:element name="xsl:copy">
+          <xsl:element name="xsl:apply-templates">
+            <xsl:attribute name="select">*|@*|text()</xsl:attribute>
+          </xsl:element>
+        </xsl:element>
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -53,28 +53,28 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:variable name="parent" select="normalize-space(dsrl:parent)"/>
     <xsl:element name="xsl:template">
       <xsl:attribute name="match">
-	<xsl:value-of select="$parent"/>
+        <xsl:value-of select="$parent"/>
       </xsl:attribute>
       <xsl:element name="xsl:copy">
-	<xsl:element name="xsl:apply-templates">
-	  <xsl:attribute name="select">*|@*|text()</xsl:attribute>
-	</xsl:element>
-	<xsl:for-each select="../dsrl:element-map
-			      [normalize-space(dsrl:parent)=$parent]">
-	  <xsl:variable name="name" select="dsrl:name"/>
-	  <xsl:element name="xsl:if">
-	    <xsl:attribute name="test">
-	      <xsl:value-of select="concat('not(', $name, ')')"/>
-	    </xsl:attribute>
-	    <xsl:variable name="ns"
-			  select="/dsrl:maps/namespace::*[name() =
-				  substring-before($name,':')]"/>
-	    <xsl:element name="{$name}" namespace="{$ns}">
-	      <xsl:copy-of select="dsrl:default-content/*
-				   |dsrl:default-content/text()"/>
-	    </xsl:element> 
-	  </xsl:element>
-	</xsl:for-each>
+        <xsl:element name="xsl:apply-templates">
+          <xsl:attribute name="select">*|@*|text()</xsl:attribute>
+        </xsl:element>
+        <xsl:for-each select="../dsrl:element-map
+                              [normalize-space(dsrl:parent)=$parent]">
+          <xsl:variable name="name" select="dsrl:name"/>
+          <xsl:element name="xsl:if">
+            <xsl:attribute name="test">
+              <xsl:value-of select="concat('not(', $name, ')')"/>
+            </xsl:attribute>
+            <xsl:variable name="ns"
+                          select="/dsrl:maps/namespace::*[name() =
+                                  substring-before($name,':')]"/>
+            <xsl:element name="{$name}" namespace="{$ns}">
+              <xsl:copy-of select="dsrl:default-content/*
+                                   |dsrl:default-content/text()"/>
+            </xsl:element>
+          </xsl:element>
+        </xsl:for-each>
       </xsl:element>
     </xsl:element>
   </xsl:template>
