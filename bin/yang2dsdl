@@ -12,12 +12,12 @@ rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
 usage() {
     cat <<EOF
 
-Usage: yang2schema <options> <filename>
+Usage: yang2dsdl <options> <filename> ...
 
-Generates validation schema from YANG module in <filename>.
+Generates DSDL schemas from YANG module in <filename>.
 
 Options:
-  -h           Show this help message and exit
+  -h           Show this help message and exit.
   -s <schema>  Select the schema to generate (default "rng").
                Must be one of "rng", "sch" and "dsrl".
   -t <target>  Specify the validation target (default "get-reply").
@@ -25,7 +25,8 @@ Options:
                "rpc" and "notif". Option -n <name> is required
                for the latter two.
   -n <name>    Specify the name of notification or RPC method.
-               The name has to include the standard NS prefix.
+               The name has to include the standard prefix of
+               the module where the method/notification is defined.
   -i|-o        Specify RPC request (-i) or reply (-o) (default -i).
 EOF
 }

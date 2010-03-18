@@ -1,0 +1,183 @@
+'\" t
+.\"     Title: yang2dsdl
+.\"    Author: [see the "Authors" section]
+.\" Generator: DocBook XSL Stylesheets v1.75.1 <http://docbook.sf.net/>
+.\"      Date: 18 March 2010
+.\"    Manual: pyang manual
+.\"    Source: pyang manual
+.\"  Language: English
+.\"
+.TH "YANG2DSDL" "1" "18 March 2010" "pyang manual" "pyang manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+yang2dsdl \- translates YANG data models to DSDL schemas
+.SH "SYNOPSIS"
+.HP \w'\fByang2dsdl\fR\ 'u
+\fByang2dsdl\fR [\-s\ \fIschema\fR] [\-t\ \fItarget\fR] [\-n\ \fIname\fR] [[\-i] | [\-o]] module...
+.HP \w'\fByang2dsdl\fR\ 'u
+\fByang2dsdl\fR \-h
+.SH "DESCRIPTION"
+.PP
+This shell script facilitates the translation of a configuration data model described by the input YANG module(s) to a DSDL schema (RELAX NG, Schematron or DSRL) for a selected instance XML document type\&. The schemas can be used for a coordinated validation of the instance document \- RELAX NG specifies grammatical constraints, DSRL provides default values for missing leaf nodes and Schematron specifies semantic rules\&.
+.PP
+The translation is carried out in two steps\&. The first step uses a plugin of the
+\fBpyang\fR(1) program for generating the conceptual schema tree (CTS) from the input YANG module(s)\&. In the second step, the conceptual schema tree is translated using a specific XSLT stylesheet to a DSDL schema for the selected document type\&.
+.PP
+The input module(s) can be expressed either in YANG or in YIN syntax\&. The output DSDL schema is written to the standard output\&.
+.PP
+The script uses the
+\fBxsltproc\fR(1) program for performing the XSLT transformations but could be easily modified for other XSLT processors\&.
+.SH "OPTIONS"
+.PP
+\fB\-h\fR
+.RS 4
+Displays help screen and exits\&.
+.RE
+.PP
+\fB\-s\fR \fIschema\fR
+.RS 4
+Select the schema to produce:
+\fBrng\fR
+(RELAX NG),
+\fBsch\fR
+(Schematron) or
+\fBdsrl\fR
+(DSRL)\&. The default is
+\fBrng\fR\&.
+.RE
+.PP
+\fB\-t\fR \fItarget\fR
+.RS 4
+Specify the target XML document type:
+\fBdstore\fR
+("raw" datastore contents without any encapsulating elements),
+\fBget\-reply\fR
+(reply to <get> without filters),
+\fBgetconf\-reply\fR
+(reply to <get\-config> without filters),
+\fBrpc\fR
+(RPC method whose name must be given using the
+\fB\-n\fR
+option) or
+\fBnotif\fR
+(notification whose name must be given using the
+\fB\-n\fR
+option)\&. The default is
+\fBget\-reply\fR\&.
+.RE
+.PP
+\fB\-n\fR \fIname\fR
+.RS 4
+The name of the RPC method or notification, qualified with the prefix of the module where the method or notification is defined\&.
+.RE
+.PP
+\fB\-i\fR
+.RS 4
+Specify RPC request\&.
+.RE
+.PP
+\fB\-o\fR
+.RS 4
+Specify RPC reply\&.
+.RE
+.SH "FILES"
+.PP
+/usr/local/share/yang/xslt/gen\-relaxng\&.xsl
+.RS 4
+XSLT stylesheet generating RELAX NG schemas\&.
+.RE
+.PP
+/usr/local/share/yang/xslt/gen\-schematron\&.xsl
+.RS 4
+XSLT stylesheet generating Schematron schemas\&.
+.RE
+.PP
+/usr/local/share/yang/xslt/gen\-dsrl\&.xsl
+.RS 4
+XSLT stylesheet generating DSRL schemas\&.
+.RE
+.PP
+/usr/local/share/yang/xslt/gen\-common\&.xsl
+.RS 4
+Common templates for all three XSLT stylesheets\&.
+.RE
+.PP
+/usr/local/share/yang/schema/relaxng\-lib\&.rng
+.RS 4
+RELAX NG library of common NETCONF elements\&.
+.RE
+.SH "ENVIRONMENT VARIABLES"
+.PP
+\fBPYANG_XSLT_DIR\fR
+.RS 4
+Alternative directory for XSLT stylesheets\&.
+.RE
+.PP
+\fBPYANG_RNG_LIBDIR\fR
+.RS 4
+Alternative directory for the RELAX NG library\&.
+.RE
+.PP
+\fBXSLT_OPTS\fR
+.RS 4
+Options to pass to the XSLT processor\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ XSLT_OPTS="\-v" yang2dsdl dhcp\&.yang       
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+This command generates the RELAX NG schema for the reply to <get>, corresponding to the
+dhcp\&.yang
+module\&. The
+\fB\-v\fR
+option is passed to
+\fBxsltproc\fR
+and provides verbose output\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ yang2dsdl \-s sch \-t rpc \-n rock:rock\-the\-house \-i rpc\-rock\&.yang
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+This command generates the Schematron schema for the input part (request) of the
+\fBrock\-the\-house\fR
+RPC method defined in the module
+rpc\-rock\&.yang
+whose prefix is "rock"\&.
+.SH "SEE ALSO"
+.PP
+\fBpyang\fR(1),
+\fBxsltproc\fR(1)
+.PP
+The mapping procedure from YANG to DSDL is documented in the Internet Draft draft\-ietf\-netmod\-dsdl\-map\&.
+.SH "AUTHORS"
+.PP
+The
+\fByang2dsdl\fR
+script, CTS plugin and XSLT stylesheets were written by Ladislav Lhotka <lhotka@cesnet\&.cz> and
+\fBpyang\fR
+by Martin Björklund <mbj@tail\-f\&.com>\&.
