@@ -2,7 +2,7 @@ import re
 import sys
 
 # not 100% XPath / XML, but good enough for YANG
-namestr=r'[a-zA-Z][a-zA-Z0-9_\-]*'
+namestr=r'[a-zA-Z_][a-zA-Z0-9_\-.]*'
 ncnamestr = '((' + namestr + '):)?(' + namestr + ')'
 prefixteststr = '((' + namestr + r'):)?\*'
 
