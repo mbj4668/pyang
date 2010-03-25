@@ -1,6 +1,6 @@
 module ietf-inet-types {
 
-  namespace "urn:ietf:params:xml:ns:yang:inet-types";
+  namespace "urn:ietf:params:xml:ns:yang:ietf-inet-types";
   prefix "inet";
   
   organization
@@ -23,49 +23,28 @@ module ietf-inet-types {
    "This module contains a collection of generally useful derived
     YANG data types for Internet addresses and related things.
 
-    Copyright (c) 2009 IETF Trust and the persons identified as
+    Copyright (c) 2010 IETF Trust and the persons identified as
     the document authors.  All rights reserved.
 
     Redistribution and use in source and binary forms, with or
-    without modification, are permitted provided that the
-    following conditions are met:
-
-    - Redistributions of source code must retain the above
-      copyright notice, this list of conditions and the
-      following disclaimer.
-
-    - Redistributions in binary form must reproduce the above
-      copyright notice, this list of conditions and the
-      following disclaimer in the documentation and/or other
-      materials provided with the distribution.
-
-    - Neither the name of Internet Society, IETF or IETF
-      Trust, nor the names of specific contributors, may be
-      used to endorse or promote products derived from this
-      software without specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-    CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED
-    WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
-    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-    GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
+    without modification, is permitted pursuant to, and subject
+    to the license terms contained in, the Simplified BSD License
+    set forth in Section 4.c of the IETF Trust's Legal Provisions
+    Relating to IETF Documents
+    (http://trustee.ietf.org/license-info).
 
     This version of this YANG module is part of RFC XXXX; see 
     the RFC itself for full legal notices.";
   // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
-  revision 2009-05-13 {
+  // RFC Ed.: remove this note  
+  // Note: extracted from draft-ietf-netmod-yang-types-05.txt
+
+  revision 2010-02-03 {
     description
-     "Initial revision, published as RFC XXXX.";
+     "Initial revision.";
+    reference 
+     "RFC XXXX: Common YANG Data Types";
   }
   // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
@@ -93,9 +72,7 @@ module ietf-inet-types {
      "This value represents the version of the IP protocol.
 
       This type is in the value set and its semantics equivalent
-      to the InetVersion textual convention of the SMIv2. However,
-      the lexical appearance is different from the InetVersion
-      textual convention.";
+      to the InetVersion textual convention of the SMIv2.";
     reference
      "RFC  791: Internet Protocol
       RFC 2460: Internet Protocol, Version 6 (IPv6) Specification
@@ -156,7 +133,7 @@ module ietf-inet-types {
     reference
      "RFC  768: User Datagram Protocol
       RFC  793: Transmission Control Protocol
-      RFC 2960: Stream Control Transmission Protocol
+      RFC 4960: Stream Control Transmission Protocol
       RFC 4340: Datagram Congestion Control Protocol (DCCP)
       RFC 4001: Textual Conventions for Internet Network Addresses";
   }
@@ -207,17 +184,9 @@ module ietf-inet-types {
 
   typedef ipv4-address {
     type string {
-      pattern '((0'
-            +   '|(1[0-9]{0,2})'
-            +   '|(2(([0-4][0-9]?)|(5[0-5]?)|([6-9]?)))'
-            +   '|([3-9][0-9]?)'
-            +  ')'
-            + '\.){3}'
-            + '(0'
-            +  '|(1[0-9]{0,2})'
-            +  '|(2(([0-4][0-9]?)|(5[0-5]?)|([6-9]?)))'
-            +  '|([3-9][0-9]?)'
-            + ')(%[\p{N}\p{L}]+)?';
+      pattern '(([0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+            + '([0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])'
+            + '(%[\p{N}\p{L}]+)?';
     }
     description
       "The ipv4-address type represents an IPv4 address in 
@@ -262,14 +231,15 @@ module ietf-inet-types {
       applied to the longest sequence of all-zero 16-bit chunks
       in an IPv6 address. If there is a tie, the first sequence
       of all-zero 16-bit chunks is replaced by ::. Single 
-      all-zero 16-bit chunks are not compressed. The normalized
+      all-zero 16-bit chunks are not compressed. The canonical
       format uses lower-case characters and leading zeros are
       not allowed. The canonical format for the zone index is
       the numerical format as described in RFC 4007 section
       11.2.";
     reference
      "RFC 4291: IP Version 6 Addressing Architecture
-      RFC 4007: IPv6 Scoped Address Architecture";
+      RFC 4007: IPv6 Scoped Address Architecture
+      IDv6TREP: A Recommendation for IPv6 Address Text Representation";
   }
 
   typedef ip-prefix {
@@ -335,7 +305,7 @@ module ietf-inet-types {
       all-zero 16-bit chunks in an IPv6 address. If there is
       a tie, the first sequence of all-zero 16-bit chunks is
       replaced by ::. Single all-zero 16-bit chunks are not
-      compressed. The normalized format uses lower-case
+      compressed. The canonical format uses lower-case
       characters and leading zeros are not allowed.";
     reference
      "RFC 4291: IP Version 6 Addressing Architecture";
@@ -364,8 +334,8 @@ module ietf-inet-types {
       that Internet host names have a stricter syntax (described
       in RFC 952) than the DNS recommendations in RFCs 1034 and
       1123, and that systems that want to store host names in
-      objects using the domain-name type are recommended to adhere
-      to this stricter standard to ensure interoperability.
+      schema nodes using the domain-name type are recommended to
+      adhere to this stricter standard to ensure interoperability.
 
       The encoding of DNS names in the DNS protocol is limited
       to 255 characters. Since the encoding consists of labels
@@ -373,13 +343,14 @@ module ietf-inet-types {
       byte, only 253 characters can appear in the textual dotted
       notation.
 
-      The description clause of objects using the domain-name
-      type MUST describe how (and when) these names are 
-      resolved to IP addresses. Note that the resolution of a
-      domain-name value may require to query multiple DNS records
-      (e.g., A for IPv4 and AAAA for IPv6). The order of the
-      resolution process and which DNS record takes precedence
-      depends on the configuration of the resolver.
+      The description clause of schema nodes using the domain-name
+      type MUST describe when and how these names are resolved to
+      IP addresses. Note that the resolution of a domain-name value
+      may require to query multiple DNS records (e.g., A for IPv4
+      and AAAA for IPv6). The order of the resolution process and
+      which DNS record takes precedence can either be defined
+      explicitely or it may depend on the configuration of the
+      resolver.
 
       The canonical format for domain-name values uses the
       US-ASCII encoding and case-insensitive characters are set
@@ -409,7 +380,7 @@ module ietf-inet-types {
      "The uri type represents a Uniform Resource Identifier
       (URI) as defined by STD 66.
 
-      Objects using the uri type must be in US-ASCII encoding,
+      Objects using the uri type MUST be in US-ASCII encoding,
       and MUST be normalized as described by RFC 3986 Sections
       6.2.1, 6.2.2.1, and 6.2.2.2.  All unnecessary
       percent-encoding is removed, and all case-insensitive
@@ -428,7 +399,7 @@ module ietf-inet-types {
       might not be appropriate.
 
       A zero-length URI is not a valid URI.  This can be used to
-      express 'URI absent' where required
+      express 'URI absent' where required.
 
       This type is in the value set and its semantics equivalent
       to the Uri SMIv2 textual convention defined in RFC 5017.";
