@@ -71,11 +71,6 @@ def tokens(s):
             m = r.match(s, pos)
             if m is not None:
                 # found a matching token
-                if tokname == 'whitespace': 
-                    # completely ignore whitespace 
-                    pos += len(m.group(0)) 
-                    matched = True 
-                    continue 
                 prec = _preceding_token(toks)
                 if tokname == '*' and prec is not None and _is_special(prec):
                     # XPath 1.0 spec, 3.7 special rule 1a
@@ -124,7 +119,7 @@ def tokens(s):
 def _preceding_token(toks):
     if len(toks) > 1 and toks[-1][0] == 'whitespace':
         return toks[-2][0]
-    if len(toks) > 0:
+    if len(toks) > 0 and toks[-1][0] == 'whitespace':
         return toks[-1][0]
     return None
 
