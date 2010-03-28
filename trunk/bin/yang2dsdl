@@ -105,10 +105,13 @@ if [[ $yam == "" ]] ; then
     usage
     exit 1
 fi
-if [ ! -f $yam ] ; then
-    echo "File '$yam' not found."
-    exit 1
-fi
+for ym in $yam
+do
+    if [ ! -f $ym ] ; then
+        echo "File '$ym' not found."
+        exit 1
+    fi
+done
 
 case $schema in
     rng)

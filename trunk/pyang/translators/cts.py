@@ -55,6 +55,7 @@ def pyang_plugin_init():
 
 class CTSPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
+        self.multiple_modules = True
         fmts['cts'] = self
     def add_opts(self, optparser):
         optlist = [
@@ -81,18 +82,18 @@ class CTSPlugin(plugin.PyangPlugin):
                                        "output specific options")
         g.add_options(optlist)
 
-    def emit(self, ctx, module, fd):
-        if module.keyword == 'submodule':
+    def emit(self, ctx, modules, fd):
+        if 'submodule' in [ m.keyword for m in modules ]:
             raise error.EmitError("Cannot translate submodules")
-        emit_cts(ctx, module, fd)
+        emit_cts(ctx, modules, fd)
 
-def emit_cts(ctx, module, fd):
+def emit_cts(ctx, modules, fd):
     # No errors are allowed
     for (epos, etag, eargs) in ctx.errors:
         if (epos.top_name == module.arg and
             error.is_error(error.err_level(etag))):
             raise error.EmitError("CTS translation needs a valid module")
-    schema = ConceptualTreeSchema().from_modules((module,),
+    schema = ConceptualTreeSchema().from_modules(modules,
                                   ctx.opts.cts_no_dublin_core,
                                   ctx.opts.cts_no_documentation,
                                   ctx.opts.cts_record_defs, debug=0)

@@ -33,7 +33,8 @@ class YINPlugin(plugin.PyangPlugin):
         g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['yin'] = self
-    def emit(self, ctx, module, fd):
+    def emit(self, ctx, modules, fd):
+        module = modules[0]
         emit_yin(ctx, module, fd)
         
 def emit_yin(ctx, module, fd):
