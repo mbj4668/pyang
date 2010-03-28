@@ -54,8 +54,15 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--canonical",
                              dest="canonical",
                              action="store_true",
-                             help="Validate the module(s) according the " \
+                             help="Validate the module(s) according to the " \
                              "canonical YANG order."),
+        optparse.make_option("--max-line-length",
+                             dest="max_line_len"),
+        optparse.make_option("--ietf",
+                             dest="ietf",
+                             action="store_true",
+                             help="Validate the module(s) according to " \
+                             "IETF rules."),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
@@ -107,7 +114,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     repos = pyang.FileRepository(o.path)
 
     ctx = pyang.Context(repos)
-    ctx.canonical = o.canonical
+
+    if o.ietf:
+        ctx.canonical = True;
+        ctx.max_line_len = 72
+    else:
+        ctx.canonical = o.canonical
+        ctx.max_line_len = o.max_line_len
+
     ctx.opts = o
     
     if o.format != None:
@@ -123,19 +137,20 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     exit_code = 0
 
+    modules = []
     if len(filenames) == 0:
         text = sys.stdin.read()
         module = ctx.add_module('<stdin>', text)
         if module is None:
             exit_code = 1
+        else:
+            modules.append(module)
     if (len(filenames) > 1 and
         emit_obj is not None and
         not emit_obj.multiple_modules):
         print >> sys.stderr, "too many files to convert"
         sys.exit(1)
         
-        
-    modules = []
     for filename in filenames:
         try:
             fd = file(filename)

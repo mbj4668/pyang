@@ -51,10 +51,10 @@ Do not print any warnings.
 Validate the module(s) according to the canonical YANG order.
 .TP
 .BI "-f " format ", --format " format
-Convert the module into \fIformat\fP.  When this parameter is present,
-a single module must be given.  If no \fIoutput\fP file is specified,
-the result is printed on stdout.  The supported formats are listed in
-OUTPUT FORMATS below.
+Convert the module(s) into \fIformat\fP.  Some translators require a
+single module, and some can translate multiple modules at one time.
+If no \fIoutput\fP file is specified, the result is printed on stdout.
+The supported formats are listed in OUTPUT FORMATS below.
 .TP
 .BI "-o " outfile ", --output " outfile
 Write the output to the file \fIoutfile\fP instead of stdout.
