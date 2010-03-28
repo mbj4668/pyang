@@ -61,6 +61,9 @@ class PyangPlugin(object):
     front-end program, or both.
     """
 
+    def __init__(self):
+        self.multiple_modules = False
+
     ## pyang front-end program methods
 
     def add_output_format(self, fmts):
@@ -99,7 +102,7 @@ class PyangPlugin(object):
         """Called after the module has been validated"""
         return
 
-    def emit(self, ctx, module, writef):
+    def emit(self, ctx, modules, writef):
         """Produce the plugin output.
 
         Override this method to perform the output conversion.

@@ -138,7 +138,8 @@ class XSDPlugin(plugin.PyangPlugin):
         g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['xsd'] = self
-    def emit(self, ctx, module, fd):
+    def emit(self, ctx, modules, fd):
+        module = modules[0]
         # cannot do XSD unless everything is ok for our module
         for (epos, etag, eargs) in ctx.errors:
             if (epos.top_name == module.arg and

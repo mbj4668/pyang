@@ -22,7 +22,8 @@ class YANGPlugin(plugin.PyangPlugin):
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
-    def emit(self, ctx, module, fd):
+    def emit(self, ctx, modules, fd):
+        module = modules[0]
         emit_yang(ctx, module, fd)
         
 def emit_yang(ctx, module, fd):

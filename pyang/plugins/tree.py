@@ -14,13 +14,15 @@ def pyang_plugin_init():
 
 class TreePlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
+        self.multiple_modules = True
         fmts['tree'] = self
-    def emit(self, ctx, module, fd):
-        emit_tree(module, fd)
+    def emit(self, ctx, modules, fd):
+        emit_tree(modules, fd)
         
-def emit_tree(module, fd):
-    fd.write("%s: %s\n" % (module.keyword, module.arg))
-    print_children(module, fd, ' ')
+def emit_tree(modules, fd):
+    for module in modules:
+        fd.write("%s: %s\n" % (module.keyword, module.arg))
+        print_children(module, fd, ' ')
 
 def print_children(s, fd, prefix):
     if hasattr(s, 'i_children'):
