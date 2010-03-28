@@ -350,7 +350,10 @@ error_codes = \
     'KEY_HAS_DEFAULT':
       (4,
        'default value for key is ignored'),
-
+    
+    'LONG_LINE':
+      (4,
+       'line length %s exceds %s characters'),
     }
 
 def add_error_code(tag, level, fmt):

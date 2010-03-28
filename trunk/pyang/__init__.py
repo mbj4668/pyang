@@ -31,6 +31,7 @@ class Context(object):
         self.repository = repository
         self.errors = []
         self.canonical = False
+        self.max_line_len = None
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:
@@ -194,7 +195,8 @@ class Context(object):
                 module = self.add_module(ref, text, format)
             except self.repository.ReadError, ex:
                 error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
-                return None
+                module = None
+
         if module == None:
             return None
         if modulename != module.arg:

@@ -8,13 +8,14 @@ import statements
 import syntax
 
 class YangTokenizer(object):
-    def __init__(self, text, pos, errors):
+    def __init__(self, text, pos, errors, max_line_len=None):
         self.lines = text.splitlines(True)
         self.pos = pos
         self.buf = ''
         self.offset = 0
         """Position on line.  Used to remove leading whitespace from strings."""
-        
+
+        self.max_line_len = max_line_len
         self.errors = errors
 
     def readline(self):
@@ -24,6 +25,10 @@ class YangTokenizer(object):
         del self.lines[0]
         self.pos.line += 1
         self.offset = 0
+        if (self.max_line_len is not None and
+            len(self.buf) > self.max_line_len):
+            error.err_add(self.errors, self.pos, 'LONG_LINE',
+                          (len(self.buf), self.max_line_len))
 
     def set_buf(self, i):
         self.offset = self.offset + i
@@ -194,7 +199,7 @@ class YangParser(object):
     def __init__(self, extra={}):
         pass
 
-    def parse(self, ctx, ref, text):
+    def parse(self, ctx, ref, text, stop_at=None):
         """Parse the string `text` containing a YANG statement.
 
         Return a Statement on success or None on failure
@@ -203,9 +208,11 @@ class YangParser(object):
         self.ctx = ctx
         self.pos = error.Position(ref)
         self.top = None
+        self.stop_at = stop_at
 
         try:
-            self.tokenizer = YangTokenizer(text, self.pos, ctx.errors)
+            self.tokenizer = YangTokenizer(text, self.pos, ctx.errors,
+                                           ctx.max_line_len)
             stmt = self._parse_statement(None)
         except error.Abort:
             return None

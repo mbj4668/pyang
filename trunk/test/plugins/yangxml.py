@@ -13,7 +13,8 @@ def pyang_plugin_init():
 class YANGXMLPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         fmts['xml'] = self
-    def emit(self, ctx, module, writef):
+    def emit(self, ctx, modules, writef):
+        module = modules[0]
         emit_xml(module, writef)
     
 def emit_xml(module, fd):
@@ -22,8 +23,7 @@ def emit_xml(module, fd):
         return
     c = pick(module.i_children)
     attrs = ' xmlns="%s"' % module.search_one('namespace').arg
-    cn = c.__class__.__name__
-    if cn == 'Choice':
+    if c.keyword == 'choice':
         print >> sys.stderr, "Cannot handle choice on top-level"
         sys.exit(1)
     emit_stmt(c, fd, '', attrs, 1)
