@@ -1473,7 +1473,7 @@
 
   <define name="path-arg">
     <data type="string">
-      <param name="pattern">((/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*([$]this/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])*)+|(\.\./)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*([$]this/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])?(/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*([$]this/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])*)+)</param>
+      <param name="pattern">((/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*(current()/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])*)+|(\.\./)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*(current()/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])?(/([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*(\[\s*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*\s*=\s*(current()/(\.\./)+(([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*/)*([_A-Za-z][._\-A-Za-z0-9]*:)?[_A-Za-z][._\-A-Za-z0-9]*)\s*\])*)+)</param>
     </data>
   </define>
 
