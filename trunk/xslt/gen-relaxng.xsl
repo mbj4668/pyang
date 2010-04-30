@@ -42,10 +42,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
-    <xsl:apply-templates select="rng:grammar"/>
+    <xsl:choose>
+      <xsl:when test="$gdefs-only=1">
+	<xsl:apply-templates select="rng:grammar" mode="gdefs"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:apply-templates select="rng:grammar"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="rng:grammar">
+  <xsl:template match="/rng:grammar" mode="gdefs">
+    <xsl:element name="rng:grammar">
+      <xsl:attribute name="datatypeLibrary">
+	<xsl:value-of select="@datatypeLibrary"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="rng:define"/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="/rng:grammar">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:if test="$target!='dstore'">
@@ -56,11 +72,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           <xsl:value-of select="$rng-lib"/>
         </xsl:attribute>
       </xsl:element>
-      <xsl:apply-templates select="rng:*"/>
+      <xsl:apply-templates select="rng:start"/>
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="rng:start">
+  <xsl:template match="/rng:grammar/rng:start">
     <xsl:copy>
       <xsl:apply-templates select="rng:element[@name='nmt:netmod-tree']"/>
     </xsl:copy>
@@ -68,9 +84,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:element[@name='nmt:netmod-tree']">
     <xsl:choose>
-      <xsl:when test="$target='dstore' or $target='get-reply'
-                      or $target='getconf-reply'">
-        <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
+      <xsl:when test="$target='dstore'">
+	<xsl:apply-templates select="rng:grammar"/>
+      </xsl:when>
+      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
+	<rng:element name="rpc-reply">
+	  <rng:ref name="message-id-attribute"/>
+	  <rng:element name="data">
+	    <xsl:apply-templates select="rng:grammar"/>
+	  </rng:element>
+	</rng:element>
       </xsl:when>
       <xsl:when test="$target='rpc'">
         <xsl:apply-templates select="key('rpc',$name)"/>
@@ -83,20 +106,41 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="rng:element[@name='nmt:top']">
-    <xsl:choose>
-      <xsl:when test="$target='dstore'">
-        <xsl:apply-templates/>
-      </xsl:when>
-      <xsl:otherwise>
-        <rng:element name="rpc-reply">
-          <rng:ref name="message-id-attribute"/>
-          <rng:element name="data">
-            <xsl:apply-templates/>
-          </rng:element>
-        </rng:element>
-      </xsl:otherwise>
-    </xsl:choose>
+  <xsl:template match="rng:grammar">
+    <xsl:element name="rng:grammar">
+      <xsl:attribute name="ns">
+	<xsl:value-of select="@ns"/>
+      </xsl:attribute>
+      <xsl:if test="count(/rng:grammar/rng:define)>0">
+	<xsl:element name="rng:include">
+	  <xsl:attribute name="href">
+	    <xsl:value-of select="concat($basename,'-gdefs.rng')"/>
+	  </xsl:attribute>
+	</xsl:element>
+      </xsl:if>
+      <xsl:apply-templates select="rng:*"/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="rng:start">
+    <xsl:copy>
+      <xsl:choose>
+	<xsl:when test="$target='dstore' or $target='get-reply'
+			or $target='getconf-reply'">
+	  <xsl:apply-templates select="rng:element[@name='nmt:data']"/>
+	</xsl:when>
+	<xsl:when test="$target='rpc'">
+	  <xsl:apply-templates select="rng:element[@name='nmt:rpc-methods']"/>
+	</xsl:when>
+	<xsl:when test="$target='notif'">
+	  <xsl:apply-templates select="rng:element[@name='nmt:notifications']"/>
+	</xsl:when>
+      </xsl:choose>
+    </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="rng:element[@name='nmt:data']">
+    <xsl:apply-templates select="rng:*"/>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:rpc-method']">

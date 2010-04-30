@@ -314,18 +314,18 @@ class HybridDSDLSchema(object):
         """Create root elements for conf. data, RPCs and notifications."""
         self.local_grammar = SchemaNode("grammar")
         self.local_grammar.attr["ns"] = yam.search_one("namespace").arg
-        start = SchemaNode("start", self.local_grammar)
-        module = SchemaNode.element("nmt:module", start, occur=2)
+        self.local_grammar.attr["nma:module"] = self.module.arg
         src_text = "YANG module '%s'" % yam.arg
         revs = yam.search("revision")
         if len(revs) > 0:
             src_text += " revision %s" % self.current_revision(revs)
-        self.dc_element(module, "source", src_text)
-        self.data = SchemaNode.element("nmt:data", module,
+        self.dc_element(self.local_grammar, "source", src_text)
+        start = SchemaNode("start", self.local_grammar)
+        self.data = SchemaNode.element("nmt:data", start,
                                        interleave=True, occur=2)
-        self.rpcs = SchemaNode.element("nmt:rpc-methods", module,
+        self.rpcs = SchemaNode.element("nmt:rpc-methods", start,
                                        interleave=False, occur=2)
-        self.notifications = SchemaNode.element("nmt:notifications", module,
+        self.notifications = SchemaNode.element("nmt:notifications", start,
                                                 interleave=True, occur=2)
 
     def yang_to_xpath(self, xpath):
