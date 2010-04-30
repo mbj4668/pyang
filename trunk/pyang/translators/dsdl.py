@@ -280,7 +280,6 @@ class HybridDSDLSchema(object):
         self.debug = debug
         self.module_prefixes = {}
         gpset = {}
-        self.lists = []
         self.gg_level = 0
         for module in modules:
             ns = module.search_one("namespace").arg
@@ -303,13 +302,13 @@ class HybridDSDLSchema(object):
             if record_defs: self.preload_defs()
             self.prefix_stack = [self.module_prefixes[module.arg]]
             self.create_roots(module)
+            self.lookup_expand(module, gpset.keys())
             self.handle_substmts(module, self.data, gpset)
             for d in self.local_defs.values():
                 self.local_grammar.subnode(d)
             self.handle_empty()
             self.all_defs.update(self.local_defs)
         self.all_defs.update(self.global_defs)
-        for l in self.lists: self.collect_keys(l)
         self.dc_element(self.top_grammar, "creator",
                         "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
@@ -671,56 +670,32 @@ class HybridDSDLSchema(object):
                 maxel = maxst.arg
         return (minel, maxel)
 
-    def collect_keys(self, list_):
-        """Collect all keys of `list_`."""
-        lpref, colon, locn = list_.attr["name"].partition(":")
-        if not colon: lpref = None
-        keys = list_.keys[:]
-        todo = [list_]
-        while 1:
-            node = todo.pop()
-            refs = []
-            for ch in node.children:
-                if ch.name == "ref": refs.append(ch)
-                elif ch.name == "element":
-                    if lpref and ":" not in ch.attr["name"]:
-                        elname = lpref + ":" + ch.attr["name"]
-                    else:
-                        elname = ch.attr["name"]
-                    if elname not in keys: continue
-                    k = elname
-                    list_.keymap[k] = ch
-                    keys.remove(k)
-            if not keys: break
-            for r in refs:
-                d = self.all_defs[r.attr["name"]]
-                d.ref = r
-                todo.append(d)
-        for k in list_.keymap:
-            out = list_.keymap[k]
-            in_ = []
-            while out.parent != list_:
-                chs = out.parent.children[:]
-                pos = chs.index(out)
-                chs[pos:pos+1] = in_
-                in_ = chs
-                out = out.parent.ref
-            pos = list_.children.index(out)
-            list_.children[pos:pos+1] = in_
+    def lookup_expand(self, stmt, names):
+        """Find schema nodes under `stmt` in groupings.
 
-    def contains_any(self, gstmt, names):
-        """Does `gstmt` contain any node with a name from `names`?
-
-        The search is recursive, `gstmt` should be a grouping.
+        `names` is a list with qualified names of the schema nodes to
+        look up. All groupings between `stmt` and found schema nodes
+        are marked for expansion.
         """
-        for sub in gstmt.substmts:
-            if (sub.keyword in self.schema_nodes and
-                (self.prefix_stack[-1]+ ":" + sub.arg) in names):
-                return True
-            elif sub.keyword == "uses":
-                if self.contains_any(sub.i_grouping, names):
-                    return True
-        return False
+        if not names: return []
+        todo = [stmt]
+        while todo:
+            pst = todo.pop()
+            for sub in pst.substmts:
+                if sub.keyword in self.schema_nodes:
+                    qname = self.qname(sub)
+                    if qname in names:
+                        names.remove(qname)
+                        par = sub.parent
+                        while hasattr(par,"d_ref"): # par must be grouping
+                            par.d_ref.d_expand = True
+                            par = par.d_ref.parent
+                        if not names: return [] # all found
+                elif sub.keyword == "uses":
+                    g = sub.i_grouping
+                    g.d_ref = sub
+                    todo.append(g)
+        return names
 
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
@@ -743,7 +718,7 @@ class HybridDSDLSchema(object):
                 return
             else:
                 raise error.EmitError(
-                    "Unknown keyword %s (this should not happen)\n"
+                    "Unknown keyword %s - this should not happen.\n"
                     % stmt.keyword)
 
         method(stmt, p_elem, pset)
@@ -782,12 +757,18 @@ class HybridDSDLSchema(object):
         if p_elem.default_case != stmt.arg:
             celem.occur = 3
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
+        left = self.lookup_expand(stmt, new_pset.keys())
+        for a in augs:
+            left = self.lookup_expand(a, left)
         self.handle_substmts(stmt, celem, new_pset)
         self.apply_augments(augs, celem, new_pset)
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt, chelem)
+        left = self.lookup_expand(stmt, new_pset.keys())
+        for a in augs:
+            left = self.lookup_expand(a, left)
         if refd["mandatory"] or stmt.search_one("mandatory", "true"):
             chelem.attr["nma:mandatory"] = stmt.arg
             self.propagate_occur(chelem, 2)
@@ -803,6 +784,9 @@ class HybridDSDLSchema(object):
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.qname(stmt), p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
+        left = self.lookup_expand(stmt, new_pset.keys())
+        for a in augs:
+            left = self.lookup_expand(a, left)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg
             or refd["presence"] or stmt.search_one("presence")):
             celem.occur = 3
@@ -827,7 +811,13 @@ class HybridDSDLSchema(object):
             self.handle_substmts(subm, p_elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
-        elem = SchemaNode.element(self.qname(stmt), p_elem)
+        qname = self.qname(stmt)
+        elem = SchemaNode.element(qname)
+        if p_elem.name == "_list_" and qname in p_elem.keys:
+            p_elem.keymap[qname] = elem
+            elem.occur = 2
+        else:
+            p_elem.subnode(elem)
         refd = self.process_patches(pset, stmt, elem)[0]
         if p_elem.name == "choice":
             if p_elem.default_case != stmt.arg:
@@ -851,13 +841,15 @@ class HybridDSDLSchema(object):
 
     def list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.list(self.qname(stmt), p_elem)
+        keyst = stmt.search_one("key")
+        if keyst: lelem.keys = [self.add_prefix(k, stmt)
+                                for k in keyst.arg.split()]
         refd, augs, new_pset = self.process_patches(pset, stmt, lelem)
+        left = self.lookup_expand(stmt, new_pset.keys() + lelem.keys)
+        for a in augs:
+            left = self.lookup_expand(a, left)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
-        keyst = stmt.search_one("key")
-        if keyst:
-            self.lists.append(lelem)
-            lelem.keys = [self.add_prefix(k, stmt) for k in keyst.arg.split()]
         self.handle_substmts(stmt, lelem, new_pset)
         self.apply_augments(augs, lelem, new_pset)
 
@@ -947,17 +939,15 @@ class HybridDSDLSchema(object):
             [addpref(nid) for nid in stmt.arg.split()])
 
     def uses_stmt(self, stmt, p_elem, pset):
-        noexpand = True
+        expand = False
+        grp = stmt.i_grouping
         for sub in stmt.substmts:
             if sub.keyword in ("refine", "augment"):
-                noexpand = False
+                expand = True
                 self.add_patch(pset, sub)
-        if noexpand and len(self.prefix_stack) > 1:
-            noexpand = False
-        if noexpand and pset:
-            # any patch applies to the grouping?
-            noexpand = not self.contains_any(stmt.i_grouping, pset.keys())
-        if noexpand:
+        if expand:
+            self.lookup_expand(grp, pset.keys())
+        elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
             uname, dic = self.unique_def_name(stmt.i_grouping,
                                               not(p_elem.interleave))
             gname = "_" + uname
@@ -968,8 +958,8 @@ class HybridDSDLSchema(object):
             occur = dic[gname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
             self.handle_substmts(stmt, elem)
-        else:
-            self.handle_substmts(stmt.i_grouping, p_elem, pset)
+            return
+        self.handle_substmts(grp, p_elem, pset)
 
     def when_stmt(self, stmt, p_elem, pset=None):
         p_elem.attr["nma:when"] = self.yang_to_xpath(stmt.arg)

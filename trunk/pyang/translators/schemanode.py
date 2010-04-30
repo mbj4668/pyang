@@ -36,7 +36,7 @@ class SchemaNode(object):
     def list(cls, name, parent=None, interleave=None):
         """Create list node for a list."""
         node = cls.leaf_list(name, parent, interleave=interleave)
-        node.keys = None
+        node.keys = []
         node.keymap = {}
         node.occur = 3
         return node

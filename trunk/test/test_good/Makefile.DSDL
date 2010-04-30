@@ -1,0 +1,12 @@
+MODULES ?= $(wildcard *.yang)
+TARGETS = dstore get-reply getconf-reply rpc rpc-reply notif
+test: clean
+	@for m in $(MODULES); do 					\
+	  for t in $(TARGETS); do 					\
+		echo "checking $$m - $$t";				\
+		yang2dsdl -t $$t $$m;					\
+	  done;								\
+	done
+
+clean:
+	rm -rf *.rng *.sch *.dsrl
