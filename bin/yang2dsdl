@@ -177,4 +177,4 @@ if [[ $instance != "" ]] ; then
     validate
 fi
 
-# rm -f $hybs $schxsl $dsrlxsl $instwdef
+rm -f $hybs $schxsl $dsrlxsl $instwdef
