@@ -289,6 +289,10 @@ class HybridDSDLSchema(object):
             self.module = module
             for aug in module.search("augment"):
                 self.add_patch(gpset, aug)
+            for sub in [ module.i_ctx.get_module(inc.arg)
+                         for inc in module.search("include") ]:
+                for aug in sub.search("augment"):
+                    self.add_patch(gpset, aug)
         self.setup_top()
         for module in modules:
             self.module = module
@@ -386,15 +390,14 @@ class HybridDSDLSchema(object):
         namespace is already known, the old prefix is used.
         Prefix clashes are resolved by disambiguating `prefix`.
         """
-        if uri not in self.namespaces:
-            end = 1
-            new = prefix
-            while new in self.namespaces.values():
-                new = "%s%x" % (prefix,end)
-                end += 1
-            self.namespaces[uri] = new
-            return new
-        return self.namespaces[uri]
+        if uri in self.namespaces: return self.namespaces[uri]
+        end = 1
+        new = prefix
+        while new in self.namespaces.values():
+            new = "%s%x" % (prefix,end)
+            end += 1
+        self.namespaces[uri] = new
+        return new
 
     def prefix_to_ns(self, prefix):
         """Return NS URI for `prefix` in the current context."""
@@ -409,15 +412,17 @@ class HybridDSDLSchema(object):
             uname, dic = self.unique_def_name(d)
             self.install_def(uname, d, dic)
 
-    def add_prefix(self, name):
+    def add_prefix(self, name, stmt):
         """Return `name` prepended with correct prefix."""
+        if self.gg_level: return name
         pref, colon, local = name.partition(":")
         if colon:
-            return (self.prefix_map[pref] + ":" + local)
+            return (self.module_prefixes[stmt.i_module.i_prefixes[pref][0]]
+                    + ":" + local)
         else:
             return self.prefix_stack[-1] + ":" + pref
 
-    def node_id(self, stmt):
+    def qname(self, stmt):
         """Return (prefixed) node name of `stmt`.
 
         The result is prefixed unless inside a global grouping.
@@ -425,9 +430,9 @@ class HybridDSDLSchema(object):
         if self.gg_level: return stmt.arg
         return self.prefix_stack[-1] + ":" + stmt.arg
 
-    def canonic_nodeid(self, nodeid):
+    def canonic_nodeid(self, nodeid, stmt):
         """Return list containing `nodeid` components with prefixes."""
-        return [ self.add_prefix(c) for c in nodeid.split("/") if c ]
+        return [ self.add_prefix(c, stmt) for c in nodeid.split("/") if c ]
 
     def handle_empty(self):
         """Handle empty subtree(s) of the hybrid tree.
@@ -494,7 +499,10 @@ class HybridDSDLSchema(object):
 
     def add_patch(self, pset, augref):
         """Add patch corresponding to `augref` to `pset`."""
-        path = self.canonic_nodeid(augref.arg)
+        try:
+            path = self.canonic_nodeid(augref.arg, augref)
+        except KeyError:
+            return
         car = path[0]
         patch = Patch(path[1:], augref)
         if car in pset:
@@ -510,14 +518,19 @@ class HybridDSDLSchema(object):
         """Apply statements from `auglist` as patch."""
         for a in auglist:
             par = a.parent
-            if par
-            if (a.parent.keyword == "module" and
-                self.module_prefixes[a.parent.arg] != self.prefix_stack[0]):
-                self.prefix_stack.append(self.module_prefixes[a.parent.arg])
+            if par.keyword == "uses":
+                handle_substmts(a, p_elem, pset)
+                continue
+            if par.keyword == "submodule":
+                mnam = par.search_one("belongs-to").arg
+            else:
+                mnam = par.arg
+            if self.prefix_stack[-1] == self.module_prefixes[mnam]:
+                handle_substmts(a, p_elem, pset)
+            else:
+                self.prefix_stack.append(self.module_prefixes[mnam])
                 self.handle_substmts(a, p_elem, pset)
                 self.prefix_stack.pop()
-            else:
-                self.handle_substmts(a, p_elem, pset)
 
     def current_revision(self, r_stmts):
         """Pick the most recent revision date from `r_stmts`."""
@@ -722,7 +735,7 @@ class HybridDSDLSchema(object):
 
     def anyxml_stmt(self, stmt, p_elem, pset):
         self.has_anyxml = True
-        elem = SchemaNode.element(self.node_id(stmt), p_elem)
+        elem = SchemaNode.element(self.qname(stmt), p_elem)
         SchemaNode("ref", elem).set_attr("name", "__anyxml__")
         refd = self.process_patches(pset, stmt.arg, elem)[0]
         if p_elem.name == "choice":
@@ -761,7 +774,7 @@ class HybridDSDLSchema(object):
         self.apply_augments(augs, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
-        celem = SchemaNode.element(self.node_id(stmt), p_elem)
+        celem = SchemaNode.element(self.qname(stmt), p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt.arg, celem)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg
             or refd["presence"] or stmt.search_one("presence")):
@@ -787,7 +800,7 @@ class HybridDSDLSchema(object):
             self.handle_substmts(subm, p_elem)
 
     def leaf_stmt(self, stmt, p_elem, pset):
-        elem = SchemaNode.element(self.node_id(stmt), p_elem)
+        elem = SchemaNode.element(self.qname(stmt), p_elem)
         refd = self.process_patches(pset, stmt.arg, elem)[0]
         if p_elem.name == "choice":
             if p_elem.default_case != stmt.arg:
@@ -802,19 +815,19 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
-        lelem = SchemaNode.leaf_list(self.node_id(stmt), p_elem)
+        lelem = SchemaNode.leaf_list(self.qname(stmt), p_elem)
         refd = self.process_patches(pset, stmt.arg, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
-        lelem = SchemaNode.list(self.node_id(stmt), p_elem)
+        lelem = SchemaNode.list(self.qname(stmt), p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt.arg, lelem)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         keyst = stmt.search_one("key")
         if keyst:
             self.lists.append(lelem)
-            lelem.keys = [self.add_prefix(k) for k in keyst.arg.split()]
+            lelem.keys = [self.add_prefix(k, stmt) for k in keyst.arg.split()]
         self.handle_substmts(stmt, lelem, new_pset)
         self.apply_augments(augs, lelem, new_pset)
 
@@ -831,7 +844,7 @@ class HybridDSDLSchema(object):
     def notification_stmt(self, stmt, p_elem, pset):
         notel = SchemaNode.element("nmt:notification", self.notifications,
                                    occur=2)
-        elem = SchemaNode.element(self.node_id(stmt), notel, occur=2)
+        elem = SchemaNode.element(self.qname(stmt), notel, occur=2)
         augs, new_pset = self.process_patches(pset, stmt.arg, elem)[1:]
         self.handle_substmts(stmt, elem, new_pset)
         self.apply_augments(augs, elem, new_pset)
@@ -853,7 +866,7 @@ class HybridDSDLSchema(object):
         rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs, occur=2)
         r_pset = self.process_patches(pset, stmt.arg, rpcel)[2]
         inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
-        elem = SchemaNode.element(self.node_id(stmt), inpel, occur=2)
+        elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
         inst = stmt.search_one("input")
         if inst:
             augs, i_pset = self.process_patches(r_pset, "input", elem)[1:]
@@ -899,7 +912,7 @@ class HybridDSDLSchema(object):
 
     def unique_stmt(self, stmt, p_elem, pset):
         def addpref(nid):
-            return "/".join([self.add_prefix(c)
+            return "/".join([self.add_prefix(c, stmt)
                              for c in nodeid.split("/")])
         p_elem.attr["nma:unique"] = " ".join(
             [self.addpref(nid) for nid in stmt.arg.split()])
