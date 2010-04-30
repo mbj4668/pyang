@@ -458,14 +458,18 @@ class HybridDSDLSchema(object):
         Return the mangled name and dictionary where the definition is
         to be installed.
         """
-        if stmt.parent.keyword not in ("module", "submodule"):
-            return ("__".join(stmt.full_path()), self.local_defs)
         mod = stmt.i_module
         if mod.keyword == "submodule":
             pref = mod.search_one("belongs-to").arg
         else:
             pref = mod.arg
-        return (pref + "__" + stmt.arg, self.global_defs)
+        if stmt.parent.keyword in ("module", "submodule"):
+            name = stmt.arg
+            defs = self.global_defs
+        else:
+            name = "__".join(stmt.full_path())
+            defs = self.local_defs
+        return (pref + "__" + name, defs)
 
     def has_data_node(self, stmt):
         """Does `stmt` have any data nodes?"""
