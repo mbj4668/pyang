@@ -30,6 +30,17 @@
     </xsl:for-each>
   </xsl:param>
 
+  <xsl:variable name="netconf-part">
+        <xsl:choose>
+      <xsl:when
+          test="$target='get-reply' or
+                $target='getconf-reply'">/nc:rpc-reply/nc:data</xsl:when>
+      <xsl:when test="$target='rpc'">/nc:rpc</xsl:when>
+      <xsl:when test="$target='rpc-reply'">/nc:rpc-reply</xsl:when>
+      <xsl:when test="$target='notif'">/en:notification</xsl:when>
+    </xsl:choose>
+  </xsl:variable>
+
   <xsl:template name="check-input-pars">
     <xsl:if test="not($target='get-reply' or $target='dstore' or $target='rpc'
                   or $target='rpc-reply' or $target='getconf-reply'

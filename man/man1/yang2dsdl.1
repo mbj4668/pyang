@@ -19,96 +19,171 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-yang2dsdl \- translates YANG data models to DSDL schemas
+yang2dsdl \- translates YANG data models to DSDL schemas and validates instance documents\&.
 .SH "SYNOPSIS"
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR [\-s\ \fIschema\fR] [\-t\ \fItarget\fR] [\-n\ \fIname\fR] [[\-i] | [\-o]] module...
+\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-v\ \fIinstance\fR] \fImodule\fR...
 .HP \w'\fByang2dsdl\fR\ 'u
 \fByang2dsdl\fR \-h
 .SH "DESCRIPTION"
 .PP
-This shell script facilitates the translation of a configuration data model described by the input YANG module(s) to a DSDL schema (RELAX NG, Schematron or DSRL) for a selected instance XML document type\&. The schemas can be used for a coordinated validation of the instance document \- RELAX NG specifies grammatical constraints, DSRL provides default values for missing leaf nodes and Schematron specifies semantic rules\&.
+This shell script facilitates the translation of a data model described by one or more input YANG modules to DSDL schemas (RELAX NG, Schematron and DSRL) for a selected instance XML document type\&. Optionally, an instance document of the given type can be immediately validated against the schemas\&.
 .PP
-The translation is carried out in two steps\&. The first step uses a plugin of the
-\fBpyang\fR(1) program for generating the conceptual schema tree (CTS) from the input YANG module(s)\&. In the second step, the conceptual schema tree is translated using a specific XSLT stylesheet to a DSDL schema for the selected document type\&.
+The input module(s) can be expressed in YANG or YIN syntax\&. The output DSDL schemas are written to the directory
+\fIdir\fR
+(current directory by default)\&.
 .PP
-The input module(s) can be expressed either in YANG or in YIN syntax\&. The output DSDL schema is written to the standard output\&.
+The output schemas are contained in five files with a common
+\fIbasename\fR:
 .PP
-The script uses the
-\fBxsltproc\fR(1) program for performing the XSLT transformations but could be easily modified for other XSLT processors\&.
+\fIbasename\fR\&.cts
+.RS 4
+Conceptual tree schema, an interim annotated RELAX NG schema\&. This schema cannot be used for direct validation\&.
+.RE
+.PP
+\fIbasename\fR\&.rng
+.RS 4
+RELAX NG schema for the target document type\&.
+.RE
+.PP
+\fIbasename\fR\-gdefs\&.cts
+.RS 4
+Auxiliary RELAX NG schema containing global named pattern definitions\&.
+.RE
+.PP
+\fIbasename\fR\&.sch
+.RS 4
+Schematron schema for the target document type\&.
+.RE
+.PP
+\fIbasename\fR\&.dsrl
+.RS 4
+DSRL schema for the target document type\&.
+.RE
+.PP
+The
+\fItarget\fR
+parameter specifies the type of the target instance document\&. Supported values are:
+.PP
+dstore
+.RS 4
+Raw datastore contents without any encapsulating elements\&. If the input YANG modules define a data model with multiple root elements, the raw datastore may not be valid XML\&. In this case, the resulting DSDL schemas assume a choice of the top\-level root elements\&.
+.RE
+.PP
+get\-reply
+.RS 4
+A complete NETCONF protocol data unit (PDU) containing a reply to the <get> operation\&.
+.RE
+.PP
+getconf\-reply
+.RS 4
+A complete NETCONF protocol data unit (PDU) containing a reply to the <get\-config> operation\&.
+.RE
+.PP
+rpc
+.RS 4
+A choice of all RPC requests defined in the input YANG modules\&.
+.RE
+.PP
+rpc\-reply
+.RS 4
+A choice of all RPC replies defined in the input YANG modules\&.
+.RE
+.PP
+notif
+.RS 4
+A choice of all event notifications defined in the input YANG modules\&.
+.RE
+.PP
+Optional validation of the XML document
+\fIinstance\fR
+proceeds as follows:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Grammatical and datatype constraints are checked using the RELAX NG schema\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+The DSRL schema is used for adding default values together with ancestor containers to the instance document where necessary\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+Semantic constraints are checked using the Schematron schema\&.
+.RE
+.PP
+The script uses programs from the libxml2 suite \-
+\fBxsltproc\fR(1) program performs XSLT transformations and
+\fBxmllint\fR(1) does RELAX NG validation\&. If necessary, the script could be easily modified for use with other XSLT processors and/or RELAX NG validators\&.
 .SH "OPTIONS"
+.PP
+\fB\-b\fR \fIbasename\fR
+.RS 4
+Specifies the basename of files in which the output schemas are stored\&. The default is a concatenation of the names of all input YANG modules connected with the underscore character "_"\&.
+.RE
+.PP
+\fB\-d\fR \fIdir\fR
+.RS 4
+Specifies the directory for output files\&. By default they are stored in the current directory\&.
+.RE
 .PP
 \fB\-h\fR
 .RS 4
 Displays help screen and exits\&.
 .RE
 .PP
-\fB\-s\fR \fIschema\fR
-.RS 4
-Select the schema to produce:
-\fBrng\fR
-(RELAX NG),
-\fBsch\fR
-(Schematron) or
-\fBdsrl\fR
-(DSRL)\&. The default is
-\fBrng\fR\&.
-.RE
-.PP
 \fB\-t\fR \fItarget\fR
 .RS 4
-Specify the target XML document type:
+Specifies the target XML document type using one of the following strings as explained above:
 \fBdstore\fR
-("raw" datastore contents without any encapsulating elements),
-\fBget\-reply\fR
-(reply to <get> without filters),
-\fBgetconf\-reply\fR
-(reply to <get\-config> without filters),
-\fBrpc\fR
-(RPC method whose name must be given using the
-\fB\-n\fR
-option) or
-\fBnotif\fR
-(notification whose name must be given using the
-\fB\-n\fR
-option)\&. The default is
-\fBget\-reply\fR\&.
-.RE
-.PP
-\fB\-n\fR \fIname\fR
-.RS 4
-The name of the RPC method or notification, qualified with the prefix of the module where the method or notification is defined\&.
-.RE
-.PP
-\fB\-i\fR
-.RS 4
-Specify RPC request\&.
-.RE
-.PP
-\fB\-o\fR
-.RS 4
-Specify RPC reply\&.
+(default),
+\fBget\-reply\fR,
+\fBgetconf\-reply\fR,
+\fBrpc\fR,
+\fBrpc\-reply\fR
+or
+\fBnotif\fR\&.
 .RE
 .SH "FILES"
 .PP
-/usr/local/share/yang/xslt/gen\-relaxng\&.xsl
+/usr/local/share/yang/xslt/cts2rng\&.xsl
 .RS 4
 XSLT stylesheet generating RELAX NG schemas\&.
 .RE
 .PP
-/usr/local/share/yang/xslt/gen\-schematron\&.xsl
+/usr/local/share/yang/xslt/cts2sch\&.xsl
 .RS 4
 XSLT stylesheet generating Schematron schemas\&.
 .RE
 .PP
-/usr/local/share/yang/xslt/gen\-dsrl\&.xsl
+/usr/local/share/yang/xslt/cts2dsrl\&.xsl
 .RS 4
 XSLT stylesheet generating DSRL schemas\&.
 .RE
 .PP
 /usr/local/share/yang/xslt/gen\-common\&.xsl
 .RS 4
-Common templates for all three XSLT stylesheets\&.
+Common templates for all three XSLT generators\&.
 .RE
 .PP
 /usr/local/share/yang/schema/relaxng\-lib\&.rng
@@ -137,47 +212,41 @@ Options to pass to the XSLT processor\&.
 .RS 4
 .\}
 .nf
-$ XSLT_OPTS="\-v" yang2dsdl dhcp\&.yang       
+$ yang2dsdl \-v dhcp\&.xml dhcp\&.yang       
     
 .fi
 .if n \{\
 .RE
 .\}
 .PP
-This command generates the RELAX NG schema for the reply to <get>, corresponding to the
+This command generates the DSDL schemas for a datastore contents defined by the
 dhcp\&.yang
-module\&. The
-\fB\-v\fR
-option is passed to
-\fBxsltproc\fR
-and provides verbose output\&.
+module and validates an instance document stored in the
+dhcp\&.xml
+file\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ yang2dsdl \-s sch \-t rpc \-n rock:rock\-the\-house \-i rpc\-rock\&.yang
+$ yang2dsdl \-t rpc rpc\-rock\&.yang
     
 .fi
 .if n \{\
 .RE
 .\}
 .PP
-This command generates the Schematron schema for the input part (request) of the
-\fBrock\-the\-house\fR
-RPC method defined in the module
-rpc\-rock\&.yang
-whose prefix is "rock"\&.
+This command generates the Schematron schema for the input parts (requests) of all RPC operations defined in the module
+rpc\-rock\&.yang\&.
 .SH "SEE ALSO"
 .PP
 \fBpyang\fR(1),
-\fBxsltproc\fR(1)
+\fBxsltproc\fR(1),
+\fBxmllint\fR(1)
 .PP
 The mapping procedure from YANG to DSDL is documented in the Internet Draft draft\-ietf\-netmod\-dsdl\-map\&.
 .SH "AUTHORS"
 .PP
 The
 \fByang2dsdl\fR
-script, CTS plugin and XSLT stylesheets were written by Ladislav Lhotka <lhotka@cesnet\&.cz> and
-\fBpyang\fR
-by Martin Björklund <mbj@tail\-f\&.com>\&.
+script and XSLT stylesheets were written by Ladislav Lhotka <lhotka@cesnet\&.cz>\&.

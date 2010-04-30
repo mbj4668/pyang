@@ -11,19 +11,19 @@
   </refmeta>
   <refnamediv id="yang2dsdl-name">
     <refname>yang2dsdl</refname>
-    <refpurpose>translates YANG data models to DSDL schemas</refpurpose>
+    <refpurpose>translates YANG data models to DSDL schemas and
+    validates instance documents.</refpurpose>
   </refnamediv>
   <refsynopsisdiv id="yang2dsdl-synopsis">
     <cmdsynopsis>
       <command>yang2dsdl</command>
-      <arg choice="opt">-s <replaceable>schema</replaceable></arg>
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
-      <arg choice="opt">-n <replaceable>name</replaceable></arg>
-      <group choice="opt">
-	<arg>-i</arg>
-	<arg>-o</arg>
-      </group>
-      <arg choice="plain" rep="repeat">module</arg>
+      <arg choice="opt">-d <replaceable>dir</replaceable></arg>
+      <arg choice="opt">-b <replaceable>basename</replaceable></arg>
+      <arg choice="opt">-v <replaceable>instance</replaceable></arg>
+      <arg choice="plain" rep="repeat">
+	<replaceable>module</replaceable>
+      </arg>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>yang2dsdl</command>
@@ -33,30 +33,143 @@
 
   <refsect1 id="yang2dsdl-description">
     <title>Description</title>
-    <para>This shell script facilitates the translation of a
-    configuration data model described by the input YANG module(s) to
-    a DSDL schema (RELAX NG, Schematron or DSRL) for a selected
-    instance XML document type. The schemas can be used for a coordinated
-    validation of the instance document - RELAX NG specifies grammatical
-    constraints, DSRL provides default values for missing leaf nodes
-    and Schematron specifies semantic rules.</para>
-    <para>The translation is carried out in two steps. The first step
-    uses a plugin of the <command>pyang</command>(1) program for
-    generating the conceptual schema tree (CTS) from the input YANG
-    module(s). In the second step, the conceptual schema tree is
-    translated using a specific XSLT stylesheet to a DSDL schema for
-    the selected document type.</para>
-    <para>The input module(s) can be expressed either in YANG or in
-    YIN syntax. The output DSDL schema is written to the standard
-    output.</para>
-    <para>The script uses the <command>xsltproc</command>(1) program
-    for performing the XSLT transformations but could be easily
-    modified for other XSLT processors.</para>
+    <para>This shell script facilitates the translation of a data
+    model described by one or more input YANG modules to DSDL schemas
+    (RELAX NG, Schematron and DSRL) for a selected instance XML
+    document type. Optionally, an instance document of the given type
+    can be immediately validated against the schemas.</para>
+    <para>The input module(s) can be expressed in YANG or YIN
+    syntax. The output DSDL schemas are written to the directory
+    <replaceable>dir</replaceable> (current directory by
+    default).</para>
+    <para>The output schemas are contained in five files with a common
+    <replaceable>basename</replaceable>:</para>
+    <variablelist>
+      <varlistentry>
+	<term>
+	  <filename><replaceable>basename</replaceable>.cts</filename>
+	</term>
+	<listitem><para>Conceptual tree schema, an interim annotated
+	RELAX NG schema. This schema cannot be used for direct
+	validation.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <filename><replaceable>basename</replaceable>.rng</filename>
+	</term>
+	<listitem><para>RELAX NG schema for the target document
+	type.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <filename><replaceable>basename</replaceable>-gdefs.cts</filename>
+	</term>
+	<listitem><para>Auxiliary RELAX NG schema containing global
+	named pattern definitions.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <filename><replaceable>basename</replaceable>.sch</filename>
+	</term>
+	<listitem><para>Schematron schema for the target document
+	type.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <filename><replaceable>basename</replaceable>.dsrl</filename>
+	</term>
+	<listitem><para>DSRL schema for the target document
+	type.</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>The <replaceable>target</replaceable> parameter specifies
+    the type of the target instance document. Supported values
+    are:</para>
+    <variablelist>
+      <varlistentry>
+	<term><literal>dstore</literal></term>
+	<listitem><para>Raw datastore contents without any
+	encapsulating elements. If the input YANG modules define a
+	data model with multiple root elements, the raw datastore may
+	not be valid XML. In this case, the resulting DSDL schemas
+	assume a choice of the top-level root
+	elements.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><literal>get-reply</literal></term>
+	<listitem><para>A complete NETCONF protocol data unit (PDU)
+	containing a reply to the &lt;get&gt;
+	operation.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><literal>getconf-reply</literal></term>
+	<listitem><para>A complete NETCONF protocol data unit (PDU)
+	containing a reply to the &lt;get-config&gt;
+	operation.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><literal>rpc</literal></term>
+	<listitem><para>A choice of all RPC requests defined in the
+	input YANG modules.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><literal>rpc-reply</literal></term>
+	<listitem><para>A choice of all RPC replies defined in the
+	input YANG modules.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><literal>notif</literal></term>
+	<listitem><para>A choice of all event notifications defined in
+	the input YANG modules.</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>Optional validation of the XML document
+    <replaceable>instance</replaceable> proceeds as follows:</para>
+    <orderedlist>
+      <listitem>
+	<para>Grammatical and datatype constraints are checked using
+	the RELAX NG schema.</para>
+      </listitem>
+      <listitem>
+	<para>The DSRL schema is used for adding default values
+	together with ancestor containers to the instance document
+	where necessary.</para>
+      </listitem>
+      <listitem>
+	<para>Semantic constraints are checked using the Schematron
+	schema.</para>
+      </listitem>
+    </orderedlist>
+    <para>The script uses programs from the libxml2 suite -
+    <command>xsltproc</command>(1) program performs XSLT
+    transformations and <command>xmllint</command>(1) does RELAX NG
+    validation. If necessary, the script could be easily modified for
+    use with other XSLT processors and/or RELAX NG validators.</para>
   </refsect1>
 
   <refsect1 id="yang2dsdl-options">
     <title>Options</title>
     <variablelist remap="TP">
+      <varlistentry>
+	<term><option>-b</option>
+	<replaceable>basename</replaceable></term>
+	<listitem>
+	  <para>Specifies the basename of files in which the output
+	  schemas are stored. The default is a concatenation of the
+	  names of all input YANG modules connected with the
+	  underscore character "_".</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-d</option>
+	<replaceable>dir</replaceable></term>
+	<listitem>
+	  <para>Specifies the directory for output files. By default
+	  they are stored in the current directory.</para>
+	</listitem>
+      </varlistentry>
       <varlistentry>
 	<term><option>-h</option></term>
 	<listitem>
@@ -64,50 +177,16 @@
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>-s</option>
-	<replaceable>schema</replaceable></term>
-	<listitem>
-	  <para>Select the schema to produce: <userinput>rng</userinput>
-	  (RELAX NG), <userinput>sch</userinput> (Schematron) or
-	  <userinput>dsrl</userinput> (DSRL). The default is
-	  <userinput>rng</userinput>.</para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
 	<term><option>-t</option>
 	<replaceable>target</replaceable></term>
 	<listitem>
-	  <para>Specify the target XML document type:
-	  <userinput>dstore</userinput> ("raw" datastore contents without any
-	  encapsulating elements), <userinput>get-reply</userinput> (reply to
-	  &lt;get&gt; without filters), <userinput>getconf-reply</userinput>
-	  (reply to &lt;get-config&gt; without filters),
-	  <userinput>rpc</userinput> (RPC method whose name must be given
-	  using the <option>-n</option> option) or
-	  <userinput>notif</userinput> (notification whose name must be given
-	  using the <option>-n</option> option). The default is
-	  <userinput>get-reply</userinput>.</para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
-	<term><option>-n</option>
-	<replaceable>name</replaceable></term>
-	<listitem>
-	  <para>The name of the RPC method or notification, qualified
-	  with the prefix of the module where the method or
-	  notification is defined.</para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
-	<term><option>-i</option></term>
-	<listitem>
-	  <para>Specify RPC request.</para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
-	<term><option>-o</option></term>
-	<listitem>
-	  <para>Specify RPC reply.</para>
+	  <para>Specifies the target XML document type using one of
+	  the following strings as explained above:
+	  <userinput>dstore</userinput> (default),
+	  <userinput>get-reply</userinput>,
+	  <userinput>getconf-reply</userinput>,
+	  <userinput>rpc</userinput>, <userinput>rpc-reply</userinput>
+	  or <userinput>notif</userinput>.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -117,31 +196,41 @@
     <title>FILES</title>
     <variablelist>
       <varlistentry>
-	<term>/usr/local/share/yang/xslt/gen-relaxng.xsl</term>
+	<term>
+	  <filename>/usr/local/share/yang/xslt/cts2rng.xsl</filename>
+	</term>
 	<listitem>
 	  <para>XSLT stylesheet generating RELAX NG schemas.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term>/usr/local/share/yang/xslt/gen-schematron.xsl</term>
+	<term>
+	  <filename>/usr/local/share/yang/xslt/cts2sch.xsl</filename>
+	</term>
 	<listitem>
 	  <para>XSLT stylesheet generating Schematron schemas.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term>/usr/local/share/yang/xslt/gen-dsrl.xsl</term>
+	<term>
+	  <filename>/usr/local/share/yang/xslt/cts2dsrl.xsl</filename>
+	</term>
 	<listitem>
 	  <para>XSLT stylesheet generating DSRL schemas.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term>/usr/local/share/yang/xslt/gen-common.xsl</term>
+	<term>
+	  <filename>/usr/local/share/yang/xslt/gen-common.xsl</filename>
+	</term>
 	<listitem>
-	  <para>Common templates for all three XSLT stylesheets.</para>
+	  <para>Common templates for all three XSLT generators.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term>/usr/local/share/yang/schema/relaxng-lib.rng</term>
+	<term>
+	  <filename>/usr/local/share/yang/schema/relaxng-lib.rng</filename>
+	</term>
 	<listitem>
 	  <para>RELAX NG library of common NETCONF elements.</para>
 	</listitem>
@@ -177,19 +266,18 @@
     <title>Examples</title>
 
     <screen>
-$ XSLT_OPTS="-v" yang2dsdl dhcp.yang       
+$ yang2dsdl -v dhcp.xml dhcp.yang       
     </screen>
-    <para>This command generates the RELAX NG schema for the reply to
-    &lt;get&gt;, corresponding to the <filename>dhcp.yang</filename>
-    module. The <option>-v</option> option is passed to
-    <command>xsltproc</command> and provides verbose output.</para>
+    <para>This command generates the DSDL schemas for a datastore
+    contents defined by the <filename>dhcp.yang</filename> module and
+    validates an instance document stored in the
+    <filename>dhcp.xml</filename> file.</para>
     <screen>
-$ yang2dsdl -s sch -t rpc -n rock:rock-the-house -i rpc-rock.yang
+$ yang2dsdl -t rpc rpc-rock.yang
     </screen>
     <para>This command generates the Schematron schema for the input
-    part (request) of the <function>rock-the-house</function> RPC
-    method defined in the module
-    <filename>rpc-rock.yang</filename> whose prefix is "rock".</para>
+    parts (requests) of all RPC operations defined in the module
+    <filename>rpc-rock.yang</filename>.</para>
   </refsect1>
 
   <refsect1 id="yang2dsdl-seealso">
@@ -200,17 +288,20 @@ $ yang2dsdl -s sch -t rpc -n rock:rock-the-house -i rpc-rock.yang
       </citerefentry>, <citerefentry>
       <refentrytitle>xsltproc</refentrytitle>
       <manvolnum>1</manvolnum>
-    </citerefentry></para>
+      </citerefentry>, <citerefentry>
+      <refentrytitle>xmllint</refentrytitle>
+      <manvolnum>1</manvolnum>
+      </citerefentry>
+    </para>
     <para>The mapping procedure from YANG to DSDL is documented in the
     Internet Draft draft-ietf-netmod-dsdl-map.</para>
   </refsect1>
 
   <refsect1 id="yang2dsdl-author">
     <title>Authors</title>
-    <para>The <command>yang2dsdl</command> script, CTS plugin and XSLT
-    stylesheets were written by Ladislav Lhotka
-    &lt;<email>lhotka@cesnet.cz</email>&gt; and <command>pyang</command> by
-    Martin Björklund &lt;<email>mbj@tail-f.com</email>&gt;.</para>
+    <para>The <command>yang2dsdl</command> script and XSLT stylesheets
+    were written by Ladislav Lhotka
+    &lt;<email>lhotka@cesnet.cz</email>&gt;.</para>
   </refsect1>
 
 </refentry>
