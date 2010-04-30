@@ -59,20 +59,20 @@
         <xsl:value-of select="$target"/>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="($target='dstore' or starts-with($target,'get'))
-                  and not(//rng:element[@name='nmt:data'])">
+    <xsl:if test="($target='dstore' or starts-with($target,'get')) and
+                  not(//rng:element[@name='nmt:data' and not(rng:empty)])">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no data.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='rpc' or $target='rpc-reply') and
-                  not(//rng:element[@name='nmt:rpc'])">
+                  not(//rng:element[@name='nmt:rpcs' and not(rng:empty)])">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no RPC methods.</xsl:text>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="$target='notif' and
-                  not(//rng:element[@name='nmt:notification'])">
+    <xsl:if test="$target='notif' and not(//rng:element
+		  [@name='nmt:notification' and not(rng:empty)])">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no notifications.</xsl:text>
       </xsl:message>
