@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-schematron.xsl
 
-Copyright © 2009 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
 Creates standalone Schematron schema from conceptual tree schema.
 
@@ -19,13 +19,8 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 <!DOCTYPE xsl:stylesheet [
-<!ENTITY std-annot
-"nma:must|@nma:key|@nma:unique|@nma:max-elements|@nma:when">
-<!ENTITY std-todo "descendant::rng:ref|descendant::rng:element
-[nma:must or @nma:key or @nma:unique or @nma:max-elements or @nma:when]">
-<!ENTITY refint-annot "@nma:leafref">
-<!ENTITY refint-todo "descendant::rng:ref|descendant::rng:element
-[@nma:leafref]">
+<!ENTITY annots
+"nma:must|@nma:key|@nma:unique|@nma:max-elements|@nma:when|@nma:leafref">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -35,6 +30,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 version="1.0">
 
   <xsl:include href="gen-common.xsl"/>
+
+  <xsl:key name="refdef" match="//rng:define" use="@name"/>
 
   <!-- Namespace URIs -->
   <xsl:param name="rng-uri">http://relaxng.org/ns/structure/1.0</xsl:param>
@@ -68,6 +65,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           test="$target='get-reply' or
                 $target='getconf-reply'">/nc:rpc-reply/nc:data</xsl:when>
       <xsl:when test="$target='rpc'">/nc:rpc</xsl:when>
+      <xsl:when test="$target='rpc-reply'">/nc:rpc-reply</xsl:when>
       <xsl:when test="$target='notif'">/en:notification</xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -84,15 +82,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="qname">
+    <xsl:param name="name"/>
+    <xsl:if test="not(contains($name,':'))">$pref:</xsl:if>
+    <xsl:value-of select="$name"/>
+  </xsl:template>
+
   <xsl:template name="append-path">
     <!-- Concat $start and XPath of the context element in the data tree -->
-    <xsl:param name="start">
-      <xsl:call-template name="netconf-part"/>
-    </xsl:param>
+    <xsl:param name="start"/>
     <xsl:value-of select="$start"/>
     <xsl:for-each select="ancestor-or-self::rng:element
                           [not(starts-with(@name,'nmt:'))]">
-      <xsl:value-of select="concat('/',@name)"/>
+      <xsl:text>/</xsl:text>
+      <xsl:call-template name="qname">
+	<xsl:with-param name="name" select="@name"/>
+      </xsl:call-template>
     </xsl:for-each>
   </xsl:template>
 
@@ -135,24 +140,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template name="phases-declaration">
-    <xsl:element name="sch:phase">
-      <xsl:attribute name="id">full</xsl:attribute>
-      <xsl:element name="sch:active">
-        <xsl:attribute name="pattern">standard</xsl:attribute>
-      </xsl:element>
-      <xsl:element name="sch:active">
-        <xsl:attribute name="pattern">ref-integrity</xsl:attribute>
-      </xsl:element>
-    </xsl:element>
-    <xsl:element name="sch:phase">
-      <xsl:attribute name="id">noref</xsl:attribute>
-      <xsl:element name="sch:active">
-        <xsl:attribute name="pattern">standard</xsl:attribute>
-      </xsl:element>
-    </xsl:element>
-  </xsl:template>
-
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="sch:schema">
@@ -160,191 +147,123 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:grammar">
-    <xsl:call-template name="yam-namespaces"/>
-    <xsl:call-template name="nc-namespace"/>
-    <xsl:call-template name="phases-declaration"/>
+  <xsl:template match="/rng:grammar">
+      <xsl:call-template name="yam-namespaces"/>
+      <xsl:call-template name="nc-namespace"/>
+    <xsl:apply-templates
+	select="rng:define[descendant::rng:element[&annots;]]"/>
+    <xsl:apply-templates select="descendant::rng:grammar"/>
+  </xsl:template>
+
+  <xsl:template match="rng:define">
     <xsl:element name="sch:pattern">
-      <xsl:attribute name="id">standard</xsl:attribute>
-      <xsl:apply-templates mode="std-abstract"
-                           select="rng:define//rng:element[&std-annot;]"/>
-      <xsl:apply-templates mode="std"
-          select="rng:start/rng:element[@name='nmt:netmod-tree']"/>
-    </xsl:element>
-    <xsl:element name="sch:pattern">
-      <xsl:attribute name="id">ref-integrity</xsl:attribute>
-      <xsl:apply-templates mode="refint-abstract"
-                           select="rng:define//rng:element[&refint-annot;]"/>
-      <xsl:apply-templates mode="refint"
-          select="rng:start/rng:element[@name='nmt:netmod-tree']"/>
+      <xsl:attribute name="abstract">true</xsl:attribute>
+      <xsl:attribute name="id">
+	<xsl:value-of select="@name"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="descendant::rng:element[&annots;]">
+	<xsl:with-param name="start">$start</xsl:with-param>
+      </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:element[@name='nmt:netmod-tree']"
-                mode="std">
+  <xsl:template match="rng:grammar">
+    <xsl:apply-templates
+	select="rng:define[descendant::rng:element[&annots;]]"/>
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
-                      or $target='getconf-reply'">
-        <xsl:apply-templates select="rng:element[@name='nmt:top']"
-                             mode="std"/>
+		      or $target='getconf-reply'">
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:data']"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-        <xsl:apply-templates select="key('rpc',$name)" mode="std"/>
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:input']"/>
+      </xsl:when>
+      <xsl:when test="$target='rpc-reply'">
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:output']"/>
       </xsl:when>
       <xsl:when test="$target='notif'">
-          <xsl:apply-templates
-              mode="std"
-              select="rng:element[@name='nmt:notifications']/
-                      rng:element[rng:element/@name=$name]"/>
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:notification']"/>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="rng:element[@name='nmt:netmod-tree']"
-                mode="refint">
-    <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
-        <xsl:apply-templates select="rng:element[@name='nmt:top']"
-                             mode="refint"/>
-      </xsl:when>
-      <xsl:when test="$target='rpc'">
-        <xsl:apply-templates select="key('rpc',$name)" mode="refint"/>
-      </xsl:when>
-      <xsl:when test="$target='notif'">
-          <xsl:apply-templates
-              mode="refint"
-              select="rng:element[@name='nmt:notifications']/
-                      rng:element[rng:element/@name=$name]"/>
-      </xsl:when>
-    </xsl:choose>
-  </xsl:template>
-
-  <xsl:template match="rng:element[@name='nmt:top']" mode="std">
-    <xsl:apply-templates select="&std-todo;" mode="std"/>
-  </xsl:template>
-
-  <xsl:template match="rng:element[@name='nmt:top']" mode="refint">
-    <xsl:apply-templates select="&refint-todo;" mode="refint"/>
-  </xsl:template>
-
-  <xsl:template match="rng:element" mode="std-abstract">
-    <xsl:element name="sch:rule">
+  <xsl:template match="rng:element[starts-with(@name,'nmt:')]">
+    <xsl:element name="sch:pattern">
       <xsl:attribute name="id">
-        <xsl:value-of select="concat('std-',generate-id())"/>
+	<xsl:value-of select="ancestor::rng:grammar/@nma:module"/>
       </xsl:attribute>
-      <xsl:attribute name="abstract">true</xsl:attribute>
-      <xsl:apply-templates select="&std-annot;"/>
+      <xsl:apply-templates select="descendant::rng:element[&annots;]">
+	<xsl:with-param name="start">
+	  <xsl:call-template name="netconf-part"/>
+	</xsl:with-param>
+      </xsl:apply-templates>
     </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:element" mode="refint-abstract">
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="id">
-        <xsl:value-of select="concat('refint-',generate-id())"/>
-      </xsl:attribute>
-      <xsl:attribute name="abstract">true</xsl:attribute>
-      <xsl:apply-templates select="&refint-annot;"/>
-    </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:element" mode="std">
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-        <xsl:call-template name="append-path"/>
-      </xsl:attribute>
-      <xsl:apply-templates select="&std-annot;"/>
-    </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:element" mode="refint">
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-        <xsl:call-template name="append-path"/>
-      </xsl:attribute>
-      <xsl:apply-templates select="&refint-annot;"/>
-    </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:ref" mode="std">
-    <xsl:apply-templates select="." mode="std-ref"/>
-  </xsl:template>
-
-  <xsl:template match="rng:ref" mode="refint">
-    <xsl:apply-templates select="." mode="refint-ref"/>
-  </xsl:template>
-
-  <xsl:template match="rng:ref" mode="std-ref">
-    <xsl:apply-templates select="//rng:define[@name=current()/@name]"
-                         mode="std">
-      <xsl:with-param name="dstart">
-        <xsl:call-template name="append-path">
-          <xsl:with-param name="start">
-            <xsl:call-template name="netconf-part"/>
-          </xsl:with-param>
-        </xsl:call-template>
+    <xsl:apply-templates select="rng:element|rng:ref" mode="ref">
+      <xsl:with-param name="start">
+	<xsl:call-template name="netconf-part"/>
       </xsl:with-param>
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:ref" mode="refint-ref">
-    <xsl:apply-templates select="//rng:define[@name=current()/@name]"
-                         mode="refint">
-      <xsl:with-param name="dstart">
-        <xsl:call-template name="append-path">
-          <xsl:with-param name="start">
-            <xsl:call-template name="netconf-part"/>
-          </xsl:with-param>
-        </xsl:call-template>
+  <xsl:template match="rng:element">
+    <xsl:param name="start"/>
+    <xsl:element name="sch:rule">
+      <xsl:attribute name="context">
+      <xsl:call-template name="append-path">
+	<xsl:with-param name="start" select="$start"/>
+      </xsl:call-template>
+      </xsl:attribute>
+      <xsl:apply-templates select="&annots;"/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="rng:ref" mode="ref">
+    <xsl:param name="start"/>
+    <xsl:if test="key('refdef',@name)/descendant::rng:element[&annots;]">
+      <xsl:element name="sch:pattern">
+	<xsl:attribute name="is-a">
+	  <xsl:value-of select="@name"/>
+	</xsl:attribute>
+	<xsl:element name="sch:param">
+	  <xsl:attribute name="name">start</xsl:attribute>
+	  <xsl:attribute name="value">
+	    <xsl:value-of select="$start"/>
+	  </xsl:attribute>
+	</xsl:element>
+	<xsl:element name="sch:param">
+	  <xsl:attribute name="name">pref</xsl:attribute>
+	  <xsl:attribute name="value">
+	    <xsl:value-of
+		select="name(namespace::*[.=current()/ancestor::rng:grammar[1]/@ns])"/>
+	  </xsl:attribute>
+	</xsl:element>
+      </xsl:element>
+    </xsl:if>
+    <xsl:apply-templates select="key('refdef',.)" mode="ref">
+      <xsl:with-param name="start" select="$start"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:element" mode="ref">
+    <xsl:param name="start"/>
+    <xsl:apply-templates select="rng:ref|rng:element" mode="ref">
+      <xsl:with-param name="start">
+	<xsl:value-of select="concat($start,'/')"/>
+	<xsl:call-template name="qname">
+	  <xsl:with-param name="name" select="@name"/>
+	</xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:define" mode="std">
-    <xsl:param name="dstart"/>
-    <xsl:apply-templates select="&std-todo;"
-                         mode="std-ref">
-      <xsl:with-param name="estart" select="$dstart"/>
-    </xsl:apply-templates>
-  </xsl:template>
-
-  <xsl:template match="rng:define" mode="refint">
-    <xsl:param name="dstart"/>
-    <xsl:apply-templates select="&refint-todo;"
-                         mode="refint-ref">
-      <xsl:with-param name="estart" select="$dstart"/>
-    </xsl:apply-templates>
-  </xsl:template>
-
-  <xsl:template match="rng:element" mode="std-ref">
-    <xsl:param name="estart"/>
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-        <xsl:call-template name="append-path">
-          <xsl:with-param name="start" select="$estart"/>
-        </xsl:call-template>
-      </xsl:attribute>
-      <xsl:element name="sch:extends">
-        <xsl:attribute name="rule">
-          <xsl:value-of select="concat('std-',generate-id())"/>
-        </xsl:attribute>
-      </xsl:element>
-    </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:element" mode="refint-ref">
-    <xsl:param name="estart"/>
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-        <xsl:call-template name="append-path">
-          <xsl:with-param name="start" select="$estart"/>
-        </xsl:call-template>
-      </xsl:attribute>
-      <xsl:element name="sch:extends">
-        <xsl:attribute name="rule">
-          <xsl:value-of select="concat('refint-',generate-id())"/>
-        </xsl:attribute>
-      </xsl:element>
-    </xsl:element>
+  <xsl:template match="rng:define" mode="ref">
+    <xsl:param name="start"/>
+    <xsl:if test="descendant::rng:element[&annots;]">
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="nma:must">
