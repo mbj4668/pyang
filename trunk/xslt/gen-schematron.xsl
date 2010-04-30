@@ -50,10 +50,24 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
+  <xsl:template name="report-element">
+    <xsl:param name="test"/>
+    <xsl:param name="message">
+      <xsl:value-of
+          select="concat('Violated condition &quot;', $test, '&quot;')"/>
+    </xsl:param>
+    <xsl:element name="sch:report">
+      <xsl:attribute name="test">
+        <xsl:value-of select="$test"/>
+      </xsl:attribute>
+      <xsl:value-of select="$message"/>
+    </xsl:element>
+  </xsl:template>
+
   <xsl:template name="nc-namespace">
     <xsl:choose>
       <xsl:when test="$target='get-reply' or $target='getconf-reply'
-                      or $target='rpc'">
+                      or $target='rpc' or $target='rpc-reply'">
           <sch:ns uri="{$nc-uri}" prefix="nc"/>
       </xsl:when>
       <xsl:when test="$target='notif'">
@@ -93,7 +107,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="uniq-expr-comp">
     <xsl:param name="key"/>
-    <xsl:value-of select="concat($key,'=current()/',$key)"/>
+    <xsl:variable name="qkey">
+      <xsl:call-template name="qname">
+	<xsl:with-param name="name" select="$key"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:value-of select="concat($qkey,'=current()/',$qkey)"/>
   </xsl:template>
 
   <xsl:template name="check-dup-expr">
@@ -175,6 +194,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:element[starts-with(@name,'nmt:')]">
+    <xsl:variable
+	name="prefix"
+	select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
     <xsl:element name="sch:pattern">
       <xsl:attribute name="id">
         <xsl:value-of select="ancestor::rng:grammar/@nma:module"/>
@@ -183,13 +205,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  select="descendant::rng:element[&annots;]|
 		  descendant::rng:choice[@nma:mandatory]">
         <xsl:with-param name="prevpath" select="$netconf-part"/>
-	<xsl:with-param
-	    name="prefix"
-	    select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
+	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
     </xsl:element>
-    <xsl:apply-templates select="rng:element|rng:ref" mode="ref">
+    <xsl:apply-templates
+	mode="ref"
+	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$netconf-part"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -263,9 +287,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:ref" mode="ref">
     <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
     <xsl:if test="key('refdef',@name)[descendant::rng:element[&annots;]|
 		  descendant::rng:choice[@nma:mandatory]]">
       <xsl:element name="sch:pattern">
+	<xsl:attribute name="id">
+	  <xsl:value-of select="generate-id()"/>
+	</xsl:attribute>
         <xsl:attribute name="is-a">
           <xsl:value-of select="@name"/>
         </xsl:attribute>
@@ -278,33 +306,55 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:element name="sch:param">
           <xsl:attribute name="name">pref</xsl:attribute>
           <xsl:attribute name="value">
-            <xsl:value-of
-                select="name(namespace::*[.=current()/ancestor::rng:grammar[1]/@ns])"/>
+            <xsl:value-of select="$prefix"/>
           </xsl:attribute>
         </xsl:element>
       </xsl:element>
     </xsl:if>
     <xsl:apply-templates select="key('refdef',@name)" mode="ref">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:element" mode="ref">
     <xsl:param name="prevpath"/>
-    <xsl:apply-templates select="rng:ref|rng:element" mode="ref">
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates
+	mode="ref"
+	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath">
         <xsl:value-of select="concat($prevpath,'/')"/>
         <xsl:call-template name="qname">
           <xsl:with-param name="name" select="@name"/>
         </xsl:call-template>
       </xsl:with-param>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:define" mode="ref">
     <xsl:param name="prevpath"/>
-    <xsl:apply-templates select="rng:ref|rng:element" mode="ref">
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates
+	mode="ref"
+	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:*" mode="ref">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates
+	mode="ref"
+	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -342,15 +392,17 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-        <xsl:value-of
-            select="concat('preceding-sibling::',../@name,'[')"/>
-        <xsl:call-template name="check-dup-expr">
-          <xsl:with-param name="nodelist" select="."/>
-        </xsl:call-template>
-        <xsl:text>]</xsl:text>
+	<xsl:text>preceding-sibling::</xsl:text>
+	<xsl:call-template name="qname">
+	  <xsl:with-param name="name" select="../@name"/>
+	</xsl:call-template>
+	<xsl:text>[</xsl:text>
+	<xsl:call-template name="check-dup-expr">
+	  <xsl:with-param name="nodelist" select="."/>
+	</xsl:call-template>
+	<xsl:text>]</xsl:text>
       </xsl:attribute>
-      <xsl:value-of
-          select="concat($message, ' &quot;',.,'&quot;')"/>
+      <xsl:value-of select="concat($message, ' &quot;',.,'&quot;')"/>
     </xsl:element>
   </xsl:template>
 
@@ -391,20 +443,24 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@nma:leafref">
-    <xsl:call-template name="assert-element">
-      <xsl:with-param name="test" select="concat(.,'=.')"/>
-      <xsl:with-param
-          name="message"
-          select="concat('Leafref &quot;',../@name,
-                  '&quot; must have the same value as &quot;',.,'&quot;')"/>
-    </xsl:call-template>
+    <xsl:element name="sch:report">
+      <xsl:attribute name="test">
+	<xsl:value-of select="concat('not(',$netconf-part,.,'=.)')"/>
+      </xsl:attribute>
+	<xsl:value-of
+	    select="concat('Leaf &quot;',.,
+		    '&quot; does not exist for leafref value &quot;')"/>
+	<xsl:element name="sch:value-of">
+	  <xsl:attribute name="select">.</xsl:attribute>
+	</xsl:element>
+	<xsl:text>&quot;</xsl:text>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="@nma:leaf-list[.='true']">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-        <xsl:value-of
-            select="concat('.=preceding-sibling::',../@name)"/>
+	<xsl:value-of select="concat('.=preceding-sibling::',../@name)"/>
       </xsl:attribute>
       <xsl:text>Duplicate leaf-list value &quot;</xsl:text>
       <xsl:element name="sch:value-of">
