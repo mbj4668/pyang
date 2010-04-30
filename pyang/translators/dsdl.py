@@ -289,6 +289,7 @@ class HybridDSDLSchema(object):
             self.module_prefixes[module.arg] = pref
         for module in modules:
             self.module = module
+            self.prefix_stack = [self.module_prefixes[module.arg]]
             for aug in module.search("augment"):
                 self.add_patch(gpset, aug)
             for sub in [ module.i_ctx.get_module(inc.arg)
@@ -455,10 +456,9 @@ class HybridDSDLSchema(object):
         """
         empty = [ s for s in (self.data, self.rpcs, self.notifications)
                   if len(s.children) == 0 ] 
-        if len(empty) < 3:
-            self.tree.subnode(self.local_grammar)
-            for subtree in empty:
-                SchemaNode("empty", subtree)
+        self.tree.subnode(self.local_grammar)
+        for subtree in empty:
+            SchemaNode("empty", subtree)
 
     def dc_element(self, parent, name, text):
         """Add DC element `name` containing `text` to `parent`."""
@@ -673,6 +673,8 @@ class HybridDSDLSchema(object):
 
     def collect_keys(self, list_):
         """Collect all keys of `list_`."""
+        lpref, colon, locn = list_.attr["name"].partition(":")
+        if not colon: lpref = None
         keys = list_.keys[:]
         todo = [list_]
         while 1:
@@ -680,8 +682,13 @@ class HybridDSDLSchema(object):
             refs = []
             for ch in node.children:
                 if ch.name == "ref": refs.append(ch)
-                elif ch.name == "element" and ch.attr["name"] in keys:
-                    k = ch.attr["name"]
+                elif ch.name == "element":
+                    if lpref and ":" not in ch.attr["name"]:
+                        elname = lpref + ":" + ch.attr["name"]
+                    else:
+                        elname = ch.attr["name"]
+                    if elname not in keys: continue
+                    k = elname
                     list_.keymap[k] = ch
                     keys.remove(k)
             if not keys: break
