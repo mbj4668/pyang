@@ -89,10 +89,11 @@ class DSDLPlugin(plugin.PyangPlugin):
 
 def emit_dsdl(ctx, modules, fd):
     # No errors are allowed
-    for (epos, etag, eargs) in ctx.errors:
-        if (epos.top_name == module.arg and
-            error.is_error(error.err_level(etag))):
-            raise error.EmitError("DSDL translation needs a valid module")
+    for module in modules:
+        for (epos, etag, eargs) in ctx.errors:
+            if (epos.top_name == module.arg and
+                error.is_error(error.err_level(etag))):
+                raise error.EmitError("DSDL translation needs a valid module")
     schema = HybridDSDLSchema().from_modules(modules,
                                   ctx.opts.dsdl_no_dublin_core,
                                   ctx.opts.dsdl_no_documentation,
