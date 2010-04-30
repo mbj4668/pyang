@@ -817,6 +817,7 @@ class HybridDSDLSchema(object):
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.leaf_list(self.qname(stmt), p_elem)
+        lelem.attr["nma:leaf-list"] = "true"
         refd = self.process_patches(pset, stmt.arg, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)

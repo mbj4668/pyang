@@ -20,7 +20,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 <!DOCTYPE stylesheet [
 <!ENTITY annots "nma:must|@nma:key|@nma:unique|@nma:max-elements|
-@nma:min-elements|@nma:when|@nma:leafref">
+@nma:min-elements|@nma:when|@nma:leafref|@nma:leaf-list">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -292,11 +292,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:call-template name="assert-element">
       <xsl:with-param
           name="test"
-          select="concat('count(../',../@name,')&lt;=',.)"/>
+          select="concat('count(../',../@name,')&lt;=',.,
+		  ' or preceding-sibling::',../@name)"/>
       <xsl:with-param
           name="message"
-          select="concat('List &quot;',../@name,
-                  '&quot; - item count must be at most ',.)"/>
+          select="concat('Number of list items must be at most ',.)"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -316,11 +316,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:call-template name="assert-element">
       <xsl:with-param
           name="test"
-          select="concat('(',.,') or not(..)')"/>
+          select="."/>
       <xsl:with-param
           name="message"
-          select="concat('Existence of &quot;',../@name,
-                  '&quot; requires &quot;',.,'&quot;')"/>
+          select="concat('Node &quot;', ../@name,
+		  '&quot; is only valid when &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -332,6 +332,20 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           select="concat('Leafref &quot;',../@name,
                   '&quot; must have the same value as &quot;',.,'&quot;')"/>
     </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="@nma:leaf-list[.='true']">
+    <xsl:element name="sch:report">
+      <xsl:attribute name="test">
+        <xsl:value-of
+            select="concat('.=preceding-sibling::',../@name)"/>
+      </xsl:attribute>
+      <xsl:text>Duplicate leaf-list value &quot;</xsl:text>
+      <xsl:element name="sch:value-of">
+	<xsl:attribute name="select">.</xsl:attribute>
+      </xsl:element>
+      <xsl:text>&quot;</xsl:text>
+    </xsl:element>
   </xsl:template>
 
 </xsl:stylesheet>
