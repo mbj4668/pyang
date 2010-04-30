@@ -37,9 +37,11 @@ EOF
 gen_relaxng() {
     echo "== Generating RELAX NG schema '$btname.rng'"
     xsltproc $XSLT_OPTS --output $btname.rng \
+	--stringparam basename $basename \
         --stringparam target $target --stringparam rng-lib $rng_lib \
         $xslt_dir/gen-relaxng.xsl $hybs
     xsltproc $XSLT_OPTS --output $dir/$basename-gdefs.rng \
+	--stringparam basename $basename \
         --stringparam gdefs-only 1 $xslt_dir/gen-relaxng.xsl $hybs
     echo "Done."
 }

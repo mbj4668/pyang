@@ -30,7 +30,7 @@
     <xsl:value-of
         select="preceding-sibling::svrl:fired-rule[1]/@context"/>
     <xsl:value-of select="concat(':',$NL)"/>
-    <xsl:value-of select="concat(svrl:text,$NL)"/>
+    <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
   </xsl:template>
 
   <xsl:template match="svrl:successful-report">
@@ -38,7 +38,7 @@
     <xsl:value-of
         select="preceding-sibling::svrl:fired-rule[1]/@context"/>
     <xsl:value-of select="concat(':',$NL)"/>
-    <xsl:value-of select="concat(svrl:text,$NL)"/>
+    <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
   </xsl:template>
 
 </xsl:stylesheet>

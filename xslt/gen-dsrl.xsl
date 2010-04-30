@@ -37,7 +37,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="nc-namespace">
       <xsl:choose>
         <xsl:when test="$target='get-reply' or $target='getconf-reply'
-                        or $target='rpc'">
+                        or $target='rpc' or $target='rpc-reply'">
           <xsl:variable name="dummy">
             <nc:dummy/>
           </xsl:variable>
