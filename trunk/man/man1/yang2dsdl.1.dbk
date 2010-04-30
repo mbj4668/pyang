@@ -136,7 +136,9 @@
       </listitem>
       <listitem>
         <para>Semantic constraints are checked using the Schematron
-        schema.</para>
+        schema. The skeleton implementation of <ulink
+        url="http://www.schematron.com">ISO
+        Schematron</ulink> is used for this purpose.</para>
       </listitem>
     </orderedlist>
     <para>If any of the schemas is missing, the corresponding step is
@@ -249,6 +251,24 @@
       </varlistentry>
       <varlistentry>
         <term>
+          <filename>/usr/local/share/yang/xslt/dsrl2xslt.xsl</filename>
+        </term>
+        <listitem>
+          <para>Translates a DSRL schema containing
+          <emphasis>only</emphasis> specification of default contents
+          to an XSLT stylesheet.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <filename>/usr/local/share/yang/xslt/svrl2text.xsl</filename>
+        </term>
+        <listitem>
+          <para>Translates an SVRL report to plain text.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
           <filename>/usr/local/share/yang/schema/relaxng-lib.rng</filename>
         </term>
         <listitem>
@@ -297,6 +317,25 @@
     <filename>rpc-rock.yang</filename>.</para>
   </refsect1>
 
+  <refsect1 id="yang2dsdl-diagnostics">
+    <title>Diagnostics</title>
+    <para><command>yang2dsdl</command> return codes have the
+    following meaning:</para>
+    <variablelist>
+      <varlistentry>
+	<term>0</term>
+	<listitem><para>No error (normal termination)</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>1</term>
+	<listitem><para>Error in the shell script</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>2</term>
+	<listitem><para>Error in an external program</para></listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
   <refsect1 id="yang2dsdl-seealso">
     <title>See Also</title>
     <para><citerefentry>
@@ -308,7 +347,9 @@
       </citerefentry>, <citerefentry>
       <refentrytitle>xmllint</refentrytitle>
       <manvolnum>1</manvolnum>
-      </citerefentry>
+      </citerefentry>, <ulink url="http://www.dsdl.org/">DSDL</ulink>,
+      <ulink url="http://www.relaxng.org/">RELAX NG</ulink>, <ulink
+      url="http://www.schematron.com">ISO Schematron</ulink>.
     </para>
     <para>The mapping procedure from YANG to DSDL is documented in the
     Internet Draft draft-ietf-netmod-dsdl-map.</para>

@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Copyright (c) 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+#
+# Translates YANG module(s) to DSDL schemas and validates instances
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 # Defaults for arguments
 target="dstore"
 basename=""
@@ -40,9 +56,11 @@ gen_relaxng() {
 	--stringparam basename $basename \
         --stringparam target $target --stringparam rng-lib $rng_lib \
         $xslt_dir/gen-relaxng.xsl $hybs
+    [[ $? == 0 ]] || exit 2
     xsltproc $XSLT_OPTS --output $dir/$basename-gdefs.rng \
 	--stringparam basename $basename \
         --stringparam gdefs-only 1 $xslt_dir/gen-relaxng.xsl $hybs
+    [[ $? == 0 ]] || exit 2
     echo "Done."
 }
 
@@ -50,6 +68,7 @@ gen_schematron() {
     echo -e "\n== Generating Schematron schema '$btname.sch'"
     xsltproc $XSLT_OPTS --output $btname.sch \
         --stringparam target $target $xslt_dir/gen-schematron.xsl $hybs
+    [[ $? -ne 0 ]] && exit 2
     echo "Done."
 }
 
@@ -57,6 +76,7 @@ gen_dsrl() {
     echo -e "\n== Generating DSRL schema '$btname.dsrl'"
     xsltproc $XSLT_OPTS --output $btname.dsrl \
         --stringparam target $target $xslt_dir/gen-dsrl.xsl $hybs
+    [[ $? == 0 ]] || exit 2
     echo "Done."
 }
 
@@ -64,13 +84,16 @@ validate() {
     echo -e "\n== Validating grammar and datatypes ..."
     if [ -f $btname.rng ] ; then
         xmllint --noout --relaxng $btname.rng $instance
+	[[ $? == 0 ]] || [[ $? == 3 ]] || [[ $? == 4 ]] || exit 2
     else
         echo "RELAX NG schema '$btname.rng' not found, skipping ..."
     fi
     echo -e "\n== Adding default values ..."
     if [ -f $btname.dsrl ] ; then
         xsltproc -o $dsrlxsl $xslt_dir/dsrl2xslt.xsl $btname.dsrl
+	[[ $? == 0 ]] || exit 2
         xsltproc -o $instwdef $dsrlxsl $instance
+	[[ $? == 0 ]] || exit 2
         inst4sch=$instwdef
         echo "Done."
     else
@@ -82,6 +105,7 @@ validate() {
         xsltproc $xslt_dir/iso_abstract_expand.xsl $btname.sch | \
             xsltproc -o $schxsl $xslt_dir/iso_svrl_for_xslt1.xsl -
         xsltproc $schxsl $inst4sch | xsltproc $xslt_dir/svrl2text.xsl -
+	[[ $? == 0 ]] || exit 2
     else
         echo "Schematron schema '$btname.sch' not found, skipping ..."
     fi
@@ -159,12 +183,14 @@ if [[ $noschema == "0" ]] ; then
     fi
     pyang -f dsdl -o $hybs --dsdl-no-documentation \
         --dsdl-no-dublin-core $yam
+    [[ $? == 0 ]] || exit 2
     if [[ $basename == "" ]] ; then
         basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
     fi
 elif [[ $basename == "" ]] ; then
     basename=$(pyang -f dsdl --dsdl-no-documentation \
         --dsdl-no-dublin-core $yam | xsltproc $xslt_dir/basename.xsl -)
+    [[ $? == 0 ]] || exit 2
 fi
 
 btname=$dir/$basename-$target
