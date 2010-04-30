@@ -4,7 +4,7 @@
 
 Copyright © 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
-Creates standalone Schematron schema from conceptual tree schema.
+Creates standalone Schematron schema from hybrid DSDL schema.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
-<!DOCTYPE xsl:stylesheet [
+<!DOCTYPE stylesheet [
 <!ENTITY annots "nma:must|@nma:key|@nma:unique|@nma:max-elements|
 @nma:min-elements|@nma:when|@nma:leafref">
 ]>
@@ -29,21 +29,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
 
+  <xsl:output method="xml" encoding="utf-8"/>
+  <xsl:strip-space elements="*"/>
+
   <xsl:include href="gen-common.xsl"/>
 
   <xsl:key name="refdef" match="//rng:define" use="@name"/>
-
-  <!-- Namespace URIs -->
-  <xsl:param name="rng-uri">http://relaxng.org/ns/structure/1.0</xsl:param>
-  <xsl:param
-      name="nmt-uri">urn:ietf:params:xml:ns:netmod:conceptual-tree:1</xsl:param>
-  <xsl:param
-      name="dtdc-uri">http://relaxng.org/ns/compatibility/annotations/1.0</xsl:param>
-  <xsl:param name="dc-uri">http://purl.org/dc/terms</xsl:param>
-  <xsl:param
-      name="nma-uri">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
-  <xsl:param name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
-  <xsl:param name="en-uri">urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:param>
 
   <xsl:template name="assert-element">
     <xsl:param name="test"/>
@@ -84,7 +75,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                           [not(starts-with(@name,'nmt:'))]">
       <xsl:text>/</xsl:text>
       <xsl:call-template name="qname">
-	<xsl:with-param name="name" select="@name"/>
+        <xsl:with-param name="name" select="@name"/>
       </xsl:call-template>
     </xsl:for-each>
   </xsl:template>
@@ -139,7 +130,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="yam-namespaces"/>
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
-	select="rng:define[descendant::rng:element[&annots;]]"/>
+        select="rng:define[descendant::rng:element[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -147,34 +138,34 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:element name="sch:pattern">
       <xsl:attribute name="abstract">true</xsl:attribute>
       <xsl:attribute name="id">
-	<xsl:value-of select="@name"/>
+        <xsl:value-of select="@name"/>
       </xsl:attribute>
       <xsl:apply-templates select="descendant::rng:element[&annots;]">
-	<xsl:with-param name="prevpath">$start</xsl:with-param>
+        <xsl:with-param name="prevpath">$start</xsl:with-param>
       </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-	select="rng:define[descendant::rng:element[&annots;]]"/>
+        select="rng:define[descendant::rng:element[&annots;]]"/>
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
-		      or $target='getconf-reply'">
-	<xsl:apply-templates
-	    select="descendant::rng:element[@name='nmt:data']"/>
+                      or $target='getconf-reply'">
+        <xsl:apply-templates
+            select="descendant::rng:element[@name='nmt:data']"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-	<xsl:apply-templates
-	    select="descendant::rng:element[@name='nmt:input']"/>
+        <xsl:apply-templates
+            select="descendant::rng:element[@name='nmt:input']"/>
       </xsl:when>
       <xsl:when test="$target='rpc-reply'">
-	<xsl:apply-templates
-	    select="descendant::rng:element[@name='nmt:output']"/>
+        <xsl:apply-templates
+            select="descendant::rng:element[@name='nmt:output']"/>
       </xsl:when>
       <xsl:when test="$target='notif'">
-	<xsl:apply-templates
-	    select="descendant::rng:element[@name='nmt:notification']"/>
+        <xsl:apply-templates
+            select="descendant::rng:element[@name='nmt:notification']"/>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -182,10 +173,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element[starts-with(@name,'nmt:')]">
     <xsl:element name="sch:pattern">
       <xsl:attribute name="id">
-	<xsl:value-of select="ancestor::rng:grammar/@nma:module"/>
+        <xsl:value-of select="ancestor::rng:grammar/@nma:module"/>
       </xsl:attribute>
       <xsl:apply-templates select="descendant::rng:element[&annots;]">
-	<xsl:with-param name="prevpath" select="$netconf-part"/>
+        <xsl:with-param name="prevpath" select="$netconf-part"/>
       </xsl:apply-templates>
     </xsl:element>
     <xsl:apply-templates select="rng:element|rng:ref" mode="ref">
@@ -198,7 +189,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:element name="sch:rule">
       <xsl:attribute name="context">
       <xsl:call-template name="self-path">
-	<xsl:with-param name="prevpath" select="$start"/>
+        <xsl:with-param name="prevpath" select="$prevpath"/>
       </xsl:call-template>
       </xsl:attribute>
       <xsl:apply-templates select="&annots;"/>
@@ -209,26 +200,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:if test="key('refdef',@name)/descendant::rng:element[&annots;]">
       <xsl:element name="sch:pattern">
-	<xsl:attribute name="is-a">
-	  <xsl:value-of select="@name"/>
-	</xsl:attribute>
-	<xsl:element name="sch:param">
-	  <xsl:attribute name="name">start</xsl:attribute>
-	  <xsl:attribute name="value">
-	    <xsl:value-of select="$start"/>
-	  </xsl:attribute>
-	</xsl:element>
-	<xsl:element name="sch:param">
-	  <xsl:attribute name="name">pref</xsl:attribute>
-	  <xsl:attribute name="value">
-	    <xsl:value-of
-		select="name(namespace::*[.=current()/ancestor::rng:grammar[1]/@ns])"/>
-	  </xsl:attribute>
-	</xsl:element>
+        <xsl:attribute name="is-a">
+          <xsl:value-of select="@name"/>
+        </xsl:attribute>
+        <xsl:element name="sch:param">
+          <xsl:attribute name="name">start</xsl:attribute>
+          <xsl:attribute name="value">
+            <xsl:value-of select="$prevpath"/>
+          </xsl:attribute>
+        </xsl:element>
+        <xsl:element name="sch:param">
+          <xsl:attribute name="name">pref</xsl:attribute>
+          <xsl:attribute name="value">
+            <xsl:value-of
+                select="name(namespace::*[.=current()/ancestor::rng:grammar[1]/@ns])"/>
+          </xsl:attribute>
+        </xsl:element>
       </xsl:element>
     </xsl:if>
-    <xsl:apply-templates select="key('refdef',.)" mode="ref">
-      <xsl:with-param name="prevpath" select="$start"/>
+    <xsl:apply-templates select="key('refdef',@name)" mode="ref">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -236,18 +227,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:apply-templates select="rng:ref|rng:element" mode="ref">
       <xsl:with-param name="prevpath">
-	<xsl:value-of select="concat($start,'/')"/>
-	<xsl:call-template name="qname">
-	  <xsl:with-param name="name" select="@name"/>
-	</xsl:call-template>
+        <xsl:value-of select="concat($prevpath,'/')"/>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="@name"/>
+        </xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:define" mode="ref">
     <xsl:param name="prevpath"/>
-    <xsl:if test="descendant::rng:element[&annots;]">
-    </xsl:if>
+    <xsl:apply-templates select="rng:ref|rng:element" mode="ref">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="nma:must">
@@ -269,14 +261,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="@nma:key">
     <xsl:call-template name="list-unique">
       <xsl:with-param
-          name="message">Duplicate key of list</xsl:with-param>
+          name="message">Duplicate key</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:unique">
     <xsl:call-template name="list-unique">
       <xsl:with-param
-          name="message">Violated uniqueness for list</xsl:with-param>
+          name="message">Violated uniqueness for</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
@@ -291,7 +283,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         </xsl:call-template>
         <xsl:text>]</xsl:text>
       </xsl:attribute>
-      <xsl:value-of select="concat($message, ' ',../@name)"/>
+      <xsl:value-of
+          select="concat($message, ' &quot;',.,'&quot;')"/>
     </xsl:element>
   </xsl:template>
 
@@ -326,7 +319,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           select="concat('(',.,') or not(..)')"/>
       <xsl:with-param
           name="message"
-          select="concat('Node &quot;',../@name,
+          select="concat('Existence of &quot;',../@name,
                   '&quot; requires &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>

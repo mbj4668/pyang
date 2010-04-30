@@ -34,6 +34,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="version">1.0</xsl:attribute>
       <xsl:element name="xsl:output">
         <xsl:attribute name="method">xml</xsl:attribute>
+        <xsl:attribute name="encoding">utf-8</xsl:attribute>
+      </xsl:element>
+      <xsl:element name="xsl:strip-space">
+        <xsl:attribute name="elements">*</xsl:attribute>
       </xsl:element>
       <xsl:apply-templates
           select="dsrl:element-map[not(dsrl:parent =
