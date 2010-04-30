@@ -207,7 +207,7 @@ class HybridDSDLSchema(object):
             "notification": self.notification_stmt,
             "ordered-by": self.nma_attribute,
             "organization": self.noop,
-            "output": self.output_stmt,
+            "output": self.noop,
             "prefix": self.noop,
             "presence": self.noop,
             "reference": self.reference_stmt,
@@ -872,12 +872,6 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, elem, new_pset)
         self.apply_augments(augs, elem, new_pset)
 
-    def output_stmt(self, stmt, p_elem, pset):
-        elem = SchemaNode.element("nmt:output", p_elem, occur=2)
-        augs, new_pset = self.process_patches(pset, stmt, elem, "output")[1:]
-        self.handle_substmts(stmt, elem, new_pset)
-        self.apply_augments(augs, elem, new_pset)
-
     def reference_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
         if (self.a_uri in self.namespaces and
@@ -890,11 +884,16 @@ class HybridDSDLSchema(object):
         r_pset = self.process_patches(pset, stmt, rpcel)[2]
         inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
         elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
+        augs, pset = self.process_patches(r_pset,stmt,elem,"input")[1:]
         inst = stmt.search_one("input")
-        if inst:
-            augs, i_pset = self.process_patches(r_pset,inst,elem,"input")[1:]
-            self.handle_substmts(inst, elem, i_pset)
-            self.apply_augments(augs, elem, i_pset)
+        if inst: self.handle_substmts(inst, elem, pset)
+        self.apply_augments(augs, elem, pset)
+        augs, pset = self.process_patches(r_pset,stmt,None,"output")[1:]
+        oust = stmt.search_one("output")
+        if oust or augs:
+            outel = SchemaNode.element("nmt:output", rpcel, occur=2)
+            if oust: self.handle_substmts(oust, outel, pset)
+            self.apply_augments(augs, outel, pset)
         self.handle_substmts(stmt, rpcel, r_pset)
 
     def type_stmt(self, stmt, p_elem, pset):
