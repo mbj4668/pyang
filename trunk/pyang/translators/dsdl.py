@@ -276,7 +276,6 @@ class HybridDSDLSchema(object):
         self.has_anyxml = False
         self.in_rpc = False
         self.debug = debug
-        self.lists = []
         self.module_prefixes = {}
         gpset = {}
         self.gg_level = 0
@@ -297,6 +296,7 @@ class HybridDSDLSchema(object):
         for module in modules:
             self.module = module
             self.local_defs = {}
+            self.lists = []
             if record_defs: self.preload_defs()
             self.prefix_stack = [self.module_prefixes[module.arg]]
             self.create_roots(module)
@@ -304,7 +304,7 @@ class HybridDSDLSchema(object):
             for d in self.local_defs.values():
                 self.local_grammar.subnode(d)
             self.handle_empty()
-        for l in self.lists: self.collect_keys(l)
+            for l in self.lists: self.collect_keys(l)
         self.dc_element(self.top_grammar, "creator",
                         "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
@@ -642,13 +642,13 @@ class HybridDSDLSchema(object):
         minel = refine_dict["min-elements"]
         maxel = refine_dict["max-elements"]
         if minel is None:
-            minst = stmt.search_one("min_elements")
+            minst = stmt.search_one("min-elements")
             if minst:
                 minel = minst.arg
             else:
                 minel = "0"
         if maxel is None:
-            maxst = stmt.search_one("max_elements")
+            maxst = stmt.search_one("max-elements")
             if maxst:
                 maxel = maxst.arg
         return (minel, maxel)
@@ -668,7 +668,8 @@ class HybridDSDLSchema(object):
                     keys.remove(k)
             if not keys: break
             for r in refs:
-                d = self.defs[r.attr["name"]]
+                self.local_defs.update(self.global_defs)
+                d = self.local_defs[r.attr["name"]]
                 d.ref = r
                 todo.append(d)
         for k in list_.keymap:
@@ -818,12 +819,14 @@ class HybridDSDLSchema(object):
         lelem = SchemaNode.leaf_list(self.qname(stmt), p_elem)
         refd = self.process_patches(pset, stmt.arg, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
+        if lelem.minEl > 0: self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.list(self.qname(stmt), p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt.arg, lelem)
-        lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
+        lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
+        if lelem.minEl > 0: self.propagate_occur(p_elem, 2)
         keyst = stmt.search_one("key")
         if keyst:
             self.lists.append(lelem)
@@ -913,9 +916,9 @@ class HybridDSDLSchema(object):
     def unique_stmt(self, stmt, p_elem, pset):
         def addpref(nid):
             return "/".join([self.add_prefix(c, stmt)
-                             for c in nodeid.split("/")])
+                             for c in nid.split("/")])
         p_elem.attr["nma:unique"] = " ".join(
-            [self.addpref(nid) for nid in stmt.arg.split()])
+            [addpref(nid) for nid in stmt.arg.split()])
 
     def uses_stmt(self, stmt, p_elem, pset):
         noexpand = True
