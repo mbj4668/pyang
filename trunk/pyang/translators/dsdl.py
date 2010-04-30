@@ -260,22 +260,21 @@ class HybridDSDLSchema(object):
     def serialize(self):
         """Return the string representation of the receiver."""
         res = '<?xml version="1.0" encoding="UTF-8"?>'
-        self.grammar_elem.attr["xmlns"] = \
+        self.top_grammar.attr["xmlns"] = \
             "http://relaxng.org/ns/structure/1.0"
-        self.grammar_elem.attr["datatypeLibrary"] = \
+        self.top_grammar.attr["datatypeLibrary"] = \
             "http://www.w3.org/2001/XMLSchema-datatypes"
         for ns in self.namespaces:
-            self.grammar_elem.attr["xmlns:" + self.namespaces[ns]] = ns
-        res += self.grammar_elem.start_tag()
-        for ch in self.grammar_elem.children:
+            self.top_grammar.attr["xmlns:" + self.namespaces[ns]] = ns
+        res += self.top_grammar.start_tag()
+        for ch in self.top_grammar.children:
             res += ch.serialize()
-        if not self.no_data:
-            res += "<start>" + self.root.serialize() + "</start>"
-        for d in self.defs:
-            res += self.defs[d].serialize()
+        res += "<start>" + self.tree.serialize() + "</start>"
+        for d in self.global_defs:
+            res += self.global_defs[d].serialize()
         if self.has_anyxml:
             res += self.anyxml_def
-        return res + self.grammar_elem.end_tag()
+        return res + self.top_grammar.end_tag()
 
     def from_modules(self, modules, no_dc=False, no_a=False, record_defs=False,
                   debug=0):
@@ -285,13 +284,13 @@ class HybridDSDLSchema(object):
         }
         if not no_dc: self.namespaces[self.dc_uri] = "dc"
         if not no_a: self.namespaces[self.a_uri] = "a"
-        self.defs = {}
+        self.global_defs = {}
         self.has_anyxml = False
         self.in_rpc = False
-        self.no_data = True
         self.debug = debug
         self.lists = []
         self.module_prefixes = {}
+        self.group_level = 0
         gpset = {}
         for module in modules:
             ns = module.search_one("namespace").arg
@@ -300,37 +299,44 @@ class HybridDSDLSchema(object):
             self.module_prefixes[module.arg] = pref
             for aug in module.search("augment"):
                 self.add_patch(gpset, Patch(aug, prefix=pref))
-        self.grammar_elem = SchemaNode("grammar")
+        self.setup_top()
         for module in modules:
             self.module = module
-            src_text = "YANG module '%s'" % module.arg
-            revs = module.search("revision")
-            if len(revs) > 0:
-                src_text += " revision %s" % self.current_revision(revs)
-            self.dc_element("source", src_text)
+            self.local_defs = {}
             if record_defs: self.preload_defs()
-            if self.has_data_node(module):
-                if self.no_data:
-                    self.no_data = False
-                    self.create_roots()
-                ns = self.module.search_one("namespace").arg
-                self.prefix = self.module_prefixes[module.arg]
-                self.handle_substmts(module, self.confdata, gpset)
+            self.prefix = self.module_prefixes[module.arg]
+            self.create_roots(module)
+            self.handle_substmts(module, self.data, gpset)
+            self.handle_empty()
+            for d in self.local_defs.values():
+                self.local_grammar.subnode(d)
         for l in self.lists: self.collect_keys(l)
-        self.handle_empty()
-        self.dc_element("creator",
+        self.dc_element(self.top_grammar, "creator",
                         "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
 
-    def create_roots(self):
+    def setup_top(self):
+        """Create top-level elements of CTS."""
+        self.top_grammar = SchemaNode("grammar")
+        self.tree = SchemaNode.element("nmt:netmod-tree",
+                                       interleave=False, occur=2)
+
+    def create_roots(self, yam):
         """Create root elements for conf. data, RPCs and notifications."""
-        self.root = SchemaNode.element("nmt:netmod-tree",
+        self.local_grammar = SchemaNode("grammar", self.tree)
+        self.local_grammar.attr["ns"] = yam.search_one("namespace").arg
+        start = SchemaNode("start", self.local_grammar)
+        module = SchemaNode.element("nmt:module", start, occur=2)
+        src_text = "YANG module '%s'" % yam.arg
+        revs = yam.search("revision")
+        if len(revs) > 0:
+            src_text += " revision %s" % self.current_revision(revs)
+        self.dc_element(module, "source", src_text)
+        self.data = SchemaNode.element("nmt:data", module,
+                                       interleave=True, occur=2)
+        self.rpcs = SchemaNode.element("nmt:rpc-methods", module,
                                        interleave=False, occur=2)
-        self.confdata = SchemaNode.element("nmt:top", self.root,
-                                           interleave=True, occur=2)
-        self.rpcs = SchemaNode.element("nmt:rpc-methods", self.root,
-                                       interleave=False, occur=2)
-        self.notifications = SchemaNode.element("nmt:notifications", self.root,
+        self.notifications = SchemaNode.element("nmt:notifications", module,
                                                 interleave=True, occur=2)
 
     def yang_to_xpath(self, xpath):
@@ -407,15 +413,18 @@ class HybridDSDLSchema(object):
         """Preload all top-level definitions."""
         for d in (self.module.search("grouping") +
                   self.module.search("typedef")):
-            self.install_def(self.unique_def_name(d))
+            uname, dic = self.unique_def_name(d)
+            self.install_def(uname, d, dic)
 
     def add_local_prefix(self, name):
         """Return `name` prepended with local prefix."""
         if ":" in name: return name
         return self.prefix + ":" + name
 
-    def add_stmt_prefix(self, stmt):
-        """Return qualified node name of `stmt`."""
+    def node_id(self, stmt):
+        """Return node name of `stmt` (prefixed if external)."""
+        if self.group_level or self.module == stmt.i_module:
+            return stmt.arg
         return self.module_prefixes[stmt.i_module.arg] + ":" + stmt.arg
 
     def handle_empty(self):
@@ -424,26 +433,33 @@ class HybridDSDLSchema(object):
         If any of the subtrees of the hybrid tree is empty, put
         <empty/> as its content.
         """
-        if self.no_data: return
-        for subtree in (self.confdata, self.rpcs, self.notifications):
+        for subtree in (self.data, self.rpcs, self.notifications):
             if len(subtree.children) == 0:
                 SchemaNode("empty", subtree)
 
-    def dc_element(self, name, text):
-        """Add DC element `name` containing `text` to <grammar>."""
+    def dc_element(self, parent, name, text):
+        """Add DC element `name` containing `text` to `parent`."""
         if self.dc_uri in self.namespaces:
             dcel = SchemaNode(self.namespaces[self.dc_uri] + ":" + name,
                               text=text)
-            self.grammar_elem.children.insert(0,dcel)
+            parent.children.insert(0,dcel)
 
-    def unique_def_name(self, stmt, pref=""):
-        """Answer mangled name of `stmt` (typedef or grouping)."""
+    
+
+    def unique_def_name(self, stmt):
+        """Mangle the name of `stmt` (typedef or grouping).
+
+        Return the mangled name and dictionary where the definition is
+        to be installed.
+        """
+        if stmt.parent.keyword not in ("module", "submodule"):
+            return ("__".join(stmt.full_path()), self.local_defs)
         mod = stmt.i_module
         if mod.keyword == "submodule":
-            pref += mod.search_one("belongs-to").arg
+            pref = mod.search_one("belongs-to").arg
         else:
-            pref += mod.arg
-        return pref + "__" + "__".join(stmt.full_path())
+            pref = mod.arg
+        return (pref + "__" + stmt.arg, self.global_defs)
 
     def has_data_node(self, stmt):
         """Does `stmt` have any data nodes?"""
@@ -516,12 +532,14 @@ class HybridDSDLSchema(object):
         else:
             return qname
 
-    def install_def(self, name, dstmt, interleave=False):
+    def install_def(self, name, dstmt, def_map):
         """Install definition `name` representing `dstmt`."""
-        delem = SchemaNode.define(name, interleave=interleave)
+        delem = SchemaNode.define(name)
         delem.attr["name"] = name
-        self.defs[name] = delem
+        def_map[name] = delem
+        self.group_level += 1
         self.handle_substmts(dstmt, delem)
+        self.group_level -= 1
 
     def handle_extension(self, stmt, p_elem):
         """Append YIN representation of `stmt`."""
@@ -679,7 +697,7 @@ class HybridDSDLSchema(object):
 
     def anyxml_stmt(self, stmt, p_elem, pset):
         self.has_anyxml = True
-        elem = SchemaNode.element(self.add_stmt_prefix(stmt), p_elem)
+        elem = SchemaNode.element(self.node_id(stmt), p_elem)
         SchemaNode("ref", elem).set_attr("name", "__anyxml__")
         plist = self.select_patch(pset, stmt.arg)[0]
         if p_elem.name == "choice":
@@ -720,7 +738,7 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
-        celem = SchemaNode.element(self.add_stmt_prefix(stmt),p_elem)
+        celem = SchemaNode.element(self.node_id(stmt), p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         if p_elem.name == "choice":
             if p_elem.default_case != stmt.arg:
@@ -755,8 +773,7 @@ class HybridDSDLSchema(object):
                 elem.occur = 1
                 elem.default = defv
                 self.propagate_occur(elem.parent, 1)
-        qname = self.add_stmt_prefix(stmt)
-        elem = SchemaNode.element(qname)
+        elem = SchemaNode.element(self.node_id(stmt))
         plist = self.select_patch(pset, stmt.arg)[0]
         p_elem.subnode(elem)
         if p_elem.name == "choice":
@@ -772,14 +789,14 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
-        lelem = SchemaNode.leaf_list(self.add_stmt_prefix(stmt), p_elem)
+        lelem = SchemaNode.leaf_list(self.node_id(stmt), p_elem)
         plist = self.select_patch(pset, stmt.arg)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         for s in plist: self.handle_stmt(s, lelem)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
-        lelem = SchemaNode.list(self.add_stmt_prefix(stmt), p_elem)
+        lelem = SchemaNode.list(self.node_id(stmt), p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         keyst = stmt.search_one("key")
@@ -802,7 +819,7 @@ class HybridDSDLSchema(object):
     def notification_stmt(self, stmt, p_elem, pset):
         notel = SchemaNode.element("nmt:notification", self.notifications,
                                    occur=2)
-        elem = SchemaNode.element(self.add_stmt_prefix(stmt), notel, occur=2)
+        elem = SchemaNode.element(self.node_id(stmt), notel, occur=2)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         for s in plist: self.handle_stmt(s, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
@@ -824,7 +841,7 @@ class HybridDSDLSchema(object):
         rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs, occur=2)
         rlist, r_pset = self.select_patch(pset, stmt.arg)
         inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
-        elem = SchemaNode.element(self.add_stmt_prefix(stmt), inpel, occur=2)
+        elem = SchemaNode.element(self.node_id(stmt), inpel, occur=2)
         inst = stmt.search_one("input")
         if inst:
             ilist, i_pset = self.select_patch(r_pset, "input")
@@ -841,16 +858,16 @@ class HybridDSDLSchema(object):
         """
         typedef = stmt.i_typedef
         if typedef and not stmt.i_is_derived: # just ref
-            uname = self.unique_def_name(typedef)
-            if uname not in self.defs:
-                self.install_def(uname, typedef)
+            uname, dic = self.unique_def_name(typedef)
+            if uname not in dic:
+                self.install_def(uname, typedef, dic)
             SchemaNode("ref", p_elem).set_attr("name", uname)
             defst = typedef.search_one("default")
             if defst:
-                self.defs[uname].default = defst.arg
+                dic[uname].default = defst.arg
                 occur = 1
             else:
-                occur = self.defs[uname].occur
+                occur = dic[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
             return
         chain = [stmt]
@@ -885,16 +902,18 @@ class HybridDSDLSchema(object):
             # any patch applies to the grouping?
             noexpand = not self.contains_any(stmt.i_grouping, pset.keys())
         if noexpand:
-            uname = self.unique_def_name(stmt.i_grouping, pref="_")
-            if p_elem.interleave == False: uname += "_rpc"
-            if uname not in self.defs:
-                self.install_def(uname, stmt.i_grouping, p_elem.interleave)
-            elem = SchemaNode("ref", p_elem).set_attr("name", uname)
-            occur = self.defs[uname].occur
+            uname, dic = self.unique_def_name(stmt.i_grouping)
+            gname = "_" + uname
+            if uname not in dic:
+                self.install_def(gname, stmt.i_grouping, dic)
+            elem = SchemaNode("ref", p_elem).set_attr("name", gname)
+            occur = dic[gname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
             self.handle_substmts(stmt, elem)
         else:
+            self.group_level += 1
             self.handle_substmts(stmt.i_grouping, p_elem, pset)
+            self.group_level -= 1
 
     def when_stmt(self, stmt, p_elem, pset=None):
         p_elem.attr["nma:when"] = self.yang_to_xpath(stmt.arg)
