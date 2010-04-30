@@ -19,8 +19,8 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 <!DOCTYPE xsl:stylesheet [
-<!ENTITY annots
-"nma:must|@nma:key|@nma:unique|@nma:max-elements|@nma:when|@nma:leafref">
+<!ENTITY annots "nma:must|@nma:key|@nma:unique|@nma:max-elements|
+@nma:min-elements|@nma:when|@nma:leafref">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
