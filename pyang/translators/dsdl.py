@@ -114,21 +114,21 @@ class Patch(object):
     * `slist`: list of statements to apply
     """
 
-    def __init__(self, refaug, prefix=None):
+    def __init__(self, refaug, prefix):
         """Initialize the instance from `refaug` statement.
 
         `refaug` must be 'refine' or 'augment' statement.
         Also remove `prefix` from all path components.
         """
         self.path = []
-        for comp in refaug.arg.split("/"):
-            pref, colon, ident = comp.partition(":")
-            if not colon:
-                self.path.append(pref)
-            elif pref == prefix:
-                self.path.append(ident)
-            else:
-                self.path.append(comp)
+        if refaug.arg[0] == "/":
+            nodeid = refaug.arg[1:]
+        else:
+            nodeid = refaug.arg
+        for comp in nodeid.split("/"):
+            if ":" not in comp:
+                comp = prefix + ":" + comp
+            self.path.append(comp)
         self.slist = refaug.substmts
 
     def pop(self):
@@ -292,11 +292,14 @@ class HybridDSDLSchema(object):
         self.debug = debug
         self.lists = []
         self.module_prefixes = {}
+        gpset = {}
         for module in modules:
             ns = module.search_one("namespace").arg
             pref = module.search_one("prefix").arg
             self.add_namespace(ns, pref)
             self.module_prefixes[module.arg] = pref
+            for aug in module.search("augment"):
+                self.add_patch(gpset, Patch(aug, prefix=pref))
         self.grammar_elem = SchemaNode("grammar")
         for module in modules:
             self.module = module
@@ -312,7 +315,7 @@ class HybridDSDLSchema(object):
                     self.create_roots()
                 ns = self.module.search_one("namespace").arg
                 self.prefix = self.module_prefixes[module.arg]
-                self.handle_substmts(module, self.confdata)
+                self.handle_substmts(module, self.confdata, gpset)
         for l in self.lists: self.collect_keys(l)
         self.handle_empty()
         self.dc_element("creator",
@@ -406,14 +409,14 @@ class HybridDSDLSchema(object):
                   self.module.search("typedef")):
             self.install_def(self.unique_def_name(d))
 
-    def prefix_id(self, name):
-        """Add local prefix to `name`, it it doesn't have any prefix."""
+    def add_local_prefix(self, name):
+        """Return `name` prepended with local prefix."""
         if ":" in name: return name
         return self.prefix + ":" + name
 
-    def prefix_desc_nodeid(self, nodeid):
-        """Add local prefix to all components of `nodeid`."""
-        return "/".join([self.prefix_id(c) for c in nodeid.split("/")])
+    def add_stmt_prefix(self, stmt):
+        """Return qualified node name of `stmt`."""
+        return self.module_prefixes[stmt.i_module.arg] + ":" + stmt.arg
 
     def handle_empty(self):
         """Handle empty subtree(s) of the hybrid tree.
@@ -551,7 +554,7 @@ class HybridDSDLSchema(object):
         """
         new_pset = {}
         local = []
-        for p in pset.pop(name, []):
+        for p in pset.pop(self.prefix + ":" + name, []):
             if p.path:
                 new_pset[p.pop()] = [p]
             else:
@@ -676,7 +679,7 @@ class HybridDSDLSchema(object):
 
     def anyxml_stmt(self, stmt, p_elem, pset):
         self.has_anyxml = True
-        elem = SchemaNode.element(self.prefix_id(stmt.arg), p_elem)
+        elem = SchemaNode.element(self.add_stmt_prefix(stmt), p_elem)
         SchemaNode("ref", elem).set_attr("name", "__anyxml__")
         plist = self.select_patch(pset, stmt.arg)[0]
         if p_elem.name == "choice":
@@ -717,7 +720,7 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
-        celem = SchemaNode.element(self.prefix_id(stmt.arg),p_elem)
+        celem = SchemaNode.element(self.add_stmt_prefix(stmt),p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         if p_elem.name == "choice":
             if p_elem.default_case != stmt.arg:
@@ -752,7 +755,7 @@ class HybridDSDLSchema(object):
                 elem.occur = 1
                 elem.default = defv
                 self.propagate_occur(elem.parent, 1)
-        qname = self.prefix_id(stmt.arg)
+        qname = self.add_stmt_prefix(stmt)
         elem = SchemaNode.element(qname)
         plist = self.select_patch(pset, stmt.arg)[0]
         p_elem.subnode(elem)
@@ -769,20 +772,20 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
-        lelem = SchemaNode.leaf_list(self.prefix_id(stmt.arg), p_elem)
+        lelem = SchemaNode.leaf_list(self.add_stmt_prefix(stmt), p_elem)
         plist = self.select_patch(pset, stmt.arg)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         for s in plist: self.handle_stmt(s, lelem)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
-        lelem = SchemaNode.list(self.prefix_id(stmt.arg), p_elem)
+        lelem = SchemaNode.list(self.add_stmt_prefix(stmt), p_elem)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         keyst = stmt.search_one("key")
         if keyst:
             self.lists.append(lelem)
-            lelem.keys = [self.prefix_id(k) for k in keyst.arg.split()]
+            lelem.keys = [self.add_local_prefix(k) for k in keyst.arg.split()]
         for s in plist: self.handle_stmt(s, lelem, new_pset)
         self.handle_substmts(stmt, lelem, new_pset)
 
@@ -799,7 +802,7 @@ class HybridDSDLSchema(object):
     def notification_stmt(self, stmt, p_elem, pset):
         notel = SchemaNode.element("nmt:notification", self.notifications,
                                    occur=2)
-        elem = SchemaNode.element(self.prefix_id(stmt.arg), notel, occur=2)
+        elem = SchemaNode.element(self.add_stmt_prefix(stmt), notel, occur=2)
         plist, new_pset = self.select_patch(pset, stmt.arg)
         for s in plist: self.handle_stmt(s, elem, new_pset)
         self.handle_substmts(stmt, elem, new_pset)
@@ -821,7 +824,7 @@ class HybridDSDLSchema(object):
         rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs, occur=2)
         rlist, r_pset = self.select_patch(pset, stmt.arg)
         inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
-        elem = SchemaNode.element(self.prefix_id(stmt.arg), inpel, occur=2)
+        elem = SchemaNode.element(self.add_stmt_prefix(stmt), inpel, occur=2)
         inst = stmt.search_one("input")
         if inst:
             ilist, i_pset = self.select_patch(r_pset, "input")
@@ -867,8 +870,10 @@ class HybridDSDLSchema(object):
         self.type_handler[chain[0].arg](chain, p_elem)
 
     def unique_stmt(self, stmt, p_elem, pset):
+        def addpref(nid):
+            return "/".join([self.add_local_prefix(c) for c in nodeid.split("/")])
         p_elem.attr["nma:unique"] = " ".join(
-            [self.prefix_desc_nodeid(nid) for nid in stmt.arg.split()])
+            [self.addpref(nid) for nid in stmt.arg.split()])
 
     def uses_stmt(self, stmt, p_elem, pset):
         noexpand = True
