@@ -110,7 +110,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:when test="$target='dstore'">
         <xsl:element name="choice" namespace="{$rng-uri}">
 	  <xsl:apply-templates
-	      select="rng:grammar[//rng:element[@name='nmt:data']]"/>
+	      select="rng:grammar[descendant::rng:element[@name='nmt:data']]"/>
         </xsl:element>
       </xsl:when>
       <xsl:when test="$target='get-reply' or $target='getconf-reply'">
@@ -121,7 +121,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
             <xsl:attribute name="name">data</xsl:attribute>
 	    <xsl:element name="interleave" namespace="{$rng-uri}">
 	      <xsl:apply-templates
-		  select="rng:grammar[//rng:element[@name='nmt:data']]"/>
+		  select="rng:grammar[descendant::rng:element[@name='nmt:data']]"/>
 	    </xsl:element>
           </xsl:element>
         </xsl:element>
@@ -132,7 +132,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           <xsl:call-template name="message-id"/>
 	  <xsl:element name="choice" namespace="{$rng-uri}">
 	    <xsl:apply-templates
-		select="rng:grammar[//rng:element[@name='nmt:rpcs']]"/>
+		select="rng:grammar[descendant::rng:element[@name='nmt:rpcs']]"/>
 	  </xsl:element>
         </xsl:element>
       </xsl:when>
@@ -148,7 +148,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	      </xsl:element>
 	    </xsl:if>
 	    <xsl:apply-templates
-		select="rng:grammar[//rng:element[@name='nmt:output']]"/>
+		select="rng:grammar[descendant::rng:element
+			[@name='nmt:output']]"/>
 	  </xsl:element>
         </xsl:element>
       </xsl:when>
@@ -160,7 +161,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           </xsl:element>
 	  <xsl:element name="choice" namespace="{$rng-uri}">
 	    <xsl:apply-templates
-		select="rng:grammar[//rng:element[@name='nmt:data']]"/>
+		select="rng:grammar[descendant::rng:element
+			[@name='nmt:notification']]"/>
 	  </xsl:element>
 	</xsl:element>
       </xsl:when>
@@ -205,7 +207,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:choose>
       <xsl:when test="$target='dstore' and rng:interleave">
 	<xsl:element name="choice" namespace="{$rng-uri}">
-	  <xsl:apply-templates select="rng:*"/>
+	  <xsl:apply-templates select="rng:interleave/rng:*"/>
 	</xsl:element>
       </xsl:when>
       <xsl:otherwise>
@@ -221,25 +223,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <xsl:when test="count(rng:element[@name='nmt:rpc'])>1">
 	    <xsl:element name="choice" namespace="{$rng-uri}">
 	      <xsl:apply-templates
-		  select="//rng:element[@name='nmt:input']"/>
+		  select="descendant::rng:element[@name='nmt:input']"/>
 	    </xsl:element>
 	  </xsl:when>
 	  <xsl:otherwise>
-	    <xsl:apply-templates/>
+	    <xsl:apply-templates
+		select="descendant::rng:element[@name='nmt:input']"/>
 	  </xsl:otherwise>
 	</xsl:choose>
       </xsl:when>
       <xsl:otherwise>
 	<xsl:choose>
-	  <xsl:when test="count(//rng:element[@name='nmt:output'])>1">
+	  <xsl:when test="count(descendant::rng:element[@name='nmt:output'])>1">
 	    <xsl:element name="choice" namespace="{$rng-uri}">
 	      <xsl:apply-templates
-		  select="//rng:element[@name='nmt:output']"/>
+		  select="descendant::rng:element[@name='nmt:output']"/>
 	    </xsl:element>
 	  </xsl:when>
 	  <xsl:otherwise>
 	    <xsl:apply-templates
-		select="//rng:element[@name='nmt:output']"/>
+		select="descendant::rng:element[@name='nmt:output']"/>
 	  </xsl:otherwise>
 	</xsl:choose>
       </xsl:otherwise>
@@ -250,11 +253,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:choose>
       <xsl:when test="count(rng:element[@name='nmt:notification'])>1">
 	<xsl:element name="choice" namespace="{$rng-uri}">
-	  <xsl:apply-templates select="rng:*"/>
+	  <xsl:apply-templates
+	      select="rng:element[@name='nmt:notification']"/>
 	</xsl:element>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:apply-templates/>
+	<xsl:apply-templates
+	    select="rng:element[@name='nmt:notification']"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -293,7 +298,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:copy/>
   </xsl:template>
 
-  <xsl:template match="rng:optional">
+  <xsl:template match="rng:optional|rng:oneOrMore|rng:zeroOrMore">
     <xsl:choose>
       <xsl:when test="$target='dstore' and
                       (parent::rng:element/@name='nmt:data' or
