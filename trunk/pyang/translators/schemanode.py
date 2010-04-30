@@ -96,7 +96,7 @@ class SchemaNode(object):
     def data_nodes_count(self):
         """Return the number of receiver's data subnodes."""
         return len([ch for ch in self.children if ch.name in
-                    ("element", "choice", "_list_", "ref", "grammar")])
+                    ("element", "choice", "_list_","ref", "grammar")])
 
     def start_tag(self, alt=None, empty=False):
         """Return XML start tag for the receiver."""
@@ -157,7 +157,7 @@ class SchemaNode(object):
 
     def _chorder(self):
         """Add <interleave> if child order is arbitrary."""
-        if self.interleave and self.data_nodes_count() > 1:
+        if (self.interleave and self.data_nodes_count() > 1):
             return "<interleave>%s</interleave>"
         return "%s"
 

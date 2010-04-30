@@ -6,17 +6,11 @@
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
-
   <xsl:output method="text" encoding="utf-8"/>
+  <xsl:include href="gen-common.xsl"/>
 
   <xsl:template match="/">
-    <xsl:for-each select="/rng:grammar//rng:grammar">
-      <xsl:value-of select="@nma:module"/>
-      <xsl:if test="position() != last()">
-	<xsl:text>_</xsl:text>
-      </xsl:if>
-    </xsl:for-each>
+      <xsl:value-of select="$basename"/>
   </xsl:template>
 
 </xsl:stylesheet>
-

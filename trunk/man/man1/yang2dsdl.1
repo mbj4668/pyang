@@ -22,47 +22,26 @@
 yang2dsdl \- translates YANG data models to DSDL schemas and validates instance documents\&.
 .SH "SYNOPSIS"
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-v\ \fIinstance\fR] \fImodule\fR...
+\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-v\ \fIinstance\fR] [\-s] \fImodule\fR...
 .HP \w'\fByang2dsdl\fR\ 'u
 \fByang2dsdl\fR \-h
 .SH "DESCRIPTION"
 .PP
-This shell script facilitates the translation of a data model described by one or more input YANG modules to DSDL schemas (RELAX NG, Schematron and DSRL) for a selected instance XML document type\&. Optionally, an instance document of the given type can be immediately validated against the schemas\&.
+This shell script facilitates the translation of a data model described by one or more input YANG modules to DSDL schemas (RELAX NG, Schematron and DSRL) for a selected instance XML document type\&. Optionally, an instance document of the given type can be validated against the schemas\&.
 .PP
-The input module(s) can be expressed in YANG or YIN syntax\&. The output DSDL schemas are written to the directory
+The input module(s) may be expressed in YANG or YIN syntax\&. The output DSDL schemas are written to the directory
 \fIdir\fR
-(current directory by default)\&.
-.PP
-The output schemas are contained in four files with a common
-\fIbasename\fR:
-.PP
-\fIbasename\fR\&.rng
-.RS 4
-RELAX NG schema for the target document type\&.
-.RE
-.PP
-\fIbasename\fR\-gdefs\&.cts
-.RS 4
-Auxiliary RELAX NG schema containing global named pattern definitions\&.
-.RE
-.PP
-\fIbasename\fR\&.sch
-.RS 4
-Schematron schema for the target document type\&.
-.RE
-.PP
-\fIbasename\fR\&.dsrl
-.RS 4
-DSRL schema for the target document type\&.
-.RE
+(current directory by default)\&. Unless the option
+\fB\-s\fR
+is used, this directory must be writable\&.
 .PP
 The
 \fItarget\fR
-parameter specifies the type of the target instance document\&. Supported values are:
+argument specifies the type of the target instance document\&. Supported values are:
 .PP
 dstore
 .RS 4
-Raw datastore contents without any encapsulating elements\&. If the input YANG modules define a data model with multiple root elements, the raw datastore may not be valid XML\&. In this case, the resulting DSDL schemas assume a choice of the top\-level root elements\&.
+Raw datastore contents without any encapsulating elements\&. If the input YANG module(s) define a data model with multiple root elements, the raw datastore may not be valid XML\&. In this case, the resulting DSDL schemas assume a choice of the top\-level root elements\&.
 .RE
 .PP
 get\-reply
@@ -77,20 +56,45 @@ A complete NETCONF protocol data unit (PDU) containing a reply to the <get\-conf
 .PP
 rpc
 .RS 4
-A choice of all RPC requests defined in the input YANG modules\&.
+An RPC request defined in the input YANG module(s)\&.
 .RE
 .PP
 rpc\-reply
 .RS 4
-A choice of all RPC replies defined in the input YANG modules\&.
+An RPC reply defined in the input YANG module(s)\&.
 .RE
 .PP
 notif
 .RS 4
-A choice of all event notifications defined in the input YANG modules\&.
+An event notification defined in the input YANG modules\&.
 .RE
 .PP
-Optional validation of the XML document
+The output schemas are contained in the following four files whose names depend on the arguments
+\fIbasename\fR
+and
+\fItarget\fR:
+.PP
+\fIbasename\fR\-\fItarget\fR\&.rng
+.RS 4
+RELAX NG schema for the target document type\&.
+.RE
+.PP
+\fIbasename\fR\-gdefs\&.rng
+.RS 4
+Auxiliary RELAX NG schema containing global named pattern definitions (common for all targets)\&.
+.RE
+.PP
+\fIbasename\fR\-\fItarget\fR\&.sch
+.RS 4
+Schematron schema for the target document type\&.
+.RE
+.PP
+\fIbasename\fR\-\fItarget\fR\&.dsrl
+.RS 4
+DSRL schema for the target document type\&.
+.RE
+.PP
+Optional validation of an XML document stored in the file
 \fIinstance\fR
 proceeds as follows:
 .sp
@@ -127,14 +131,22 @@ The DSRL schema is used for adding default values together with ancestor contain
 Semantic constraints are checked using the Schematron schema\&.
 .RE
 .PP
+If any of the schemas is missing, the corresponding step is skipped\&. Option
+\fB\-s\fR
+may be used together with
+\fB\-v\fR
+to validate an instance document without generating the schemas\&. This assumes that the schemas are already present in the directory selected by the
+\fB\-d\fR
+option (current directory by default)\&.
+.PP
 The script uses programs from the libxml2 suite \-
-\fBxsltproc\fR(1) program performs XSLT transformations and
-\fBxmllint\fR(1) does RELAX NG validation\&. If necessary, the script could be easily modified for use with other XSLT processors and/or RELAX NG validators\&.
+\fBxmllint\fR(1) for RELAX NG validation and
+\fBxsltproc\fR(1) for performing XSLT transformations\&. If necessary, the script could be easily modified for use with other RELAX NG validators and/or XSLT1 processors supporting EXSLT\&.
 .SH "OPTIONS"
 .PP
 \fB\-b\fR \fIbasename\fR
 .RS 4
-Specifies the basename of files in which the output schemas are stored\&. The default is a concatenation of the names of all input YANG modules connected with the underscore character "_"\&.
+Specifies the basename of files in which the output schemas are stored\&. The default is the concatenation of the names of all input YANG modules connected with the underscore character "_"\&.
 .RE
 .PP
 \fB\-d\fR \fIdir\fR
@@ -145,6 +157,12 @@ Specifies the directory for output files\&. By default they are stored in the cu
 \fB\-h\fR
 .RS 4
 Displays help screen and exits\&.
+.RE
+.PP
+\fB\-s\fR
+.RS 4
+Performs just validation, without (re)generating the schemas\&. This option is only allowed together with
+\fB\-v\fR\&.
 .RE
 .PP
 \fB\-t\fR \fItarget\fR
@@ -159,19 +177,25 @@ Specifies the target XML document type using one of the following strings as exp
 or
 \fBnotif\fR\&.
 .RE
+.PP
+\fB\-v\fR \fIinstance\fR
+.RS 4
+Validates the instance XML document in file
+\fIinstance\fR\&.
+.RE
 .SH "FILES"
 .PP
-/usr/local/share/yang/xslt/cts2rng\&.xsl
+/usr/local/share/yang/xslt/gen\-relaxng\&.xsl
 .RS 4
 XSLT stylesheet generating RELAX NG schemas\&.
 .RE
 .PP
-/usr/local/share/yang/xslt/cts2sch\&.xsl
+/usr/local/share/yang/xslt/gen\-schematron\&.xsl
 .RS 4
 XSLT stylesheet generating Schematron schemas\&.
 .RE
 .PP
-/usr/local/share/yang/xslt/cts2dsrl\&.xsl
+/usr/local/share/yang/xslt/gen\-dsrl\&.xsl
 .RS 4
 XSLT stylesheet generating DSRL schemas\&.
 .RE
@@ -207,8 +231,7 @@ Options to pass to the XSLT processor\&.
 .RS 4
 .\}
 .nf
-$ yang2dsdl \-v dhcp\&.xml dhcp\&.yang       
-    
+$ yang2dsdl \-v dhcp\&.xml dhcp\&.yang
 .fi
 .if n \{\
 .RE
@@ -225,13 +248,12 @@ file\&.
 .\}
 .nf
 $ yang2dsdl \-t rpc rpc\-rock\&.yang
-    
 .fi
 .if n \{\
 .RE
 .\}
 .PP
-This command generates the Schematron schema for the input parts (requests) of all RPC operations defined in the module
+This command generates DSDL schemas for the choice of input parts (requests) of all RPC operations defined in the module
 rpc\-rock\&.yang\&.
 .SH "SEE ALSO"
 .PP

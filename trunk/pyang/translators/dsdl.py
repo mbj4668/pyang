@@ -313,7 +313,7 @@ class HybridDSDLSchema(object):
         """Create top-level elements of CTS."""
         self.top_grammar = SchemaNode("grammar")
         self.tree = SchemaNode.element("nmt:netmod-tree",
-                                       interleave=False, occur=2)
+                                       interleave=True, occur=2)
 
     def create_roots(self, yam):
         """Create root elements for conf. data, RPCs and notifications."""
@@ -328,7 +328,7 @@ class HybridDSDLSchema(object):
         start = SchemaNode("start", self.local_grammar)
         self.data = SchemaNode.element("nmt:data", start,
                                        interleave=True, occur=2)
-        self.rpcs = SchemaNode.element("nmt:rpc-methods", start,
+        self.rpcs = SchemaNode.element("nmt:rpcs", start,
                                        interleave=False, occur=2)
         self.notifications = SchemaNode.element("nmt:notifications", start,
                                                 interleave=True, occur=2)
@@ -808,7 +808,7 @@ class HybridDSDLSchema(object):
                 elem.occur = 3
         elif refd["mandatory"] or stmt.search_one("mandatory", "true"):
             self.propagate_occur(elem, 2)
-        elif elem.occur == 0:
+        if elem.occur == 0:
             defv = self.get_default(stmt, refd)
             if defv:
                 elem.default = defv
@@ -819,14 +819,14 @@ class HybridDSDLSchema(object):
         lelem = SchemaNode.leaf_list(self.qname(stmt), p_elem)
         refd = self.process_patches(pset, stmt.arg, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
-        if lelem.minEl > 0: self.propagate_occur(p_elem, 2)
+        if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.list(self.qname(stmt), p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt.arg, lelem)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
-        if lelem.minEl > 0: self.propagate_occur(p_elem, 2)
+        if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
         keyst = stmt.search_one("key")
         if keyst:
             self.lists.append(lelem)
@@ -866,7 +866,7 @@ class HybridDSDLSchema(object):
             self.insert_doc(p_elem, "See: " + stmt.arg)
 
     def rpc_stmt(self, stmt, p_elem, pset):
-        rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs, occur=2)
+        rpcel = SchemaNode.element("nmt:rpc", self.rpcs, occur=2)
         r_pset = self.process_patches(pset, stmt.arg, rpcel)[2]
         inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
         elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
