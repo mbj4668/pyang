@@ -95,13 +95,47 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  </rng:element>
 	</rng:element>
       </xsl:when>
-      <xsl:when test="$target='rpc'">
-        <xsl:apply-templates select="key('rpc',$name)"/>
+      <xsl:when test="$target='rpc' or $target='rpc-reply'">
+        <rng:element name="$target">
+          <rng:ref name="message-id-attribute"/>
+	  <xsl:choose>
+	    <xsl:when test="count(rng:grammar//nmt:rpc-method)>1">
+	      <rng:choice>
+		<xsl:if test="$target='rpc-reply'
+			      and descendant::rpc-method[not(nmt:output)]">
+		  <rng:ref name="ok-element"/>
+		</xsl:if>
+		<xsl:apply-templates
+		    select="rng:grammar[descendant::nmt:rpc:method]"/>
+	      </rng:choice>
+	    </xsl:when>
+	    <xsl:otherwise>
+		<xsl:if test="$target='rpc-reply'
+			      and descendant::rpc-method[not(nmt:output)]">
+		  <rng:ref name="ok-element"/>
+		</xsl:if>
+		<xsl:apply-templates
+		    select="rng:grammar[descendant::nmt:rpc:method]"/>
+	    </xsl:otherwise>
+	  </xsl:choose>
+	</rng:element>
       </xsl:when>
       <xsl:when test="$target='notif'">
-          <xsl:apply-templates
-              select="rng:element[@name='nmt:notifications']/
-                      rng:element[rng:element/@name=$name]"/>
+	<rng:element name="notification">
+	  <rng:ref name="eventTime-element"/>
+	  <xsl:choose>
+	    <xsl:when test="count(rng:grammar//nmt:notification)>1">
+	      <rng:choice>
+		<xsl:apply-templates
+		    select="rng:grammar[descendant::nmt:notification]"/>
+	      </rng:choice>
+	    </xsl:when>
+	    <xsl:otherwise>
+		<xsl:apply-templates
+		    select="rng:grammar[descendant::nmt:notification]"/>
+	    </xsl:otherwise>
+	  </xsl:choose>
+	</rng:element>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -118,7 +152,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  </xsl:attribute>
 	</xsl:element>
       </xsl:if>
-      <xsl:apply-templates select="rng:*"/>
+      <xsl:apply-templates select="rng:start"/>
     </xsl:element>
   </xsl:template>
 
@@ -129,7 +163,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 			or $target='getconf-reply'">
 	  <xsl:apply-templates select="rng:element[@name='nmt:data']"/>
 	</xsl:when>
-	<xsl:when test="$target='rpc'">
+	<xsl:when test="$target='rpc' or $target='rpc-reply'">
 	  <xsl:apply-templates select="rng:element[@name='nmt:rpc-methods']"/>
 	</xsl:when>
 	<xsl:when test="$target='notif'">
@@ -140,41 +174,32 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:data']">
-    <xsl:apply-templates select="rng:*"/>
+    <xsl:choose>
+      <xsl:when test="$target='dstore' and count(rng:*)>1">
+	<xsl:element name="rng:choice">
+	  <xsl:apply-templates select="rng:*"/>
+	</xsl:element>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:apply-templates select="rng:*"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:rpc-method']">
     <xsl:choose>
-      <xsl:when test="$dir='input'">
-        <rng:element name="rpc">
-          <rng:ref name="message-id-attribute"/>
-          <xsl:apply-templates
-              select="rng:element[@name='nmt:input']/*"/>
-        </rng:element>
+      <xsl:when test="$target='rpc'">
+	<xsl:apply-templates select="rng:element[@name='nmt:input']/*"/>
       </xsl:when>
       <xsl:otherwise>
-        <rng:element name="rpc-reply">
-          <rng:ref name="message-id-attribute"/>
-          <xsl:choose>
-            <xsl:when test="rng:element[@name='nmt:output']">
-              <xsl:apply-templates
-                  select="rng:element[@name='nmt:output']/*"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <rng:ref name="ok-element"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </rng:element>
+	<xsl:apply-templates select="rng:element[@name='nmt:output']/*"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
 
   <xsl:template match="rng:element[@name='nmt:notification']">
-    <rng:element name="notification">
-      <rng:ref name="eventTime-element"/>
-      <xsl:apply-templates/>
-    </rng:element>
+    <xsl:apply-templates/>
   </xsl:template>
 
   <xsl:template match="@nma:*|nma:*|a:*"/>
