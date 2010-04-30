@@ -39,21 +39,27 @@
         <xsl:value-of select="$target"/>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="$target='notif' and
-		  not(//rng:element[@name='nmt:notification'])">
+    <xsl:if test="($target='dstore' or starts-with($target,'get'))
+		  and not(//rng:element[@name='nmt:data'])">
       <xsl:message terminate="yes">
-	<xsl:text>No notifications found.</xsl:text>
+	<xsl:text>Data model defines no data.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='rpc' or $target='rpc-reply') and
 		  not(//rng:element[@name='nmt:rpc-method'])">
       <xsl:message terminate="yes">
-	<xsl:text>No RPC methods found.</xsl:text>
+	<xsl:text>Data model defines no RPC methods.</xsl:text>
+      </xsl:message>
+    </xsl:if>
+    <xsl:if test="$target='notif' and
+		  not(//rng:element[@name='nmt:notification'])">
+      <xsl:message terminate="yes">
+	<xsl:text>Data model defines no notifications.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="not($gdefs-only='0' or $gdefs-only='1')">
       <xsl:message terminate="yes">
-	<xsl:text>Bad 'gdefs-only' parameter: </xsl:text>
+	<xsl:text>Bad 'gdefs-only' parameter value: </xsl:text>
 	<xsl:value-of select="$gdefs-only"/>
       </xsl:message>
     </xsl:if>
