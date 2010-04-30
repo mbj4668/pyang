@@ -26,7 +26,7 @@
   </xsl:template>
 
   <xsl:template match="svrl:failed-assert">
-    <xsl:text>Failed assert at </xsl:text>
+    <xsl:text>--- Failed assert at </xsl:text>
     <xsl:value-of
         select="preceding-sibling::svrl:fired-rule[1]/@context"/>
     <xsl:value-of select="concat(':',$NL)"/>
@@ -34,7 +34,7 @@
   </xsl:template>
 
   <xsl:template match="svrl:successful-report">
-    <xsl:text>Validity error at </xsl:text>
+    <xsl:text>--- Validity error at </xsl:text>
     <xsl:value-of
         select="preceding-sibling::svrl:fired-rule[1]/@context"/>
     <xsl:value-of select="concat(':',$NL)"/>

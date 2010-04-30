@@ -775,6 +775,7 @@ class HybridDSDLSchema(object):
         chelem = SchemaNode.choice(p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt.arg, chelem)
         if refd["mandatory"] or stmt.search_one("mandatory", "true"):
+            chelem.attr["nma:mandatory"] = stmt.arg
             self.propagate_occur(chelem, 2)
         else:
             defv = self.get_default(stmt, refd)

@@ -130,7 +130,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="yam-namespaces"/>
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
-        select="rng:define[descendant::rng:element[&annots;]]"/>
+        select="rng:define[descendant::rng:element[&annots;]|
+		descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -140,7 +141,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="@name"/>
       </xsl:attribute>
-      <xsl:apply-templates select="descendant::rng:element[&annots;]">
+      <xsl:apply-templates
+	  select="descendant::rng:element[&annots;]|
+		  descendant::rng:choice[@nma:mandatory]">
         <xsl:with-param name="prevpath">$start</xsl:with-param>
       </xsl:apply-templates>
     </xsl:element>
@@ -148,7 +151,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-        select="rng:define[descendant::rng:element[&annots;]]"/>
+        select="rng:define[descendant::rng:element[&annots;]|
+		descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
                       or $target='getconf-reply'">
@@ -175,8 +179,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="ancestor::rng:grammar/@nma:module"/>
       </xsl:attribute>
-      <xsl:apply-templates select="descendant::rng:element[&annots;]">
+      <xsl:apply-templates
+	  select="descendant::rng:element[&annots;]|
+		  descendant::rng:choice[@nma:mandatory]">
         <xsl:with-param name="prevpath" select="$netconf-part"/>
+	<xsl:with-param
+	    name="prefix"
+	    select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
       </xsl:apply-templates>
     </xsl:element>
     <xsl:apply-templates select="rng:element|rng:ref" mode="ref">
@@ -186,19 +195,76 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:element">
     <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
     <xsl:element name="sch:rule">
       <xsl:attribute name="context">
       <xsl:call-template name="self-path">
         <xsl:with-param name="prevpath" select="$prevpath"/>
+	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
       </xsl:attribute>
       <xsl:apply-templates select="&annots;"/>
     </xsl:element>
   </xsl:template>
 
+  <xsl:template match="rng:choice">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:element name="sch:rule">
+      <xsl:attribute name="context">
+	<xsl:call-template name="self-path">
+	  <xsl:with-param name="prevpath" select="$prevpath"/>
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:call-template>
+      </xsl:attribute>
+      <xsl:call-template name="assert-element">
+	<xsl:with-param name="test">
+	  <xsl:apply-templates select="." mode="lookup-subel">
+	    <xsl:with-param name="prefix" select="$prefix"/>
+	  </xsl:apply-templates>
+	  <xsl:text>false</xsl:text>
+	</xsl:with-param>
+	<xsl:with-param
+	    name="message"
+	    select="concat('Node(s) from one case of mandatory choice &quot;',
+		    @nma:mandatory,'&quot; must exist')"/>
+      </xsl:call-template>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="rng:element" mode="lookup-subel">
+    <xsl:param name="prefix"/>
+    <xsl:choose>
+      <xsl:when test="contains(@name, ':')">
+	<xsl:value-of select="concat(@name, ' or ')"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:value-of select="concat($prefix, ':', @name, ' or ')"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="rng:ref" mode="lookup-subel">
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates select="key('refdef', @name)" mode="lookup-subel">
+	<xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:*" mode="lookup-subel">
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates
+	mode="lookup-subel"
+	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+	<xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
   <xsl:template match="rng:ref" mode="ref">
     <xsl:param name="prevpath"/>
-    <xsl:if test="key('refdef',@name)/descendant::rng:element[&annots;]">
+    <xsl:if test="key('refdef',@name)[descendant::rng:element[&annots;]|
+		  descendant::rng:choice[@nma:mandatory]]">
       <xsl:element name="sch:pattern">
         <xsl:attribute name="is-a">
           <xsl:value-of select="@name"/>
