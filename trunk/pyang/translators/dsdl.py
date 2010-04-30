@@ -450,7 +450,14 @@ class HybridDSDLSchema(object):
                               text=text)
             parent.children.insert(0,dcel)
 
-    
+    def get_default(self, stmt, refd):
+        """Return default value for `stmt` node."""
+        if refd["default"]:
+                return refd["default"]
+        defst = stmt.search_one("default")
+        if defst:
+            return defst.arg
+        return None
 
     def unique_def_name(self, stmt):
         """Mangle the name of `stmt` (typedef or grouping).
@@ -586,8 +593,8 @@ class HybridDSDLSchema(object):
                 break
             node = node.parent
 
-    def process_patches(self, pset, stmt, elem):
-        """Process patches for `stmt` from `pset`.
+    def process_patches(self, pset, name, elem):
+        """Process patches for node `name` from `pset`.
 
         Return tuple consisting of the selected patch statement list
         and transformed `pset` in which `name` is removed from the
@@ -597,7 +604,7 @@ class HybridDSDLSchema(object):
         augments = []
         refine_dict = dict.fromkeys(("presence", "default", "mandatory",
                                      "min-elements", "max-elements"))
-        for p in pset.pop(self.prefix_stack[-1] + ":" + stmt.arg, []):
+        for p in pset.pop(self.prefix_stack[-1] + ":" + name, []):
             if p.path:
                 new_pset[p.pop()] = [p]
             else:
@@ -716,10 +723,10 @@ class HybridDSDLSchema(object):
         self.has_anyxml = True
         elem = SchemaNode.element(self.node_id(stmt), p_elem)
         SchemaNode("ref", elem).set_attr("name", "__anyxml__")
-        refd = self.process_patches(pset, stmt, elem)[0]
+        refd = self.process_patches(pset, stmt.arg, elem)[0]
         if p_elem.name == "choice":
             elem.occur = 3
-        elif refd["mandatory"] or search_one("mandatory", "true"):
+        elif refd["mandatory"] or stmt.search_one("mandatory", "true"):
             elem.occur = 2
             self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, elem)
@@ -734,28 +741,27 @@ class HybridDSDLSchema(object):
         celem = SchemaNode.case(p_elem)
         if p_elem.default_case != stmt.arg:
             celem.occur = 3
-        plist, new_pset = self.select_patch(pset, stmt.arg)
-        for s in plist: self.handle_stmt(s, celem, new_pset)
+        refd, augs, new_pset = self.process_patches(pset, stmt.arg, celem)
         self.handle_substmts(stmt, celem, new_pset)
+        self.apply_augments(augs, celem, new_pset)
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
-        plist, new_pset = self.select_patch(pset, stmt.arg)
-        if self.is_mandatory(stmt, plist):
-            chelem.occur = 2
-            self.propagate_occur(chelem.parent, 2)
+        refd, augs, new_pset = self.process_patches(pset, stmt.arg, chelem)
+        if refd["mandatory"] or stmt.search_one("mandatory", "true"):
+            self.propagate_occur(chelem, 2)
         else:
-            defv = self.get_default(stmt, plist)
+            defv = self.get_default(stmt, refd)
             if defv:
                 chelem.default_case = defv
             else:
                 chelem.occur = 3
-        for s in plist: self.handle_stmt(s, chelem, new_pset)
         self.handle_substmts(stmt, chelem, new_pset)
+        self.apply_augments(augs, chelem, new_pset)
         
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.node_id(stmt), p_elem)
-        refd, augs, new_pset = self.process_patches(pset, stmt, celem)
+        refd, augs, new_pset = self.process_patches(pset, stmt.arg, celem)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg
             or refd["presence"] or stmt.search_one("presence")):
             celem.occur = 3
@@ -781,32 +787,28 @@ class HybridDSDLSchema(object):
 
     def leaf_stmt(self, stmt, p_elem, pset):
         elem = SchemaNode.element(self.node_id(stmt), p_elem)
-        refd = self.process_patches(pset, stmt, elem)[0]
+        refd = self.process_patches(pset, stmt.arg, elem)[0]
         if p_elem.name == "choice":
             if p_elem.default_case != stmt.arg:
                 elem.occur = 3
         elif refd["mandatory"] or stmt.search_one("mandatory", "true"):
             self.propagate_occur(elem, 2)
         elif elem.occur == 0:
-            if refd["default"]:
-                elem.default = refd["default"]
+            defv = self.get_default(stmt, refd)
+            if defv:
+                elem.default = defv
                 self.propagate_occur(elem, 1)
-            else:
-                defst = stmt.search_one("default")
-                if defst:
-                    elem.default = defst.arg
-                    self.propagate_occur(elem, 1)
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.leaf_list(self.node_id(stmt), p_elem)
-        refd = self.process_patches(pset, stmt, lelem)[0]
+        refd = self.process_patches(pset, stmt.arg, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.list(self.node_id(stmt), p_elem)
-        refd, augs, new_pset = self.process_patches(pset, stmt, lelem)
+        refd, augs, new_pset = self.process_patches(pset, stmt.arg, lelem)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, plist)
         keyst = stmt.search_one("key")
         if keyst:
@@ -829,15 +831,15 @@ class HybridDSDLSchema(object):
         notel = SchemaNode.element("nmt:notification", self.notifications,
                                    occur=2)
         elem = SchemaNode.element(self.node_id(stmt), notel, occur=2)
-        plist, new_pset = self.select_patch(pset, stmt.arg)
-        for s in plist: self.handle_stmt(s, elem, new_pset)
+        augs, new_pset = self.process_patches(pset, stmt.arg, elem)[1:]
         self.handle_substmts(stmt, elem, new_pset)
+        self.apply_augments(augs, elem, new_pset)
 
     def output_stmt(self, stmt, p_elem, pset):
         elem = SchemaNode.element("nmt:output", p_elem, occur=2)
-        plist, new_pset = self.select_patch(pset, "output")
-        for s in plist: self.handle_stmt(s, elem, new_pset)
+        augs, new_pset = self.process_patches(pset, "output", elem)[1:]
         self.handle_substmts(stmt, elem, new_pset)
+        self.apply_augments(augs, elem, new_pset)
 
     def reference_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -848,15 +850,14 @@ class HybridDSDLSchema(object):
 
     def rpc_stmt(self, stmt, p_elem, pset):
         rpcel = SchemaNode.element("nmt:rpc-method", self.rpcs, occur=2)
-        rlist, r_pset = self.select_patch(pset, stmt.arg)
+        r_pset = self.process_patches(pset, stmt.arg, rpcel)[2]
         inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
         elem = SchemaNode.element(self.node_id(stmt), inpel, occur=2)
         inst = stmt.search_one("input")
         if inst:
-            ilist, i_pset = self.select_patch(r_pset, "input")
-            for s in ilist: self.handle_stmt(s, elem, i_pset)
+            augs, i_pset = self.process_patches(r_pset, "input", elem)[1:]
             self.handle_substmts(inst, elem, i_pset)
-        for s in rlist: self.handle_stmt(s, elem, r_pset)
+            self.apply_augments(augs, elem, i_pset)
         self.handle_substmts(stmt, rpcel, r_pset)
 
     def type_stmt(self, stmt, p_elem, pset):
