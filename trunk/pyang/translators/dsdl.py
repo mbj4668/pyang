@@ -307,9 +307,9 @@ class HybridDSDLSchema(object):
             self.prefix = self.module_prefixes[module.arg]
             self.create_roots(module)
             self.handle_substmts(module, self.data, gpset)
-            self.handle_empty()
             for d in self.local_defs.values():
                 self.local_grammar.subnode(d)
+            self.handle_empty()
         for l in self.lists: self.collect_keys(l)
         self.dc_element(self.top_grammar, "creator",
                         "Pyang %s, DSDL plugin" % pyang.__version__)
@@ -323,7 +323,7 @@ class HybridDSDLSchema(object):
 
     def create_roots(self, yam):
         """Create root elements for conf. data, RPCs and notifications."""
-        self.local_grammar = SchemaNode("grammar", self.tree)
+        self.local_grammar = SchemaNode("grammar")
         self.local_grammar.attr["ns"] = yam.search_one("namespace").arg
         start = SchemaNode("start", self.local_grammar)
         module = SchemaNode.element("nmt:module", start, occur=2)
@@ -433,8 +433,11 @@ class HybridDSDLSchema(object):
         If any of the subtrees of the hybrid tree is empty, put
         <empty/> as its content.
         """
-        for subtree in (self.data, self.rpcs, self.notifications):
-            if len(subtree.children) == 0:
+        empty = [ s for s in (self.data, self.rpcs, self.notifications)
+                  if len(s.children) == 0 ] 
+        if len(empty) < 3:
+            self.tree.subnode(self.local_grammar)
+            for subtree in empty:
                 SchemaNode("empty", subtree)
 
     def dc_element(self, parent, name, text):
