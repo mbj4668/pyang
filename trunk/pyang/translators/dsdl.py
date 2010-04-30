@@ -279,6 +279,7 @@ class HybridDSDLSchema(object):
         self.lists = []
         self.module_prefixes = {}
         gpset = {}
+        self.gg_level = 0
         for module in modules:
             ns = module.search_one("namespace").arg
             pref = module.search_one("prefix").arg
@@ -333,6 +334,9 @@ class HybridDSDLSchema(object):
 
         Prefixes are only added to unqualified node names.
         """
+        def prefix():
+            if self.gg_level: return "$pref:"
+            return self.prefix_stack[-1] + ":"
         state = 0
         result = ""
         for c in xpath:
@@ -356,7 +360,7 @@ class HybridDSDLSchema(object):
                     result += name + c
                 else:
                     state = 0
-                    if ":" not in name: result += self.prefix_stack[-1] + ":"
+                    if ":" not in name: result += prefix()
                     result += name + c
             elif state == 2:    # single-quoted string
                 if c == "'":
@@ -371,7 +375,7 @@ class HybridDSDLSchema(object):
                 else:
                     result += c
         if state == 1:
-            if ":" not in name: result += self.prefix_stack[-1] + ":"
+            if ":" not in name: result += prefix()
             result += name
         return result
 
@@ -420,10 +424,6 @@ class HybridDSDLSchema(object):
         """Return `name` prepended with local prefix."""
         if ":" in name: return name
         return self.prefix_stack[-1] + ":" + name
-
-    def local_stmt(self, stmt):
-        """Is the statement local or with foreign namespace?"""
-        return self.module == stmt.i_module or self.group_level > 0
 
     def node_id(self, stmt):
         """Return node name of `stmt` (prefixed if external)."""
@@ -556,7 +556,9 @@ class HybridDSDLSchema(object):
         delem = SchemaNode.define(name)
         delem.attr["name"] = name
         def_map[name] = delem
+        if def_map is self.global_defs: self.gg_level += 1
         self.handle_substmts(dstmt, delem)
+        if def_map is self.global_defs: self.gg_level -= 1
 
     def handle_extension(self, stmt, p_elem):
         """Append YIN representation of `stmt`."""
