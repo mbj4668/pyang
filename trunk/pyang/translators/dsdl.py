@@ -379,17 +379,6 @@ class HybridDSDLSchema(object):
             result += name
         return result
 
-    def canonic_nodeid(self, nodeid):
-        """Return list containing `nodeid` components with prefixes."""
-        def pref(comp):
-            p, colon, l = comp.partition(":")
-            if colon:
-                return (self.module_prefixes[self.module.i_prefixes[p][0]] +
-                        ":" + l)
-            else:
-                return self.prefix_stack[-1] + ":" + p
-        return [ pref(c) for c in nodeid.split("/") if c ]
-
     def add_namespace(self, uri, prefix):
         """Add new item `uri`:`prefix` to `self.namespaces`.
 
@@ -420,15 +409,25 @@ class HybridDSDLSchema(object):
             uname, dic = self.unique_def_name(d)
             self.install_def(uname, d, dic)
 
-    def add_local_prefix(self, name):
-        """Return `name` prepended with local prefix."""
-        if ":" in name: return name
-        return self.prefix_stack[-1] + ":" + name
+    def add_prefix(self, name):
+        """Return `name` prepended with correct prefix."""
+        pref, colon, local = name.partition(":")
+        if colon:
+            return (self.prefix_map[pref] + ":" + local)
+        else:
+            return self.prefix_stack[-1] + ":" + pref
 
     def node_id(self, stmt):
-        """Return node name of `stmt` (prefixed if external)."""
+        """Return (prefixed) node name of `stmt`.
+
+        The result is prefixed unless inside a global grouping.
+        """
         if self.gg_level: return stmt.arg
         return self.prefix_stack[-1] + ":" + stmt.arg
+
+    def canonic_nodeid(self, nodeid):
+        """Return list containing `nodeid` components with prefixes."""
+        return [ self.add_prefix(c) for c in nodeid.split("/") if c ]
 
     def handle_empty(self):
         """Handle empty subtree(s) of the hybrid tree.
@@ -510,6 +509,8 @@ class HybridDSDLSchema(object):
     def apply_augments(self, auglist, p_elem, pset):
         """Apply statements from `auglist` as patch."""
         for a in auglist:
+            par = a.parent
+            if par
             if (a.parent.keyword == "module" and
                 self.module_prefixes[a.parent.arg] != self.prefix_stack[0]):
                 self.prefix_stack.append(self.module_prefixes[a.parent.arg])
@@ -813,7 +814,7 @@ class HybridDSDLSchema(object):
         keyst = stmt.search_one("key")
         if keyst:
             self.lists.append(lelem)
-            lelem.keys = [self.add_local_prefix(k) for k in keyst.arg.split()]
+            lelem.keys = [self.add_prefix(k) for k in keyst.arg.split()]
         self.handle_substmts(stmt, lelem, new_pset)
         self.apply_augments(augs, lelem, new_pset)
 
@@ -898,7 +899,7 @@ class HybridDSDLSchema(object):
 
     def unique_stmt(self, stmt, p_elem, pset):
         def addpref(nid):
-            return "/".join([self.add_local_prefix(c)
+            return "/".join([self.add_prefix(c)
                              for c in nodeid.split("/")])
         p_elem.attr["nma:unique"] = " ".join(
             [self.addpref(nid) for nid in stmt.arg.split()])
