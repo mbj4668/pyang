@@ -84,7 +84,7 @@ validate() {
     echo -e "\n== Validating grammar and datatypes ..."
     if [ -f $btname.rng ] ; then
         xmllint --noout --relaxng $btname.rng $instance
-	[[ $? == 0 ]] || [[ $? == 3 ]] || [[ $? == 4 ]] || exit 2
+	[[ $? == 0 ]] || exit 2
     else
         echo "RELAX NG schema '$btname.rng' not found, skipping ..."
     fi
