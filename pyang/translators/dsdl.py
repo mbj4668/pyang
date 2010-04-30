@@ -44,6 +44,7 @@ __docformat__ = "reStructuredText"
 
 import sys
 import optparse
+import time
 
 import pyang
 from pyang import plugin, statements, error
@@ -309,6 +310,7 @@ class HybridDSDLSchema(object):
             self.handle_empty()
             self.all_defs.update(self.local_defs)
         self.all_defs.update(self.global_defs)
+        self.dc_element(self.top_grammar, "date", time.strftime("%Y-%m-%d"))
         self.dc_element(self.top_grammar, "creator",
                         "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
