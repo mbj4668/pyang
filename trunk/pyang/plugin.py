@@ -11,10 +11,10 @@ def init(plugindirs=[]):
     """Initialize the plugin framework"""
 
     # initialize the builtin plugins
-    from translators import yang,yin,cts,xsd
+    from translators import yang,yin,dsdl,xsd
     yang.pyang_plugin_init()
     yin.pyang_plugin_init()
-    cts.pyang_plugin_init()
+    dsdl.pyang_plugin_init()
     xsd.pyang_plugin_init()
 
     # search for plugins in std directory

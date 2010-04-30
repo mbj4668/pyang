@@ -28,9 +28,9 @@ test: clean
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
 		echo -n " generating RNG...";				\
-		(grep '^submodule' $$m > /dev/null || $(PYANG) -f cts -o $$m.cts $$m) || exit 0;	\
+		(grep '^submodule' $$m > /dev/null || $(PYANG) -f dsdl -o $$m.dsdl $$m) || exit 0;	\
 		echo " ok";						\
 	done
 
 clean:
-	rm -rf *.xsd *.yin *.gen.* *.cts
+	rm -rf *.xsd *.yin *.gen.* *.dsdl

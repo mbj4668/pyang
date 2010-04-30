@@ -1,7 +1,7 @@
 # Copyright (c) 2009 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 #                       Martin Bjorklund <mbj@tail-f.com>
 #
-# Translator of YANG to conceptual tree schema
+# Translator of YANG to hybrid DSDL schema
 # (RELAX NG with additional annotations)
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -16,25 +16,25 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""Translator from YANG to conceptual tree schema.
+"""Translator from YANG to hybrid DSDL schema.
 
 It is designed as a plugin for the pyang program and defines several
 new command-line options:
 
---cts-no-documentation
+--dsdl-no-documentation
     No output of DTD compatibility documentation annotations
 
---cts-no-dublin-core
+--dsdl-no-dublin-core
     No output of Dublin Core annotations
 
---cts-record-defs
+--dsdl-record-defs
     Record all top-level defs, even if they are not used
 
 Three classes are defined in this module:
 
-* `CTSPlugin`: pyang plugin interface class
+* `DSDLPlugin`: pyang plugin interface class
 
-* `CTSTranslator`: provides instance that preforms the mapping
+* `DSDLTranslator`: provides instance that preforms the mapping
 
 * `Patch`: utility class representing a patch to the YANG tree
   where augment and refine statements are recorded
@@ -51,52 +51,52 @@ from pyang import plugin, statements, error
 from schemanode import SchemaNode
 
 def pyang_plugin_init():
-    plugin.register_plugin(CTSPlugin())
+    plugin.register_plugin(DSDLPlugin())
 
-class CTSPlugin(plugin.PyangPlugin):
+class DSDLPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         self.multiple_modules = True
-        fmts['cts'] = self
+        fmts['dsdl'] = self
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--cts-no-documentation",
-                                 dest="cts_no_documentation",
+            optparse.make_option("--dsdl-no-documentation",
+                                 dest="dsdl_no_documentation",
                                  action="store_true",
                                  default=False,
                                  help="No output of DTD compatibility"
                                  " documentation annotations"),
-            optparse.make_option("--cts-no-dublin-core",
-                                 dest="cts_no_dublin_core",
+            optparse.make_option("--dsdl-no-dublin-core",
+                                 dest="dsdl_no_dublin_core",
                                  action="store_true",
                                  default=False,
                                  help="No output of Dublin Core"
                                  " annotations"),
-            optparse.make_option("--cts-record-defs",
-                                 dest="cts_record_defs",
+            optparse.make_option("--dsdl-record-defs",
+                                 dest="dsdl_record_defs",
                                  action="store_true",
                                  default=False,
                                  help="Record all top-level defs"
                                  " (even if not used)"),
             ]
-        g = optparser.add_option_group("Conceptual tree schema "
+        g = optparser.add_option_group("Hybrid DSDL schema "
                                        "output specific options")
         g.add_options(optlist)
 
     def emit(self, ctx, modules, fd):
         if 'submodule' in [ m.keyword for m in modules ]:
             raise error.EmitError("Cannot translate submodules")
-        emit_cts(ctx, modules, fd)
+        emit_dsdl(ctx, modules, fd)
 
-def emit_cts(ctx, modules, fd):
+def emit_dsdl(ctx, modules, fd):
     # No errors are allowed
     for (epos, etag, eargs) in ctx.errors:
         if (epos.top_name == module.arg and
             error.is_error(error.err_level(etag))):
-            raise error.EmitError("CTS translation needs a valid module")
-    schema = ConceptualTreeSchema().from_modules(modules,
-                                  ctx.opts.cts_no_dublin_core,
-                                  ctx.opts.cts_no_documentation,
-                                  ctx.opts.cts_record_defs, debug=0)
+            raise error.EmitError("DSDL translation needs a valid module")
+    schema = HybridDSDLSchema().from_modules(modules,
+                                  ctx.opts.dsdl_no_dublin_core,
+                                  ctx.opts.dsdl_no_documentation,
+                                  ctx.opts.dsdl_record_defs, debug=0)
     fd.write(schema.serialize())
 
 class Patch(object):
@@ -143,7 +143,7 @@ class Patch(object):
         add = [n for n in patch.slist if n.keyword not in kws]
         self.slist.extend(add)
 
-class ConceptualTreeSchema(object):
+class HybridDSDLSchema(object):
 
     YANG_version = 1
     """Checked against the yang-version statement, if present."""
@@ -280,7 +280,7 @@ class ConceptualTreeSchema(object):
     def from_modules(self, modules, no_dc=False, no_a=False, record_defs=False,
                   debug=0):
         self.namespaces = {
-            "urn:ietf:params:xml:ns:netmod:conceptual-tree:1" : "nmt",
+            "urn:ietf:params:xml:ns:netmod:hybrid-tree:1" : "nmt",
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
         }
         if not no_dc: self.namespaces[self.dc_uri] = "dc"
@@ -316,7 +316,7 @@ class ConceptualTreeSchema(object):
         for l in self.lists: self.collect_keys(l)
         self.handle_empty()
         self.dc_element("creator",
-                        "Pyang %s, CTS plugin" % pyang.__version__)
+                        "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
 
     def create_roots(self):
@@ -416,9 +416,9 @@ class ConceptualTreeSchema(object):
         return "/".join([self.prefix_id(c) for c in nodeid.split("/")])
 
     def handle_empty(self):
-        """Handle empty subtree(s) of conceptual tree.
+        """Handle empty subtree(s) of the hybrid tree.
 
-        If any of the subtrees of the conceptual tree is empty, put
+        If any of the subtrees of the hybrid tree is empty, put
         <empty/> as its content.
         """
         if self.no_data: return
