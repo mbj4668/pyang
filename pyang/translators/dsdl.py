@@ -427,7 +427,7 @@ class HybridDSDLSchema(object):
 
     def node_id(self, stmt):
         """Return node name of `stmt` (prefixed if external)."""
-        if len(self.prefix_stack) == 1: return stmt.arg
+        if self.gg_level: return stmt.arg
         return self.prefix_stack[-1] + ":" + stmt.arg
 
     def handle_empty(self):
