@@ -357,7 +357,10 @@ class HybridDSDLSchema(object):
                 else:
                     result += c
             elif state == 1:    # inside name
-                if c.isalnum() or c in "_-.:":
+                if c.isalnum() or c in "_-.":
+                    name += c
+                elif c == ":":
+                    state = 4
                     name += c
                 elif c == "(":  # function
                     state = 0
@@ -378,6 +381,13 @@ class HybridDSDLSchema(object):
                     result += c
                 else:
                     result += c
+            elif state == 4:    # axis
+                if c == ":":
+                    state = 0
+                    result += name + c
+                else:
+                    state = 1
+                    name += c
         if state == 1:
             if ":" not in name: result += prefix()
             result += name
