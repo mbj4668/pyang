@@ -42,17 +42,9 @@
     syntax. The output DSDL schemas are written to the directory
     <replaceable>dir</replaceable> (current directory by
     default).</para>
-    <para>The output schemas are contained in five files with a common
+    <para>The output schemas are contained in four files with a common
     <replaceable>basename</replaceable>:</para>
     <variablelist>
-      <varlistentry>
-	<term>
-	  <filename><replaceable>basename</replaceable>.cts</filename>
-	</term>
-	<listitem><para>Conceptual tree schema, an interim annotated
-	RELAX NG schema. This schema cannot be used for direct
-	validation.</para></listitem>
-      </varlistentry>
       <varlistentry>
 	<term>
 	  <filename><replaceable>basename</replaceable>.rng</filename>
