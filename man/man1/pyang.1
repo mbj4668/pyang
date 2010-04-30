@@ -24,7 +24,7 @@ complete list of options.
 .SH DESCRIPTION
 The \fBpyang\fP program is used to validate YANG modules.  It is also
 used to convert YANG modules into equivalent YIN modules.  From a
-valid module, a W3C XML Schema (XSD) or conceptual tree schema (RELAX
+valid module, a W3C XML Schema (XSD) or hybrid DSDL schema (RELAX
 NG with additional annotations) can be generated.
 
 If no \fIformat\fP is given, the specified modules are validated, and
@@ -97,8 +97,8 @@ the XML syntax of YANG
 .TP 
 \fIyang\fR
 .TP
-\fIcts\fR
-Conceptual tree schema (RELAX NG with annotations)
+\fIdsdl\fR
+Hybrid DSDL schema (RELAX NG with annotations)
 .TP
 \fIxsd\fR
 W3C XML Schema
@@ -123,16 +123,16 @@ Generate all statements in the canonical order.
 Pretty print strings, i.e. print with extra whitespace in the string.
 This is not strictly correct, since the whitespace is significant
 within the strings in XML, but the output is more readable.
-.SH CTS OUTPUT
-Options for the \fIcts\fR output format.
+.SH DSDL OUTPUT
+Options for the \fIdsdl\fR output format.
 .TP
-.B "--cts-no-documentation"
+.B "--dsdl-no-documentation"
 Do not print documentation annotations
 .TP
-.B "--cts-no-dublin-core"
+.B "--dsdl-no-dublin-core"
 Do not print Dublin Core metadata terms
 .TP
-.B "--cts-record-defs"
+.B "--dsdl-record-defs"
 Record translations of all top-level typedefs and groupings in the
 output schema, even if they are not used. This is useful for
 translating library modules.
