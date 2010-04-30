@@ -80,3 +80,15 @@ pyang/plugins/
 
 pyang/translators/
   Contains output plugins for YANG, YIN, XSD, and DSDL translation.
+
+pyang/xslt
+  Contains XSLT stylesheets for generating RELAX NG, Schematron and
+  DSRL schemas and validating instance documents. Also included is the
+  free implementation of ISO Schematron from http://www.schematron.com/
+  (files iso_schematron_skeleton_for_xslt1.xsl, iso_abstract_expand.xsl
+  and iso_svrl_for_xslt1.xsl).
+
+pyang/schema
+  Contains RELAX NG schema for YIN and RELAX NG library of common
+  NETCONF elements which is included by the generated RELAX NG
+  schemas.
