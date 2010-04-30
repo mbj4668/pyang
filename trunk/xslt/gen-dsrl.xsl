@@ -43,16 +43,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:param name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
   <xsl:param name="en-uri">urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:param>
 
-  <xsl:variable name="netconf-part">
-    <xsl:choose>
-      <xsl:when
-          test="$target='get-reply' or
-                $target='getconf-reply'">/nc:rpc-reply/nc:data</xsl:when>
-      <xsl:when test="$target='rpc'">/nc:rpc</xsl:when>
-      <xsl:when test="$target='notif'">/en:notification</xsl:when>
-    </xsl:choose>
-  </xsl:variable>
-
   <xsl:template name="nc-namespace">
       <xsl:choose>
         <xsl:when test="$target='get-reply' or $target='getconf-reply'
@@ -71,12 +61,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="qname">
+    <xsl:param name="prefix"/>
+    <xsl:param name="name"/>
+    <xsl:if test="not(contains($name,':'))">
+      <xsl:value-of select="concat($prefix,':')"/>
+    </xsl:if>
+    <xsl:value-of select="$name"/>
+  </xsl:template>
+
   <xsl:template name="parent-path">
     <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
     <xsl:value-of select="$prevpath"/>
     <xsl:for-each select="ancestor::rng:element
                           [not(starts-with(@name,'nmt:'))]">
-      <xsl:value-of select="concat('/',@name)"/>
+      <xsl:text>/</xsl:text>
+      <xsl:call-template name="qname">
+	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="name" select="@name"/>
+      </xsl:call-template>
     </xsl:for-each>
   </xsl:template>
 
@@ -91,12 +95,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="element-map">
     <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
     <xsl:param name="content"/>
     <xsl:param name="case" select="boolean(0)"/>
     <xsl:element name="dsrl:element-map">
       <xsl:element name="dsrl:parent">
         <xsl:call-template name="parent-path">
           <xsl:with-param name="prevpath" select="$prevpath"/>
+          <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:call-template>
         <xsl:if test="$case">
           <xsl:apply-templates select="ancestor::rng:choice[1]"
@@ -104,10 +110,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         </xsl:if>
       </xsl:element>
       <xsl:element name="dsrl:name">
+	<xsl:if test="not(contains(@name,':'))">
+	  <xsl:value-of select="concat($prefix,':')"/>
+	</xsl:if>
         <xsl:value-of select="@name"/>
       </xsl:element>
       <xsl:element name="dsrl:default-content">
-        <xsl:apply-templates select="$content" mode="copy"/>
+        <xsl:apply-templates select="$content" mode="copy">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -147,45 +158,50 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:grammar">
+  <xsl:template match="/rng:grammar">
     <xsl:call-template name="yam-namespaces"/>
     <xsl:call-template name="nc-namespace"/>
-    <xsl:apply-templates
-        select="rng:start/rng:element[@name='nmt:netmod-tree']"/>
+    <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
-  <xsl:template match="rng:element[@name='nmt:netmod-tree']">
+  <xsl:template match="rng:grammar">
+    <xsl:variable name="prefix"
+		  select="name(namespace::*[.=current()/@ns])"/>
     <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='getconf-reply'">
-        <xsl:apply-templates select="rng:element[@name='nmt:top']"/>
+      <xsl:when test="$target='dstore' or $target='get-reply'
+		      or $target='getconf-reply'">
+        <xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:data']">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-        <xsl:apply-templates select="key('rpc',$name)"/>
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:input']">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
+      </xsl:when>
+      <xsl:when test="$target='rpc-reply'">
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:output']">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='notif'">
-          <xsl:apply-templates
-              select="rng:element[@name='nmt:notifications']/
-                      rng:element[rng:element/@name=$name]"/>
+	<xsl:apply-templates
+	    select="descendant::rng:element[@name='nmt:notification']">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
       </xsl:when>
-    </xsl:choose>
-  </xsl:template>
-
-  <xsl:template match="rng:element[@name='nmt:rpc-method']">
-    <xsl:choose>
-      <xsl:when test="$dir='input'">
-        <xsl:apply-templates select="rng:element[@name='nmt:input']"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:apply-templates
-            select="rng:element[@name='nmt:output']"/>
-      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
   <xsl:template match="rng:element[@nma:default]">
     <xsl:param name="prevpath" select="$netconf-part"/>
+    <xsl:param name="prefix"/>
     <xsl:call-template name="element-map">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
       <xsl:with-param name="content" select="@nma:default"/>
       <xsl:with-param name="case"
                       select="parent::rng:choice|../parent::rng:group|
@@ -195,8 +211,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:element[@nma:implicit='true']">
     <xsl:param name="prevpath" select="$netconf-part"/>
+    <xsl:param name="prefix"/>
     <xsl:call-template name="element-map">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
       <xsl:with-param name="content" select="rng:*"/>
       <xsl:with-param name="case"
                       select="parent::rng:choice|../parent::rng:group|
@@ -204,6 +222,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
     <xsl:apply-templates select="rng:*">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -213,8 +232,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
              rng:choice/rng:interleave[not(@nma:implicit='true')]
              /rng:optional/rng:element">
     <xsl:param name="prevpath" select="$netconf-part"/>
+    <xsl:param name="prefix"/>
     <xsl:apply-templates select="rng:*">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -224,44 +245,66 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       mode="copy"/>
 
   <xsl:template match="rng:element[@nma:implicit='true']" mode="copy">
-    <xsl:element name="{@name}"
-                 namespace="{namespace::*[name()=substring-before(
-                            current()/@name,':')]}">
-      <xsl:apply-templates select="rng:*" mode="copy"/>
+    <xsl:param name="prefix"/>
+    <xsl:variable name="name">
+      <xsl:call-template name="qname">
+	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="name" select="@name"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:element name="{$name}"
+		 namespace="{namespace::*[name()=$prefix]}">
+      <xsl:apply-templates select="rng:*" mode="copy">
+	<xsl:with-param name="prefix" select="$prefix"/>
+      </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:element[@nma:default]" mode="copy">
-    <xsl:element name="{@name}"
-                 namespace="{namespace::*[name()=substring-before(
-                            current()/@name,':')]}">
+    <xsl:param name="prefix"/>
+    <xsl:variable name="name">
+      <xsl:call-template name="qname">
+	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="name" select="@name"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:element name="{$name}"
+		 namespace="{namespace::*[name()=$prefix]}">
       <xsl:value-of select="@nma:default"/>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:*">
     <xsl:param name="prevpath" select="$netconf-part"/>
+    <xsl:param name="prefix"/>
     <xsl:apply-templates select="rng:*">
       <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:ref">
     <xsl:param name="prevpath" select="$netconf-part"/>
+    <xsl:param name="prefix"/>
     <xsl:apply-templates select="//rng:define[@name=current()/@name]">
       <xsl:with-param name="prevpath">
         <xsl:call-template name="parent-path">
           <xsl:with-param name="prevpath" select="$prevpath"/>
+	  <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:call-template>
       </xsl:with-param>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:element|rng:data" mode="copy"/>
 
   <xsl:template match="rng:ref" mode="copy">
+    <xsl:param name="prefix"/>
     <xsl:apply-templates select="//rng:define[@name=current()/@name]"
-                         mode="copy"/>
+                         mode="copy">
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:define[@nma:default]" mode="copy">
@@ -269,7 +312,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:*" mode="copy">
-    <xsl:apply-templates select="rng:*" mode="copy"/>
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates select="rng:*" mode="copy">
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
   </xsl:template>
 
 </xsl:stylesheet>

@@ -59,17 +59,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
-  <xsl:template name="netconf-part">
-    <xsl:choose>
-      <xsl:when
-          test="$target='get-reply' or
-                $target='getconf-reply'">/nc:rpc-reply/nc:data</xsl:when>
-      <xsl:when test="$target='rpc'">/nc:rpc</xsl:when>
-      <xsl:when test="$target='rpc-reply'">/nc:rpc-reply</xsl:when>
-      <xsl:when test="$target='notif'">/en:notification</xsl:when>
-    </xsl:choose>
-  </xsl:template>
-
   <xsl:template name="nc-namespace">
     <xsl:choose>
       <xsl:when test="$target='get-reply' or $target='getconf-reply'
@@ -88,10 +77,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:value-of select="$name"/>
   </xsl:template>
 
-  <xsl:template name="append-path">
-    <!-- Concat $start and XPath of the context element in the data tree -->
-    <xsl:param name="start"/>
-    <xsl:value-of select="$start"/>
+  <xsl:template name="self-path">
+    <xsl:param name="prevpath"/>
+    <xsl:value-of select="$prevpath"/>
     <xsl:for-each select="ancestor-or-self::rng:element
                           [not(starts-with(@name,'nmt:'))]">
       <xsl:text>/</xsl:text>
@@ -162,7 +150,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:value-of select="@name"/>
       </xsl:attribute>
       <xsl:apply-templates select="descendant::rng:element[&annots;]">
-	<xsl:with-param name="start">$start</xsl:with-param>
+	<xsl:with-param name="prevpath">$start</xsl:with-param>
       </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
@@ -197,24 +185,20 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:value-of select="ancestor::rng:grammar/@nma:module"/>
       </xsl:attribute>
       <xsl:apply-templates select="descendant::rng:element[&annots;]">
-	<xsl:with-param name="start">
-	  <xsl:call-template name="netconf-part"/>
-	</xsl:with-param>
+	<xsl:with-param name="prevpath" select="$netconf-part"/>
       </xsl:apply-templates>
     </xsl:element>
     <xsl:apply-templates select="rng:element|rng:ref" mode="ref">
-      <xsl:with-param name="start">
-	<xsl:call-template name="netconf-part"/>
-      </xsl:with-param>
+      <xsl:with-param name="prevpath" select="$netconf-part"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:element">
-    <xsl:param name="start"/>
+    <xsl:param name="prevpath"/>
     <xsl:element name="sch:rule">
       <xsl:attribute name="context">
-      <xsl:call-template name="append-path">
-	<xsl:with-param name="start" select="$start"/>
+      <xsl:call-template name="self-path">
+	<xsl:with-param name="prevpath" select="$start"/>
       </xsl:call-template>
       </xsl:attribute>
       <xsl:apply-templates select="&annots;"/>
@@ -222,7 +206,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:ref" mode="ref">
-    <xsl:param name="start"/>
+    <xsl:param name="prevpath"/>
     <xsl:if test="key('refdef',@name)/descendant::rng:element[&annots;]">
       <xsl:element name="sch:pattern">
 	<xsl:attribute name="is-a">
@@ -244,14 +228,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:element>
     </xsl:if>
     <xsl:apply-templates select="key('refdef',.)" mode="ref">
-      <xsl:with-param name="start" select="$start"/>
+      <xsl:with-param name="prevpath" select="$start"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:element" mode="ref">
-    <xsl:param name="start"/>
+    <xsl:param name="prevpath"/>
     <xsl:apply-templates select="rng:ref|rng:element" mode="ref">
-      <xsl:with-param name="start">
+      <xsl:with-param name="prevpath">
 	<xsl:value-of select="concat($start,'/')"/>
 	<xsl:call-template name="qname">
 	  <xsl:with-param name="name" select="@name"/>
@@ -261,7 +245,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:define" mode="ref">
-    <xsl:param name="start"/>
+    <xsl:param name="prevpath"/>
     <xsl:if test="descendant::rng:element[&annots;]">
     </xsl:if>
   </xsl:template>
