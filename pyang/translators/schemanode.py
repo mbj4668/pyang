@@ -1,19 +1,63 @@
+# Copyright (c) 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+#
+# Python class representing a node in a RELAX NG schema.
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 from xml.sax.saxutils import escape
 
 class SchemaNode(object):
 
-    """Generic node in the schema.
+    """This class represents a node in a RELAX NG schema.
+
+    The details are tailored to the specific features of the hybrid
+    DSDL schema generated from YANG modules, but the class may be
+    reasonably used for representing any other RELAX NG schema.
+
+    Specific types of nodes are created using class methods below.
 
     Instance variables:
 
-    * `interleave` - signal whether children should be interleaved.
+    * `self.attr` - dictionary of XML attributes. Keys are attribute
+      names and values attribute values.
 
-    * `occur` - 0=optional, 1=implicit, 2=mandatory, 3=presence
+    * `self.children` - list of child nodes.
 
-    Class variables:
+    * `self.default` - default value (only for "element" nodes)
 
-    * `ser_format` - dictionary of methods returning string
-      serialization formats
+    * `self.interleave` - boolean flag determining the interleave
+      status. If True, the children of `self` will end up inside
+      <interleave>.
+
+    * `self.keys` - list of QNames of YANG list keys (only for "_list_"
+      nodes having children).
+
+    * `self.keymap` - dictionary of key nodes (only for "_list_" nodes
+      having children). The keys of the dictionary are the QNames of
+      YANG list keys.
+
+    * `self.minEl` - minimum number of items (only for "_list_" nodes).
+
+    * `self.maxEl` - maximum number of items (only for "_list_" nodes).
+
+    * `self.name` - name of the schema node (XML element name).
+
+    * `self.occur` - specifies the occurrence status using interger
+      values: 0=optional, 1=implicit, 2=mandatory, 3=presence.
+
+    * `self.parent` - parent node.
+
+    * `self.text` - text content.
     """
     def element(cls, name, parent=None, interleave=None, occur=0):
         """Create an element node."""
@@ -24,7 +68,7 @@ class SchemaNode(object):
     element = classmethod(element)
 
     def leaf_list(cls, name, parent=None, interleave=None):
-        """Create list node for a leaf-list."""
+        """Create _list_ node for a leaf-list."""
         node = cls("_list_", parent, interleave=interleave)
         node.attr["name"] = name
         node.keys = None
@@ -34,7 +78,7 @@ class SchemaNode(object):
     leaf_list = classmethod(leaf_list)
 
     def list(cls, name, parent=None, interleave=None):
-        """Create list node for a list."""
+        """Create _list_ node for a list."""
         node = cls.leaf_list(name, parent, interleave=interleave)
         node.keys = []
         node.keymap = {}
@@ -90,6 +134,7 @@ class SchemaNode(object):
         node.adjust_interleave(None)
 
     def set_attr(self, key, value):
+        """Set attribute `key` to `value` and return the receiver."""
         self.attr[key] = value
         return self
 
@@ -128,17 +173,20 @@ class SchemaNode(object):
                                  ([ch.serialize() for ch in self.children])))
 
     def _default_format(self, occur):
+        """Return the default serialization format.""" 
         if self.text or self.children:
             return self.start_tag() + "%s" + self.end_tag()
         else:
             return self.start_tag(empty=True) + "%s"
 
     def _define_format(self, occur):
+        """Return the serialization format for a define node.""" 
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
         return self.start_tag() + self._chorder() + self.end_tag()
 
     def _element_format(self, occur):
+        """Return the serialization format for an element node.""" 
         if occur:
             occ = occur
         else:
@@ -162,6 +210,7 @@ class SchemaNode(object):
         return "%s"
 
     def _list_format(self, occur):
+        """Return the serialization format for a _list_ node.""" 
         if self.keys:
             self.attr["nma:key"] = " ".join(self.keys)
             keys = ''.join([self.keymap[k].serialize(occur=2)
@@ -180,6 +229,7 @@ class SchemaNode(object):
                 self._chorder() + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self, occur):
+        """Return the serialization format for a choice node.""" 
         fmt = self.start_tag() + "%s" + self.end_tag()
         if self.occur < 2:
             return "<optional>" + fmt + "</optional>"
@@ -187,6 +237,7 @@ class SchemaNode(object):
             return fmt
 
     def _case_format(self, occur):
+        """Return the serialization format for a case node.""" 
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
         if len(self.children) == 1 or not self.interleave:
@@ -201,3 +252,5 @@ class SchemaNode(object):
                    "case": _case_format,
                    "define": _define_format,
                    }
+    """Class variable - dictionary of methods returning string
+    serialization formats. Keys are node names."""
