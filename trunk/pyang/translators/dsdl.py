@@ -1,7 +1,7 @@
-# Copyright (c) 2009 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+# Copyright (c) 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 #                       Martin Bjorklund <mbj@tail-f.com>
 #
-# Translator of YANG to hybrid DSDL schema
+# Translator of YANG to the hybrid DSDL schema
 # (RELAX NG with additional annotations)
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -34,10 +34,11 @@ Three classes are defined in this module:
 
 * `DSDLPlugin`: pyang plugin interface class
 
-* `DSDLTranslator`: provides instance that preforms the mapping
+* `HybridDSDLSchema`: provides instance that performs the mapping
+  of input YANG modules to the hybrid DSDL schema.
 
 * `Patch`: utility class representing a patch to the YANG tree
-  where augment and refine statements are recorded
+  where augment and refine statements are recorded.
 """
 
 __docformat__ = "reStructuredText"
@@ -71,7 +72,7 @@ class DSDLPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  default=False,
                                  help="No output of Dublin Core"
-                                 " annotations"),
+                                 " metadata annotations"),
             optparse.make_option("--dsdl-record-defs",
                                  dest="dsdl_record_defs",
                                  action="store_true",
@@ -105,19 +106,22 @@ class Patch(object):
 
     """Instances of this class represent a patch to the YANG tree.
 
-    A Patch is filled with statements from 'refine' and/or 'augment'
-    that must be applied to a single node.
+    A Patch is filled with substatements of 'refine' and/or 'augment'
+    that are to be applied to a single node.
 
     Instance variables:
 
-    * `path`: list specifying the relative path to the node where the
-      patch is to be applied
+    * `self.path`: list specifying the relative path to the node where
+      the patch is to be applied
 
-    * `plist`: list of statements to apply
+    * `self.plist`: list of statements to apply
     """
 
     def __init__(self, path, refaug):
-        """Initialize the instance."""
+        """Initialize the instance with `refaug` statement.
+
+        `refaug` must be either 'refine' or 'augment'.
+        """
         self.path = path
         self.plist = [refaug]
 
@@ -135,13 +139,72 @@ class Patch(object):
 
 class HybridDSDLSchema(object):
 
+    """Instance of this class maps YANG to the hybrid DSDL schema.
+
+    Typically, only a single instance is created.
+
+    Instance variables:
+
+    * `self.all_defs`: dictionary of all named pattern
+      definitions. The keys are mangled names of the definitions.
+
+    * `self.data`: root of the data tree.
+
+    * `self.debug`: debugging information level (0 = no debugging).
+
+    * `self.gg_level`: level of immersion in global groupings.
+
+    * `self.global_defs`: dictionary of global (aka chameleon) named
+      pattern definitions. The keys are mangled names of the
+      definitions.
+
+    * `self.has_anyxml`: boolean flag indicating presence of the
+      'anyxml' statement in any input YANG module.
+
+    * `self.local_defs`: dictionary of local named pattern
+      definitions. The keys are mangled names of the definitions.
+
+    * `self.local_grammar`: the inner <grammar> element containing the
+      mapping of a single YANG module.
+
+    * `self.module`: the module being processed.
+
+    * `self.module_prefixes`: maps module names to (disambiguated)
+      prefixes.
+
+    * `self.namespaces`: maps used namespace URIs to (disambiguated)
+      prefixes.
+
+    * `self.notifications`: root of the subtree containing
+      notifications.
+
+    * `self.prefix_stack`: stack of active module prefixes. A new
+      prefix is pushed on the stack for an augment from an external
+      module.
+
+    * `self.rpcs`: root of the subtree containing RPC signatures.
+
+    * `self.stmt_handler`: dictionary of methods that are dispatched
+      for handling individual YANG statements. Its keys are YANG
+      statement keywords.
+
+    * `self.top_grammar`: the outer (root) <grammar> element.
+
+    * `self.type_handler`: dictionary of methods that are dispatched
+      for handling individual YANG types. Its keys are the names of
+      YANG built-in types.
+
+    * `self.tree`: outer <start> pattern.
+
+    """
+
     YANG_version = 1
     """Checked against the yang-version statement, if present."""
 
     dc_uri = "http://purl.org/dc/terms"
     """Dublin Core URI"""
     a_uri =  "http://relaxng.org/ns/compatibility/annotations/1.0"
-    """DTD compatibility annotattions URI"""
+    """DTD compatibility annotations URI"""
 
     datatype_map = {
         "instance-identifier": "string",
@@ -171,8 +234,10 @@ class HybridDSDLSchema(object):
     """Keywords of YANG data nodes."""
 
     schema_nodes = data_nodes + ("choice", "case")
+    """Keywords of YANG schema nodes."""
 
     def __init__(self):
+        """Initialize the dispatch dictionaries."""
         self.stmt_handler = {
             "anyxml": self.anyxml_stmt,
             "argument": self.noop,
@@ -266,8 +331,9 @@ class HybridDSDLSchema(object):
             res += self.anyxml_def
         return res + self.top_grammar.end_tag()
 
-    def from_modules(self, modules, no_dc=False, no_a=False, record_defs=False,
-                  debug=0):
+    def from_modules(self, modules, no_dc=False, no_a=False,
+                     record_defs=False, debug=0):
+        """Return the instance representing mapped input modules."""
         self.namespaces = {
             "urn:ietf:params:xml:ns:netmod:hybrid-tree:1" : "nmt",
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
@@ -277,7 +343,6 @@ class HybridDSDLSchema(object):
         self.global_defs = {}
         self.all_defs = {}
         self.has_anyxml = False
-        self.in_rpc = False
         self.debug = debug
         self.module_prefixes = {}
         gpset = {}
@@ -316,12 +381,12 @@ class HybridDSDLSchema(object):
         return self
 
     def setup_top(self):
-        """Create top-level elements of CTS."""
+        """Create top-level elements of the hybrid tree."""
         self.top_grammar = SchemaNode("grammar")
         self.tree = SchemaNode("start")
 
     def create_roots(self, yam):
-        """Create root elements for conf. data, RPCs and notifications."""
+        """Create the top-level structure for module `yam`."""
         self.local_grammar = SchemaNode("grammar")
         self.local_grammar.attr["ns"] = yam.search_one("namespace").arg
         self.local_grammar.attr["nma:module"] = self.module.arg
@@ -339,9 +404,11 @@ class HybridDSDLSchema(object):
                                                 interleave=False, occur=2)
 
     def yang_to_xpath(self, xpath):
-        """Transform `xpath` by adding local NS prefixes.
+        """Transform YANG's `xpath` to standard XPath 1.0
 
-        Prefixes are only added to unqualified node names.
+        Prefixes are added to unprefixed local names. Inside global
+        groupings, the prefix is represented as the variable '$pref'
+        which is substituted via Schematron abstract patterns.
         """
         def prefix():
             if self.gg_level: return "$pref:"
@@ -402,8 +469,8 @@ class HybridDSDLSchema(object):
         """Add new item `uri`:`prefix` to `self.namespaces`.
 
         The prefix to be actually used for `uri` is returned.  If the
-        namespace is already known, the old prefix is used.
-        Prefix clashes are resolved by disambiguating `prefix`.
+        namespace is already present, the old prefix is used.  Prefix
+        clashes are resolved by disambiguating `prefix`.
         """
         if uri in self.namespaces: return self.namespaces[uri]
         end = 1
@@ -414,12 +481,6 @@ class HybridDSDLSchema(object):
         self.namespaces[uri] = new
         return new
 
-    def prefix_to_ns(self, prefix):
-        """Return NS URI for `prefix` in the current context."""
-        defin = self.module.i_ctx.get_module(
-            self.module.i_prefixes[prefix][0])
-        return defin.search_one("namespace").arg
-
     def preload_defs(self):
         """Preload all top-level definitions."""
         for d in (self.module.search("grouping") +
@@ -428,7 +489,12 @@ class HybridDSDLSchema(object):
             self.install_def(uname, d, dic)
 
     def add_prefix(self, name, stmt):
-        """Return `name` prepended with correct prefix."""
+        """Return `name` prepended with correct prefix.
+
+        If the name is already prefixed, the prefix may be translated
+        to the value obtained from `self.module_prefixes`.  Unmodified
+        `name` is returned if we are inside a global grouping.
+        """
         if self.gg_level: return name
         pref, colon, local = name.partition(":")
         if colon:
@@ -440,14 +506,11 @@ class HybridDSDLSchema(object):
     def qname(self, stmt):
         """Return (prefixed) node name of `stmt`.
 
-        The result is prefixed unless inside a global grouping.
+        The result is prefixed with the local prefix unless we are
+        inside a global grouping.
         """
         if self.gg_level: return stmt.arg
         return self.prefix_stack[-1] + ":" + stmt.arg
-
-    def canonic_nodeid(self, nodeid, stmt):
-        """Return list containing `nodeid` components with prefixes."""
-        return [ self.add_prefix(c, stmt) for c in nodeid.split("/") if c ]
 
     def handle_empty(self):
         """Handle empty subtree(s) of the hybrid tree.
@@ -469,7 +532,11 @@ class HybridDSDLSchema(object):
             parent.children.insert(0,dcel)
 
     def get_default(self, stmt, refd):
-        """Return default value for `stmt` node."""
+        """Return default value for `stmt` node.
+
+        `refd` is a dictionary of applicable refinements that is
+        constructed in the `process_patches` method.
+        """
         if refd["default"]:
                 return refd["default"]
         defst = stmt.search_one("default")
@@ -481,7 +548,8 @@ class HybridDSDLSchema(object):
         """Mangle the name of `stmt` (typedef or grouping).
 
         Return the mangled name and dictionary where the definition is
-        to be installed.
+        to be installed. The `inrpc` flag indicates when we are inside
+        an RPC, in which case the name gets the "__rpc" suffix.
         """
         mod = stmt.i_module
         if mod.keyword == "submodule":
@@ -497,26 +565,16 @@ class HybridDSDLSchema(object):
         if inrpc: name += "__rpc"
         return (pref + "__" + name, defs)
 
-    def has_data_node(self, stmt):
-        """Does `stmt` have any data nodes?"""
-        maybe = []
-        for st in stmt.substmts:
-            if st.keyword in self.data_nodes: return True
-            if st.keyword in ["choice", "case"]:
-                maybe.append(st)
-            elif st.keyword == "uses":
-                maybe.append(st.i_grouping)
-            elif stmt.keyword == "module" and st.keyword == "include":
-                maybe.append(st.i_module.i_ctx.get_module(st.arg))
-        for m in maybe:
-            if self.has_data_node(m): return True
-        return False
-
     def add_patch(self, pset, augref):
-        """Add patch corresponding to `augref` to `pset`."""
+        """Add patch corresponding to `augref` to `pset`.
+
+        `augref` must be either 'augment' or 'refine' statement.
+        """
         try:
-            path = self.canonic_nodeid(augref.arg, augref)
+            path = [ self.add_prefix(c, augref)
+                     for c in augref.arg.split("/") if c ]
         except KeyError:
+            # augment of a module that's not among input modules
             return
         car = path[0]
         patch = Patch(path[1:], augref)
@@ -530,7 +588,12 @@ class HybridDSDLSchema(object):
             pset[car] = [patch]
 
     def apply_augments(self, auglist, p_elem, pset):
-        """Apply statements from `auglist` as patch."""
+        """Handle substatements of augments from `auglist`.
+
+        The augments are applied in the context of `p_elem`.  `pset`
+        is a patch set containing patches that may be applicable to
+        descendants.
+        """
         for a in auglist:
             par = a.parent
             if par.keyword == "uses":
@@ -548,31 +611,12 @@ class HybridDSDLSchema(object):
                 self.prefix_stack.pop()
 
     def current_revision(self, r_stmts):
-        """Pick the most recent revision date from `r_stmts`."""
+        """Pick the most recent revision date.
+
+        `r_stmts` is a list of 'revision' statements.
+        """
         cur = max([[int(p) for p in r.arg.split("-")] for r in r_stmts])
         return "%4d-%02d-%02d" % tuple(cur)
-
-    def summarize_ranges(self, ranges):
-        """Resolve 'min' and 'max' in a cascade of ranges.
-
-        Argument `ranges` is a list of lists of pairs.  Example: if we
-        have two consecutive restrictions '1..12' and 'min..3|7..max',
-        then the argument is [[[1, 12]], [['min', 3], [7, 'max']]]
-        and [[1,3], [7,12]] will be returned.
-        """
-        if len(ranges) == 0: return []
-        min_ = 'min'
-        max_ = 'max'
-        for r in ranges:
-            if r[0][0] == "min":
-                r[0][0] = min_
-            else:
-                min_ = r[0][0]
-            if r[-1][1] == "max":
-                r[-1][1] = max_
-            else:
-                max_ = r[-1][1]
-        return ranges[-1]
 
     def insert_doc(self, p_elem, docstring):
         """Add <a:documentation> with `docstring` to `p_elem`."""
@@ -583,16 +627,15 @@ class HybridDSDLSchema(object):
             if ch.name == dtag: pos += 1
         p_elem.children.insert(pos, elem)
 
-    def strip_local_prefix(self, stmt, qname):
-        """Strip local prefix of `stmt` from `qname` and return the result."""
-        pref, colon, name = qname.partition(":")
-        if colon and pref == stmt.i_module.i_prefix:
-            return name
-        else:
-            return qname
-
     def install_def(self, name, dstmt, def_map, interleave=False):
-        """Install definition `name` representing `dstmt`."""
+        """Install definition `name` into the appropriate dictionary.
+
+        `dstmt` is the definition statement ('typedef' or 'grouping')
+        that is to be mapped to a RELAX NG named pattern '<define
+        name="`name`">'. `def_map` must be either `self.local_defs` or
+        `self.global_defs`. `interleave` determines the interleave
+        status inside the definition.
+        """
         delem = SchemaNode.define(name, interleave=interleave)
         delem.attr["name"] = name
         def_map[name] = delem
@@ -601,10 +644,12 @@ class HybridDSDLSchema(object):
         if def_map is self.global_defs: self.gg_level -= 1
 
     def handle_extension(self, stmt, p_elem):
-        """Append YIN representation of `stmt`."""
+        """Append YIN representation of extension statement `stmt`."""
         ext = stmt.i_extension
         prf, extkw = stmt.raw_keyword
-        prefix = self.add_namespace(self.prefix_to_ns(prf), prf)
+        extns = self.module.i_ctx.get_module(
+            self.module.i_prefixes[prf][0]).search_one("namespace").arg
+        prefix = self.add_namespace(extns, prf)
         eel = SchemaNode(prefix + ":" + extkw, p_elem)
         argst = ext.search_one("argument")
         if argst:
@@ -615,7 +660,11 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, eel)
 
     def propagate_occur(self, node, value):
-        """Propagate occurence `value` to `node` and its ancestors."""
+        """Propagate occurence `value` to `node` and its ancestors.
+
+        Occurence values are defined and explained in the SchemaNode
+        class.
+        """
         while node.occur < value:
             node.occur = value
             if node.name == "define":
@@ -623,11 +672,20 @@ class HybridDSDLSchema(object):
             node = node.parent
 
     def process_patches(self, pset, stmt, elem, altname=None):
-        """Process patches for node `name` from `pset`.
+        """Process patches for data node `name` from `pset`.
 
-        Return tuple consisting of the selected patch statement list
-        and transformed `pset` in which `name` is removed from the
-        paths of all patches.
+        `stmt` provides the context in YANG and `elem` is the parent
+        element in the output schema. Refinements adding documentation
+        and changing the config status are immediately applied. 
+
+        The returned tuple consists of:
+        - a dictionary of refinements, in which keys are the keywords
+          of the refinement statements and values are the new values
+          of refined parameters.
+        - a list of 'augment' statements that are to be applied
+          directly under `elem`.
+        - a new patch set containing patches applicable to
+          substatements of `stmt`.
         """
         if altname:
             name = altname
@@ -657,7 +715,11 @@ class HybridDSDLSchema(object):
         return (refine_dict, augments, new_pset)
 
     def get_minmax(self, stmt, refine_dict):
-        """Return pair of (min,max)-elements values for `stmt`."""
+        """Return pair of (min,max)-elements values for `stmt`.
+
+        `stmt` must be a 'list' or 'leaf-list'. Applicable refinements
+        from `refine_dict` are also taken into account.
+        """
         minel = refine_dict["min-elements"]
         maxel = refine_dict["max-elements"]
         if minel is None:
@@ -673,11 +735,11 @@ class HybridDSDLSchema(object):
         return (minel, maxel)
 
     def lookup_expand(self, stmt, names):
-        """Find schema nodes under `stmt` in groupings.
+        """Find schema nodes under `stmt`, also in used groupings.
 
         `names` is a list with qualified names of the schema nodes to
-        look up. All groupings between `stmt` and found schema nodes
-        are marked for expansion.
+        look up. All 'uses'/'grouping' pairs between `stmt` and found
+        schema nodes are marked for expansion.
         """
         if not names: return []
         todo = [stmt]
@@ -699,15 +761,95 @@ class HybridDSDLSchema(object):
                     todo.append(g)
         return names
 
+    def type_with_ranges(self, tchain, p_elem, rangekw, gen_data):
+        """Handle types with 'range' or 'length' restrictions.
+
+        `tchain` is the chain of type definitions from which the
+        ranges may need to be extracted. `rangekw` is the statement
+        keyword determining the range type (either 'range' or
+        'length'). `gen_data` is a function that generates the
+        output schema node (a RELAX NG <data> pattern).
+        """
+        ranges = self.get_ranges(tchain, rangekw)
+        if not ranges: return p_elem.subnode(gen_data())
+        if len(ranges) > 1:
+            p_elem = SchemaNode.choice(p_elem)
+            p_elem.occur = 2
+        for r in ranges:
+            d_elem = gen_data()
+            for p in self.range_params(r, rangekw):
+                d_elem.subnode(p)
+            p_elem.subnode(d_elem)
+
+    def get_ranges(self, tchain, kw):
+        """Return list of ranges defined in `tchain`.
+
+        `kw` is the statement keyword determining the type of the
+        range, i.e. 'range' or 'length'. `tchain` is the chain of type
+        definitions from which the resulting range is obtained.
+
+        The returned value is a list of tuples containing the segments
+        of the resulting range.
+        """
+        (lo, hi) = ("min", "max")
+        ran = None
+        for t in tchain:
+            rstmt = t.search_one(kw)
+            if rstmt is None: continue
+            ran = [ i.split("..") for i in rstmt.arg.split("|") ]
+            if ran[0][0] != 'min': lo = ran[0][0]
+            if ran[-1][-1] != 'max': hi = ran[-1][-1]
+        if ran is None: return None
+        if len(ran) == 1:
+            return [(lo, hi)]
+        else:
+            return [(lo, ran[0][-1])] + ran[1:-1] + [(ran[-1][0], hi)]
+
+    def range_params(self, ran, kw):
+        """Return list of <param>s corresponding to range `ran`.
+
+        `kw` is the statement keyword determining the type of the
+        range, i.e. 'range' or 'length'. `ran` is the internal
+        representation of a range as constructed by the `get_ranges`
+        method.
+        """
+        if kw == "length":
+            if ran[0][0] != "m" and (len(ran) == 1 or ran[0] == ran[1]):
+                elem = SchemaNode("param").set_attr("name","length")
+                elem.text = ran[0]
+                return [elem]
+            min_ = SchemaNode("param").set_attr("name","minLength")
+            max_ = SchemaNode("param").set_attr("name","maxLength")
+        else:
+            if len(ran) == 1: ran *= 2 # duplicating the value
+            min_ = SchemaNode("param").set_attr("name","minInclusive")
+            max_ = SchemaNode("param").set_attr("name","maxInclusive")
+        res = []
+        if ran[0][0] != "m":
+            elem = min_
+            elem.text = ran[0]
+            res.append(elem)
+        if ran[1][0] != "m":
+            elem = max_
+            elem.text = ran[1]
+            res.append(elem)
+        return res
+
     def handle_stmt(self, stmt, p_elem, pset={}):
         """
-        Run handler method for `stmt` in the context of `p_elem`.
+        Run handler method for statement `stmt`.
 
-        All handler methods are defined below and have the same
-        arguments. They should create the schema fragment
-        corresponding to `stmt`, apply all patches from `pset`
-        belonging to `stmt`, insert the fragment under `p_elem` and
-        perform all side effects as necessary.
+        `p_elem` is the parent node in the output schema. `pset` is
+        the current "patch set" - a dictionary with keys being QNames
+        of schema nodes at the current level of hierarchy for which
+        (or descendants thereof) any pending patches exist. The values
+        are instances of the Patch class.
+
+        All handler methods are defined below and must have the same
+        arguments as this method. They should create the output schema
+        fragment corresponding to `stmt`, apply all patches from
+        `pset` belonging to `stmt`, insert the fragment under `p_elem`
+        and perform all side effects as necessary.
         """
         if self.debug > 0:
             sys.stderr.write("Handling '%s %s'\n" %
@@ -749,7 +891,11 @@ class HybridDSDLSchema(object):
         self.handle_substmts(stmt, elem)
 
     def nma_attribute(self, stmt, p_elem, pset=None):
-        """Map `stmt` to NETMOD-specific attribute."""
+        """Map `stmt` to a NETMOD-specific attribute.
+
+        The name of the attribute is the same as the 'keyword' of
+        `stmt`.
+        """
         att = "nma:" + stmt.keyword
         if att not in p_elem.attr:
             p_elem.attr[att] = stmt.arg
@@ -900,8 +1046,8 @@ class HybridDSDLSchema(object):
     def type_stmt(self, stmt, p_elem, pset):
         """Handle ``type`` statement.
 
-        Built-in types are handled by a specific type callback method
-        defined below.
+        Built-in types are handled by one of the specific type
+        callback methods defined below.
         """
         typedef = stmt.i_typedef
         if typedef and not stmt.i_is_derived: # just ref
@@ -1017,60 +1163,6 @@ class HybridDSDLSchema(object):
                 SchemaNode("param",elem,fd).set_attr("name","fractionDigits")
             return elem
         self.type_with_ranges(tchain, p_elem, "range", gen_data)
-
-    def type_with_ranges(self, tchain, p_elem, rangekw, gen_data):
-        """Handle types with 'range' or 'length' restrictions."""
-        ranges = self.get_ranges(tchain, rangekw)
-        if not ranges: return p_elem.subnode(gen_data())
-        if len(ranges) > 1:
-            p_elem = SchemaNode.choice(p_elem)
-            p_elem.occur = 2
-        for r in ranges:
-            d_elem = gen_data()
-            for p in self.range_params(r, rangekw):
-                d_elem.subnode(p)
-            p_elem.subnode(d_elem)
-
-    def get_ranges(self, tchain, kw):
-        """Return list of `kw` ranges defined in `tchain`."""
-        (lo, hi) = ("min", "max")
-        ran = None
-        for t in tchain:
-            rstmt = t.search_one(kw)
-            if rstmt is None: continue
-            ran = [ i.split("..") for i in rstmt.arg.split("|") ]
-            if ran[0][0] != 'min': lo = ran[0][0]
-            if ran[-1][-1] != 'max': hi = ran[-1][-1]
-        if ran is None: return None
-        if len(ran) == 1:
-            return [(lo, hi)]
-        else:
-            return [(lo, ran[0][-1])] + ran[1:-1] + [(ran[-1][0], hi)]
-
-    def range_params(self, ran, kw):
-        """Return list of <param>s corresponding to `kw` range `ran`.
-        """
-        if kw == "length":
-            if ran[0][0] != "m" and (len(ran) == 1 or ran[0] == ran[1]):
-                elem = SchemaNode("param").set_attr("name","length")
-                elem.text = ran[0]
-                return [elem]
-            min_ = SchemaNode("param").set_attr("name","minLength")
-            max_ = SchemaNode("param").set_attr("name","maxLength")
-        else:
-            if len(ran) == 1: ran *= 2 # duplicating the value
-            min_ = SchemaNode("param").set_attr("name","minInclusive")
-            max_ = SchemaNode("param").set_attr("name","maxInclusive")
-        res = []
-        if ran[0][0] != "m":
-            elem = min_
-            elem.text = ran[0]
-            res.append(elem)
-        if ran[1][0] != "m":
-            elem = max_
-            elem.text = ran[1]
-            res.append(elem)
-        return res
 
     def string_type(self, tchain, p_elem):
         pels = []
