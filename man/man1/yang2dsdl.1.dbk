@@ -138,7 +138,7 @@
         <para>Semantic constraints are checked using the Schematron
         schema. The skeleton implementation of <ulink
         url="http://www.schematron.com">ISO
-        Schematron</ulink> is used for this purpose.</para>
+        Schematron</ulink> by Rick Jelliffe is used for this purpose.</para>
       </listitem>
     </orderedlist>
     <para>If any of the schemas is missing, the corresponding step is
