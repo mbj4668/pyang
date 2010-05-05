@@ -9,7 +9,7 @@
 
   <dc:title>RELAX NG Schema for YIN</dc:title>
   <dc:creator>Ladislav Lhotka</dc:creator>
-  <dc:date>2009-03-03</dc:date>
+  <dc:date>2010-04-15</dc:date>
   <dc:subject>YIN, XML syntax for YANG</dc:subject>
   <dc:identifier>urn:ietf:params:xml:ns:yang:yin:1</dc:identifier>
   <dc:description>RELAX NG schema defines grammar for data models
