@@ -71,12 +71,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="/">
-    <xsl:call-template name="check-input-pars"/>
     <xsl:choose>
       <xsl:when test="$gdefs-only=1">
         <xsl:apply-templates select="rng:grammar" mode="gdefs"/>
       </xsl:when>
       <xsl:otherwise>
+	<xsl:call-template name="check-input-pars"/>
         <xsl:apply-templates select="rng:grammar"/>
       </xsl:otherwise>
     </xsl:choose>
