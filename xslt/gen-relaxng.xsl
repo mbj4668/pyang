@@ -4,7 +4,7 @@
 
 Copyright © 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
-Creates standalone RELAX NG schema from conceptual tree schema.
+Creates standalone RELAX NG schema from the hybrid DSDL schema.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
