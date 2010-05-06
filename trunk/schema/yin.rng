@@ -119,18 +119,20 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <zeroOrMore>
-	<ref name="if-feature-stmt"/>
-      </zeroOrMore>
-      <optional>
-	<ref name="status-stmt"/>
-      </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-      <ref name="reference-stmt"/>
-      </optional>
+      <interleave>
+	<zeroOrMore>
+	  <ref name="if-feature-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
     </element>
   </define>
 
@@ -292,18 +294,20 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <optional>
-	<ref name="argument-stmt"/>
-      </optional>
-      <optional>
-	<ref name="status-stmt"/>
-      </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
+      <interleave>
+	<optional>
+	  <ref name="argument-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="status-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
+      </interleave>
     </element>
   </define>
 
