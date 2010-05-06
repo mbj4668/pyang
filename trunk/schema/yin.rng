@@ -27,11 +27,16 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="module-header-stmts"/>
-      <ref name="linkage-stmts"/>
-      <ref name="meta-stmts"/>
-      <ref name="revision-stmts"/>
-      <ref name="body-stmts"/>
+      <interleave>
+	<group>
+	  <ref name="module-header-stmts"/>
+	  <ref name="linkage-stmts"/>
+	  <ref name="meta-stmts"/>
+	  <ref name="revision-stmts"/>
+	  <ref name="body-stmts"/>
+	</group>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
   
@@ -40,11 +45,16 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="submodule-header-stmts"/>
-      <ref name="linkage-stmts"/>
-      <ref name="meta-stmts"/>
-      <ref name="revision-stmts"/>
-      <ref name="body-stmts"/>
+      <interleave>
+	<group>
+	  <ref name="submodule-header-stmts"/>
+	  <ref name="linkage-stmts"/>
+	  <ref name="meta-stmts"/>
+	  <ref name="revision-stmts"/>
+	  <ref name="body-stmts"/>
+	</group>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -64,6 +74,7 @@
 	<ref name="yang-version-stmt"/>
       </optional>
       <ref name="belongs-to-stmt"/>
+      <ref name="an-extension"/>
     </interleave>
   </define>
 
@@ -132,6 +143,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -141,6 +153,7 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -149,9 +162,12 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <optional>
-	<ref name="base-stmt"/>
-      </optional>
+      <interleave>
+	<optional>
+	  <ref name="base-stmt"/>
+	</optional>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -160,6 +176,7 @@
       <attribute name="name">
 	<ref name="identifier-ref"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -193,6 +210,7 @@
       <attribute name="value">
 	<value>1</value>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -201,7 +219,10 @@
       <attribute name="module">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="prefix-stmt"/>
+      <interleave>
+	<ref name="prefix-stmt"/>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -210,6 +231,7 @@
       <attribute name="module">
 	<ref name="identifier"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -218,6 +240,7 @@
       <attribute name="uri">
 	<data type="anyURI"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -226,6 +249,7 @@
       <attribute name="value">
 	<ref name="identifier"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -234,31 +258,43 @@
       <attribute name="module">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="prefix-stmt"/>
+      <interleave>
+	<ref name="prefix-stmt"/>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
   <define name="organization-stmt">
     <element name="organization">
-      <element name="info">
-	<text/>
-      </element>
+      <interleave>
+	<element name="info">
+	  <text/>
+	</element>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
   <define name="contact-stmt">
     <element name="contact">
-      <element name="info">
-	<text/>
-      </element>
+      <interleave>
+	<element name="info">
+	  <text/>
+	</element>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
   <define name="description-stmt">
     <element name="description">
-      <element name="text">
-	<text/>
-      </element>
+      <interleave>
+	<element name="text">
+	  <text/>
+	</element>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -267,6 +303,7 @@
       <attribute name="info">
 	<data type="string"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -275,6 +312,7 @@
       <attribute name="name">
 	<data type="string"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -283,9 +321,12 @@
       <attribute name="date">
 	<data type="date"/>
       </attribute>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
+      <interleave>
+	<optional>
+	  <ref name="description-stmt"/>
+	</optional>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -307,6 +348,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -316,9 +358,12 @@
       <attribute name="name">
 	<ref name="identifier"/>
       </attribute>
-      <optional>
-	<ref name="yin-element-stmt"/>
-      </optional>
+      <interleave>
+	<optional>
+	  <ref name="yin-element-stmt"/>
+	</optional>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -327,6 +372,7 @@
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -352,36 +398,40 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
 
   <define name="type-stmt">
     <element name="type">
-      <choice>
-	<group>
-	  <attribute name="name">
-	    <ref name="identifier-ref"/>
-	  </attribute>
-	  <choice>
-	    <ref name="range-stmt"/>
-	    <interleave>
-	      <ref name="length-stmt"/>
-	      <ref name="pattern-stmts"/>
-	    </interleave>
-	  </choice>
-	</group>
-	<ref name="integer-type"/>
-	<ref name="decimal64-type"/>
-	<ref name="string-type"/>
-	<ref name="enumeration-type"/>
-	<ref name="bits-type"/>
-	<ref name="binary-type"/>
-	<ref name="leafref-type"/>
-	<ref name="identityref-type"/>
-	<ref name="union-type"/>
-	<ref name="instance-identifier-type"/>
-      </choice>
+      <interleave>
+	<choice>
+	  <group>
+	    <attribute name="name">
+	      <ref name="identifier-ref"/>
+	    </attribute>
+	    <choice>
+	      <ref name="range-stmt"/>
+	      <interleave>
+		<ref name="length-stmt"/>
+		<ref name="pattern-stmts"/>
+	      </interleave>
+	    </choice>
+	  </group>
+	  <ref name="integer-type"/>
+	  <ref name="decimal64-type"/>
+	  <ref name="string-type"/>
+	  <ref name="enumeration-type"/>
+	  <ref name="bits-type"/>
+	  <ref name="binary-type"/>
+	  <ref name="leafref-type"/>
+	  <ref name="identityref-type"/>
+	  <ref name="union-type"/>
+	  <ref name="instance-identifier-type"/>
+	</choice>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -420,6 +470,7 @@
 	  <optional>
 	    <ref name="reference-stmt"/>
 	  </optional>
+	  <ref name="an-extension"/>
 	</interleave>
       </element>
     </optional>
@@ -439,6 +490,7 @@
 	  </data>
 	</attribute>
       </element>
+      <ref name="an-extension"/>
     </interleave>
   </define>
 
@@ -449,6 +501,7 @@
     <interleave>
       <ref name="length-stmt"/>
       <ref name="pattern-stmts"/>
+      <ref name="an-extension"/>
     </interleave>
   </define>
 
@@ -471,6 +524,7 @@
 	  <optional>
 	    <ref name="reference-stmt"/>
 	  </optional>
+	  <ref name="an-extension"/>
 	</interleave>
       </element>
     </optional>
@@ -495,6 +549,7 @@
 	  <optional>
 	    <ref name="reference-stmt"/>
 	  </optional>
+	  <ref name="an-extension"/>
 	</interleave>
       </element>
     </zeroOrMore>
@@ -505,6 +560,7 @@
       <attribute name="value">
 	<data type="string"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -535,6 +591,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+      <ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -566,6 +623,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -575,6 +633,7 @@
       <attribute name="value">
 	<data type="nonNegativeInteger"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -582,9 +641,12 @@
     <attribute name="name">
       <value>binary</value>
     </attribute>
-    <optional>
-      <ref name="length-stmt"/>
-    </optional>
+    <interleave>
+      <optional>
+	<ref name="length-stmt"/>
+      </optional>
+      <ref name="an-extension"/>
+    </interleave>
   </define>
 
   <define name="leafref-type">
@@ -596,6 +658,7 @@
 	<attribute name="value">
 	  <ref name="path-arg"/>
 	</attribute>
+	<ref name="an-extension"/>
       </element>
       <optional>
 	<ref name="require-instance-element"/>
@@ -606,6 +669,7 @@
   <define name="require-instance-element">
     <element name="require-instance">
       <data type="boolean"/>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -639,6 +703,7 @@
       <attribute name="value">
 	<ref name="status-arg"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -655,6 +720,7 @@
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -663,6 +729,7 @@
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -671,6 +738,7 @@
       <attribute name="value">
 	<data type="string"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -679,6 +747,7 @@
       <attribute name="value">
 	<ref name="ordered-by-arg"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -707,6 +776,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -715,7 +785,9 @@
     <element name="error-message">
       <element name="value">
 	<text/>
+	<ref name="an-extension"/>
       </element>
+      <ref name="an-extension"/>
     </element>
   </define>
   
@@ -724,6 +796,7 @@
       <attribute name="value">
 	<data type="string"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -732,6 +805,7 @@
       <attribute name="value">
 	<data type="nonNegativeInteger"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
   
@@ -743,6 +817,7 @@
 	  <data type="positiveInteger"/>
 	</choice>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -751,6 +826,7 @@
       <attribute name="value">
 	<data type="integer"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
   
@@ -776,6 +852,7 @@
 	    <ref name="data-def-stmt"/>
 	  </choice>
 	</zeroOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -817,6 +894,7 @@
 	    <ref name="data-def-stmt"/>
 	  </choice>
 	</zeroOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -858,6 +936,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -902,6 +981,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -957,6 +1037,7 @@
 	<oneOrMore>
 	  <ref name="data-def-stmt"/>
 	</oneOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -970,6 +1051,7 @@
 	  </oneOrMore>
 	</list>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -982,6 +1064,7 @@
 	  </oneOrMore>
 	</list>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -1021,6 +1104,7 @@
 	    <ref name="case-stmt"/>
 	  </choice>
 	</zeroOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1059,6 +1143,7 @@
 	<zeroOrMore>
 	  <ref name="case-data-def-stmt"/>
 	</zeroOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1093,6 +1178,7 @@
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1124,6 +1210,7 @@
 	<zeroOrMore>
 	  <ref name="uses-augment-stmt"/>
 	</zeroOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1133,15 +1220,18 @@
       <attribute name="target-node">
 	<ref name="descendant-schema-nodeid"/>
       </attribute>
-      <choice>
-	<ref name="refine-container-stmts"/>
-	<ref name="refine-leaf-stmts"/>
-	<ref name="refine-leaf-list-stmts"/>
-	<ref name="refine-list-stmts"/>
-	<ref name="refine-choice-stmts"/>
-	<ref name="refine-case-stmts"/>
-	<ref name="refine-anyxml-stmts"/>
-      </choice>
+      <interleave>
+	<choice>
+	  <ref name="refine-container-stmts"/>
+	  <ref name="refine-leaf-stmts"/>
+	  <ref name="refine-leaf-list-stmts"/>
+	  <ref name="refine-list-stmts"/>
+	  <ref name="refine-choice-stmts"/>
+	  <ref name="refine-case-stmts"/>
+	  <ref name="refine-anyxml-stmts"/>
+	</choice>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
@@ -1309,6 +1399,7 @@
 	    <ref name="case-stmt"/>
 	  </choice>
 	</oneOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1316,9 +1407,7 @@
   <define name="augment-stmt">
     <element name="augment">
       <attribute name="target-node">
-	<choice>
-	  <ref name="absolute-schema-nodeid"/>
-	</choice>
+	<ref name="absolute-schema-nodeid"/>
       </attribute>
       <interleave>
 	<optional>
@@ -1342,6 +1431,7 @@
 	    <ref name="case-stmt"/>
 	  </choice>
 	</oneOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1351,6 +1441,7 @@
       <attribute name="condition">
 	<data type="string"/>
       </attribute>
+      <ref name="an-extension"/>
     </element>
   </define>
 
@@ -1378,13 +1469,14 @@
 	    <ref name="grouping-stmt"/>
 	  </choice>
 	</zeroOrMore>
+	<optional>
+	  <ref name="input-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="output-stmt"/>
+	</optional>
+	<ref name="an-extension"/>
       </interleave>
-      <optional>
-	<ref name="input-stmt"/>
-      </optional>
-      <optional>
-	<ref name="output-stmt"/>
-      </optional>
     </element>
   </define>
 
@@ -1400,6 +1492,7 @@
 	<oneOrMore>
 	  <ref name="data-def-stmt"/>
 	</oneOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1416,6 +1509,7 @@
 	<oneOrMore>
 	  <ref name="data-def-stmt"/>
 	</oneOrMore>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -1445,7 +1539,42 @@
 	    <ref name="data-def-stmt"/>
 	  </choice>
 	</zeroOrMore>
+	<ref name="an-extension"/>
       </interleave>
+    </element>
+  </define>
+
+  <define name="an-extension">
+    <optional>
+      <element>
+	<anyName>
+	  <except>
+	    <nsName/>
+	  </except>
+	</anyName>
+	<zeroOrMore>
+	  <choice>
+	    <attribute>
+	      <anyName/>
+	    </attribute>
+	    <ref name="any-element"/>
+	  </choice>
+	</zeroOrMore>
+      </element>
+    </optional>
+  </define>
+
+  <define name="any-element">
+    <element>
+      <anyName/>
+      <zeroOrMore>
+	<choice>
+	  <attribute>
+	    <anyName/>
+	  </attribute>
+	  <ref name="any-element"/>
+	</choice>
+      </zeroOrMore>
     </element>
   </define>
 
