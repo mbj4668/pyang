@@ -247,10 +247,17 @@ def add_validation_fun(phase, keywords, f):
     """Add a validation function to some phase in the framework.
 
     Function `f` is called for each valid occurance of each keyword in
-    `keywrods`.
+    `keywords`.
     Can be used by plugins to do special validation of extensions."""
     for keyword in keywords:
-        _validation_map[(phase, keyword)] = f
+        if (phase, keyword) in _validation_map:
+            oldf = _validation_map[(phase, keyword)]
+            def newf(ctx, s):
+                oldf(ctx, s)
+                f(ctx, s)
+            _validation_map[(phase, keyword)] = newf
+        else:
+            _validation_map[(phase, keyword)] = f
 
 def add_validation_var(var_name, var_dict):
     """Add a validation variable to the framework.
@@ -376,7 +383,6 @@ def v_grammar_module(ctx, stmt):
             err_add(ctx.errors, r.pos, 'REVISION_ORDER', ())
         prev = r.arg
 
-
 def v_grammar_typedef(ctx, stmt):
     if types.is_base_type(stmt.arg):
         err_add(ctx.errors, stmt.pos, 'BAD_TYPE_NAME', stmt.arg)
@@ -401,6 +407,7 @@ def v_grammar_unique_defs(ctx, stmt):
                         errcode, (definition.arg, other.pos))
             else:
                 dict[definition.arg] = definition
+
 
 ### import and include phase
 
@@ -1457,6 +1464,10 @@ def v_reference_list(ctx, stmt):
                 default = ptr.search_one('default')
                 if default is not None:
                     err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
+                mandatory = ptr.search_one('mandatory')
+                if mandatory is not None and mandatory.arg == 'false':
+                    err_add(ctx.errors, mandatory.pos,
+                            'KEY_HAS_MANDATORY_FALSE', ())
                     
                 if ptr.i_config != stmt.i_config:
                     err_add(ctx.errors, ptr.search_one('config').pos,
