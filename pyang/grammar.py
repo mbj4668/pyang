@@ -561,6 +561,10 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                   syntax.arg_type_map[arg_type](stmt.arg) == False):
                 error.err_add(ctx.errors, stmt.pos,
                               'BAD_VALUE', (stmt.arg, arg_type))
+            elif (arg_type == 'identifier' and ctx.max_identifier_len is not None
+                  and len(stmt.arg) > ctx.max_identifier_len):
+                error.err_add(ctx.errors, stmt.pos, 'LONG_IDENTIFIER',
+                              (stmt.arg, ctx.max_identifier_len))
             else:
                 stmt.is_grammatically_valid = True
 
@@ -622,7 +626,7 @@ def _match_stmt(ctx, stmt, spec, canonical):
                 # check if this alternative matches - check for a
                 # match with each optional keyword
                 save_errors = ctx.errors
-                match_res = _match_stmt(ctx, stmt, cases[j], canonical)
+                match_res = _match_stmt(ctx, stmt, cases[j], False)
                 if match_res != None:
                     # this case branch matched, use it
                     # remove the choice and add res to the spec

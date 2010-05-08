@@ -331,6 +331,12 @@ error_codes = \
     'XPATH_SYNTAX_ERROR':
       (1,
        'XPath syntax error: %s'),
+
+
+    'LONG_IDENTIFIER':
+      (3,
+       'identifier %s exceeds %s characters'),
+
     'CONFIG_IGNORED':
       (4,
        'explicit config statement is ignored'),
@@ -349,11 +355,16 @@ error_codes = \
 
     'KEY_HAS_DEFAULT':
       (4,
-       'default value for key is ignored'),
+       'default value for a key leaf is ignored'),
+    
+    'KEY_HAS_MANDATORY_FALSE':
+      (4,
+       '"mandatory" statement for a key leaf is ignored'),
     
     'LONG_LINE':
       (4,
-       'line length %s exceds %s characters'),
+       'line length %s exceeds %s characters'),
+
     }
 
 def add_error_code(tag, level, fmt):
@@ -381,7 +392,7 @@ def err_add(errors, pos, tag, args):
     # surely this can be done more elegant??
     for (p, t, a) in errors:
         if (p.line == pos.line and p.ref == pos.ref and 
-            p.top_name == pos.top_name and t == tag):
+            p.top_name == pos.top_name and t == tag and a == args):
             return
     errors.append(error)
 

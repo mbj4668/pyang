@@ -58,11 +58,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              "canonical YANG order."),
         optparse.make_option("--max-line-length",
                              dest="max_line_len"),
-        optparse.make_option("--ietf",
-                             dest="ietf",
-                             action="store_true",
-                             help="Validate the module(s) according to " \
-                             "IETF rules."),
+        optparse.make_option("--max-identifier-length",
+                             dest="max_identifier_len"),
+        optparse.make_option("--check-explicit-default",
+                             dest="chk_statement_explicit_default",
+                             action="store_true"),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
@@ -115,14 +115,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     ctx = pyang.Context(repos)
 
-    if o.ietf:
-        ctx.canonical = True;
-        ctx.max_line_len = 72
-    else:
-        ctx.canonical = o.canonical
-        ctx.max_line_len = o.max_line_len
-
     ctx.opts = o
+    ctx.canonical = o.canonical
+    ctx.max_line_len = o.max_line_len
+    ctx.max_identifier_len = o.max_identifier_len
+
+    for p in plugin.plugins:
+        p.setup_ctx(ctx)
     
     if o.format != None:
         if o.format not in fmts:
@@ -131,9 +130,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         emit_obj = fmts[o.format]
     else:
         emit_obj = None
-
-    if emit_obj is not None:
-        emit_obj.setup_ctx(ctx)
 
     exit_code = 0
 
