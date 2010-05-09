@@ -1,13 +1,13 @@
 """Tree output plugin
 
-Status: experimental (not ready - needs prettier formatting)
-
 Idea copied from libsmi.
 """
 
 import optparse
+import sys
 
 from pyang import plugin
+from pyang import statements
 
 def pyang_plugin_init():
     plugin.register_plugin(TreePlugin())
@@ -16,51 +16,142 @@ class TreePlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         self.multiple_modules = True
         fmts['tree'] = self
+
+    def add_opts(self, optparser):
+        optlist = [
+            optparse.make_option("--tree-help",
+                                 dest="tree_help",
+                                 action="store_true",
+                                 help="Print help on tree symbols and exit"),
+            ]
+        g = optparser.add_option_group("Tree output specific options")
+        g.add_options(optlist)
+
+    def setup_ctx(self, ctx):
+        if ctx.opts.tree_help:
+            print_help()
+            sys.exit(0)
+
     def emit(self, ctx, modules, fd):
         emit_tree(modules, fd)
-        
+
+def print_help():
+    print """
+Each node is printed as:
+
+<status> <flags> <name> <opts>   <type>
+
+  <status> is one of:
+    +  for current
+    x  for deprecated
+    o  for obsolete
+
+  <flags> is one of:
+    rw  for configuration data
+    ro  for non-configuration data
+    -x  for rpcs
+    -n  for notifications
+
+  <name> is the name of the node
+    (<name>) means that the node is a choice node
+   :(<name>) means that the node is a case node
+
+   If the node is augmented into the tree from another module, its
+   name is printed as <prefix>:<name>.
+
+  <opts> is one of:
+    ?  for an optional leaf or container
+    *  for a leaf-list
+    [<keys>] for a list's keys
+
+  <type> is the name of the type for leafs and leaf-lists
+"""    
+
 def emit_tree(modules, fd):
     for module in modules:
-        fd.write("%s: %s\n" % (module.keyword, module.arg))
-        print_children(module, fd, ' ')
+        bstr = ""
+        b = module.search_one('belongs-to')
+        if b is not None:
+            bstr = " (belongs-to %s)" % b.arg
+        fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
+        chs = [ch for ch in module.i_children
+               if ch.keyword in statements.data_definition_keywords]
+        print_children(chs, module, fd, ' ')
 
-def print_children(s, fd, prefix):
-    if hasattr(s, 'i_children'):
-        typewidth = 0
-        for ch in s.i_children:
-            typename = get_typename(ch)
-            if len(typename) > typewidth:
-                typewidth = len(typename)
-        for ch in s.i_children:
-            if ch == s.i_children[-1]:
-                newprefix = prefix + '   '
+        rpcs = module.search('rpc')
+        if len(rpcs) > 0:
+            fd.write("rpcs:\n")
+            print_children(rpcs, module, fd, ' ')
+
+        notifs = module.search('notification')
+        if len(notifs) > 0:
+            fd.write("notifications:\n")
+            print_children(notifs, module, fd, ' ')
+
+def print_children(i_children, module, fd, prefix, width=0):
+    def get_width(w, chs):
+        for ch in i_children:
+            if ch.keyword in ['chocie', 'case']:
+                w = get_width(w, ch.i_children)
             else:
-                newprefix = prefix + '  |'
-            print_node(ch, fd, newprefix, typewidth)
+                if ch.i_module == module:
+                    nlen = len(ch.arg)
+                else:
+                    nlen = len(ch.i_module.i_prefix) + 1 + len(ch.arg)
+                if nlen > w:
+                    w = nlen
+        return w
+    
+    if width == 0:
+        width = get_width(0, i_children)
 
-def print_node(s, fd, prefix, typewidth):
+    for ch in i_children:
+        if ch == i_children[-1]:
+            newprefix = prefix + '   '
+        else:
+            newprefix = prefix + '  |'
+        print_node(ch, module, fd, newprefix, width)
+
+def print_node(s, module, fd, prefix, width):
     fd.write("%s%s--" % (prefix[0:-1], get_status_str(s)))
 
+    if s.i_module == module:
+        name = s.arg
+    else:
+        name = s.i_module.i_prefix + ':' + s.arg
+    flags = get_flags_str(s)
     if s.keyword == 'list':
-        fd.write(s.arg)
+        fd.write(flags + " " + name)
     elif s.keyword == 'container':
         p = s.search_one('presence')
-        if p is None or p.arg == 'false':
-            fd.write(s.arg)
-        else:
-            fd.write(s.arg + '?')
+        if p is not None and p.arg == 'true':
+            name += '?'
+        fd.write(flags + " " + name)
     elif s.keyword  == 'choice':
-        fd.write('(' + s.arg + ')?')
+        m = s.search_one('mandatory')
+        if m is None or m.arg == 'false':
+            fd.write(flags + ' (' + s.arg + ')')
+        else:
+            fd.write(flags + ' (' + s.arg + ')?')
     elif s.keyword == 'case':
         fd.write(':(' + s.arg + ')')
     else:
-        fd.write(" %s %-*s   %s" % (get_flags_str(s), typewidth,
-                                    get_typename(s), s.arg))
+        if s.keyword == 'leaf-list':
+            name += '*'
+        elif s.keyword == 'leaf':
+            m = s.search_one('mandatory')
+            if m is not None and m.arg == 'true':
+                name += '?'
+        fd.write("%s %-*s   %s" % (flags, width+1, name, get_typename(s)))
 
     if s.keyword == 'list' and s.search_one('key') is not None:
         fd.write(" [%s]" % s.search_one('key').arg)
     fd.write('\n')
-    print_children(s, fd, prefix)
+    if hasattr(s, 'i_children'):
+        if s.keyword in ['choice', 'case']:
+            print_children(s.i_children, module, fd, prefix, width)
+        else:
+            print_children(s.i_children, module, fd, prefix)
 
 def get_status_str(s):
     status = s.search_one('status')
