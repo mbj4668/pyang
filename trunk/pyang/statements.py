@@ -180,6 +180,7 @@ _validation_map = {
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
+    ('reference_3', 'typedef'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_3', 'must'):lambda ctx, s:v_reference_must(ctx, s),
     ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
     ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
@@ -523,6 +524,10 @@ def v_type_typedef(ctx, stmt):
     stmt.i_default_str = ""
     stmt.i_is_unused = True
 
+    stmt.i_leafref = None # path_type_spec
+    stmt.i_leafref_ptr = None # pointer to the leaf the leafref refer to
+    stmt.i_leafref_expanded = False
+
     name = stmt.arg
     if stmt.parent.parent is not None:
         # non-top-level typedef; check if it is already defined
@@ -530,26 +535,31 @@ def v_type_typedef(ctx, stmt):
         if ptype is not None:
             err_add(ctx.errors, stmt.pos, 'TYPE_ALREADY_DEFINED',
                     (name, ptype.pos))
-    type = stmt.search_one('type')
-    if type is None or type.is_grammatically_valid == False:
+    type_ = stmt.search_one('type')
+    if type_ is None or type_.is_grammatically_valid == False:
         # error is already reported by grammar check
         return
     # ensure our type is validated
-    v_type_type(ctx, type)
+    v_type_type(ctx, type_)
 
-    def check_circular_typedef(ctx, type):
+    # keep track of our leafref
+    type_spec = type_.i_type_spec
+    if type(type_spec) == types.PathTypeSpec:
+        stmt.i_leafref = type_spec
+
+    def check_circular_typedef(ctx, type_):
         # ensure the type is validated
-        v_type_type(ctx, type)
+        v_type_type(ctx, type_)
         # check the direct typedef
-        if (type.i_typedef is not None and 
-            type.i_typedef.is_grammatically_valid == True):
-            v_type_typedef(ctx, type.i_typedef)
+        if (type_.i_typedef is not None and 
+            type_.i_typedef.is_grammatically_valid == True):
+            v_type_typedef(ctx, type_.i_typedef)
         # check all union's types
-        membertypes = type.search('type')
+        membertypes = type_.search('type')
         for t in membertypes:
             check_circular_typedef(ctx, t)
 
-    check_circular_typedef(ctx, type)
+    check_circular_typedef(ctx, type_)
 
     stmt.i_is_validated = True
 
@@ -557,25 +567,25 @@ def v_type_typedef(ctx, stmt):
     default = stmt.search_one('default')
     # ... or if we don't; check if our base typedef has one
     if (default is None and
-        type.i_typedef is not None and
-        type.i_typedef.i_default is not None):
+        type_.i_typedef is not None and
+        type_.i_typedef.i_default is not None):
         # validate that the base type's default value is still valid
-        stmt.i_default = type.i_typedef.i_default
-        stmt.i_default_str = type.i_typedef.i_default_str
-        type.i_type_spec.validate(ctx.errors, stmt.pos,
-                                  stmt.i_default,
-                                  ' for the inherited default value ')
+        stmt.i_default = type_.i_typedef.i_default
+        stmt.i_default_str = type_.i_typedef.i_default_str
+        type_.i_type_spec.validate(ctx.errors, stmt.pos,
+                                   stmt.i_default,
+                                   ' for the inherited default value ')
     elif (default is not None and 
           default.arg is not None and
-          type.i_type_spec is not None):
-        stmt.i_default = type.i_type_spec.str_to_val(ctx.errors,
-                                                     default.pos,
-                                                     default.arg)
+          type_.i_type_spec is not None):
+        stmt.i_default = type_.i_type_spec.str_to_val(ctx.errors,
+                                                      default.pos,
+                                                      default.arg)
         stmt.i_default_str = default.arg
         if stmt.i_default is not None:
-            type.i_type_spec.validate(ctx.errors, default.pos,
-                                      stmt.i_default,
-                                      ' for the default value')
+            type_.i_type_spec.validate(ctx.errors, default.pos,
+                                       stmt.i_default,
+                                       ' for the default value')
 
 def v_type_type(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
@@ -778,25 +788,27 @@ def v_type_leaf(ctx, stmt):
         if m is not None and m.arg == 'true':
             err_add(ctx.errors, stmt.pos, 'DEFAULT_AND_MANDATORY', ())
             return False
-            
 
 def v_type_leaf_list(ctx, stmt):
     _v_type_common_leaf(ctx, stmt)
 
 def _v_type_common_leaf(ctx, stmt):
-    stmt.i_leafrefs = [] # if this is a union, there might be several
-    stmt.i_leafref_ptrs = [] # pointers to the leafs the leafrefs refer to
+    stmt.i_leafref = None # path_type_spec
+    stmt.i_leafref_ptr = None # pointer to the leaf the leafref refer to
+    stmt.i_leafref_expanded = False
     # check our type
-    type = stmt.search_one('type')
-    if type is None or type.is_grammatically_valid == False:
+    type_ = stmt.search_one('type')
+    if type_ is None or type_.is_grammatically_valid == False:
         # error is already reported by grammar check
         return False
 
     # ensure our type is validated
-    v_type_type(ctx, type)
+    v_type_type(ctx, type_)
 
-    # keep track of our leafrefs
-    add_leafref_path(stmt.i_leafrefs, type)
+    # keep track of our leafref
+    type_spec = type_.i_type_spec
+    if type(type_spec) == types.PathTypeSpec:
+        stmt.i_leafref = type_spec
 
 def v_type_grouping(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
@@ -1115,17 +1127,17 @@ def add_refinement_element(keyword, element, v_fun=None):
     _refinements.append((keyword, [element], v_fun))
 
 def v_default(ctx, target, default):
-    type = target.search_one('type')
-    if (type is not None and
-        type.i_type_spec is not None):
-        defval = type.i_type_spec.str_to_val(ctx.errors,
-                                             default.pos,
-                                             default.arg)
+    type_ = target.search_one('type')
+    if (type_ is not None and
+        type_.i_type_spec is not None):
+        defval = type_.i_type_spec.str_to_val(ctx.errors,
+                                              default.pos,
+                                              default.arg)
         target.i_default = defval
         target.i_default_str = default.arg
         if defval is not None:
-            type.i_type_spec.validate(ctx.errors, default.pos,
-                                      defval, ' for the default value')
+            type_.i_type_spec.validate(ctx.errors, default.pos,
+                                       defval, ' for the default value')
               
 def v_expand_1_uses(ctx, stmt):
     if (hasattr(stmt, 'is_grammatically_valid') and
@@ -1474,6 +1486,7 @@ def v_reference_list(ctx, stmt):
                             'KEY_BAD_CONFIG', name)
                     
                 stmt.i_key.append(ptr)
+                ptr.i_is_key = True
                 found.append(x)
 
     def v_unique():
@@ -1556,12 +1569,15 @@ def v_reference_choice(ctx, stmt):
 def v_reference_leaf_leafref(ctx, stmt):
     """Verify that all leafrefs in a leaf or leaf-list have correct path"""
 
-    for path_type_spec in stmt.i_leafrefs:
+    if stmt.i_leafref is not None and stmt.i_leafref_expanded is False:
+        path_type_spec = stmt.i_leafref
         ptr = validate_leafref_path(ctx, stmt,
                                     path_type_spec.path, path_type_spec.pos)
         path_type_spec.i_target_node = ptr
+        stmt.i_leafref_expanded = True
         if ptr is not None:
-            stmt.i_leafref_ptrs.append((ptr, path_type_spec.pos))
+            stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
+
         
 def v_reference_must(ctx, stmt):
     # verify that the xpath expression is correct, and that
@@ -1911,15 +1927,9 @@ def iterate_stmt(stmt, f):
     except Abort:
         pass
 
-def add_leafref_path(leafrefs, type_):
-    type_spec = type_.i_type_spec
-    if type(type_spec) == types.PathTypeSpec:
-        leafrefs.append(type_spec)
-    if type(type_spec) == types.UnionTypeSpec:
-        for t in type_spec.types: # union
-            add_leafref_path(leafrefs, t)
+def validate_leafref_path(ctx, stmt, path, pathpos):
+    "Return the leaf that the path points to, or None on error."
 
-def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
@@ -1948,9 +1958,18 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
             (pmodule, name) = find_identifier(dn[0])
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
             if ptr is None:
-                err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
-                        (pmodule.arg, name, stmt.arg, stmt.pos))
-                raise NotFound
+                # check all our submodules
+                for inc in stmt.i_module.search('include'):
+                    submod = ctx.get_module(inc.arg)
+                    if submod is not None:
+                        ptr = search_child(submod.i_children,
+                                           submod.arg, name)
+                        if ptr is not None:
+                            break
+                if ptr is None:
+                    err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
+                            (pmodule.arg, name, stmt.arg, stmt.pos))
+                    raise NotFound
             dn = dn[1:]
         else:
             while up > 0:
@@ -2001,10 +2020,11 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
                     # another leaf; either of type leafref to keyleaf, OR same
                     # type as the keyleaf
                     (xkey_list, x_key, xleaf) = follow_path(stmt, pup, pdn)
-                    if check_key_target and xleaf.i_leafref_ptrs == []:
+                    if xleaf.i_leafref_ptr is None:
                         err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE_PTR',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
-                    for (xptr, xpos) in xleaf.i_leafref_ptrs:
+                    else:
+                        (xptr, xpos) = xleaf.i_leafref_ptr
                         if xptr != pleaf:
                             err_add(ctx.errors, xpos,
                                     'LEAFREF_BAD_PREDICATE_PTR',
@@ -2038,9 +2058,9 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
         (up, dn) = path
         (key_list, keys, ptr) = follow_path(stmt, up, dn)
         # ptr is now the node that the leafref path points to
-        # check that it is a key in a list
-        if check_key_target and ptr.keyword != 'leaf':
-            err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF_KEY',
+        # check that it is a leaf
+        if ptr.keyword != 'leaf':
+            err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF',
                     (stmt.arg, stmt.pos))
             return None
         if (key_list == ptr.parent and
@@ -2049,7 +2069,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos, check_key_target=True):
                     (ptr.i_module.i_modulename, ptr.arg, stmt.arg, stmt.pos))
         if stmt.i_config == True and ptr.i_config == False:
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
-                    (stmt.arg, stmt.pos))
+                    (stmt.arg, ptr.arg, ptr.pos))
         return ptr
     except NotFound:
         return None
@@ -2088,15 +2108,19 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
-    def search(self, keyword):
+    def search(self, keyword, children=None):
         """Return list of receiver's substmts with `keyword`.
         """
-        return [ ch for ch in self.substmts if ch.keyword == keyword ]
+        if children is None:
+            children = self.substmts
+        return [ ch for ch in children if ch.keyword == keyword ]
 
-    def search_one(self, keyword, arg=None):
+    def search_one(self, keyword, arg=None, children=None):
         """Return receiver's substmt with `keyword` and optionally `arg`.
         """
-        for ch in self.substmts:
+        if children is None:
+            children = self.substmts
+        for ch in children:
             if ch.keyword == keyword and (arg is None or ch.arg == arg):
                 return ch
         return None

@@ -9,6 +9,9 @@ identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
 prefix = identifier
 keyword = '((' + prefix + '):)?(' + identifier + ')'
 
+# no group version of keyword
+keyword_ng = '(?:(' + prefix + '):)?(?:' + identifier + ')'
+
 re_keyword = re.compile(keyword)
 re_keyword_start = re.compile('^' + keyword)
 
@@ -31,13 +34,14 @@ re_identifier = re.compile("^" + identifier + "$")
 
 
 # path and unique
-node_id = keyword
+node_id = keyword_ng
 rel_path_keyexpr = r"(\.\./)+(" + node_id + "/)*" + node_id
 path_key_expr = r"(current\s*\(\s*\)/" + rel_path_keyexpr + ")"
 path_equality_expr = node_id + r"\s*=\s*" + path_key_expr
 path_predicate = r"\[\s*" + path_equality_expr + r"\s*\]"
-absolute_path_arg = "(/" + node_id + "(" + path_predicate + ")*)+"
-descendant_path_arg = node_id + "(" + path_predicate + ")*" + absolute_path_arg
+absolute_path_arg = "(?:/" + node_id + "(" + path_predicate + ")*)+"
+descendant_path_arg = node_id + "(" + path_predicate + ")*" + \
+                      "(?:" + absolute_path_arg + ")?"
 relative_path_arg = r"(\.\./)*" + descendant_path_arg
 path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
@@ -45,7 +49,7 @@ descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
 schema_nodeid = "("+absolute_schema_nodeid+")|("+descendant_schema_nodeid+")"
 unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
 key_arg = identifier + "(\s+" + identifier + ")*"
-re_schema_node_id_part = re.compile('/' + node_id)
+re_schema_node_id_part = re.compile('/' + keyword)
 
 # URI - RFC 3986, Appendix A
 scheme = "[A-Za-z][-+.A-Za-z0-9]*"
