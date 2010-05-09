@@ -130,12 +130,14 @@ module yt3 {
       }
     }
 
+/*
     typedef t17 {
       description leafref;
       type leafref {
         path "/interfaces/interface/ifMtu";
       }
     }
+*/
 
     typedef t18 {
       description instance-identifier;

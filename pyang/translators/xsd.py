@@ -22,14 +22,12 @@ yang_to_xsd_types = \
    'uint32':'unsignedInt',
    'uint64':'unsignedLong',
    'decimal64':'decimal',
-#   'float32':'float',
-#   'float64':'double',
    'string':'string',
    'boolean':'boolean',
    # enumeration is handled separately
    # bits is handled separately
    'binary':'base64Binary',
-   'leafref':'string',
+   # leafref is handled separately
    'instance-identifier':'string',
    'identityref':'QName',
    # empty is handled separately
@@ -439,13 +437,8 @@ def print_children(ctx, module, fd, children, indent, path,
                 if type.i_is_derived == False:
                     if type.arg == 'empty':
                         atype = ''
-                    elif type.arg in yang_to_xsd_types:
-                        atype = ' type="xs:%s"' % yang_to_xsd_types[type.arg]
-                    elif ((type.i_typedef != None) and
-                          (":" not in type.arg)):
-                        atype = ' type="%s"' % type.i_typedef.i_xsd_name
                     else:
-                        atype = ' type="%s"' % type.arg
+                        atype = '  type="%s"' % xsd_type_name(type)
             elif cn in ['notification']:
                 sgroup = ' substitutionGroup="ncn:notificationContent"'
                 extbase = 'ncn:NotificationContentType'
@@ -577,6 +570,18 @@ def print_children(ctx, module, fd, children, indent, path,
         elif cn == 'uses':
             fd.write(indent + '<xs:group ref="%s"/>\n' % c.arg)
             
+def xsd_type_name(type):
+    if type.arg in yang_to_xsd_types:
+        return "xs:%s" % yang_to_xsd_types[type.arg]
+    elif type.arg == 'leafref':
+        (ref, _pos) = type.parent.i_leafref_ptr
+        return xsd_type_name(ref.search_one('type'))
+    elif ((type.i_typedef != None) and
+          (":" not in type.arg)):
+        return type.i_typedef.i_xsd_name
+    else:
+        return type.arg
+    
 
 def print_grouping(ctx, module, fd, indent, grouping):
     fd.write(indent + '<xs:group name="%s">\n' % grouping.arg)
@@ -657,7 +662,9 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
     fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
     print_description(fd, indent + '  ', descr)
     if type.arg in yang_to_xsd_types:
-        base = 'xs:%s' % yang_to_xsd_types[type.arg]
+        base = xsd_type_name(type)
+    elif type.arg == 'leafref':
+        base = xsd_type_name(type)
     elif type.search('enum') != []:
         base = 'xs:string'
     elif ((type.i_typedef != None) and (":" not in type.arg)):

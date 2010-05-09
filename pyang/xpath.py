@@ -119,7 +119,7 @@ def tokens(s):
 def _preceding_token(toks):
     if len(toks) > 1 and toks[-1][0] == 'whitespace':
         return toks[-2][0]
-    if len(toks) > 0 and toks[-1][0] == 'whitespace':
+    if len(toks) > 0 and toks[-1][0] != 'whitespace':
         return toks[-1][0]
     return None
 

@@ -233,9 +233,9 @@ error_codes = \
       (1,
        '%s:%s in the leafref path\'s predicate for %s at %s is compared '
        'with a leaf that is not a correct leafref'),
-    'LEAFREF_NOT_LEAF_KEY':
+    'LEAFREF_NOT_LEAF':
       (1,
-       'the leafref path for %s at %s does not refer to a key leaf in a list'),
+       'the leafref path for %s at %s does not refer to a leaf'),
     'LEAFREF_NO_KEY':
       (1,
        '%s:%s in the leafref path for %s at %s is not the name of a key leaf'),
