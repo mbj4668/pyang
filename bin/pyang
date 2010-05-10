@@ -71,7 +71,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
                              "of stdout."),
-        optparse.make_option("-p", "--path", dest="path", default="",
+        optparse.make_option("-p", "--path",
+                             dest="path",
+                             default=[],
+                             action="append",
                              help=os.pathsep + "-separated search path for yin"
                              " and yang modules"),
         optparse.make_option("--plugindir",
@@ -111,7 +114,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     debug.set_debug(o.debug)
 
-    repos = pyang.FileRepository(o.path)
+    path = ":".join(o.path)
+    
+    repos = pyang.FileRepository(path)
 
     ctx = pyang.Context(repos)
 
