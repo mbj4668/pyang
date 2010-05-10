@@ -340,7 +340,9 @@ error_codes = \
     'XPATH_SYNTAX_ERROR':
       (1,
        'XPath syntax error: %s'),
-
+    'AUGMENT_MANDATORY':
+      (1,
+       'cannot augment mandatory node %s'),
 
     'LONG_IDENTIFIER':
       (3,

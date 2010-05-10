@@ -14,5 +14,9 @@ module yt6a {
     description
         "YANG test module 6a.";
 
+  augment /yt6:foo/yt6:a/yt6:z {
+    leaf xxx { type binary; }
+  }
+
 
 }   
