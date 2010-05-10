@@ -38,6 +38,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:otherwise>
         <xsl:apply-templates
             select="//svrl:failed-assert|//svrl:successful-report"/>
+	<xsl:message terminate="yes"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -45,7 +46,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="svrl:failed-assert">
     <xsl:text>--- Failed assert at </xsl:text>
     <xsl:value-of
-        select="preceding-sibling::svrl:fired-rule[1]/@context"/>
+	select="preceding-sibling::svrl:fired-rule[1]/@context"/>
     <xsl:value-of select="concat(':',$NL)"/>
     <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
   </xsl:template>
@@ -53,7 +54,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="svrl:successful-report">
     <xsl:text>--- Validity error at </xsl:text>
     <xsl:value-of
-        select="preceding-sibling::svrl:fired-rule[1]/@context"/>
+	select="preceding-sibling::svrl:fired-rule[1]/@context"/>
     <xsl:value-of select="concat(':',$NL)"/>
     <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
   </xsl:template>
