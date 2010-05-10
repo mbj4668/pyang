@@ -1648,15 +1648,19 @@ def v_reference_deviate(ctx, stmt):
             if c.keyword in _singleton_keywords:
                 if t.search_one(c.keyword) != None:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
-                            (t.i_module.arg, t.arg))
+                            (c.keyword, t.i_module.arg, t.arg))
                 elif t.keyword not in _valid_deviations[c.keyword]:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
-                            (t.i_module.arg, t.arg))
+                            c.keyword)
                 else:
                     t.substmts.append(c)
             else:
-                # multi-valued keyword; just add the statement
-                t.substmts.append(c)
+                # multi-valued keyword; just add the statement if it is valid
+                if t.keyword not in _valid_deviations[c.keyword]:
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
+                            c.keyword)
+                else:
+                    t.substmts.append(c)
     else: # delete or replace
         for c in stmt.substmts:
             if c.keyword in _singleton_keywords:
@@ -1665,7 +1669,7 @@ def v_reference_deviate(ctx, stmt):
                 old = t.search_one(c.keyword, c.arg)
             if old == None:
                 err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
-                        (t.i_module.arg, t.arg))
+                        (c.keyword, t.i_module.arg, t.arg))
             else:
                 idx = t.substmts.index(old)
                 del t.substmts[idx]
