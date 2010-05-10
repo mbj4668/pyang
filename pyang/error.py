@@ -132,6 +132,15 @@ error_codes = \
     'BAD_DEVIATE_KEY':
       (2,
        'key node "%s::%s" cannot be deviated with "not-supported"'),
+    'BAD_DEVIATE_ADD':
+      (2,
+       'the %s property already exists in node "%s::%s"'),
+    'BAD_DEVIATE_DEL':
+      (2,
+       'the %s property does not exist in node "%s::%s"'),
+    'BAD_DEVIATE_TYPE':
+      (2,
+       'the %s property cannot be added'),
     'EXTENSION_NOT_DEFINED':
       (1,
        'extension "%s" is not defined in module %s'),

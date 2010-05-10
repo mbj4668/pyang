@@ -28,6 +28,7 @@ module xt4 {
   }
   leaf a {
     type dc1;
+    units "bar";
   }
 
   leaf b {
@@ -63,6 +64,24 @@ module xt4 {
   deviation /a {
     deviate add {
       default "foo";  // error, not a decimal
+    }
+  }
+
+  deviation /a {
+    deviate add {
+      units "foo"; // error, units exists
+    }
+  }
+
+  deviation /a {
+    deviate add {
+      unique "ref"; // error, invalid addition
+    }
+  }
+
+  deviation /a {
+    deviate delete {
+      must "foo";
     }
   }
 
