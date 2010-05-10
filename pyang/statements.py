@@ -891,7 +891,6 @@ def v_type_augment(ctx, stmt):
         stmt.i_target_node = None
         err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
                 (stmt.arg, "descendant-node-id"))
-            
 
 def v_type_extension(ctx, stmt):
     """verify that the extension matches the extension definition"""
@@ -1315,6 +1314,24 @@ def v_expand_2_augment(ctx, stmt):
                  stmt.i_target_node.keyword))
         return
 
+    # first make sure we're not trying to add a mandatory node
+    def chk_mandatory(s):
+        if s.keyword == 'leaf':
+            m = s.search_one('mandatory')
+            if m is not None and m.arg == 'true':
+                err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
+        elif s.keyword == 'list' or s.keyword == 'leaf-list':
+            m = s.search_one('min-elements')
+            if m is not None and int(m.arg) >= 1:
+                err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
+        elif s.keyword == 'container':
+            p = s.search_one('presence')
+            if p == None:
+                for sc in s.i_children:
+                    chk_mandatory(sc)
+    for sc in stmt.i_children:
+        chk_mandatory(sc)
+            
     # copy the expanded children into the target node
     def add_tmp_children(node, tmp_children):
         for tmp in tmp_children:

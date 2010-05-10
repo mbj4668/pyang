@@ -24,7 +24,7 @@ module xt8 {
             type string;
           }
           leaf c2 {
-            type string;
+            type int32;
           }
         }
       }
