@@ -31,9 +31,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="/">
     <xsl:choose>
-      <xsl:when test="not(//svrl:failed-assert|//svrl:successful-report)">
-        <xsl:text>No errors found.</xsl:text>
-        <xsl:value-of select="$NL"/>
+      <xsl:when
+	  test="not(//svrl:failed-assert|//svrl:successful-report)">
+	<xsl:message terminate="no">
+	  <xsl:text>No errors found.</xsl:text>
+	  <xsl:value-of select="$NL"/>
+	</xsl:message>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates
@@ -44,19 +47,23 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="svrl:failed-assert">
-    <xsl:text>--- Failed assert at </xsl:text>
-    <xsl:value-of
-	select="preceding-sibling::svrl:fired-rule[1]/@context"/>
-    <xsl:value-of select="concat(':',$NL)"/>
-    <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
+    <xsl:message terminate="no">
+      <xsl:text>--- Failed assert at "</xsl:text>
+      <xsl:value-of
+	  select="preceding-sibling::svrl:fired-rule[1]/@context"/>
+      <xsl:value-of select="concat('&quot;:',$NL)"/>
+      <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
+    </xsl:message>
   </xsl:template>
 
   <xsl:template match="svrl:successful-report">
-    <xsl:text>--- Validity error at </xsl:text>
-    <xsl:value-of
-	select="preceding-sibling::svrl:fired-rule[1]/@context"/>
-    <xsl:value-of select="concat(':',$NL)"/>
-    <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
+    <xsl:message terminate="no">
+      <xsl:text>--- Validity error at "</xsl:text>
+      <xsl:value-of
+	  select="preceding-sibling::svrl:fired-rule[1]/@context"/>
+      <xsl:value-of select="concat('&quot;:',$NL)"/>
+      <xsl:value-of select="concat('    ',svrl:text,$NL)"/>
+    </xsl:message>
   </xsl:template>
 
 </xsl:stylesheet>
