@@ -21,10 +21,17 @@
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
-      <arg choice="opt">-s</arg>
       <arg choice="plain" rep="repeat">
         <replaceable>module</replaceable>
       </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>yang2dsdl</command>
+      <arg choice="opt">-t <replaceable>target</replaceable></arg>
+      <arg choice="opt">-d <replaceable>dir</replaceable></arg>
+      <arg choice="plain">-b <replaceable>basename</replaceable></arg>
+      <arg choice="plain">-v <replaceable>instance</replaceable></arg>
+      <arg choice="plain">-s</arg>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>yang2dsdl</command>
@@ -125,28 +132,34 @@
     <para>Optional validation of an XML document stored in the file
     <replaceable>instance</replaceable> proceeds as follows:</para>
     <orderedlist>
-      <listitem>
+      <listitem id="val-rng">
         <para>Grammatical and datatype constraints are checked using
         the RELAX NG schema.</para>
       </listitem>
-      <listitem>
+      <listitem id="val-dsrl">
         <para>The DSRL schema is used for adding default values
         together with ancestor containers to the instance document
         where necessary.</para>
       </listitem>
-      <listitem>
+      <listitem id="val-sch">
         <para>Semantic constraints are checked using the Schematron
         schema. The skeleton implementation of <ulink
         url="http://www.schematron.com">ISO
         Schematron</ulink> by Rick Jelliffe is used for this purpose.</para>
       </listitem>
     </orderedlist>
-    <para>If any of the schemas is missing, the corresponding step is
-    skipped. Option <option>-s</option> may be used together with
-    <option>-v</option> to validate an instance document without
+    <para>Steps <xref linkend="val-dsrl"/> and <xref
+    linkend="val-sch"/> will not be performed if step <xref
+    linkend="val-rng"/> reports any errors.</para>
+    <para>Option <option>-s</option> may be used together with
+    <option>-v</option> for validating an instance document without
     generating the schemas. This assumes that the schemas are already
     present in the directory selected by the <option>-d</option>
-    option (current directory by default).</para>
+    option (current directory by default). In this case, the basename
+    of the schemas must be specified using <option>-b</option>
+    <replaceable>basename</replaceable> and the input YANG modules
+    need not be given. Also, if the DSRL or Schematron schema is
+    missing, the corresponding step is skipped.</para>
     <para>The script uses programs from the libxml2 suite -
     <command>xmllint</command>(1) for RELAX NG validation and
     <command>xsltproc</command>(1) for performing XSLT
@@ -165,7 +178,8 @@
           <para>Specifies the basename of files in which the output
           schemas are stored. The default is the concatenation of the
           names of all input YANG modules connected with the
-          underscore character "_".</para>
+          underscore character "_". This option is mandatory if
+	  <option>-s</option> is used.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -187,7 +201,9 @@
         <listitem>
           <para>Performs just validation, without (re)generating the
           schemas. This option is only allowed together with
-          <option>-v</option>.</para>
+          <option>-v</option> and <option>-b</option>
+          <replaceable>basename</replaceable> must also be
+          specified.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -254,9 +270,9 @@
           <filename>/usr/local/share/yang/xslt/dsrl2xslt.xsl</filename>
         </term>
         <listitem>
-          <para>Translates a DSRL schema containing
-          <emphasis>only</emphasis> specification of default contents
-          to an XSLT stylesheet.</para>
+          <para>Translates a subset of DSRL containing only
+          specification of default contents to an XSLT
+          stylesheet.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -284,19 +300,22 @@
       <varlistentry>
         <term><envar>PYANG_XSLT_DIR</envar></term>
         <listitem>
-          <para>Alternative directory for XSLT stylesheets.</para>
+          <para>Alternative directory for XSLT stylesheets. The
+	  default is installation dependent.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><envar>PYANG_RNG_LIBDIR</envar></term>
         <listitem>
-          <para>Alternative directory for the RELAX NG library.</para>
+          <para>Alternative directory for the RELAX NG library. The
+          default is installation dependent.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><envar>XSLT_OPTS</envar></term>
         <listitem>
-          <para>Options to pass to the XSLT processor.</para>
+          <para>Options to pass to the XSLT processor when generating
+	  the DSDL schemas. This is mainly useful for debugging.</para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -305,11 +324,12 @@
   <refsect1 id="yang2dsdl-examples">
     <title>Examples</title>
 
-    <screen>$ yang2dsdl -v dhcp.xml dhcp.yang</screen>
-    <para>This command generates the DSDL schemas for a datastore
-    contents defined by the <filename>dhcp.yang</filename> module and
-    validates an instance document stored in the
-    <filename>dhcp.xml</filename> file.</para>
+    <screen>$ yang2dsdl -v dhcp-dstore.xml dhcp.yang</screen>
+    <para>This command generates the DSDL schemas for the datastore
+    contents (default <replaceable>dstore</replaceable> target) as
+    defined by the <filename>dhcp.yang</filename> module and validates
+    an instance document stored in the <filename>dhcp-dstore.xml</filename>
+    file.</para>
 
     <screen>$ yang2dsdl -t rpc rpc-rock.yang</screen>
     <para>This command generates DSDL schemas for the choice of input
@@ -328,11 +348,15 @@
       </varlistentry>
       <varlistentry>
 	<term>1</term>
-	<listitem><para>Error in the shell script</para></listitem>
+	<listitem><para>Error in input parameters</para></listitem>
       </varlistentry>
       <varlistentry>
 	<term>2</term>
-	<listitem><para>Error in an external program</para></listitem>
+	<listitem><para>Error in DSDL schema generation</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>3</term>
+	<listitem><para>Instance validation failed</para></listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
