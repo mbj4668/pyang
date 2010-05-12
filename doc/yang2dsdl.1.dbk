@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <refentry id="refentry-yang2dsdl">
   <refentryinfo>
-    <date>18 March 2010</date>
+    <date>12 May 2010</date>
+    <!-- This pointer and warning is intended for readers of nroff. -->
+    <releaseinfo>../../doc/yang2dsdl.1.dbk (DO NOT EDIT the nroff format!)</releaseinfo>
   </refentryinfo>
   <refmeta>
     <refentrytitle>yang2dsdl</refentrytitle>
