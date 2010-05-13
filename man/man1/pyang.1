@@ -1,227 +1,427 @@
-.TH pyang 1 "Dec 7, 2008" "pyang version 0.9.3"
-.SH NAME
+'\" t
+.\"     Title: pyang
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: 2010-05-12
+.\"    Manual: pyang manual
+.\"    Source: pyang-1.0a
+.\"  Language: English
+.\"
+.TH "PYANG" "1" "2010\-05\-12" "pyang\-1\&.0a" "pyang manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
 pyang \- validate and convert YANG modules to various formats
-.SH SYNOPSIS
-.B pyang
-[
-.B "-hv"
-] [
-.B "--canonical"
-] [
-.BI "-o " name
-] [
-.BI "-f " format
-] [
-.BI "-p " path
-] [
-.BI "-W " what
-]
-.I "module..."
+.SH "SYNOPSIS"
+.HP \w'\fBpyang\fR\ 'u
+\fBpyang\fR [\-\-canonical] [\-\-ietf] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwhat\fR] \fImodule\fR...
+.HP \w'\fBpyang\fR\ 'u
+\fBpyang\fR [\-h | \-\-help]
+.HP \w'\fBpyang\fR\ 'u
+\fBpyang\fR [\-v | \-\-version]
+.PP
+Only the most common options are listed here\&. See below for a complete list of options\&.
+.SH "DESCRIPTION"
+.PP
+The
+\fBpyang\fR
+program is used to validate YANG modules\&. It is also used to convert YANG modules into equivalent YIN modules\&. From a valid module, a W3C XML Schema (XSD) or hybrid DSDL schema (RELAX NG with additional annotations) can be generated\&.
+.PP
+If no
+\fIformat\fR
+is given, the specified modules are validated, and the program exits with exit code 0 if all modules are valid\&.
+.SH "OPTIONS"
+.PP
+\fB\-h\fR \fB\-\-help\fR
+.RS 4
+Print a short help text and exit\&.
+.RE
+.PP
+\fB\-v\fR \fB\-\-version\fR
+.RS 4
+Print the version number and exit\&.
+.RE
+.PP
+\fB\-e\fR \fB\-\-list\-errors\fR
+.RS 4
+Print a listing of all error codes and messages pyang might generate, and then exit\&.
+.RE
+.PP
+\fB\-Werror\fR
+.RS 4
+Treat warnings as errors\&.
+.RE
+.PP
+\fB\-Wnone\fR
+.RS 4
+Do not print any warnings\&.
+.RE
+.PP
+\fB\-\-canonical\fR
+.RS 4
+Validate the module(s) according to the canonical YANG order\&.
+.RE
+.PP
+\fB\-\-ietf\fR
+.RS 4
+Validate the module(s) according to IETF rules as specified in draft\-ietf\-netmod\-yang\-usage\&. In addition, it checks that the module is in canonical order, and that
+\fB\-\-max\-line\-length\fR
+is 72 so that the module fits into an RFC\&.
+.RE
+.PP
+\fB\-\-max\-line\-length\fR \fImaxlen\fR
+.RS 4
+Give a warning if any line is longer than
+\fImaxlen\fR\&.
+.RE
+.PP
+\fB\-\-max\-identifier\-length\fR \fImaxlen\fR
+.RS 4
+Give a error if any identifier is longer than
+\fImaxlen\fR\&.
+.RE
+.PP
+\fB\-f\fR \fB\-\-format\fR \fIformat\fR
+.RS 4
+Convert the module(s) into
+\fIformat\fR\&. Some translators require a single module, and some can translate multiple modules at one time\&. If no
+\fIoutfile\fR
+file is specified, the result is printed on stdout\&. The supported formats are listed in
+OUTPUT FORMATS
+below\&.
+.RE
+.PP
+\fB\-o\fR \fB\-\-output\fR \fIoutfile\fR
+.RS 4
+Write the output to the file
+\fIoutfile\fR
+instead of stdout\&.
+.RE
+.PP
+\fB\-p\fR \fB\-\-path\fR \fIpath\fR
+.RS 4
 
-
-Only the most common options are listed here.  See below for a
-complete list of options.
-.SH DESCRIPTION
-The \fBpyang\fP program is used to validate YANG modules.  It is also
-used to convert YANG modules into equivalent YIN modules.  From a
-valid module, a W3C XML Schema (XSD) or hybrid DSDL schema (RELAX
-NG with additional annotations) can be generated.
-
-If no \fIformat\fP is given, the specified modules are validated, and
-the program exits with exit code 0 if all modules are valid.
-.SH OPTIONS
-.TP
-.B "-h, --help"
-Print a short help text and exit.
-.TP
-.B "-e, --list-errors"
-Print a listing of all error codes and messages pyang might generate,
-and then exit.
-.TP
-.B "--print-error-code"
-On errors, print the symbolic error code instead of the error message.
-.TP
-.B "-Werror"
-Treat warnings as errors.
-.TP
-.B "-Wnone"
-Do not print any warnings.
-.TP
-.B "--canonical"
-Validate the module(s) according to the canonical YANG order.
-.TP
-.B "--max-line-length " maxlen
-Give a warning if any line is longer than \fImaxlen\fP.
-.TP
-.B "--max-identifier-length " maxlen
-Give an error if any identifier is longer than \fImaxlen\fP.
-.TP
-.B "--ietf"
-Validate the module(s) according to IETF rules as specified in
-draft-ietf-netmod-yang-usage.  In addition, it checks that the module
-is in canonical order, and that --max-line-length is 72 so that the
-module fits into an RFC.
-.TP
-.BI "-f " format ", --format " format
-Convert the module(s) into \fIformat\fP.  Some translators require a
-single module, and some can translate multiple modules at one time.
-If no \fIoutput\fP file is specified, the result is printed on stdout.
-The supported formats are listed in OUTPUT FORMATS below.
-.TP
-.BI "-o " outfile ", --output " outfile
-Write the output to the file \fIoutfile\fP instead of stdout.
-.TP
-.BI "-p " path ", --path " path
-\fIpath\fP is a colon (:) separated list of directories to search for
-imported modules.  This option can be given multiple times.
-
+\fIpath\fR
+is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
+.sp
 The following directories are always added to the search path:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+current directory
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
 
-  1.  current directory
-  2.  $YANG_MODPATH
-  3.  $HOME/yang/modules
-  4.  $YANG_INSTALL/yang/modules
-      OR if $YANG_INSTALL is unset
-      <the default installation directory>/yang/modules
-      (on Unix systems: /usr/share/yang/modules)
-.TP
-.BI "--plugindir " plugindir
-Load all YANG plugins found in the directory \fIplugindir\fR.  This
-option may be given multiple times.  The following directories are
-always added to the load path:
+\fB$YANG_MODPATH\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
 
-  1.  pyang/plugins from where pyang is installed
-  2.  $PYANG_PLUGINPATH
+\fB$HOME\fR/yang/modules
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
 
-.TP
-.B "-d, --debug"
-Turn on debugging of the pyang code.
-.TP
-.I module...
-These are the names of the files containing the modules to be
-validated, or the module to be converted.
-.SH OUTPUT FORMATS
-If pyang plugins are installed, these plugins may define their own
-options, or add new formats to the \fI-f\fR option.  These options and
-formats are listed in \fIpyang -h\fP.
-.TP 12
+\fB$YANG_INSTALL\fR/yang/modules
+OR if
+\fB$YANG_INSTALL\fR
+is unset
+<the default installation directory>/yang/modules
+(on Unix systems:
+/usr/share/yang/modules)
+.RE
+.RE
+.PP
+\fB\-\-plugindir\fR \fIplugindir\fR
+.RS 4
+Load all YANG plugins found in the directory
+\fIplugindir\fR\&. This option may be given multiple times\&.
+.sp
+list of directories to search for pyang plugins\&. The following directories are always added to the search path:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+
+pyang/plugins
+from where pyang is installed
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+
+\fB$PYANG_PLUGINPATH\fR
+.RE
+.RE
+.PP
+\fB\-d\fR, \fB\-\-debug\fR
+.RS 4
+Turn on debugging of the pyang code\&.
+.RE
+.PP
+\fImodule\&.\&.\&.\fR
+.RS 4
+These are the names of the files containing the modules to be validated, or the module to be converted\&.
+.RE
+.SH "OUTPUT FORMATS"
+.PP
+If pyang plugins are installed, these plugins may define their own options, or add new formats to the
+\fB\-f\fR
+option\&. These options and formats are listed in
+\fBpyang \-h\fR\&.
+.PP
 \fIyin\fR
+.RS 4
 the XML syntax of YANG
-.TP 
+.RE
+.PP
 \fIyang\fR
-.TP
+.RS 4
+normal YANG syntax
+.RE
+.PP
 \fIdsdl\fR
+.RS 4
 Hybrid DSDL schema (RELAX NG with annotations)
-.TP
+.RE
+.PP
 \fIxsd\fR
+.RS 4
 W3C XML Schema
-.TP
-\fIdepend\fR 
+.RE
+.PP
+\fIdepend\fR
+.RS 4
 Prints a Makefile dependency rule for the module
-.TP
+.RE
+.PP
 \fItree\fR
+.RS 4
 tree structure of the module
-.SH YANG OUTPUT
-Options for the \fIyang\fR output format.
-.TP
-.B "--yang-canonical"
-Generate all statements in the canonical order.
-.SH YIN OUTPUT
-Options for the \fIyin\fR output format.
-.TP
-.B "--yin-canonical"
-Generate all statements in the canonical order.
-.TP
-.B "--yin-pretty-strings"
-Pretty print strings, i.e. print with extra whitespace in the string.
-This is not strictly correct, since the whitespace is significant
-within the strings in XML, but the output is more readable.
-.SH DSDL OUTPUT
-Options for the \fIdsdl\fR output format.
-.TP
-.B "--dsdl-no-documentation"
+.RE
+.SH "YANG OUTPUT"
+.PP
+Options for the
+\fIyang\fR
+output format:
+.PP
+\fB\-\-yang\-canonical\fR
+.RS 4
+Generate all statements in the canonical order\&.
+.RE
+.SH "YIN OUTPUT"
+.PP
+Options for the
+\fIyin\fR
+output format:
+.PP
+\fB\-\-yin\-canonical\fR
+.RS 4
+Generate all statements in the canonical order\&.
+.RE
+.PP
+\fB\-\-yin\-pretty\-strings\fR
+.RS 4
+Pretty print strings, i\&.e\&. print with extra whitespace in the string\&. This is not strictly correct, since the whitespace is significant within the strings in XML, but the output is more readable\&.
+.RE
+.SH "DSDL OUTPUT"
+.PP
+Options for the
+\fIdsdl\fR
+output format:
+.PP
+\fB\-\-dsdl\-no\-documentation\fR
+.RS 4
 Do not print documentation annotations
-.TP
-.B "--dsdl-no-dublin-core"
+.RE
+.PP
+\fB\-\-dsdl\-no\-dublin\-core\fR
+.RS 4
 Do not print Dublin Core metadata terms
-.TP
-.B "--dsdl-record-defs"
-Record translations of all top-level typedefs and groupings in the
-output schema, even if they are not used. This is useful for
-translating library modules.
-.SH XSD OUTPUT
-Options for the \fIxsd\fR output format.
-.TP
-.B "--xsd-no-appinfo"
-Do not print YANG specific appie.nfo
-.TP
-.B "--xsd-no-lecture"
-Do not print the lecture about how the XSD can be used.
-.TP
-.B "--xsd-no-imports"
-Do not generate xs:import elements.
-.TP
-.B "--xsd-no-includes"
-Do not generate xs:include elements.
-.TP
-.B "--xsd-break-pattern"
-Break long patterns so that they fit into RFCs. The resulting patterns
-might not always be valid XSD, so use with care.
-.SH DEPEND OUTPUT
-The \fIdepend\fR output generates a Makefile dependency rule for files
-based on a YANG module.  This is useful if files are generated from
-the module.  For example, suppose a .c file is generated from each
-YANG module.  If the YANG module imports other modules, or includes
-submodules, the .c file needs to be regenerated if any of the imported
-or included modules change.  Such a dependency rule can be generated
-like this:
-
+.RE
+.PP
+\fB\-\-dsdl\-record\-defs\fR
+.RS 4
+Record translations of all top\-level typedefs and groupings in the output schema, even if they are not used\&. This is useful for translating library modules\&.
+.RE
+.SH "XSD OUTPUT"
+.PP
+Options for the
+\fIxsd\fR
+output format:
+.PP
+\fB\-\-xsd\-no\-appinfo\fR
+.RS 4
+Do not print YANG specific appinfo\&.
+.RE
+.PP
+\fB\-\-xsd\-no\-lecture\fR
+.RS 4
+Do not print the lecture about how the XSD can be used\&.
+.RE
+.PP
+\fB\-\-xsd\-no\-imports\fR
+.RS 4
+Do not generate any xs:imports\&.
+.RE
+.PP
+\fB\-\-xsd\-no\-includes\fR
+.RS 4
+Do not generate any xs:includes\&.
+.RE
+.PP
+\fB\-\-xsd\-break\-pattern\fR
+.RS 4
+Break long patterns so that they fit into RFCs\&. The resulting patterns might not always be valid XSD, so use with care\&.
+.RE
+.SH "DEPEND OUTPUT"
+.PP
+The
+\fIdepend\fR
+output generates a Makefile dependency rule for files based on a YANG module\&. This is useful if files are generated from the module\&. For example, suppose a \&.c file is generated from each YANG module\&. If the YANG module imports other modules, or includes submodules, the \&.c file needs to be regenerated if any of the imported or included modules change\&. Such a dependency rule can be generated like this:
+.sp
+.if n \{\
+.RS 4
+.\}
 .nf
-  $ pyang -f depend --depend-target mymod.c
-      --depend-extension .yang mymod.yang
-  mymod.c : ietf-yang-types.yang my-types.yang
+$ pyang \-f depend \-\-depend\-target mymod\&.c \e
+    \-\-depend\-extension \&.yang mymod\&.yang
+mymod\&.c : ietf\-yang\-types\&.yang my\-types\&.yang
 .fi
-
-Options for the \fIdepend\fR output format.
-.TP
-.B "--depend-target"
-Makefile rule target.  Default is the modulename.
-.TP
-.B "--depend-no-submodules"
-Do not generate dependencies for included submodules.
-.TP
-.B "--depend-extension"
-YANG module file name extension.  Default is no extension.
-.SH TREE OUTPUT
-The \fItree\fR output prints the resulting schema tree from one or
-more modules.  Use \fI--tree-help\fR to print a description on the
-symbols used by this format.
-.SH Example
-The following example validates the standard YANG modules with derived
-types:
-
+.if n \{\
+.RE
+.\}
+.PP
+Options for the
+\fIdepend\fR
+output format:
+.PP
+\fB\-\-depend\-target\fR
+.RS 4
+Makefile rule target\&. Default is the modulename\&.
+.RE
+.PP
+\fB\-\-depend\-extension\fR
+.RS 4
+YANG module file name extension\&. Default is no extension\&.
+.RE
+.PP
+\fB\-\-depend\-no\-submodules\fR
+.RS 4
+Do not generate dependencies for included submodules\&.
+.RE
+.SH "TREE OUTPUT"
+.PP
+The
+\fItree\fR
+output prints the resulting schema tree from one or more modules\&. Use
+\fBpyang \-\-tree\-help\fR
+to print a description on the symbols used by this format\&.
+.PP
+Tree output specific option:
+.PP
+\fB\-\-tree\-help\fR
+.RS 4
+Print help on symbols used in the tree output and exit\&.
+.RE
+.SH "EXAMPLE"
+.PP
+The following example validates the standard YANG modules with derived types:
+.sp
+.if n \{\
+.RS 4
+.\}
 .nf
-  $ pyang ietf-yang-types.yang ietf-inet-types.yang
+$ pyang ietf\-yang\-types\&.yang ietf\-inet\-types\&.yang
 .fi
-
-The following example converts the ietf-yang-types module into YIN:
-
+.if n \{\
+.RE
+.\}
+.PP
+The following example converts the ietf\-yang\-types module into YIN:
+.sp
+.if n \{\
+.RS 4
+.\}
 .nf
-  $ pyang -f yin -o ietf-yang-types.yin ietf-yang-types.yang
+$ pyang \-f yin \-o ietf\-yang\-types\&.yin ietf\-yang\-types\&.yang
 .fi
-.SH ENVIRONMENT VARIABLES
-pyang searches for referred modules in the colon (:) separated path
-defined by the environment variable YANG_MODPATH and in the
-directory $YANG_INSTALL/yang/modules.
-
-pyang searches for plugins in the colon (:) separated path defined by
-the environment variable PYANG_PLUGINDIR.
-.SH BUGS
-The XPath arguments for the \fBmust\fP and \fBwhen\fP statements are
-checked only for basic syntax errors.
-.SH Authors
-Martin Bjorklund, Tail-f Systems, <mbj@tail-f.com>
+.if n \{\
+.RE
+.\}
+.SH "ENVIRONMENT VARIABLES"
+.PP
+pyang searches for referred modules in the colon (:) separated path defined by the environment variable
+\fB$YANG_MODPATH\fR
+and in the directory
+\fB$YANG_INSTALL\fR/yang/modules\&.
+.PP
+pyang searches for plugins in the colon (:) separated path defined by the environment variable
+\fB$PYANG_PLUGINDIR\fR\&.
+.SH "BUGS"
+.PP
+The XPath arguments for the
+\fImust\fR
+and
+\fIwhen\fR
+statements are checked only for basic syntax errors\&.
+.SH "AUTHORS"
+.PP
+\fBMartin Bjorklund\fR <\&mbj@tail\-f\&.com\&>
 .br
-Ladislav Lhotka, CESNET, <lhotka@cesnet.cz>
-
-
+Tail\-f Systems
+.RS 4
+.RE
+.PP
+\fBLadislav Lhotka\fR <\&lhotka@cesnet\&.cz\&>
+.br
+CESNET
+.RS 4
+.RE

@@ -1,22 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<refentry id="refentry-yang2dsdl">
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0"
+	  id="man.1.yang2dsdl">
+
+  <info>
+    <author>
+      <personname>Ladislav Lhotka</personname>
+      <affiliation><orgname>CESNET</orgname></affiliation>
+      <email>lhotka@cesnet.cz</email>
+      <contrib/>
+    </author>
+  </info>
+
   <refentryinfo>
-    <date>12 May 2010</date>
-    <!-- This pointer and warning is intended for readers of nroff. -->
-    <releaseinfo>../../doc/yang2dsdl.1.dbk (DO NOT EDIT the nroff format!)</releaseinfo>
+    <date>%DATE%</date>
   </refentryinfo>
+
   <refmeta>
     <refentrytitle>yang2dsdl</refentrytitle>
     <manvolnum>1</manvolnum>
-    <refmiscinfo class="date">2010-03-18</refmiscinfo>
     <refmiscinfo class="manual">pyang manual</refmiscinfo>
+    <refmiscinfo class="source">yang2dsdl-%PYANG_VERSION%</refmiscinfo>
   </refmeta>
-  <refnamediv id="yang2dsdl-name">
+
+  <refnamediv id="man.1.yang2dsdl.name">
     <refname>yang2dsdl</refname>
     <refpurpose>translates YANG data models to DSDL schemas and
     validates instance documents.</refpurpose>
   </refnamediv>
-  <refsynopsisdiv id="yang2dsdl-synopsis">
+
+  <refsynopsisdiv id="man.1.yang2dsdl.synopsis">
     <cmdsynopsis>
       <command>yang2dsdl</command>
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
@@ -41,7 +53,7 @@
     </cmdsynopsis>
   </refsynopsisdiv>
 
-  <refsect1 id="yang2dsdl-description">
+  <refsect1 id="man.1.yang2dsdl.description">
     <title>Description</title>
     <para>This shell script facilitates the translation of a data
     model described by one or more input YANG modules to DSDL schemas
@@ -68,13 +80,13 @@
       </varlistentry>
       <varlistentry>
         <term><literal>get-reply</literal></term>
-        <listitem><para>A complete NETCONF protocol data unit (PDU)
+        <listitem><para>A complete NETCONF message
         containing a reply to the &lt;get&gt;
         operation.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>getconf-reply</literal></term>
-        <listitem><para>A complete NETCONF protocol data unit (PDU)
+        <listitem><para>A complete NETCONF message
         containing a reply to the &lt;get-config&gt;
         operation.</para></listitem>
       </varlistentry>
@@ -170,7 +182,7 @@
     processors supporting EXSLT.</para>
   </refsect1>
 
-  <refsect1 id="yang2dsdl-options">
+  <refsect1 id="man.1.yang2dsdl.options">
     <title>Options</title>
     <variablelist remap="TP">
       <varlistentry>
@@ -232,7 +244,7 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 id="yang2dsdl-files">
+  <refsect1 id="man.1.yang2dsdl.files">
     <title>FILES</title>
     <variablelist>
       <varlistentry>
@@ -296,7 +308,7 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 id="yang2dsdl-env">
+  <refsect1 id="man.1.yang2dsdl.env">
     <title>ENVIRONMENT VARIABLES</title>
     <variablelist>
       <varlistentry>
@@ -323,7 +335,7 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 id="yang2dsdl-examples">
+  <refsect1 id="man.1.yang2dsdl.examples">
     <title>Examples</title>
 
     <screen>$ yang2dsdl -v dhcp-dstore.xml dhcp.yang</screen>
@@ -339,7 +351,7 @@
     <filename>rpc-rock.yang</filename>.</para>
   </refsect1>
 
-  <refsect1 id="yang2dsdl-diagnostics">
+  <refsect1 id="man.1.yang2dsdl.diagnostics">
     <title>Diagnostics</title>
     <para><command>yang2dsdl</command> return codes have the
     following meaning:</para>
@@ -362,7 +374,7 @@
       </varlistentry>
     </variablelist>
   </refsect1>
-  <refsect1 id="yang2dsdl-seealso">
+  <refsect1 id="man.1.yang2dsdl.seealso">
     <title>See Also</title>
     <para><citerefentry>
       <refentrytitle>pyang</refentrytitle>
@@ -381,11 +393,5 @@
     Internet Draft draft-ietf-netmod-dsdl-map.</para>
   </refsect1>
 
-  <refsect1 id="yang2dsdl-author">
-    <title>Authors</title>
-    <para>The <command>yang2dsdl</command> script and XSLT stylesheets
-    were written by Ladislav Lhotka
-    &lt;<email>lhotka@cesnet.cz</email>&gt;.</para>
-  </refsect1>
 
 </refentry>
