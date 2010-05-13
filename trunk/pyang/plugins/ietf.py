@@ -138,8 +138,8 @@ def v_chk_default(ctx, stmt):
                 (stmt.keyword, stmt.arg))
 
 def v_chk_required_substmt(ctx, stmt):
-    if stmt.keyword in _required_ietf_substatements:
-        for r in _required_ietf_substatements[stmt.keyword]:
+    if stmt.keyword in _required_substatements:
+        for r in _required_substatements[stmt.keyword]:
             if stmt.search_one(r) is None:
                 err_add(ctx.errors, stmt.pos,
                         'IETF_MISSING_REQUIRED_SUBSTMT',
