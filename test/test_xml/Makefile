@@ -17,7 +17,10 @@ STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
 all: $(STD_XSD) yang yin xsd rng
 
-test: all gen-xml
+test:
+	@echo "disabled"
+
+xtest: all gen-xml
 
 ietf-yang-types.yang:
 	cp ../../modules/$@ $@

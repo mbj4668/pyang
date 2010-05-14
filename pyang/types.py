@@ -1,7 +1,6 @@
 """YANG built-in types"""
 
 from error import err_add
-from debug import dbg
 import util
 import syntax
 import statements
@@ -28,7 +27,6 @@ class IntTypeSpec(TypeSpec):
 
     def str_to_val(self, errors, pos, str):
         try:
-            dbg('trying to convert "%s" to an int...' % str)
             if str in ['min', 'max']:
                 return str
             return int(str, 0)
@@ -137,7 +135,6 @@ class BooleanTypeSpec(TypeSpec):
         TypeSpec.__init__(self)
 
     def str_to_val(self, errors, pos, str):
-        dbg('trying to convert "%s" to a boolean...' % str)
         if str == 'true': return True;
         elif str == 'false': return False
         else:

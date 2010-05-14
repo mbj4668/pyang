@@ -312,20 +312,6 @@
       
       <varlistentry>
 	<term>
-	  <option>-d</option>
-	</term>
-	<term>
-	  <option>--debug</option>
-	</term>
-	<listitem>
-	  <para>
-	    Turn on debugging of the pyang code.
-	  </para>
-	</listitem>
-      </varlistentry>
-      
-      <varlistentry>
-	<term>
 	  <replaceable>module...</replaceable>
 	</term>
 	<listitem>
