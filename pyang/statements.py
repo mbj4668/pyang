@@ -1068,7 +1068,7 @@ def v_expand_1_children(ctx, stmt):
     for s in stmt.substmts:
         if s.keyword in ['input', 'output']:
             # must create a copy of the statement which sets the argument
-            news = s.copy()
+            news = s.copy(nocopy=['type','uses','unique','typedef','grouping'])
             news.i_groupings = s.i_groupings
             news.i_typedefs = s.i_typedefs
             news.arg = news.keyword
