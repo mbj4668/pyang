@@ -318,9 +318,11 @@ def validate_pattern_expr(errors, stmt):
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
     except ImportError:
-        err_add(errors, stmt.pos, 'PATTERN_FAILURE',
-                "Could not import python module libxml2 "
-                    "(see http://xmlsoft.org for installation help)")
+## Do not report a warning in this case.  Maybe we should add some
+## flag to turn on this warning...
+#        err_add(errors, stmt.pos, 'PATTERN_FAILURE',
+#                "Could not import python module libxml2 "
+#                    "(see http://xmlsoft.org for installation help)")
         return None
 
 class PatternTypeSpec(TypeSpec):
