@@ -2,12 +2,8 @@
 
 = Introduction =
 
-Add your content here.
+This tutorial explains how to use the pyang implementation of DSDL mapping for validating NETCONF datastores and PDUs and performing other related tasks.
 
+= The tools =
 
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+TODO: explain briefly the structure - DSDL plugin, yang2dsdl.
