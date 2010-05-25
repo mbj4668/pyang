@@ -1,0 +1,7 @@
+#summary Links to htmlized manual pages
+
+= Manual pages for pyang tools =
+
+  * [http://www.yang-central.org/twiki/pub/Main/YangTools/pyang.1.html pyang]
+  * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang2dsdl.1.html yang2dsdl]
+
