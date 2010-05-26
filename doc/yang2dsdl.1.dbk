@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<refentry xmlns="http://docbook.org/ns/docbook" version="5.0"
-	  id="man.1.yang2dsdl">
+<refentry xmlns="http://docbook.org/ns/docbook"
+	  version="5.0"
+	  xmlns:xlink="http://www.w3.org/1999/xlink"
+	  xml:id="man.1.yang2dsdl">
 
   <info>
     <author>
@@ -9,11 +11,8 @@
       <email>lhotka@cesnet.cz</email>
       <contrib/>
     </author>
-  </info>
-
-  <refentryinfo>
     <date>%DATE%</date>
-  </refentryinfo>
+  </info>
 
   <refmeta>
     <refentrytitle>yang2dsdl</refentrytitle>
@@ -22,13 +21,13 @@
     <refmiscinfo class="source">yang2dsdl-%PYANG_VERSION%</refmiscinfo>
   </refmeta>
 
-  <refnamediv id="man.1.yang2dsdl.name">
+  <refnamediv xml:id="man.1.yang2dsdl.name">
     <refname>yang2dsdl</refname>
     <refpurpose>translates YANG data models to DSDL schemas and
     validates instance documents.</refpurpose>
   </refnamediv>
 
-  <refsynopsisdiv id="man.1.yang2dsdl.synopsis">
+  <refsynopsisdiv xml:id="man.1.yang2dsdl.synopsis">
     <cmdsynopsis>
       <command>yang2dsdl</command>
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
@@ -53,7 +52,7 @@
     </cmdsynopsis>
   </refsynopsisdiv>
 
-  <refsect1 id="man.1.yang2dsdl.description">
+  <refsect1 xml:id="man.1.yang2dsdl.description">
     <title>Description</title>
     <para>This shell script facilitates the translation of a data
     model described by one or more input YANG modules to DSDL schemas
@@ -146,20 +145,20 @@
     <para>Optional validation of an XML document stored in the file
     <replaceable>instance</replaceable> proceeds as follows:</para>
     <orderedlist>
-      <listitem id="val-rng">
+      <listitem xml:id="val-rng">
         <para>Grammatical and datatype constraints are checked using
         the RELAX NG schema.</para>
       </listitem>
-      <listitem id="val-dsrl">
+      <listitem xml:id="val-dsrl">
         <para>The DSRL schema is used for adding default values
         together with ancestor containers to the instance document
         where necessary.</para>
       </listitem>
-      <listitem id="val-sch">
+      <listitem xml:id="val-sch">
         <para>Semantic constraints are checked using the Schematron
-        schema. The skeleton implementation of <ulink
-        url="http://www.schematron.com">ISO
-        Schematron</ulink> by Rick Jelliffe is used for this purpose.</para>
+        schema. The skeleton implementation of <link
+        xlink:href="http://www.schematron.com">ISO
+        Schematron</link> by Rick Jelliffe is used for this purpose.</para>
       </listitem>
     </orderedlist>
     <para>Steps <xref linkend="val-dsrl"/> and <xref
@@ -182,7 +181,7 @@
     processors supporting EXSLT.</para>
   </refsect1>
 
-  <refsect1 id="man.1.yang2dsdl.options">
+  <refsect1 xml:id="man.1.yang2dsdl.options">
     <title>Options</title>
     <variablelist remap="TP">
       <varlistentry>
@@ -244,7 +243,7 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 id="man.1.yang2dsdl.files">
+  <refsect1 xml:id="man.1.yang2dsdl.files">
     <title>FILES</title>
     <variablelist>
       <varlistentry>
@@ -308,7 +307,7 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 id="man.1.yang2dsdl.env">
+  <refsect1 xml:id="man.1.yang2dsdl.env">
     <title>ENVIRONMENT VARIABLES</title>
     <variablelist>
       <varlistentry>
@@ -335,7 +334,7 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 id="man.1.yang2dsdl.examples">
+  <refsect1 xml:id="man.1.yang2dsdl.examples">
     <title>Examples</title>
 
     <screen>$ yang2dsdl -v dhcp-dstore.xml dhcp.yang</screen>
@@ -351,7 +350,7 @@
     <filename>rpc-rock.yang</filename>.</para>
   </refsect1>
 
-  <refsect1 id="man.1.yang2dsdl.diagnostics">
+  <refsect1 xml:id="man.1.yang2dsdl.diagnostics">
     <title>Diagnostics</title>
     <para><command>yang2dsdl</command> return codes have the
     following meaning:</para>
@@ -374,7 +373,7 @@
       </varlistentry>
     </variablelist>
   </refsect1>
-  <refsect1 id="man.1.yang2dsdl.seealso">
+  <refsect1 xml:id="man.1.yang2dsdl.seealso">
     <title>See Also</title>
     <para><citerefentry>
       <refentrytitle>pyang</refentrytitle>
@@ -385,9 +384,9 @@
       </citerefentry>, <citerefentry>
       <refentrytitle>xmllint</refentrytitle>
       <manvolnum>1</manvolnum>
-      </citerefentry>, <ulink url="http://www.dsdl.org/">DSDL</ulink>,
-      <ulink url="http://www.relaxng.org/">RELAX NG</ulink>, <ulink
-      url="http://www.schematron.com">ISO Schematron</ulink>.
+      </citerefentry>, <link xlink:href="http://www.dsdl.org/">DSDL</link>,
+      <link xlink:href="http://www.relaxng.org/">RELAX NG</link>, <link
+      xlink:href="http://www.schematron.com">ISO Schematron</link>.
     </para>
     <para>The mapping procedure from YANG to DSDL is documented in the
     Internet Draft draft-ietf-netmod-dsdl-map.</para>

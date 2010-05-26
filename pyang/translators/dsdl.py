@@ -409,7 +409,14 @@ class HybridDSDLSchema(object):
         Prefixes are added to unprefixed local names. Inside global
         groupings, the prefix is represented as the variable '$pref'
         which is substituted via Schematron abstract patterns.
+
+        BUG: The translation is not perfect because this function
+        doesn't perform syntactic analysis. Consequently, node names
+        matching the boolean and numeric operators (see the list
+        `operators`) must always be prefixed in the input YANG
+        modules, or otherwise the translation won't work.
         """
+        operators = ["mod", "div", "and", "or"]
         def prefix():
             if self.gg_level: return "$pref:"
             return self.prefix_stack[-1] + ":"
@@ -439,7 +446,8 @@ class HybridDSDLSchema(object):
                     result += name + c
                 else:
                     state = 0
-                    if ":" not in name: result += prefix()
+                    if ":" not in name and name not in operators:
+                        result += prefix()
                     result += name + c
             elif state == 2:    # single-quoted string
                 if c == "'":
@@ -461,7 +469,8 @@ class HybridDSDLSchema(object):
                     state = 1
                     name += c
         if state == 1:
-            if ":" not in name: result += prefix()
+            if ":" not in name and name not in operators:
+                result += prefix()
             result += name
         return result
 
