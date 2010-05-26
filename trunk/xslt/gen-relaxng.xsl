@@ -171,36 +171,31 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:grammar">
-    <xsl:element name="grammar" namespace="{$rng-uri}">
-      <xsl:attribute name="ns">
-	<xsl:value-of select="@ns"/>
-      </xsl:attribute>
-      <xsl:if test="/rng:grammar/rng:define">
-	<xsl:element name="include" namespace="{$rng-uri}">
-	  <xsl:attribute name="href">
-	    <xsl:value-of select="concat($basename,'-gdefs.rng')"/>
-	  </xsl:attribute>
+    <xsl:variable
+	name="subtree"
+	select="descendant::rng:element[
+		@name='nmt:data' and ($target='dstore'
+		or $target='get-reply' or $target='getconf-reply') or
+		@name='nmt:rpcs' and ($target='rpc' or $target='rpc-reply')
+		or @name='nmt:notifications' and $target='notif']"/>
+    <xsl:if test="not($subtree/rng:empty)">
+      <xsl:element name="grammar" namespace="{$rng-uri}">
+	<xsl:attribute name="ns">
+	  <xsl:value-of select="@ns"/>
+	</xsl:attribute>
+	<xsl:if test="/rng:grammar/rng:define">
+	  <xsl:element name="include" namespace="{$rng-uri}">
+	    <xsl:attribute name="href">
+	      <xsl:value-of select="concat($basename,'-gdefs.rng')"/>
+	    </xsl:attribute>
+	  </xsl:element>
+	</xsl:if>
+	<xsl:element name="start" namespace="{$rng-uri}">
+	  <xsl:apply-templates select="$subtree"/>
 	</xsl:element>
-      </xsl:if>
-      <xsl:element name="start" namespace="{$rng-uri}">
-	<xsl:choose>
-	  <xsl:when test="$target='dstore' or $target='get-reply'
-			  or $target='getconf-reply'">
-	    <xsl:apply-templates
-		select="descendant::rng:element[@name='nmt:data']"/>
-	  </xsl:when>
-	  <xsl:when test="$target='rpc' or $target='rpc-reply'">
-	    <xsl:apply-templates
-		select="descendant::rng:element[@name='nmt:rpcs']"/>
-	  </xsl:when>
-	  <xsl:when test="$target='notif'">
-        <xsl:apply-templates
-	    select="descendant::rng:element[@name='nmt:notifications']"/>
-	  </xsl:when>
-	</xsl:choose>
+	<xsl:apply-templates select="rng:define"/>
       </xsl:element>
-      <xsl:apply-templates select="rng:define"/>
-    </xsl:element>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="rng:element[@name='nmt:data']">
