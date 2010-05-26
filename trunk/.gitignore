@@ -4,3 +4,4 @@ dist
 *.rnc
 schemas.xml
 *.pyc
+*.html

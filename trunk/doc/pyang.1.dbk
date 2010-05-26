@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0"
-	  id="man.1.pyang">
+	  xml:id="man.1.pyang">
 
   <info>
     <author>
@@ -15,11 +15,8 @@
       <email>lhotka@cesnet.cz</email>
       <contrib/>
     </author>
-  </info>
-
-  <refentryinfo>
     <date>%DATE%</date>
-  </refentryinfo>
+  </info>
 
   <refmeta>
     <refentrytitle>pyang</refentrytitle>
@@ -35,7 +32,7 @@
     </refpurpose>
   </refnamediv>
 
-  <refsynopsisdiv id="man.1.pyang.synopsis">
+  <refsynopsisdiv xml:id="man.1.pyang.synopsis">
     <cmdsynopsis>
       <command>pyang</command>
       <arg choice="opt">--canonical</arg>
@@ -85,7 +82,7 @@
     </para>
   </refsect1>
 
-  <refsect1 id="pyang-options">
+  <refsect1 xml:id="pyang-options">
     <title>Options</title>
     <variablelist remap="TP">
 
@@ -627,11 +624,25 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
   <refsect1 xml:id="man.1.pyang.bugs">
     <title>BUGS</title>
 
-    <para>
-      The XPath arguments for the <emphasis>must</emphasis> and
-      <emphasis>when</emphasis> statements are checked only for basic
-      syntax errors.
-    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  The XPath arguments for the <emphasis>must</emphasis> and
+	  <emphasis>when</emphasis> statements are checked only for
+	  basic syntax errors.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The translation of XPath expressions performed by the DSDL
+	  plugin doesn't add a prefix to local names that match the
+	  keyword of an XPath operator ("and", "or", "div", "mod")
+	  even if syntactically it cannot be such an operator. As a
+	  workaround, it is necessary to use an explicit prefix for
+	  these conflicting names in YANG.
+	</para>
+      </listitem>
+    </orderedlist>
 
   </refsect1>
 
