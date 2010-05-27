@@ -6,8 +6,7 @@ http://www.yang-central.org, in particular:
 = Tutorials =
 
   * [http://www.yang-central.org/twiki/bin/view/Main/DhcpTutorial DHCP Tutorial] explains the basic concepts of YANG on a canonical example of a DHCP server configuration.
-  * [http://www.yang-central.org/twiki/bin/view/Main/DSDLMappingTutorial DSDL Mapping Tutorial] shows how to use _pyang_ for generating RELAX NG, Schematron and
-DSRL schemas from YANG data models and validating instance XML documents with these schemas.
+  * [http://www.yang-central.org/twiki/bin/view/Main/DSDLMappingTutorial DSDL Mapping Tutorial] shows how to use _pyang_ for generating RELAX NG, Schematron and DSRL schemas from YANG data models and validating instance XML documents with these schemas.
 
 
 = Manual pages for pyang tools =
