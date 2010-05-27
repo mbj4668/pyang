@@ -2185,7 +2185,8 @@ class Statement(object):
         return path
 
     def pprint(self, indent='', f=None):
-        print indent + self.keyword + " " + self.arg
+        """debug function"""
+        print indent + util.keyword_to_str(self.keyword) + " " + self.arg
         if f is not None:
              f(self, indent)
         for x in self.substmts:
