@@ -48,7 +48,7 @@ import optparse
 import time
 
 import pyang
-from pyang import plugin, statements, error
+from pyang import plugin, error, xpath
 
 from schemanode import SchemaNode
 
@@ -403,76 +403,18 @@ class HybridDSDLSchema(object):
         self.notifications = SchemaNode.element("nmt:notifications", start,
                                                 interleave=False, occur=2)
 
-    def yang_to_xpath(self, xpath):
+    def yang_to_xpath(self, xpe):
         """Transform YANG's `xpath` to standard XPath 1.0
 
         Prefixes are added to unprefixed local names. Inside global
         groupings, the prefix is represented as the variable '$pref'
         which is substituted via Schematron abstract patterns.
-
-        BUG: The translation is not perfect because this function
-        doesn't perform syntactic analysis. Consequently, node names
-        matching the boolean and numeric operators (see the list
-        `operators`) must always be prefixed in the input YANG
-        modules, or otherwise the translation won't work.
         """
-        operators = ["mod", "div", "and", "or"]
-        def prefix():
-            if self.gg_level: return "$pref:"
-            return self.prefix_stack[-1] + ":"
-        state = 0
-        result = ""
-        for c in xpath:
-            if state == 0:      # everything except below
-                if c.isalpha() or c == "_":
-                    state = 1
-                    name = c
-                elif c == "'":
-                    state = 2
-                    result += c
-                elif c == '"':
-                    state = 3
-                    result += c
-                else:
-                    result += c
-            elif state == 1:    # inside name
-                if c.isalnum() or c in "_-.":
-                    name += c
-                elif c == ":":
-                    state = 4
-                    name += c
-                elif c == "(":  # function
-                    state = 0
-                    result += name + c
-                else:
-                    state = 0
-                    if ":" not in name and name not in operators:
-                        result += prefix()
-                    result += name + c
-            elif state == 2:    # single-quoted string
-                if c == "'":
-                    state = 0
-                    result += c
-                else:
-                    result += c
-            elif state == 3:    # double-quoted string
-                if c == '"':
-                    state = 0
-                    result += c
-                else:
-                    result += c
-            elif state == 4:    # axis
-                if c == ":":
-                    state = 0
-                    result += name + c
-                else:
-                    state = 1
-                    name += c
-        if state == 1:
-            if ":" not in name and name not in operators:
-                result += prefix()
-            result += name
-        return result
+        if self.gg_level:
+            pref = "$pref"
+        else:
+            pref = self.prefix_stack[-1]
+        return xpath.add_prefix(pref, xpe)
 
     def add_namespace(self, uri, prefix):
         """Add new item `uri`:`prefix` to `self.namespaces`.

@@ -62,7 +62,6 @@ gen_relaxng() {
         $xslt_dir/gen-relaxng.xsl $hybs
     [[ $? == 0 ]] || fail 2
     xsltproc $XSLT_OPTS --output $dir/$basename-gdefs.rng \
-	--stringparam basename $basename \
         --stringparam gdefs-only 1 $xslt_dir/gen-relaxng.xsl $hybs
     [[ $? == 0 ]] || fail 2
     echo "Done."
