@@ -102,7 +102,7 @@
       <varlistentry>
         <term><literal>notif</literal></term>
         <listitem><para>An event notification defined in the input
-        YANG modules.</para></listitem>
+        YANG module(s).</para></listitem>
       </varlistentry>
     </variablelist>
 
