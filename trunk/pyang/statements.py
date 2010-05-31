@@ -1454,6 +1454,10 @@ def v_unique_name_children(ctx, stmt):
 ### Reference phase
 
 def v_reference_list(ctx, stmt):
+    if hasattr(stmt, 'i_is_validated'):
+        return
+    stmt.i_is_validated = True
+
     def v_key():
         key = stmt.search_one('key')
         if stmt.i_config == True and key is None:

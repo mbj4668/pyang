@@ -52,6 +52,10 @@ class IETFPlugin(plugin.PyangPlugin):
             'grammar', ['$chk_required'],
             lambda ctx, s: v_chk_required_substmt(ctx, s))
         statements.add_validation_fun(
+            'grammar', ['$chk_recommended'],
+            lambda ctx, s: v_chk_recommended_substmt(ctx, s))
+
+        statements.add_validation_fun(
             'grammar', ['namespace'],
             lambda ctx, s: v_chk_namespace(ctx, s))
 
@@ -105,8 +109,6 @@ _required_substatements = {
     'module': ('contact', 'organization', 'description', 'revision'),
     'submodule': ('contact', 'organization', 'description', 'revision'),
     'revision':('reference',),
-    'enum':('description',),
-    'bit':('description',),
     'extension':('description',),
     'feature':('description',),
     'identity':('description',),
@@ -127,6 +129,8 @@ _required_substatements = {
 _recommended_substatements = {
     'must':('description',),
     'when':('description',),
+    'enum':('description',),
+    'bit':('description',),
     }
 
 
@@ -145,15 +149,24 @@ def v_chk_required_substmt(ctx, stmt):
                         'IETF_MISSING_REQUIRED_SUBSTMT',
                         (stmt.keyword, r))
 
+def v_chk_recommended_substmt(ctx, stmt):
+    if stmt.keyword in _recommended_substatements:
+        for r in _recommended_substatements[stmt.keyword]:
+            if stmt.search_one(r) is None:
+                err_add(ctx.errors, stmt.pos,
+                        'IETF_MISSING_RECOMMENDED_SUBSTMT',
+                        (stmt.keyword, r))
+
 def v_chk_namespace(ctx, stmt):
     if not stmt.arg == _ietf_namespace_prefix + stmt.i_module.arg:
         err_add(ctx.errors, stmt.pos, 'IETF_BAD_NAMESPACE_VALUE',
                 _ietf_namespace_prefix + stmt.i_module.arg)
         
 def v_chk_top_level_nodes(ctx, stmt):
-    if len(stmt.i_children) > 1:
+    top = [x for x in stmt.i_children if x.keyword not in ['rpc','notification']]
+    if len(top) > 1:
         err_add(ctx.errors, stmt.pos, 'IETF_TOO_MANY_TOP_LEVEL_NODES',
-                ", ".join(x.arg for x in stmt.i_children))
+                ", ".join(x.arg for x in top))
 
 def v_chk_module_name(ctx, stmt):
     # can't check much, but we can check that a prefix is used
