@@ -342,7 +342,7 @@ class FileRepository(Repository):
     def _setup(self, ctx):
         # check all dirs for yang and yin files
         self.modules = []
-        r = re.compile(r"^(.*?)(\.(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
+        r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
         for d in self.dirs:
             try:
                 files = os.listdir(d)
