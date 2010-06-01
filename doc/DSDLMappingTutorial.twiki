@@ -1,3 +1,6 @@
+<!-- pyang commiters, please edit the TWiki source
+     in the pyang repository at Google Code, directory doc/
+-->
 ---+ DSDL Mapping Tutorial
 
 ---++ Introduction
@@ -20,10 +23,10 @@ procedure with the _yang2dsdl_ script that is a part of _pyang_
 distribution, and then experiment with validating configuration
 datastore contents.
 
-NOTE: The software tools presented in this tutorial produce compact
-XML data with no intervening whitespace. The corresponding files that
-are attached to this wiki page and referred to in the text are their
-pretty-printed versions obtained by using
+%ICON{"help"}% The software tools presented in this tutorial produce
+compact XML data with no intervening whitespace. The corresponding
+files that are attached to this wiki page and referred to in the text
+are their pretty-printed versions obtained by using
 [[http://xmlsoft.org/xmllint.html][xmllint]].
 
 ---++ The Data Model
