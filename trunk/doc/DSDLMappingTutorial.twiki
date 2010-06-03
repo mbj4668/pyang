@@ -1,5 +1,9 @@
-<!-- pyang commiters, please edit the TWiki source
-     in the pyang repository at Google Code, directory doc/
+<!-- Author: Ladislav Lhotka <lhotka@cesnet.cz>
+     URL: http://www.yang-central.org/twiki/bin/view/Main/DSDLMappingTutorial
+
+     Note to pyang committers: please edit the TWiki source
+     in the pyang repository at Google Code, file
+     doc/DSDLMappingTutorial.twiki.
 -->
 ---+ DSDL Mapping Tutorial
 
