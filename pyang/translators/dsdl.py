@@ -327,6 +327,8 @@ class HybridDSDLSchema(object):
         res += self.tree.serialize()
         for d in self.global_defs:
             res += self.global_defs[d].serialize()
+        for i in self.identities:
+            res += self.identities[i].serialize()
         if self.has_anyxml:
             res += self.anyxml_def
         return res + self.top_grammar.end_tag()
@@ -342,15 +344,17 @@ class HybridDSDLSchema(object):
         if not no_a: self.namespaces[self.a_uri] = "a"
         self.global_defs = {}
         self.all_defs = {}
+        self.identity_deps = {}
+        self.identities = {}
         self.has_anyxml = False
         self.debug = debug
         self.module_prefixes = {}
         gpset = {}
         self.gg_level = 0
-        for module in modules:
-            ns = module.search_one("namespace").arg
-            pref = module.search_one("prefix").arg
-            self.module_prefixes[module.arg] = self.add_namespace(ns, pref)
+        for module in modules: self.add_namespace(module)
+        for module in modules[0].i_ctx.modules.values():
+            for i in module.i_identities:
+                self.register_identity(module.i_identities[i])
         for module in modules:
             self.module = module
             self.prefix_stack = [self.module_prefixes[module.arg]]
@@ -415,13 +419,15 @@ class HybridDSDLSchema(object):
             pref = self.prefix_stack[-1]
         return xpath.add_prefix(pref, xpe)
 
-    def add_namespace(self, uri, prefix):
-        """Add new item `uri`:`prefix` to `self.namespaces`.
+    def add_namespace(self, module):
+        """Add item uri:prefix for `module` to `self.namespaces`.
 
         The prefix to be actually used for `uri` is returned.  If the
         namespace is already present, the old prefix is used.  Prefix
         clashes are resolved by disambiguating `prefix`.
         """
+        uri = module.search_one("namespace").arg
+        prefix = module.search_one("prefix").arg
         if uri in self.namespaces: return self.namespaces[uri]
         end = 1
         new = prefix
@@ -429,7 +435,41 @@ class HybridDSDLSchema(object):
             new = "%s%x" % (prefix,end)
             end += 1
         self.namespaces[uri] = new
+        self.module_prefixes[module.arg] = new
         return new
+
+    def register_identity(self, id_stmt):
+        """Register identity `ident` in `self.identity_deps`.
+
+        Fill in (recursively) all derivations from base identities.
+        """
+        module = id_stmt.i_module
+        self.add_namespace(module)
+        qid = self.module_prefixes[module.arg] + ":" + id_stmt.arg
+        if qid in self.identity_deps: return qid
+        self.identity_deps[qid] = []
+        bst = id_stmt.search_one("base")
+        if not bst: return qid
+        bist = bst.i_identity
+        bn = self.register_identity(bist)
+        self.identity_deps[bn].append(qid)
+        return qid
+
+    def add_identity(self, ident):
+        """Add `id_stmt` and all derivates to `self.identities`.
+
+        `ident` must be a fully qualified identity name.
+        """
+        def trname(iname): return "__" + iname.replace(":","_")
+        if ident in self.identities: return
+        parent = SchemaNode.define(trname(ident))
+        self.identities[ident] = parent
+        if self.identity_deps[ident]:
+            parent = SchemaNode.choice(parent, occur=2)
+        SchemaNode("value", parent, ident).attr["type"]="QName"
+        for i in self.identity_deps[ident]:
+            SchemaNode("ref", parent).attr["name"]=trname(i)
+            self.add_identity(i)
 
     def preload_defs(self):
         """Preload all top-level definitions."""
@@ -597,9 +637,8 @@ class HybridDSDLSchema(object):
         """Append YIN representation of extension statement `stmt`."""
         ext = stmt.i_extension
         prf, extkw = stmt.raw_keyword
-        extns = self.module.i_ctx.get_module(
-            self.module.i_prefixes[prf][0]).search_one("namespace").arg
-        prefix = self.add_namespace(extns, prf)
+        prefix = self.add_namespace(self.module.i_ctx.get_module(
+            self.module.i_prefixes[prf][0]))
         eel = SchemaNode(prefix + ":" + extkw, p_elem)
         argst = ext.search_one("argument")
         if argst:
@@ -1088,7 +1127,11 @@ class HybridDSDLSchema(object):
         SchemaNode("empty", p_elem)
 
     def identityref_type(self, tchain, p_elem):
-        SchemaNode("data", p_elem).set_attr("type", "QName")
+        bid = tchain[0].search_one("base").i_identity
+        qid = self.module_prefixes[bid.i_module.arg] + ":" + bid.arg
+        self.add_identity(qid)
+        SchemaNode("ref", p_elem).set_attr("name",
+                                           "__" + qid.replace(":","_"))
 
     def leafref_type(self, tchain, p_elem):
         stmt = tchain[0]
