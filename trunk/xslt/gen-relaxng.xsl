@@ -83,12 +83,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="/rng:grammar" mode="gdefs">
-    <xsl:element name="grammar" namespace="{$rng-uri}">
+    <xsl:copy>
       <xsl:attribute name="datatypeLibrary">
-        <xsl:value-of select="@datatypeLibrary"/>
+	<xsl:value-of select="@datatypeLibrary"/>
       </xsl:attribute>
       <xsl:apply-templates select="rng:define"/>
-    </xsl:element>
+    </xsl:copy>
   </xsl:template>
 
   <xsl:template match="/rng:grammar">
