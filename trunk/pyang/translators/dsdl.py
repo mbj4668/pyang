@@ -451,6 +451,8 @@ class HybridDSDLSchema(object):
         Fill in (recursively) all derivations from base identities.
         """
         module = id_stmt.i_module
+        if module.keyword == "submodule":
+            module = module.i_ctx.get_module(module.i_including_modulename)
         self.add_namespace(module)
         qid = self.module_prefixes[module.arg] + ":" + id_stmt.arg
         if qid in self.identity_deps: return qid
@@ -1135,7 +1137,11 @@ class HybridDSDLSchema(object):
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
-        qid = self.module_prefixes[bid.i_module.arg] + ":" + bid.arg
+        if bid.i_module.keyword == "submodule":
+            mnam = bid.i_module.i_including_modulename
+        else:
+            mnam = bid.i_module.arg
+        qid = self.module_prefixes[mnam] + ":" + bid.arg
         self.add_identity(qid)
         SchemaNode("ref", p_elem).set_attr("name",
                                            "__" + qid.replace(":","_"))
