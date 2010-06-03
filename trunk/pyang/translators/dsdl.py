@@ -161,6 +161,13 @@ class HybridDSDLSchema(object):
     * `self.has_anyxml`: boolean flag indicating presence of the
       'anyxml' statement in any input YANG module.
 
+    * `self.identities`: dictionary of identity names as keys and the
+      corresponding name pattern definitions as values.
+
+    * `self.identity_deps: dictionary showing the dependences among
+      identities - identity_name -> list of all identities that define
+      identity_name as their base.
+
     * `self.local_defs`: dictionary of local named pattern
       definitions. The keys are mangled names of the definitions.
 
