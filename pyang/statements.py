@@ -326,8 +326,8 @@ def v_init_module(ctx, stmt):
                 revision = None
             # check if the prefix is already used by someone else
             if prefix in stmt.i_prefixes:
-                err_add(ctx.errors, p.pos, 'PREFIX_ALREADY_USED',
-                        (prefix, stmt.i_prefixes[prefix]))
+                (m, _rev) = stmt.i_prefixes[prefix]
+                err_add(ctx.errors, p.pos, 'PREFIX_ALREADY_USED', (prefix, m))
             # add the prefix to the unused prefixes
             if i.arg is not None and p.arg is not None:
                 stmt.i_prefixes[p.arg] = (i.arg, revision)
