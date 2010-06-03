@@ -1,5 +1,9 @@
-<!-- pyang commiters, please edit the TWiki source
-     in the pyang repository at Google Code, directory doc/
+<!-- Author: Ladislav Lhotka <lhotka@cesnet.cz>
+     URL: http://www.yang-central.org/twiki/bin/view/Main/DSDLTechDetails
+
+     Note to pyang committers: please edit the TWiki source
+     in the pyang repository at Google Code, file
+     doc/DSDLTechDetails.twiki.
 -->
 ---+ Technical Details of DSDL Mapping and Validation
 
