@@ -350,8 +350,7 @@ class HybridDSDLSchema(object):
         for module in modules:
             ns = module.search_one("namespace").arg
             pref = module.search_one("prefix").arg
-            self.add_namespace(ns, pref)
-            self.module_prefixes[module.arg] = pref
+            self.module_prefixes[module.arg] = self.add_namespace(ns, pref)
         for module in modules:
             self.module = module
             self.prefix_stack = [self.module_prefixes[module.arg]]
