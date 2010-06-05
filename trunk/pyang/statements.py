@@ -1315,7 +1315,6 @@ def v_expand_2_augment(ctx, stmt):
                  stmt.i_target_node.keyword))
         return
 
-    # first make sure we're not trying to add a mandatory node
     def chk_mandatory(s):
         if s.keyword == 'leaf':
             m = s.search_one('mandatory')
@@ -1330,8 +1329,11 @@ def v_expand_2_augment(ctx, stmt):
             if p == None:
                 for sc in s.i_children:
                     chk_mandatory(sc)
-    for sc in stmt.i_children:
-        chk_mandatory(sc)
+    # if we're augmenting another module, make sure we're not
+    # trying to add a mandatory node
+    if stmt.i_module.i_modulename != stmt.i_target_node.i_module.i_modulename:
+        for sc in stmt.i_children:
+            chk_mandatory(sc)
             
     # copy the expanded children into the target node
     def add_tmp_children(node, tmp_children):
