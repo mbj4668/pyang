@@ -105,6 +105,10 @@ module xt8 {
    uses g2 {
        augment "c12" {
            container c22 {}
+           leaf lm1 {
+             type string;
+             mandatory true;
+           }
        }
    }
 

@@ -13,6 +13,10 @@ submodule augment-sub1 {
         type int32;
       }
     }
+    leaf llm1 {
+      type string;
+      mandatory true;
+    }
   }
 } 
 
