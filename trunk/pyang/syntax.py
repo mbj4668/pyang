@@ -38,7 +38,7 @@ node_id = keyword_ng
 rel_path_keyexpr = r"(\.\./)+(" + node_id + "/)*" + node_id
 path_key_expr = r"(current\s*\(\s*\)/" + rel_path_keyexpr + ")"
 path_equality_expr = node_id + r"\s*=\s*" + path_key_expr
-path_predicate = r"\[\s*" + path_equality_expr + r"\s*\]"
+path_predicate = r"\s*\[\s*" + path_equality_expr + r"\s*\]\s*"
 absolute_path_arg = "(?:/" + node_id + "(" + path_predicate + ")*)+"
 descendant_path_arg = node_id + "(" + path_predicate + ")*" + \
                       "(?:" + absolute_path_arg + ")?"
@@ -48,7 +48,7 @@ absolute_schema_nodeid = "(/" + node_id + ")+"
 descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
 schema_nodeid = "("+absolute_schema_nodeid+")|("+descendant_schema_nodeid+")"
 unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
-key_arg = identifier + "(\s+" + identifier + ")*"
+key_arg = node_id + "(\s+" + node_id + ")*"
 re_schema_node_id_part = re.compile('/' + keyword)
 
 # URI - RFC 3986, Appendix A

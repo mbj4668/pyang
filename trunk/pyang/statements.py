@@ -329,7 +329,8 @@ def v_init_module(ctx, stmt):
                 (m, _rev) = stmt.i_prefixes[prefix]
                 err_add(ctx.errors, p.pos, 'PREFIX_ALREADY_USED', (prefix, m))
             # add the prefix to the unused prefixes
-            if i.arg is not None and p.arg is not None:
+            if (i.arg is not None and p.arg is not None
+                and i.arg != stmt.i_modulename):
                 stmt.i_prefixes[p.arg] = (i.arg, revision)
                 stmt.i_unused_prefixes[p.arg] = i
 
@@ -1472,7 +1473,6 @@ def v_reference_list(ctx, stmt):
             for x in key.arg.split():
                 if x == '':
                     continue
-                # This is not yet valid YANG - syntax.py will not allow it
                 if x.find(":") == -1:
                     name = x
                 else:
@@ -2084,7 +2084,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
         (key_list, keys, ptr) = follow_path(stmt, up, dn)
         # ptr is now the node that the leafref path points to
         # check that it is a leaf
-        if ptr.keyword != 'leaf':
+        if ptr.keyword not in ('leaf', 'leaf-list'):
             err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF',
                     (stmt.arg, stmt.pos))
             return None
