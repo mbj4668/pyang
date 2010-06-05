@@ -2,6 +2,7 @@ module b {
     namespace "urn:b";
     prefix b;
     import a { prefix a; }
+    import b { prefix bb; }
     
     typedef xx {
         type a:xx {
