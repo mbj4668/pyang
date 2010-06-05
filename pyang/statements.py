@@ -1625,12 +1625,13 @@ def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
 
 _singleton_keywords = {
+    'type':True,
     'units':True,
     'default':True,
     'config':True,
     'mandatory':True,
     'min-elements':True,
-    'max-elemenrs':True
+    'max-elements':True
     }
 
 _valid_deviations = {
