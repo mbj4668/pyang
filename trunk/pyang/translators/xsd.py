@@ -140,7 +140,7 @@ class XSDPlugin(plugin.PyangPlugin):
         module = modules[0]
         # cannot do XSD unless everything is ok for our module
         for (epos, etag, eargs) in ctx.errors:
-            if (epos.top_name == module.arg and
+            if (epos.top == module and
                 error.is_error(error.err_level(etag))):
                 raise error.EmitError("XSD translation needs a valid module")
         # we also need to have all other modules found

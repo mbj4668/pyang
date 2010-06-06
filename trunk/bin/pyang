@@ -158,6 +158,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         else:
             modules.append(module)
 
+    modulenames = []
+    for m in modules:
+        modulenames.append(m.arg)
+        for s in m.search('include'):
+            modulenames.append(s.arg)
+#    modulenames = [m.arg for m in modules]
+
     if emit_obj is not None:
         emit_obj.pre_validate(ctx, modules)
 
@@ -181,6 +188,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.errors.sort(cmp_error)
 
     for (epos, etag, eargs) in ctx.errors:
+        if (hasattr(epos.top, 'i_modulename') and
+            epos.top.arg not in modulenames and
+            epos.top.i_modulename not in modulenames and
+            epos.ref not in filenames):
+            # this module was added implicitly (by import); skip this error
+            # the code includes submodules
+            continue
         elevel = error.err_level(etag)
         if error.is_warning(elevel):
             type = "warning"

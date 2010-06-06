@@ -6,7 +6,7 @@ class Position(object):
     def __init__(self, ref):
         self.ref = ref
         self.line = 0
-        self.top_name = None
+        self.top = None
         self.uses_pos = None
     def __str__(self):
         s = self.ref + ':' + str(self.line)
@@ -403,7 +403,7 @@ def err_add(errors, pos, tag, args):
     # surely this can be done more elegant??
     for (p, t, a) in errors:
         if (p.line == pos.line and p.ref == pos.ref and 
-            p.top_name == pos.top_name and t == tag and a == args):
+            p.top == pos.top and t == tag and a == args):
             return
     errors.append(error)
 

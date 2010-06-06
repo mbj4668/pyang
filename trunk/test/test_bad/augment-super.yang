@@ -15,12 +15,12 @@
             container y {
               leaf foo {
                 type int8;
-                mandatory true; // error, mandatory node
+                mandatory true;
               }
             }
             list z {
               key k;
-              min-elements 2; // error, mandatory node
+              min-elements 2;
               leaf k {
                 type int32;
               }
@@ -35,7 +35,7 @@
                 mandatory true;
               }
             }
-            uses bar; // error, mandatory node
+            uses bar;
           }
 	}
 }
