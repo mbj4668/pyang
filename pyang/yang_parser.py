@@ -240,7 +240,7 @@ class YangParser(object):
 
         stmt = statements.Statement(self.top, parent, self.pos, keywd, arg)
         if self.top is None:
-            self.pos.top_name = arg
+            self.pos.top = stmt
             self.top = stmt
  
         # check for substatements

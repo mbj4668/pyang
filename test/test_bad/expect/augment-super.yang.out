@@ -1,4 +1,1 @@
 augment-super.yang:8: error: DUPLICATE_CHILD_NAME
-augment-super.yang:18: error: AUGMENT_MANDATORY
-augment-super.yang:23: error: AUGMENT_MANDATORY
-augment-super.yang:38 (at augment-super.yang:35): error: AUGMENT_MANDATORY

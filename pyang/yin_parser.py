@@ -126,7 +126,7 @@ class YinParser(object):
             try:
                 (argname, _arg_is_elem) = syntax.yin_map[e.local_name]
                 arg = e.find_attribute(argname)
-                self.pos.top_name = arg
+                self.pos.top = e
             except:
                 pass
             return
