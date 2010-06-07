@@ -459,10 +459,13 @@ class BitsTypeSpec(TypeSpec):
 
 def validate_path_expr(errors, path):
 
+    # FIXME: rewrite using the new xpath tokenizer
+
     # PRE: s matches syntax.path_arg
     # Ret: (up::int(),
     #       [identifier | ('predicate', identifier, up::int(), [identifier])])
     def parse_keypath(s):
+
 
         def parse_dot_dot(s):
             up = 0
@@ -476,12 +479,16 @@ def validate_path_expr(errors, path):
                     if up == 0: # absolute path
                         up = -1
                     break
+                elif s[i].isspace():
+                    i = i + 1
                 else:
                     # s points to an identifier
                     break
             return (up, s[i:])
 
         def skip_space(s):
+            if len(s) == 0:
+                return s
             i = 0
             while s[i].isspace():
                 i = i + 1
@@ -523,8 +530,15 @@ def validate_path_expr(errors, path):
             s = skip_space(s)
             s = s[1:] # skip '='
             s = skip_space(s)
-            if s[:10] == 'current()/':
-                s = s[10:] # skip 'current()/'
+            if s[:7] == 'current':
+                s = s[7:] # skip 'current'
+                s = skip_space(s)
+                s = s[1:] # skip '('
+                s = skip_space(s)
+                s = s[1:] # skip ')'
+                s = skip_space(s)
+                s = s[1:] # skip '/'
+                s = skip_space(s)
                 (up, s) = parse_dot_dot(s)
                 s = skip_space(s)
             else:
@@ -532,8 +546,9 @@ def validate_path_expr(errors, path):
                 s = s[b:]
             dn = []
             while True:
-                (xidentifier, s) = parse_identifier(s[i:], is_absolute)
+                (xidentifier, s) = parse_identifier(s, is_absolute)
                 dn.append(xidentifier)
+                s = skip_space(s)
                 if s[0] == '/':
                     s = s[1:] # skip '/'
                 else:
@@ -550,6 +565,7 @@ def validate_path_expr(errors, path):
         while len(s) > 0:
             (identifier, s) = parse_identifier(s[i:], is_absolute)
             dn.append(identifier)
+            s = skip_space(s)
             if len(s) == 0:
                 break
             while len(s) > 0 and s[0] == '[':
