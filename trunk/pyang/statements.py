@@ -2118,6 +2118,8 @@ class Statement(object):
 
         self.pos = copy.copy(pos)
         """position in input stream, for error reporting"""
+        if self.pos.top is None:
+            self.pos.top = self
 
         self.raw_keyword = keyword
         """the name of the statement

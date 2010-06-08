@@ -34,6 +34,7 @@ class Context(object):
         self.canonical = False
         self.max_line_len = None
         self.max_identifier_len = None
+        self.implicit_errors = True
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:

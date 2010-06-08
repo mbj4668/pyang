@@ -32,6 +32,9 @@ class TreePlugin(plugin.PyangPlugin):
             print_help()
             sys.exit(0)
 
+    def setup_fmt(self, ctx):
+        ctx.implicit_errors = False
+
     def emit(self, ctx, modules, fd):
         emit_tree(modules, fd)
 

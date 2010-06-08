@@ -126,6 +126,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             print >> sys.stderr, "unsupported format '%s'" % o.format
             sys.exit(1)
         emit_obj = fmts[o.format]
+        emit_obj.setup_fmt(ctx)
     else:
         emit_obj = None
 
@@ -163,7 +164,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         modulenames.append(m.arg)
         for s in m.search('include'):
             modulenames.append(s.arg)
-#    modulenames = [m.arg for m in modules]
 
     if emit_obj is not None:
         emit_obj.pre_validate(ctx, modules)
@@ -188,7 +188,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.errors.sort(cmp_error)
 
     for (epos, etag, eargs) in ctx.errors:
-        if (hasattr(epos.top, 'i_modulename') and
+        if (ctx.implicit_errors == False and
+            hasattr(epos.top, 'i_modulename') and
             epos.top.arg not in modulenames and
             epos.top.i_modulename not in modulenames and
             epos.ref not in filenames):
