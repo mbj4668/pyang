@@ -31,6 +31,7 @@ class IETFPlugin(plugin.PyangPlugin):
         ctx.canonical = True;
         ctx.max_line_len = 72
         ctx.max_identifier_len = 64
+        ctx.implicit_errors = False
 
         # register our grammar validation funs
 

@@ -87,7 +87,15 @@ class PyangPlugin(object):
     ## library methods
 
     def setup_ctx(self, ctx):
-        """Modify the Context at setup time.
+        """Modify the Context at setup time.  Called for all plugins.
+
+        Override this method to modify the Context before the module
+        repository is accessed.
+        """
+        return
+
+    def setup_fmt(self, ctx):
+        """Modify the Context at setup time.  Called for the selected plugin.
 
         Override this method to modify the Context before the module
         repository is accessed.
