@@ -1,4 +1,5 @@
 import copy
+import re
 
 import util
 from util import attrsearch, keysearch
@@ -17,6 +18,16 @@ class NotFound(Exception):
 class Abort(Exception):
     """used to abort an iteration"""
     pass
+
+### Constants
+
+re_path = re.compile('(.*)/(.*)')
+re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
+
+yang_xpath_functions = (
+    'current',
+    'deref', # pyang extension
+    )
 
 ### Validation
 
@@ -130,6 +141,9 @@ _validation_phases = [
     # unused definitions phase:
     #   add warnings for unused definitions
     'unused',
+
+    # strict phase: check YANG strictness
+    'strict',
     ]
 
 _validation_map = {
@@ -191,6 +205,11 @@ _validation_map = {
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'typedef'):lambda ctx, s: v_unused_typedef(ctx, s),
     ('unused', 'grouping'):lambda ctx, s: v_unused_grouping(ctx, s),
+
+    ('strict', 'path'):lambda ctx, s: v_strict_xpath(ctx, s),
+    ('strict', 'must'):lambda ctx, s: v_strict_xpath(ctx, s),
+    ('strict', 'when'):lambda ctx, s: v_strict_xpath(ctx, s),
+
     }
 
 _v_i_children = {
@@ -345,8 +364,11 @@ def v_init_module(ctx, stmt):
     # keep track of created augment nodes
     stmt.i_undefined_augment_nodes = {}
     # next, set the attribute 'i_module' in each statement to point to the
-    # module where the statement is defined.
+    # module where the statement is defined.  if the module is a submodule,
+    # 'i_module' will point to the main module.
+    # 'i_orig_module' will point to the real module / submodule.
     def set_i_module(s):
+        s.i_orig_module = s.top
         s.i_module = s.top
         return
     iterate_stmt(stmt, set_i_module)
@@ -1069,7 +1091,7 @@ def v_expand_1_children(ctx, stmt):
     for s in stmt.substmts:
         if s.keyword in ['input', 'output']:
             # must create a copy of the statement which sets the argument
-            news = s.copy(nocopy=['type','uses','unique','typedef','grouping'])
+            news = s.copy(nocopy=['type','typedef','grouping'])
             news.i_groupings = s.i_groupings
             news.i_typedefs = s.i_typedefs
             news.arg = news.keyword
@@ -1357,6 +1379,7 @@ def v_expand_2_augment(ctx, stmt):
                 tmp.parent = node
 
     for c in stmt.i_children:
+        c.i_augment = stmt
         if (stmt.i_target_node.i_config == False and
             hasattr(c, 'i_config') and c.i_config == True):
             err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
@@ -1594,9 +1617,13 @@ def v_reference_leaf_leafref(ctx, stmt):
 
     if stmt.i_leafref is not None and stmt.i_leafref_expanded is False:
         path_type_spec = stmt.i_leafref
-        ptr = validate_leafref_path(ctx, stmt,
-                                    path_type_spec.path, path_type_spec.pos)
+        x = validate_leafref_path(ctx, stmt,
+                                  path_type_spec.path, path_type_spec.pos)
+        if x is None:
+            return
+        ptr, expanded_path = x
         path_type_spec.i_target_node = ptr
+        path_type_spec.i_expanded_path = expanded_path
         stmt.i_leafref_expanded = True
         if ptr is not None:
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
@@ -1615,6 +1642,12 @@ def v_reference_must(ctx, stmt):
                 if i != -1:
                     prefix = s[:i]
                     prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+            elif tokname == 'variable':
+                err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
+            elif tokname == 'function' and (s not in xpath.core_functions and
+                                            s not in yang_xpath_functions):
+                err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
+
     except SyntaxError, e:
           err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
@@ -1743,6 +1776,16 @@ def v_unused_grouping(ctx, stmt):
             err_add(ctx.errors, stmt.pos,
                     'UNUSED_GROUPING', stmt.arg)
             
+### Strcit phase
+
+def v_strict_xpath(ctx, stmt):
+    if not ctx.opts.strict:
+        return
+    toks = xpath.tokens(stmt.arg)
+    for (tokname, s) in toks:
+        if tokname == 'function' and s == 'deref':
+            err_add(ctx.errors, stmt.pos, 'STRICT_XPATH_FUNCTION', s)
+
 
 ### Utility functions
 
@@ -1956,7 +1999,8 @@ def iterate_stmt(stmt, f):
         pass
 
 def validate_leafref_path(ctx, stmt, path, pathpos):
-    "Return the leaf that the path points to, or None on error."
+    """Return the leaf that the path points to and the expanded path arg,
+    or None on error."""
 
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
@@ -2083,8 +2127,51 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
     try:
         if path is None: # e.g. invalid path
             return None
-        (up, dn) = path
-        (key_list, keys, ptr) = follow_path(stmt, up, dn)
+        (up, dn, derefup, derefdn) = path
+        if derefup > 0:
+            # first follow the deref
+            (key_list, keys, ptr) = follow_path(stmt, derefup, derefdn)
+            if ptr.keyword != 'leaf':
+                err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
+                        (ptr.arg, ptr.pos))
+                return None
+            if ptr.search_one('type').arg != 'leafref':
+                err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
+                        (ptr.arg, ptr.pos))
+                return None
+            # make sure the referenced leaf is expanded
+            if ptr.i_leafref_expanded is False:
+                v_reference_leaf_leafref(ctx, ptr)
+            if ptr.i_leafref_ptr is None:
+                return None
+            (derefed_stmt, _pos) = ptr.i_leafref_ptr
+            if derefed_stmt is None:
+                # FIXME: what is this??
+                return None
+            if not hasattr(derefed_stmt, 'i_is_key'):
+                # it follows from the YANG spec which says that predicates
+                # are only used for constraining keys that the derefed stmt
+                # must be a key
+                err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_KEY',
+                        (ptr.arg, ptr.pos,
+                         derefed_stmt.arg, derefed_stmt.pos))
+                return None
+            # split ptr's leafref path into two parts:
+            # '/a/b/c' --> '/a/b', 'c'
+            m = re_path.match(ptr.i_leafref.i_expanded_path)
+            s1 = m.group(1)
+            s2 = m.group(2)
+            # split the deref path into two parts:
+            # 'deref(../a)/b' --> '../a', 'b'
+            m = re_deref.match(stmt.search_one('type').search_one('path').arg)
+            d1 = m.group(1)
+            d2 = m.group(2)
+            expanded_path = "%s[%s = current()/%s]/%s" % \
+                (s1, s2, d1, d2)
+            (key_list, keys, ptr) = follow_path(derefed_stmt, up, dn)
+        else:
+            (key_list, keys, ptr) = follow_path(stmt, up, dn)
+            expanded_path = stmt.search_one('type').search_one('path').arg
         # ptr is now the node that the leafref path points to
         # check that it is a leaf
         if ptr.keyword not in ('leaf', 'leaf-list'):
@@ -2098,7 +2185,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
         if stmt.i_config == True and ptr.i_config == False:
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, ptr.arg, ptr.pos))
-        return ptr
+        return ptr, expanded_path
     except NotFound:
         return None
     except Abort:
@@ -2118,7 +2205,7 @@ class Statement(object):
 
         self.pos = copy.copy(pos)
         """position in input stream, for error reporting"""
-        if self.pos.top is None:
+        if self.pos is not None and self.pos.top is None:
             self.pos.top = self
 
         self.raw_keyword = keyword
@@ -2220,3 +2307,15 @@ def validate_status(errors, x, y, defn, ref):
         err_add(x.pos, 'CURRENT_USES_OBSOLETE', (defn, ref))
     elif xstatus == 'deprecated' and ystatus == 'obsolete':
         err_add(x.pos, 'DEPRECATED_USES_OBSOLETE', (defn, ref))
+
+def print_tree(stmt, substmts=True, i_children=True, indent=0):
+    istr = "  "
+    print "%s%s %s      %s %s" % (indent * istr, stmt.keyword, stmt.arg, stmt, stmt.parent)
+    if substmts and stmt.substmts != []:
+        print "%s  substatements:" % (indent * istr)
+        for s in stmt.substmts:
+            print_tree(s, substmts, i_children, indent+1)
+    if i_children and hasattr(stmt, 'i_children'):
+        print "%s  i_children:" % (indent * istr)
+        for s in stmt.i_children:
+            print_tree(s, substmts, i_children, indent+1)

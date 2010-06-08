@@ -255,6 +255,17 @@ error_codes = \
       (1,
        'the leafref path for %s at %s is config but refers to a '
        'non-config leaf'),
+    'LEAFREF_DEREF_NOT_LEAFREF':
+      (1,
+       'the deref argument refers to node %s at %s which is'
+       ' not a leafref leaf'),
+    'LEAFREF_DEREF_NOT_KEY':
+      (1,
+       'the deref argument refers to node %s at %s which'
+       ' does not refer to a key (%s at %s)'),
+    'LEAFREF_DEREF_NOT_LEAFREF':
+      (1,
+       'the deref argument for %s at %s does not refer to a leafref leaf'),
     'DUPLICATE_CHILD_NAME':
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '
@@ -340,6 +351,12 @@ error_codes = \
     'XPATH_SYNTAX_ERROR':
       (1,
        'XPath syntax error: %s'),
+    'XPATH_VARIABLE':
+      (1,
+       'XPath variable "%s" is not defined in the XPath context'),
+    'XPATH_FUNCTION':
+      (1,
+       'XPath function "%s" is not defined in the XPath context'),
     'AUGMENT_MANDATORY':
       (1,
        'cannot augment mandatory node %s'),
@@ -376,6 +393,9 @@ error_codes = \
       (4,
        'line length %s exceeds %s characters'),
 
+    'STRICT_XPATH_FUNCTION':
+      (2,
+       'XPath function "%s" is not allowed for strict YANG compliance'),
     }
 
 def add_error_code(tag, level, fmt):

@@ -37,10 +37,7 @@ module ietf-yang-types {
     the RFC itself for full legal notices.";
   // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
-  // RFC Ed.: remove this note  
-  // Note: extracted from draft-ietf-netmod-yang-types-05.txt
-
-  revision 2010-02-03 {
+  revision 2010-04-24 {
     description
      "Initial revision.";
     reference 
@@ -71,8 +68,8 @@ module ietf-yang-types {
       the last discontinuity.
 
       The counter32 type should not be used for configuration
-      schema nodes. A default statement should not be used for
-      attributes with a type value of counter32.
+      schema nodes. A default statement SHOULD NOT be used in
+      combination with the type counter32.
 
       This type is in the value set and its semantics equivalent
       to the Counter32 type of the SMIv2.";
@@ -87,13 +84,13 @@ module ietf-yang-types {
      "The zero-based-counter32 type represents a counter32
       which has the defined `initial' value zero.
 
-      Schema nodes of this type will be set to zero(0) on creation
+      A schema node of this type will be set to zero(0) on creation
       and will thereafter increase monotonically until it reaches
       a maximum value of 2^32-1 (4294967295 decimal), when it
       wraps around and starts increasing again from zero.
 
       Provided that an application discovers a new schema node
-      of this type within the minimum time to wrap it can use the
+      of this type within the minimum time to wrap, it can use the
       initial value as a delta.  It is important for a management 
       station to be aware of this minimum time and the actual time
       between polls, and to discard data if the actual time is too
@@ -127,8 +124,8 @@ module ietf-yang-types {
       the last discontinuity.
 
       The counter64 type should not be used for configuration
-      schema nodes. A default statement should not be used for
-      attributes with a type value of counter64.
+      schema nodes. A default statement SHOULD NOT be used in
+      combination with the type counter64.
 
       This type is in the value set and its semantics equivalent
       to the Counter64 type of the SMIv2.";
@@ -143,13 +140,13 @@ module ietf-yang-types {
      "The zero-based-counter64 type represents a counter64 which
       has the defined `initial' value zero.
 
-      Schema nodes of this type will be set to zero(0) on creation
+      A schema node of this type will be set to zero(0) on creation
       and will thereafter increase monotonically until it reaches
       a maximum value of 2^64-1 (18446744073709551615 decimal), 
       when it wraps around and starts increasing again from zero.
 
       Provided that an application discovers a new schema node
-      of this type within the minimum time to wrap it can use the
+      of this type within the minimum time to wrap, it can use the
       initial value as a delta.  It is important for a management
       station to be aware of this minimum time and the actual time
       between polls, and to discard data if the actual time is too
@@ -225,13 +222,24 @@ module ietf-yang-types {
       are separated by single dots and without any intermediate
       white space.
 
+      The ASN.1 standard restricts the value space of the first
+      sub-identifier to 0, 1, or 2. Furthermore, the value space
+      of the second sub-identifier is restricted to the range 
+      0 to 39 if the first sub-identifier is 0 or 1. Finally, 
+      the ASN.1 standard requires that an object identifier 
+      has always at least two sub-identifiers. The pattern
+      captures these restrictions.
+
       Although the number of sub-identifiers is not limited,
       module designers should realize that there may be
       implementations that stick with the SMIv2 limit of 128
       sub-identifiers.
 
       This type is a superset of the SMIv2 OBJECT IDENTIFIER type
-      since it is not restricted to 128 sub-identifiers.";
+      since it is not restricted to 128 sub-identifiers. Hence,
+      this type SHOULD NOT be used to represent the SMIv2 OBJECT
+      IDENTIFIER type, the object-identifier-128 type SHOULD be
+      used instead.";
     reference
      "ISO/IEC 9834-1: Information technology -- Open Systems
       Interconnection -- Procedures for the operation of OSI
@@ -263,31 +271,11 @@ module ietf-yang-types {
     description
      "The date-and-time type is a profile of the ISO 8601
       standard for representation of dates and times using the
-      Gregorian calendar. The format is most easily described
-      using the following ABFN (replacing double quotes with
-      single quotes):
+      Gregorian calendar. The profile is defined by the
+      date-time production in section 5.6 of RFC 3339.
 
-      date-fullyear   = 4DIGIT
-      date-month      = 2DIGIT  ; 01-12
-      date-mday       = 2DIGIT  ; 01-28, 01-29, 01-30, 01-31
-      time-hour       = 2DIGIT  ; 00-23
-      time-minute     = 2DIGIT  ; 00-59
-      time-second     = 2DIGIT  ; 00-58, 00-59, 00-60
-      time-secfrac    = '.' 1*DIGIT
-      time-numoffset  = ('+' / '-') time-hour ':' time-minute
-      time-offset     = 'Z' / time-numoffset
-
-      partial-time    = time-hour ':' time-minute ':' time-second
-                        [time-secfrac]
-      full-date       = date-fullyear '-' date-month '-' date-mday
-      full-time       = partial-time time-offset
-
-      date-time       = full-date 'T' full-time
-
-      The date-and-time type is consistent with the semantics defined
-      in RFC 3339. The date-and-time type is compatible with the
-      dateTime XML schema type with the following two notable
-      exceptions:
+      The date-and-time type is compatible with the dateTime XML
+      schema type with the following notable exceptions:
 
       (a) The date-and-time type does not allow negative years.
 
@@ -387,9 +375,9 @@ module ietf-yang-types {
       This type is in the value set and its semantics equivalent to
       the MacAddress textual convention of the SMIv2.";
     reference
-      "IEEE 802: IEEE Standard for Local and Metropolitan Area
-                 Networks: Overview and Architecture
-       RFC 2579: Textual Conventions for SMIv2";
+     "IEEE 802: IEEE Standard for Local and Metropolitan Area
+                Networks: Overview and Architecture
+      RFC 2579: Textual Conventions for SMIv2";
   }
 
   /*** collection of XML specific types ***/
@@ -403,7 +391,7 @@ module ietf-yang-types {
       description of the schema node MUST specify the XPath
       context in which the XPath expression is evaluated.";
     reference
-     "W3C REC-xpath-19991116: XML Path Language (XPath) Version 1.0";
+     "XPATH: XML Path Language (XPath) Version 1.0";
   }
 
 }

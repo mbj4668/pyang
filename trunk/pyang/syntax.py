@@ -43,7 +43,9 @@ absolute_path_arg = "(?:/" + node_id + "(" + path_predicate + ")*)+"
 descendant_path_arg = node_id + "(" + path_predicate + ")*" + \
                       "(?:" + absolute_path_arg + ")?"
 relative_path_arg = r"(\.\./)*" + descendant_path_arg
-path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + ")"
+deref_path_arg = r"deref\s*\(\s*(?:" + relative_path_arg + ")\s*\)/" + relative_path_arg
+path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + "|" + \
+           deref_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
 descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
 schema_nodeid = "("+absolute_schema_nodeid+")|("+descendant_schema_nodeid+")"

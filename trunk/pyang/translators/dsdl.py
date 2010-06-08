@@ -1150,8 +1150,8 @@ class HybridDSDLSchema(object):
         stmt = tchain[0]
         self.handle_stmt(stmt.i_type_spec.i_target_node.search_one("type"),
                          p_elem)
-        p_elem.attr["nma:leafref"] = self.yang_to_xpath(
-            stmt.search_one("path").arg)
+        pathstr = stmt.parent.i_leafref.i_expanded_path
+        p_elem.attr["nma:leafref"] = self.yang_to_xpath(pathstr)
 
     def mapped_type(self, tchain, p_elem):
         """Handle types that are simply mapped to RELAX NG."""

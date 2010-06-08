@@ -13,7 +13,7 @@ import grammar
 import util
 
 __version__ = '1.0a'
-__date__ = '2010-05-12'
+__date__ = '2010-06-08'
 
 class Context(object):
     """Class which encapsulates a parse session"""

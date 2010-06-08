@@ -149,3 +149,33 @@ def _add_prefix(prefix, tok):
         if m.group(2) == None:
             return (tokname, prefix + ':' + s)
     return tok
+
+core_functions = (
+    'last',
+    'position',
+    'count',
+    'id',
+    'local-name',
+    'namespace-uri',
+    'name',
+    'string',
+    'concat',
+    'starts-with',
+    'contains',
+    'substring-before',
+    'substring-after',
+    'substring',
+    'string-length',
+    'normalize-space',
+    'translate',
+    'boolean',
+    'not',
+    'true',
+    'false',
+    'lang',
+    'number',
+    'sum',
+    'floor',
+    'ceiling',
+    'round',
+    )

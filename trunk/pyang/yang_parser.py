@@ -199,7 +199,7 @@ class YangParser(object):
     def __init__(self, extra={}):
         pass
 
-    def parse(self, ctx, ref, text, stop_at=None):
+    def parse(self, ctx, ref, text):
         """Parse the string `text` containing a YANG statement.
 
         Return a Statement on success or None on failure
@@ -208,7 +208,6 @@ class YangParser(object):
         self.ctx = ctx
         self.pos = error.Position(ref)
         self.top = None
-        self.stop_at = stop_at
 
         try:
             self.tokenizer = YangTokenizer(text, self.pos, ctx.errors,
