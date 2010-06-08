@@ -36,6 +36,7 @@
     <cmdsynopsis>
       <command>pyang</command>
       <arg choice="opt">--canonical</arg>
+      <arg choice="opt">--strict</arg>
       <arg choice="opt">--ietf</arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
@@ -60,6 +61,10 @@
       </group>
     </cmdsynopsis>
     <para>
+      If no files are given, <command>pyang</command> reads one module
+      from stdin.
+    </para>
+    <para>
       Only the most common options are listed here.  See below for a
       complete list of options.
     </para>
@@ -82,7 +87,7 @@
     </para>
   </refsect1>
 
-  <refsect1 xml:id="pyang-options">
+  <refsect1 xml:id="man.1.pyang.options">
     <title>Options</title>
     <variablelist remap="TP">
 
@@ -124,6 +129,18 @@
       </varlistentry>
 
       <varlistentry>
+	<term>
+          <option>--print-error-code</option>
+        </term>
+	<listitem>
+	  <para>
+            On errors, print the symbolic error code instead of the
+            error message.
+          </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>
 	  <option>-Werror</option>
 	</term>
@@ -153,6 +170,19 @@
           <para>
 	    Validate the module(s) according to the canonical YANG order.
 	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+          <option>--strict</option>
+        </term>
+	<listitem>
+	  <para>
+            Force strict YANG compliance.  Currently this checks
+            that the deref() function is not used in XPath expressions
+            and leafrefs.
+          </para>
 	</listitem>
       </varlistentry>
 
@@ -580,6 +610,80 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </variablelist>
   </refsect1>
 
+  <refsect1 xml:id="man.1.pyang.yang_extensions.xpath_functions">
+    <title>YANG Extensions</title>
+    <para>
+      This section describes XPath functions that can be used in
+      "must", "when", or "path" expressions in YANG modules, in
+      addition to the core XPath 1.0 functions.
+    </para>
+    <para>
+      <command>pyang</command> can be instructed to reject the usage
+      of these functions with the parameter
+      <parameter>--strict</parameter>.
+    </para>
+
+    <para>
+      <command>Function:</command> <emphasis>node-set</emphasis>
+      <command>deref</command>(<emphasis>node-set</emphasis>)
+    </para>
+    <para>
+      The <function>deref</function> function follows the reference
+      defined by the first node in document order in the argument
+      node-set, and returns the nodes it refers to.
+    </para>
+    <para>
+      If the first argument node is an
+      <type>instance-identifier</type>, the function returns a
+      node-set that contains the single node that the instance
+      identifier refers to, if it exists.  If no such node exists,
+      an empty node-set is returned.
+    </para>
+    <para>
+      If the first argument node is a <type>leafref</type>, the
+      function returns a node-set that contains the nodes that the
+      leafref refers to.
+    </para>
+    <para>
+      If the first argument node is of any other type, an empty
+      node-set is returned.
+    </para>
+    <para>
+      The following example shows how a leafref can be written with
+      and without the <function>deref</function> function:
+    </para>
+    <informalexample>
+      <programlisting>
+/* without deref */
+
+leaf my-ip {
+    type leafref {
+        path "/server/ip";
+    }
+}
+leaf my-port {
+    type leafref {
+        path "/server[ip = current()/../my-ip]/port";
+    }
+}
+
+/* with deref */
+
+leaf my-ip {
+    type leafref {
+        path "/server/ip";
+    }
+}
+leaf my-port {
+    type leafref {
+        path "deref(../my-ip)/../port";
+    }
+}
+      </programlisting>
+    </informalexample>
+    
+  </refsect1>
+
   <refsect1 xml:id="man.1.pyang.example">
     <title>Example</title>
 
@@ -622,7 +726,7 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 
 
   <refsect1 xml:id="man.1.pyang.bugs">
-    <title>BUGS</title>
+    <title>Bugs</title>
 
     <orderedlist>
       <listitem>
@@ -630,16 +734,6 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 	  The XPath arguments for the <emphasis>must</emphasis> and
 	  <emphasis>when</emphasis> statements are checked only for
 	  basic syntax errors.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The translation of XPath expressions performed by the DSDL
-	  plugin doesn't add a prefix to local names that match the
-	  keyword of an XPath operator ("and", "or", "div", "mod")
-	  even if syntactically it cannot be such an operator. As a
-	  workaround, it is necessary to use an explicit prefix for
-	  these conflicting names in YANG.
 	</para>
       </listitem>
     </orderedlist>

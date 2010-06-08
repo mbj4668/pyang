@@ -79,6 +79,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--plugindir",
                              dest="plugindir",
                              help="Load pyang plugins from PLUGINDIR"),
+        optparse.make_option("--strict",
+                             dest="strict",
+                             action="store_true",
+                             help="Force strict YANG compliance."),
         ]
         
     optparser = optparse.OptionParser(usage, add_help_option = False)

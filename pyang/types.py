@@ -462,10 +462,12 @@ def validate_path_expr(errors, path):
     # FIXME: rewrite using the new xpath tokenizer
 
     # PRE: s matches syntax.path_arg
+    # -type dn [identifier | ('predicate', identifier, up::int(), [identifier])]
     # Ret: (up::int(),
-    #       [identifier | ('predicate', identifier, up::int(), [identifier])])
+    #       dn::dn(),
+    #       derefup::int(),
+    #       derefdn::dn())
     def parse_keypath(s):
-
 
         def parse_dot_dot(s):
             up = 0
@@ -557,23 +559,41 @@ def validate_path_expr(errors, path):
                     break
             return (('predicate', identifier, up, dn), s)
 
+        def parse_descendant(s, is_absolute):
+            dn = []
+            # all '..'s are now parsed
+            while len(s) > 0 and (not s[0].isspace()) and s[0] != ')':
+                (identifier, s) = parse_identifier(s, is_absolute)
+                dn.append(identifier)
+                s = skip_space(s)
+                if len(s) == 0:
+                    break
+                while len(s) > 0 and s[0] == '[':
+                    (pred, s) = parse_key_predicate(s, is_absolute)
+                    dn.append(pred)
+                    s = skip_space(s)
+                if len(s) > 0 and s[0] == '/':
+                    s = s[1:] # skip '/'
+            return (dn, s)
+
+        derefup = 0
+        derefdn = None
+        if s.startswith('deref'):
+            s = s[5:] # skip 'deref'
+            s = skip_space(s)
+            s = s[1:] # skip '('
+            s = skip_space(s)
+            (derefup, s) = parse_dot_dot(s)
+            (derefdn, s) = parse_descendant(s, is_absolute=False)
+            s = skip_space(s)
+            s = s[1:] # skip ')'
+            s = skip_space(s)
+            s = s[1:] # skip '/'
+
         (up, s) = parse_dot_dot(s)
         is_absolute = up == -1
-        dn = []
-        i = 0
-        # all '..'s are now parsed
-        while len(s) > 0:
-            (identifier, s) = parse_identifier(s[i:], is_absolute)
-            dn.append(identifier)
-            s = skip_space(s)
-            if len(s) == 0:
-                break
-            while len(s) > 0 and s[0] == '[':
-                (pred, s) = parse_key_predicate(s, is_absolute)
-                dn.append(pred)
-            if len(s) > 0:
-                s = s[1:] # skip '/'
-        return (up, dn)
+        (dn, s) = parse_descendant(s, is_absolute)
+        return (up, dn, derefup, derefdn)
 
     try:
         return parse_keypath(path.arg)
