@@ -169,7 +169,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         for s in m.search('include'):
             modulenames.append(s.arg)
 
-    if emit_obj is not None:
+    if emit_obj is not None and len(modules) > 0:
         emit_obj.pre_validate(ctx, modules)
 
     ctx.validate()
