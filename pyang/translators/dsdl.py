@@ -344,7 +344,7 @@ class HybridDSDLSchema(object):
                      record_defs=False, debug=0):
         """Return the instance representing mapped input modules."""
         self.namespaces = {
-            "urn:ietf:params:xml:ns:netmod:hybrid-tree:1" : "nmt",
+            "urn:ietf:params:xml:ns:netmod:hybrid-schema:1" : "nmt",
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
         }
         if not no_dc: self.namespaces[self.dc_uri] = "dc"
@@ -391,7 +391,7 @@ class HybridDSDLSchema(object):
         return self
 
     def setup_top(self):
-        """Create top-level elements of the hybrid tree."""
+        """Create top-level elements of the hybrid schema."""
         self.top_grammar = SchemaNode("grammar")
         self.tree = SchemaNode("start")
 
@@ -512,9 +512,9 @@ class HybridDSDLSchema(object):
         return self.prefix_stack[-1] + ":" + stmt.arg
 
     def handle_empty(self):
-        """Handle empty subtree(s) of the hybrid tree.
+        """Handle empty subtree(s) of the hybrid schema.
 
-        If any of the subtrees of the hybrid tree is empty, put
+        If any of the subtrees of the hybrid schema is empty, put
         <empty/> as its content.
         """
         empty = [ s for s in (self.data, self.rpcs, self.notifications)
