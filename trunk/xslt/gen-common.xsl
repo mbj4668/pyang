@@ -21,7 +21,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
-                xmlns:nmt="urn:ietf:params:xml:ns:netmod:conceptual-tree:1"
+                xmlns:nmt="urn:ietf:params:xml:ns:netmod:hybrid-schema:1"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
 
@@ -47,7 +47,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <!-- Namespace URIs -->
   <xsl:param name="rng-uri">http://relaxng.org/ns/structure/1.0</xsl:param>
   <xsl:param
-      name="nmt-uri">urn:ietf:params:xml:ns:netmod:hybrid-tree:1</xsl:param>
+      name="nmt-uri">urn:ietf:params:xml:ns:netmod:hybrid-schema:1</xsl:param>
   <xsl:param
       name="dtdc-uri">http://relaxng.org/ns/compatibility/annotations/1.0</xsl:param>
   <xsl:param name="dc-uri">http://purl.org/dc/terms</xsl:param>
