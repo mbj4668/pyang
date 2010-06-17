@@ -382,7 +382,7 @@ class HybridDSDLSchema(object):
             self.handle_substmts(module, self.data, gpset)
             for d in self.local_defs.values():
                 self.local_grammar.subnode(d)
-            self.handle_empty()
+            self.tree.subnode(self.local_grammar)
             self.all_defs.update(self.local_defs)
         self.all_defs.update(self.global_defs)
         self.dc_element(self.top_grammar, "date", time.strftime("%Y-%m-%d"))
@@ -406,12 +406,11 @@ class HybridDSDLSchema(object):
             src_text += " revision %s" % self.current_revision(revs)
         self.dc_element(self.local_grammar, "source", src_text)
         start = SchemaNode("start", self.local_grammar)
-        self.data = SchemaNode.element("nmt:data", start,
-                                       interleave=True, occur=2)
-        self.rpcs = SchemaNode.element("nmt:rpcs", start,
-                                       interleave=False, occur=2)
-        self.notifications = SchemaNode.element("nmt:notifications", start,
-                                                interleave=False, occur=2)
+        self.data = SchemaNode("nmt:data", start, interleave=True)
+        self.data.occur = 2
+        self.rpcs = SchemaNode("nmt:rpcs", start, interleave=False)
+        self.notifications = SchemaNode("nmt:notifications", start,
+                                        interleave=False)
 
     def yang_to_xpath(self, xpe):
         """Transform YANG's `xpath` to standard XPath 1.0
@@ -510,18 +509,6 @@ class HybridDSDLSchema(object):
         """
         if self.gg_level: return stmt.arg
         return self.prefix_stack[-1] + ":" + stmt.arg
-
-    def handle_empty(self):
-        """Handle empty subtree(s) of the hybrid schema.
-
-        If any of the subtrees of the hybrid schema is empty, put
-        <empty/> as its content.
-        """
-        empty = [ s for s in (self.data, self.rpcs, self.notifications)
-                  if len(s.children) == 0 ] 
-        self.tree.subnode(self.local_grammar)
-        for subtree in empty:
-            SchemaNode("empty", subtree)
 
     def dc_element(self, parent, name, text):
         """Add DC element `name` containing `text` to `parent`."""
@@ -1010,8 +997,8 @@ class HybridDSDLSchema(object):
             SchemaNode("nma:error-app-tag", mel, eat.arg)
 
     def notification_stmt(self, stmt, p_elem, pset):
-        notel = SchemaNode.element("nmt:notification", self.notifications,
-                                   interleave=True, occur=2)
+        notel = SchemaNode("nmt:notification", self.notifications)
+        notel.occur = 2
         elem = SchemaNode.element(self.qname(stmt), notel, occur=2)
         augs, new_pset = self.process_patches(pset, stmt, elem)[1:]
         self.handle_substmts(stmt, elem, new_pset)
@@ -1025,9 +1012,9 @@ class HybridDSDLSchema(object):
             self.insert_doc(p_elem, "See: " + stmt.arg)
 
     def rpc_stmt(self, stmt, p_elem, pset):
-        rpcel = SchemaNode.element("nmt:rpc", self.rpcs, occur=2)
+        rpcel = SchemaNode("nmt:rpc", self.rpcs)
         r_pset = self.process_patches(pset, stmt, rpcel)[2]
-        inpel = SchemaNode.element("nmt:input", rpcel, occur=2)
+        inpel = SchemaNode("nmt:input", rpcel)
         elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
         augs, pset = self.process_patches(r_pset,stmt,elem,"input")[1:]
         inst = stmt.search_one("input")
@@ -1036,7 +1023,8 @@ class HybridDSDLSchema(object):
         augs, pset = self.process_patches(r_pset,stmt,None,"output")[1:]
         oust = stmt.search_one("output")
         if oust or augs:
-            outel = SchemaNode.element("nmt:output", rpcel, occur=2)
+            outel = SchemaNode("nmt:output", rpcel)
+            outel.occur = 2
             if oust: self.handle_substmts(oust, outel, pset)
             self.apply_augments(augs, outel, pset)
         self.handle_substmts(stmt, rpcel, r_pset)

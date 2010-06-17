@@ -30,6 +30,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
                 xmlns:sch="http://purl.oclc.org/dsdl/schematron"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+                xmlns:nmt="urn:ietf:params:xml:ns:netmod:hybrid-schema:1"
                 version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
@@ -88,8 +89,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="self-path">
     <xsl:param name="prevpath"/>
     <xsl:value-of select="$prevpath"/>
-    <xsl:for-each select="ancestor-or-self::rng:element
-                          [not(starts-with(@name,'nmt:'))]">
+    <xsl:for-each select="ancestor-or-self::rng:element">
       <xsl:text>/</xsl:text>
       <xsl:call-template name="qname">
         <xsl:with-param name="name" select="@name"/>
@@ -112,7 +112,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="key"/>
     <xsl:variable name="qkey">
       <xsl:call-template name="qname">
-	<xsl:with-param name="name" select="$key"/>
+        <xsl:with-param name="name" select="$key"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:value-of select="concat($qkey,'=current()/',$qkey)"/>
@@ -153,7 +153,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
         select="rng:define[descendant::rng:element[&annots;]|
-		descendant::rng:choice[@nma:mandatory]]"/>
+                descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -164,8 +164,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:value-of select="@name"/>
       </xsl:attribute>
       <xsl:apply-templates
-	  select="descendant::rng:element[&annots;]|
-		  descendant::rng:choice[@nma:mandatory]">
+          select="descendant::rng:element[&annots;]|
+                  descendant::rng:choice[@nma:mandatory]">
         <xsl:with-param name="prevpath">$start</xsl:with-param>
       </xsl:apply-templates>
     </xsl:element>
@@ -174,47 +174,43 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
         select="rng:define[descendant::rng:element[&annots;]|
-		descendant::rng:choice[@nma:mandatory]]"/>
+                descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:element name="sch:pattern">
       <xsl:attribute name="id">
-	<xsl:value-of select="@nma:module"/>
+        <xsl:value-of select="@nma:module"/>
       </xsl:attribute>
       <xsl:choose>
-	<xsl:when test="$target='dstore' or $target='get-reply'
-			or $target='getconf-reply'">
-	  <xsl:apply-templates
-	      select="descendant::rng:element[@name='nmt:data']"/>
-	</xsl:when>
-	<xsl:when test="$target='rpc'">
-	  <xsl:apply-templates
-	      select="descendant::rng:element[@name='nmt:input']"/>
-	</xsl:when>
-	<xsl:when test="$target='rpc-reply'">
-	  <xsl:apply-templates
-	      select="descendant::rng:element[@name='nmt:output']"/>
-	</xsl:when>
-	<xsl:when test="$target='notif'">
-	  <xsl:apply-templates
-	      select="descendant::rng:element[@name='nmt:notification']"/>
-	</xsl:when>
+        <xsl:when test="$target='dstore' or $target='get-reply'
+                        or $target='getconf-reply'">
+          <xsl:apply-templates select="descendant::nmt:data"/>
+        </xsl:when>
+        <xsl:when test="$target='rpc'">
+          <xsl:apply-templates select="descendant::nmt:input"/>
+        </xsl:when>
+        <xsl:when test="$target='rpc-reply'">
+          <xsl:apply-templates select="descendant::nmt:output"/>
+        </xsl:when>
+        <xsl:when test="$target='notif'">
+          <xsl:apply-templates select="descendant::nmt:notification"/>
+        </xsl:when>
       </xsl:choose>
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:element[starts-with(@name,'nmt:')]">
+  <xsl:template match="nmt:*">
     <xsl:variable
-	name="prefix"
-	select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
+        name="prefix"
+        select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
     <xsl:apply-templates
-	select="descendant::rng:element[&annots;]|
-		descendant::rng:choice[@nma:mandatory]">
+        select="descendant::rng:element[&annots;]|
+                descendant::rng:choice[@nma:mandatory]">
       <xsl:with-param name="prevpath" select="$netconf-part"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$netconf-part"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -227,7 +223,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="context">
       <xsl:call-template name="self-path">
         <xsl:with-param name="prevpath" select="$prevpath"/>
-	<xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
       </xsl:attribute>
       <xsl:apply-templates select="&annots;"/>
@@ -239,22 +235,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:element name="sch:rule">
       <xsl:attribute name="context">
-	<xsl:call-template name="self-path">
-	  <xsl:with-param name="prevpath" select="$prevpath"/>
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:call-template>
+        <xsl:call-template name="self-path">
+          <xsl:with-param name="prevpath" select="$prevpath"/>
+          <xsl:with-param name="prefix" select="$prefix"/>
+        </xsl:call-template>
       </xsl:attribute>
       <xsl:call-template name="assert-element">
-	<xsl:with-param name="test">
-	  <xsl:apply-templates select="." mode="lookup-subel">
-	    <xsl:with-param name="prefix" select="$prefix"/>
-	  </xsl:apply-templates>
-	  <xsl:text>false</xsl:text>
-	</xsl:with-param>
-	<xsl:with-param
-	    name="message"
-	    select="concat('Node(s) from one case of mandatory choice &quot;',
-		    @nma:mandatory,'&quot; must exist')"/>
+        <xsl:with-param name="test">
+          <xsl:apply-templates select="." mode="lookup-subel">
+            <xsl:with-param name="prefix" select="$prefix"/>
+          </xsl:apply-templates>
+          <xsl:text>false</xsl:text>
+        </xsl:with-param>
+        <xsl:with-param
+            name="message"
+            select="concat('Node(s) from one case of mandatory choice &quot;',
+                    @nma:mandatory,'&quot; must exist')"/>
       </xsl:call-template>
     </xsl:element>
   </xsl:template>
@@ -263,10 +259,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:choose>
       <xsl:when test="contains(@name, ':')">
-	<xsl:value-of select="concat(@name, ' or ')"/>
+        <xsl:value-of select="concat(@name, ' or ')"/>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:value-of select="concat($prefix, ':', @name, ' or ')"/>
+        <xsl:value-of select="concat($prefix, ':', @name, ' or ')"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -274,17 +270,17 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:ref" mode="lookup-subel">
     <xsl:param name="prefix"/>
     <xsl:apply-templates select="key('refdef', @name)" mode="lookup-subel">
-	<xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:*" mode="lookup-subel">
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="lookup-subel"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
-	<xsl:with-param name="prefix" select="$prefix"/>
+        mode="lookup-subel"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -294,11 +290,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:if test="key('refdef',@name)[descendant::rng:element[&annots;]|
-		  descendant::rng:choice[@nma:mandatory]]">
+                  descendant::rng:choice[@nma:mandatory]]">
       <xsl:element name="sch:pattern">
-	<xsl:attribute name="id">
-	  <xsl:value-of select="generate-id()"/>
-	</xsl:attribute>
+        <xsl:attribute name="id">
+          <xsl:value-of select="generate-id()"/>
+        </xsl:attribute>
         <xsl:attribute name="is-a">
           <xsl:value-of select="@name"/>
         </xsl:attribute>
@@ -326,9 +322,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath">
         <xsl:value-of select="concat($prevpath,'/')"/>
         <xsl:call-template name="qname">
@@ -343,9 +339,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -355,9 +351,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -397,15 +393,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:text>preceding-sibling::</xsl:text>
-	<xsl:call-template name="qname">
-	  <xsl:with-param name="name" select="../@name"/>
-	</xsl:call-template>
-	<xsl:text>[</xsl:text>
-	<xsl:call-template name="check-dup-expr">
-	  <xsl:with-param name="nodelist" select="."/>
-	</xsl:call-template>
-	<xsl:text>]</xsl:text>
+        <xsl:text>preceding-sibling::</xsl:text>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="../@name"/>
+        </xsl:call-template>
+        <xsl:text>[</xsl:text>
+        <xsl:call-template name="check-dup-expr">
+          <xsl:with-param name="nodelist" select="."/>
+        </xsl:call-template>
+        <xsl:text>]</xsl:text>
       </xsl:attribute>
       <xsl:value-of select="concat($message, ' &quot;',.,'&quot;')"/>
     </xsl:element>
@@ -416,7 +412,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:with-param
           name="test"
           select="concat('count(../',../@name,')&lt;=',.,
-		  ' or preceding-sibling::',../@name)"/>
+                  ' or preceding-sibling::',../@name)"/>
       <xsl:with-param
           name="message"
           select="concat('Number of list items must be at most ',.)"/>
@@ -443,33 +439,33 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:with-param
           name="message"
           select="concat('Node &quot;', ../@name,
-		  '&quot; is only valid when &quot;',.,'&quot;')"/>
+                  '&quot; is only valid when &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:leafref">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:value-of select="concat('not(',$netconf-part,.,'=.)')"/>
+        <xsl:value-of select="concat('not(',$netconf-part,.,'=.)')"/>
       </xsl:attribute>
-	<xsl:value-of
-	    select="concat('Leaf &quot;',.,
-		    '&quot; does not exist for leafref value &quot;')"/>
-	<xsl:element name="sch:value-of">
-	  <xsl:attribute name="select">.</xsl:attribute>
-	</xsl:element>
-	<xsl:text>&quot;</xsl:text>
+        <xsl:value-of
+            select="concat('Leaf &quot;',.,
+                    '&quot; does not exist for leafref value &quot;')"/>
+        <xsl:element name="sch:value-of">
+          <xsl:attribute name="select">.</xsl:attribute>
+        </xsl:element>
+        <xsl:text>&quot;</xsl:text>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="@nma:leaf-list[.='true']">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:value-of select="concat('.=preceding-sibling::',../@name)"/>
+        <xsl:value-of select="concat('.=preceding-sibling::',../@name)"/>
       </xsl:attribute>
       <xsl:text>Duplicate leaf-list value &quot;</xsl:text>
       <xsl:element name="sch:value-of">
-	<xsl:attribute name="select">.</xsl:attribute>
+        <xsl:attribute name="select">.</xsl:attribute>
       </xsl:element>
       <xsl:text>&quot;</xsl:text>
     </xsl:element>

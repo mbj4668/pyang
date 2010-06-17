@@ -77,19 +77,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='dstore' or starts-with($target,'get')) and
-                  not(//rng:element[@name='nmt:data' and not(rng:empty)])">
+                  not(//nmt:data/rng:*)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no data.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='rpc' or $target='rpc-reply') and
-                  not(//rng:element[@name='nmt:rpcs' and not(rng:empty)])">
+                  not(//nmt:rpc)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no RPC methods.</xsl:text>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="$target='notif' and not(//rng:element
-		  [@name='nmt:notification' and not(rng:empty)])">
+    <xsl:if test="$target='notif' and not(//nmt:notification)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no notifications.</xsl:text>
       </xsl:message>

@@ -27,6 +27,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
                 xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+                xmlns:nmt="urn:ietf:params:xml:ns:netmod:hybrid-schema:1"
                 version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
@@ -65,8 +66,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:value-of select="$prevpath"/>
-    <xsl:for-each select="ancestor::rng:element
-                          [not(starts-with(@name,'nmt:'))]">
+    <xsl:for-each select="ancestor::rng:element">
       <xsl:text>/</xsl:text>
       <xsl:call-template name="qname">
         <xsl:with-param name="prefix" select="$prefix"/>
@@ -169,26 +169,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
                       or $target='getconf-reply'">
-        <xsl:apply-templates
-            select="descendant::rng:element[@name='nmt:data']">
+        <xsl:apply-templates select="descendant::nmt:data">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-        <xsl:apply-templates
-            select="descendant::rng:element[@name='nmt:input']">
+        <xsl:apply-templates select="descendant::nmt:input">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='rpc-reply'">
-        <xsl:apply-templates
-            select="descendant::rng:element[@name='nmt:output']">
+        <xsl:apply-templates select="descendant::nmt:output">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='notif'">
-        <xsl:apply-templates
-            select="descendant::rng:element[@name='nmt:notification']">
+        <xsl:apply-templates select="descendant::nmt:notification">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
