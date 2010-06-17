@@ -175,7 +175,7 @@ class SchemaNode(object):
     def _default_format(self, occur):
         """Return the default serialization format.""" 
         if self.text or self.children:
-            return self.start_tag() + "%s" + self.end_tag()
+            return self.start_tag() + self._chorder() + self.end_tag()
         else:
             return self.start_tag(empty=True) + "%s"
 
