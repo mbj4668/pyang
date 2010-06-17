@@ -173,38 +173,38 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:apply-templates
         select="rng:define[descendant::rng:element[&annots;]|
                 descendant::rng:choice[@nma:mandatory='true']]"/>
-    <xsl:element name="sch:pattern">
-      <xsl:attribute name="id">
-        <xsl:value-of select="@nma:module"/>
-      </xsl:attribute>
-      <xsl:choose>
-        <xsl:when test="$target='dstore' or $target='get-reply'
-                        or $target='getconf-reply'">
-          <xsl:apply-templates select="descendant::nma:data"/>
-        </xsl:when>
-        <xsl:when test="$target='rpc'">
-          <xsl:apply-templates select="descendant::nma:input"/>
-        </xsl:when>
-        <xsl:when test="$target='rpc-reply'">
-          <xsl:apply-templates select="descendant::nma:output"/>
-        </xsl:when>
-        <xsl:when test="$target='notif'">
-          <xsl:apply-templates select="descendant::nma:notification"/>
-        </xsl:when>
-      </xsl:choose>
-    </xsl:element>
+    <xsl:choose>
+      <xsl:when test="$target='dstore' or $target='get-reply'
+		      or $target='getconf-reply'">
+	<xsl:apply-templates select="descendant::nma:data"/>
+      </xsl:when>
+      <xsl:when test="$target='rpc'">
+	<xsl:apply-templates select="descendant::nma:input"/>
+      </xsl:when>
+      <xsl:when test="$target='rpc-reply'">
+	<xsl:apply-templates select="descendant::nma:output"/>
+      </xsl:when>
+      <xsl:when test="$target='notif'">
+	<xsl:apply-templates select="descendant::nma:notification"/>
+      </xsl:when>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="nma:data|nma:input|nma:output|nma:notification">
     <xsl:variable
         name="prefix"
         select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
-    <xsl:apply-templates
-        select="descendant::rng:element[&annots;]|
-                descendant::rng:choice[@nma:mandatory='true']">
-      <xsl:with-param name="prevpath" select="$netconf-part"/>
-      <xsl:with-param name="prefix" select="$prefix"/>
-    </xsl:apply-templates>
+    <xsl:element name="sch:pattern">
+      <xsl:attribute name="id">
+	<xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
+      </xsl:attribute>
+      <xsl:apply-templates
+	  select="descendant::rng:element[&annots;]|
+		  descendant::rng:choice[@nma:mandatory='true']">
+	<xsl:with-param name="prevpath" select="$netconf-part"/>
+	<xsl:with-param name="prefix" select="$prefix"/>
+      </xsl:apply-templates>
+    </xsl:element>
     <xsl:apply-templates
         mode="ref"
         select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
