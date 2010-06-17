@@ -1073,8 +1073,7 @@ class HybridDSDLSchema(object):
             typedef = type_.i_typedef
         if tdefault and p_elem.occur == 0:
             p_elem.default = tdefault
-            p_elem.occur = 1
-            self.propagate_occur(p_elem.parent, 1)
+            self.propagate_occur(p_elem, 1)
         self.type_handler[chain[0].arg](chain, p_elem)
 
     def unique_stmt(self, stmt, p_elem, pset):
