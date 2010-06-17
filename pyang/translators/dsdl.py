@@ -344,7 +344,6 @@ class HybridDSDLSchema(object):
                      record_defs=False, debug=0):
         """Return the instance representing mapped input modules."""
         self.namespaces = {
-            "urn:ietf:params:xml:ns:netmod:hybrid-schema:1" : "nmt",
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
         }
         if not no_dc: self.namespaces[self.dc_uri] = "dc"
@@ -406,10 +405,10 @@ class HybridDSDLSchema(object):
             src_text += " revision %s" % self.current_revision(revs)
         self.dc_element(self.local_grammar, "source", src_text)
         start = SchemaNode("start", self.local_grammar)
-        self.data = SchemaNode("nmt:data", start, interleave=True)
+        self.data = SchemaNode("nma:data", start, interleave=True)
         self.data.occur = 2
-        self.rpcs = SchemaNode("nmt:rpcs", start, interleave=False)
-        self.notifications = SchemaNode("nmt:notifications", start,
+        self.rpcs = SchemaNode("nma:rpcs", start, interleave=False)
+        self.notifications = SchemaNode("nma:notifications", start,
                                         interleave=False)
 
     def yang_to_xpath(self, xpe):
@@ -997,7 +996,7 @@ class HybridDSDLSchema(object):
             SchemaNode("nma:error-app-tag", mel, eat.arg)
 
     def notification_stmt(self, stmt, p_elem, pset):
-        notel = SchemaNode("nmt:notification", self.notifications)
+        notel = SchemaNode("nma:notification", self.notifications)
         notel.occur = 2
         elem = SchemaNode.element(self.qname(stmt), notel, occur=2)
         augs, new_pset = self.process_patches(pset, stmt, elem)[1:]
@@ -1012,9 +1011,9 @@ class HybridDSDLSchema(object):
             self.insert_doc(p_elem, "See: " + stmt.arg)
 
     def rpc_stmt(self, stmt, p_elem, pset):
-        rpcel = SchemaNode("nmt:rpc", self.rpcs)
+        rpcel = SchemaNode("nma:rpc", self.rpcs)
         r_pset = self.process_patches(pset, stmt, rpcel)[2]
-        inpel = SchemaNode("nmt:input", rpcel)
+        inpel = SchemaNode("nma:input", rpcel)
         elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
         augs, pset = self.process_patches(r_pset,stmt,elem,"input")[1:]
         inst = stmt.search_one("input")
@@ -1023,7 +1022,7 @@ class HybridDSDLSchema(object):
         augs, pset = self.process_patches(r_pset,stmt,None,"output")[1:]
         oust = stmt.search_one("output")
         if oust or augs:
-            outel = SchemaNode("nmt:output", rpcel)
+            outel = SchemaNode("nma:output", rpcel)
             outel.occur = 2
             if oust: self.handle_substmts(oust, outel, pset)
             self.apply_augments(augs, outel, pset)

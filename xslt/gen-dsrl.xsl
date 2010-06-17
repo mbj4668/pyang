@@ -27,7 +27,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
                 xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-                xmlns:nmt="urn:ietf:params:xml:ns:netmod:hybrid-schema:1"
                 version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
@@ -78,8 +77,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="yam-namespaces">
     <xsl:for-each
         select="namespace::*[not(name()='xml' or .=$rng-uri or
-                .=$nmt-uri or .=$dtdc-uri or .=$dc-uri or
-                .=$nma-uri)]">
+                .=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
       <xsl:copy/>
     </xsl:for-each>
   </xsl:template>
@@ -169,22 +167,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
                       or $target='getconf-reply'">
-        <xsl:apply-templates select="descendant::nmt:data">
+        <xsl:apply-templates select="descendant::nma:data">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-        <xsl:apply-templates select="descendant::nmt:input">
+        <xsl:apply-templates select="descendant::nma:input">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='rpc-reply'">
-        <xsl:apply-templates select="descendant::nmt:output">
+        <xsl:apply-templates select="descendant::nma:output">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:when test="$target='notif'">
-        <xsl:apply-templates select="descendant::nmt:notification">
+        <xsl:apply-templates select="descendant::nma:notification">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
