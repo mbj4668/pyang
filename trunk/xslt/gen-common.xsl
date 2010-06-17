@@ -21,7 +21,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
-                xmlns:nmt="urn:ietf:params:xml:ns:netmod:hybrid-schema:1"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
 
@@ -46,8 +45,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <!-- Namespace URIs -->
   <xsl:param name="rng-uri">http://relaxng.org/ns/structure/1.0</xsl:param>
-  <xsl:param
-      name="nmt-uri">urn:ietf:params:xml:ns:netmod:hybrid-schema:1</xsl:param>
   <xsl:param
       name="dtdc-uri">http://relaxng.org/ns/compatibility/annotations/1.0</xsl:param>
   <xsl:param name="dc-uri">http://purl.org/dc/terms</xsl:param>
@@ -77,18 +74,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='dstore' or starts-with($target,'get')) and
-                  not(//nmt:data/rng:*)">
+                  not(//nma:data/rng:*)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no data.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='rpc' or $target='rpc-reply') and
-                  not(//nmt:rpc)">
+                  not(//nma:rpc)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no RPC methods.</xsl:text>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="$target='notif' and not(//nmt:notification)">
+    <xsl:if test="$target='notif' and not(//nma:notification)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no notifications.</xsl:text>
       </xsl:message>

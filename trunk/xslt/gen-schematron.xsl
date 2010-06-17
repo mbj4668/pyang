@@ -30,7 +30,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:rng="http://relaxng.org/ns/structure/1.0"
                 xmlns:sch="http://purl.oclc.org/dsdl/schematron"
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-                xmlns:nmt="urn:ietf:params:xml:ns:netmod:hybrid-schema:1"
                 version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
@@ -102,8 +101,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
          excluding others declared in the input schema -->
     <xsl:for-each
         select="namespace::*[not(name()='xml' or .=$rng-uri or
-                .=$nmt-uri or .=$dtdc-uri or .=$dc-uri or
-                .=$nma-uri)]">
+                .=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
       <sch:ns uri="{.}" prefix="{name()}"/>
     </xsl:for-each>
   </xsl:template>
@@ -182,22 +180,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:choose>
         <xsl:when test="$target='dstore' or $target='get-reply'
                         or $target='getconf-reply'">
-          <xsl:apply-templates select="descendant::nmt:data"/>
+          <xsl:apply-templates select="descendant::nma:data"/>
         </xsl:when>
         <xsl:when test="$target='rpc'">
-          <xsl:apply-templates select="descendant::nmt:input"/>
+          <xsl:apply-templates select="descendant::nma:input"/>
         </xsl:when>
         <xsl:when test="$target='rpc-reply'">
-          <xsl:apply-templates select="descendant::nmt:output"/>
+          <xsl:apply-templates select="descendant::nma:output"/>
         </xsl:when>
         <xsl:when test="$target='notif'">
-          <xsl:apply-templates select="descendant::nmt:notification"/>
+          <xsl:apply-templates select="descendant::nma:notification"/>
         </xsl:when>
       </xsl:choose>
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="nmt:*">
+  <xsl:template match="nma:data|nma:input|nma:output|nma:notification">
     <xsl:variable
         name="prefix"
         select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
