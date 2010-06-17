@@ -998,7 +998,8 @@ class HybridDSDLSchema(object):
     def notification_stmt(self, stmt, p_elem, pset):
         notel = SchemaNode("nma:notification", self.notifications)
         notel.occur = 2
-        elem = SchemaNode.element(self.qname(stmt), notel, occur=2)
+        elem = SchemaNode.element(self.qname(stmt), notel,
+                                  interleave=True, occur=2)
         augs, new_pset = self.process_patches(pset, stmt, elem)[1:]
         self.handle_substmts(stmt, elem, new_pset)
         self.apply_augments(augs, elem, new_pset)
