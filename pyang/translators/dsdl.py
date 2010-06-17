@@ -1134,11 +1134,13 @@ class HybridDSDLSchema(object):
                                            "__" + qid.replace(":","_"))
 
     def leafref_type(self, tchain, p_elem):
-        stmt = tchain[0]
-        self.handle_stmt(stmt.i_type_spec.i_target_node.search_one("type"),
-                         p_elem)
-        pathstr = stmt.parent.i_leafref.i_expanded_path
+        typ = tchain[0]
+        occur = p_elem.occur
+        pathstr = typ.parent.i_leafref.i_expanded_path
         p_elem.attr["nma:leafref"] = self.yang_to_xpath(pathstr)
+        self.handle_stmt(typ.i_type_spec.i_target_node.search_one("type"),
+                         p_elem)
+        if occur == 0: p_elem.occur = 0
 
     def mapped_type(self, tchain, p_elem):
         """Handle types that are simply mapped to RELAX NG."""
