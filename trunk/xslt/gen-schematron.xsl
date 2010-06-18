@@ -151,7 +151,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
         select="rng:define[descendant::rng:element[&annots;]|
-                descendant::rng:choice[@nma:mandatory='true']]"/>
+                descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -163,7 +163,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:attribute>
       <xsl:apply-templates
           select="descendant::rng:element[&annots;]|
-                  descendant::rng:choice[@nma:mandatory='true']">
+                  descendant::rng:choice[@nma:mandatory]">
         <xsl:with-param name="prevpath">$start</xsl:with-param>
       </xsl:apply-templates>
     </xsl:element>
@@ -172,7 +172,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
         select="rng:define[descendant::rng:element[&annots;]|
-                descendant::rng:choice[@nma:mandatory='true']]"/>
+                descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:choose>
       <xsl:when test="$target='dstore' or $target='get-reply'
 		      or $target='getconf-reply'">
@@ -200,7 +200,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:attribute>
       <xsl:apply-templates
 	  select="descendant::rng:element[&annots;]|
-		  descendant::rng:choice[@nma:mandatory='true']">
+		  descendant::rng:choice[@nma:mandatory]">
 	<xsl:with-param name="prevpath" select="$netconf-part"/>
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
@@ -288,7 +288,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:if test="key('refdef',@name)[descendant::rng:element[&annots;]|
-                  descendant::rng:choice[@nma:mandatory='true']]">
+                  descendant::rng:choice[@nma:mandatory]]">
       <xsl:element name="sch:pattern">
         <xsl:attribute name="id">
           <xsl:value-of select="generate-id()"/>
