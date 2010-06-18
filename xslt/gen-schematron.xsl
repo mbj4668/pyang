@@ -459,13 +459,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="@nma:leaf-list[.='true']">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-        <xsl:value-of select="concat('.=preceding-sibling::',../@name)"/>
+        <xsl:text>. = preceding-sibling::</xsl:text>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="../@name"/>
+        </xsl:call-template>
       </xsl:attribute>
-      <xsl:text>Duplicate leaf-list value &quot;</xsl:text>
+      <xsl:text>Duplicate leaf-list entry &quot;</xsl:text>
       <xsl:element name="sch:value-of">
-        <xsl:attribute name="select">.</xsl:attribute>
+	<xsl:attribute name="select">.</xsl:attribute>
       </xsl:element>
-      <xsl:text>&quot;</xsl:text>
+      <xsl:text>&quot;.</xsl:text>
     </xsl:element>
   </xsl:template>
 
