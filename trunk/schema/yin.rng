@@ -134,15 +134,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -166,6 +158,7 @@
 	<optional>
 	  <ref name="base-stmt"/>
 	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -339,15 +332,7 @@
 	<optional>
 	  <ref name="argument-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -389,15 +374,7 @@
 	<optional>
 	  <ref name="default-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -582,16 +559,8 @@
 	<optional>
 	  <ref name="value-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
-      <ref name="an-extension"/>
+	<ref name="status-desc-ref"/>
+	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
@@ -614,15 +583,7 @@
 	<optional>
 	  <ref name="position-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -836,15 +797,7 @@
 	<ref name="identifier"/>
       </attribute>
       <interleave>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <choice>
 	    <ref name="typedef-stmt"/>
@@ -878,15 +831,7 @@
 	<optional>
 	  <ref name="config-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <choice>
 	    <ref name="typedef-stmt"/>
@@ -927,15 +872,7 @@
 	<optional>
 	  <ref name="mandatory-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -972,15 +909,7 @@
 	<optional>
 	  <ref name="ordered-by-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -1019,15 +948,7 @@
 	<optional>
 	  <ref name="ordered-by-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <choice>
 	    <ref name="typedef-stmt"/>
@@ -1089,15 +1010,7 @@
 	<optional>
 	  <ref name="mandatory-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <choice>
 	    <ref name="short-case-stmt"/>
@@ -1131,15 +1044,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <ref name="case-data-def-stmt"/>
 	</zeroOrMore>
@@ -1169,15 +1074,7 @@
 	<optional>
 	  <ref name="mandatory-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -1195,15 +1092,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <ref name="refine-stmt"/>
 	</zeroOrMore>
@@ -1384,15 +1273,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<oneOrMore>
 	  <choice>
 	    <ref name="data-def-stmt"/>
@@ -1416,15 +1297,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<oneOrMore>
 	  <choice>
 	    <ref name="data-def-stmt"/>
@@ -1454,15 +1327,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <choice>
 	    <ref name="typedef-stmt"/>
@@ -1523,15 +1388,7 @@
 	<zeroOrMore>
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
-	<optional>
-	  <ref name="status-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="status-desc-ref"/>
 	<zeroOrMore>
 	  <choice>
 	    <ref name="typedef-stmt"/>
@@ -1576,6 +1433,22 @@
 	</choice>
       </zeroOrMore>
     </element>
+  </define>
+
+  <!-- Common combinations of patterns -->
+
+  <define name="status-desc-ref">
+    <interleave>
+      <optional>
+	<ref name="status-stmt"/>
+      </optional>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
+    </interleave>
   </define>
 
   <!-- Regular expressions for lexical terms -->
