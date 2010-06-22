@@ -74,6 +74,7 @@ class YinParser(object):
         self.ctx = ctx
         self.pos = error.Position(ref)
         self.top = None
+        self.top_element = None
 
         self.uri = None
         self.nsmap = {}
@@ -95,9 +96,7 @@ class YinParser(object):
             return None
 
         self.look_ahead()
-        top_element = self.top
-        self.top = None
-        self.create_statement(top_element, None)
+        self.create_statement(self.top_element, None)
         return self.top
 
     def get_lineno(self):
@@ -119,14 +118,18 @@ class YinParser(object):
         self.data = ''
         if self.element_stack == []:
             # this is the top-level element
-            self.top = e
+            self.top_element = e
             self.element_stack.append(e)
             # special case - the top-level statement has its argument
             # as an attribute, so we can save it here
             try:
                 (argname, _arg_is_elem) = syntax.yin_map[e.local_name]
                 arg = e.find_attribute(argname)
-                self.pos.top = e
+                # create and save the top-level statement here, so
+                # we get a correct Statement in pos.
+                stmt = statements.Statement(None, None, e.pos, e.local_name, arg)
+                self.top = stmt
+                self.pos.top = stmt
             except:
                 pass
             return
@@ -199,11 +202,11 @@ class YinParser(object):
 
         self.check_attr(e.pos, e.attrs)
             
-        stmt = statements.Statement(self.top, parent, e.pos, keywd, arg)
-        if self.top is None:
-            self.top = stmt
-        else:
+        if parent is not None:
+            stmt = statements.Statement(self.top, parent, e.pos, keywd, arg)
             parent.substmts.append(stmt)
+        else:
+            stmt = self.top
 
         for ch in e.children:
             self.create_statement(ch, stmt)
@@ -235,15 +238,15 @@ class YinParser(object):
         # namespace, so we need to parse the module :(
 
         # 1.  find our own namespace URI
-        if self.top.local_name == 'module':
-            p = self.top.find_child(yin_namespace, 'namespace')
+        if self.top_element.local_name == 'module':
+            p = self.top_element.find_child(yin_namespace, 'namespace')
             if p is not None:
                 self.uri = p.find_attribute('uri')
-            p = self.top.find_child(yin_namespace, 'prefix')
+            p = self.top_element.find_child(yin_namespace, 'prefix')
             if p is not None:
                 self.prefixmap[self.uri] = p.find_attribute('value')
-        elif self.top.local_name == 'submodule':
-            p = self.top.find_child(yin_namespace, 'belongs-to')
+        elif self.top_element.local_name == 'submodule':
+            p = self.top_element.find_child(yin_namespace, 'belongs-to')
             modname = p.find_attribute('module')
             # read the parent module in order to find the namespace uri
             res = self.ctx.read_module(modname, extra={'no_include':True})
@@ -266,7 +269,7 @@ class YinParser(object):
 
         # 2.  read all imports and includes and add the modules to the context
         #     and to the nsmap.
-        for ch in self.top.children:
+        for ch in self.top_element.children:
             if ch.ns == yin_namespace and ch.local_name == 'import':
                 modname = ch.find_attribute('module')
                 if modname is not None:
@@ -294,7 +297,7 @@ class YinParser(object):
                         self.included.append(mod)
 
         # 3.  find all extensions defined locally
-        for ch in self.top.children:
+        for ch in self.top_element.children:
             if ch.ns == yin_namespace and ch.local_name == 'extension':
                 extname = ch.find_attribute('name')
                 if extname is None:
