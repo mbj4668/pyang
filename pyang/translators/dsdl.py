@@ -262,7 +262,7 @@ class HybridDSDLSchema(object):
             "enum" : self.enum_stmt,
             "feature": self.noop,
             "identity": self.noop,
-            "if-feature": self.nma_attribute,
+            "if-feature": self.if_feature_stmt,
             "extension": self.noop,
             "import" : self.noop,
             "include" : self.include_stmt,
@@ -529,6 +529,13 @@ class HybridDSDLSchema(object):
             return defst.arg
         return None
 
+    def main_module_name(self, stmt):
+        """Return the name of the main module to which `stmt` belongs.
+        """
+        if stmt.i_module.keyword == "submodule":
+            return stmt.i_module.i_including_modulename
+        return stmt.i_module.arg
+
     def unique_def_name(self, stmt, inrpc=False):
         """Mangle the name of `stmt` (typedef or grouping).
 
@@ -536,11 +543,7 @@ class HybridDSDLSchema(object):
         to be installed. The `inrpc` flag indicates when we are inside
         an RPC, in which case the name gets the "__rpc" suffix.
         """
-        mod = stmt.i_module
-        if mod.keyword == "submodule":
-            pref = mod.search_one("belongs-to").arg
-        else:
-            pref = mod.arg
+        pref = self.main_module_name(stmt)
         if stmt.parent.keyword in ("module", "submodule"):
             name = stmt.arg
             defs = self.global_defs
@@ -584,10 +587,7 @@ class HybridDSDLSchema(object):
             if par.keyword == "uses":
                 self.handle_substmts(a, p_elem, pset)
                 continue
-            if par.keyword == "submodule":
-                mnam = par.search_one("belongs-to").arg
-            else:
-                mnam = par.arg
+            mnam = self.main_module_name(par)
             if self.prefix_stack[-1] == self.module_prefixes[mnam]:
                 self.handle_substmts(a, p_elem, pset)
             else:
@@ -937,6 +937,12 @@ class HybridDSDLSchema(object):
         for sub in stmt.search("status"):
             self.handle_stmt(sub, elem)
 
+    def if_feature_stmt(self, stmt, p_elem, pset):
+        feat = stmt.i_feature
+        mnam = self.main_module_name(feat)
+        p_elem.attr["nma:if-feature"] = (self.module_prefixes[mnam] + 
+                                         ":" + feat.arg)
+
     def include_stmt(self, stmt, p_elem, pset):
         if stmt.parent.keyword == "module":
             subm = self.module.i_ctx.get_module(stmt.arg)
@@ -1124,10 +1130,7 @@ class HybridDSDLSchema(object):
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
-        if bid.i_module.keyword == "submodule":
-            mnam = bid.i_module.i_including_modulename
-        else:
-            mnam = bid.i_module.arg
+        mnam = main_module_name(bid)
         qid = self.module_prefixes[mnam] + ":" + bid.arg
         self.add_identity(qid)
         SchemaNode("ref", p_elem).set_attr("name",
