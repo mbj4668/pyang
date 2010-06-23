@@ -60,10 +60,10 @@ gen_relaxng() {
 	--stringparam basename $basename \
         --stringparam target $target --stringparam rng-lib $rng_lib \
         $xslt_dir/gen-relaxng.xsl $hybs
-    [[ $? == 0 ]] || fail 2
+    [[ $? == 0 ]] || exit 2
     xsltproc $XSLT_OPTS --output $dir/$basename-gdefs.rng \
         --stringparam gdefs-only 1 $xslt_dir/gen-relaxng.xsl $hybs
-    [[ $? == 0 ]] || fail 2
+    [[ $? == 0 ]] || exit 2
     echo "Done."
 }
 
@@ -71,7 +71,7 @@ gen_schematron() {
     echo -e "\n== Generating Schematron schema '$btname.sch'"
     xsltproc $XSLT_OPTS --output $btname.sch \
         --stringparam target $target $xslt_dir/gen-schematron.xsl $hybs
-    [[ $? == 0 ]] || fail 2
+    [[ $? == 0 ]] || exit 2
     echo "Done."
 }
 
@@ -79,7 +79,7 @@ gen_dsrl() {
     echo -e "\n== Generating DSRL schema '$btname.dsrl'"
     xsltproc $XSLT_OPTS --output $btname.dsrl \
         --stringparam target $target $xslt_dir/gen-dsrl.xsl $hybs
-    [[ $? == 0 ]] || fail 2
+    [[ $? == 0 ]] || exit 2
     echo "Done."
 }
 
@@ -87,17 +87,17 @@ validate() {
     echo -e "\n== Validating grammar and datatypes ..."
     if [ -f $btname.rng ] ; then
         xmllint --noout --relaxng $btname.rng $instance
-	[[ $? == 0 ]] || fail 3
+	[[ $? == 0 ]] || exit 3
     else
         echo "RELAX NG schema '$btname.rng' not found."
-	fail 2
+	exit 2
     fi
     echo -en "\n== Adding default values... "
     if [ -f $btname.dsrl ] ; then
         xsltproc -o $dsrlxsl $xslt_dir/dsrl2xslt.xsl $btname.dsrl
-	[[ $? == 0 ]] || fail 2
+	[[ $? == 0 ]] || exit 2
         xsltproc -o $instwdef $dsrlxsl $instance
-	[[ $? == 0 ]] || fail 3
+	[[ $? == 0 ]] || exit 3
         inst4sch=$instwdef
         echo -e "done."
     else
@@ -109,7 +109,7 @@ validate() {
         xsltproc $xslt_dir/iso_abstract_expand.xsl $btname.sch | \
             xsltproc -o $schxsl $xslt_dir/iso_svrl_for_xslt1.xsl -
         xsltproc $schxsl $inst4sch | xsltproc $xslt_dir/svrl2text.xsl -
-	[[ $? == 0 ]] || fail 3
+	[[ $? == 0 ]] || exit 3
     else
         echo "Schematron schema '$btname.sch' not found, skipping ..."
     fi
@@ -122,12 +122,6 @@ cleanup () {
 rtfm () {
     echo 'Please check the manual page or run "yang2dsdl -h"' >&2
     exit 1
-}
-
-fail () {
-    # Parameter is the exit code
-    cleanup
-    exit $1
 }
 
 while getopts ":ht:d:b:v:s" opt ; do
@@ -190,6 +184,8 @@ schxsl=$dir/sch$randext
 dsrlxsl=$dir/dsrl$randext
 instwdef=$dir/inst$randext
 
+trap "cleanup" 0 1 2 3 15
+
 if [[ $noschema == "0" ]] ; then
     if [[ $yam == "" ]] ; then
 	echo "No input YANG module given." >&2
@@ -200,7 +196,7 @@ if [[ $noschema == "0" ]] ; then
     fi
     pyang -f dsdl -o $hybs --dsdl-no-documentation \
         --dsdl-no-dublin-core $yam
-    [[ $? == 0 ]] || fail 2
+    [[ $? == 0 ]] || exit 2
     if [[ $basename == "" ]] ; then
         basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
     fi
@@ -223,5 +219,4 @@ if [[ $instance != "" ]] ; then
     validate
 fi
 
-cleanup
 exit 0
