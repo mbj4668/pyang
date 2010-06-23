@@ -587,7 +587,10 @@ class HybridDSDLSchema(object):
             if par.keyword == "uses":
                 self.handle_substmts(a, p_elem, pset)
                 continue
-            mnam = self.main_module_name(par)
+            if par.keyword == "submodule":
+                mnam = par.i_including_modulename
+            else:
+                mnam = par.arg
             if self.prefix_stack[-1] == self.module_prefixes[mnam]:
                 self.handle_substmts(a, p_elem, pset)
             else:
