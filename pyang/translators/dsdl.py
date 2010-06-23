@@ -695,6 +695,8 @@ class HybridDSDLSchema(object):
                                 self.description_stmt(s, elem, None)
                             elif s.keyword == "reference":
                                 self.reference_stmt(s, elem, None)
+                            elif s.keyword == "must":
+                                self.must_stmt(s, elem, None)
                             elif s.keyword == "config":
                                 self.nma_attribute(s, elem)
                             elif refine_dict.get(s.keyword, False) is None:
