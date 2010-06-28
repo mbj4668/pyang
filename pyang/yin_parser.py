@@ -269,24 +269,39 @@ class YinParser(object):
 
         # 2.  read all imports and includes and add the modules to the context
         #     and to the nsmap.
+        if not hasattr(self.ctx, 'yin_module_map'):
+            self.ctx.yin_module_map = {}
+
+        if self.top.keyword == 'module':
+            if self.top.arg not in self.ctx.yin_module_map:
+                self.ctx.yin_module_map[self.top.arg] = []
+            mymodules = self.ctx.yin_module_map[self.top.arg]
+        else:
+            mymodules = []
+
         for ch in self.top_element.children:
             if ch.ns == yin_namespace and ch.local_name == 'import':
                 modname = ch.find_attribute('module')
                 if modname is not None:
-                    mod = self.ctx.search_module(ch.pos, modname)
-                    if mod is not None:
-                        ns = mod.search_one('namespace')
-                        if ns is not None and ns.arg is not None:
-                            # record the uri->mod mapping
-                            self.nsmap[ns.arg] = mod
-                            # also record uri->prefix, where prefix
-                            # is the *yang* prefix, *not* the XML prefix
-                            # (it can be different in theory...)
-                            p = ch.find_child(yin_namespace, 'prefix')
-                            if p is not None:
-                                prefix = p.find_attribute('value')
-                                if prefix is not None:
-                                    self.prefixmap[ns.arg] = prefix
+                    if modname in mymodules:
+                        # circular import; ignore here and detect in validation
+                        pass
+                    else:
+                        mymodules.append(modname)
+                        mod = self.ctx.search_module(ch.pos, modname)
+                        if mod is not None:
+                            ns = mod.search_one('namespace')
+                            if ns is not None and ns.arg is not None:
+                                # record the uri->mod mapping
+                                self.nsmap[ns.arg] = mod
+                                # also record uri->prefix, where prefix
+                                # is the *yang* prefix, *not* the XML prefix
+                                # (it can be different in theory...)
+                                p = ch.find_child(yin_namespace, 'prefix')
+                                if p is not None:
+                                    prefix = p.find_attribute('value')
+                                    if prefix is not None:
+                                        self.prefixmap[ns.arg] = prefix
                             
             elif (ch.ns == yin_namespace and ch.local_name == 'include' and
                   'no_include' not in self.extra):
