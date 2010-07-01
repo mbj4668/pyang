@@ -167,7 +167,7 @@ def v_chk_top_level_nodes(ctx, stmt):
     top = [x for x in stmt.i_children if x.keyword not in ['rpc','notification']]
     if len(top) > 1:
         err_add(ctx.errors, stmt.pos, 'IETF_TOO_MANY_TOP_LEVEL_NODES',
-                ", ".join(x.arg for x in top))
+                ", ".join([x.arg for x in top]))
 
 def v_chk_module_name(ctx, stmt):
     # can't check much, but we can check that a prefix is used
