@@ -2053,6 +2053,18 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
                     # don't check the path here - check in the expanded tree
                     raise Abort
                 ptr = ptr.parent
+                if ptr.keyword == 'case':
+                    ptr = ptr.parent
+                    if ptr is None:
+                        err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                                (stmt.arg, stmt.pos))
+                        raise NotFound
+                if ptr.keyword == 'choice':
+                    ptr = ptr.parent
+                    if ptr is None:
+                        err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                                (stmt.arg, stmt.pos))
+                        raise NotFound
                 up = up - 1
             if ptr is None: # or ptr.keyword == 'grouping':
                 err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
