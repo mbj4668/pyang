@@ -116,5 +116,36 @@ module xt8 {
        container c32 {}
    }
 
+  container xx {
+    list a {
+      key name;
+      leaf name {
+        type string;
+      }
+    }
+    choice c {
+      case a {
+        leaf aref {
+          type leafref {
+            path "../a/name";
+          }
+        }
+        list yy {
+          key name;
+          leaf name {
+            type string;
+          }
+        }
+      }
+      case b {
+        leaf yyref {
+          type leafref {
+            path "/xx/yy/name";
+          }
+        }
+      }
+    }
+  }
+
 }
 
