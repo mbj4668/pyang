@@ -5,6 +5,7 @@ Idea copied from libsmi.
 
 import optparse
 import sys
+import re
 
 from pyang import plugin
 from pyang import statements
@@ -148,7 +149,7 @@ def print_node(s, module, fd, prefix, width):
         fd.write("%s %-*s   %s" % (flags, width+1, name, get_typename(s)))
 
     if s.keyword == 'list' and s.search_one('key') is not None:
-        fd.write(" [%s]" % s.search_one('key').arg)
+        fd.write(" [%s]" % re.sub('\s+', ' ', s.search_one('key').arg))
     fd.write('\n')
     if hasattr(s, 'i_children'):
         if s.keyword in ['choice', 'case']:
