@@ -1135,7 +1135,7 @@ class HybridDSDLSchema(object):
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
-        mnam = main_module_name(bid)
+        mnam = self.main_module_name(bid)
         qid = self.module_prefixes[mnam] + ":" + bid.arg
         self.add_identity(qid)
         SchemaNode("ref", p_elem).set_attr("name",
