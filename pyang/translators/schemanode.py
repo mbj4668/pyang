@@ -52,7 +52,7 @@ class SchemaNode(object):
 
     * `self.name` - name of the schema node (XML element name).
 
-    * `self.occur` - specifies the occurrence status using interger
+    * `self.occur` - specifies the occurrence status using integer
       values: 0=optional, 1=implicit, 2=mandatory, 3=presence.
 
     * `self.parent` - parent node.
@@ -74,6 +74,7 @@ class SchemaNode(object):
         node.keys = None
         node.minEl = "0"
         node.maxEl = None
+        node.occur = 3
         return node
     leaf_list = classmethod(leaf_list)
 
@@ -82,7 +83,6 @@ class SchemaNode(object):
         node = cls.leaf_list(name, parent, interleave=interleave)
         node.keys = []
         node.keymap = {}
-        node.occur = 3
         return node
     list = classmethod(list)
 
