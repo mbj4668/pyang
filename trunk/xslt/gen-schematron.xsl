@@ -165,6 +165,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           select="descendant::rng:element[&annots;]|
                   descendant::rng:choice[@nma:mandatory]">
         <xsl:with-param name="prevpath">$start</xsl:with-param>
+        <xsl:with-param name="prefix">$pref</xsl:with-param>
       </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
