@@ -231,7 +231,7 @@ class SchemaNode(object):
     def _choice_format(self, occur):
         """Return the serialization format for a choice node.""" 
         fmt = self.start_tag() + "%s" + self.end_tag()
-        if self.occur < 2:
+        if self.occur != 2:
             return "<optional>" + fmt + "</optional>"
         else:
             return fmt
