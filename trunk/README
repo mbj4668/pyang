@@ -27,8 +27,8 @@ export PYTHONPATH=`pwd`
 export PATH=`pwd`/bin:$PATH
 export MANPATH=`pwd`/man:$MANPATH
 export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
-export PYANG_XSLT_DIR=$p/xslt
-export PYANG_RNG_LIBDIR=$p/schema
+export PYANG_XSLT_DIR=`pwd`/xslt
+export PYANG_RNG_LIBDIR=`pwd`/schema
 
 pyang -h
 man pyang
