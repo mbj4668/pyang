@@ -64,7 +64,7 @@ Each node is printed as:
    name is printed as <prefix>:<name>.
 
   <opts> is one of:
-    ?  for an optional leaf or container
+    ?  for an optional leaf or presence container
     *  for a leaf-list
     [<keys>] for a list's keys
 
@@ -128,7 +128,7 @@ def print_node(s, module, fd, prefix, width):
         fd.write(flags + " " + name)
     elif s.keyword == 'container':
         p = s.search_one('presence')
-        if p is not None and p.arg == 'true':
+        if p is not None:
             name += '?'
         fd.write(flags + " " + name)
     elif s.keyword  == 'choice':
@@ -144,7 +144,7 @@ def print_node(s, module, fd, prefix, width):
             name += '*'
         elif s.keyword == 'leaf':
             m = s.search_one('mandatory')
-            if m is not None and m.arg == 'true':
+            if m is None or m.arg == 'false':
                 name += '?'
         fd.write("%s %-*s   %s" % (flags, width+1, name, get_typename(s)))
 
