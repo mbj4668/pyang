@@ -1798,6 +1798,8 @@ def chk_uses_pos(s, pos):
 def prefix_to_modulename_and_revision(module, prefix, pos, errors):
     if prefix == '':
         return module.arg, None
+    if prefix == module.i_prefix:
+        return module.arg, None
     try:
         (modulename, revision) = module.i_prefixes[prefix]
     except KeyError:
@@ -1812,6 +1814,8 @@ def prefix_to_modulename_and_revision(module, prefix, pos, errors):
 
 def prefix_to_module(module, prefix, pos, errors):
     if prefix == '':
+        return module
+    if prefix == module.i_prefix:
         return module
     modulename, revision = \
         prefix_to_modulename_and_revision(module, prefix, pos, errors)
