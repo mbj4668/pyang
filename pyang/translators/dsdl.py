@@ -1121,8 +1121,10 @@ class HybridDSDLSchema(object):
 
     def bits_type(self, tchain, p_elem):
         elem = SchemaNode("list", p_elem)
+        zom = SchemaNode("zeroOrMore", elem)
+        choi = SchemaNode.choice(zom, occur=2)
         for bit in tchain[0].search("bit"):
-            optel = SchemaNode("optional", elem)
+            optel = SchemaNode("optional", choi)
             SchemaNode("value", optel, bit.arg)
 
     def choice_type(self, tchain, p_elem):
