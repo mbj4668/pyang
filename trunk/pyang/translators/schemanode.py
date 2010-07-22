@@ -151,7 +151,7 @@ class SchemaNode(object):
             name = self.name
         result = "<" + name
         for it in self.attr:
-            result += ' %s="%s"' % (it, escape(self.attr[it]))
+            result += ' %s="%s"' % (it, escape(self.attr[it], {'"':"&quot;"}))
         if empty:
             return result + "/>"
         else:
