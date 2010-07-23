@@ -914,6 +914,10 @@ def v_type_augment(ctx, stmt):
         stmt.i_target_node = None
         err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
                 (stmt.arg, "descendant-node-id"))
+    elif stmt.parent.keyword != 'uses' and not stmt.arg.startswith("/"):
+        stmt.i_target_node = None
+        err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
+                (stmt.arg, "absolute-node-id"))
 
 def v_type_extension(ctx, stmt):
     """verify that the extension matches the extension definition"""
