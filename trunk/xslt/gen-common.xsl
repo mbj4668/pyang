@@ -27,6 +27,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <!-- Command line parameters -->
   <!-- Validation target: one of "dstore", "get-reply", "getconf-reply",
        "rpc", "rpc-reply", "notif" -->
+  <xsl:param name="features"/>
   <xsl:param name="target">dstore</xsl:param>
   <!-- Full path of the RELAX NG library file -->
   <xsl:param name="rng-lib">relaxng-lib.rng</xsl:param>
