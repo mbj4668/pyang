@@ -25,6 +25,7 @@ noschema=0
 
 xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
 rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
+rng_val=${PYANG_RNG_VAL:-xmllint --noout --relaxng}
 
 usage() {
     cat <<EOF
@@ -86,7 +87,7 @@ gen_dsrl() {
 validate() {
     echo -e "\n== Validating grammar and datatypes ..."
     if [ -f $btname.rng ] ; then
-        xmllint --noout --relaxng $btname.rng $instance
+        $rng_val $btname.rng $instance
 	[[ $? == 0 ]] || exit 3
     else
         echo "RELAX NG schema '$btname.rng' not found."
