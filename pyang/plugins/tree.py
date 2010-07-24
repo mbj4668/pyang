@@ -94,7 +94,7 @@ def emit_tree(modules, fd):
 
 def print_children(i_children, module, fd, prefix, width=0):
     def get_width(w, chs):
-        for ch in i_children:
+        for ch in chs:
             if ch.keyword in ['choice', 'case']:
                 w = get_width(w, ch.i_children)
             else:
