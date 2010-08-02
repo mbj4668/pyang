@@ -421,7 +421,10 @@ stmt_map = {
            data_def_stmts),
           ]),
     'when':
-        ('string', []),
+        ('string',
+         [('description', '?'),
+          ('reference', '?'),
+          ]),
     'rpc':
         ('identifier',
          [('if-feature', '*'),
