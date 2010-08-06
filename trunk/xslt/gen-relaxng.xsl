@@ -306,10 +306,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:apply-templates select="@*"/>
       <xsl:choose>
         <xsl:when
-	    test="$target='getconf-reply' and @nma:config='false' or
-		  @nma:if-feature and
-		  not(contains(concat($features,','),
-		  concat(@nma:if-feature,',')))">
+            test="$target='getconf-reply' and @nma:config='false' or
+                  @nma:if-feature and ($off-features='%' or
+                  contains(concat($off-features,','),
+                  concat(substring-after(@nma:if-feature,':'), '@',
+                  /rng:grammar/rng:start/rng:grammar[@ns=namespace::*
+                  [name()=substring-before(
+                  current()/@nma:if-feature,':')]]/@nma:module)))">
           <xsl:element name="notAllowed" namespace="{$rng-uri}"/>
         </xsl:when>
         <xsl:otherwise>

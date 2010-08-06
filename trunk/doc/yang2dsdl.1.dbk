@@ -34,17 +34,19 @@
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
+      <arg choice="opt">-n</arg>
       <arg choice="plain" rep="repeat">
         <replaceable>module</replaceable>
       </arg>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>yang2dsdl</command>
+      <arg choice="plain">-s</arg>
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="plain">-b <replaceable>basename</replaceable></arg>
       <arg choice="plain">-v <replaceable>instance</replaceable></arg>
-      <arg choice="plain">-s</arg>
+      <arg choice="opt">-n</arg>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>yang2dsdl</command>
@@ -207,6 +209,14 @@
         <term><option>-h</option></term>
         <listitem>
           <para>Displays help screen and exits.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-n</option></term>
+        <listitem>
+          <para>With this option, all features used in input YANG
+	  modules are considered unavailable. By default, all features
+	  are available.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
