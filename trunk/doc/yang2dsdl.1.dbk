@@ -33,6 +33,7 @@
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
+      <arg choice="opt">-j</arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
       <arg choice="opt">-n</arg>
       <arg choice="plain" rep="repeat">
@@ -45,8 +46,8 @@
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="plain">-b <replaceable>basename</replaceable></arg>
+      <arg choice="opt">-j</arg>
       <arg choice="plain">-v <replaceable>instance</replaceable></arg>
-      <arg choice="opt">-n</arg>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>yang2dsdl</command>
@@ -178,9 +179,11 @@
     <para>The script uses programs from the libxml2 suite -
     <command>xmllint</command>(1) for RELAX NG validation and
     <command>xsltproc</command>(1) for performing XSLT
-    transformations.  If necessary, the script could be easily
-    modified for use with other RELAX NG validators and/or XSLT1
-    processors supporting EXSLT.</para>
+    transformations. Alternatively, <command>jing</command>(1) can be
+    used for RELAX NG validation (option <option>-j</option>). If
+    necessary, the script could be easily modified for use with other
+    RELAX NG validators and/or XSLT1 processors supporting
+    EXSLT.</para>
   </refsect1>
 
   <refsect1 xml:id="man.1.yang2dsdl.options">
@@ -209,6 +212,13 @@
         <term><option>-h</option></term>
         <listitem>
           <para>Displays help screen and exits.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-j</option></term>
+        <listitem>
+          <para>Use <command>jing</command>(1) for RELAX NG validation
+	  instead of the default <command>xmllint</command>(1).</para>
         </listitem>
       </varlistentry>
       <varlistentry>

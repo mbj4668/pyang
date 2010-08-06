@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Bjorklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
-.\"      Date: 2010-05-12
+.\"      Date: 2010-06-08
 .\"    Manual: pyang manual
 .\"    Source: pyang-1.0a
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2010\-05\-12" "pyang\-1\&.0a" "pyang manual"
+.TH "PYANG" "1" "2010\-06\-08" "pyang\-1\&.0a" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,11 +31,15 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-canonical] [\-\-ietf] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwhat\fR] \fImodule\fR...
+\fBpyang\fR [\-\-canonical] [\-\-strict] [\-\-ietf] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwhat\fR] \fImodule\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-h | \-\-help]
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-v | \-\-version]
+.PP
+If no files are given,
+\fBpyang\fR
+reads one module from stdin\&.
 .PP
 Only the most common options are listed here\&. See below for a complete list of options\&.
 .SH "DESCRIPTION"
@@ -64,6 +68,11 @@ Print the version number and exit\&.
 Print a listing of all error codes and messages pyang might generate, and then exit\&.
 .RE
 .PP
+\fB\-\-print\-error\-code\fR
+.RS 4
+On errors, print the symbolic error code instead of the error message\&.
+.RE
+.PP
 \fB\-Werror\fR
 .RS 4
 Treat warnings as errors\&.
@@ -77,6 +86,11 @@ Do not print any warnings\&.
 \fB\-\-canonical\fR
 .RS 4
 Validate the module(s) according to the canonical YANG order\&.
+.RE
+.PP
+\fB\-\-strict\fR
+.RS 4
+Force strict YANG compliance\&. Currently this checks that the deref() function is not used in XPath expressions and leafrefs\&.
 .RE
 .PP
 \fB\-\-ietf\fR
@@ -375,6 +389,70 @@ Tree output specific option:
 .RS 4
 Print help on symbols used in the tree output and exit\&.
 .RE
+.SH "YANG EXTENSIONS"
+.PP
+This section describes XPath functions that can be used in "must", "when", or "path" expressions in YANG modules, in addition to the core XPath 1\&.0 functions\&.
+.PP
+
+\fBpyang\fR
+can be instructed to reject the usage of these functions with the parameter
+\fI\-\-strict\fR\&.
+.PP
+
+\fBFunction:\fR
+\fInode\-set\fR
+\fBderef\fR(\fInode\-set\fR)
+.PP
+The
+\fBderef\fR
+function follows the reference defined by the first node in document order in the argument node\-set, and returns the nodes it refers to\&.
+.PP
+If the first argument node is an
+\fBinstance\-identifier\fR, the function returns a node\-set that contains the single node that the instance identifier refers to, if it exists\&. If no such node exists, an empty node\-set is returned\&.
+.PP
+If the first argument node is a
+\fBleafref\fR, the function returns a node\-set that contains the nodes that the leafref refers to\&.
+.PP
+If the first argument node is of any other type, an empty node\-set is returned\&.
+.PP
+The following example shows how a leafref can be written with and without the
+\fBderef\fR
+function:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+/* without deref */
+
+leaf my\-ip {
+    type leafref {
+        path "/server/ip";
+    }
+}
+leaf my\-port {
+    type leafref {
+        path "/server[ip = current()/\&.\&./my\-ip]/port";
+    }
+}
+
+/* with deref */
+
+leaf my\-ip {
+    type leafref {
+        path "/server/ip";
+    }
+}
+leaf my\-port {
+    type leafref {
+        path "deref(\&.\&./my\-ip)/\&.\&./port";
+    }
+}
+      
+.fi
+.if n \{\
+.RE
+.\}
 .SH "EXAMPLE"
 .PP
 The following example validates the standard YANG modules with derived types:
@@ -424,17 +502,6 @@ The XPath arguments for the
 and
 \fIwhen\fR
 statements are checked only for basic syntax errors\&.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04' 2.\h'+01'\c
-.\}
-.el \{\
-.sp -1
-.IP "  2." 4.2
-.\}
-The translation of XPath expressions performed by the DSDL plugin doesn\*(Aqt add a prefix to local names that match the keyword of an XPath operator ("and", "or", "div", "mod") even if syntactically it cannot be such an operator\&. As a workaround, it is necessary to use an explicit prefix for these conflicting names in YANG\&.
 .RE
 .SH "AUTHORS"
 .PP
