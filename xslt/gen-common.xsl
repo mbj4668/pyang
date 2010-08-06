@@ -25,9 +25,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 version="1.0">
 
   <!-- Command line parameters -->
+
+  <!-- Comma-separated list of unavailable features in the form
+       <feature>@<module_name> (no spaces allowed), or the string
+       '%' which means that NO feature is available -->
+  <xsl:param name="off-features"/>
   <!-- Validation target: one of "dstore", "get-reply", "getconf-reply",
        "rpc", "rpc-reply", "notif" -->
-  <xsl:param name="features"/>
   <xsl:param name="target">dstore</xsl:param>
   <!-- Full path of the RELAX NG library file -->
   <xsl:param name="rng-lib">relaxng-lib.rng</xsl:param>

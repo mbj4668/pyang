@@ -448,9 +448,7 @@ class HybridDSDLSchema(object):
 
         Fill in (recursively) all derivations from base identities.
         """
-        module = id_stmt.i_module
-        if module.keyword == "submodule":
-            module = module.i_ctx.get_module(module.i_including_modulename)
+        module = self.main_module(id_stmt)
         self.add_namespace(module)
         qid = self.module_prefixes[module.arg] + ":" + id_stmt.arg
         if qid in self.identity_deps: return qid
@@ -529,12 +527,13 @@ class HybridDSDLSchema(object):
             return defst.arg
         return None
 
-    def main_module_name(self, stmt):
-        """Return the name of the main module to which `stmt` belongs.
+    def main_module(self, stmt):
+        """Return the main module to which `stmt` belongs.
         """
         if stmt.i_module.keyword == "submodule":
-            return stmt.i_module.i_including_modulename
-        return stmt.i_module.arg
+            return stmt.i_module.i_ctx.get_module(
+                stmt.i_module.i_including_modulename)
+        return stmt.i_module
 
     def unique_def_name(self, stmt, inrpc=False):
         """Mangle the name of `stmt` (typedef or grouping).
@@ -543,7 +542,7 @@ class HybridDSDLSchema(object):
         to be installed. The `inrpc` flag indicates when we are inside
         an RPC, in which case the name gets the "__rpc" suffix.
         """
-        pref = self.main_module_name(stmt)
+        module = self.main_module(stmt)
         if stmt.parent.keyword in ("module", "submodule"):
             name = stmt.arg
             defs = self.global_defs
@@ -551,7 +550,7 @@ class HybridDSDLSchema(object):
             name = "__".join(stmt.full_path())
             defs = self.local_defs
         if inrpc: name += "__rpc"
-        return (pref + "__" + name, defs)
+        return (module.arg + "__" + name, defs)
 
     def add_patch(self, pset, augref):
         """Add patch corresponding to `augref` to `pset`.
@@ -944,8 +943,9 @@ class HybridDSDLSchema(object):
 
     def if_feature_stmt(self, stmt, p_elem, pset):
         feat = stmt.i_feature
-        mnam = self.main_module_name(feat)
-        p_elem.attr["nma:if-feature"] = (self.module_prefixes[mnam] + 
+        module = self.main_module(feat)
+        self.add_namespace(module)
+        p_elem.attr["nma:if-feature"] = (self.module_prefixes[module.arg] +
                                          ":" + feat.arg)
 
     def include_stmt(self, stmt, p_elem, pset):
@@ -1137,8 +1137,8 @@ class HybridDSDLSchema(object):
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
-        mnam = self.main_module_name(bid)
-        qid = self.module_prefixes[mnam] + ":" + bid.arg
+        module = self.main_module(bid)
+        qid = self.module_prefixes[module.arg] + ":" + bid.arg
         self.add_identity(qid)
         SchemaNode("ref", p_elem).set_attr("name",
                                            "__" + qid.replace(":","_"))
