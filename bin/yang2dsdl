@@ -22,16 +22,18 @@ basename=""
 dir="."
 instance=""
 noschema=0
+nofeat=0
 
 xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
 rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
 rng_val=${PYANG_RNG_VAL:-xmllint --noout --relaxng}
+unavail_feat=${PYANG_UNAVAIL_FEAT:-}
 
 usage() {
     cat <<EOF
 
 Usage: 1. yang2dsdl [-t <target>] [-d <dir>] [-b <basename>] \\
-                    [-v <instance>] <module> ...
+                    [-n | -f <features> ...] [-v <instance>] <module> ...
        2. yang2dsdl [-t target] [-d <dir>] -s -b <basename> -v <instance>
        3. yang2dsdl -h
 
@@ -47,6 +49,12 @@ Options:
                  schemas are stored. The default is the concatenation
                  of the names of all input YANG modules connected
                  with the underscore character "_".
+  -n             Consider all used features as unavailable.
+                 (By default, all are available.)
+  -f <features>  Signal specific features as unavailable.
+                 <features> are in the form
+                 <modulename>:<feature>,<feature>
+                 This option may be repeated.
   -d <dir>       Specifies the directory for output files
                  (current directory by default).
   -v <instance>  Validates the instance document in file <instance>.
@@ -125,7 +133,7 @@ rtfm () {
     exit 1
 }
 
-while getopts ":ht:d:b:v:s" opt ; do
+while getopts ":ht:d:b:v:nf:s" opt ; do
     case $opt in
         h)
             usage
@@ -158,6 +166,12 @@ while getopts ":ht:d:b:v:s" opt ; do
                 exit 1
             fi
             ;;
+	n)
+	    nofeat=1
+	    ;;
+	f)
+	    unavail_feat="$unavail_feat $OPTARG"
+	    ;;
         s)
             noschema=1
             ;;
@@ -171,6 +185,10 @@ while getopts ":ht:d:b:v:s" opt ; do
             ;;
     esac
 done
+
+if [[ $nofeat == "1" ]] ; then
+    unavail_feat='%'
+fi
 
 if [[ $noschema == "1" && $instance == "" ]] ; then
     echo "Option -s may only be used together with -v."
