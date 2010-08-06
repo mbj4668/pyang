@@ -293,10 +293,12 @@
 
   <define name="reference-stmt">
     <element name="reference">
-      <attribute name="info">
-	<data type="string"/>
-      </attribute>
-      <ref name="an-extension"/>
+      <interleave>
+	<element name="text">
+	  <text/>
+	</element>
+	<ref name="an-extension"/>
+      </interleave>
     </element>
   </define>
 
