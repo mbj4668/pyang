@@ -100,6 +100,11 @@ Validate the module(s) according to IETF rules as specified in draft\-ietf\-netm
 is 72 so that the module fits into an RFC\&.
 .RE
 .PP
+\fB\-\-trim\-yin\fR
+.RS 4
+In YIN input modules, remove leading and trailing whitespace from every line in the arguments of the following statements: \*(Aqcontact\*(Aq, \*(Aqdescription\*(Aq, \*(Aqerror\-message\*(Aq, \*(Aqorganization\*(Aq and \*(Aqreference\*(Aq\&. This way, the XML\-indented argument texts look tidy after translating the module to the compact YANG syntax\&.
+.RE
+.PP
 \fB\-\-max\-line\-length\fR \fImaxlen\fR
 .RS 4
 Give a warning if any line is longer than

@@ -187,7 +187,11 @@ class YinParser(object):
                               'MISSING_ARGUMENT_ELEMENT', (argname, keywdstr))
 
             else:
-                arg = "\n".join([x.strip() for x in arg_elem.data.strip().splitlines()])
+                if self.ctx.trim_yin:
+                    arg = "\n".join([x.strip() for x in
+                                     arg_elem.data.strip().splitlines()])
+                else:
+                    arg = arg_elem.data
                 e.remove_child(arg_elem)
         elif arg_is_elem == False:
             arg = e.find_attribute(argname)
