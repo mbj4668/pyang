@@ -203,6 +203,22 @@
 
       <varlistentry>
         <term>
+	  <option>--trim-yin</option>
+	</term>
+        <listitem>
+          <para>
+	    In YIN input modules, remove leading and trailing
+	    whitespace from every line in the arguments of the
+	    following statements: 'contact', 'description',
+	    'error-message', 'organization' and 'reference'. This way,
+	    the XML-indented argument texts look tidy after
+	    translating the module to the compact YANG syntax.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
 	  <option>--max-line-length</option>
 	  <replaceable>maxlen</replaceable>
 	</term>
