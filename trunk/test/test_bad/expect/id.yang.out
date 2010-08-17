@@ -11,3 +11,4 @@ id.yang:72: error: IDENTITY_NOT_FOUND
 id.yang:78: error: IDENTITY_NOT_FOUND
 id.yang:84: error: BAD_RESTRICTION
 id.yang:90: error: BAD_RESTRICTION
+id.yang:100: error: TYPE_VALUE

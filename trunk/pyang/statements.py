@@ -116,6 +116,8 @@ _validation_phases = [
     # type and grouping phase:
     #   verifies all typedefs, types and groupings
     'type',
+    'type_2',
+
 
     # expansion phases:
     #   first expansion: copy data definition stmts into i_children
@@ -162,9 +164,7 @@ _validation_map = {
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
 
-    ('type', 'typedef'):lambda ctx, s: v_type_typedef(ctx, s),
     ('type', 'type'):lambda ctx, s: v_type_type(ctx, s),
-    ('type', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
     ('type', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
     ('type', 'grouping'):lambda ctx, s: v_type_grouping(ctx, s),
     ('type', 'augment'):lambda ctx, s: v_type_augment(ctx, s),
@@ -174,6 +174,9 @@ _validation_map = {
     ('type', 'identity'):lambda ctx, s: v_type_identity(ctx, s),
     ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
+
+    ('type_2', 'typedef'):lambda ctx, s: v_type_typedef(ctx, s),
+    ('type_2', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
 
     ('expand_1', 'module'):lambda ctx, s: v_expand_1_children(ctx, s),
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
@@ -737,6 +740,11 @@ def v_type_type(ctx, stmt):
     base = stmt.search_one('base')
     if base is not None and stmt.arg != 'identityref':
         err_add(ctx.errors, base.pos, 'BAD_RESTRICTION', 'base')
+    elif base is not None:
+        v_type_base(ctx, base)
+        if base.i_identity is not None:
+            stmt.i_is_derived = True
+            stmt.i_type_spec = types.IdentityrefTypeSpec(base)
 
     # check the require-instance restriction
     req_inst = stmt.search_one('require-instance')

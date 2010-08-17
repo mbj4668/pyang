@@ -166,6 +166,52 @@ class EmptyTypeSpec(TypeSpec):
         err_add(errors, pos, 'BAD_DEFAULT_VALUE', 'empty')
         return None
 
+class IdentityrefTypeSpec(TypeSpec):
+    def __init__(self, base):
+        TypeSpec.__init__(self)
+        self.base = base
+
+    def str_to_val(self, errors, pos, s):
+        if s.find(":") == -1:
+            prefix = None
+            name = s
+        else:
+            [prefix, name] = s.split(':', 1)
+        if prefix is None or self.base.i_module.i_prefix == prefix:
+            # check local identities
+            pmodule = self.base.i_module
+        else:
+            # this is a prefixed name, check the imported modules
+            pmodule = statements.prefix_to_module(self.base.i_module, prefix,
+                                                  pos, errors)
+            if pmodule is None:
+                return None
+        if name not in pmodule.i_identities:
+            err_add(errors, pos, 'TYPE_VALUE',
+                    (s, self.definition, 'identityref not found'))
+            return None
+        val = pmodule.i_identities[name]
+        my_identity = self.base.i_identity
+        vals = []
+        while True:
+            if val == my_identity:
+                return pmodule.i_identities[name]
+            else:
+                p = val.search_one('base')
+                if p is None or p.i_identity is None:
+                    err_add(errors, pos, 'TYPE_VALUE',
+                            (s, self.definition,
+                             'identityref not derived from %s' % \
+                             my_identity.arg))
+                    return None
+                else:
+                    val = p.i_identity
+                    if val in vals:
+                        # circular; has been reported already
+                        return
+                    vals.append(val)
+
+
 ## type restrictions
 
 def validate_range_expr(errors, stmt, type_):

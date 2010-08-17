@@ -91,4 +91,34 @@ module id {
     }
   }
 
+  identity z;
+
+  leaf x1 {
+    type identityref {
+      base crypto:crypto-alg;
+    }
+    default z; // error; z not derived from crypto-alg
+  }
+
+  leaf x2 {
+    type identityref {
+      base crypto:crypto-alg;
+    }
+    default crypto:crypto-alg;
+  }
+
+  leaf x3 {
+    type identityref {
+      base crypto:crypto-alg;
+    }
+    default des3;
+  }
+
+  leaf x4 {
+    type identityref {
+      base crypto:crypto-alg;
+    }
+    default id:des3;
+  }
+
 }

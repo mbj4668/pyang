@@ -1,8 +1,8 @@
 a.yang:5: warning: UNUSED_IMPORT
 a.yang:10: error: TYPE_ALREADY_DEFINED
-a.yang:12: error: CIRCULAR_DEPENDENCY
+a.yang:13: error: CIRCULAR_DEPENDENCY
 a.yang:14: error: CIRCULAR_DEPENDENCY
-a.yang:16: error: CIRCULAR_DEPENDENCY
+a.yang:22: error: CIRCULAR_DEPENDENCY
 a.yang:37: error: BAD_RESTRICTION
 a.yang:48: error: TYPE_VALUE
 a.yang:59: error: TYPE_VALUE
