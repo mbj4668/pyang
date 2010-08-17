@@ -326,7 +326,7 @@ module/*hej*/xt1 {
   }
 
 
-  augment "bar" { // descendant form is ok
+  augment "bar" { // error; descendant form is not allowed
     container bar {
       leaf e1 { type int32; }
     }
