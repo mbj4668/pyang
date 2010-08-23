@@ -164,8 +164,6 @@ _validation_map = {
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
 
-    ('type', 'type'):lambda ctx, s: v_type_type(ctx, s),
-    ('type', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
     ('type', 'grouping'):lambda ctx, s: v_type_grouping(ctx, s),
     ('type', 'augment'):lambda ctx, s: v_type_augment(ctx, s),
     ('type', 'uses'):lambda ctx, s: v_type_uses(ctx, s),
@@ -175,8 +173,10 @@ _validation_map = {
     ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
 
+    ('type_2', 'type'):lambda ctx, s: v_type_type(ctx, s),
     ('type_2', 'typedef'):lambda ctx, s: v_type_typedef(ctx, s),
     ('type_2', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
+    ('type_2', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
 
     ('expand_1', 'module'):lambda ctx, s: v_expand_1_children(ctx, s),
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
@@ -644,6 +644,9 @@ def v_type_type(ctx, stmt):
             # ensure the typedef is validated
             if stmt.i_typedef.is_grammatically_valid == True:
                 v_type_typedef(ctx, stmt.i_typedef)
+            else:
+                stmt.i_typedef.i_default = None
+                stmt.i_typedef.i_default_str = ""
             stmt.i_typedef.i_is_unused = False
     else:
         # this is a prefixed name, check the imported modules
@@ -799,21 +802,21 @@ def v_type_leaf(ctx, stmt):
         return
     # check if we have a default value
     default = stmt.search_one('default')
-    type = stmt.search_one('type')
-    if default is not None and type.i_type_spec is not None :
-        defval = type.i_type_spec.str_to_val(ctx.errors,
-                                             default.pos,
-                                             default.arg)
+    type_ = stmt.search_one('type')
+    if default is not None and type_.i_type_spec is not None :
+        defval = type_.i_type_spec.str_to_val(ctx.errors,
+                                              default.pos,
+                                              default.arg)
         stmt.i_default = defval
         stmt.i_default_str = default.arg
         if defval is not None:
-            type.i_type_spec.validate(ctx.errors, default.pos,
-                                      defval, ' for the default value')
+            type_.i_type_spec.validate(ctx.errors, default.pos,
+                                       defval, ' for the default value')
     elif (default is None and
-          type.i_typedef is not None and
-          type.i_typedef.i_default is not None):
-        stmt.i_default = type.i_typedef.i_default
-        stmt.i_default_str = type.i_typedef.i_default_str
+          type_.i_typedef is not None and
+          type_.i_typedef.i_default is not None):
+        stmt.i_default = type_.i_typedef.i_default
+        stmt.i_default_str = type_.i_typedef.i_default_str
     if default is not None:
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
