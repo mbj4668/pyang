@@ -737,7 +737,7 @@ def v_type_type(ctx, stmt):
         if path.is_grammatically_valid == True:
             path_spec = types.validate_path_expr(ctx.errors, path)
             if path_spec is not None:
-                stmt.i_type_spec = types.PathTypeSpec(path_spec, path.pos)
+                stmt.i_type_spec = types.PathTypeSpec(path_spec, path, path.pos)
 
     # check the base restriction
     base = stmt.search_one('base')
@@ -1633,7 +1633,8 @@ def v_reference_leaf_leafref(ctx, stmt):
     if stmt.i_leafref is not None and stmt.i_leafref_expanded is False:
         path_type_spec = stmt.i_leafref
         x = validate_leafref_path(ctx, stmt,
-                                  path_type_spec.path, path_type_spec.pos)
+                                  path_type_spec.path_spec,
+                                  path_type_spec.path_)
         if x is None:
             return
         ptr, expanded_path = x
@@ -2017,20 +2018,22 @@ def iterate_stmt(stmt, f):
     except Abort:
         pass
 
-def validate_leafref_path(ctx, stmt, path, pathpos):
+def validate_leafref_path(ctx, stmt, path_spec, path):
     """Return the leaf that the path points to and the expanded path arg,
     or None on error."""
+
+    pathpos = path.pos
 
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
-            pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos,
+            pmodule = prefix_to_module(path.i_module, prefix, stmt.pos,
                                        ctx.errors)
             if pmodule is None:
                 raise NotFound
             return (pmodule, name)
         else: # local identifier
-            return (stmt.i_module, identifier)
+            return (path.i_module, identifier)
 
     def is_identifier(x):
         if util.is_local(x):
@@ -2050,7 +2053,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
             if ptr is None:
                 # check all our submodules
-                for inc in stmt.i_module.search('include'):
+                for inc in path.i_module.search('include'):
                     submod = ctx.get_module(inc.arg)
                     if submod is not None:
                         ptr = search_child(submod.i_children,
@@ -2156,9 +2159,9 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
         return (key_list, keys, ptr)
 
     try:
-        if path is None: # e.g. invalid path
+        if path_spec is None: # e.g. invalid path
             return None
-        (up, dn, derefup, derefdn) = path
+        (up, dn, derefup, derefdn) = path_spec
         if derefup > 0:
             # first follow the deref
             (key_list, keys, ptr) = follow_path(stmt, derefup, derefdn)
@@ -2194,7 +2197,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
             s2 = m.group(2)
             # split the deref path into two parts:
             # 'deref(../a)/b' --> '../a', 'b'
-            m = re_deref.match(stmt.search_one('type').search_one('path').arg)
+            m = re_deref.match(path.arg)
             d1 = m.group(1)
             d2 = m.group(2)
             expanded_path = "%s[%s = current()/%s]/%s" % \
@@ -2202,7 +2205,7 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
             (key_list, keys, ptr) = follow_path(derefed_stmt, up, dn)
         else:
             (key_list, keys, ptr) = follow_path(stmt, up, dn)
-            expanded_path = stmt.search_one('type').search_one('path').arg
+            expanded_path = path.arg
         # ptr is now the node that the leafref path points to
         # check that it is a leaf
         if ptr.keyword not in ('leaf', 'leaf-list'):
@@ -2213,7 +2216,8 @@ def validate_leafref_path(ctx, stmt, path, pathpos):
             (ptr.i_module.i_modulename, ptr.arg) in keys):
             err_add(ctx.errors, pathpos, 'LEAFREF_MULTIPLE_KEYS',
                     (ptr.i_module.i_modulename, ptr.arg, stmt.arg, stmt.pos))
-        if stmt.i_config == True and ptr.i_config == False:
+        if ((hasattr(stmt, 'i_config') and stmt.i_config == True) and
+            ptr.i_config == False):
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, ptr.arg, ptr.pos))
         return ptr, expanded_path
