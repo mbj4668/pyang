@@ -130,14 +130,12 @@ module yt3 {
       }
     }
 
-/*
     typedef t17 {
       description leafref;
       type leafref {
-        path "/interfaces/interface/ifMtu"; // FIXME: this is an error!!
+        path "/baz/bar";
       }
     }
-*/
 
     typedef t18 {
       description instance-identifier;
@@ -198,5 +196,14 @@ module yt3 {
         }
 	default 0;
     }
+
+  container baz {
+    leaf bar {
+      type string;
+    }
+    leaf bax {
+      type t17;
+    }
+  }
 
 }

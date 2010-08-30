@@ -647,10 +647,11 @@ def validate_path_expr(errors, path):
         return None
 
 class PathTypeSpec(TypeSpec):
-    def __init__(self, path, pos):
+    def __init__(self, path_spec, path, pos):
         TypeSpec.__init__(self)
         # no base - no restrictions allowed
-        self.path = path
+        self.path_spec = path_spec
+        self.path_ = path
         self.pos = pos
 
 

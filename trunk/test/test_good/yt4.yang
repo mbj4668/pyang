@@ -55,6 +55,12 @@ module yt4 {
 
         max-elements unbounded;
         min-elements "5";
+
+        leaf bax {
+          type yt3:t17;
+        }
+
+
       }
 
       leaf yy { type int32; }
