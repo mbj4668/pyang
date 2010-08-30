@@ -142,7 +142,7 @@ def print_node(s, module, fd, prefix, width):
     else:
         if s.keyword == 'leaf-list':
             name += '*'
-        elif s.keyword == 'leaf':
+        elif s.keyword == 'leaf' and not hasattr(s, 'i_is_key'):
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
