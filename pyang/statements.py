@@ -2025,6 +2025,15 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
 
     pathpos = path.pos
 
+    # If an un-prefixed identifier is found, it defaults to the
+    # module where the path is defined, except if found within
+    # a grouping, in which case it default to the module where the
+    # grouping is used.
+    if path.parent.parent.keyword == 'typedef':
+        local_module = path.i_module
+    else:
+        local_module = stmt.i_module
+
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
@@ -2034,7 +2043,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                 raise NotFound
             return (pmodule, name)
         else: # local identifier
-            return (path.i_module, identifier)
+            return (local_module, identifier)
 
     def is_identifier(x):
         if util.is_local(x):
