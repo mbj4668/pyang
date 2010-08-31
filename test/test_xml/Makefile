@@ -15,10 +15,10 @@ XML2_OBJECTS := $(MIB_SOURCES:%.mib=%.xml.2)
 STD_MODULES := ietf-yang-types.yang ietf-inet-types.yang yang-smi.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
-all: $(STD_XSD) yang yin xsd rng
-
 test:
 	@echo "disabled"
+
+all: $(STD_XSD) yang yin xsd rng
 
 xtest: all gen-xml
 

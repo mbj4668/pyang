@@ -1637,9 +1637,10 @@ def v_reference_leaf_leafref(ctx, stmt):
                                   path_type_spec.path_)
         if x is None:
             return
-        ptr, expanded_path = x
+        ptr, expanded_path, path_list = x
         path_type_spec.i_target_node = ptr
         path_type_spec.i_expanded_path = expanded_path
+        path_type_spec.i_path_list = path_list
         stmt.i_leafref_expanded = True
         if ptr is not None:
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
@@ -2048,6 +2049,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
         return False
     
     def follow_path(ptr, up, dn):
+        path_list = []
         if up == -1: # absolute path
             (pmodule, name) = find_identifier(dn[0])
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
@@ -2064,6 +2066,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                     err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
                             (pmodule.arg, name, stmt.arg, stmt.pos))
                     raise NotFound
+            path_list.append(('dn', ptr))
             dn = dn[1:]
         else:
             while up > 0:
@@ -2077,16 +2080,17 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                 ptr = ptr.parent
                 if ptr.keyword == 'case':
                     ptr = ptr.parent
-                    if ptr is None:
+                    if ptr is None: # or ptr.keyword == 'grouping':
                         err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                                 (stmt.arg, stmt.pos))
                         raise NotFound
                 if ptr.keyword == 'choice':
                     ptr = ptr.parent
-                    if ptr is None:
+                    if ptr is None: # or ptr.keyword == 'grouping':
                         err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                                 (stmt.arg, stmt.pos))
                         raise NotFound
+                path_list.append(('up', ptr))
                 up = up - 1
             if ptr is None: # or ptr.keyword == 'grouping':
                 err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
@@ -2125,7 +2129,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                     # check what this predicate refers to; make sure it's
                     # another leaf; either of type leafref to keyleaf, OR same
                     # type as the keyleaf
-                    (xkey_list, x_key, xleaf) = follow_path(stmt, pup, pdn)
+                    (xkey_list, x_key, xleaf, _x) = follow_path(stmt, pup, pdn)
                     if xleaf.i_leafref_ptr is None:
                         err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE_PTR',
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
@@ -2155,8 +2159,9 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                         (module_name, name, stmt.arg, stmt.pos,
                          util.keyword_to_str(ptr.keyword)))
                 raise NotFound
+            path_list.append(('dn', ptr))
             i = i + 1
-        return (key_list, keys, ptr)
+        return (key_list, keys, ptr, path_list)
 
     try:
         if path_spec is None: # e.g. invalid path
@@ -2164,7 +2169,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
         (up, dn, derefup, derefdn) = path_spec
         if derefup > 0:
             # first follow the deref
-            (key_list, keys, ptr) = follow_path(stmt, derefup, derefdn)
+            (key_list, keys, ptr, _x) = follow_path(stmt, derefup, derefdn)
             if ptr.keyword != 'leaf':
                 err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
                         (ptr.arg, ptr.pos))
@@ -2202,9 +2207,9 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
             d2 = m.group(2)
             expanded_path = "%s[%s = current()/%s]/%s" % \
                 (s1, s2, d1, d2)
-            (key_list, keys, ptr) = follow_path(derefed_stmt, up, dn)
+            (key_list, keys, ptr, path_list) = follow_path(derefed_stmt, up, dn)
         else:
-            (key_list, keys, ptr) = follow_path(stmt, up, dn)
+            (key_list, keys, ptr, path_list) = follow_path(stmt, up, dn)
             expanded_path = path.arg
         # ptr is now the node that the leafref path points to
         # check that it is a leaf
@@ -2220,7 +2225,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
             ptr.i_config == False):
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, ptr.arg, ptr.pos))
-        return ptr, expanded_path
+        return ptr, expanded_path, path_list
     except NotFound:
         return None
     except Abort:
