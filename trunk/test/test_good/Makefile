@@ -33,4 +33,4 @@ test: clean
 	done
 
 clean:
-	rm -rf *.xsd *.yin *.gen.* *.dsdl
+	rm -rf *.xsd *.yang.yin *.gen.* *.dsdl
