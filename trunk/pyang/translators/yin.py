@@ -49,6 +49,24 @@ def emit_yin(ctx, module, fd):
         fd.write(' ' * len(module.keyword))
         fd.write('  xmlns:' + prefix.arg + '=' +
                  quoteattr(namespace.arg))
+    else:
+        belongs_to = module.search_one('belongs-to')
+        if belongs_to is not None:
+            prefix = belongs_to.search_one('prefix')
+            if prefix is not None:
+                # read the parent module in order to find the namespace uri
+                res = ctx.read_module(belongs_to.arg, extra={'no_include':True})
+                if res is not None:
+                    namespace = res.search_one('namespace')
+                    if namespace is None or namespace.arg is None:
+                        pass
+                    else:
+                        # success - namespace found
+                        fd.write('\n')
+                        fd.write(' ' * len(module.keyword))
+                        fd.write('  xmlns:' + prefix.arg + '=' +
+                                 quoteattr(namespace.arg))
+            
     for imp in module.search('import'):
         prefix = imp.search_one('prefix')
         if prefix is not None:
