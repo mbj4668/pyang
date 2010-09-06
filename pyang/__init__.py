@@ -132,6 +132,7 @@ class Context(object):
                 try:
                     r = self.repository.get_module_from_handle(handle)
                 except self.repository.ReadError, ex:
+                    i += 1
                     continue
                 (ref, format, text) = r
 
@@ -139,7 +140,8 @@ class Context(object):
                     format = util.guess_format(text)
                     
                 if format == 'yin':
-                    p = yin_parser.YinParser({'no_include':True})
+                    p = yin_parser.YinParser({'no_include':True,
+                                              'no_extensions':True})
                 else:
                     p = yang_parser.YangParser()
 

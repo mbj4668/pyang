@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<submodule name="ext-meta"
+           xmlns="urn:ietf:params:xml:ns:yang:yin:1">
+  <belongs-to module="ext">
+    <prefix value="ext"/>
+  </belongs-to>
+  <extension name="arg-type">
+    <argument name="val"/>
+  </extension>
+</submodule>

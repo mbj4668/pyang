@@ -170,6 +170,8 @@ class YinParser(object):
                 return None
             keywd = (prefix, e.local_name)
             keywdstr = util.keyword_to_str(keywd)
+            if 'no_extensions' in self.extra:
+                return None
             res = self.find_extension(e.ns, e.local_name)
             if res is None:
                 error.err_add(self.ctx.errors, e.pos,
@@ -253,7 +255,8 @@ class YinParser(object):
             p = self.top_element.find_child(yin_namespace, 'belongs-to')
             modname = p.find_attribute('module')
             # read the parent module in order to find the namespace uri
-            res = self.ctx.read_module(modname, extra={'no_include':True})
+            res = self.ctx.read_module(modname, extra={'no_include':True,
+                                                       'no_extensions':True})
             if res == 'not_found':
                 error.err_add(self.ctx.errors, p.pos,
                               'MODULE_NOT_FOUND', modname)
