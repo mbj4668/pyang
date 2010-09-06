@@ -224,19 +224,23 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 str(epos) + ': %s: ' % type + \
                 error.err_to_str(etag, eargs)
     if emit_obj is not None and len(modules) > 0:
+        tmpfile = None
         if o.outfile == None:
             fd = sys.stdout
         else:
-            fd = open(o.outfile, "w+")
+            tmpfile = o.outfile + ".tmp"
+            fd = open(tmpfile, "w+")
         try:
             emit_obj.emit(ctx, modules, fd)
         except error.EmitError, e:
             if e.msg != "":
                 print >> sys.stderr, e.msg
-            if o.outfile != None:
+            if tmpfile != None:
                 fd.close()
-                os.remove(o.outfile)
+                os.remove(tmpfile)
             sys.exit(e.exit_code)
+        if tmpfile != None:
+            os.rename(tmpfile, o.outfile)
 
     sys.exit(exit_code)
 
