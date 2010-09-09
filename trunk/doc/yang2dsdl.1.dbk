@@ -31,6 +31,7 @@
     <cmdsynopsis>
       <command>yang2dsdl</command>
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
+      <arg choice="opt">-r</arg>
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
@@ -72,7 +73,7 @@
     type of the target instance document. Supported values are:</para>
     <variablelist>
       <varlistentry>
-        <term><literal>dstore</literal></term>
+        <term><literal>datastore</literal></term>
         <listitem><para>Raw datastore contents without any
         encapsulating elements. If the input YANG module(s) define a
         data model with multiple root elements, the raw datastore may
@@ -81,13 +82,18 @@
         elements.</para></listitem>
       </varlistentry>
       <varlistentry>
+        <term><literal>config-file</literal></term>
+        <listitem><para>A configuration file that can be used with
+        &lt;copy-config&gt; operation.</para></listitem>
+      </varlistentry>
+      <varlistentry>
         <term><literal>get-reply</literal></term>
         <listitem><para>A complete NETCONF message
         containing a reply to the &lt;get&gt;
         operation.</para></listitem>
       </varlistentry>
       <varlistentry>
-        <term><literal>getconf-reply</literal></term>
+        <term><literal>get-config-reply</literal></term>
         <listitem><para>A complete NETCONF message
         containing a reply to the &lt;get-config&gt;
         operation.</para></listitem>
@@ -103,7 +109,7 @@
         module(s).</para></listitem>
       </varlistentry>
       <varlistentry>
-        <term><literal>notif</literal></term>
+        <term><literal>notification</literal></term>
         <listitem><para>An event notification defined in the input
         YANG module(s).</para></listitem>
       </varlistentry>
@@ -230,6 +236,16 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>-r</option></term>
+        <listitem>
+          <para>This flag affects the generation of the output
+          schemas, but only for the &lt;get-reply&gt; and
+          &lt;get-config-reply&gt; targets. If it is used the schemas
+          are generated without the &lt;rpc-reply&gt; element,
+          i.e. the document root is &lt;data&gt;.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>-s</option></term>
         <listitem>
           <para>Performs just validation, without (re)generating the
@@ -245,11 +261,12 @@
         <listitem>
           <para>Specifies the target XML document type using one of
           the following strings as explained above:
-          <userinput>dstore</userinput> (default),
+          <userinput>datastore</userinput> (default),
+          <userinput>config-file</userinput>,
           <userinput>get-reply</userinput>,
-          <userinput>getconf-reply</userinput>,
+          <userinput>get-config-reply</userinput>,
           <userinput>rpc</userinput>, <userinput>rpc-reply</userinput>
-          or <userinput>notif</userinput>.</para>
+          or <userinput>notification</userinput>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -357,11 +374,11 @@
   <refsect1 xml:id="man.1.yang2dsdl.examples">
     <title>Examples</title>
 
-    <screen>$ yang2dsdl -v dhcp-dstore.xml dhcp.yang</screen>
+    <screen>$ yang2dsdl -v dhcp-datastore.xml dhcp.yang</screen>
     <para>This command generates the DSDL schemas for the datastore
-    contents (default <replaceable>dstore</replaceable> target) as
+    contents (default <replaceable>datastore</replaceable> target) as
     defined by the <filename>dhcp.yang</filename> module and validates
-    an instance document stored in the <filename>dhcp-dstore.xml</filename>
+    an instance document stored in the <filename>dhcp-datastore.xml</filename>
     file.</para>
 
     <screen>$ yang2dsdl -t rpc rpc-rock.yang</screen>

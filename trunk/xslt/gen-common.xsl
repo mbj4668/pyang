@@ -71,7 +71,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:when
           test="$target='get-config-reply' or
                 $target='get-reply'">
-        <xsl:if test="$only-data!=0">
+        <xsl:if test="$only-data=0">
           <xsl:text>/nc:rpc-reply</xsl:text>
         </xsl:if>
         <xsl:text>/nc:data</xsl:text>
