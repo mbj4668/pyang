@@ -31,7 +31,7 @@
 yang2dsdl \- translates YANG data models to DSDL schemas and validates instance documents\&.
 .SH "SYNOPSIS"
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-v\ \fIinstance\fR] [\-n] \fImodule\fR...
+\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-r] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-v\ \fIinstance\fR] [\-n] \fImodule\fR...
 .HP \w'\fByang2dsdl\fR\ 'u
 \fByang2dsdl\fR \-s [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] \-b\ \fIbasename\fR [\-j] \-v\ \fIinstance\fR
 .HP \w'\fByang2dsdl\fR\ 'u
@@ -50,9 +50,14 @@ The
 \fItarget\fR
 argument specifies the type of the target instance document\&. Supported values are:
 .PP
-dstore
+datastore
 .RS 4
 Raw datastore contents without any encapsulating elements\&. If the input YANG module(s) define a data model with multiple root elements, the raw datastore may not be valid XML\&. In this case, the resulting DSDL schemas assume a choice of the top\-level root elements\&.
+.RE
+.PP
+config\-file
+.RS 4
+A configuration file that can be used with <copy\-config> operation\&.
 .RE
 .PP
 get\-reply
@@ -60,7 +65,7 @@ get\-reply
 A complete NETCONF message containing a reply to the <get> operation\&.
 .RE
 .PP
-getconf\-reply
+get\-config\-reply
 .RS 4
 A complete NETCONF message containing a reply to the <get\-config> operation\&.
 .RE
@@ -75,7 +80,7 @@ rpc\-reply
 An RPC reply defined in the input YANG module(s)\&.
 .RE
 .PP
-notif
+notification
 .RS 4
 An event notification defined in the input YANG module(s)\&.
 .RE
@@ -199,6 +204,11 @@ Use
 With this option, all features used in input YANG modules are considered unavailable\&. By default, all features are available\&.
 .RE
 .PP
+\fB\-r\fR
+.RS 4
+This flag affects the generation of the output schemas, but only for the <get\-reply> and <get\-config\-reply> targets\&. If it is used the schemas are generated without the <rpc\-reply> element, i\&.e\&. the document root is <data>\&.
+.RE
+.PP
 \fB\-s\fR
 .RS 4
 Performs just validation, without (re)generating the schemas\&. This option is only allowed together with
@@ -212,14 +222,15 @@ must also be specified\&.
 \fB\-t\fR \fItarget\fR
 .RS 4
 Specifies the target XML document type using one of the following strings as explained above:
-\fBdstore\fR
+\fBdatastore\fR
 (default),
+\fBconfig\-file\fR,
 \fBget\-reply\fR,
-\fBgetconf\-reply\fR,
+\fBget\-config\-reply\fR,
 \fBrpc\fR,
 \fBrpc\-reply\fR
 or
-\fBnotif\fR\&.
+\fBnotification\fR\&.
 .RE
 .PP
 \fB\-v\fR \fIinstance\fR
@@ -285,18 +296,18 @@ Options to pass to the XSLT processor when generating the DSDL schemas\&. This i
 .RS 4
 .\}
 .nf
-$ yang2dsdl \-v dhcp\-dstore\&.xml dhcp\&.yang
+$ yang2dsdl \-v dhcp\-datastore\&.xml dhcp\&.yang
 .fi
 .if n \{\
 .RE
 .\}
 .PP
 This command generates the DSDL schemas for the datastore contents (default
-\fIdstore\fR
+\fIdatastore\fR
 target) as defined by the
 dhcp\&.yang
 module and validates an instance document stored in the
-dhcp\-dstore\&.xml
+dhcp\-datastore\&.xml
 file\&.
 .sp
 .if n \{\

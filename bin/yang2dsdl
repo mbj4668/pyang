@@ -17,12 +17,13 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 # Defaults for arguments
-target="dstore"
+target="datastore"
 basename=""
 dir="."
 instance=""
 gen_rng_parms=""
 noschema=0
+onlydata=0
 nofeat=0
 jing=0
 
@@ -32,7 +33,7 @@ rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
 usage() {
     cat <<EOF
 
-Usage: 1. yang2dsdl [-t <target>] [-d <dir>] [-b <basename>] \\
+Usage: 1. yang2dsdl [-t <target>] [-r] [-d <dir>] [-b <basename>] \\
                     [-n] [-j] [-v <instance>] <module> ...
        2. yang2dsdl [-t target] [-d <dir>] [-j] -s -b <basename> \\
                     -v <instance>
@@ -44,8 +45,11 @@ instance documents.
 Options:
   -h             Displays this help message and exits.
   -t <target>    Specifies the validation target. The argument <target>
-                 must be one of: "dstore" (default), "get-reply",
-                 "getconf-reply", "rpc", "rpc-reply" and "notif".
+                 must be one of: "datastore" (default), "config-file",
+                 "get-reply", "get-config-reply", "rpc", "rpc-reply"
+                 and "notification".
+  -r             Generate the schemas for "get-reply" and "get-config-reply"
+                 targets without the root "rpc-reply" element.
   -b <basename>  Specifies the basename of files in which the output
                  schemas are stored. The default is the concatenation
                  of the names of all input YANG modules connected
@@ -137,7 +141,7 @@ rtfm () {
     exit 1
 }
 
-while getopts ":ht:d:b:v:jns" opt ; do
+while getopts ":ht:d:b:v:jnrs" opt ; do
     case $opt in
         h)
             usage
@@ -145,9 +149,10 @@ while getopts ":ht:d:b:v:jns" opt ; do
             ;;
         t)
             target=$OPTARG
-            if [[ $target != "dstore" && $target != "get-reply" \
+            if [[ $target != "datastore" && $target != "config-file" && \
+		$target != "get-reply" && $target != "get-config-reply" \
                 && $target != "rpc" && $target != "rpc-reply" \
-                && $target != "getconf-reply" && $target != "notif" ]]
+                && $target != "notification" ]]
             then
                 echo "Invalid argument for -t: $target."
                 rtfm
@@ -176,6 +181,9 @@ while getopts ":ht:d:b:v:jns" opt ; do
 	n)
 	    nofeat=1
 	    ;;
+        r)
+            XSLT_OPTS+=" --stringparam only-data 1"
+            ;;
         s)
             noschema=1
             ;;
