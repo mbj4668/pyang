@@ -69,11 +69,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="nc-namespace">
     <xsl:choose>
-      <xsl:when test="$target='get-reply' or $target='getconf-reply'
+      <xsl:when test="$target='config-file' or $target='get-reply' or
+                      $target='get-config-reply'
                       or $target='rpc' or $target='rpc-reply'">
           <sch:ns uri="{$nc-uri}" prefix="nc"/>
       </xsl:when>
-      <xsl:when test="$target='notif'">
+      <xsl:when test="$target='notification'">
           <sch:ns uri="{$en-uri}" prefix="en"/>
       </xsl:when>
     </xsl:choose>
@@ -175,18 +176,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         select="rng:define[descendant::rng:element[&annots;]|
                 descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:choose>
-      <xsl:when test="$target='dstore' or $target='get-reply'
-		      or $target='getconf-reply'">
-	<xsl:apply-templates select="descendant::nma:data"/>
+      <xsl:when test="$target='datastore' or $target='config-file' or
+                      $target='get-reply' or $target='get-config-reply'">
+        <xsl:apply-templates select="descendant::nma:data"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-	<xsl:apply-templates select="descendant::nma:input"/>
+        <xsl:apply-templates select="descendant::nma:input"/>
       </xsl:when>
       <xsl:when test="$target='rpc-reply'">
-	<xsl:apply-templates select="descendant::nma:output"/>
+        <xsl:apply-templates select="descendant::nma:output"/>
       </xsl:when>
-      <xsl:when test="$target='notif'">
-	<xsl:apply-templates select="descendant::nma:notification"/>
+      <xsl:when test="$target='notification'">
+        <xsl:apply-templates select="descendant::nma:notification"/>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -197,13 +198,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
     <xsl:element name="sch:pattern">
       <xsl:attribute name="id">
-	<xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
+        <xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
       </xsl:attribute>
       <xsl:apply-templates
-	  select="descendant::rng:element[&annots;]|
-		  descendant::rng:choice[@nma:mandatory]">
-	<xsl:with-param name="prevpath" select="$netconf-part"/>
-	<xsl:with-param name="prefix" select="$prefix"/>
+          select="descendant::rng:element[&annots;]|
+                  descendant::rng:choice[@nma:mandatory]">
+        <xsl:with-param name="prevpath" select="$netconf-part"/>
+        <xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
     </xsl:element>
     <xsl:apply-templates
@@ -467,7 +468,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:attribute>
       <xsl:text>Duplicate leaf-list entry &quot;</xsl:text>
       <xsl:element name="sch:value-of">
-	<xsl:attribute name="select">.</xsl:attribute>
+        <xsl:attribute name="select">.</xsl:attribute>
       </xsl:element>
       <xsl:text>&quot;.</xsl:text>
     </xsl:element>

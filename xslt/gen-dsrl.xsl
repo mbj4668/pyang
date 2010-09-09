@@ -36,14 +36,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="nc-namespace">
       <xsl:choose>
-        <xsl:when test="$target='get-reply' or $target='getconf-reply'
+        <xsl:when test="$target='config-file' or $target='get-reply'
+                        or $target='get-config-reply'
                         or $target='rpc' or $target='rpc-reply'">
           <xsl:variable name="dummy">
             <nc:dummy/>
           </xsl:variable>
           <xsl:copy-of select="exsl:node-set($dummy)/*/namespace::*"/>
         </xsl:when>
-        <xsl:when test="$target='notif'">
+        <xsl:when test="$target='notification'">
           <xsl:variable name="dummy">
             <en:dummy/>
           </xsl:variable>
@@ -165,8 +166,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:variable name="prefix"
                   select="name(namespace::*[.=current()/@ns])"/>
     <xsl:choose>
-      <xsl:when test="$target='dstore' or $target='get-reply'
-                      or $target='getconf-reply'">
+      <xsl:when test="$target='datastore' or $target='config-file' or
+                      $target='get-reply' or $target='get-config-reply'">
         <xsl:apply-templates select="descendant::nma:data">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
@@ -181,7 +182,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
       </xsl:when>
-      <xsl:when test="$target='notif'">
+      <xsl:when test="$target='notification'">
         <xsl:apply-templates select="descendant::nma:notification">
           <xsl:with-param name="prefix" select="$prefix"/>
         </xsl:apply-templates>
