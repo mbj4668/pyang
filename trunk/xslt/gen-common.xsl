@@ -24,15 +24,20 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
                 version="1.0">
 
-  <!-- Command line parameters -->
+  <!-- String parameters -->
 
   <!-- Comma-separated list of unavailable features in the form
        <feature>@<module_name> (no spaces allowed), or the string
        '%' which means that NO feature is available -->
   <xsl:param name="off-features"/>
-  <!-- Validation target: one of "dstore", "get-reply", "getconf-reply",
-       "rpc", "rpc-reply", "notif" -->
-  <xsl:param name="target">dstore</xsl:param>
+  <!-- Validation target: one of "datastore", "config-file",
+       "get-reply", "get-config-reply", "rpc", "rpc-reply",
+       "notification" -->
+  <xsl:param name="target">datastore</xsl:param>
+  <!-- If $only-data is nonzero, do not use the <nc:rpc-reply> element
+       for "get-reply" and "get-config-reply" targets (i.e. <nc:data>
+       is the document root). -->
+  <xsl:param name="only-data" select="0"/>
   <!-- Full path of the RELAX NG library file -->
   <xsl:param name="rng-lib">relaxng-lib.rng</xsl:param>
   <!-- Output of RELAX NG global defs only? -->
@@ -60,26 +65,41 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:variable name="netconf-part">
     <xsl:choose>
+      <xsl:when test="$target='config-file'">
+        <xsl:text>/nc:config</xsl:text>
+      </xsl:when>
       <xsl:when
-          test="$target='get-reply' or
-                $target='getconf-reply'">/nc:rpc-reply/nc:data</xsl:when>
-      <xsl:when test="$target='rpc'">/nc:rpc</xsl:when>
-      <xsl:when test="$target='rpc-reply'">/nc:rpc-reply</xsl:when>
-      <xsl:when test="$target='notif'">/en:notification</xsl:when>
+          test="$target='get-config-reply' or
+                $target='get-reply'">
+        <xsl:if test="$only-data!=0">
+          <xsl:text>/nc:rpc-reply</xsl:text>
+        </xsl:if>
+        <xsl:text>/nc:data</xsl:text>
+      </xsl:when>
+      <xsl:when test="$target='rpc'">
+        <xsl:text>/nc:rpc</xsl:text>
+      </xsl:when>
+      <xsl:when test="$target='rpc-reply'">
+        <xsl:text>/nc:rpc-reply</xsl:text>
+      </xsl:when>
+      <xsl:when test="$target='notification'">
+        <xsl:text>/en:notification</xsl:text>
+      </xsl:when>
     </xsl:choose>
   </xsl:variable>
 
   <xsl:template name="check-input-pars">
-    <xsl:if test="not($target='get-reply' or $target='dstore' or $target='rpc'
-                  or $target='rpc-reply' or $target='getconf-reply'
-                  or $target='notif')">
+    <xsl:if test="not($target='get-reply' or $target='datastore' or
+                  $target='rpc' or $target='rpc-reply' or
+                  $target='get-config-reply' or
+                  $target='notification' or $target='config-file')">
       <xsl:message terminate="yes">
         <xsl:text>Bad 'target' parameter: </xsl:text>
         <xsl:value-of select="$target"/>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="($target='dstore' or starts-with($target,'get')) and
-                  not(//nma:data/rng:*)">
+    <xsl:if test="($target='datastore' or starts-with($target,'get'))
+                  and not(//nma:data/rng:*)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no data.</xsl:text>
       </xsl:message>
@@ -90,7 +110,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:text>Data model defines no RPC methods.</xsl:text>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="$target='notif' and not(//nma:notification)">
+    <xsl:if test="$target='notification' and not(//nma:notification)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no notifications.</xsl:text>
       </xsl:message>
