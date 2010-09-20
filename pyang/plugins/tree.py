@@ -98,7 +98,7 @@ def print_children(i_children, module, fd, prefix, width=0):
             if ch.keyword in ['choice', 'case']:
                 w = get_width(w, ch.i_children)
             else:
-                if ch.i_module == module:
+                if ch.i_module.i_modulename == module.i_modulename:
                     nlen = len(ch.arg)
                 else:
                     nlen = len(ch.i_module.i_prefix) + 1 + len(ch.arg)
@@ -119,7 +119,7 @@ def print_children(i_children, module, fd, prefix, width=0):
 def print_node(s, module, fd, prefix, width):
     fd.write("%s%s--" % (prefix[0:-1], get_status_str(s)))
 
-    if s.i_module == module:
+    if s.i_module.i_modulename == module.i_modulename:
         name = s.arg
     else:
         name = s.i_module.i_prefix + ':' + s.arg
