@@ -11,7 +11,7 @@
 
 One of the functions implemented in
 [[http://code.google.com/p/pyang][pyang]] is the mapping of
-[[http://tools.ietf.org/html/draft-ietf-netmod-yang-12][YANG]] data
+[[http://tools.ietf.org/html/rfc6020][YANG]] data
 models to [[http://www.dsdl.org][DSDL]] schemas &#8211;
 [[http://relaxng.org][RELAX NG]],
 [[http://www.schematron.com/][Schematron]] and DSRL. The
