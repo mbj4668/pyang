@@ -31,7 +31,6 @@
     <cmdsynopsis>
       <command>yang2dsdl</command>
       <arg choice="opt">-t <replaceable>target</replaceable></arg>
-      <arg choice="opt">-r</arg>
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
@@ -73,18 +72,16 @@
     type of the target instance document. Supported values are:</para>
     <variablelist>
       <varlistentry>
-        <term><literal>datastore</literal></term>
-        <listitem><para>Raw datastore contents without any
-        encapsulating elements. If the input YANG module(s) define a
-        data model with multiple root elements, the raw datastore may
-        not be valid XML. In this case, the resulting DSDL schemas
-        assume a choice of the top-level root
-        elements.</para></listitem>
+        <term><literal>data</literal></term>
+        <listitem><para>Datastore contents (configuration and state
+        data) encapsulated in &lt;data&gt; document
+        element.</para></listitem>
       </varlistentry>
       <varlistentry>
-        <term><literal>config-file</literal></term>
-        <listitem><para>A configuration file that can be used with
-        &lt;copy-config&gt; operation.</para></listitem>
+        <term><literal>config</literal></term>
+        <listitem><para>A configuration datastore contents
+        encapsulated in &lt;config&gt; document
+        element.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>get-reply</literal></term>
@@ -223,7 +220,7 @@
       <varlistentry>
         <term><option>-j</option></term>
         <listitem>
-          <para>Use <command>jing</command>(1) for RELAX NG validation
+          <para>Uses <command>jing</command>(1) for RELAX NG validation
 	  instead of the default <command>xmllint</command>(1).</para>
         </listitem>
       </varlistentry>
@@ -233,16 +230,6 @@
           <para>With this option, all features used in input YANG
 	  modules are considered unavailable. By default, all features
 	  are available.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>-r</option></term>
-        <listitem>
-          <para>This flag affects the generation of the output
-          schemas, but only for the &lt;get-reply&gt; and
-          &lt;get-config-reply&gt; targets. If it is used the schemas
-          are generated without the &lt;rpc-reply&gt; element,
-          i.e. the document root is &lt;data&gt;.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -261,8 +248,8 @@
         <listitem>
           <para>Specifies the target XML document type using one of
           the following strings as explained above:
-          <userinput>datastore</userinput> (default),
-          <userinput>config-file</userinput>,
+          <userinput>data</userinput> (default),
+          <userinput>config</userinput>,
           <userinput>get-reply</userinput>,
           <userinput>get-config-reply</userinput>,
           <userinput>rpc</userinput>, <userinput>rpc-reply</userinput>
@@ -273,7 +260,7 @@
         <term><option>-v</option>
         <replaceable>instance</replaceable></term>
         <listitem>
-          <para>Validates the instance XML document in file
+          <para>Validates an instance XML document contained in file
           <replaceable>instance</replaceable>.</para>
         </listitem>
       </varlistentry>
@@ -374,12 +361,12 @@
   <refsect1 xml:id="man.1.yang2dsdl.examples">
     <title>Examples</title>
 
-    <screen>$ yang2dsdl -v dhcp-datastore.xml dhcp.yang</screen>
+    <screen>$ yang2dsdl -v dhcp-data.xml dhcp.yang</screen>
     <para>This command generates the DSDL schemas for the datastore
-    contents (default <replaceable>datastore</replaceable> target) as
+    contents (default <replaceable>data</replaceable> target) as
     defined by the <filename>dhcp.yang</filename> module and validates
-    an instance document stored in the <filename>dhcp-datastore.xml</filename>
-    file.</para>
+    an instance document stored in the
+    <filename>dhcp-data.xml</filename> file.</para>
 
     <screen>$ yang2dsdl -t rpc rpc-rock.yang</screen>
     <para>This command generates DSDL schemas for the choice of input

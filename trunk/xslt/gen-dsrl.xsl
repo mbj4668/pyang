@@ -36,8 +36,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="nc-namespace">
       <xsl:choose>
-        <xsl:when test="$target='config-file' or $target='get-reply'
-                        or $target='get-config-reply'
+        <xsl:when test="$target='config' or $target='get-reply' or
+                        $target='get-config-reply' or $target='data'
                         or $target='rpc' or $target='rpc-reply'">
           <xsl:variable name="dummy">
             <nc:dummy/>
@@ -166,7 +166,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:variable name="prefix"
                   select="name(namespace::*[.=current()/@ns])"/>
     <xsl:choose>
-      <xsl:when test="$target='datastore' or $target='config-file' or
+      <xsl:when test="$target='data' or $target='config' or
                       $target='get-reply' or $target='get-config-reply'">
         <xsl:apply-templates select="descendant::nma:data">
           <xsl:with-param name="prefix" select="$prefix"/>
