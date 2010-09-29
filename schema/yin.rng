@@ -624,14 +624,16 @@
 	<ref name="an-extension"/>
       </element>
       <optional>
-	<ref name="require-instance-element"/>
+	<ref name="require-instance-stmt"/>
       </optional>
     </interleave>
   </define>
 
-  <define name="require-instance-element">
+  <define name="require-instance-stmt">
     <element name="require-instance">
-      <data type="boolean"/>
+      <attribute name="value">
+	<data type="boolean"/>
+      </attribute>
       <ref name="an-extension"/>
     </element>
   </define>
@@ -657,7 +659,7 @@
       <value>instance-identifier</value>
     </attribute>
     <optional>
-      <ref name="require-instance-element"/>
+      <ref name="require-instance-stmt"/>
     </optional>
   </define>
 
