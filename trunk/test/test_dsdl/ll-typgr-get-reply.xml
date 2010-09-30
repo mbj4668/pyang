@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc-reply message-id="101" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <nc:data xmlns="http://example.com/ll/typgr">
+    <cont-1>
+      <leaf-3>2</leaf-3>
+      <cont-2>
+	<leaf-2>12</leaf-2>
+	<leaf-1>fo&amp;barr</leaf-1>
+      </cont-2>
+    </cont-1>
+  </nc:data>
+</nc:rpc-reply>

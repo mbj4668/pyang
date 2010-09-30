@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-leaf"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/leaf">
+  <namespace uri="http://example.com/ll/leaf"/>
+  <prefix value="le"/>
+  <description>
+    <text>
+      Test module - implicit and mandatory leaf.  
+      Another line to make the description  
+      multiline.  
+    </text>
+  </description>
+  <feature name="foofea"/>
+  <leaf name="leaf-1">
+    <config value="true"/>
+    <default value="foo"/>
+    <description>
+      <text>This is an implicit leaf.</text>
+    </description>
+    <must condition="string-length(.)&gt;../leaf-2"/>
+    <reference>
+      <text>YANG, sec. 7.6</text>
+    </reference>
+    <status value="current"/>
+    <type name="string">
+      <pattern value="[a-z]*"/>
+      <length value="0..10|64"/>
+    </type>
+    <units name="bogons/s"/>
+  </leaf>
+  <leaf name="leaf-2">
+    <description>
+      <text>This is a mandatory leaf.</text>
+    </description>
+    <mandatory value="true"/>
+    <type name="decimal64">
+      <range value="-3.14..3.14"/>
+      <fraction-digits value="2"/>
+    </type>
+    <when condition="../leaf-1 = 'foo'"/>
+  </leaf>
+  <choice name="dummy">
+    <mandatory value="true"/>
+    <list name="seznam">
+      <config value="false"/>
+      <key value="clef"/>
+      <leaf name="clef">
+	<type name="uint8"/>
+      </leaf>
+    </list>
+    <leaf name="pointer">
+      <if-feature name="foofea"/>
+      <type name="instance-identifier"/>
+    </leaf>
+  </choice>
+</module>
