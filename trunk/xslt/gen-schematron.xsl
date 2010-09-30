@@ -22,8 +22,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 <!-- Edit the "annots" entity to select the annotations to take into
      account. -->
 <!DOCTYPE stylesheet [
-<!ENTITY annots "nma:must|@nma:key|@nma:unique|@nma:max-elements|
-@nma:min-elements|@nma:when|@nma:leafref|@nma:leaf-list">
+<!ENTITY annots "nma:must|nma:instance-identifier|@nma:key|@nma:unique|
+@nma:max-elements|@nma:min-elements|@nma:when|@nma:leafref|@nma:leaf-list">
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -168,6 +168,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="sch:schema">
+      <xsl:attribute name="queryBinding">exslt</xsl:attribute>
+      <xsl:element name="sch:ns">
+	<xsl:attribute name="uri">
+	  <xsl:text>http://exslt.org/dynamic</xsl:text>
+	</xsl:attribute>
+	<xsl:attribute name="prefix">dyn</xsl:attribute>
+      </xsl:element>
       <xsl:apply-templates select="rng:grammar"/>
     </xsl:element>
   </xsl:template>
@@ -404,6 +411,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="nma:instance-identifier">
+    <xsl:if test="not(@require-instance='false')">
+      <xsl:call-template name="assert-element">
+	<xsl:with-param name="test">dyn:evaluate(.)</xsl:with-param>
+	<xsl:with-param
+	    name="message"
+	    select="concat('The element pointed to by &quot;',
+		    ../@name, '&quot; must exist')"/>
+      </xsl:call-template>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="@nma:key">
