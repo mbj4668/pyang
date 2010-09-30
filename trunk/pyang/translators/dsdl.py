@@ -214,7 +214,6 @@ class HybridDSDLSchema(object):
     """DTD compatibility annotations URI"""
 
     datatype_map = {
-        "instance-identifier": "string",
         "int8": "byte",
         "int16": "short",
         "int32": "int",
@@ -305,7 +304,7 @@ class HybridDSDLSchema(object):
             "enumeration": self.choice_type,
             "empty": self.empty_type,
             "identityref": self.identityref_type,
-            "instance-identifier": self.mapped_type,
+            "instance-identifier": self.instance_identifier_type,
             "int8": self.numeric_type,
             "int16": self.numeric_type,
             "int32": self.numeric_type,
@@ -1142,6 +1141,12 @@ class HybridDSDLSchema(object):
         self.add_identity(qid)
         SchemaNode("ref", p_elem).set_attr("name",
                                            "__" + qid.replace(":","_"))
+
+    def instance_identifier_type(self, tchain, p_elem):
+        SchemaNode("data", p_elem).set_attr("type", "string")
+        ii = SchemaNode("nma:instance-identifier", p_elem)
+        rinst = tchain[0].search_one("require-instance")
+        if rinst: ii.attr["require-instance"] = rinst.arg
 
     def leafref_type(self, tchain, p_elem):
         typ = tchain[0]
