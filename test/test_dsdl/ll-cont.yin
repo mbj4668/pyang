@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-cont"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/cont">
+  <namespace uri="http://example.com/ll/cont"/>
+  <prefix value="co"/>
+  <description>
+    <text>Test module - containers.</text>
+  </description>
+  <container name="cont-1">
+    <presence value="This is a presence container."/>
+    <container name="cont-2">
+      <leaf name="leaf-1">
+	<type name="string"/>
+	<default value="foo"/>
+      </leaf>
+      <leaf-list name="llist-1">
+	<type name="uint8"/>
+	<max-elements value="3"/>
+	<must condition="not(. &lt; preceding-sibling::llist-1)">
+	  <error-message>
+	    <value>List items not properly ordered!</value>
+	  </error-message>
+	</must>
+      </leaf-list>
+    </container>
+    <container name="cont-3">
+      <leaf name="leaf-2">
+	<mandatory value="true"/>
+	<type name="boolean"/>
+      </leaf>
+      <choice name="choi-1">
+	<default value="case-1"/>
+	<leaf name="case-1">
+	  <default value="0"/>
+	  <type name="uint16"/>
+	</leaf>
+	<leaf name="case-2">
+	  <default value="42"/>
+	  <type name="int16"/>
+	</leaf>
+	<anyxml name="case-3"/>
+      </choice>
+    </container>
+  </container>
+</module>

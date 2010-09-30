@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc-reply message-id="101"
+	      xmlns="http://example.com/ll/rpcnot"
+	      xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <leaf-6>false</leaf-6>
+  <leaf-7>blob</leaf-7>
+</nc:rpc-reply>

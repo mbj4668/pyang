@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+	 xmlns:le="http://example.com/ll/leaf">
+  <le:leaf-2>2.71</le:leaf-2>
+  <le:pointer>../le:leaf-1</le:pointer>
+</nc:config>

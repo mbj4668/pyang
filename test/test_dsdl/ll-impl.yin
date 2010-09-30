@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-impl"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/impl">
+  <namespace uri="http://example.com/ll/impl"/>
+  <prefix value="co"/>
+  <description>
+    <text>Test module - implicit nodes.</text>
+  </description>
+  <container name="cont-1">
+    <container name="cont-2">
+      <leaf name="leaf-1">
+	<type name="string"/>
+	<default value="foo"/>
+      </leaf>
+      <leaf-list name="llist-1">
+	<type name="uint8"/>
+	<max-elements value="3"/>
+      </leaf-list>
+    </container>
+    <uses name="group-1"/>
+  </container>
+  <grouping name="group-1">
+    <container name="cont-3">
+      <uses name="group-2"/>
+    </container>
+  </grouping>
+  <grouping name="group-2">
+    <choice name="choi-1">
+      <default value="simple"/>
+      <case name="simple">
+	<leaf name="leaf-2">
+	  <type name="uint8"/>
+	  <default value="42"/>
+	</leaf>
+	<leaf name="leaf-6">
+	  <type name="mytyp"/>
+	</leaf>
+      </case>
+      <leaf name="leaf-3">
+	<type name="boolean"/>
+	<default value="true"/>
+      </leaf>
+      <case name="complex">
+	<container name="cont-4">
+	  <leaf name="leaf-4">
+	    <type name="enumeration">
+	      <enum name="foo"/>
+	      <enum name="bar"/>
+	    </type>
+	    <default value="foo"/>
+	  </leaf>
+	  <leaf name="leaf-5">
+	    <type name="empty"/>
+	  </leaf>
+	</container>
+      </case>
+      <leaf-list name="llist-2">
+	<type name="uint32"/>
+      </leaf-list>
+    </choice>
+  </grouping>
+  <typedef name="mytyp">
+    <type name="uint8">
+      <range value="1..12"/>
+    </type>
+    <default value="3"/>
+  </typedef>
+</module>

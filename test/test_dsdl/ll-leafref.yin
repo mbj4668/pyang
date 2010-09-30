@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-leafref"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/leafref">
+  <namespace uri="http://example.com/ll/leafref"/>
+  <prefix value="lr"/>
+  <list name="seq">
+    <key value="clef"/>
+    <leaf name="clef">
+      <type name="string"/>
+    </leaf>
+  </list>
+  <leaf name="lref">
+    <type name="myleafref"/>
+  </leaf>
+  <typedef name="myleafref">
+    <type name="leafref">
+      <path value="/seq/clef"/>
+    </type>
+    <default value="bar"/>
+  </typedef>
+</module>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc-reply message-id="101" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <nc:data xmlns="http://example.com/ll/list">
+    <list-1>
+      <leaf-1>true</leaf-1>
+      <leaf-2>1</leaf-2>
+      <leaf-3>A</leaf-3>
+      <leaf-4>Argus</leaf-4>
+    </list-1>
+    <list-1>
+      <leaf-1>true</leaf-1>
+      <leaf-2>2</leaf-2>
+    </list-1>
+    <list-1>
+      <leaf-1>false</leaf-1>
+      <leaf-2>2</leaf-2>
+    </list-1>
+    <list-2>
+      <leaf-2/>
+      <leaf-1>true</leaf-1>
+    </list-2>
+    <list-1>
+      <leaf-1>false</leaf-1>
+      <leaf-2>1</leaf-2>
+    </list-1>
+    <list-2>
+      <leaf-1>true</leaf-1>
+      <leaf-2/>
+    </list-2>
+  </nc:data>
+</nc:rpc-reply>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-choice"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/choice">
+  <namespace uri="http://example.com/ll/choice"/>
+  <prefix value="ch"/>
+  <description>
+    <text>Test module - choice.</text>
+  </description>
+  <container name="cont-1">
+    <choice name="choice-1">
+      <default value="case-1"/>
+      <container name="case-1">
+	<leaf name="leaf-1">
+	  <type name="uint8"/>
+	  <default value="42"/>
+	</leaf>
+	<leaf name="leaf-2">
+	  <type name="int8"/>
+	</leaf>
+      </container>
+      <case name="case-2">
+	<leaf name="case-2">
+	  <type name="boolean"/>
+	  <default value="false"/>
+	</leaf>
+      </case>
+    </choice>
+    <choice name="choice-2">
+      <mandatory value="true"/>
+      <case name="cont-2">
+	<leaf name="leaf-1">
+	  <type name="uint8"/>
+	  <default value="42"/>
+	</leaf>
+	<uses name="ind"/>
+      </case>
+      <case name="case-2">
+	<leaf name="leaf-3">
+	  <type name="boolean"/>
+	</leaf>
+      </case>
+    </choice>
+  </container>
+  <grouping name="ind">
+    <leaf name="leaf-2">
+      <type name="int8"/>
+    </leaf>
+  </grouping>
+</module>

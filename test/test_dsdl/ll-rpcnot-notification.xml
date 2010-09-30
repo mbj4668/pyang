@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<en:notification xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <en:eventTime>2010-04-26T13:48:00</en:eventTime>
+  <notif-2 xmlns="http://example.com/ll/rpcnot">
+    <leaf-9>bar</leaf-9>
+    <leaf-a>42</leaf-a>
+  </notif-2>
+</en:notification>
