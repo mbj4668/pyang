@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<submodule name="ll-2sub-b"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1">
+  <belongs-to module="ll-2mod-b">
+    <prefix value="ub"/>
+  </belongs-to>
+  <import module="ll-2mod-a">
+    <prefix value="ta"/>
+  </import>
+  <augment target-node="/ta:outer/ta:aitems/ta:inner">
+    <uses name="ta:globg">
+      <refine target-node="b">
+	<must condition=". != ../ta:b"/>
+	<default value="3"/>
+      </refine>
+    </uses>
+  </augment>
+  <augment target-node="/ta:rock-the-house/ta:input">
+    <leaf name="magnitude">
+      <units name="Richter"/>
+      <type name="decimal64">
+	<fraction-digits value="1"/>
+	<range value="0..9.9"/>
+      </type>
+    </leaf>
+  </augment>
+  <augment target-node="/ta:rock-the-house/ta:output">
+    <leaf name="sound">
+      <type name="string"/>
+    </leaf>
+  </augment>
+  <augment target-node="/ta:event">
+    <leaf name="signature">
+      <type name="binary"/>
+    </leaf>
+  </augment>
+  <list name="bitems">
+    <config value="false"/>
+    <unique tag="wrap/b"/>
+    <leaf name="mois">
+      <type name="leafref">
+	<path value="/ta:outer/ta:aitems/ta:month"/>
+      </type>
+    </leaf>
+    <leaf name="psc">
+      <type name="leafref">
+	<path value="/ta:outer/ta:aitems[ta:month=current()/../mois]/ta:inner/ta:psc"/>
+      </type>
+    </leaf>
+    <container name="wrap">
+      <uses name="ta:globg">
+	<refine target-node="b">
+	  <must condition=". &lt; ../../../ta:outer/ta:aitems/ta:inner/ta:b"/>
+	</refine>
+      </uses>
+    </container>
+  </list>
+</submodule>

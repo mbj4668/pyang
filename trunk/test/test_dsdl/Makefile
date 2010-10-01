@@ -29,6 +29,9 @@ all: $(results)
 %-notification.log: %-notification.xml %.yin
 	$(YANG2DSDL) -t notification -v $^ > $@
 
+ll-2mod-%.log: ll-2mod-%.xml ll-2mod-*.yin ll-2sub-b.yin
+	$(YANG2DSDL) -t $* -b ll-2mod -v $< ll-2mod-[ab].yin > $@
+
 clean:
 	rm -f *.log *.rng *.dsrl *.sch
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<en:notification
+    xmlns="http://example.com/ll/2mod-a"
+    xmlns:tb="http://example.com/ll/2mod-b"
+    xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <en:eventTime>2010-04-26T13:48:00</en:eventTime>
+  <event>
+    <tb:signature></tb:signature>
+    <event-class>hoja</event-class>
+    <reporting-entity><html>boohoo</html></reporting-entity>
+  </event>
+</en:notification>

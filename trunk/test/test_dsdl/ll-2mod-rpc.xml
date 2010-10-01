@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc message-id="101" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <rock-the-house xmlns="http://example.com/ll/2mod-a">
+    <zip>12345-6789</zip>
+    <magnitude xmlns="http://example.com/ll/2mod-b">7.2</magnitude>
+  </rock-the-house>
+</nc:rpc>

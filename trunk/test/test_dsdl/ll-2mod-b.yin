@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-2mod-b"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:tb="http://example.com/ll/2mod-b">
+  <namespace uri="http://example.com/ll/2mod-b"/>
+  <prefix value="tb"/>
+  <include module="ll-2sub-b"/>
+</module>
