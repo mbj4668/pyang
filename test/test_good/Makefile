@@ -27,7 +27,7 @@ test: clean
 		diff $$m.yin $$m.gen.yin > $$m.diff ||	 		\
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
-		echo -n " generating RNG...";				\
+		echo -n " generating DSDL...";				\
 		(grep '^submodule' $$m > /dev/null || $(PYANG) -f dsdl -o $$m.dsdl $$m) || exit 0;	\
 		echo " ok";						\
 	done
