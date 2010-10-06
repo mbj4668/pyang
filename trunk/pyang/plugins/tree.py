@@ -114,7 +114,13 @@ def print_children(i_children, module, fd, prefix, width=0):
             newprefix = prefix + '   '
         else:
             newprefix = prefix + '  |'
-        print_node(ch, module, fd, newprefix, width)
+        if ((ch.arg == 'input' or ch.arg == 'output') and
+            ch.parent.keyword == 'rpc' and
+            len(ch.i_children) == 0 and
+            ch.parent.search_one(ch.arg) is None):
+            pass
+        else:
+            print_node(ch, module, fd, newprefix, width)
 
 def print_node(s, module, fd, prefix, width):
     fd.write("%s%s--" % (prefix[0:-1], get_status_str(s)))
