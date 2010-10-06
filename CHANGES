@@ -1,3 +1,12 @@
+   1.0 - 2010-09-23
+        compatible with RFC 6020
+
+        added yang2dsdl(1) program
+        added tree output format
+        added depend output format
+
+        too many bugfixes to list them all
+
    0.9.3 - 2008-12-07
         compatible with draft-ietf-netmod-yang-02
         rewrote validation code.  got rid of all the specialized classes

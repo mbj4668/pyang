@@ -1,4 +1,4 @@
-module inifinite-loop {
+module infinite-loop {
   namespace "urn:test";
   prefix "infinite";
   

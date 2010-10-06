@@ -3,6 +3,7 @@
 import sys
 import os
 import optparse
+import re
 
 import pyang
 from pyang import plugin
@@ -156,6 +157,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         print >> sys.stderr, "too many files to convert"
         sys.exit(1)
         
+    r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
     for filename in filenames:
         try:
             fd = file(filename)
@@ -163,7 +165,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         except IOError, ex:
             sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
             sys.exit(1)
-        module = ctx.add_module(filename, text)
+        m = r.search(filename)
+        if m is not None:
+            (name, _dummy, rev, format) = m.groups()
+            module = ctx.add_module(filename, text, format, name, rev,
+                                    expect_failure_error=False)
+        else:
+            module = ctx.add_module(filename, text)
         if module is None:
             exit_code = 1
         else:

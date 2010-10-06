@@ -1,0 +1,17 @@
+module xt10 {
+  namespace "urn:xt10";
+  prefix "xt10";
+
+  revision 2009-01-02 {  // error: does not match filename
+    description "first update";
+  }
+
+  typedef a {
+    type string;
+  }
+
+  typedef b {
+    type string;
+  }
+
+}

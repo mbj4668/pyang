@@ -102,9 +102,18 @@ error_codes = \
     'BAD_INCLUDE':
       (1,
        'cannot include %s "%s", must be a submodule'),
-    'BAD_MODULE_FILENAME':
+    'BAD_MODULE_NAME':
       (2,
-       'unexpected modulename "%s" in file %s should be %s'),
+       'unexpected modulename "%s" in %s, should be %s'),
+    'WBAD_MODULE_NAME':
+      (4,
+       'unexpected modulename "%s" in %s, should be %s'),
+    'BAD_REVISION':
+      (2,
+       'unexpected latest revision "%s" in %s, should be %s'),
+    'WBAD_REVISION':
+      (4,
+       'unexpected latest revision "%s" in %s, should be %s'),
     'BAD_SUB_BELONGS_TO':
       (1,
        'module %s includes %s, but %s does not specifiy a correct belongs-to'),
