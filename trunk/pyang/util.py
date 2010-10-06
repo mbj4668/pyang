@@ -60,6 +60,7 @@ def get_latest_revision(module):
         if latest is None or r.arg > latest:
             latest = r.arg
     if latest is None:
-        return datetime.date.today().isoformat()
+        #return datetime.date.today().isoformat()
+        return "unknown"
     else:
         return latest

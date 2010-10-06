@@ -12,8 +12,8 @@ import yin_parser
 import grammar
 import util
 
-__version__ = '1.0a'
-__date__ = '2010-06-08'
+__version__ = '1.0'
+__date__ = '2010-09-23'
 
 class Context(object):
     """Class which encapsulates a parse session"""
@@ -42,7 +42,9 @@ class Context(object):
             revs = self.revs[mod]
             revs.append((rev, handle))
 
-    def add_module(self, ref, text, format=None):
+    def add_module(self, ref, text, format=None,
+                   expect_modulename=None, expect_revision=None,
+                   expect_failure_error=True):
         """Parse a module text and add the module data to the context
 
         `ref` is a string which is used to identify the source of
@@ -63,7 +65,26 @@ class Context(object):
         module = p.parse(self, ref, text)
         if module is None:
             return None
-        
+
+        if expect_modulename is not None and expect_modulename != module.arg:
+            if expect_failure_error:
+                error.err_add(self.errors, module.pos, 'BAD_MODULE_NAME',
+                              (module.arg, ref, expect_modulename))
+                return None
+            else:
+                error.err_add(self.errors, module.pos, 'WBAD_MODULE_NAME',
+                              (module.arg, ref, expect_modulename))
+        if expect_revision is not None:
+            latest_rev = util.get_latest_revision(module)
+            if expect_revision != latest_rev:
+                if expect_failure_error:
+                    error.err_add(self.errors, module.pos, 'BAD_REVISION',
+                                  (latest_rev, ref, expect_revision))
+                    return None
+                else:
+                    error.err_add(self.errors, module.pos, 'WBAD_REVISION',
+                                  (latest_rev, ref, expect_revision))
+
         module.i_adler32 = zlib.adler32(text)
         return self.add_parsed_module(module)
 
@@ -197,20 +218,25 @@ class Context(object):
             try:
                 r = self.repository.get_module_from_handle(handle)
                 (ref, format, text) = r
-                module = self.add_module(ref, text, format)
+                module = self.add_module(ref, text, format, modulename, revision)
             except self.repository.ReadError, ex:
                 error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
                 module = None
 
         if module == None:
             return None
-        if modulename != module.arg:
-            error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
-                          (module.arg, ref, modulename))
-            rev = util.get_latest_revision(module)
-            self.del_module(module)
-            self.modules[(modulename, rev)] = None
-            return None
+        # if modulename != module.arg:
+        #     error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
+        #                   (module.arg, ref, modulename))
+        #     latest_rev = util.get_latest_revision(module)
+
+        #     if revision is not None and revision != latest_rev:
+        #         error.err_add(self.errors, module.pos, 'BAD_REVISION',
+        #                       (latest_rev, ref, revision))
+
+        #     self.del_module(module)
+        #     self.modules[(modulename, latest_rev)] = None
+        #     return None
         return module
 
     def read_module(self, modulename, revision=None, extra={}):
@@ -375,7 +401,7 @@ class FileRepository(Repository):
             p = yang_parser.YangParser()
         
         # FIXME: optimization - do not parse the entire text
-        # just to read the revisiosn...
+        # just to read the revisions...
         module = p.parse(ctx, absfilename, text)
         if module is None:
             return None

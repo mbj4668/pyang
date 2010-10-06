@@ -463,8 +463,7 @@ def v_import_module(ctx, stmt):
             err_add(ctx.errors, i.pos,
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
-        module = ctx.search_module(i.pos, modulename, rev)
-        return module
+        return ctx.search_module(i.pos, modulename, rev)
         
     for i in imports:
         module = add_module(i)
