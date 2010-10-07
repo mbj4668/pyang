@@ -2,10 +2,10 @@ module ietf-inet-types {
 
   namespace "urn:ietf:params:xml:ns:yang:ietf-inet-types";
   prefix "inet";
-  
+
   organization
    "IETF NETMOD (NETCONF Data Modeling Language) Working Group";
-  
+
   contact
    "WG Web:   <http://tools.ietf.org/wg/netmod/>
     WG List:  <mailto:netmod@ietf.org>
@@ -24,33 +24,30 @@ module ietf-inet-types {
     YANG data types for Internet addresses and related things.
 
     Copyright (c) 2010 IETF Trust and the persons identified as
-    the document authors.  All rights reserved.
+    authors of the code.  All rights reserved.
 
-    Redistribution and use in source and binary forms, with or
-    without modification, is permitted pursuant to, and subject
-    to the license terms contained in, the Simplified BSD License
-    set forth in Section 4.c of the IETF Trust's Legal Provisions
-    Relating to IETF Documents
+    Redistribution and use in source and binary forms, with or without
+    modification, is permitted pursuant to, and subject to the license
+    terms contained in, the Simplified BSD License set forth in Section
+    4.c of the IETF Trust's Legal Provisions Relating to IETF Documents
     (http://trustee.ietf.org/license-info).
 
-    This version of this YANG module is part of RFC XXXX; see 
+    This version of this YANG module is part of RFC 6021; see
     the RFC itself for full legal notices.";
-  // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
-  revision 2010-04-24 {
+  revision 2010-09-24 {
     description
      "Initial revision.";
-    reference 
-     "RFC XXXX: Common YANG Data Types";
+    reference
+     "RFC 6021: Common YANG Data Types";
   }
-  // RFC Ed.: replace XXXX with actual RFC number and remove this note
 
   /*** collection of protocol field related types ***/
 
   typedef ip-version {
     type enumeration {
       enum unknown {
-        value "0"; 
+        value "0";
         description
          "An unknown or unspecified version of the Internet protocol.";
       }
@@ -68,7 +65,7 @@ module ietf-inet-types {
     description
      "This value represents the version of the IP protocol.
 
-      This type is in the value set and its semantics equivalent
+      In the value set and its semantics, this type is equivalent
       to the InetVersion textual convention of the SMIv2.";
     reference
      "RFC  791: Internet Protocol
@@ -84,9 +81,9 @@ module ietf-inet-types {
      "The dscp type represents a Differentiated Services Code-Point
       that may be used for marking packets in a traffic stream.
 
-      This type is in the value set and its semantics equivalent
+      In the value set and its semantics, this type is equivalent
       to the Dscp textual convention of the SMIv2.";
-    reference 
+    reference
      "RFC 3289: Management Information Base for the Differentiated
                 Services Architecture
       RFC 2474: Definition of the Differentiated Services Field
@@ -94,17 +91,17 @@ module ietf-inet-types {
       RFC 2780: IANA Allocation Guidelines For Values In
                 the Internet Protocol and Related Headers";
   }
-  
+
   typedef ipv6-flow-label {
     type uint32 {
       range "0..1048575";
     }
     description
-     "The flow-label type represents flow identifier or Flow Label 
-      in an IPv6 packet header that may be used to discriminate 
+     "The flow-label type represents flow identifier or Flow Label
+      in an IPv6 packet header that may be used to discriminate
       traffic flows.
 
-      This type is in the value set and its semantics equivalent
+      In the value set and its semantics, this type is equivalent
       to the IPv6FlowLabel textual convention of the SMIv2.";
     reference
      "RFC 3595: Textual Conventions for IPv6 Flow Label
@@ -116,16 +113,16 @@ module ietf-inet-types {
       range "0..65535";
     }
     description
-     "The port-number type represents a 16-bit port number of an 
-      Internet transport layer protocol such as UDP, TCP, DCCP or 
-      SCTP. Port numbers are assigned by IANA.  A current list of
+     "The port-number type represents a 16-bit port number of an
+      Internet transport layer protocol such as UDP, TCP, DCCP, or
+      SCTP.  Port numbers are assigned by IANA.  A current list of
       all assignments is available from <http://www.iana.org/>.
 
-      Note that the port number value zero is reserved by IANA. In
+      Note that the port number value zero is reserved by IANA.  In
       situations where the value zero does not make sense, it can
       be excluded by subtyping the port-number type.
 
-      This type is in the value set and its semantics equivalent
+      In the value set and its semantics, this type is equivalent
       to the InetPortNumber textual convention of the SMIv2.";
     reference
      "RFC  768: User Datagram Protocol
@@ -134,30 +131,30 @@ module ietf-inet-types {
       RFC 4340: Datagram Congestion Control Protocol (DCCP)
       RFC 4001: Textual Conventions for Internet Network Addresses";
   }
-    
+
   /*** collection of autonomous system related types ***/
 
   typedef as-number {
     type uint32;
     description
-      "The as-number type represents autonomous system numbers
-       which identify an Autonomous System (AS). An AS is a set
-       of routers under a single technical administration, using
-       an interior gateway protocol and common metrics to route
-       packets within the AS, and using an exterior gateway
-       protocol to route packets to other ASs'. IANA maintains
-       the AS number space and has delegated large parts to the
-       regional registries.
+     "The as-number type represents autonomous system numbers
+      which identify an Autonomous System (AS).  An AS is a set
+      of routers under a single technical administration, using
+      an interior gateway protocol and common metrics to route
+      packets within the AS, and using an exterior gateway
+      protocol to route packets to other ASs'.  IANA maintains
+      the AS number space and has delegated large parts to the
+      regional registries.
 
-       Autonomous system numbers were originally limited to 16 
-       bits. BGP extensions have enlarged the autonomous system
-       number space to 32 bits. This type therefore uses an uint32
-       base type without a range restriction in order to support
-       a larger autonomous system number space.
+      Autonomous system numbers were originally limited to 16
+      bits.  BGP extensions have enlarged the autonomous system
+      number space to 32 bits.  This type therefore uses an uint32
+      base type without a range restriction in order to support
+      a larger autonomous system number space.
 
-       This type is in the value set and its semantics equivalent
-       to the InetAutonomousSystemNumber textual convention of 
-       the SMIv2.";
+      In the value set and its semantics, this type is equivalent
+      to the InetAutonomousSystemNumber textual convention of
+      the SMIv2.";
     reference
      "RFC 1930: Guidelines for creation, selection, and registration
                 of an Autonomous System (AS)
@@ -165,7 +162,7 @@ module ietf-inet-types {
       RFC 4893: BGP Support for Four-octet AS Number Space
       RFC 4001: Textual Conventions for Internet Network Addresses";
   }
-  
+
   /*** collection of IP address and hostname related types ***/
 
   typedef ip-address {
@@ -174,27 +171,27 @@ module ietf-inet-types {
       type inet:ipv6-address;
     }
     description
-     "The ip-address type represents an IP address and is IP 
-      version neutral. The format of the textual representations 
+     "The ip-address type represents an IP address and is IP
+      version neutral.  The format of the textual representations
       implies the IP version.";
   }
 
   typedef ipv4-address {
     type string {
-      pattern 
+      pattern
         '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
       +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
       + '(%[\p{N}\p{L}]+)?';
     }
     description
-      "The ipv4-address type represents an IPv4 address in 
-       dotted-quad notation. The IPv4 address may include a zone
+      "The ipv4-address type represents an IPv4 address in
+       dotted-quad notation.  The IPv4 address may include a zone
        index, separated by a % sign.
 
        The zone index is used to disambiguate identical address
        values.  For link-local addresses, the zone index will
        typically be the interface index number or the name of an
-       interface. If the zone index is not present, the default
+       interface.  If the zone index is not present, the default
        zone of the device will be used.
 
        The canonical format for the zone index is the numerical
@@ -214,30 +211,30 @@ module ietf-inet-types {
     }
     description
      "The ipv6-address type represents an IPv6 address in full,
-      mixed, shortened and shortened mixed notation.  The IPv6
+      mixed, shortened, and shortened-mixed notation.  The IPv6
       address may include a zone index, separated by a % sign.
 
       The zone index is used to disambiguate identical address
       values.  For link-local addresses, the zone index will
       typically be the interface index number or the name of an
-      interface. If the zone index is not present, the default
+      interface.  If the zone index is not present, the default
       zone of the device will be used.
 
       The canonical format of IPv6 addresses uses the compressed
-      format described in RFC 4291 section 2.2 item 2 with the
-      following additional rules: The :: substitution must be
+      format described in RFC 4291, Section 2.2, item 2 with the
+      following additional rules: the :: substitution must be
       applied to the longest sequence of all-zero 16-bit chunks
-      in an IPv6 address. If there is a tie, the first sequence
-      of all-zero 16-bit chunks is replaced by ::. Single 
-      all-zero 16-bit chunks are not compressed. The canonical
-      format uses lower-case characters and leading zeros are
-      not allowed. The canonical format for the zone index is
-      the numerical format as described in RFC 4007 section
+      in an IPv6 address.  If there is a tie, the first sequence
+      of all-zero 16-bit chunks is replaced by ::.  Single
+      all-zero 16-bit chunks are not compressed.  The canonical
+      format uses lowercase characters and leading zeros are
+      not allowed.  The canonical format for the zone index is
+      the numerical format as described in RFC 4007, Section
       11.2.";
     reference
      "RFC 4291: IP Version 6 Addressing Architecture
       RFC 4007: IPv6 Scoped Address Architecture
-      IDv6TREP: A Recommendation for IPv6 Address Text Representation";
+      RFC 5952: A Recommendation for IPv6 Address Text Representation";
   }
 
   typedef ip-prefix {
@@ -247,7 +244,7 @@ module ietf-inet-types {
     }
     description
      "The ip-prefix type represents an IP prefix and is IP
-      version neutral. The format of the textual representations
+      version neutral.  The format of the textual representations
       implies the IP version.";
   }
 
@@ -261,10 +258,10 @@ module ietf-inet-types {
     description
      "The ipv4-prefix type represents an IPv4 address prefix.
       The prefix length is given by the number following the
-      slash character and must be less than or equal to 32. 
+      slash character and must be less than or equal to 32.
 
       A prefix length value of n corresponds to an IP address
-      mask which has n contiguous 1-bits from the most
+      mask that has n contiguous 1-bits from the most
       significant bit (MSB) and all other bits set to 0.
 
       The canonical format of an IPv4 prefix has all bits of
@@ -286,10 +283,10 @@ module ietf-inet-types {
     description
      "The ipv6-prefix type represents an IPv6 address prefix.
       The prefix length is given by the number following the
-      slash character and must be less than or equal 128. 
+      slash character and must be less than or equal 128.
 
       A prefix length value of n corresponds to an IP address
-      mask which has n contiguous 1-bits from the most
+      mask that has n contiguous 1-bits from the most
       significant bit (MSB) and all other bits set to 0.
 
       The IPv6 address should have all bits that do not belong
@@ -297,14 +294,14 @@ module ietf-inet-types {
 
       The canonical format of an IPv6 prefix has all bits of
       the IPv6 address set to zero that are not part of the
-      IPv6 prefix. Furthermore, IPv6 address is represented
-      in the compressed format described in RFC 4291 section
-      2.2 item 2 with the following additional rules: The :: 
+      IPv6 prefix.  Furthermore, IPv6 address is represented
+      in the compressed format described in RFC 4291, Section
+      2.2, item 2 with the following additional rules: the ::
       substitution must be applied to the longest sequence of
-      all-zero 16-bit chunks in an IPv6 address. If there is
+      all-zero 16-bit chunks in an IPv6 address.  If there is
       a tie, the first sequence of all-zero 16-bit chunks is
-      replaced by ::. Single all-zero 16-bit chunks are not
-      compressed. The canonical format uses lower-case
+      replaced by ::.  Single all-zero 16-bit chunks are not
+      compressed.  The canonical format uses lowercase
       characters and leading zeros are not allowed.";
     reference
      "RFC 4291: IP Version 6 Addressing Architecture";
@@ -320,16 +317,16 @@ module ietf-inet-types {
       length "1..253";
     }
     description
-     "The domain-name type represents a DNS domain name. The 
+     "The domain-name type represents a DNS domain name.  The
       name SHOULD be fully qualified whenever possible.
 
-      Internet domain names are only loosely specified. Section
-      3.5 of RFC 1034 recommends a syntax (modified in section 
-      2.1 of RFC 1123). The pattern above is intended to allow
-      for current practise in domain name use, and some possible
-      future expansion. It is designed to hold various types of
+      Internet domain names are only loosely specified.  Section
+      3.5 of RFC 1034 recommends a syntax (modified in Section
+      2.1 of RFC 1123).  The pattern above is intended to allow
+      for current practice in domain name use, and some possible
+      future expansion.  It is designed to hold various types of
       domain names, including names used for A or AAAA records
-      (host names) and other records, such as SRV records. Note
+      (host names) and other records, such as SRV records.  Note
       that Internet host names have a stricter syntax (described
       in RFC 952) than the DNS recommendations in RFCs 1034 and
       1123, and that systems that want to store host names in
@@ -337,36 +334,36 @@ module ietf-inet-types {
       adhere to this stricter standard to ensure interoperability.
 
       The encoding of DNS names in the DNS protocol is limited
-      to 255 characters. Since the encoding consists of labels
+      to 255 characters.  Since the encoding consists of labels
       prefixed by a length bytes and there is a trailing NULL
       byte, only 253 characters can appear in the textual dotted
       notation.
 
       The description clause of schema nodes using the domain-name
       type MUST describe when and how these names are resolved to
-      IP addresses. Note that the resolution of a domain-name value
+      IP addresses.  Note that the resolution of a domain-name value
       may require to query multiple DNS records (e.g., A for IPv4
-      and AAAA for IPv6). The order of the resolution process and
+      and AAAA for IPv6).  The order of the resolution process and
       which DNS record takes precedence can either be defined
       explicitely or it may depend on the configuration of the
       resolver.
 
-      Domain-name values use the US-ASCII encoding. Their canonical
-      format uses lowercase US-ASCII characters. Internationalized
+      Domain-name values use the US-ASCII encoding.  Their canonical
+      format uses lowercase US-ASCII characters.  Internationalized
       domain names MUST be encoded in punycode as described in RFC
       3492";
     reference
      "RFC  952: DoD Internet Host Table Specification
       RFC 1034: Domain Names - Concepts and Facilities
-      RFC 1123: Requirements for Internet Hosts -- Application 
+      RFC 1123: Requirements for Internet Hosts -- Application
                 and Support
       RFC 2782: A DNS RR for specifying the location of services
                 (DNS SRV)
-      RFC 3490: Internationalizing Domain Names in Applications
-                (IDNA)
       RFC 3492: Punycode: A Bootstring encoding of Unicode for
                 Internationalized Domain Names in Applications
-                (IDNA)";
+                (IDNA)
+      RFC 5891: Internationalizing Domain Names in Applications
+                (IDNA): Protocol";
   }
 
   typedef host {
@@ -406,15 +403,15 @@ module ietf-inet-types {
       A zero-length URI is not a valid URI.  This can be used to
       express 'URI absent' where required.
 
-      This type is in the value set and its semantics equivalent
+      In the value set and its semantics, this type is equivalent
       to the Uri SMIv2 textual convention defined in RFC 5017.";
     reference
      "RFC 3986: Uniform Resource Identifier (URI): Generic Syntax
       RFC 3305: Report from the Joint W3C/IETF URI Planning Interest
-                Group: Uniform Resource Identifiers (URIs), URLs, 
+                Group: Uniform Resource Identifiers (URIs), URLs,
                 and Uniform Resource Names (URNs): Clarifications
                 and Recommendations
-      RFC 5017: MIB Textual Conventions for Uniform Resource 
+      RFC 5017: MIB Textual Conventions for Uniform Resource
                 Identifiers (URIs)";
   }
 

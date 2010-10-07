@@ -168,6 +168,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         m = r.search(filename)
         if m is not None:
             (name, _dummy, rev, format) = m.groups()
+            name = os.path.basename(name)
             module = ctx.add_module(filename, text, format, name, rev,
                                     expect_failure_error=False)
         else:

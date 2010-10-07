@@ -5,12 +5,9 @@
 
   o  add validation of instance-identifier defaults
 
-  o  better handling of multiple input files
-    - only give errors / warnings for files on the command line
-
   o  move all plugin API functions to plugin.py
 
-  o  give a warning if the default case does not have any default leafs=======
+  o  give a warning if the default case does not have any default leafs
 
 Optimizations:
 
