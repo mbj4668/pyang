@@ -1,0 +1,30 @@
+module list2 {
+  namespace "urn:test:list2";
+  prefix "l";
+
+  choice test {
+    default node;
+    case node {
+      leaf  mandatory {
+        type string;
+        mandatory true; // error: no mandatory under default case
+      }
+      list mandatory2 { // error: no mandatory under default case
+        min-elements "3";
+        key "name";
+        leaf name {
+          type string;
+        }
+      }
+      container x {
+        container y {
+          leaf-list m {
+            min-elements "1"; // error: no mandatory under default case
+            type string;
+          }
+        }
+      }
+    }
+  }
+  
+} 

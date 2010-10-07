@@ -1,0 +1,71 @@
+module d {
+    namespace "urn:d";
+    prefix d;
+    
+    import e {
+        prefix e;
+    }
+
+    grouping xxx {
+        leaf z2 {
+            type int32;
+        }
+    }
+
+    container x {
+        choice a {
+            case y {
+                leaf z1 {
+                    type int32;
+                }
+                leaf z2 {
+                    type int32;
+                }
+                leaf z3 {
+                    type int32;
+                }
+                leaf z4 {
+                    type int32;
+                }
+            }
+            leaf y {  // error: y already used
+                type int32;
+            }
+            case z {
+                leaf z3 { // error: z3 already used
+                    type int32; 
+                }
+            }
+            case z { // error: z already used
+                leaf z5 {
+                    type int32;
+                }
+            }
+        }
+        leaf a { // error: a already used
+            type int32;
+        }
+        leaf z1 { // error: z1 already used
+            type int32;
+        }
+        uses xxx { // error: z2 already used
+          refine z2 {
+            default apa; // error: bas type
+          }
+          refine z2 { // error: z2 alread refined
+            default 42;
+          }
+        }
+        uses e:xxx; // error: z4 already used
+    }
+  container xxx {
+    choice arne {
+      mandatory true;
+      default x; // error: mandatory and default
+      leaf x { type string; }
+      leaf y { type string; }
+    }
+  }
+}
+
+   

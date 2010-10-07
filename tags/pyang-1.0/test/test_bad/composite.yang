@@ -1,0 +1,18 @@
+module composite {
+  namespace "urn:test:composite";
+  prefix c;
+
+  include submodule1;
+  include submodule2;
+
+  include crypto-base; // error: crypto-base is a module
+
+  typedef type1 { // error: defined in submodule1
+    type int8;
+  }
+
+  identity id1; // error: defined in submodule1
+
+  feature f1; // error: defined in submodule1
+
+}

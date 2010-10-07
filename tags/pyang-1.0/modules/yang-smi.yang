@@ -1,0 +1,41 @@
+module yang-smi {
+
+  // XXX namespace to be allocated by IANA
+
+  namespace "urn:ietf:params:xml:ns:yang:yang-smi";
+  prefix "smi";
+
+  organization
+    "YANG Language Design Team";
+
+  contact
+    "Martin Bjorklund (Editor) <mbj@tail-f.com>";
+
+  description
+    "This module contains extensions for dealing with SMIv2 modules.";
+  reference
+    "RFC 2578: Structure of Management Information Version 2 (SMIv2)";
+
+  revision 2009-10-20 {
+    description "Initial revision.";
+  }
+
+  extension oid {
+    argument "oid";
+    description
+      "OBJECT IDENTIFIER value assigned to a particular node.";
+  }
+
+  extension display-hint {
+    argument "hint";
+    description
+      "DISPLAY-HINT value provided in a TEXTUAL-CONVENTION macro.";
+  }
+
+  extension default {
+    argument "value";
+    description
+      "DEFVAL value.";
+  }
+
+}

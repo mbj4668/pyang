@@ -1,0 +1,31 @@
+module w {
+  namespace urn:w;
+  prefix w;
+
+  import q {
+    prefix qq;
+  }
+
+  identity g {
+    base qq:foo;
+  }
+
+  grouping X {
+    leaf y {
+      qq:foo 42;
+      type uint32;
+    }
+  }
+
+  grouping Y {
+    container z {
+      if-feature qq:foo;
+      uses X;
+    }
+  }
+  uses Y {
+    refine z/y {
+      default 42;
+    }
+  }
+}

@@ -1,0 +1,188 @@
+module yt3a {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt3a";
+    prefix "yt3a";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 3a.";
+
+    revision 2008-02-04 {
+        description "Initial revision.";
+    }
+
+    leaf l1 {
+      description int8;
+      type int8;
+    }
+
+    leaf l2 {
+      description int16;
+      type int16;
+    }
+
+    leaf l3 {
+      description int32;
+      type int32;
+    }
+
+    leaf l4 {
+      description int64;
+      type int64;
+    }
+
+    leaf l5 {
+      description uint8;
+      type uint8;
+    }
+
+    leaf l6 {
+      description uint16;
+      type uint16;
+    }
+
+    leaf l7 {
+      description uint32;
+      type uint32;
+    }
+
+    leaf l8 {
+      description uint64;
+      type uint64;
+    }
+
+/*    leaf l9 {
+      description float32;
+      type float32;
+    }
+
+    leaf l10 {
+      description float64;
+      type float64;
+      } */
+
+    leaf l11 {
+      description boolean;
+      type boolean;
+    }
+
+/* no longer allowed!!!
+    leaf t12 {
+      description anyxml;
+      type anyxml;
+    }
+*/
+
+    anyxml l12 {
+      config false;
+      mandatory true;
+    }
+
+    leaf l13 {
+      description string;
+      type string;
+    }
+
+    leaf l14 {
+      description binary;
+      type binary;
+    }
+
+    leaf l15 {
+      description enumeration;
+      type enumeration {
+        enum a;
+        enum b;
+        enum c;
+      }
+    }
+
+    leaf l16 {
+      description bits;
+      type bits {
+        bit a { position 1; }
+        bit b { position 2; }
+        bit c { position 7; }
+      }
+    }
+
+    leaf l17 {
+      description leafref;
+      type leafref {
+        path "/foo/foo/bar"; // should be error
+      }
+    }
+
+    leaf l17a {
+      description leafref;
+      type leafref {
+        path "/foo/foo/baz"; // should be error
+      }
+    }
+
+    leaf l18 {
+      description instance-identifier;
+      type instance-identifier;
+    }
+
+    leaf l19 {
+      description empty;
+      type empty;
+    }
+
+
+    leaf Num3 {
+        units seconds;
+	type int16 {
+	    range "-32000 .. 4 | max" {
+                error-app-tag "range-violation";
+	        error-message "Wrong value genius!";
+            }
+        }
+        description "test 3";
+    }
+
+    leaf Bug1 {
+	type int32 {
+	    range min..-1;
+        }
+        description "parse bug 1";
+    }
+
+    leaf Num1 {
+	type int32 {
+	    range min..max;
+        }
+        description "test 1";
+        status deprecated;
+    }
+
+    leaf Num2 {
+        description "test 2";
+	type int32 {
+	    range "-32000 .. 4 | max";
+        }
+        default -1;
+    }
+
+    leaf Num6 {
+        description "test 6";
+	type int32 {
+  	    range "-3 | -2 .. +2 | 3";
+        }
+	default 0;
+    }
+
+    container foo {
+      container foo {
+         leaf bar { type int32; }
+         leaf baz { type leafref { path /l17; } } // should be error
+      }
+    }
+    
+}

@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0"
+	  xml:id="man.1.pyang">
+
+  <info>
+    <author>
+      <personname>Martin Bjorklund</personname>
+      <affiliation><orgname>Tail-f Systems</orgname></affiliation>
+      <email>mbj@tail-f.com</email>
+      <contrib/>
+    </author>
+    <author>
+      <personname>Ladislav Lhotka</personname>
+      <affiliation><orgname>CESNET</orgname></affiliation>
+      <email>lhotka@cesnet.cz</email>
+      <contrib/>
+    </author>
+    <date>%DATE%</date>
+  </info>
+
+  <refmeta>
+    <refentrytitle>pyang</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="manual">pyang manual</refmiscinfo>
+    <refmiscinfo class="source">pyang-%PYANG_VERSION%</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="man.1.pyang.name">
+    <refname>pyang</refname>
+    <refpurpose>
+      validate and convert YANG modules to various formats
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv xml:id="man.1.pyang.synopsis">
+    <cmdsynopsis>
+      <command>pyang</command>
+      <arg choice="opt">--canonical</arg>
+      <arg choice="opt">--strict</arg>
+      <arg choice="opt">--ietf</arg>
+      <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
+      <arg choice="opt">-f <replaceable>format</replaceable></arg>
+      <arg choice="opt">-p <replaceable>path</replaceable></arg>
+      <arg choice="opt">-W <replaceable>what</replaceable></arg>
+      <arg choice="plain" rep="repeat">
+        <replaceable>module</replaceable>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>pyang</command>
+      <group choice="opt">
+	<arg choice="plain">-h</arg>
+	<arg choice="plain">--help</arg>
+      </group>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>pyang</command>
+      <group choice="opt">
+	<arg choice="plain">-v</arg>
+	<arg choice="plain">--version</arg>
+      </group>
+    </cmdsynopsis>
+    <para>
+      If no files are given, <command>pyang</command> reads one module
+      from stdin.
+    </para>
+    <para>
+      Only the most common options are listed here.  See below for a
+      complete list of options.
+    </para>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="man.1.pyang.description">
+    <title>Description</title>
+    <para>
+      The <command>pyang</command> program is used to validate YANG
+      modules (RFC 6020).  It is also used to convert YANG modules into
+      equivalent YIN modules.  From a valid module, a W3C XML Schema
+      (XSD) or hybrid DSDL schema (RELAX NG with additional
+      annotations) can be generated.
+    </para>
+
+    <para>
+      If no <replaceable>format</replaceable> is given, the specified
+      modules are validated, and the program exits with exit code 0 if
+      all modules are valid.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.options">
+    <title>Options</title>
+    <variablelist remap="TP">
+
+      <varlistentry>
+        <term>
+	  <option>-h</option>
+	  <option>--help</option>
+	</term>
+        <listitem>
+          <para>
+	    Print a short help text and exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-v</option>
+	  <option>--version</option>
+	</term>
+        <listitem>
+          <para>
+	    Print the version number and exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-e</option>
+	  <option>--list-errors</option>
+	</term>
+        <listitem>
+          <para>
+	    Print a listing of all error codes and messages pyang
+	    might generate, and then exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+          <option>--print-error-code</option>
+        </term>
+	<listitem>
+	  <para>
+            On errors, print the symbolic error code instead of the
+            error message.
+          </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-Werror</option>
+	</term>
+        <listitem>
+          <para>
+	    Treat warnings as errors.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-Wnone</option>
+	</term>
+        <listitem>
+          <para>
+	    Do not print any warnings.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>--canonical</option>
+	</term>
+        <listitem>
+          <para>
+	    Validate the module(s) according to the canonical YANG order.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+          <option>--strict</option>
+        </term>
+	<listitem>
+	  <para>
+            Force strict YANG compliance.  Currently this checks
+            that the deref() function is not used in XPath expressions
+            and leafrefs.
+          </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>--ietf</option>
+	</term>
+        <listitem>
+          <para>
+	    Validate the module(s) according to IETF rules as
+	    specified in draft-ietf-netmod-yang-usage.  In addition,
+	    it checks that the module is in canonical order, and that
+	    <option>--max-line-length</option> is 72 so that the
+	    module fits into an RFC.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>--trim-yin</option>
+	</term>
+        <listitem>
+          <para>
+	    In YIN input modules, remove leading and trailing
+	    whitespace from every line in the arguments of the
+	    following statements: 'contact', 'description',
+	    'error-message', 'organization' and 'reference'. This way,
+	    the XML-indented argument texts look tidy after
+	    translating the module to the compact YANG syntax.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>--max-line-length</option>
+	  <replaceable>maxlen</replaceable>
+	</term>
+        <listitem>
+          <para>
+	    Give a warning if any line is longer than
+	    <replaceable>maxlen</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>--max-identifier-length</option>
+	  <replaceable>maxlen</replaceable>
+	</term>
+        <listitem>
+          <para>
+	    Give a error if any identifier is longer than
+	    <replaceable>maxlen</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-f</option>
+	  <option>--format</option>
+	  <replaceable>format</replaceable>
+	</term>
+        <listitem>
+          <para>
+	    Convert the module(s) into
+	    <replaceable>format</replaceable>.  Some translators
+	    require a single module, and some can translate multiple
+	    modules at one time.  If no
+	    <replaceable>outfile</replaceable> file is specified, the
+	    result is printed on stdout.  The supported formats are
+	    listed in <xref linkend="man.1.pyang.output_formats"
+	    endterm="man.1.pyang.output_formats_title"/> below.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-o</option>
+	  <option>--output</option>
+	  <replaceable>outfile</replaceable>
+	</term>
+        <listitem>
+          <para>
+	    Write the output to the file
+	    <replaceable>outfile</replaceable> instead of stdout.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+	  <option>-p</option>
+	  <option>--path</option>
+	  <replaceable>path</replaceable>
+	</term>
+        <listitem>
+          <para>
+	    <replaceable>path</replaceable> is a colon (:) separated
+	    list of directories to search for imported modules.  This
+	    option may be given multiple times.
+	  </para>
+	  <para>
+	    The following directories are always added to the search path:
+	  </para>
+	  <orderedlist numeration="arabic" spacing="compact">
+	    <listitem>
+	      <para>
+		current directory
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		<envar>$YANG_MODPATH</envar>
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		<envar>$HOME</envar><filename>/yang/modules</filename>
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		<envar>$YANG_INSTALL</envar><filename>/yang/modules</filename>
+		OR if <envar>$YANG_INSTALL</envar> is unset
+		<filename>&lt;the default installation
+		directory&gt;/yang/modules</filename> (on Unix
+		systems: <filename>/usr/share/yang/modules</filename>)
+	      </para>
+	    </listitem>
+	  </orderedlist>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>
+	  <option>--plugindir</option>
+	  <replaceable>plugindir</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Load all YANG plugins found in the directory
+	    <emphasis>plugindir</emphasis>.  This option may be given
+	    multiple times.
+	  </para>
+	  <para>
+	    list of directories to search for pyang plugins.  The
+	    following directories are always added to the search
+	    path:
+	  </para>
+	  <orderedlist numeration="arabic">
+	    <listitem>
+	      <para>
+		<filename>pyang/plugins</filename> from
+		where pyang is installed
+	    </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		<envar>$PYANG_PLUGINPATH</envar>
+	      </para>
+	    </listitem>
+	  </orderedlist>
+	</listitem>
+      </varlistentry>
+      
+      <varlistentry>
+	<term>
+	  <replaceable>module...</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    These are the names of the files containing the modules to
+	    be validated, or the module to be converted.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+
+  <refsect1 xml:id="man.1.pyang.output_formats">
+    <title xml:id="man.1.pyang.output_formats_title">
+      Output Formats
+    </title>
+
+    <para>
+      If pyang plugins are installed, these plugins may define
+      their own options, or add new formats to the <option>-f</option>
+      option.  These options and formats are listed in <userinput>pyang
+      -h</userinput>.
+    </para>
+
+    <variablelist>
+      <varlistentry>
+	<term><emphasis>yin</emphasis></term>
+	<listitem>
+	  <para>the XML syntax of YANG</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis>yang</emphasis></term>
+	<listitem>
+	  <para>normal YANG syntax</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis>dsdl</emphasis></term>
+	<listitem>
+	  <para>Hybrid DSDL schema (RELAX NG with annotations)</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis>xsd</emphasis></term>
+	<listitem>
+	  <para>W3C XML Schema</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis>depend</emphasis></term>
+	<listitem>
+	  <para>Prints a Makefile dependency rule for the module</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis>tree</emphasis></term>
+	<listitem>
+	  <para>tree structure of the module</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.yang_output">
+    <title>YANG Output</title>
+    <para>
+      Options for the <emphasis>yang</emphasis> output format:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+	<term><option>--yang-canonical</option></term>
+	<listitem>
+	  <para>
+	    Generate all statements in the canonical order.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.yin_output">
+    <title>YIN Output</title>
+    <para>
+      Options for the <emphasis>yin</emphasis> output format:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><option>--yin-canonical</option></term>
+	<listitem>
+	  <para>
+	    Generate all statements in the canonical order.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--yin-pretty-strings</option></term>
+	<listitem>
+	  <para>
+	    Pretty print strings, i.e. print with extra whitespace in
+	    the string.  This is not strictly correct, since the
+	    whitespace is significant within the strings in XML, but
+	    the output is more readable.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.dsdl_output">
+    <title>DSDL Output</title>
+    <para>
+      Options for the <emphasis>dsdl</emphasis> output format:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><option>--dsdl-no-documentation</option></term>
+	<listitem>
+	  <para>
+	    Do not print documentation annotations
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--dsdl-no-dublin-core</option></term>
+	<listitem>
+	  <para>
+	    Do not print Dublin Core metadata terms
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--dsdl-record-defs</option></term>
+	<listitem>
+	  <para>
+	    Record translations of all top-level typedefs and
+	    groupings in the output schema, even if they are not
+	    used. This is useful for translating library modules.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.xsd_output">
+    <title>XSD Output</title>
+    <para>
+      Options for the <emphasis>xsd</emphasis> output format:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><option>--xsd-no-appinfo</option></term>
+	<listitem>
+	  <para>
+	    Do not print YANG specific appinfo.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--xsd-no-lecture</option></term>
+	<listitem>
+	  <para>
+	    Do not print the lecture about how the XSD can be used.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--xsd-no-imports</option></term>
+	<listitem>
+	  <para>
+	    Do not generate any xs:imports.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--xsd-no-includes</option></term>
+	<listitem>
+	  <para>
+	    Do not generate any xs:includes.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--xsd-break-pattern</option></term>
+	<listitem>
+	  <para>
+	    Break long patterns so that they fit into RFCs. The
+	    resulting patterns might not always be valid XSD, so use
+	    with care.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.depend_output">
+    <title>Depend Output</title>
+    <para>
+      The <emphasis>depend</emphasis> output generates a Makefile
+      dependency rule for files based on a YANG module.  This is
+      useful if files are generated from the module.  For example,
+      suppose a .c file is generated from each YANG module.  If the
+      YANG module imports other modules, or includes submodules, the
+      .c file needs to be regenerated if any of the imported or
+      included modules change.  Such a dependency rule can be
+      generated like this:
+    </para>
+
+    <informalexample>
+      <screen>$ pyang -f depend --depend-target mymod.c \
+    --depend-extension .yang mymod.yang
+mymod.c : ietf-yang-types.yang my-types.yang</screen>
+    </informalexample>
+
+    <para>
+      Options for the <emphasis>depend</emphasis> output format:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><option>--depend-target</option></term>
+	<listitem>
+	  <para>
+	    Makefile rule target.  Default is the modulename.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--depend-extension</option></term>
+	<listitem>
+	  <para>
+	    YANG module file name extension.  Default is no extension.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--depend-no-submodules</option></term>
+	<listitem>
+	  <para>
+	    Do not generate dependencies for included submodules.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.tree_output">
+    <title>Tree Output</title>
+    <para>
+      The <emphasis>tree</emphasis> output prints the resulting schema
+      tree from one or more modules.  Use <userinput>pyang
+      --tree-help</userinput> to print a description on the symbols
+      used by this format.
+    </para>
+    <para>
+      Tree output specific option:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><option>--tree-help</option></term>
+	<listitem>
+	  <para>
+	    Print help on symbols used in the tree output and exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.yang_extensions.xpath_functions">
+    <title>YANG Extensions</title>
+    <para>
+      This section describes XPath functions that can be used in
+      "must", "when", or "path" expressions in YANG modules, in
+      addition to the core XPath 1.0 functions.
+    </para>
+    <para>
+      <command>pyang</command> can be instructed to reject the usage
+      of these functions with the parameter
+      <parameter>--strict</parameter>.
+    </para>
+
+    <para>
+      <command>Function:</command> <emphasis>node-set</emphasis>
+      <command>deref</command>(<emphasis>node-set</emphasis>)
+    </para>
+    <para>
+      The <function>deref</function> function follows the reference
+      defined by the first node in document order in the argument
+      node-set, and returns the nodes it refers to.
+    </para>
+    <para>
+      If the first argument node is an
+      <type>instance-identifier</type>, the function returns a
+      node-set that contains the single node that the instance
+      identifier refers to, if it exists.  If no such node exists,
+      an empty node-set is returned.
+    </para>
+    <para>
+      If the first argument node is a <type>leafref</type>, the
+      function returns a node-set that contains the nodes that the
+      leafref refers to.
+    </para>
+    <para>
+      If the first argument node is of any other type, an empty
+      node-set is returned.
+    </para>
+    <para>
+      The following example shows how a leafref can be written with
+      and without the <function>deref</function> function:
+    </para>
+    <informalexample>
+      <programlisting>
+/* without deref */
+
+leaf my-ip {
+    type leafref {
+        path "/server/ip";
+    }
+}
+leaf my-port {
+    type leafref {
+        path "/server[ip = current()/../my-ip]/port";
+    }
+}
+
+/* with deref */
+
+leaf my-ip {
+    type leafref {
+        path "/server/ip";
+    }
+}
+leaf my-port {
+    type leafref {
+        path "deref(../my-ip)/../port";
+    }
+}
+      </programlisting>
+    </informalexample>
+    
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.example">
+    <title>Example</title>
+
+    <para>
+      The following example validates the standard YANG modules with
+      derived types:
+    </para>
+
+    <informalexample>
+      <screen>$ pyang ietf-yang-types.yang ietf-inet-types.yang</screen>
+    </informalexample>
+
+    <para>
+      The following example converts the ietf-yang-types module into
+      YIN:
+    </para>
+
+    <informalexample>
+      <screen>$ pyang -f yin -o ietf-yang-types.yin ietf-yang-types.yang</screen>
+    </informalexample>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.environment_variables">
+    <title>Environment Variables</title>
+
+    <para>
+      pyang searches for referred modules in the colon (:) separated
+      path defined by the environment variable
+      <envar>$YANG_MODPATH</envar> and in the directory
+      <envar>$YANG_INSTALL</envar><filename>/yang/modules</filename>.
+    </para>
+
+    <para>
+      pyang searches for plugins in the colon (:) separated path
+      defined by the environment variable
+      <envar>$PYANG_PLUGINDIR</envar>.
+    </para>
+
+  </refsect1>
+
+
+  <refsect1 xml:id="man.1.pyang.bugs">
+    <title>Bugs</title>
+
+    <orderedlist>
+      <listitem>
+	<para>
+	  The XPath arguments for the <emphasis>must</emphasis> and
+	  <emphasis>when</emphasis> statements are checked only for
+	  basic syntax errors.
+	</para>
+      </listitem>
+    </orderedlist>
+
+  </refsect1>
+
+</refentry>

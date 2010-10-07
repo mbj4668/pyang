@@ -1,0 +1,28 @@
+module xt5 {
+
+  namespace "urn:test:xt5";
+  prefix xt5;
+
+  grouping x {
+    leaf foo { type empty; mandatory true; }
+  }
+
+  typedef xc {
+    type int32;
+  }
+
+  extension x {
+    argument name;
+  }
+
+   leaf foo { type int16; }
+
+
+   extension foo {
+     argument bar {
+       yin-element true;
+     }
+   }
+
+
+}

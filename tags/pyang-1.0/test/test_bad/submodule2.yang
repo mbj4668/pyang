@@ -1,0 +1,24 @@
+submodule submodule2 {
+
+  belongs-to composite {
+    prefix c; 
+  }
+
+  import submodule1 { // error: submodule1 is a submodule
+    prefix x;
+  }
+
+  include submodule3; // error: not included by composite
+
+  grouping g1;
+  
+  container new {
+    typedef t1 {
+      type string;
+    }
+    leaf x {
+      type t1;
+    }
+  }
+}
+    

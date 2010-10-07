@@ -1,0 +1,258 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import optparse
+import re
+
+import pyang
+from pyang import plugin
+from pyang import error
+from pyang import util
+
+def run():
+
+    usage = """%prog [options] [<filename>...]
+
+Validates the YANG module in <filename> (or stdin), and all its dependencies."""
+
+    plugindirs = []
+    # check for --plugindir
+    idx = 1
+    while '--plugindir' in sys.argv[idx:]:
+        idx = idx + sys.argv[idx:].index('--plugindir')
+        plugindirs.append(sys.argv[idx+1])
+        idx = idx + 1
+    plugin.init(plugindirs)
+
+    fmts = {}
+    for p in plugin.plugins:
+        p.add_output_format(fmts)
+
+    optlist = [
+        # use capitalized versions of std options help and version
+        optparse.make_option("-h", "--help",
+                             action="help",
+                             help="Show this help message and exit"),
+        optparse.make_option("-v", "--version",
+                             action="version",
+                             help="Show version number and exit"),
+        optparse.make_option("-e", "--list-errors",
+                             dest="list_errors",
+                             action="store_true",
+                             help="Print a listing of all error codes " \
+                             "and exit."),
+        optparse.make_option("--print-error-code",
+                             dest="print_error_code",
+                             action="store_true",
+                             help="On errors, print the error code instead " \
+                             "of the error message."),
+        optparse.make_option("-W", 
+                             dest="warnings",
+                             action="append",
+                             default=[]),
+        optparse.make_option("--canonical",
+                             dest="canonical",
+                             action="store_true",
+                             help="Validate the module(s) according to the " \
+                             "canonical YANG order."),
+        optparse.make_option("--max-line-length",
+                             dest="max_line_len"),
+        optparse.make_option("--max-identifier-length",
+                             dest="max_identifier_len"),
+        optparse.make_option("--check-explicit-default",
+                             dest="chk_statement_explicit_default",
+                             action="store_true"),
+        optparse.make_option("-f", "--format",
+                             dest="format",
+                             help="Convert to FORMAT.  Supported formats " \
+                             "are: " +  ', '.join(fmts.keys())),
+        optparse.make_option("-o", "--output",
+                             dest="outfile",
+                             help="Write the output to OUTFILE instead " \
+                             "of stdout."),
+        optparse.make_option("-p", "--path",
+                             dest="path",
+                             default=[],
+                             action="append",
+                             help=os.pathsep + "-separated search path for yin"
+                             " and yang modules"),
+        optparse.make_option("--plugindir",
+                             dest="plugindir",
+                             help="Load pyang plugins from PLUGINDIR"),
+        optparse.make_option("--strict",
+                             dest="strict",
+                             action="store_true",
+                             help="Force strict YANG compliance."),
+        optparse.make_option("--trim-yin",
+                             dest="trim_yin",
+                             action="store_true",
+                             help="In YIN input modules, trim whitespace"
+                             "in textual arguments."),
+        ]
+        
+    optparser = optparse.OptionParser(usage, add_help_option = False)
+    optparser.version = '%prog ' + pyang.__version__
+    optparser.add_options(optlist)
+
+    for p in plugin.plugins:
+        p.add_opts(optparser)
+
+    (o, args) = optparser.parse_args()
+
+    if o.list_errors == True:
+        for tag in error.error_codes:
+            (level, fmt) = error.error_codes[tag]
+            if error.is_warning(level):
+                print "Warning: %s" % tag
+            else:
+                print "Error:   %s" % tag
+            print "Message: %s" % fmt
+            print ""
+        sys.exit(0)
+
+    if o.outfile != None and o.format == None:
+        print >> sys.stderr, "no format specified"
+        sys.exit(1)
+
+    filenames = args
+
+    path = ":".join(o.path)
+    
+    repos = pyang.FileRepository(path)
+
+    ctx = pyang.Context(repos)
+
+    ctx.opts = o
+    ctx.canonical = o.canonical
+    ctx.max_line_len = o.max_line_len
+    ctx.max_identifier_len = o.max_identifier_len
+    ctx.trim_yin = o.trim_yin
+
+    for p in plugin.plugins:
+        p.setup_ctx(ctx)
+    
+    if o.format != None:
+        if o.format not in fmts:
+            print >> sys.stderr, "unsupported format '%s'" % o.format
+            sys.exit(1)
+        emit_obj = fmts[o.format]
+        emit_obj.setup_fmt(ctx)
+    else:
+        emit_obj = None
+
+    exit_code = 0
+
+    modules = []
+    if len(filenames) == 0:
+        text = sys.stdin.read()
+        module = ctx.add_module('<stdin>', text)
+        if module is None:
+            exit_code = 1
+        else:
+            modules.append(module)
+    if (len(filenames) > 1 and
+        emit_obj is not None and
+        not emit_obj.multiple_modules):
+        print >> sys.stderr, "too many files to convert"
+        sys.exit(1)
+        
+    r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
+    for filename in filenames:
+        try:
+            fd = file(filename)
+            text = fd.read()
+        except IOError, ex:
+            sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+            sys.exit(1)
+        m = r.search(filename)
+        if m is not None:
+            (name, _dummy, rev, format) = m.groups()
+            name = os.path.basename(name)
+            module = ctx.add_module(filename, text, format, name, rev,
+                                    expect_failure_error=False)
+        else:
+            module = ctx.add_module(filename, text)
+        if module is None:
+            exit_code = 1
+        else:
+            modules.append(module)
+
+    modulenames = []
+    for m in modules:
+        modulenames.append(m.arg)
+        for s in m.search('include'):
+            modulenames.append(s.arg)
+
+    if emit_obj is not None and len(modules) > 0:
+        emit_obj.pre_validate(ctx, modules)
+
+    ctx.validate()
+
+    if emit_obj is not None and len(modules) > 0:
+        emit_obj.post_validate(ctx, modules)
+
+    def cmp_error(e1, e2):
+        pos1 = e1[0]
+        pos2 = e2[0]
+        if pos1.ref == pos2.ref:
+            return cmp(pos1.line, pos2.line)
+        if pos1.ref == filenames[0]:
+            # first print error for the first filename given
+            return -1;
+        if pos1.ref < pos2.ref:
+            return -1;
+        return 1
+
+    ctx.errors.sort(cmp_error)
+
+    for (epos, etag, eargs) in ctx.errors:
+        if (ctx.implicit_errors == False and
+            hasattr(epos.top, 'i_modulename') and
+            epos.top.arg not in modulenames and
+            epos.top.i_modulename not in modulenames and
+            epos.ref not in filenames):
+            # this module was added implicitly (by import); skip this error
+            # the code includes submodules
+            continue
+        elevel = error.err_level(etag)
+        if error.is_warning(elevel):
+            type = "warning"
+            if 'error' in o.warnings:
+                exit_code = 1
+            elif 'none' in o.warnings:
+                continue
+        else:
+            exit_code = 1
+            type = "error"
+        if o.print_error_code == True:
+            print >> sys.stderr, \
+                str(epos) + ': %s: %s' % (type, etag)
+        else:
+            print >> sys.stderr, \
+                str(epos) + ': %s: ' % type + \
+                error.err_to_str(etag, eargs)
+    if emit_obj is not None and len(modules) > 0:
+        tmpfile = None
+        if o.outfile == None:
+            fd = sys.stdout
+        else:
+            tmpfile = o.outfile + ".tmp"
+            fd = open(tmpfile, "w+")
+        try:
+            emit_obj.emit(ctx, modules, fd)
+        except error.EmitError, e:
+            if e.msg != "":
+                print >> sys.stderr, e.msg
+            if tmpfile != None:
+                fd.close()
+                os.remove(tmpfile)
+            sys.exit(e.exit_code)
+        if tmpfile != None:
+            os.rename(tmpfile, o.outfile)
+
+    sys.exit(exit_code)
+
+
+if __name__ == '__main__':
+    run()

@@ -1,0 +1,44 @@
+module yt7 {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt7";
+    prefix "yt7";
+
+    import ietf-yang-types { prefix y; }
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "ietf@andybierman.com";
+
+    description
+        "YANG test module 7.";
+
+    revision 2008-02-08 {
+      description "initial version.";
+    }
+
+    rpc rpc1 {
+      description rpc-test;
+      reference "RFC 4741";
+      input {
+        leaf a { type y:counter32; }
+        leaf b { type int32; }
+        container foo {
+          presence "enable foo service";
+        }
+      }
+      output {
+        leaf x { type y:zero-based-counter32; }
+        container y {
+          container yy {
+            leaf yyy { type empty; }
+            anyxml zzz;
+            container zz;
+          }
+        }
+      }
+    }
+
+
+}   

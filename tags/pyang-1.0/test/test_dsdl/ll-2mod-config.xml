@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nc:config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+	   xmlns="http://example.com/ll/2mod-a"
+	   xmlns:tb="http://example.com/ll/2mod-b">
+  <outer>
+    <aitems>
+      <month>5</month>
+      <c/>
+      <inner>
+	<b>31</b>
+	<tb:b>21</tb:b>
+	<psc>37001-6378</psc>
+      </inner>
+    </aitems>
+    <aitems>
+      <month>6</month>
+      <inner>
+	<b>41</b>
+	<tb:b>51</tb:b>
+	<psc>00000-0000</psc>
+      </inner>
+    </aitems>
+  </outer>
+</nc:config>

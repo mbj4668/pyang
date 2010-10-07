@@ -1,0 +1,86 @@
+module yt2 {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt2";
+    prefix "yt2";
+
+    import yt1g { prefix yt1; }
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 2.";
+
+    revision 2007-11-26 {
+        description "Initial revision.";
+    }
+
+    typedef Str1 {
+        type string {
+           length "1..10 | 40 | 52" {
+             error-message "Wrong Str1 length";
+           }
+           pattern "[a-z][A-Z]*" {
+             error-message "Wrong Str1 pattern";
+	     error-app-tag str1-violation;
+           }
+           pattern ".*xx" {
+             error-message "Wrong Str1 pattern";
+	     error-app-tag str1-violation;
+           }
+       }
+    }
+
+    typedef Union2 {
+	type union {
+            type yt1:Num6 {
+              range "1";
+            }
+
+            type yt1:Num3;
+
+            type enumeration {
+              enum one {
+                description "first enum";
+                status current;
+              }
+              enum two {
+                value 7;
+              }
+            }
+
+            type Union1;
+
+            type union {
+              type int32;
+              type string;
+            }
+        }
+    }
+
+    typedef Union1 {
+	type union {
+            type yt1:Num1;
+
+            type uint32;
+
+            type int32 {
+                range "min..-1";
+            }
+
+            type string {
+                length "0..255";
+            }
+        }
+    }
+
+  leaf dec {
+    type decimal64 {
+      fraction-digits 1;
+      range "-0.3..0.0";
+    }
+  }
+}

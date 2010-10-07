@@ -1,0 +1,209 @@
+module yt3 {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt3";
+    prefix "yt3";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 3.";
+
+    revision 2007-12-04 {
+        description "Initial revision.";
+    }
+
+    typedef t1 {
+      description int8;
+      type int8;
+    }
+
+    typedef t2 {
+      description int16;
+      type int16;
+    }
+
+    typedef t3 {
+      description int32;
+      type int32;
+    }
+
+    typedef t4 {
+      description int64;
+      type int64;
+    }
+
+    typedef t5 {
+      description uint8;
+      type uint8;
+    }
+
+    typedef t6 {
+      description uint16;
+      type uint16;
+    }
+
+    typedef t7 {
+      description uint32;
+      type uint32;
+    }
+
+    typedef t8 {
+      description uint64;
+      type uint64;
+    }
+
+/* no longer allowed!!!
+    typedef t9 {
+      description float32;
+      type float32;
+    }
+
+    typedef t10 {
+      description float64;
+      type float64;
+    }
+*/
+
+    typedef t10 {
+      description decimal64;
+      type decimal64 {
+        fraction-digits 5;
+      }
+    }
+
+    typedef t11 {
+      description boolean;
+      type boolean;
+    }
+
+/* no longer allowed!!!
+    typedef t12 {
+      description anyxml;
+      type anyxml;
+    }
+*/
+
+    anyxml foo {
+      config false;
+      mandatory true;
+    }
+
+    typedef t13 {
+      description string;
+      type string;
+    }
+
+    typedef t13d {
+      description string;
+      type string;
+      default test-string;
+    }
+
+    typedef t14 {
+      description binary;
+      type binary;
+    }
+
+    typedef t15 {
+      description enumeration;
+      type enumeration {
+        enum a;
+        enum b;
+        enum c;
+        enum 100;
+        enum "a b";
+        enum "a  b";
+        enum "..@#!#;<!--"; // yin translator MUST quote this!!
+      }
+    }
+
+    typedef t16 {
+      description bits;
+      type bits {
+        bit a { position 1; }
+        bit b { position 2; }
+        bit c { position 7; }
+      }
+    }
+
+    typedef t17 {
+      description leafref;
+      type leafref {
+        path "/baz/bar";
+      }
+    }
+
+    typedef t18 {
+      description instance-identifier;
+      type instance-identifier;
+    }
+
+    typedef t19 {
+      description empty;
+      type empty;
+    }
+
+
+    typedef Num3 {
+        units seconds;
+	type int16 {
+	    range "-32000 .. 4 | max" {
+                error-app-tag "range-violation";
+	        error-message "Wrong value genius!";
+            }
+        }
+        description "test 3";
+    }
+
+    typedef Bug1 {
+	type int32 {
+	    range min..-1;
+        }
+        description "parse bug 1";
+    }
+
+    typedef Num1 {
+	type int32 {
+	    range min..max;
+        }
+        description "test 1";
+        status deprecated;
+    }
+
+    typedef Num2 {
+        description "test 2";
+	type int32 {
+	    range "-32000 .. 4 | max";
+        }
+        default -1;
+    }
+
+    typedef Num4 {
+        description "test 4";
+	type Num1 {
+  	    range "3 | 7";
+        }
+    }
+
+    typedef Num6 {
+        description "test 6";
+	type Num3 {
+  	    range "-3 | -2 .. +2 | 3";
+        }
+	default 0;
+    }
+
+  container baz {
+    leaf bar {
+      type string;
+    }
+    leaf bax {
+      type t17;
+    }
+  }
+
+}

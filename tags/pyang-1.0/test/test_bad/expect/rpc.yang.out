@@ -1,0 +1,3 @@
+rpc.yang:1: warning: WBAD_MODULE_NAME
+rpc.yang:6: error: EXPECTED_DATA_DEF
+rpc.yang:8: error: EXPECTED_DATA_DEF

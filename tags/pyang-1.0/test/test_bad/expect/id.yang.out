@@ -1,0 +1,14 @@
+id.yang:9: error: CIRCULAR_DEPENDENCY
+id.yang:18: error: FEATURE_NOT_FOUND
+id.yang:21: error: FEATURE_ALREADY_DEFINED
+id.yang:29: error: FEATURE_NOT_FOUND
+id.yang:33: error: CIRCULAR_DEPENDENCY
+id.yang:41: error: IDENTITY_ALREADY_DEFINED
+id.yang:54: error: IDENTITY_NOT_FOUND
+id.yang:59: error: IDENTITY_NOT_FOUND
+id.yang:61: error: UNEXPECTED_KEYWORD
+id.yang:72: error: IDENTITY_NOT_FOUND
+id.yang:78: error: IDENTITY_NOT_FOUND
+id.yang:84: error: BAD_RESTRICTION
+id.yang:90: error: BAD_RESTRICTION
+id.yang:100: error: TYPE_VALUE

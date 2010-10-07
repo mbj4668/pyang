@@ -1,0 +1,90 @@
+module xt4 {
+  namespace "file:///tmp/bar";
+  prefix "xt4";
+  revision '2005-01-01' { description "initinla"; }
+
+  typedef yt {
+    type string {
+      pattern "[x-y]";
+    }
+  }
+  typedef dc1 {
+    type decimal64 {
+      fraction-digits 2;
+      range "1..5.50";
+    }
+    default 1.506;  // error, too many fraction digits
+  }
+  typedef dc2 {
+    type dc1 {
+      range "2..max";
+    }
+    default 3.14;
+  }
+  typedef dc3 {
+    type dc2 {
+      range "min..3.11"; // error, default doesn' match range
+    }
+  }
+  leaf a {
+    type dc1;
+    units "bar";
+  }
+
+  leaf b {
+    type dc1 {
+      require-instance true; // error, not allowed here
+    }
+  }
+
+  leaf c {
+    type leafref {
+      path "/a";
+      require-instance true;
+    }
+  }
+
+  leaf d {
+    type instance-identifier {
+      require-instance true;
+    }
+  }
+
+  typedef ii {
+    type instance-identifier;
+  }
+
+    
+  leaf e {
+    type instance-identifier {
+      require-instance true;
+    }
+  }
+
+  deviation /a {
+    deviate add {
+      default "foo";  // error, not a decimal
+    }
+  }
+
+  deviation /a {
+    deviate add {
+      units "foo"; // error, units exists
+    }
+  }
+
+  deviation /a {
+    deviate add {
+      unique "ref"; // error, invalid addition
+    }
+  }
+
+  deviation /a {
+    deviate delete {
+      must "foo";
+    }
+  }
+
+}
+  
+

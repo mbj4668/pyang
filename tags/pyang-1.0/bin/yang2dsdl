@@ -1,0 +1,247 @@
+#!/bin/bash
+
+# Copyright (c) 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+#
+# Translates YANG module(s) to DSDL schemas and validates instances
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+# Defaults for arguments
+target="data"
+basename=""
+dir="."
+instance=""
+gen_rng_parms=""
+noschema=0
+onlydata=0
+nofeat=0
+jing=0
+
+xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
+rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
+
+usage() {
+    cat <<EOF
+
+Usage: 1. yang2dsdl [-t <target>] [-r] [-d <dir>] [-b <basename>] \\
+                    [-n] [-j] [-v <instance>] <module> ...
+       2. yang2dsdl [-t target] [-d <dir>] [-j] -s -b <basename> \\
+                    -v <instance>
+       3. yang2dsdl -h
+
+Generates DSDL schemas from YANG module(s) and validates
+instance documents.
+
+Options:
+  -h             Displays this help message and exits.
+  -t <target>    Specifies the validation target. The argument <target>
+                 must be one of: "data" (default), "config", "get-reply",
+                 "get-config-reply", "rpc", "rpc-reply" and "notification".
+  -b <basename>  Specifies the basename of files in which the output
+                 schemas are stored. The default is the concatenation
+                 of the names of all input YANG modules connected
+                 with the underscore character "_".
+  -n             Consider all used features as unavailable.
+                 (By default, all are considered available.)
+  -d <dir>       Specifies the directory for output files
+                 (current directory by default).
+  -v <instance>  Validates the instance document in file <instance>.
+  -j             Use jing for RELAX NG validation instead of xmllint.
+  -s             Performs just validation, without (re)generating
+                 the schemas. Only allowed together with -v and -b.
+EOF
+}
+
+gen_relaxng() {
+    echo "== Generating RELAX NG schema '$btname.rng'"
+    xsltproc $XSLT_OPTS --output $btname.rng $gen_rng_parms \
+	--stringparam basename $basename \
+        --stringparam target $target --stringparam rng-lib $rng_lib \
+        $xslt_dir/gen-relaxng.xsl $hybs
+    [[ $? == 0 ]] || exit 2
+    xsltproc $XSLT_OPTS --output $dir/$basename-gdefs.rng $gen_rng_parms \
+        --stringparam gdefs-only 1 $xslt_dir/gen-relaxng.xsl $hybs
+    [[ $? == 0 ]] || exit 2
+    echo "Done."
+}
+
+gen_schematron() {
+    echo -e "\n== Generating Schematron schema '$btname.sch'"
+    xsltproc $XSLT_OPTS --output $btname.sch \
+        --stringparam target $target $xslt_dir/gen-schematron.xsl $hybs
+    [[ $? == 0 ]] || exit 2
+    echo "Done."
+}
+
+gen_dsrl() {
+    echo -e "\n== Generating DSRL schema '$btname.dsrl'"
+    xsltproc $XSLT_OPTS --output $btname.dsrl \
+        --stringparam target $target $xslt_dir/gen-dsrl.xsl $hybs
+    [[ $? == 0 ]] || exit 2
+    echo "Done."
+}
+
+validate() {
+    echo -e "\n== Validating grammar and datatypes ..."
+    if [ -f $btname.rng ] ; then
+	if [[ $jing == "0" ]] ; then
+	    xmllint --noout --relaxng $btname.rng $instance
+	    [[ $? == 0 ]] || exit 3
+	else
+	    jing $btname.rng $instance
+	    [[ $? == 0 ]] || exit 3
+	    echo $instance validates.
+	fi
+    else
+        echo "RELAX NG schema '$btname.rng' not found."
+	exit 2
+    fi
+    echo -en "\n== Adding default values... "
+    if [ -f $btname.dsrl ] ; then
+        xsltproc -o $dsrlxsl $xslt_dir/dsrl2xslt.xsl $btname.dsrl
+	[[ $? == 0 ]] || exit 2
+        xsltproc -o $instwdef $dsrlxsl $instance
+	[[ $? == 0 ]] || exit 3
+        inst4sch=$instwdef
+        echo -e "done."
+    else
+        echo "DSRL schema '$btname.dsrl' not found, no defaults added ..."
+        inst4sch=$instance
+    fi
+    echo -e "\n== Validating semantic constraints ..."
+    if [ -f $btname.sch ] ; then
+        xsltproc $xslt_dir/iso_abstract_expand.xsl $btname.sch | \
+            xsltproc -o $schxsl $xslt_dir/iso_svrl_for_xslt1.xsl -
+        xsltproc $schxsl $inst4sch | xsltproc $xslt_dir/svrl2text.xsl -
+	[[ $? == 0 ]] || exit 3
+    else
+        echo "Schematron schema '$btname.sch' not found, skipping ..."
+    fi
+}
+
+cleanup () {
+    rm -f $hybs $schxsl $dsrlxsl $instwdef
+}
+
+rtfm () {
+    echo 'Please check the manual page or run "yang2dsdl -h"' >&2
+    exit 1
+}
+
+while getopts ":ht:d:b:v:jns" opt ; do
+    case $opt in
+        h)
+            usage
+            exit 0
+            ;;
+        t)
+            target=$OPTARG
+            if [[ $target != "data" && $target != "config" && \
+		$target != "get-reply" && $target != "get-config-reply" \
+                && $target != "rpc" && $target != "rpc-reply" \
+                && $target != "notification" ]]
+            then
+                echo "Invalid argument for -t: $target."
+                rtfm
+            fi
+            ;;
+        d)
+            dir=$OPTARG
+            if [ ! -d $dir ] ; then
+                echo "Directory '$dir' doesn't exist."
+                exit 1
+            fi
+            ;;
+        b)
+            basename=$OPTARG
+            ;;
+        v)
+            instance=$OPTARG
+            if [ ! -f $instance ] ; then
+                echo "File '$instance' not found."
+                exit 1
+            fi
+            ;;
+	j)
+	    jing=1
+	    ;;
+	n)
+	    nofeat=1
+	    ;;
+        s)
+            noschema=1
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG." >&2
+            rtfm
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument."
+	    rtfm
+            ;;
+    esac
+done
+
+if [[ $nofeat == "1" ]] ; then
+    gen_rng_parms='--stringparam features-off 1'
+fi
+
+if [[ $noschema == "1" && $instance == "" ]] ; then
+    echo "Option -s may only be used together with -v."
+    exit 1
+fi
+
+shift $(($OPTIND-1))
+yam=$*
+randext=$(mktemp -u .XXXXXXXX)
+hybs=$dir/dsdl$randext
+schxsl=$dir/sch$randext
+dsrlxsl=$dir/dsrl$randext
+instwdef=$dir/inst$randext
+
+trap "cleanup" 0 1 2 3 15
+
+if [[ $noschema == "0" ]] ; then
+    if [[ $yam == "" ]] ; then
+	echo "No input YANG module given." >&2
+	rtfm
+    elif [ ! -w $dir ] ; then
+        echo "Directory '$dir' not writable."
+        exit 1
+    fi
+    pyang -f dsdl -o $hybs --dsdl-no-documentation \
+        --dsdl-no-dublin-core $yam
+    [[ $? == 0 ]] || exit 2
+    if [[ $basename == "" ]] ; then
+        basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
+    fi
+elif [[ $basename == "" ]] ; then
+    echo "-b <basename> is required with -s option." >&2
+    rtfm
+fi
+
+btname=$dir/$basename-$target
+
+if [[ $noschema == "0" ]] ; then
+    gen_relaxng
+    gen_schematron
+    gen_dsrl
+else
+    echo "== Using pre-generated schemas"
+fi
+
+if [[ $instance != "" ]] ; then
+    validate
+fi
+
+exit 0

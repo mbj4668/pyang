@@ -1,0 +1,26 @@
+module xt8 {
+  ext:foo bar;
+  prefix "xt8";
+  namespace "urn:uri:foo";   // expect namespace before prefix
+
+  smi:oid "1.3.6.4.1";
+
+  import ietf-yang-types { prefix yang; }
+  import ext { prefix ext; }
+  import yang-smi { prefix smi; }
+  contact "hej" { }
+  description "arne" + /* hmm*/ ' ' + 'anka';
+  organization "hopp";  // expected after import
+
+  revision 2001-01-01 { description "2"; }
+  revision 2000-01-11 { description "initinla"; }
+
+  typedef myInt2 {
+    status deprecated;  // expected after type
+    type int8 {
+      range "1 | 5..6";
+    }
+  }
+}
+  
+

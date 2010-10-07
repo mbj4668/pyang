@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+	 xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+	 datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+<define name="config-attribute">
+  <attribute name="nma:config">
+    <data type="boolean"/>
+  </attribute>
+</define>
+
+<define name="default-attribute">
+  <attribute name="nma:default"/>
+</define>
+
+<define name="default-case-attribute">
+  <attribute name="nma:default-case">
+    <data type="boolean"/>
+  </attribute>
+</define>
+
+<define name="error-app-tag-element">
+  <optional>
+    <element name="nma:error-app-tag">
+      <text/>
+    </element>
+  </optional>
+</define>
+
+<define name="error-message-element">
+  <optional>
+    <element name="nma:error-message">
+      <text/>
+    </element>
+  </optional>
+</define>
+
+<define name="instance-identifier-element">
+  <element name="nma:instance-identifier">
+    <optional>
+      <attribute name="nma:require-instance">
+	<data type="boolean"/>
+      </attribute>
+    </optional>
+  </element>
+</define>
+
+<define name="key-attribute">
+  <attribute name="nma:key">
+    <list>
+      <data type="QName"/>
+    </list>
+  </attribute>
+</define>
+
+<define name="leafref-element">
+  <element name="nma:leafref">
+    <optional>
+      <attribute name="nma:require-instance">
+	<data type="boolean"/>
+      </attribute>
+    </optional>
+    <data type="string"/>
+  </element>
+</define>
+
+<define name="min-elements-attribute">
+  <attribute name="nma:min-elements">
+    <data type="integer"/>
+  </attribute>
+</define>
+
+<define name="max-elements-attribute">
+  <attribute name="nma:max-elements">
+    <data type="integer"/>
+  </attribute>
+</define>
+
+<define name="must-element">
+  <element name="nma:must">
+    <attribute name="nma:assert">
+      <data type="string"/>
+    </attribute>
+    <interleave>
+      <ref name="err-app-tag-element"/>
+      <ref name="err-message-element"/>
+    </interleave>
+  </element>
+</define>
+
+<define name="ordered-by-attribute">
+  <attribute name="nma:ordered-by">
+    <choice>
+      <value>user</value>
+      <value>system</value>
+    </choice>
+  </attribute>
+</define>
+
+<define name="presence-attribute">
+  <attribute name="nma:presence">
+    <value>true</value>
+  </attribute>
+</define>
+
+<define name="status-attribute">
+  <attribute name="nma:status">
+    <choice>
+      <value>current</value>
+      <value>deprecated</value>
+      <value>obsolete</value>
+    </choice>
+  </attribute>
+</define>
+
+<define name="unique-attribute">
+  <attribute name="nma:unique">
+    <list>
+      <data type="string"/>
+    </list>
+  </attribute>
+</define>
+
+<define name="units-attribute">
+  <attribute name="nma:units">
+    <data type="string"/>
+  </attribute>
+</define>
+
+<define name="when-attribute">
+  <attribute name="nma:when">
+    <data type="string"/>
+  </attribute>
+</define>
+
+</grammar>

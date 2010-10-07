@@ -1,0 +1,2 @@
+infinite-loop.yang:5: error: CIRCULAR_DEPENDENCY
+infinite-loop.yang:7: error: GROUPING_NOT_FOUND

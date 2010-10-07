@@ -1,0 +1,29 @@
+module xt7 {
+  prefix x;
+  namespace "urn:test:xt7";
+
+     leaf foo {
+       type int16;
+       x:foo "some string";
+     }
+
+     x:foo "another string";
+
+     extension foo {
+       argument bar {
+         yin-element false;
+       }
+     }
+
+  grouping baz {
+    leaf x {
+      type int32;
+    }
+  }
+  uses baz {
+    refine x {
+      default 42;
+    }
+  }
+
+}

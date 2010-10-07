@@ -1,0 +1,339 @@
+module/*hej*/xt1 {
+  namespace "urn:uri:foo"; // test this
+  prefix "xt1";
+  import xt2 { prefix xt2; } // warning: unused import
+  import xt3 { prefix xt3; }
+  import ietf-yang-types { prefix yang; } // warning: unused import
+  include xt1s1;
+  include xt1s2;
+  organization "hopp";
+  contact "hej" {
+    xt3:test hej {xt3:hemm he;}
+    xt3:test hej {xt3:hemm he;}
+  }
+  description "arne" + /* hmm*/ ' ' + 'anka';
+  revision 2000-01-11 { description "initinla"; }
+  revision 2001-01-01 { description "2"; } // warning: not reverse order
+
+  typedef gg {
+    type xt3:t0 {
+      length "1..2 | 3..4";
+    }
+  }
+
+  typedef uint16 { // error: can't redefine builtin type
+    type int32;
+  }
+
+
+  typedef myInt1 {
+    type int16;
+  }
+  typedef myInt2 {
+    type myInt1 {
+      range "1 | 5..6";
+    }
+    status deprecated;
+  }
+  typedef myInt3 {
+    type myInt2 {
+      range "1 | 5";
+    }
+    description
+      "this is a very interesting type.
+       this is also a sentence.";
+  }
+
+  typedef myStr {
+    type string {
+      length "2..5";
+      pattern "[a-e]*";
+    }
+  }
+
+  typedef myStr2 {
+    type myStr {
+      length "3";
+      pattern "b.*";
+      pattern ".*e";
+    }
+  }
+
+  typedef myEn {
+    type enumeration {
+      enum enabled {value 1;}
+      enum disabled;
+    }
+  }
+
+  leaf ss {
+    type myStr;
+    description "hej";
+    default "aabde";
+  }
+
+  leaf ss2 {
+    type myStr2;
+    default "bbe";
+  }
+
+  leaf ss3 {
+    type myStr2;
+    default "bbb"; // error: pattern mismatch
+  }
+
+
+  leaf foo {
+    type myInt2;
+    default "1";
+  }
+
+  leaf foox {
+    type xt3:bazInt;
+    default "10";
+  }
+
+  container bar {
+    description 
+      "hej dsfh sdf jdfkjdsfjk
+       ksdf sdfj dsfljk";
+    leaf arne {
+      type int32 {
+      }
+      
+      default -1;
+    }
+    leaf kalle {
+      type string {
+	length '1..3 | 5 |' + ' 6..7';
+	pattern '[a-z]*';
+      }
+      default "hej";
+    }
+    list interface {
+      key "ifIndex";
+      leaf ifIndex {
+        type uint32;
+      }
+    }
+  }
+
+  augment "/bar" {
+    container qwerty {
+      leaf e1 { type int32; }
+    }
+  }
+
+  augment "/bar" {
+      leaf qwerty {  // error: qwerty already exists
+          type uint32;
+      }
+  }
+
+  grouping Bar {
+    leaf x { type int32; }
+    leaf y { type int32; }
+  }
+
+  grouping Foo {
+    choice xx {
+      default c; // error: no such case
+      leaf a { type int32; }
+      leaf b { type int32; }
+    }
+    uses Bar {
+      description "hej";
+      reference "ds";
+      refine y;
+    }
+    leaf c  { type int32; }
+    leaf f {
+      type decimal64 { fraction-digits 2; }
+      default 2.0;
+    }
+    leaf bb {
+      type boolean;
+      default "true";
+    }
+    leaf e {
+      type enumeration {
+	enum 'hej' { value 1; }
+	enum 'hopp' {value -9999991;} 
+	enum 'hejx';
+      }
+    }
+  }
+
+  container bax {
+    uses Foo {
+      refine x { default 12099;  }
+      refine c;
+    }
+
+    list ul {
+      key x;
+      unique "c/a c/b";
+      leaf z {type int32;}
+      uses Bar {
+	refine x {default 103239;}
+	refine y; 
+      }
+      list c {
+	config false;
+	leaf a { type int32; }
+	leaf b { type int32; }
+      }
+    }
+  }
+
+  container e1 {
+    grouping g {
+      choice err1 { 
+	leaf y { type int32; }
+      }
+    }
+    leaf err1 { type int32; }
+    uses g; // error: err1 already defined
+  }
+
+  container e2 {
+    grouping g {
+      choice y {
+	leaf err2 { type int32; }
+      }
+    }
+    uses g; 
+    leaf err2 { type int32; } // error: err2 already defined!
+  }
+
+  grouping ww {
+    list a {
+      leaf b { type int32; }
+    }
+  }
+
+  container err3 {
+    uses ww; // error: need a key since it's config
+  }
+
+  container ok2 {
+    config false;
+    uses ww;  // ok: does not need a key since it's non-config
+  }
+
+  typedef myInt4 {
+    type myInt2 {
+      range "1..1 | 5..2"; // error: illegal range
+    }
+  }
+
+  typedef myInt5 {
+    type myInt2 {
+      range "1 | 5..2"; // error: illegal range
+    }
+  }
+
+  typedef interfaceName {
+    type string {
+      length "1..30";
+      pattern "[A-Za-z][^/:.]*";
+    }
+  }
+
+
+  leaf incomplete {
+    // error: missing type keyword
+    config true;
+  }
+
+    container fooxx {
+        typedef x {
+            type string {
+                pattern "a.*";
+                pattern ".*b";
+                length "3|5|7";
+            }
+        }
+        leaf y {
+            type x {
+                length "3|7";
+            }
+            default "a.b";  // ok
+        }
+        leaf z1 {
+            type x;
+            default "a..b";  // nok - length error
+        }
+        leaf z2 {
+            type x {
+                length "3|7";
+            }
+            default "a...b";  // nok - length error
+        }
+        leaf z3 {
+            type x;
+            default "a.x";  // nok - pattern error
+        }
+    }
+  
+    augment /sub1 { // ok: node defined in submodule
+        leaf z {
+            type int32;
+        }
+    }
+
+    augment /sub2 { // error: does not exist
+        leaf z {
+            type int32;
+        }
+    }
+
+
+  grouping x {
+    container a {
+      container b {
+        leaf c {
+          type uint32;
+        }
+      }
+    }
+  }
+
+  container yy {
+    container r {}
+    uses x {
+      augment r { // error: can augment from the uses only
+        leaf d {
+          type int32;
+        }
+      }
+      augment a/b {
+        leaf c { // error: c already defined
+          type string;
+        }
+      }
+      augment a/b {
+        leaf d { 
+          type string;
+        }
+      }
+      augment /bar/interface { // error: absolute form not allowed
+        leaf e { 
+          type string;
+        }
+      }
+    }
+  }
+
+
+  augment "bar" { // error; descendant form is not allowed
+    container bar {
+      leaf e1 { type int32; }
+    }
+  }
+
+
+
+}
+  
+

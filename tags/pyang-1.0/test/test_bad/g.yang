@@ -1,0 +1,73 @@
+module g {
+    namespace "urn:g";
+    prefix g;
+    
+    grouping ww {
+        list a {
+            leaf b { type int32; }
+        }
+    }
+
+    container f {
+        uses ww; // error: list a needs a key
+        leaf bar {
+            type leafref {
+                path "../h/b"; // error: b not key
+            }
+        }
+        list h {
+            key a;
+            leaf a {
+                type int32;
+            }
+            leaf b {
+                type int32;
+            }
+        }
+    }
+
+    rpc foo {
+        input d { // error: bad argument
+            container x;
+        }
+    }
+    augment "/foo/d/x" { // error: d/x not found
+        leaf a {
+            type int32;
+        }
+    }
+
+    rpc xfoo {
+        typedef a1 {
+            type uint32;
+        }
+        grouping a2 {
+            leaf x {
+                type a1;
+                default "-1"; // error: bad default
+            }
+        }
+        typedef a3 {
+            type a1 {
+                range "10..max";
+            }
+        }
+        grouping a4 {
+            leaf y {
+                type a3;
+                default 1; // error: bad default
+            }
+        }
+        input {
+            uses a4 {
+                refine y {
+                    default 2; // error: bad default
+                }
+            }
+        }
+        input { // error: multiple input
+            uses a2;
+        }
+    }
+
+}

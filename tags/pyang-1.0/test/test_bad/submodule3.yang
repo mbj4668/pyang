@@ -1,0 +1,10 @@
+submodule submodule3 {
+
+  belongs-to composite {
+    prefix c; 
+  }
+
+  typedef foo {
+    type string;
+  }
+}

@@ -1,0 +1,103 @@
+module yt5a {
+
+    yt5a:b test-bb {
+      yt5a:a test-aa;
+    }
+
+
+    yt5a:c "testing five six" {
+      yt5a:d {
+        yt5a:a foo {
+          yt5a:a bar;
+        }
+      }
+   }
+
+    namespace "urn:ietf:params:xml:ns:yang:yt5a";
+    prefix "yt5a";
+
+    import ietf-yang-types { prefix yt; }
+    import yt3 { prefix yt3; }
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 5.";
+
+    typedef un-1 {
+      type union {
+        type union {
+          type int32;
+          type binary;
+          type union {
+            type string;
+            type string;
+            type boolean;
+          }
+        }
+        type int64;
+      }
+    }
+
+    grouping X {
+      grouping XX {
+        leaf x { type yt:counter32; }
+      }
+      leaf z { type XXt; }
+      container zz {
+        uses XX;
+      }
+      typedef XXt { type int32; }
+    }
+
+    list list1 {
+      unique ___;
+      unique "zz/x ___ zz/x"; // should be error
+      unique leaf;
+
+      leaf ___ { 
+        mandatory false;
+        type union {
+          type int32;
+          type uint32;
+          type yt3:t8;
+        }
+      }
+
+      leaf _x_ { type un-1; default 7; }
+ 
+      config true;
+
+      uses X;
+
+      leaf "leaf" {
+        type 'yt3:t10';
+        default 4.576;
+      }
+
+      key "leaf z ___  _x_";
+    }
+
+    extension a {
+      description "test 1a";
+      reference "test 1a ref";
+      argument aa { yin-element true; }
+    }
+
+    extension b {
+      description "test 1b";
+      reference "test 1b ref";
+      argument bb { yin-element true; }
+    }
+
+    extension c {
+      argument cc;
+    }
+
+    extension d;
+
+}   

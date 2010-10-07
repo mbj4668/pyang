@@ -1,0 +1,98 @@
+   1.0 - 2010-10-07
+        compatible with RFC 6020
+
+        added yang2dsdl(1) program
+        added tree output format
+        added depend output format
+
+        too many bugfixes to list them all
+
+   0.9.3 - 2008-12-07
+        compatible with draft-ietf-netmod-yang-02
+        rewrote validation code.  got rid of all the specialized classes
+        handle circular defintions
+        removed command-line option --level.  print warnings and errors
+          instead
+        added command-line option -Werror to treat warning as errors
+        added command-line option -Wnone to suppress warning
+        handle auto-assignment of enum values and bit positions
+        allow plugins to register grammar for extensions
+        added a plugin for the 'yang-smi' SMIv2 module
+	rewrote yin_parser - now handles extensions properly
+        added bin/yang2html which can be used to syntax coloring of yang
+          modules
+        new algorithm for finding standard YANG modules (see pyang(1))
+
+   0.9.2 - 2008-10-13
+        handle prefixed references to local groupings
+        make use of path argument given to pyang
+        handle multiple patterns
+        allow refinements in any order
+        fixed bug where a grouping defined in a submodule was not
+          detected (if the submodule was included more than once)
+        fixed length and range validation bug across mutiple YANG modules.
+        allow 'must' and 'config' in 'choice'
+        allow 'must' in 'case'
+        added some initial text describing code layout to README
+
+        XSD: report some XSD error conditions that used to cause XSD
+          translation to silently fail to stderr
+        XSD: added --xsd-break-pattern command line option
+          (thanks to Juergen Schoenwaelder)
+        XSD: added --xsd-no-lecture command line option
+        XSD: fixed XSD output bug in some rare cases involving typedef chains
+
+	DSDL: corrected handling of multiple length alternatives
+	DSDL: added TODO
+	DSDL: added support for multiple patterns in string restrictions
+	DSDL: added xmlns declaration for the data model NS
+	DSDL: $this in must-stmt is now replaced with current()
+	  rather than '.'
+	DSDL: local top-level named patterns now don't start with '__'
+	DSDL: added XSLT stylesheet that separates DSRL
+
+        known issue: augmenting the input parameters of an rpc that is
+          declared without any input parameters does not work
+        known issue: an error is not reported if the same node is added
+          twice via an augment
+	known issue: chained derivation of types doesn't work properly
+	  in the DSDL translator
+
+   0.9.1 - 2008-07-08
+        rewrote yang parser
+        added yin parser
+        added dsdl output
+        added yang output
+        more internal restructuring
+
+   0.9.0b - 2008-05-19
+        first release of restructured code
+
+   02.2 - 2008-02-21
+        fixed some xsd output bugs
+        fixed bug in refinmenet, where a valid refinmened would
+          generate a duplicate node definition error
+        fixed range/length check bug
+        verify that a list in a grouping which is used from config
+          has keys
+        internal preparation for major restructure of the code
+
+   02.1 - 2008-02-06
+        draft-bjorklund-netconf-yang-02 compliant.
+
+   01.3 - 2008-02-01
+        draft-bjorklund-netconf-yang-01 compliant.
+
+   00.2 - 2008-01-15
+        fixed grouping translation in XSD output
+        generate YIN appinfo by default in XSD output
+        added validation of identifiers
+        handle min/max in length and range expressions
+        handle must in leaf refinement
+        handle yin-element in extensions
+        handle bits types in XSD generation
+        xs:key generation fix in XSD output by John Dickinson
+
+   00.1 - 2007-11-14
+        Initial version, draft-bjorklund-netconf-yang-00 compliant.
+

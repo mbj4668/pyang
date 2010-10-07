@@ -1,0 +1,28 @@
+module b {
+    namespace "urn:b";
+    prefix b;
+    import a { prefix a; }
+    import b { prefix bb; }
+    
+    typedef xx {
+        type a:xx {
+            pattern "a.*";
+            pattern ".*b";
+            length "3|5|7";
+        }
+    }
+
+    container foo {
+        typedef x {
+            type string;
+        }
+        leaf y {
+            type x {
+                length "3|7";
+            }
+            default "a.b";
+        }
+    }
+}
+
+            

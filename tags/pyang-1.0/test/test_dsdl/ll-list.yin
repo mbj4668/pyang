@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-list"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/list">
+  <namespace uri="http://example.com/ll/list"/>
+  <prefix value="li"/>
+  <description>
+    <text>Test module - list.</text>
+  </description>
+  <revision date="2010-04-29"/>
+  <list name="list-1">
+    <key value="leaf-1 leaf-2"/>
+    <unique tag="leaf-3 li:leaf-4"/>
+    <leaf name="leaf-3">
+      <type name="string">
+	<length value="0..1"/>
+      </type>
+    </leaf>
+    <uses name="key-1"/>
+    <grouping name="key-1">
+      <uses name="key-2"/>
+      <leaf name="leaf-1">
+	<type name="boolean"/>
+      </leaf>
+    </grouping>
+  </list>
+  <list name="list-2">
+    <config value="false"/>
+    <min-elements value="2"/>
+    <leaf name="leaf-1">
+      <mandatory value="true"/>
+      <type name="boolean"/>
+    </leaf>
+    <leaf name="leaf-2">
+      <type name="empty"/>
+    </leaf>
+  </list>
+  <grouping name="key-2">
+    <leaf name="leaf-4">
+      <type name="string"/>
+    </leaf>
+    <leaf name="leaf-2">
+      <type name="uint8"/>
+      <default value="42"/>
+    </leaf>
+  </grouping>
+</module>

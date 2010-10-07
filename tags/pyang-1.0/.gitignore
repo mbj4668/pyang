@@ -1,0 +1,7 @@
+MANIFEST
+TAGS
+dist
+*.rnc
+schemas.xml
+*.pyc
+*.html

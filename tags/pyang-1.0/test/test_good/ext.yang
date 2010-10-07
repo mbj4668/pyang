@@ -1,0 +1,10 @@
+module ext {
+  namespace "urn:test:ext";
+  prefix ext;
+  include ext-meta;
+  extension foo {
+    argument val {
+      ext:arg-type "string";
+    }
+  }
+}

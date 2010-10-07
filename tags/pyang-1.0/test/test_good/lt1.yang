@@ -1,0 +1,88 @@
+module lt1 {
+    namespace "http://example.com/lt1";
+    prefix lt1;
+    grouping foo {
+        list feuillage {
+            description "Local feuillage docstring";
+            uses bar {
+                refine blatt {
+                    default "beech";
+                }
+            }
+            uses baz {
+                refine "leaves" {
+                    default cz;
+                }
+                refine "leaves/cz/lupen" {
+                    min-elements 0;
+                }
+                refine "leaves/dustbin/dustbin/hoja" {
+                    description "Refined description of hoja";
+                }
+            }
+            key "feuille";
+        }
+        anyxml rubbish;
+    }
+    typedef trees {
+        type enumeration {
+	    enum "oak";
+	    enum "beech";
+	    enum "birch";
+	    enum "elm";
+	    enum "linden";
+        }
+        default "oak";
+    }
+    grouping bar {
+        leaf blatt {
+	    default "linden";
+            type trees;
+        }
+        leaf feuille {
+            type int8;
+            must ". > 40";
+        }
+    }
+    grouping baz {
+        choice leaves {
+            case cz {
+                leaf-list lupen {
+                    description "Base desc. of lupen";
+                    type string;
+	            max-elements 3;
+                 }
+            }
+            list dustbin {
+                key hoja;
+                leaf hoja {
+                    description "Base desc. of hoja";
+                    type string;
+                }
+            }
+        }
+    }
+    uses foo {
+        augment "feuillage" {
+            leaf foo {
+                description "augmented foo description";
+                type string;
+            }
+        }
+	refine "feuillage/feuille" {
+            must ". <= 100";
+	}
+        refine "feuillage/blatt" {
+            default "birch";
+        }
+	refine "feuillage/leaves/lt1:cz/lupen" {
+            description "Refined desc. of lupen";
+//	    min-elements 1;
+	    max-elements 2;
+	}
+        refine feuillage {
+            min-elements 1;
+            reference "feuillage reference";
+        }
+    }
+}

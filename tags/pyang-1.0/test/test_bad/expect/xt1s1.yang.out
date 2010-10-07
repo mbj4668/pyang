@@ -1,0 +1,9 @@
+xt1s1.yang:7: error: PREFIX_NOT_DEFINED
+xt3.yang:4: error: UNEXPECTED_KEYWORD_1
+xt4.yang:16: error: TYPE_VALUE
+xt4.yang:24: error: TYPE_VALUE
+xt4.yang:36: error: BAD_RESTRICTION
+xt4.yang:66: error: TYPE_VALUE
+xt4.yang:72: error: BAD_DEVIATE_ADD
+xt4.yang:78: error: BAD_DEVIATE_TYPE
+xt4.yang:84: error: BAD_DEVIATE_DEL

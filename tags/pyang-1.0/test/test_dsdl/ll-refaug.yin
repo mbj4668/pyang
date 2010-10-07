@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-refaug"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/refaug">
+  <namespace uri="http://example.com/ll/refaug"/>
+  <prefix value="ra"/>
+  <description>
+    <text>Test module - refines and augments.</text>
+  </description>
+  <grouping name="group-1">
+    <list name="list-1">
+      <key value="leaf-2 leaf-1"/>
+      <leaf name="leaf-1">
+	<type name="uint8"/>
+      </leaf>
+      <leaf name="leaf-5">
+	<type name="int32"/>
+      </leaf>
+      <container name="cont-1">
+      <leaf name="leaf-3">
+	<type name="string"/>
+      </leaf>
+      <leaf name="leaf-4">
+	<type name="uint16"/>
+	<mandatory value="true"/>
+      </leaf>
+      </container>
+    </list>
+  </grouping>
+  <grouping name="group-2">
+    <uses name="group-1">
+      <augment target-node="list-1">
+	<uses name="group-5"/>
+      </augment>
+    </uses>
+  </grouping>
+  <grouping name="group-3">
+    <uses name="group-2"/>
+  </grouping>
+  <grouping name="group-4">
+    <uses name="group-3"/>
+  </grouping>
+  <grouping name="group-5">
+    <leaf name="leaf-2">
+      <type name="boolean"/>
+    </leaf>
+  </grouping>
+  <uses name="group-4">
+    <refine target-node="list-1/cont-1/leaf-3">
+      <default value="42"/>
+    </refine>
+  </uses>
+</module>

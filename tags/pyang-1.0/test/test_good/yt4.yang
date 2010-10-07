@@ -1,0 +1,78 @@
+module yt4 {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt4";
+    prefix "yt4";
+
+    import yt3 { prefix yt3; }
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 4.";
+
+    revision 2007-12-13 {
+        description "Initial revision.";
+    }
+
+    container con1 {
+
+      grouping con1_grp1 {
+        leaf b { 
+          type yt3:Num3;
+          default -17;
+          config true;
+          units seconds;
+          // mandatory true;
+          reference +;
+        }
+	leaf a_ { type con1_typ1; }
+      }
+
+      list con1_list1 {
+        reference "RFC 4741";
+        leaf xx { type con1_typ1; }
+        leaf xxx { type yt4:con1_typ1; }
+        uses con1_grp1 {
+          refine a_ { default y; }
+          refine b { 
+            description "new b";
+            default 4;
+            mandatory "fa" + "lse";
+          }
+        }
+        leaf zz { type zz_type; }
+
+        typedef zz_type {
+          default 7;
+          type string;
+        }
+
+        key xx;
+
+        max-elements unbounded;
+        min-elements "5";
+
+        leaf bax {
+          type yt3:t17;
+        }
+
+
+      }
+
+      leaf yy { type int32; }
+
+      typedef con1_typ1 {
+        type enumeration {
+          enum x;
+          enum y;
+        }
+      }
+
+   }
+
+
+}

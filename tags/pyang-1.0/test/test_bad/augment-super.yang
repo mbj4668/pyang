@@ -1,0 +1,44 @@
+ module augment-super {
+	namespace "http://example.com/augmentsuper";
+	prefix "as";
+
+	include augment;
+
+	augment "/as:interfaces" {
+		leaf ifEntry {
+			type int8;
+		}
+	}
+
+	augment "/as:interfaces" {
+          container x {
+            container y {
+              leaf foo {
+                type int8;
+                mandatory true; // error, mandatory node
+              }
+            }
+            list z {
+              key k;
+              min-elements 2; // error, mandatory node
+              leaf k {
+                type int32;
+              }
+              leaf t {
+                type int32;
+                mandatory true;
+              }
+            }
+            grouping bar {
+              leaf q {
+                type int32;
+                mandatory true;
+              }
+            }
+            uses bar; // error, mandatory node
+          }
+	}
+}
+
+
+

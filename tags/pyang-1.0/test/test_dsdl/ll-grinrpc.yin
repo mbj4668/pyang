@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-grinrpc"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/grinrpc">
+  <namespace uri="http://example.com/ll/grinrpc"/>
+  <prefix value="gr"/>
+  <description>
+    <text>Test module - grouping used both in data and RPC.</text>
+  </description>
+  <grouping name="group-1">
+    <list name="list-1">
+      <key value="leaf-2 leaf-1"/>
+      <leaf name="leaf-1">
+	<type name="uint8"/>
+      </leaf>
+      <leaf name="leaf-3">
+	<type name="string"/>
+      </leaf>
+      <leaf name="leaf-4">
+	<type name="uint16"/>
+	<mandatory value="true"/>
+      </leaf>
+      <leaf name="leaf-2">
+	<type name="int32"/>
+      </leaf>
+    </list>
+  </grouping>
+  <container name="cont-1">
+    <uses name="group-1"/>
+  </container>
+  <rpc name="rpc-1">
+    <input>
+      <uses name="group-1"/>
+    </input>
+  </rpc>
+</module>

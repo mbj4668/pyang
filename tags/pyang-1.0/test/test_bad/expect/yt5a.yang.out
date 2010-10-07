@@ -1,0 +1,5 @@
+yt5a.yang:20: error: MODULE_NOT_FOUND
+yt5a.yang:59: error: DUPLICATE_UNIQUE
+yt5a.yang:63: warning: KEY_HAS_MANDATORY_FALSE
+yt5a.yang:71: warning: KEY_HAS_DEFAULT
+yt5a.yang:79: warning: KEY_HAS_DEFAULT

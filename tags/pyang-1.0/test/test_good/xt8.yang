@@ -1,0 +1,151 @@
+module xt8 {
+  prefix x;
+  namespace "urn:test:xt8";
+  
+  container x {
+    list a {
+      key a1;
+      leaf a1 {
+        type string;
+      }
+      leaf a2 {
+        type string;
+      }
+      leaf-list a3 {
+        type string;
+      }
+
+      list b {
+        key "b1 x:b2";
+        leaf b1 {
+          type string;
+        }
+        leaf b2 {
+          type string;
+        }
+
+        list c {
+          key c1;
+          leaf c1 {
+            type string;
+          }
+          leaf c2 {
+            type int32;
+          }
+        }
+      }
+    }
+
+    container ref1 {
+      leaf ra1 {
+        type leafref {
+          path "/x/a/a1";
+        }
+      }
+      leaf rb1 {
+        type leafref {
+          path "/x/a[a1 = current()/../ra1]/b/b1";
+        }
+      }
+      leaf rb2 {
+        type leafref {
+          path "/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1]/b2";
+        }
+      }
+      leaf rc1 {
+        type leafref {
+          path "/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1]"
+             + "[b2 = current()/../rb2]/c/c1";
+        }
+      }
+      leaf rc2 {
+        type leafref {
+          path "/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1]"
+             + "[b2 = current()/../rb2]/c/c2";
+        }
+      }
+      leaf dc1 {
+        type decimal64 {
+          fraction-digits 3;
+          range "1..5.5";
+        }
+        default 1.506;
+      }
+      leaf ra2 {
+        type leafref {
+          path "/x/a/a2";
+        }
+      }
+      leaf ra3 {
+        type leafref {
+          path "/x/a/a3";
+        }
+      }
+    }
+  }
+
+  grouping g {
+    container c1 {
+      config false;
+    }
+  }
+  
+  uses g {
+    augment "c1" {
+      container c2;
+    }
+  }
+
+
+   grouping g2 {
+       container c12 {
+       }
+   }
+
+   uses g2 {
+       augment "c12" {
+           container c22 {}
+           leaf lm1 {
+             type string;
+             mandatory true;
+           }
+       }
+   }
+
+   augment "/c12/c22" {
+       container c32 {}
+   }
+
+  container xx {
+    list a {
+      key name;
+      leaf name {
+        type string;
+      }
+    }
+    choice c {
+      case a {
+        leaf aref {
+          type leafref {
+            path "../a/name";
+          }
+        }
+        list yy {
+          key name;
+          leaf name {
+            type string;
+          }
+        }
+      }
+      case b {
+        leaf yyref {
+          type leafref {
+            path "/xx/yy/name";
+          }
+        }
+      }
+    }
+  }
+
+}
+

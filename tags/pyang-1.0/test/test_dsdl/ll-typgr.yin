@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-typgr"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/typgr">
+  <namespace uri="http://example.com/ll/typgr"/>
+  <prefix value="tg"/>
+  <description>
+    <text>Test module - typedefs and grouping.</text>
+  </description>
+  <typedef name="typ-2">
+    <type name="typ-3">
+      <range value="1|3..max"/>
+    </type>
+    <default value="7"/>
+  </typedef>
+  <typedef name="typ-3">
+    <type name="uint8">
+      <range value="1..12"/>
+    </type>
+  </typedef>
+  <container name="cont-1">
+    <uses name="gr-1"/>
+    <leaf name="leaf-3">
+      <mandatory value="true"/>
+      <type name="typ-3"/>
+    </leaf>
+  </container>
+  <grouping name="gr-1">
+    <typedef name="typ-1">
+      <type name="typ-2"/>
+    </typedef>
+    <container name="cont-2">
+      <leaf name="leaf-1">
+	<type name="string">
+	  <length value="1|3..5|7"/>
+	  <pattern value="[a-z]*&amp;[a-z]*"/>
+	</type>
+	<default value="foo&amp;bar"/>
+      </leaf>
+      <leaf name="leaf-2">
+	<type name="typ-1"/>
+      </leaf>
+    </container>
+  </grouping>
+</module>

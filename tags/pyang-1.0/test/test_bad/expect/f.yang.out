@@ -1,0 +1,4 @@
+f.yang:11: error: NEED_KEY
+f.yang:25: error: INVALID_CONFIG
+f.yang:36: error: BAD_TYPE_IN_KEY
+f.yang:38: error: BAD_UNIQUE_PART

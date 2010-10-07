@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc message-id="101" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <rpc-1 xmlns="http://example.com/ll/rpcnot">
+    <list-1>
+      <leaf-4>foo</leaf-4>
+      <leaf-3>bar</leaf-3>
+    </list-1>
+    <list-1>
+      <leaf-4>fool</leaf-4>
+      <leaf-3>bar</leaf-3>
+    </list-1>
+  </rpc-1>
+</nc:rpc>

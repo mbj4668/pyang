@@ -1,0 +1,12 @@
+module bad-uses {
+  namespace "urn:test:cyclic-groupings";
+  prefix "cyclic-groupings";
+  
+  grouping target {
+    leaf address {
+      uses target; // error: 'uses' not allowed in 'leaf'
+      type int8;
+    }
+  }
+}
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc-reply message-id="6378"
+	      xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <nc:data xmlns="http://example.com/ll/leaf">
+    <leaf-2>2.71</leaf-2>
+    <seznam>
+      <clef>1</clef>
+    </seznam>
+    <seznam>
+      <clef>2</clef>
+    </seznam>
+  </nc:data>
+</nc:rpc-reply>

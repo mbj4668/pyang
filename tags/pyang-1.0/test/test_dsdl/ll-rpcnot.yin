@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-rpcnot"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/rpcnot">
+  <namespace uri="http://example.com/ll/rpcnot"/>
+  <prefix value="rn"/>
+  <description>
+    <text>Test module - rpc and notification.</text>
+  </description>
+  <container name="cont-1">
+    <leaf name="leaf-1">
+      <type name="uint8"/>
+    </leaf>
+    <leaf name="leaf-2">
+      <type name="int8"/>
+    </leaf>
+  </container>
+  <rpc name="rpc-1">
+    <input>
+      <list name="list-1">
+	<key value="leaf-4"/>
+	<leaf name="leaf-3">
+	  <type name="string"/>
+	</leaf>
+	<leaf name="leaf-4">
+	  <type name="string"/>
+	</leaf>
+      </list>
+    </input>
+    <output>
+      <leaf name="leaf-6">
+	<type name="boolean"/>
+	<default value="true"/>
+      </leaf>
+      <leaf name="leaf-7">
+	<type name="binary"/>
+	<mandatory value="true"/>
+      </leaf>
+    </output>
+  </rpc>
+  <rpc name="rpc-2">
+    <input>
+      <list name="list-1">
+	<key value="leaf-4"/>
+	<leaf name="leaf-4">
+	  <type name="string"/>
+	</leaf>
+	<leaf name="leaf-5">
+	  <type name="string"/>
+	</leaf>
+      </list>
+    </input>
+  </rpc>
+  <notification name="notif-1">
+    <leaf name="leaf-8">
+      <type name="int16"/>
+    </leaf>
+  </notification>
+  <notification name="notif-2">
+    <leaf name="leaf-a">
+      <type name="uint8"/>
+    </leaf>
+    <leaf name="leaf-9">
+      <type name="enumeration">
+	<enum name="foo">
+	  <value value="4"/>
+	</enum>
+	<enum name="bar">
+	  <value value="2"/>
+	</enum>
+      </type>
+    </leaf>
+  </notification>
+</module>

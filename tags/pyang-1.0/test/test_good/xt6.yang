@@ -1,0 +1,18 @@
+module xt6 {
+
+  namespace "urn:test:xt6";
+  prefix xt6;
+
+  import xt5 {
+    prefix xt5;
+  }
+
+  uses xt5:x;
+
+  xt5:foo "barbar";
+
+  leaf y {
+    type xt5:xc;
+  }
+
+}

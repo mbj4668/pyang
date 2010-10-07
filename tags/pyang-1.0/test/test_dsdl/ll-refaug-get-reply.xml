@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc-reply message-id="101" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <nc:data xmlns="http://example.com/ll/refaug">
+    <list-1>
+      <leaf-2>true</leaf-2>
+      <leaf-1>59</leaf-1>
+      <cont-1>
+	<leaf-4>6378</leaf-4>
+      </cont-1>
+    </list-1>
+    <list-1>
+      <leaf-2>true</leaf-2>
+      <leaf-1>51</leaf-1>
+      <cont-1>
+	<leaf-4>6378</leaf-4>
+	<leaf-3>3</leaf-3>
+      </cont-1>
+    </list-1>
+  </nc:data>
+</nc:rpc-reply>

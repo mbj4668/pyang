@@ -1,0 +1,27 @@
+module yt8 {
+
+    namespace "urn:ietf:params:xml:ns:yang:yt8";
+    prefix "yt8";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "ietf@andybierman.com";
+
+    description
+        "YANG test module 8.";
+
+    revision 2008-02-12 {
+        description "Initial revision.";
+    }
+
+    typedef foo {
+      type int32 {
+        range "-42 | -2 .. +7 | 8 | 41 | 42" {
+        }
+      }
+    }
+      
+}
+

@@ -1,0 +1,39 @@
+module xt3 {
+  namespace "http://tmp/foo/bar";
+  // prefix "xt3";  // error: prefix missing
+  import xt4 { prefix xt4; }
+  organization "hopp";
+  contact "hej";
+  description "arne" + /* hmm*/ ' ' + 'anka';
+  revision '2005-01-01' { description "initinla"; }
+
+  extension test {
+     argument name;
+  }
+
+  typedef bazInt {
+    type int16;
+  }
+
+  typedef yt {
+    type string {
+      pattern "[x-y]";
+    }
+  }
+
+  typedef t0 {
+    type xt4:yt {
+      length "1..5 | 11..20";
+      pattern "[x-y]*";
+    }
+  }
+
+  extension hemm {
+     argument data {
+         yin-element true;
+     }
+  }
+
+}
+  
+

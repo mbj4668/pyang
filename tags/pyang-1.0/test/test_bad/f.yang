@@ -1,0 +1,53 @@
+module f {
+    namespace "urn:f";
+    prefix f;
+    
+    grouping xxx {
+        leaf z4 {
+            type int32;
+        }
+    }
+
+  list gg { // error: needs key
+    leaf foo {
+      type int32;
+    }
+  }
+
+  container x {
+    config false;
+    list gg2 { 
+      leaf foo {
+        type int32;
+      }
+    }
+    leaf bar {
+      config true; // error: config true when parent config is false
+      type string;
+    }
+
+  }
+
+  list ff {
+    typedef ee { // warning: not used
+      type empty;
+    }
+
+    key "z1 z4 z2"; // error: z2 is empty
+
+    unique "foo"; // error: foo does not exist
+
+    leaf z1 {
+      type int32;
+    }
+
+    leaf z2 {
+      type ee;
+    }
+
+    uses xxx;
+
+  }
+
+
+}

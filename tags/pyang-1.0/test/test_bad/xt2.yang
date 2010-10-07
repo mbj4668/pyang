@@ -1,0 +1,10 @@
+module xt2 {
+  namespace "xt2"; // error: illegal urn
+  prefix "xt2";
+  organization "hopp";
+  contact "hej";
+  description "arne" + /* hmm*/ ' ' + 'anka';
+  revision "2008-01-01" { description "initinla"; }
+}
+  
+

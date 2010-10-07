@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-2mod-a"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:ta="http://example.com/ll/2mod-a">
+  <namespace uri="http://example.com/ll/2mod-a"/>
+  <prefix value="ta"/>
+  <import module="ietf-yang-types">
+    <prefix value="yang"/>
+  </import>
+  <container name="outer">
+    <grouping name="g">
+      <leaf name="month">
+	<must condition=". != 4">
+	  <error-message>
+	    <value>April is not allowed!</value>
+	  </error-message>
+	</must>
+	<type name="dozen"/>
+      </leaf>
+      <leaf name="c">
+	<when condition="../month=5"/>
+	<type name="empty"/>
+      </leaf>
+    </grouping>
+    <typedef name="dozen">
+      <type name="uint8">
+	<range value="1..12"/>
+      </type>
+    </typedef>
+    <list name="aitems">
+      <key value="month"/>
+      <min-elements value="2"/>
+      <max-elements value="3"/>
+      <uses name="g"/>
+      <container name="inner">
+	<uses name="globg"/>
+	<leaf name="psc">
+	  <type name="zip-code"/>
+	</leaf>
+      </container>
+    </list>
+  </container>
+  <rpc name="rock-the-house">
+    <input>
+      <leaf name="zip">
+	<type name="ta:zip-code"/>
+      </leaf>
+    </input>
+  </rpc>
+  <notification name="event">
+    <leaf name="event-class">
+      <type name="string"/>
+    </leaf>
+    <anyxml name="reporting-entity"/>
+    <leaf name="severity">
+      <type name="string"/>
+    </leaf>
+  </notification>
+  <grouping name="globg">
+    <leaf name="b">
+      <must condition="contains(../b,'1')"/>
+      <type name="foostr"/>
+      <default value="59"/>
+    </leaf>
+  </grouping>
+  <typedef name="foostr">
+    <type name="yang:counter32"/>
+    <default value="42"/>
+  </typedef>
+  <typedef name="zip-code">
+    <type name="string">
+      <pattern value="[0-9]{5}-[0-9]{4}"/>
+    </type>
+    <default value="00000-0000"/>
+  </typedef>
+</module>

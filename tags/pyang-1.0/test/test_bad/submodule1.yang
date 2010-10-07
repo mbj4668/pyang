@@ -1,0 +1,21 @@
+submodule submodule1 {
+
+  belongs-to composite {
+    prefix c; 
+  }
+
+  typedef type1 {
+    type string;
+  }
+
+  typedef t1 {
+    type string;
+  }
+
+  identity id1;
+
+  feature f1;
+
+  grouping g1; // error: defined in submodule2
+
+}

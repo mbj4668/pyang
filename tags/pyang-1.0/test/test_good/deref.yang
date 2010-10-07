@@ -1,0 +1,65 @@
+module deref {
+  namespace urn:deref;
+  prefix d;
+
+  list a {
+    key "ka1 ka2";
+    leaf ka1 { type string; }
+    leaf ka2 { type string; }
+    list b {
+      key kb;
+      leaf kb { type string; }
+      list c {
+        key kc;
+        leaf kc { type string; }
+      }
+      leaf lb { type string; }
+    }
+    leaf la { type string; }
+  }
+
+  container foo {
+    leaf x0 {
+      type leafref {
+        path "/a/la";
+      }
+    }
+    leaf x1 {
+      type leafref {
+        path "/a/ka1";
+      }
+    }
+    leaf gg { type int32; }
+    leaf x2 {
+      type leafref {
+        path "/a[ka1 = current()/../x1]/ka2";
+      }
+    }
+    leaf x3 {
+      type leafref {
+        path "/a[ka1 = current()/../x1][ka2 = current()/../x2]/b/kb";
+      }
+    }
+  }
+  container y {
+    leaf y1 {
+      type leafref {
+        path "/a/ka1";
+      }
+    }
+    leaf y2 {
+      type leafref {
+        path "deref(../y1)/../ka2";
+      }
+    }
+    leaf r3 {
+      type leafref {
+        path "deref(../y2)/../b/kb";
+      }
+    }
+    leaf dummy {
+      type string;
+    }
+  }
+
+}
