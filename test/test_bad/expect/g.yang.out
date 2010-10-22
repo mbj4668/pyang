@@ -8,3 +8,4 @@ g.yang:58: error: TYPE_VALUE
 g.yang:64: error: TYPE_VALUE
 g.yang:68: error: UNEXPECTED_KEYWORD
 g.yang:68: error: DUPLICATE_CHILD_NAME
+g.yang:74: error: BAD_KEY

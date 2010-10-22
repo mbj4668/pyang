@@ -70,4 +70,11 @@ module g {
         }
     }
 
+  list xx {
+    key f:a;
+    leaf a {
+      type int32;
+    }
+  }
+
 }
