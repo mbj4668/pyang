@@ -11,6 +11,7 @@ import yang_parser
 import yin_parser
 import grammar
 import util
+import statements
 
 __version__ = '1.0'
 __date__ = '2010-10-07'

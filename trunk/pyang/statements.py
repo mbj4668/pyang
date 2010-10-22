@@ -1517,7 +1517,7 @@ def v_reference_list(ctx, stmt):
                 else:
                     [prefix, name] = x.split(':', 1)
                     if prefix != stmt.i_module.i_prefix:
-                        err_add(ctx.errors, u.pos, 'BAD_KEY', x)
+                        err_add(ctx.errors, key.pos, 'BAD_KEY', x)
                         return
                 ptr = attrsearch(name, 'arg', stmt.i_children)
                 if x in found:
