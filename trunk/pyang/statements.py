@@ -1066,22 +1066,22 @@ def v_expand_1_children(ctx, stmt):
                 v_expand_1_children(ctx, s)
         return
     elif stmt.keyword == 'rpc':
-        input = stmt.search_one('input')
-        if input is None:
+        input_ = stmt.search_one('input')
+        if input_ is None:
             # create the implicitly defined input node
-            input = Statement(stmt.top, stmt, stmt.pos, 'input', 'input')
-            v_init_stmt(ctx, input)
-            input.i_children = []
-            input.i_module = stmt.i_module
-            stmt.i_children.append(input)
+            input_ = Statement(stmt.top, stmt, stmt.pos, 'input', 'input')
+            v_init_stmt(ctx, input_)
+            input_.i_children = []
+            input_.i_module = stmt.i_module
+            stmt.i_children.append(input_)
         else:
             # check that there is at least one data definition statement
             found = False
-            for c in input.substmts:
+            for c in input_.substmts:
                 if c.keyword in data_definition_keywords:
                     found = True
             if not found:
-                err_add(ctx.errors, input.pos,'EXPECTED_DATA_DEF', 'input')
+                err_add(ctx.errors, input_.pos,'EXPECTED_DATA_DEF', 'input')
 
         output = stmt.search_one('output')
         if output is None:
@@ -2350,11 +2350,11 @@ def validate_status(errors, x, y, defn, ref):
     if ystatus is None:
         ystatus = 'current'
     if xstatus == 'current' and ystatus == 'deprecated':
-        err_add(x.pos, 'CURRENT_USES_DEPRECATED', (defn, ref))
+        err_add(errors, x.pos, 'CURRENT_USES_DEPRECATED', (defn, ref))
     elif xstatus == 'current' and ystatus == 'obsolete':
-        err_add(x.pos, 'CURRENT_USES_OBSOLETE', (defn, ref))
+        err_add(errors, x.pos, 'CURRENT_USES_OBSOLETE', (defn, ref))
     elif xstatus == 'deprecated' and ystatus == 'obsolete':
-        err_add(x.pos, 'DEPRECATED_USES_OBSOLETE', (defn, ref))
+        err_add(errors, x.pos, 'DEPRECATED_USES_OBSOLETE', (defn, ref))
 
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "
