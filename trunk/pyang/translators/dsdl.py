@@ -48,7 +48,7 @@ import optparse
 import time
 
 import pyang
-from pyang import plugin, error, xpath
+from pyang import plugin, error, xpath, util
 
 from schemanode import SchemaNode
 
