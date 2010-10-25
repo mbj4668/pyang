@@ -223,7 +223,6 @@ class HybridDSDLSchema(object):
         "uint32": "unsignedInt",
         "uint64": "unsignedLong",
         "decimal64": "decimal",
-        "boolean": "boolean",
         "binary": "base64Binary",
         "string": "string",
     }
@@ -297,7 +296,7 @@ class HybridDSDLSchema(object):
             "yang-version": self.yang_version_stmt,
         }
         self.type_handler = {
-            "boolean": self.mapped_type,
+            "boolean": self.boolean_type,
             "binary": self.binary_type,
             "bits": self.bits_type,
             "decimal64": self.numeric_type,
@@ -1125,6 +1124,11 @@ class HybridDSDLSchema(object):
         for bit in tchain[0].search("bit"):
             optel = SchemaNode("optional", choi)
             SchemaNode("value", optel, bit.arg)
+
+    def boolean_type(self, tchain, p_elem):
+        elem = SchemaNode.choice(p_elem, occur=2)
+        SchemaNode("value", elem, "true")
+        SchemaNode("value", elem, "false")
 
     def choice_type(self, tchain, p_elem):
         """Handle ``enumeration`` and ``union`` types."""
