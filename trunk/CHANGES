@@ -1,3 +1,8 @@
+   1.0.1 -
+        generate an error if a submodule's name is not the same
+          correct (typically this means that it is not the same as
+          the filename)
+
    1.0 - 2010-10-07
         compatible with RFC 6020
 

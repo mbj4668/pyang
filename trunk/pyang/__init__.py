@@ -178,6 +178,7 @@ class Context(object):
 
         If the module is found, it is added to the context.
         Returns the module if found, and None otherwise"""
+
         if modulename not in self.revs:
             # this module doesn't exist in the repos at all
             error.err_add(self.errors, pos, 'MODULE_NOT_FOUND', modulename)
@@ -212,8 +213,14 @@ class Context(object):
                 return self.modules[(modulename, revision)]
             
         if handle[0] == 'parsed':
-            module = self.add_parsed_module(handle[1])
+            module = handle[1]
             ref = handle[2]
+            if modulename != module.arg:
+                error.err_add(self.errors, module.pos, 'BAD_MODULE_NAME',
+                              (module.arg, ref, modulename))
+                module = None
+            else:
+                module = self.add_parsed_module(handle[1])
         else:
             # get it from the repos
             try:
