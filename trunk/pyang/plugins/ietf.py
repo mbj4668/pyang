@@ -138,7 +138,8 @@ _recommended_substatements = {
 _ietf_namespace_prefix = 'urn:ietf:params:xml:ns:yang:'
 
 def v_chk_default(ctx, stmt):
-    if stmt.arg == _keyword_with_default[stmt.keyword]:
+    if (stmt.arg == _keyword_with_default[stmt.keyword] and
+        stmt.parent.keyword != 'refine'):
         err_add(ctx.errors, stmt.pos, 'IETF_EXPLICIT_DEFAULT',
                 (stmt.keyword, stmt.arg))
 
