@@ -15,3 +15,4 @@ $ java -jar plantuml.jar ietf-netconf-monitoring.uml
 $ open img/ietf-netconf-monitoring.png
 }}}
  
+https://pyang.googlecode.com/svn/trunk/doc/img/ietf-netconf-monitoring.png
