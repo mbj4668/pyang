@@ -1,0 +1,16 @@
+#pyang plugin to generate  UML diagrams from YANG
+
+= Introduction =
+
+In some circumstances it is useful to be able to visualize YANG models as UML diagrams.
+The uml plugin to pyang generates a file that can be read by [http://plantuml.sourceforge.net/ plantuml].
+
+The following example converts the [http://tools.ietf.org/html/rfc6022 ietf-netconf-monitoring] module into a UML diagram:
+
+
+{{{
+$ pyang -f uml ietf-netconf-monitoring.yang > ietf-netconf-monitoring.uml
+$ java -jar plantuml.jar ietf-netconf-monitoring.uml 
+$ open img/ietf-netconf-monitoring.png
+}}}
+ 
