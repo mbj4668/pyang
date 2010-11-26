@@ -1,4 +1,5 @@
-#pyang plugin to generate  UML diagrams from YANG
+#summary pyang plugin to generate  UML diagrams from YANG
+
 
 = Introduction =
 
