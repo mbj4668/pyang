@@ -705,13 +705,10 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </varlistentry>
     
     <varlistentry>
-	<term><option>--uml-unique</option></term>
+	<term><option>--uml-short-identifers</option></term>
 	<listitem>
 	  <para>
-        This option renders the UML classes not using the complete YANG paths.
-        Note that this assumes that every YANG element is unique. 
-        If two YANG elements has different paths but same name for the last 
-        part of the path, this option will generate incorrect output.
+        Do not use the complete YANG schema path for UML class names. 
 	  </para>
 	</listitem>
     </varlistentry>
