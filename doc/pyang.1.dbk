@@ -705,10 +705,10 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </varlistentry>
     
     <varlistentry>
-	<term><option>--uml-short-identifers</option></term>
+	<term><option>--uml-long-identifers</option></term>
 	<listitem>
 	  <para>
-        Do not use the complete YANG schema path for UML class names. 
+        Use complete YANG schema identifiers for UML class names. 
 	  </para>
 	</listitem>
     </varlistentry>
