@@ -10,7 +10,7 @@ The following example converts the [http://tools.ietf.org/html/rfc6022 ietf-netc
 
 
 {{{
-$ pyang -f uml ietf-netconf-monitoring.yang > ietf-netconf-monitoring.uml
+$ pyang -f uml ietf-netconf-monitoring.yang -o ietf-netconf-monitoring.uml
 $ java -jar plantuml.jar ietf-netconf-monitoring.uml 
 $ open img/ietf-netconf-monitoring.png
 }}}
