@@ -47,11 +47,11 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-title",
                                  dest="title",
                                  help="Set the title of the generated UML"),
-            optparse.make_option("--uml-short-identifiers",
+            optparse.make_option("--uml-long-identifiers",
                                  action="store_true",
-                                 dest="uniqueelements",
+                                 dest="longids",
                                  default =False,
-                                 help="Do not use the full schema identifier for UML class names."),
+                                 help="Use the full schema identifiers for UML class names."),
             optparse.make_option("--uml-no-uses",
                                  action="store_true",                                 
                                  dest="no_uses",
@@ -114,7 +114,7 @@ class uml_emitter:
     ctx_pagelayout = '1x1'
     ctx_outputdir = "img/"
     ctx_title = None
-    ctx_fullpath = True
+    ctx_fullpath = False
     ctx_classesonly = False
     ctx_leafrefs = True
     ctx_uses = True
@@ -132,7 +132,7 @@ class uml_emitter:
 
     def __init__(self, ctx):
         self._ctx = ctx
-        self.ctx_fullpath = (not ctx.opts.uniqueelements)
+        self.ctx_fullpath = ctx.opts.longids
         self.ctx_classesonly = ctx.opts.classes_only        
         # output dir from option -D or default img/
         if ctx.opts.outputdir is not None:
@@ -201,11 +201,11 @@ class uml_emitter:
 
         elif stmt.keyword == 'choice':
             if (not self.ctx_filterfile):
-                fd.write('class \"%s\" as %s\n' %(self.full__display_path(mod), self.full_path(mod)))
-                fd.write('%s .. %s : choice \n' % (self.full_path(mod), self.full_path(stmt)))
+                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(stmt), self.full_path(stmt)))
+                 fd.write('%s .. %s : choice \n' % (self.full_path(mod), self.full_path(stmt)))
             # sys.stderr.write('in choice %s \n', self.full_path(mod))        
-            for children in mod.substmts:
-                self.emit_child_stmt(mod, stmt, fd)
+            for children in stmt.substmts:
+                self.emit_child_stmt(stmt, children, fd)
 
         elif stmt.keyword == 'case':
             if (not self.ctx_filterfile):
@@ -213,7 +213,7 @@ class uml_emitter:
                 fd.write('%s ..  %s  : choice\n' % (self.full_path(mod), self.full_path(stmt)))
             # sys.stderr.write('in case %s \n', full_path(mod))
             for children in mod.substmts:
-                    self.emit_child_stmt(mod, stmt, fd)
+                    self.emit_child_stmt(stmt, children, fd)
 
         if (not self.ctx_classesonly) and (not self.ctx_filterfile):
             if stmt.keyword == 'typedef':
@@ -241,6 +241,15 @@ class uml_emitter:
          keyprefix = ''
          uniquesign = ''
 
+         # manage shorthand omitting case in choice
+         if (parent.keyword == 'choice') and ((node.keyword == 'container') or (node.keyword == 'leaf') or (node.keyword == 'leaf-list') or (node.keyword == 'list')):
+             # create fake parent statement.keyword = 'case' statement.arg = node.arg
+             newparent = statements.Statement(parent, parent, None, 'case', node.arg)
+             fd.write('class \"%s\" as %s <<case>> \n' % (node.arg, self.full_path(newparent)))
+             fd.write('%s .. %s : choice %s\n' % (self.full_path(parent), self.full_path(newparent), node.parent.arg))
+             parent = newparent
+
+             
          if node.keyword == 'container':
              self.emit_container(parent, node, fd)
              for children in node.substmts:
@@ -255,14 +264,12 @@ class uml_emitter:
 
          elif node.keyword == 'choice':
              if (not self.ctx_filterfile):
-                 pass
-                 # try skipping choice pivot node
-                 # fd.write('class \"%s\" as %s \n' % (self.full_path(node, False), self.full_path(node)))
-                 # fd.write('%s .. %s : choice \n' % (self.full_path(parent), self.full_path(node)))
+                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(node), self.full_path(node)))
+                 fd.write('%s .. %s : choice \n' % (self.full_path(parent), self.full_path(node)))
              for children in node.substmts:
                  # try pointing to parent
-                 # self.emit_child_stmt(node, children, fd)
-                 self.emit_child_stmt(parent, children, fd)
+                 self.emit_child_stmt(node, children, fd)
+                 # self.emit_child_stmt(parent, children, fd)
          elif node.keyword == 'case':
              # sys.stderr.write('in case \n')
              if (not self.ctx_filterfile):
@@ -332,6 +339,7 @@ class uml_emitter:
         fd.write('hide empty methods \n')
         fd.write('hide <<case>> circle\n')
         fd.write('hide <<augment>> circle\n') 
+        fd.write('hide <<choice>> circle\n')
 
 
 
@@ -344,32 +352,6 @@ class uml_emitter:
         else:
             fd.write('Title <b>UML Generated by pyang from Module :  %s</b> \n' % module.arg)
 
-        # print module info as note
-        fd.write('note as M \n')
-        ns = module.search_one('namespace')
-        if ns is not None:
-            fd.write('  namespace: %s\n' % ns.arg)
-        
-        pre = module.search_one('prefix')
-        if  pre is not None:
-            fd.write('  prefix: %s\n' % pre.arg)
-            self.thismod_prefix = pre.arg
-            
-        bt = module.search_one('belongs-to')
-        if bt is not None:
-            fd.write('  belongs-to: %s\n' % bt.arg)
-
-        if module.search_one('organization'):
-            fd.write('  organization :%s\n' % module.search_one('organization').arg)
-
-        if module.search_one('contact'):
-            fd.write('  contact :%s\n' % module.search_one('contact').arg)
-
-        if module.search_one('revision'):
-            fd.write('  revision :%s\n' % module.search_one('revision').arg)
-        now = datetime.datetime.now()
-        fd.write('UML generated: %s\n' % now.strftime("%Y-%m-%d %H:%M"))
-        fd.write('end note \n')
 
 
         # print imported modules as packages
@@ -403,14 +385,54 @@ class uml_emitter:
         # pkg name for this module
         #this_pkg = self.make_plantuml_keyword(module.search_one('prefix').arg) + '.' + self.make_plantuml_keyword(module.arg)
         pkg = module.arg
+        pre = module.search_one('prefix')
+        if  pre is not None:
+            self.thismod_prefix = pre.arg
+
 
         # print package for this module and a class to represent module (notifs and rpcs)
+        # print module info as note
+        if self.ctx_annotations:
+            fd.write('note top of %s_%s : ' %(self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+            ns = module.search_one('namespace')
+            if ns is not None:
+                fd.write('<b>Namespace: </b> %s \\n' % ns.arg)
+
+            if  self.thismod_prefix is not None:
+                fd.write('<b>Prefix: </b> %s \\n' % self.thismod_prefix)
+
+            bt = module.search_one('belongs-to')
+            if bt is not None:
+                fd.write('<b>Belongs-to: </b> %s \\n' % bt.arg)
+
+            if module.search_one('organization'):
+                o = module.search_one('organization').arg
+                o = o.replace('\n', ' \\n')
+                fd.write('<b>Organization : </b>\\n%s \\n' % o)
+
+            if module.search_one('contact'):
+                c = module.search_one('contact').arg
+                c = c.replace('\n', ' \\n')
+                fd.write('<b>Contact : </b>\\n%s \\n' % c)
+
+
+            if module.search_one('revision'):
+                fd.write('<b>Revision : </b> %s \\n' % module.search_one('revision').arg)
+            now = datetime.datetime.now()
+            fd.write('<b>UML generated: </b> %s' % now.strftime("%Y-%m-%d %H:%M"))
+            fd.write('\n')
+            # fd.write('end note \n')
+
+        # This package    
         fd.write('package \"%s:%s\" as %s_%s \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+
         imports = module.search('import')
         for i in imports:
             mod = self.make_plantuml_keyword(i.search_one('prefix').arg) + '_' + self.make_plantuml_keyword(i.arg)
             fd.write('%s +-- %s_%s\n' %(mod,self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
         fd.write('class \"%s\" as %s << (M, #33CCFF) module>> \n' %(self.full_display_path(module), self.full_path(module)))
+
+
 
     def emit_module_footer(self, module, fd): 
         fd.write('end package \n')
@@ -536,7 +558,7 @@ class uml_emitter:
                 fd.write('class \"%s\" as %s <<(G,Lime) grouping>> \n' %(self.full_display_path(stmt), self.full_path(stmt)))
             else:
                 fd.write('class \"%s\" as %s <<(G,Red) grouping>> \n' %(self.full_display_path(stmt), self.full_path(stmt)))
-            sys.stderr.write('emit grouping : %s\n' %(self.full_path(stmt)))
+            # sys.stderr.write('emit grouping : %s\n' %(self.full_path(stmt)))
             # Groupings are not really part of the schema tree
             # fd.write('%s --  %s \n' %(self.full_path(module), self.full_path(stmt)))
         else:
@@ -648,7 +670,7 @@ class uml_emitter:
     def full_display_path(self, stmt):
         pathsep = "/"
         path = stmt.arg
-        if stmt.keyword != 'grouping':
+        if (stmt.keyword != 'grouping') and (stmt.keyword != 'choice') and (stmt.keyword != 'case'):
             if self.ctx_fullpath:
                 while stmt.parent is not None:
                     stmt = stmt.parent
