@@ -62,11 +62,36 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="no_leafrefs",
                                  default = False,                                 
                                  help="Do not render leafref associations, this may simplify complex diagrams"),
+            optparse.make_option("--uml-no-identityrefs",
+                                 action="store_true",                               
+                                 dest="no_identityrefs",
+                                 default = False,                                 
+                                 help="Do not render identityref associations, this may simplify complex diagrams"),
+            optparse.make_option("--uml-no-identities",
+                                 action="store_true",                               
+                                 dest="no_identities",
+                                 default = False,                                 
+                                 help="Do not render identities, too many identities may clutter the diagrams. This option implies that no identityrefs assocations will be rendered"),
             optparse.make_option("--uml-no-annotations",
                                  action="store_true",                               
                                  dest="no_annotations",
                                  default = False,                                 
                                  help="Do not render annotations (must, present-if, ...), this may simplify complex diagrams"),
+            optparse.make_option("--uml-no-circles",
+                                 action="store_true",                               
+                                 dest="no_circles",
+                                 default = False,                                 
+                                 help="Do not render circles indicating stereotype for the UML classes"),
+            optparse.make_option("--uml-no-stereotypes",
+                                 action="store_true",                               
+                                 dest="no_stereotypes",
+                                 default = False,                                 
+                                 help="Do not render the stereotypes for the UML classes"),
+            optparse.make_option("--uml-truncate-leafref-paths",
+                                 action="store_true",                               
+                                 dest="truncate_leafrefs",
+                                 default = False,                                 
+                                 help="Leafref attributes can have long paths making the classes too wide. This option will only show the tail of the path"),
             optparse.make_option("--uml-filter",
                                  action="store_true",                               
                                  dest="gen_filter_file",
@@ -126,6 +151,8 @@ class uml_emitter:
     uses_as_string = dict()
     leafrefs = []
     filterpaths = []
+    identities = []
+    baseid = []
     thismod_prefix = ''
     _ctx = None
     post_strings = [] 
@@ -214,6 +241,9 @@ class uml_emitter:
             # sys.stderr.write('in case %s \n', full_path(mod))
             for children in mod.substmts:
                     self.emit_child_stmt(stmt, children, fd)
+
+        elif stmt.keyword == 'identity':
+            self.emit_identity(mod, stmt, fd)
 
         if (not self.ctx_classesonly) and (not self.ctx_filterfile):
             if stmt.keyword == 'typedef':
@@ -309,19 +339,19 @@ class uml_emitter:
              elif node.keyword == 'unique':
                  self.unique = node.arg.split(" ") # multiple keys, make list of every key
              elif node.keyword == 'config':
-                 self.annotate_node(parent, "Config = " + node.arg, fd)
+                 self.annotate_node(parent, "<b>Config = </b>" + node.arg, fd)
              elif node.keyword == 'must':
                  self.emit_must(parent, node, fd)
              elif node.keyword == ('tailf-common', 'hidden'):
-                 self.annotate_node(parent, "Hidden " + node.arg, fd)
+                 self.annotate_node(parent, "<b>Hidden </b>" + node.arg, fd)
              elif node.keyword == 'presence':
-                 self.annotate_node(parent, "Presence: " + node.arg, fd)         
+                 self.annotate_node(parent, "<b>Presence: </b>" + node.arg, fd)         
              elif node.keyword == 'when':
-                 self.annotate_node(parent, "When: " + node.arg, fd)         
+                 self.annotate_node(parent, "<b>When: </b>" + node.arg, fd)         
              elif node.keyword == 'status':
-                 self.annotate_node(parent, "Status: " + node.arg, fd)         
+                 self.annotate_node(parent, "<b>Status: </b>" + node.arg, fd)         
              elif node.keyword == 'if-feature':
-                 self.annotate_node(parent, "if-feature: " + node.arg, fd)
+                 self.annotate_node(parent, "<b>if-feature: </b>" + node.arg, fd)
              # else:  probably unknown extension
                  # fd.write('%s : %s %s' %(self.full_path(parent), node.keyword, node.arg))
 
@@ -335,11 +365,16 @@ class uml_emitter:
 
 
         fd.write('@startuml %s%s.png \n' %(self.ctx_outputdir, module.arg))
-        fd.write('hide empty members \n')
-        fd.write('hide empty methods \n')
+        fd.write('hide empty fields \n')
+        fd.write('hide empty methods \n')        
         fd.write('hide <<case>> circle\n')
         fd.write('hide <<augment>> circle\n') 
         fd.write('hide <<choice>> circle\n')
+        fd.write('hide <<Leafref>> stereotype\n')
+        if self._ctx.opts.no_circles:
+            fd.write('hide circles \n')
+        if self._ctx.opts.no_stereotypes:
+            fd.write('hide stereotypes \n')
 
 
 
@@ -473,6 +508,16 @@ class uml_emitter:
             fd.write('%s *-- \"%s..%s\" %s %s\n' %(self.full_path(parent), minelem, maxelem, self.full_path(node), oby))
         else:
             fd.write(self.full_path(node) + '\n')
+
+    def emit_identity(self, mod, stmt, fd):
+        if not self._ctx.opts.no_identities:
+            self.post_strings.append('class \"%s\" as %s << (I,Silver) identity>> \n' %(self.full_display_path(stmt), self.make_plantuml_keyword(stmt.arg)))
+            self.identities.append(stmt.arg)
+            base = stmt.search_one('base')
+            if base is not None:
+                self.baseid.append(base.arg)
+                self.post_strings.append('%s <|-- %s \n' %(self.make_plantuml_keyword(base.arg), self.make_plantuml_keyword(stmt.arg)))
+            
 
     def emit_feature(self, parent, feature, fd):
              fd.write('%s : %s \n' %(self.full_path(parent), 'feature : ' + self.make_plantuml_keyword(feature.arg)) )
@@ -613,17 +658,34 @@ class uml_emitter:
             s = s + ' : '
             p = t.search_one('path')
             if p is not None:
-                s = s + p.arg
                 inthismodule, n = self.find_target_node(p)
+                leafrefkey = p.arg
+                leafrefkey =  leafrefkey[leafrefkey.rfind("/")+1:]
+                leafrefparent = p.arg
+                leafrefparent = leafrefparent[0:(leafrefparent.rfind("/"))]
+
+                # shorten leafref attribute stuff here....
+                if self._ctx.opts.truncate_leafrefs:
+                    s = s + '...' + leafrefkey
+                else:
+                    s = s + p.arg
+
                 if (n is not None) and (inthismodule):
                     # sys.stderr.write('leafref %s : target %s \n' %(p.arg, full_path(n)))
                     # sys.stderr.write('in this module %s : \n' %inthismodule)
-                    self.leafrefs.append(self.full_path(node.parent) + '-->' + self.full_path(n.parent) + ': ' + node.arg + '\n')
+                    self.leafrefs.append(self.full_path(node.parent) + '-->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
                 elif ((n is not None) and (not inthismodule)):
                     # sys.stderr.write('in this module %s : \n' %inthismodule)
-                    self.leafrefs.append('class \"%s\" as %s << (L, #FF7700) list>>\n' %(self.full_display_path(n.parent), self.full_path(n.parent)))                        
-                    self.leafrefs.append(self.full_path(node.parent) + '-->' + self.full_path(n.parent) + ': ' + node.arg + '\n')
-                    
+                    self.leafrefs.append('class \"%s\" as %s <<(L, Red)>>\n' %(leafrefparent, self.full_path(n.parent)))
+                    self.leafrefs.append('%s : %s\n' %(self.full_path(n.parent), leafrefkey))                    
+                    self.leafrefs.append(self.full_path(node.parent) + '-->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
+        elif t.arg == 'identityref':
+            b = t.search_one('base')
+            if b is not None:
+                s = s + ' {' + b.arg + '}'
+                if (not self._ctx.opts.no_identityrefs) and (not self._ctx.opts.no_identities) :
+                    self.post_strings.append(self.full_path(node.parent) + '-->' + self.make_plantuml_keyword(b.arg) + ': ' + node.arg + '\n')
+        
         typerange = t.search_one('range')
         if typerange is not None:
             s = s + ' [' + typerange.arg + ']'  
@@ -645,20 +707,20 @@ class uml_emitter:
         annot = ''
         must = node.search('must')
         if len(must) > 0 :
-            annot = "Must (" + node.arg + "):\n"
+            annot = "<b>Must</b> (" + node.arg + "):\n"
             for m in must:
                 annot = annot + m.arg + '\n'
 
         when = node.search_one('when')
         if when is not None:
-            annot = annot +  "When (" + node.arg + "):\n" + when.arg + '\n'
+            annot = annot +  "<b>When</b> (" + node.arg + "):\n" + when.arg + '\n'
 
         if annot != '':
             self.annotate_node(parent, annot, fd) 
 
 
     def emit_must(self, parent, node, fd):
-        self.annotate_node(parent, "Must:\n" + node.arg, fd) 
+        self.annotate_node(parent, "<b>Must:</b>\n" + node.arg, fd) 
 
     def yang_roots(self, stmt):
         global root_elems
@@ -796,12 +858,17 @@ class uml_emitter:
                 try:
                     fd.write('%s --> %s : uses \n' %(p, self.groupings[u]))
                 except KeyError: # grouping in imported module, TODO correct paths
-                    # sys.stderr.write('key-error %s %s\n' %(p,u))
-                    fd.write('class \"%s\" as %s << (G,orchid) grouping>>\n' %(self.uses_as_string[u], self.make_plantuml_keyword(self.uses_as_string[u])))
+                    # Grouping in other module, use red...
+                    fd.write('class \"%s\" as %s << (G,Red) grouping>>\n' %(self.uses_as_string[u], self.make_plantuml_keyword(self.uses_as_string[u])))
                     fd.write('%s --> %s : uses \n' %(p, self.make_plantuml_keyword(self.uses_as_string[u])))
         if self.ctx_leafrefs: # TODO correct paths for external leafrefs
             for l in self.leafrefs:
                 fd.write(l)
+        for base in self.baseid:
+            if not base in self.identities:
+                fd.write('class \"%s\" as %s << (I,Silver) identity>> \n' %(base, self.make_plantuml_keyword(base)))
         for s in self.post_strings:
                 fd.write(s)
+
+
         

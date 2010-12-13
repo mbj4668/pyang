@@ -734,13 +734,55 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 	  </para>
 	</listitem>
     </varlistentry>
-    
+    <varlistentry>
+	<term><option>--uml-no-identityrefs</option></term>
+	<listitem>
+	  <para>
+        Do not render identityref associations, this may simplify
+        complex diagrams.
+	  </para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+	<term><option>--uml-no-identities</option></term>
+	<listitem>
+	  <para>
+        Do not render identities, too many identities may clutter the diagram.
+        This option also implies that no identityrefs will be rendered.
+	  </para>
+	</listitem>
+    </varlistentry>
+
     <varlistentry>
 	<term><option>--uml-no-annotations</option></term>
 	<listitem>
 	  <para>
         Do not render annotations, (to represent present-if, must,...).
         This may simplify complex diagrams. 
+	  </para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+	<term><option>--uml-no-circles</option></term>
+	<listitem>
+	  <para>
+	 Do not render colored circles indicating stereotype for the UML classes
+	  </para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+	<term><option>--uml-no-stereotypes</option></term>
+	<listitem>
+	  <para>
+        Do not render the UML class stereotype (indicating YANG Schema element type). 
+	  </para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+	<term><option>--uml-truncate-leafref-paths</option></term>
+	<listitem>
+	  <para>
+        Leafref attributes can have long paths making the classes too wide. This option will only show the tail of the path. 
 	  </para>
 	</listitem>
     </varlistentry>
