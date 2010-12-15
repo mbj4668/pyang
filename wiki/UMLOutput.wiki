@@ -16,3 +16,16 @@ $ open img/ietf-netconf-monitoring.png
 }}}
  
 https://pyang.googlecode.com/svn/trunk/doc/img/ietf-netconf-monitoring.png
+
+There is also a python script to generate a UML package structure for all yangs in a folder.
+
+{{{uml-utilities/pkg.py}}}
+
+Use it in the following way:
+{{{
+$ ls *.yang | xargs -n1 pyang -f depend > packages.txt
+$ python pkg.py packages.txt > packages.uml
+$ java -jar plantuml.jar packages.uml
+$ open packages.uml.png
+
+}}}
