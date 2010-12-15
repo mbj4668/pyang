@@ -703,6 +703,23 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 	  </para>
 	</listitem>
     </varlistentry>
+    <varlistentry>
+	<term><option>--uml-header=HEADER</option></term>
+	<listitem>
+	  <para>
+        Set the header of the generated UML diagram.
+	  </para>
+	</listitem>
+    </varlistentry>
+
+    <varlistentry>
+	<term><option>--uml-footer=FOOTER</option></term>
+	<listitem>
+	  <para>
+        Set the footer of the generated UML diagram.
+	  </para>
+	</listitem>
+    </varlistentry>
     
     <varlistentry>
 	<term><option>--uml-long-identifers</option></term>
