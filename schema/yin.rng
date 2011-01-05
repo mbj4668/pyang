@@ -261,7 +261,7 @@
   <define name="organization-stmt">
     <element name="organization">
       <interleave>
-	<element name="info">
+	<element name="text">
 	  <text/>
 	</element>
 	<ref name="an-extension"/>
@@ -272,7 +272,7 @@
   <define name="contact-stmt">
     <element name="contact">
       <interleave>
-	<element name="info">
+	<element name="text">
 	  <text/>
 	</element>
 	<ref name="an-extension"/>
