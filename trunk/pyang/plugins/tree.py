@@ -140,9 +140,9 @@ def print_node(s, module, fd, prefix, width):
     elif s.keyword  == 'choice':
         m = s.search_one('mandatory')
         if m is None or m.arg == 'false':
-            fd.write(flags + ' (' + s.arg + ')')
-        else:
             fd.write(flags + ' (' + s.arg + ')?')
+        else:
+            fd.write(flags + ' (' + s.arg + ')')
     elif s.keyword == 'case':
         fd.write(':(' + s.arg + ')')
     else:
