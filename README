@@ -16,20 +16,22 @@ YANG_INSTALL to the prefix directory.  This ensures that pyang will
 find standard YANG modules.
 
 
-Usage
------
-pyang -h
-man pyang
-
 Run locally without installing
 ------------------------------
-export PYTHONPATH=`pwd`
 export PATH=`pwd`/bin:$PATH
 export MANPATH=`pwd`/man:$MANPATH
+export PYTHONPATH=`pwd`:$PYTHONPATH
 export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
 export PYANG_XSLT_DIR=`pwd`/xslt
 export PYANG_RNG_LIBDIR=`pwd`/schema
 
+or:
+
+source ./env.sh
+
+
+Usage
+-----
 pyang -h
 man pyang
 

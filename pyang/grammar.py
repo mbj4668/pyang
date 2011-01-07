@@ -518,7 +518,7 @@ def chk_module_statements(ctx, module_stmt, canonical=False):
 def chk_statement(ctx, stmt, grammar, canonical=False):
     """Validate `stmt` according to `grammar`.
 
-    Marks each statement in the hirearchy with stmt.is_grammatically_valid,
+    Marks each statement in the hierearchy with stmt.is_grammatically_valid,
     which is a boolean.
 
     Return True if stmt is valid, False otherwise.
