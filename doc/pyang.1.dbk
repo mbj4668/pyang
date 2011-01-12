@@ -404,7 +404,9 @@
       <varlistentry>
 	<term><emphasis>dsdl</emphasis></term>
 	<listitem>
-	  <para>Hybrid DSDL schema (RELAX NG with annotations)</para>
+	  <para>Hybrid DSDL schema (RELAX NG with annotations) which
+	  is primarily intended as an interim product used by
+	  <command>yang2dsdl</command>(1).</para>
 	</listitem>
       </varlistentry>
       <varlistentry>

@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: pyang
 .\"    Author: Martin Bjorklund <mbj@tail-f.com>
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
 .\"      Date: 2010-10-07
 .\"    Manual: pyang manual
 .\"    Source: pyang-1.0
@@ -252,7 +252,8 @@ normal YANG syntax
 .PP
 \fIdsdl\fR
 .RS 4
-Hybrid DSDL schema (RELAX NG with annotations)
+Hybrid DSDL schema (RELAX NG with annotations) which is primarily intended as an interim product used by
+\fByang2dsdl\fR(1)\&.
 .RE
 .PP
 \fIxsd\fR
@@ -437,9 +438,19 @@ Put the genereated \&.png files(s) in the specified output directory\&. Default 
 Set the title of the generated UML diagram, (default is YANG module name)\&.
 .RE
 .PP
-\fB\-\-uml\-short\-identifers\fR
+\fB\-\-uml\-header=HEADER\fR
 .RS 4
-Do not use the complete YANG schema path for UML class names\&.
+Set the header of the generated UML diagram\&.
+.RE
+.PP
+\fB\-\-uml\-footer=FOOTER\fR
+.RS 4
+Set the footer of the generated UML diagram\&.
+.RE
+.PP
+\fB\-\-uml\-long\-identifers\fR
+.RS 4
+Use complete YANG schema identifiers for UML class names\&.
 .RE
 .PP
 \fB\-\-uml\-no\-uses\fR
@@ -452,9 +463,34 @@ Do not render uses associations, this may simplify complex diagrams\&. (The uses
 Do not render leafref associations, this may simplify complex diagrams\&. (The leafref paths are still rendered as attributes)
 .RE
 .PP
+\fB\-\-uml\-no\-identityrefs\fR
+.RS 4
+Do not render identityref associations, this may simplify complex diagrams\&.
+.RE
+.PP
+\fB\-\-uml\-no\-identities\fR
+.RS 4
+Do not render identities, too many identities may clutter the diagram\&. This option also implies that no identityrefs will be rendered\&.
+.RE
+.PP
 \fB\-\-uml\-no\-annotations\fR
 .RS 4
 Do not render annotations, (to represent present\-if, must,\&.\&.\&.)\&. This may simplify complex diagrams\&.
+.RE
+.PP
+\fB\-\-uml\-no\-circles\fR
+.RS 4
+Do not render colored circles indicating stereotype for the UML classes
+.RE
+.PP
+\fB\-\-uml\-no\-stereotypes\fR
+.RS 4
+Do not render the UML class stereotype (indicating YANG Schema element type)\&.
+.RE
+.PP
+\fB\-\-uml\-truncate\-leafref\-paths\fR
+.RS 4
+Leafref attributes can have long paths making the classes too wide\&. This option will only show the tail of the path\&.
 .RE
 .PP
 \fB\-\-uml\-filter\fR
