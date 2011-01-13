@@ -1027,7 +1027,10 @@ class HybridDSDLSchema(object):
         elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
         augs, pset = self.process_patches(r_pset,stmt,elem,"input")[1:]
         inst = stmt.search_one("input")
-        if inst: self.handle_substmts(inst, elem, pset)
+        if inst:
+            self.handle_substmts(inst, elem, pset)
+        else:
+            SchemaNode("empty", elem)
         self.apply_augments(augs, elem, pset)
         augs, pset = self.process_patches(r_pset,stmt,None,"output")[1:]
         oust = stmt.search_one("output")
