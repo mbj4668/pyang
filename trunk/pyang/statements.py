@@ -1839,7 +1839,7 @@ def prefix_to_module(module, prefix, pos, errors):
         return None
     return module.i_ctx.get_module(modulename, revision)
 
-def modulename_to_module(module, modulename, revision):
+def modulename_to_module(module, modulename, revision=None):
     if modulename == module.arg:
         return module
     # even if the prefix is defined, the module might not be
