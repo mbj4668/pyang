@@ -48,7 +48,7 @@ import optparse
 import time
 
 import pyang
-from pyang import plugin, error, xpath, util
+from pyang import plugin, error, xpath, util, statements
 
 from schemanode import SchemaNode
 
@@ -632,8 +632,9 @@ class HybridDSDLSchema(object):
         """Append YIN representation of extension statement `stmt`."""
         ext = stmt.i_extension
         prf, extkw = stmt.raw_keyword
-        prefix = self.add_namespace(self.module.i_ctx.get_module(
-            self.module.i_prefixes[prf][0]))
+        (modname,rev)=self.module.i_prefixes[prf]
+        prefix = self.add_namespace(
+            statements.modulename_to_module(self.module,modname,rev))
         eel = SchemaNode(prefix + ":" + extkw, p_elem)
         argst = ext.search_one("argument")
         if argst:
