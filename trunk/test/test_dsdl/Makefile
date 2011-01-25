@@ -8,6 +8,8 @@ results := $(patsubst %.xml,%.log,$(wildcard *.xml))
 
 all: $(results) 
 
+test: all
+
 %-data.log: %-data.xml %.yin
 	$(YANG2DSDL) -t data -v $^ > $@
 

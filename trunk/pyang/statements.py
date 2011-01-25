@@ -1128,7 +1128,9 @@ def v_expand_1_children(ctx, stmt):
 
     if stmt.keyword == 'grouping':
         stmt.i_expanded = True
-        return 'continue'
+
+    # do not recurse - recursion already done above
+    return 'continue'
 
 _refinements = [
     # (<keyword>, <list of refinements that can be applied to the <keyword>>,
