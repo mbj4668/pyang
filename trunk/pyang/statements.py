@@ -1312,9 +1312,9 @@ def v_inherit_properties(ctx, stmt):
                 else:
                     iter(ch, config_value, allow_explicit)
 
-    for s in stmt.search('grouping'):
+    for s in stmt.search('grouping') + stmt.search('augment'):
         iter(s, None, True)
-    for s in (stmt.i_children + stmt.search('augment')):
+    for s in stmt.i_children:
         if s.keyword in _keywords_with_no_explicit_config:
             iter(s, None, False)
         else:
