@@ -731,6 +731,9 @@ def v_type_type(ctx, stmt):
     path = stmt.search_one('path')
     if path is not None and stmt.arg != 'leafref':
         err_add(ctx.errors, path.pos, 'BAD_RESTRICTION', 'path')
+    elif stmt.arg == 'leafref' and path is None:
+        err_add(ctx.errors, stmt.pos, 'MISSING_TYPE_SPEC_1',
+                ('leafref', 'path'))
     elif path is not None:
         stmt.i_is_derived = True
         if path.is_grammatically_valid == True:
