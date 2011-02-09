@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright (c) 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 #
@@ -68,62 +68,62 @@ gen_relaxng() {
 	--stringparam basename $basename \
         --stringparam target $target --stringparam rng-lib $rng_lib \
         $xslt_dir/gen-relaxng.xsl $hybs
-    [[ $? == 0 ]] || exit 2
+    [ $? -eq 0 ] || exit 2
     xsltproc $XSLT_OPTS --output $dir/$basename-gdefs.rng $gen_rng_parms \
         --stringparam gdefs-only 1 $xslt_dir/gen-relaxng.xsl $hybs
-    [[ $? == 0 ]] || exit 2
+    [ $? -eq 0 ] || exit 2
     echo "Done."
 }
 
 gen_schematron() {
-    echo -e "\n== Generating Schematron schema '$btname.sch'"
+    printf "\n== Generating Schematron schema '$btname.sch'\n"
     xsltproc $XSLT_OPTS --output $btname.sch \
         --stringparam target $target $xslt_dir/gen-schematron.xsl $hybs
-    [[ $? == 0 ]] || exit 2
+    [ $? -eq 0 ] || exit 2
     echo "Done."
 }
 
 gen_dsrl() {
-    echo -e "\n== Generating DSRL schema '$btname.dsrl'"
+    printf "\n== Generating DSRL schema '$btname.dsrl'\n"
     xsltproc $XSLT_OPTS --output $btname.dsrl \
         --stringparam target $target $xslt_dir/gen-dsrl.xsl $hybs
-    [[ $? == 0 ]] || exit 2
+    [ $? -eq 0 ] || exit 2
     echo "Done."
 }
 
 validate() {
-    echo -e "\n== Validating grammar and datatypes ..."
+    printf "\n== Validating grammar and datatypes ...\n"
     if [ -f $btname.rng ] ; then
-	if [[ $jing == "0" ]] ; then
+	if [ "$jing" = "0" ] ; then
 	    xmllint --noout --relaxng $btname.rng $instance
-	    [[ $? == 0 ]] || exit 3
+	    [ $? -eq 0 ] || exit 3
 	else
 	    jing $btname.rng $instance
-	    [[ $? == 0 ]] || exit 3
+	    [ $? -eq 0 ] || exit 3
 	    echo $instance validates.
 	fi
     else
         echo "RELAX NG schema '$btname.rng' not found."
 	exit 2
     fi
-    echo -en "\n== Adding default values... "
+    printf "\n== Adding default values... "
     if [ -f $btname.dsrl ] ; then
         xsltproc -o $dsrlxsl $xslt_dir/dsrl2xslt.xsl $btname.dsrl
-	[[ $? == 0 ]] || exit 2
+	[ $? -eq 0 ] || exit 2
         xsltproc -o $instwdef $dsrlxsl $instance
-	[[ $? == 0 ]] || exit 3
+	[ $? -eq 0 ] || exit 3
         inst4sch=$instwdef
-        echo -e "done."
+        printf "done.\n"
     else
         echo "DSRL schema '$btname.dsrl' not found, no defaults added ..."
         inst4sch=$instance
     fi
-    echo -e "\n== Validating semantic constraints ..."
+    printf "\n== Validating semantic constraints ...\n"
     if [ -f $btname.sch ] ; then
         xsltproc $xslt_dir/iso_abstract_expand.xsl $btname.sch | \
             xsltproc -o $schxsl $xslt_dir/iso_svrl_for_xslt1.xsl -
         xsltproc $schxsl $inst4sch | xsltproc $xslt_dir/svrl2text.xsl -
-	[[ $? == 0 ]] || exit 3
+	[ $? -eq 0 ] || exit 3
     else
         echo "Schematron schema '$btname.sch' not found, skipping ..."
     fi
@@ -146,10 +146,10 @@ while getopts ":ht:d:b:v:jns" opt ; do
             ;;
         t)
             target=$OPTARG
-            if [[ $target != "data" && $target != "config" && \
-		$target != "get-reply" && $target != "get-config-reply" \
-                && $target != "rpc" && $target != "rpc-reply" \
-                && $target != "notification" ]]
+            if [ "$target" != "data" ] && [ "$target" != "config" ] && \
+	       [ "$target" != "get-reply" ] && [ "$target" != "get-config-reply" ] \
+               && [ "$target" != "rpc" ] && [ "$target" != "rpc-reply" ] \
+               && [ "$target" != "notification" ]
             then
                 echo "Invalid argument for -t: $target."
                 rtfm
@@ -192,11 +192,11 @@ while getopts ":ht:d:b:v:jns" opt ; do
     esac
 done
 
-if [[ $nofeat == "1" ]] ; then
+if [ "$nofeat" = "1" ] ; then
     gen_rng_parms='--stringparam features-off 1'
 fi
 
-if [[ $noschema == "1" && $instance == "" ]] ; then
+if [ "$noschema" = "1" ] && [ "$instance" = "" ] ; then
     echo "Option -s may only be used together with -v."
     exit 1
 fi
@@ -211,8 +211,8 @@ instwdef=$dir/inst$randext
 
 trap "cleanup" 0 1 2 3 15
 
-if [[ $noschema == "0" ]] ; then
-    if [[ $yam == "" ]] ; then
+if [ "$noschema" = "0" ] ; then
+    if [ "$yam" = "" ] ; then
 	echo "No input YANG module given." >&2
 	rtfm
     elif [ ! -w $dir ] ; then
@@ -221,18 +221,18 @@ if [[ $noschema == "0" ]] ; then
     fi
     pyang -f dsdl -o $hybs --dsdl-no-documentation \
         --dsdl-no-dublin-core $yam
-    [[ $? == 0 ]] || exit 2
-    if [[ $basename == "" ]] ; then
+    [ $? -eq 0 ] || exit 2
+    if [ "$basename" = "" ] ; then
         basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
     fi
-elif [[ $basename == "" ]] ; then
+elif [ "$basename" = "" ] ; then
     echo "-b <basename> is required with -s option." >&2
     rtfm
 fi
 
 btname=$dir/$basename-$target
 
-if [[ $noschema == "0" ]] ; then
+if [ "$noschema" = "0" ] ; then
     gen_relaxng
     gen_schematron
     gen_dsrl
@@ -240,7 +240,7 @@ else
     echo "== Using pre-generated schemas"
 fi
 
-if [[ $instance != "" ]] ; then
+if [ "$instance" != "" ] ; then
     validate
 fi
 
