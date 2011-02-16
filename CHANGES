@@ -1,4 +1,13 @@
-   1.0.1 -
+   1.1 - 2011-02-16
+        DSDL output compatible with RFC 6110
+       
+        added uml output format
+
+        inherit the config property correctly with augment
+        added check to verify that a leafref type had a path substatement
+        removed bashisms from yang2dsdl script
+        fixed setup.py script
+        fixed optional marker bug in tree output
         generate an error if a submodule's name is not the same
           correct (typically this means that it is not the same as
           the filename)

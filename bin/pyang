@@ -57,8 +57,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              help="Validate the module(s) according to the " \
                              "canonical YANG order."),
         optparse.make_option("--max-line-length",
+                             type="int",
                              dest="max_line_len"),
         optparse.make_option("--max-identifier-length",
+                             type="int",
                              dest="max_identifier_len"),
         optparse.make_option("--check-explicit-default",
                              dest="chk_statement_explicit_default",
