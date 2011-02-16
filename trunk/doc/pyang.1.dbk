@@ -83,8 +83,7 @@
       The <command>pyang</command> program is used to validate YANG
       modules (RFC 6020).  It is also used to convert YANG modules into
       equivalent YIN modules.  From a valid module, a W3C XML Schema
-      (XSD) or hybrid DSDL schema (RELAX NG with additional
-      annotations) can be generated.
+      (XSD) or a hybrid DSDL schema (RFC 6110) can be generated.
     </para>
 
     <para>
@@ -406,7 +405,8 @@
 	<listitem>
 	  <para>Hybrid DSDL schema (RELAX NG with annotations) which
 	  is primarily intended as an interim product used by
-	  <command>yang2dsdl</command>(1).</para>
+	  <command>yang2dsdl</command>(1). See RFC 6110 for
+	  details.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>

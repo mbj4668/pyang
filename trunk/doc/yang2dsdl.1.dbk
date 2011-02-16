@@ -60,13 +60,21 @@
     <para>This shell script facilitates the translation of a data
     model described by one or more input YANG modules to DSDL schemas
     (RELAX NG, Schematron and DSRL) for a selected instance XML
-    document type. Optionally, an instance document of the given type
-    can be validated against the schemas.</para>
+    document type, as described in <link
+    xlink:href="http://tools.ietf.org/html/rfc6110">RFC 6110</link>. Optionally,
+    the script can validate an instance document of the given type
+    against the schemas.</para>
     <para>The input module(s) may be expressed in YANG or YIN
     syntax. The output DSDL schemas are written to the directory
     <replaceable>dir</replaceable> (current directory by
     default). Unless the option <option>-s</option> is used, this
     directory must be writable.</para>
+
+    <para>The script can be executed by any shell interpreter
+    compatible with POSIX.2, such as
+    <citerefentry><refentrytitle>bash</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+    or
+    <citerefentry><refentrytitle>dash</refentrytitle><manvolnum>1</manvolnum></citerefentry>.</para>
 
     <para>The <replaceable>target</replaceable> argument specifies the
     type of the target instance document. Supported values are:</para>
@@ -74,41 +82,41 @@
       <varlistentry>
         <term><literal>data</literal></term>
         <listitem><para>Datastore contents (configuration and state
-        data) encapsulated in &lt;data&gt; document
+        data) encapsulated in &lt;nc:data&gt; document
         element.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>config</literal></term>
         <listitem><para>A configuration datastore contents
-        encapsulated in &lt;config&gt; document
+        encapsulated in &lt;nc:config&gt; document
         element.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>get-reply</literal></term>
         <listitem><para>A complete NETCONF message
-        containing a reply to the &lt;get&gt;
+        containing a reply to the &lt;nc:get&gt;
         operation.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>get-config-reply</literal></term>
         <listitem><para>A complete NETCONF message
-        containing a reply to the &lt;get-config&gt;
+        containing a reply to the &lt;nc:get-config&gt;
         operation.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>rpc</literal></term>
-        <listitem><para>An RPC request defined in the input YANG
-        module(s).</para></listitem>
+        <listitem><para>An RPC request defined in an input YANG
+        module.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>rpc-reply</literal></term>
-        <listitem><para>An RPC reply defined in the input YANG
-        module(s).</para></listitem>
+        <listitem><para>An RPC reply defined in an input YANG
+        module.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>notification</literal></term>
-        <listitem><para>An event notification defined in the input
-        YANG module(s).</para></listitem>
+        <listitem><para>An event notification defined in an input
+        YANG module.</para></listitem>
       </varlistentry>
     </variablelist>
 
@@ -163,8 +171,9 @@
       <listitem xml:id="val-sch">
         <para>Semantic constraints are checked using the Schematron
         schema. The skeleton implementation of <link
-        xlink:href="http://www.schematron.com">ISO
-        Schematron</link> by Rick Jelliffe is used for this purpose.</para>
+        xlink:href="http://www.schematron.com">ISO Schematron</link>
+        by Rick Jelliffe is included in the distribution and used for
+        this purpose.</para>
       </listitem>
     </orderedlist>
     <para>Steps <xref linkend="val-dsrl"/> and <xref
@@ -397,6 +406,26 @@
       </varlistentry>
     </variablelist>
   </refsect1>
+
+  <refsect1 xml:id="man.1.yang2dsdl.bugs">
+    <title>Bugs</title>
+
+    <orderedlist>
+      <listitem>
+	<para>
+	  The logic of command-line arguments may not be able to
+	  distinguish replies to different RPC requests, for example
+	  if the replies have the same top-level element.
+	</para>
+      </listitem>
+      <listitem>
+	<para>Some targets such as <literal>edit-config</literal> have
+	not been implemented yet.</para>
+      </listitem>
+    </orderedlist>
+
+  </refsect1>
+
   <refsect1 xml:id="man.1.yang2dsdl.seealso">
     <title>See Also</title>
     <para><citerefentry>
@@ -407,13 +436,13 @@
       <manvolnum>1</manvolnum>
       </citerefentry>, <citerefentry>
       <refentrytitle>xmllint</refentrytitle>
-      <manvolnum>1</manvolnum>
-      </citerefentry>, <link xlink:href="http://www.dsdl.org/">DSDL</link>,
-      <link xlink:href="http://www.relaxng.org/">RELAX NG</link>, <link
+      <manvolnum>1</manvolnum> </citerefentry>, <link
+      xlink:href="http://tools.ietf.org/html/rfc6110">RFC 6110</link>,
+      <link xlink:href="http://www.dsdl.org/">DSDL</link>, <link
+      xlink:href="http://www.relaxng.org/">RELAX NG</link>, <link
       xlink:href="http://www.schematron.com">ISO Schematron</link>.
     </para>
-    <para>The mapping procedure from YANG to DSDL is documented in the
-    Internet Draft draft-ietf-netmod-dsdl-map.</para>
+
   </refsect1>
 
 
