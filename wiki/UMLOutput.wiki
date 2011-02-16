@@ -14,18 +14,21 @@ $ pyang -f uml ietf-netconf-monitoring.yang -o ietf-netconf-monitoring.uml
 $ java -jar plantuml.jar ietf-netconf-monitoring.uml 
 $ open img/ietf-netconf-monitoring.png
 }}}
+
+You can also pass several YANG files to the UML output format, but the files must be given in dependency order. (Multi-file does not work for module/sub-module dependancies)
  
 https://pyang.googlecode.com/svn/trunk/doc/img/ietf-netconf-monitoring.png
 
 There is also a python script to generate a UML package structure for all yangs in a folder.
 
-{{{uml-utilities/pkg.py}}}
+{{{uml-utilities/uml-pkg}}}
 
 Use it in the following way:
 {{{
 $ ls *.yang | xargs -n1 pyang -f depend > packages.txt
-$ python pkg.py packages.txt > packages.uml
+$ uml-pkg --title=TITLE --inputfile=packages.txt > packages.uml
 $ java -jar plantuml.jar packages.uml
-$ open packages.uml.png
+$ open img/packages.png
+
 
 }}}
