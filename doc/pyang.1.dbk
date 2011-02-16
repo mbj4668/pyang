@@ -732,87 +732,22 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 	</listitem>
     </varlistentry>
     
-    <varlistentry>
-	<term><option>--uml-no-uses</option></term>
+   <varlistentry>
+	<term><option>--uml-no</option></term>
 	<listitem>
 	  <para>
-        Do not render uses associations, this may simplify
-        complex diagrams. (The uses relationship is still rendered as
-        an attribute)
-        </para>
-	</listitem>
-    </varlistentry>
-    
-    <varlistentry>
-	<term><option>--uml-no-leafrefs</option></term>
-	<listitem>
-	  <para>
-        Do not render leafref associations, this may simplify
-        complex diagrams. (The leafref paths are still rendered as
-        attributes)
-	  </para>
-	</listitem>
-    </varlistentry>
-    <varlistentry>
-	<term><option>--uml-no-identityrefs</option></term>
-	<listitem>
-	  <para>
-        Do not render identityref associations, this may simplify
-        complex diagrams.
-	  </para>
-	</listitem>
-    </varlistentry>
-    <varlistentry>
-	<term><option>--uml-no-identities</option></term>
-	<listitem>
-	  <para>
-        Do not render identities, too many identities may clutter the diagram.
-        This option also implies that no identityrefs will be rendered.
+	    This option suppresses specified arguments in the generated UML diagram. Valid arguments are:  uses, leafref, identity, identityref, typedef, annotation, import, circles, stereotypes. Annotation suppresses YANG cosntructs rendered as annotations, examples module info, config statements for containers. Example --uml-no=circles,stereotypes,typedef,import
 	  </para>
 	</listitem>
     </varlistentry>
 
+
     <varlistentry>
-	<term><option>--uml-no-annotations</option></term>
+	<term><option>--uml-truncate</option></term>
 	<listitem>
 	  <para>
-        Do not render annotations, (to represent present-if, must,...).
-        This may simplify complex diagrams. 
+        Leafref attributes and augment elements can have long paths making the classes too wide. This option will only show the tail of the path. Example  --uml-truncate=augment,leafref.
 	  </para>
-	</listitem>
-    </varlistentry>
-    <varlistentry>
-	<term><option>--uml-no-circles</option></term>
-	<listitem>
-	  <para>
-	 Do not render colored circles indicating stereotype for the UML classes
-	  </para>
-	</listitem>
-    </varlistentry>
-    <varlistentry>
-	<term><option>--uml-no-stereotypes</option></term>
-	<listitem>
-	  <para>
-        Do not render the UML class stereotype (indicating YANG Schema element type). 
-	  </para>
-	</listitem>
-    </varlistentry>
-    <varlistentry>
-	<term><option>--uml-truncate-leafref-paths</option></term>
-	<listitem>
-	  <para>
-        Leafref attributes can have long paths making the classes too wide. This option will only show the tail of the path. 
-	  </para>
-	</listitem>
-    </varlistentry>
-    
-    <varlistentry>
-	<term><option>--uml-filter</option></term>
-	<listitem>
-	  <para>
-        Generate filter file, comment out lines with '-' and
-        use with option '--filter-file' to filter the UML diagram.
-        </para>
 	</listitem>
     </varlistentry>
 
