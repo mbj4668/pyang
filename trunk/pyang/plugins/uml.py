@@ -101,14 +101,14 @@ class UMLPlugin(plugin.PyangPlugin):
   
         if ctx.opts.pages_layout is not None:
             if re.match('[0-9]x[0-9]', ctx.opts.pages_layout) is None:
-                fatal("Illegal page split option %s, should be [0-9]x[0-9], example 2x2" %ctx.opts.pages_layout, 2)
+                self.fatal("Illegal page split option %s, should be [0-9]x[0-9], example 2x2" % ctx.opts.pages_layout)
 
 
         umldoc = uml_emitter(ctx)
         umldoc.emit(modules, fd)
 
-    def fatal(s, exitCode=1):
-        raise error.EmitError(s, exitCode)
+    def fatal(self, exitCode=1):
+        raise error.EmitError(self, exitCode)
 
 
 class uml_emitter:
@@ -824,13 +824,6 @@ class uml_emitter:
     def emit_must(self, parent, node, fd):
         self.annotate_node(parent, "<b>Must:</b>\n" + node.arg, fd) 
 
-    def yang_roots(self, stmt):
-        global root_elems
-        elems = ()
-        for r in root_elems:
-            elems += stmt.search(r)
-        return elems
-
     def full_display_path(self, stmt):
         pathsep = "/"
         path = stmt.arg
@@ -933,7 +926,7 @@ class uml_emitter:
             if node is None: 
                 # check all our submodules
                 for inc in module.search('include'):
-                    submod = ctx.get_module(inc.arg)
+                    submod = self._ctx.get_module(inc.arg)
                     if submod is not None:
                         node = statements.search_data_keyword_child(
                             submod.i_children,
