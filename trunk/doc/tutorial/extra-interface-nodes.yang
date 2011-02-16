@@ -1,0 +1,28 @@
+module extra-interface-nodes {
+  namespace "http://foo.example.com/extra-if-nodes";
+  prefix ein;
+  import acme-system {
+    prefix acme;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  augment "/acme:system/acme:interface" {
+    leaf enabled {
+      type boolean;
+      default "false";
+      must ".='false' or ../ipv4-address and ../subnet-mask-length" {
+        error-message "IP address and mask must be configured " +
+                      "for enabled interfaces.";
+      }
+    }
+    leaf ipv4-address {
+      type inet:ipv4-address;
+    }
+    leaf subnet-mask-length {
+      type uint8 {
+        range "0..32";
+      }
+    }
+  }
+}

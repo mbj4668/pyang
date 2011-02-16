@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nc:data xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <system xmlns="http://acme.example.com/system"
+	  xmlns:ein="http://foo.example.com/extra-if-nodes">
+    <host-name>katz</host-name>
+    <domain-search>acme.example.com foo.example.com</domain-search>
+    <interface>
+      <name>eth0</name>
+      <type>Ethernet</type>
+      <mtu>1500</mtu>
+      <ein:enabled>true</ein:enabled>
+      <ein:ipv4-address>192.0.2.1</ein:ipv4-address>
+      <ein:subnet-mask-length>24</ein:subnet-mask-length>
+    </interface>
+    <interface>
+      <name>eth1</name>
+      <mtu>1500</mtu>
+      <type>Ethernet</type>
+    </interface>
+  </system>
+</nc:data>
