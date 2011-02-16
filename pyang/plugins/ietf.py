@@ -1,5 +1,5 @@
 """IETF usage guidelines plugin
-See draft-ietf-netmod-yang-usage
+See RFC 6087
 """
 
 import optparse

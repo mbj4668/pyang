@@ -199,7 +199,7 @@
         <listitem>
           <para>
 	    Validate the module(s) according to IETF rules as
-	    specified in draft-ietf-netmod-yang-usage.  In addition,
+	    specified in RFC 6087.  In addition,
 	    it checks that the module is in canonical order, and that
 	    <option>--max-line-length</option> is 72 so that the
 	    module fits into an RFC.
