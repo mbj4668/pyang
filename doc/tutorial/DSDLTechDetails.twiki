@@ -1,0 +1,198 @@
+<!-- Author: Ladislav Lhotka <lhotka@cesnet.cz>
+     URL: http://www.yang-central.org/twiki/bin/view/Main/DSDLTechDetails
+
+     Note to pyang committers: please edit the TWiki source
+     in the pyang repository at Google Code, file
+     doc/DSDLTechDetails.twiki.
+-->
+---+ Technical Details of DSDL Mapping and Validation
+
+This page is a supplement to DSDLMappingTutorial and provides
+technical details about the mapping of YANG data models to DSDL
+schemas and validation of instance documents. This information, along
+with [[http://tools.ietf.org/html/rfc6110][RFC 6110]], should help in
+implementing the DSDL mapping and validation on non-Unix operating
+systems and/or with alternative XML tools.
+
+Essentially, we take the same data model as in DSDLMappingTutorial,
+manually execute every step performed by the _yang2dsdl_ script and
+explain the results. The process may look quite daunting at first, so
+let's outline the main steps:
+
+   1. Using the DSDL plugin of [[http://code.google.com/p/pyang][pyang]],
+      we generate an interim object called _hybrid schema_.
+   1. From the hybrid schema we generate the DSDL schemas
+      (RELAX NG, Schematron and DSRL) using three XSLT stylesheets.
+   1. The RELAX NG schema can then be used with any validator to check
+      grammatical constraints and datatypes. We demonstrate this with
+      [[http://xmlsoft.org/xmllint.html][xmllint]].
+   1. The DSRL schema is transformed to an XSLT stylesheet, which is
+      then used for adding leaf nodes with default values to the
+      instance document.
+   1. Finally, we perform Schematron validation: The Schematron schema
+      is transformed to an XSLT stylesheet which is then applied to
+      the instance document.
+
+All in all, for a given data model and a given target document type, a
+complete validation of an instance document against the data model
+eventually involves one RELAX NG schema and two XSLT stylesheets &#8211; one
+for DSRL and another for Schematron. Therefore, such a validation can
+be performed using ubiquitous XML tools.
+
+---++ Generating the Hybrid Schema
+
+The first step in the translation of a YANG data model to DSDL schemas
+utilizes the DSDL plugin of _pyang_:
+
+<verbatim>
+pyang -f dsdl -o aug-acme-system.dsdl acme-system.yang extra-interface-nodes.yang
+</verbatim>
+
+The result, stored in the file
+[[%ATTACHURL%/aug-acme-system.dsdl][aug-acme-system.dsdl]], is the
+so-called _hybrid schema_. It is essentially a RELAX NG schema for the
+entire data model with additional annotations that specify semantic
+constraints and other information.
+
+---++ RELAX NG, Schematron and DSRL Schemas
+
+The final DSDL schemas are obtained from the hybrid schema via XSL
+transformations. The necessary XSLT stylesheets, as well as a RELAX NG
+library schema, are contained in the _pyang_
+package. We have to define two environment variables so that the XML
+tools can find the files:
+
+   1. =PYANG_XSLT_DIR= should be set to the directory where the XSLT
+      stylesheets are placed. In the standard installation it is
+      _/usr/local/share/yang/xslt_.
+
+   1. =PYANG_RNG_LIBDIR= should be set to the directory where the
+      schema file _relaxng-lib.rng_ is located.  In the standard
+      installation it is _/usr/local/share/yang/schema_.
+
+As soon as these two environment variables are properly set, we can
+obtain the three schemas (plus the auxiliary RELAX NG schema with
+global definitions) as follows:
+
+   $ *RELAX NG*: <verbatim>$ xsltproc --output aug-acme-system-data.rng \
+  --stringparam basename aug-acme-system --stringparam target data \
+  --stringparam rng-lib $(RNG_LIB)/relaxng-lib.rng \
+  $PYANG_XSLT_DIR/gen-relaxng.xsl aug-acme-system.dsdl</verbatim>
+
+   $ *RELAX NG with global definitions*: <verbatim>xsltproc --output aug-acme-system-gdefs.rng \
+  --stringparam gdefs-only 1 \
+  $PYANG_XSLT_DIR/gen-relaxng.xsl aug-acme-system.dsdl</verbatim>
+
+   $ *Schematron*: <verbatim>xsltproc --output aug-acme-system-data.sch \
+  --stringparam target data \
+  $PYANG_XSLT_DIR/gen-schematron.xsl aug-acme-system.dsdl</verbatim>
+
+   $ *DSRL*: <verbatim>xsltproc --output aug-acme-system-data.dsrl \
+  --stringparam target data \
+  $PYANG_XSLT_DIR/gen-dsrl.xsl aug-acme-system.dsdl</verbatim>
+
+Instead of [[http://xmlsoft.org/XSLT/xsltproc2.html][xsltproc]], any
+other XSLT processor may be used provided it supports
+[[http://www.w3.org/TR/xslt][XSLT 1.0]] and [[http://www.exslt.org/][EXSLT]].
+
+---++ Validating Grammatical Constraints and Datatypes
+
+Having the RELAX NG schema, validation of the instance document is
+now straightforward:
+<verbatim>
+$ xmllint --noout --relaxng aug-acme-system-data.rng aug-acme-system-data.xml</verbatim>
+
+As we saw in DSDLMappingTutorial, the validation error messages
+provided by _xmllint_ are rather cryptic, so it might be a good idea
+to replace _xmllint_ with another RELAX NG validator, for example
+[[http://www.thaiopensource.com/relaxng/jing.html][Jing]].
+
+---++ Adding Leaf Nodes with Default Values
+
+Before we can check the instance datastore for semantic validity, all
+missing leaf nodes have to be added with their default values where
+possible, if such a default value is defined in the data model. Our
+example has one such leaf node: =ein:enabled=. Note that without
+adding this leaf with the default value of =false=, the instance
+document doesn't satisfy the 'must' constraint in the
+_extra-interface-nodes_ module.
+
+It is the DSRL schema that defines rules for adding default values
+along with their ancestor containers. The task is carried out in two
+steps. First, the DSRL schema is transformed to an XSLT stylesheet:
+<verbatim>
+$ xsltproc --output aug-acme-system-data-dsrl.xsl \
+  $PYANG_XSLT_DIR/dsrl2xslt.xsl aug-acme-system-data.dsrl
+</verbatim>
+
+The generated stylesheet,
+[[%ATTACHURL%/aug-acme-system-data-dsrl.xsl][aug-acme-system-data-dsrl.xsl]],
+can now be applied to the instance document (actually, to any
+grammatically valid document of the same type), which leads
+to a new instance document,
+[[%ATTACHURL%/aug-acme-system-data-wdef.xml][aug-acme-system-data-wdef.xml]]: 
+
+<verbatim>
+$ xsltproc --output aug-acme-system-data-wdef.xml \
+  aug-acme-system-data-dsrl.xsl aug-acme-system-data.xml
+$ xmllint --format aug-acme-system-data-wdef.xml 
+<?xml version="1.0" encoding="utf-8"?>
+<system xmlns="http://acme.example.com/system" xmlns:ein="http://foo.example.com/extra-if-nodes">
+  <host-name>katz</host-name>
+  <domain-search>acme.example.com foo.example.com</domain-search>
+  <interface>
+    <name>eth0</name>
+    <type>Ethernet</type>
+    <mtu>1500</mtu>
+    <ein:enabled>true</ein:enabled>
+    <ein:ipv4-address>192.0.2.1</ein:ipv4-address>
+    <ein:subnet-mask-length>24</ein:subnet-mask-length>
+  </interface>
+  <interface>
+    <name>eth1</name>
+    <mtu>1500</mtu>
+    <type>Ethernet</type>
+    <ein:enabled>false</ein:enabled>
+  </interface>
+</system>
+</verbatim>
+
+We can see that the element =&lt;ein:enabled&gt;= with the default
+value of =false= has indeed been added.
+
+---++ Validating Semantic Constraints
+
+The last step is the Schematron validation. We use the
+[[http://www.schematron.com/implementation.html][skeleton implementation]]
+of Schematron by Rick Jelliffe for this
+purpose. Thanks to its license, this implementation could be included
+in the _pyang_ distribution.
+
+The workflow is similar to the DSRL case above. The Schematron schema
+is first transformed (in two steps, but this is only a technical
+detail) into an XSLT stylesheet,
+[[%ATTACHURL%/aug-acme-system-data-sch.xsl][aug-acme-system-data-sch.xsl]]:
+<verbatim>
+$ xsltproc $PYANG_XSLT_DIR/iso_abstract_expand.xsl aug-acme-system-data.sch | \
+  xsltproc --output aug-acme-system-data-sch.xsl \
+  $PYANG_XSLT_DIR/iso_svrl_for_xslt1.xsl -
+</verbatim>
+
+The stylesheet is applied to the instance document with added defaults
+in this way:
+<verbatim>
+$ xsltproc --output aug-acme-system-data.svrl \
+  aug-acme-system-data-sch.xsl aug-acme-system-data-wdef.xml
+</verbatim>
+The output file,
+[[%ATTACHURL%/aug-acme-system-data.svrl][aug-acme-system-data.svrl]],
+introduces yet another XML format &#8211; Schematron Validation Report
+Language (SVRL). In order to get a simple human-readable report, the _yang2dsdl_ script utilizes a simple XSLT stylesheet to extract error messages from SVRL
+(there are none as the document is valid in our case):
+<verbatim>
+$ xsltproc $PYANG_XSLT_DIR/svrl2text.xsl aug-acme-system-data.svrl
+No errors found.
+</verbatim>
+
+Note, however, that SVRL reports in general contain more detailed
+diagnostic information that can help precisely localize each error.

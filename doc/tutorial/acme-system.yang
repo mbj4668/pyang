@@ -1,0 +1,39 @@
+module acme-system {
+    namespace "http://acme.example.com/system";
+    prefix "acme";
+
+    organization "ACME Inc.";
+    contact "joe@acme.example.com";
+    description
+        "The module for entities implementing the ACME system.";
+
+    revision 2007-11-05 {
+        description "Initial revision.";
+    }
+
+    container system {
+        leaf host-name {
+            type string;
+            description "Hostname for this system";
+        }
+
+        leaf-list domain-search {
+            type string;
+            description "List of domain names to search";
+        }
+
+        list interface {
+            key "name";
+            description "List of interfaces in the system";
+            leaf name {
+                type string;
+            }
+            leaf type {
+                type string;
+            }
+            leaf mtu {
+                type int32;
+            }
+        }
+    }
+}
