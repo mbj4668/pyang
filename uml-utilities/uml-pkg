@@ -1,0 +1,74 @@
+#!/usr/bin/python
+# ls *.yang | xargs -n1 pyang -f depend > packages.txt
+# pkg --title=TITLE --inputfile=packages.txt > packages.uml
+# java -jar plantuml.jar packages.uml
+# open img/packages.png
+
+import sys
+from optparse import OptionParser
+
+useslist = []
+foundpkgs = []
+refpkgs = []
+def main(*args):
+	parser = OptionParser()
+	parser.add_option("--title", action="store", dest="TITLE",
+                  help="Title of UML Package Diagram")
+	parser.add_option("--inputfile", action="store", dest="INPUT",
+                  help="Input file generated with pyang -f depend")
+	(options, args) = parser.parse_args()
+
+	if (options.TITLE is None) or (options.INPUT is None):
+		print "Incorrect number of arguments (--title=TITLE --inputfile=INPUTFILE)"
+		sys.exit(-1)
+	title = options.TITLE.capitalize()
+	infile = options.INPUT
+	try:
+		infile = open(options.INPUT, 'r+')
+	except IOError:
+		print 'cannot open', infile
+	except IndexError:
+		print 'supply input file'
+	else:
+		sys.stdout.write('@startuml img/packages.png \n')
+		sys.stdout.write('title <b> %s </b> \n' %title)
+		lines = infile.readlines()
+		for line in lines:
+		    # sys.stderr.write('checking line %s' %line)
+		    pkg = line.split(":")
+		    sys.stdout.write('package \"%s\" as %s \n' %(stripws(pkg[0]), plantuml(stripws(pkg[0]))))
+		    sys.stdout.write('end package\n')
+		    foundpkgs.append(stripws(pkg[0]))
+		    imports = pkg[1].split(" ")
+		    for i in imports:
+			if (i != "") and (i != "\n"):
+			    useslist.append(plantuml(stripws(pkg[0])) + ' --+ ' +  plantuml(stripws(i)) + ".yang"   + '\n' )
+			    refpkgs.append(stripws(i) + ".yang")
+		externalrefs = False
+		for r in refpkgs:
+			if r not in foundpkgs:
+				if not externalrefs: # first time, write begin
+					sys.stdout.write('package \"other modules\" as other\n')
+					externalrefs = True
+				sys.stdout.write('package \"%s\" as %s \n' %(stripws(r), plantuml(stripws(r))))
+				sys.stdout.write('end package\n')
+		if externalrefs: # close the package for external refs
+				sys.stdout.write('package other\n')
+		for u in useslist:
+		    sys.stdout.write('%s \n' %u)
+		sys.stdout.write('@enduml \n')
+
+
+def plantuml(s):
+        s = s.replace('-', '_')
+        s = s.replace('/', '_')
+        s = s.replace(':', '_')
+        return s
+def stripws(s):
+	s = s.replace(" ", "")
+	s = s.replace("\n", "")
+	return s
+
+ 
+if __name__ == '__main__':
+    sys.exit(main())
