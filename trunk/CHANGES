@@ -11,6 +11,10 @@
         generate an error if a submodule's name is not the same
           correct (typically this means that it is not the same as
           the filename)
+        made yang2dsdl POSIX.2 compatible
+        reorganized command-line parameters in yand2dsdl
+        fixed bug wit input modules not on module path
+        added examples for DSDL Mapping Tutorial
 
    1.0 - 2010-10-07
         compatible with RFC 6020
