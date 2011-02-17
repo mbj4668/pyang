@@ -83,8 +83,8 @@ The DSDL schemas can be generated quite easily (at least on Linux and
 Unix systems) from the two YANG modules by using the _yang2dsdl_ shell
 script which is provided with the _pyang_ distribution. The details
 about its usage can be found in the
-[[%ATTACHURL%/yang2dsdl.1.html][manual page]] or by running
-=yang2dsdl -h=.
+[[http://www.yang-central.org/twiki/pub/Main/YangTools/yang2dsdl.1.html][manual
+page]] or by running =yang2dsdl -h=.
 
 But before we start, we need to decide which target document type the
 generated schemas are to address. Currently, _yang2dsdl_ supports the
