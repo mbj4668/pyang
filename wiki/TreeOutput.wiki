@@ -1,0 +1,67 @@
+#summary pyang plugin to generate ASCII tree diagrams from YANG
+
+= Introduction =
+
+The tree output plugin to pyang is useful to get a quick overview of the structure of YANG models.
+
+The following example generates a tree representation of the [http://tools.ietf.org/html/rfc6022 ietf-netconf-monitoring] module:
+
+{{{
+$ pyang -f tree ietf-netconf-monitoring.yang
+
+module: ietf-netconf-monitoring
+   +--ro netconf-state
+      +--ro capabilities
+      |  +--ro capability*   inet:uri
+      +--ro datastores
+      |  +--ro datastore [name]
+      |     +--ro name     netconf-datastore-type
+      |     +--ro locks?
+      |        +--ro (lock-type)?
+      |           +--:(global-lock)
+      |           |  +--ro global-lock
+      |           |     +--ro locked-by-session    uint32
+      |           |     +--ro locked-time          yang:date-and-time
+      |           +--:(partial-lock)
+      |              +--ro partial-lock [lock-id]
+      |                 +--ro lock-id              uint32
+      |                 +--ro locked-by-session    uint32
+      |                 +--ro locked-time          yang:date-and-time
+      |                 +--ro select*              yang:xpath1.0
+      |                 +--ro locked-node*         instance-identifier
+      +--ro schemas
+      |  +--ro schema [identifier version format]
+      |     +--ro identifier    string
+      |     +--ro version       string
+      |     +--ro format        identityref
+      |     +--ro namespace     inet:uri
+      |     +--ro location*     union
+      +--ro sessions
+      |  +--ro session [session-id]
+      |     +--ro session-id           uint32
+      |     +--ro transport            identityref
+      |     +--ro username             string
+      |     +--ro source-host?         inet:host
+      |     +--ro login-time           yang:date-and-time
+      |     +--ro in-rpcs?             yang:zero-based-counter32
+      |     +--ro in-bad-rpcs?         yang:zero-based-counter32
+      |     +--ro out-rpc-errors?      yang:zero-based-counter32
+      |     +--ro out-notifications?   yang:zero-based-counter32
+      +--ro statistics
+         +--ro netconf-start-time?   yang:date-and-time
+         +--ro in-bad-hellos?        yang:zero-based-counter32
+         +--ro in-sessions?          yang:zero-based-counter32
+         +--ro dropped-sessions?     yang:zero-based-counter32
+         +--ro in-rpcs?              yang:zero-based-counter32
+         +--ro in-bad-rpcs?          yang:zero-based-counter32
+         +--ro out-rpc-errors?       yang:zero-based-counter32
+         +--ro out-notifications?    yang:zero-based-counter32
+rpcs:
+   +---x get-schema    
+      +--ro input     
+      |  +--ro identifier    string
+      |  +--ro version?      string
+      |  +--ro format?       identityref
+      +--ro output    
+         +--ro data
+}}}
