@@ -30,7 +30,7 @@ https://pyang.googlecode.com/svn/trunk/doc/img/monitor1.png
 
 Another example with some parts suppressed:
 {{{
-$ pyang -f uml --uml-no=circles,annotation ietf-netconf-monitoring.yang -o ietf-netconf-monitoring.uml
+$ pyang -f uml --uml-no=circles,stereotypes,annotation ietf-netconf-monitoring.yang -o ietf-netconf-monitoring.uml
 }}}
 
 https://pyang.googlecode.com/svn/trunk/doc/img/monitor2.png
