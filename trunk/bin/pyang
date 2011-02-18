@@ -89,7 +89,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--trim-yin",
                              dest="trim_yin",
                              action="store_true",
-                             help="In YIN input modules, trim whitespace"
+                             help="In YIN input modules, trim whitespace "
                              "in textual arguments."),
         ]
         
