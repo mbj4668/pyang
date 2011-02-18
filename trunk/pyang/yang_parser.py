@@ -42,11 +42,11 @@ class YangTokenizer(object):
 
         while True:
             self.buf = self.buf.lstrip()
-            self.offset += (buflen - len(self.buf))
             if self.buf == '':
                 self.readline()
                 buflen = len(self.buf)
             else:
+                self.offset += (buflen - len(self.buf))
                 break
             
         # skip line comment

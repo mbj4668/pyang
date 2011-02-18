@@ -361,7 +361,7 @@
       
       <varlistentry>
 	<term>
-	  <replaceable>module...</replaceable>
+	  <replaceable>file...</replaceable>
 	</term>
 	<listitem>
 	  <para>
@@ -448,6 +448,14 @@
 	<listitem>
 	  <para>
 	    Generate all statements in the canonical order.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>--yang-remove-unused-imports</option></term>
+	<listitem>
+	  <para>
+	    Remove unused import statements from the output.
 	  </para>
 	</listitem>
       </varlistentry>

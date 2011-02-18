@@ -282,11 +282,11 @@ def add_validation_fun(phase, keywords, f):
         else:
             _validation_map[(phase, keyword)] = f
 
-def add_validation_var(var_name, var_dict):
+def add_validation_var(var_name, var_fun):
     """Add a validation variable to the framework.
 
     Can be used by plugins to do special validation of extensions."""
-    _validation_variables.append((var_name, var_dict))
+    _validation_variables.append((var_name, var_fun))
 
 def set_phase_i_children(phase):
     """Marks that the phase is run over the expanded i_children.
@@ -1434,6 +1434,8 @@ def v_expand_2_augment(ctx, stmt):
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node
 
+        v_inherit_properties(ctx, stmt.i_target_node)
+
 def create_new_case(ctx, choice, child):
     new_case = Statement(child.top, child.parent, child.pos, 'case', child.arg)
     v_init_stmt(ctx, new_case)
@@ -2017,6 +2019,24 @@ def iterate_stmt(stmt, f):
             # default is to recurse
             for s in stmt.substmts:
                 _iterate(s)
+
+    try:
+        _iterate(stmt)
+    except Abort:
+        pass
+
+def iterate_i_children(stmt, f):
+    def _iterate(stmt):
+        res = f(stmt)
+        if res == 'stop':
+            raise Abort
+        elif res == 'continue':
+            pass
+        else:
+            # default is to recurse
+            if hasattr(stmt, 'i_children'):
+                for s in stmt.i_children:
+                    _iterate(s)
 
     try:
         _iterate(stmt)
