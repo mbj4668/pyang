@@ -199,7 +199,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         pos2 = e2[0]
         if pos1.ref == pos2.ref:
             return cmp(pos1.line, pos2.line)
-        if pos1.ref == filenames[0]:
+        if len(filenames) > 0 and pos1.ref == filenames[0]:
             # first print error for the first filename given
             return -1;
         if pos1.ref < pos2.ref:

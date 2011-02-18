@@ -590,17 +590,21 @@ def validate_path_expr(errors, path):
                 (up, s) = parse_dot_dot(s)
                 s = skip_space(s)
             else:
+                up = -1
                 b = s.find(']') + 1
                 s = s[b:]
+                if len(s) > 0 and s[0] == '/':
+                    s = s[1:] # skip '/'
             dn = []
-            while True:
+            while len(s) > 0:
                 (xidentifier, s) = parse_identifier(s, is_absolute)
                 dn.append(xidentifier)
                 s = skip_space(s)
+                if len(s) == 0:
+                    break
                 if s[0] == '/':
                     s = s[1:] # skip '/'
-                else:
-                    s = skip_space(s)
+                elif s[0] == ']':
                     s = s[1:] # skip ']'
                     break
             return (('predicate', identifier, up, dn), s)
@@ -620,6 +624,7 @@ def validate_path_expr(errors, path):
                     s = skip_space(s)
                 if len(s) > 0 and s[0] == '/':
                     s = s[1:] # skip '/'
+
             return (dn, s)
 
         derefup = 0

@@ -19,6 +19,9 @@ class YANGPlugin(plugin.PyangPlugin):
                                  dest="yang_canonical",
                                  action="store_true",
                                  help="Print in canonical order"),
+            optparse.make_option("--yang-remove-unused-imports",
+                                 dest="yang_remove_unused_imports",
+                                 action="store_true"),
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
@@ -30,6 +33,11 @@ def emit_yang(ctx, module, fd):
     emit_stmt(ctx, module, fd, '', '  ')
     
 def emit_stmt(ctx, stmt, fd, indent, indentstep):
+    if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
+        for p in stmt.parent.i_unused_prefixes:
+            if stmt.parent.i_unused_prefixes[p] == stmt:
+                return
+        
     if util.is_prefixed(stmt.raw_keyword):
         (prefix, identifier) = stmt.raw_keyword
         keyword = prefix + ':' + identifier
