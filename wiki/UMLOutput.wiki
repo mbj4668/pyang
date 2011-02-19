@@ -35,6 +35,13 @@ $ pyang -f uml --uml-no=circles,stereotypes,annotation ietf-netconf-monitoring.y
 
 https://pyang.googlecode.com/svn/trunk/doc/img/monitor2.png
 
+A multi-file example from the ongoing YANG modeling in [http://metroethernetforum.org/ Metro Ethernet Forum]
+
+
+A complex example based on the [http://www.rfc-editor.org/internet-drafts/draft-ietf-ipfix-configuration-model-08.txt Configuration Data Model for IPFIX and PSAMP]
+https://pyang.googlecode.com/svn/trunk/doc/img/ietf-ipfix-psamp.png
+
+
 
 There is also a python script to generate a UML package structure for all yangs in a folder.
 
