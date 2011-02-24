@@ -556,14 +556,6 @@
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--xsd-no-includes</option></term>
-	<listitem>
-	  <para>
-	    Do not generate any xs:includes.
-	  </para>
-	</listitem>
-      </varlistentry>
-      <varlistentry>
 	<term><option>--xsd-break-pattern</option></term>
 	<listitem>
 	  <para>

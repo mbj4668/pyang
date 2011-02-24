@@ -117,10 +117,6 @@ class XSDPlugin(plugin.PyangPlugin):
                                  dest="xsd_no_imports",
                                  action="store_true",
                                  help="Do not generate xs:import elements"),
-            optparse.make_option("--xsd-no-includes",
-                                 dest="xsd_no_includes",
-                                 action="store_true",
-                                 help="Do not generate xs:include elements"),
             optparse.make_option("--xsd-break-pattern",
                                  dest="xsd_break_pattern",
                                  action="store_true",
@@ -158,9 +154,9 @@ class DummyFD(object):
         pass
 
 
-def expand_locally_defined_typedefs(ctx, module):
+def expand_locally_defined_typedefs(ctx, module, m):
     """Create top-level typedefs for all locally defined typedefs."""
-    for c in module.search('typedef'):
+    for c in m.search('typedef'):
         c.i_xsd_name = c.arg
     for inc in module.search('include'):
         rev = None
@@ -189,9 +185,9 @@ def expand_locally_defined_typedefs(ctx, module):
                 add_typedef(c)
         for c in obj.search('grouping'):
             add_typedef(c)
-    for c in (module.i_children +
-              module.search('augment') +
-              module.search('grouping')):
+    for c in (m.i_children +
+              m.search('augment') +
+              m.search('grouping')):
         add_typedef(c)
 
 def emit_xsd(ctx, module, fd):
@@ -210,33 +206,85 @@ def emit_xsd(ctx, module, fd):
         i_prefix = module.search_one('prefix').arg
 
     # initialize some XSD specific variables
-    module.i_namespace = i_namespace
-    module.i_prefix = i_prefix
+    module.i_xsd_namespace = i_namespace
+    module.i_xsd_prefix = i_prefix
     module.i_gen_typedef = []
     module.i_gen_import = []
     module.i_gen_augment_idx = 0
     module.i_local_typedefs = []
 
+    mods = [module]
+    for i in module.search('include'):
+        subm = ctx.get_module(i.arg)
+        if subm is not None:
+            mods.append(subm)
+            # make sure the top module imports all modules imported by the
+            # submodule
+            for subimp in subm.search('import'):
+                p = subimp.search_one('prefix').arg
+                (othermodname, otherrevision) = subm.i_prefixes[p]
+                ourprefix = util.dictsearch((othermodname,otherrevision),
+                                            module.i_prefixes)
+                if ourprefix is None:
+                    # we don't have a prefix for this module
+                    newprefix = gen_new_import(module, othermodname,
+                                               otherrevision)
+                    newmod = ctx.get_module(othermodname, otherrevision)
+                    newmod.i_xsd_prefix = newprefix
+
+    # make sure we "import" all modules imported by our modules,
+    # recursively.  the reason for this is that we might generate a
+    # type reference for leafreafs, and for this the module must be
+    # imported.  unused imports are ignored by confdc.
+    handled = []
+    def add_import(othermodname, otherrevision):
+        if (othermodname, otherrevision) not in handled:
+            # new module
+            handled.append((othermodname, otherrevision))
+            ourprefix = util.dictsearch((othermodname,otherrevision),
+                                        module.i_prefixes)
+            if ourprefix is None:
+                # we don't have a prefix for this module
+                newprefix = gen_new_import(module, othermodname,
+                                           otherrevision)
+                newmod = ctx.get_module(othermodname, otherrevision)
+                newmod.i_xsd_prefix = newprefix
+            else:
+                newmod = ctx.get_module(othermodname, otherrevision)
+
+            for i in newmod.search('include'):
+                subm = ctx.get_module(i.arg)
+                if subm is not None:
+                    for imp in subm.search('import'):
+                        r = imp.search_one('revision-date')
+                        if r is not None:
+                            r = r.arg
+                        add_import(imp.arg, r)
+
+            for imp in newmod.search('import'):
+                r = imp.search_one('revision-date')
+                if r is not None:
+                    r = r.arg
+                add_import(imp.arg, r)
+    for imp in module.search('import'):
+        r = imp.search_one('revision-date')
+        if r is not None:
+            r = r.arg
+        add_import(imp.arg, r)
+
     # first, create top-level typedefs of local typedefs
-    expand_locally_defined_typedefs(ctx, module)
+    for m in mods:
+        expand_locally_defined_typedefs(ctx, module, m)
 
-    # first pass, which might generate new imports
-    ctx.i_pass = 'first'
-    dummyfd = DummyFD()
-    print_children(ctx, module, dummyfd, module.i_children, '  ', [])
-    for c in module.search('typedef'):
-        print_simple_type(ctx, module, dummyfd, '  ', c.search_one('type'),
-                          '', None)
-
-    prefixes = [module.i_prefix] + [p for p in module.i_prefixes]
-    if module.i_prefix in ['xs', 'yin', 'nc', 'ncn']:
+    prefixes = [module.i_xsd_prefix] + [p for p in module.i_prefixes]
+    if module.i_xsd_prefix in ['xs', 'yin', 'nc', 'ncn']:
         i = 0
         pre = "p" + str(i)
         while pre in prefixes:
             i = i + 1
             pre = "p" + str(i)
         prefixes.append(pre)
-        module.i_prefix = pre
+        module.i_xsd_prefix = pre
         
     has_rpc = False
     has_notifications = False
@@ -257,21 +305,23 @@ def emit_xsd(ctx, module, fd):
     if has_notifications == True:
         fd.write('           xmlns:ncn="urn:ietf:params:xml:ns:' \
                        'netconf:notification:1.0"\n')
-    fd.write('           targetNamespace="%s"\n' % module.i_namespace)
-    fd.write('           xmlns="%s"\n' % module.i_namespace)
+    fd.write('           targetNamespace="%s"\n' % module.i_xsd_namespace)
+    fd.write('           xmlns="%s"\n' % module.i_xsd_namespace)
     fd.write('           elementFormDefault="qualified"\n')
     fd.write('           attributeFormDefault="unqualified"\n')
     if len(module.search('revision')) > 0:
         fd.write('           version="%s"\n' % 
                  module.search('revision')[0].arg)
     fd.write('           xml:lang="en"')
-    for pre in module.i_prefixes:
-        (modname, revision) = module.i_prefixes[pre]
-        if modname == module.arg:
-            mod = module
-        else:
-            mod = ctx.get_module(modname, revision)
-        if mod.keyword == 'module':
+
+    handled_modules = []
+    for m in mods:
+        for pre in m.i_prefixes:
+            (modname, revision) = m.i_prefixes[pre]
+            mod = statements.modulename_to_module(m, modname, revision)
+            if mod in handled_modules or mod.keyword == 'submodule':
+                continue
+            handled_modules.append(mod)
             if pre in ['xs', 'yin', 'nc', 'ncn']:
                 # someone uses one of our prefixes
                 # generate a new prefix for that module
@@ -281,23 +331,36 @@ def emit_xsd(ctx, module, fd):
                     i = i + 1
                     pre = "p" + str(i)
                 prefixes.append(pre)
-            mod.i_prefix = pre
-            uri = mod.search_one('namespace').arg
-            fd.write('\n           xmlns:' + pre + '=' + quoteattr(uri))
+            mod.i_xsd_prefix = pre
+            if mod == module:
+                uri = mod.i_xsd_namespace
+            else:
+                uri = mod.search_one('namespace').arg
+            fd.write('\n          xmlns:' + pre + '=' + quoteattr(uri))
     fd.write('>\n\n')
     
     if ctx.opts.xsd_no_imports != True:
         imports = module.search('import') + module.i_gen_import
+        for inc in module.search('include'):
+            rev = None
+            r = inc.search_one('revision-date')
+            if r is not None:
+                rev = r.arg
+            m = ctx.get_module(inc.arg, rev)
+            imports.extend(m.search('import'))
+        imported = []
         for x in imports:
             rev = None
             r = x.search_one('revision-date')
             if r is not None:
                 rev = r.arg
             mod = ctx.get_module(x.arg, rev)
-            uri = mod.search_one('namespace').arg
-            fd.write('  <xs:import namespace="%s"\n' \
-                     '             schemaLocation="%s.xsd"/>\n' %
-                       (uri, x.arg))
+            if mod not in imported:
+                imported.append(mod)
+                uri = mod.search_one('namespace').arg
+                fd.write('  <xs:import namespace="%s"\n' \
+                         '             schemaLocation="%s.xsd"/>\n' %
+                         (uri, x.arg))
         if has_rpc and module.arg == 'ietf-netconf':
             # this is the YANG mdoule for the NETCONF operations
             # FIXME: when 4741bis has been published, change
@@ -319,10 +382,6 @@ def emit_xsd(ctx, module, fd):
         if len(imports) > 0 or has_rpc or has_notifications:
             fd.write('\n')
 
-    if ctx.opts.xsd_no_includes != True:
-        for inc in module.search('include'):
-            fd.write('  <xs:include schemaLocation="%s.xsd"/>\n' % inc.arg)
-
     if ctx.opts.xsd_no_lecture != True:
         fd.write('  <xs:annotation>\n')
         fd.write('    <xs:documentation>\n')
@@ -342,29 +401,26 @@ def emit_xsd(ctx, module, fd):
     ctx.i_pass = 'second'
 
     # print typedefs
-    if len(module.search('typedef')) > 0:
+    got_typedefs = False
+    for m in mods:
+        if m.search_one('typedef') is not None:
+            got_typedefs = True
+    if got_typedefs:
         fd.write('\n  <!-- YANG typedefs -->\n')
-    for c in module.search('typedef'):
-        fd.write('\n')
-        print_simple_type(ctx, module, fd, '  ', c.search_one('type'),
-                          ' name="%s"' % c.i_xsd_name,
-                          c.search_one('description'))
+        for m in mods:
+            for c in m.search('typedef'):
+                print_simple_type(ctx, module, fd, '  ', c.search_one('type'), c,
+                                  ' name="%s"' % c.i_xsd_name,
+                                  c.search_one('description'))
 
     # print locally defined typedefs
     if len(module.i_local_typedefs) > 0:
         fd.write('\n  <!-- local YANG typedefs -->\n')
     for c in module.i_local_typedefs:
         fd.write('\n')
-        print_simple_type(ctx, module, fd, '  ', c.search_one('type'),
+        print_simple_type(ctx, module, fd, '  ', c.search_one('type'), c,
                           ' name="%s"' % c.i_xsd_name,
                           c.search_one('description'))
-
-    # print groups
-    if len(module.search('grouping')) > 0:
-        fd.write('\n  <!-- YANG groupings -->\n')
-    for c in module.search('grouping'):
-        fd.write('\n')
-        print_grouping(ctx, module, fd, '  ', c)
 
     # print augments
     # filter away local augments; they are printed inline in the XSD
@@ -385,7 +441,7 @@ def emit_xsd(ctx, module, fd):
         fd.write('\n  <!-- locally generated simpleType helpers -->\n')
     for c in module.i_gen_typedef:
         fd.write('\n')
-        print_simple_type(ctx, module, fd, '  ', c.search_one('type'),
+        print_simple_type(ctx, module, fd, '  ', c.search_one('type'), c,
                           ' name="%s"' % c.arg, None)
 
     fd.write('\n</xs:schema>\n')
@@ -438,7 +494,7 @@ def print_children(ctx, module, fd, children, indent, path,
                     if type.arg == 'empty':
                         atype = ''
                     else:
-                        atype = '  type="%s"' % xsd_type_name(type)
+                        atype = '  type="%s"' % xsd_type_name(ctx, type, c)
             elif cn in ['notification']:
                 sgroup = ' substitutionGroup="ncn:notificationContent"'
                 extbase = 'ncn:NotificationContentType'
@@ -487,9 +543,9 @@ def print_children(ctx, module, fd, children, indent, path,
                                   '_'.join(path + [c.arg])
                         ustr += uindent + \
                                   '  <xs:selector xpath="%s:%s"/>\n' % \
-                                  (module.i_prefix, c.arg)
+                                  (module.i_xsd_prefix, c.arg)
                         for expr in k.arg.split():
-                            f = '/'.join([module.i_prefix + ':' + x
+                            f = '/'.join([module.i_xsd_prefix + ':' + x
                                           for x in expr.split('/')])
                             ustr += uindent + \
                                       '  <xs:field xpath="%s"/>\n' % f
@@ -502,9 +558,9 @@ def print_children(ctx, module, fd, children, indent, path,
                                  ('_'.join(path + [c.arg]), i)
                         ustr += uindent + \
                                   '  <xs:selector xpath="%s:%s"/>\n' % \
-                                  (module.i_prefix, c.arg)
+                                  (module.i_xsd_prefix, c.arg)
                         for expr in u.arg.split():
-                            f = '/'.join([module.i_prefix + ':' + x
+                            f = '/'.join([module.i_xsd_prefix + ':' + x
                                           for x in expr.split('/')])
                             ustr += uindent + \
                                       '  <xs:field xpath="%s"/>\n' % f
@@ -536,7 +592,7 @@ def print_children(ctx, module, fd, children, indent, path,
             elif cn in ['leaf', 'leaf-list']:
                 if c.search_one('type').i_is_derived == True:
                     print_simple_type(ctx, module, fd, indent + '  ',
-                                      c.search_one('type'), '', None)
+                                      c.search_one('type'), c, '', None)
                 elif c.search_one('type').arg == 'empty':
                     fd.write(indent + '  <xs:complexType/>\n')
             elif cn in ['anyxml']:
@@ -567,30 +623,38 @@ def print_children(ctx, module, fd, children, indent, path,
             fd.write(indent + '          namespace="##other" '\
                            'processContents="lax"/>\n')
             fd.write(indent + '</xs:choice>\n')
-        elif cn == 'uses':
-            fd.write(indent + '<xs:group ref="%s"/>\n' % c.arg)
             
-def xsd_type_name(type):
+def xsd_type_name(ctx, type, parent):
     if type.arg in yang_to_xsd_types:
         return "xs:%s" % yang_to_xsd_types[type.arg]
     elif type.arg == 'leafref':
-        (ref, _pos) = type.parent.i_leafref_ptr
-        return xsd_type_name(ref.search_one('type'))
-    elif ((type.i_typedef != None) and
-          (":" not in type.arg)):
+        (ref, _pos) = parent.i_leafref_ptr
+        return xsd_type_name(ctx, ref.search_one('type'), ref)
+    elif ((type.i_typedef != None) and (":" not in type.arg)):
         return type.i_typedef.i_xsd_name
+    elif type.i_typedef is not None:
+        if hasattr(type.i_typedef, 'i_xsd_name'):
+            # the type is in our own module
+            return "%s" % type.i_typedef.i_xsd_name
+        elif type.i_typedef.parent.keyword == 'module':
+            # top-level (exported) typedef
+            return "%s:%s" % (type.i_typedef.i_module.i_xsd_prefix,
+                              type.i_typedef.arg)
+        elif type.i_typedef.parent.keyword == 'submodule':
+            if (type.i_typedef.parent.i_modulename == type.i_module.arg):
+                # top-level in our own module
+                return type.i_typedef.arg
+            else:
+                # top-level (exported) in submodule
+                othermod = ctx.get_module(type.i_typedef.parent.i_modulename)
+                return "%s:%s" % (othermod.i_xsd_prefix, type.i_typedef.arg)
+        else:
+            # cannot happen
+            print type.arg
+            assert False
     else:
         return type.arg
     
-
-def print_grouping(ctx, module, fd, indent, grouping):
-    fd.write(indent + '<xs:group name="%s">\n' % grouping.arg)
-    print_description(fd, indent + '  ', grouping.search_one('description'))
-    fd.write(indent + '  <xs:sequence>\n')
-    print_children(ctx, module, fd, grouping.i_children,
-                    indent + '    ', [grouping.arg])
-    fd.write(indent + '  </xs:sequence>\n')
-    fd.write(indent + '</xs:group>\n')
 
 def print_augment(ctx, module, fd, indent, augment):
     i = module.i_gen_augment_idx
@@ -615,7 +679,23 @@ def print_description(fd, indent, descr):
         fd.write(indent + '  </xs:documentation>\n')
         fd.write(indent + '</xs:annotation>\n\n')
 
-def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
+def gen_new_import(module, modname, revision):
+    i = 0
+    pre = "p" + str(i)
+    while pre in module.i_prefixes:
+        i = i + 1
+        pre = "p" + str(i)
+    module.i_prefixes[pre] = (modname, revision)
+    imp = statements.Statement(module, module, None, 'import', modname)
+    if revision is not None:
+        rev = statements.Statement(module, imp, None, 'revision-date',
+                                   revision)
+        imp.substmts.append(rev)
+    module.i_gen_import.append(imp)
+    return pre
+
+
+def print_simple_type(ctx, module, fd, indent, type, parent, attrstr, descr):
 
     def gen_new_typedef(module, new_type):
         i = 0
@@ -630,20 +710,6 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
         typedef.substmts.append(new_type)
         module.i_gen_typedef.append(typedef)
         return name
-
-    def gen_new_import(module, modname, revision):
-        i = 0
-        pre = "p" + str(i)
-        while pre in module.i_prefixes:
-            i = i + 1
-            pre = "p" + str(i)
-        module.i_prefixes[pre] = (modname, revision)
-        imp = statements.Statement(module, module, None, 'import', modname)
-        if revision is not None:
-            rev = statements.Statement(module, imp, None, 'revision-date',
-                                       revision)
-            imp.substmts.append(rev)
-        module.i_gen_import.append(imp)
 
     if type.search('bit') != []:
         fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
@@ -662,15 +728,14 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
     fd.write(indent + '<xs:simpleType%s>\n' % attrstr)
     print_description(fd, indent + '  ', descr)
     if type.arg in yang_to_xsd_types:
-        base = xsd_type_name(type)
+        base = xsd_type_name(ctx, type, parent)
     elif type.arg == 'leafref':
-        base = xsd_type_name(type)
+        base = xsd_type_name(ctx, type, parent)
     elif type.search('enum') != []:
         base = 'xs:string'
-    elif ((type.i_typedef != None) and (":" not in type.arg)):
-        base = type.i_typedef.i_xsd_name
     else:
-        base = type.arg
+        base = xsd_type_name(ctx, type, parent)
+
     if ((type.search_one('length') != None) and (type.search('pattern') != [])):
         # this type has both length and pattern, which isn't allowed
         # in XSD.  we solve this by generating a dummy type with the
@@ -733,7 +798,10 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
                                 # it is imported, use our prefix
                                 new_type.arg = newprefix + ':' + newname
                             else:
-                                gen_new_import(module, newmodname, newrevision)
+                                newprefix = gen_new_import(module, newmodname,
+                                                           newrevision)
+                                newmod = ctx.get_module(newmodname, newrevision)
+                                newmod.i_xsd_prefix = newprefix
                                 
                     if ctx.i_pass == 'first':
                         base = ''
@@ -780,7 +848,7 @@ def print_simple_type(ctx, module, fd, indent, type, attrstr, descr):
     elif type.search('type') != []:
         fd.write(indent + '  <xs:union>\n')
         for t in type.search('type'):
-            print_simple_type(ctx, module, fd, indent+'    ', t, '', None)
+            print_simple_type(ctx, module, fd, indent+'    ', t, type, '', None)
         fd.write(indent + '  </xs:union>\n')
     elif type.search('pattern') != []:
         def print_pattern(indent, patstr):

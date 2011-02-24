@@ -86,8 +86,13 @@ def validate_module(ctx, module):
 
     module.i_is_validated = 'in_progress'
     try:
+#        import time
         for phase in _validation_phases:
+#            print 'phase:', phase
+#            t0 = time.time()
             iterate(module, phase)
+#            t1 = time.time()
+#            print 'time', t1 - t0
     except Abort:
         pass
     module.i_is_validated = True

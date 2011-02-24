@@ -1,0 +1,32 @@
+submodule asub {
+  belongs-to a {
+    prefix x;
+  }
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  typedef at {
+    type string;
+  }
+
+  grouping A {
+    leaf a {
+      type leafref {
+        path "/x:foo/x:b";
+      }
+    }
+  }
+  
+  container foo {
+    uses A;
+    leaf tt {
+      type at;
+    }
+  }
+
+  augment /foo {
+    leaf b { type inet:port-number; }
+  }
+}

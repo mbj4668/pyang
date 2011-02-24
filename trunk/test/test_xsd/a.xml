@@ -1,0 +1,4 @@
+<foo xmlns="urn:a">
+  <a>32</a>
+  <b>44</b>
+</foo>
