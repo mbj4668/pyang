@@ -1,3 +1,8 @@
+   1.2 - ???
+        some xsd output fixes
+        removed the --xsd-no-include option.  the xsd ouput never generates
+          inlcude anymore
+
    1.1 - 2011-02-16
         DSDL output compatible with RFC 6110
        
