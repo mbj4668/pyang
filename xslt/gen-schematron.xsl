@@ -183,7 +183,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="yam-namespaces"/>
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
-        select="rng:define[descendant::rng:element[&annots;]|
+        select="rng:define[descendant-or-self::rng:*[&annots;]|
                 descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
@@ -194,6 +194,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="@name"/>
       </xsl:attribute>
+      <xsl:apply-templates select="self::rng:define[&annots;]"
+			   mode="annotdef"/>
       <xsl:apply-templates
           select="descendant::rng:element[&annots;]|
                   descendant::rng:choice[@nma:mandatory]">
@@ -203,9 +205,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
+  <xsl:template match="rng:define" mode="annotdef">
+    <xsl:element name="sch:rule">
+      <xsl:attribute name="context">$start</xsl:attribute>
+      <xsl:apply-templates select="&annots;"/>
+    </xsl:element>
+  </xsl:template>
+
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-        select="rng:define[descendant::rng:element[&annots;]|
+        select="rng:define[descendant-or-self::rng:*[&annots;]|
                 descendant::rng:choice[@nma:mandatory]]"/>
     <xsl:choose>
       <xsl:when test="$target='data' or $target='config' or
@@ -327,7 +336,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:ref" mode="ref">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:if test="key('refdef',@name)[descendant::rng:element[&annots;]|
+    <xsl:if
+	test="key('refdef',@name)[descendant-or-self::rng:*[&annots;]|
                   descendant::rng:choice[@nma:mandatory]]">
       <xsl:element name="sch:pattern">
         <xsl:attribute name="id">
