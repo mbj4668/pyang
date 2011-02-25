@@ -415,8 +415,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="nma:instance-identifier">
     <xsl:if test="not(@require-instance='false')">
+      <xsl:variable name="beg">
+	<xsl:if test="starts-with(.,'/')">
+	  <xsl:value-of select="$netconf-part"/>
+	</xsl:if>
+      </xsl:variable>
       <xsl:call-template name="assert-element">
-	<xsl:with-param name="test">dyn:evaluate(.)</xsl:with-param>
+	<xsl:with-param
+	    name="test"
+	    select="concat('dyn:evaluate(',$beg,.,')')"/>
 	<xsl:with-param
 	    name="message"
 	    select="concat('The element pointed to by &quot;',
@@ -494,9 +501,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@nma:leafref">
+    <xsl:variable name="beg">
+      <xsl:if test="starts-with(.,'/')">
+	<xsl:value-of select="$netconf-part"/>
+      </xsl:if>
+    </xsl:variable>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-        <xsl:value-of select="concat('not(',$netconf-part,.,'=.)')"/>
+        <xsl:value-of select="concat('not(',$beg,.,'=.)')"/>
       </xsl:attribute>
         <xsl:value-of
             select="concat('Leaf &quot;',.,
