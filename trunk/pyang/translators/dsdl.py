@@ -47,7 +47,7 @@ import optparse
 import time
 
 import pyang
-from pyang import plugin, error, xpath, util, statements
+from pyang import plugin, error, xpath, util, statements, types
 
 from schemanode import SchemaNode
 
@@ -1160,8 +1160,9 @@ class HybridDSDLSchema(object):
         occur = p_elem.occur
         pathstr = typ.parent.i_leafref.i_expanded_path
         p_elem.attr["nma:leafref"] = self.yang_to_xpath(pathstr)
-        self.handle_stmt(typ.i_type_spec.i_target_node.search_one("type"),
-                         p_elem)
+        while type(typ.i_type_spec) == types.PathTypeSpec:
+            typ = typ.i_type_spec.i_target_node.search_one("type")
+        self.handle_stmt(typ, p_elem)
         if occur == 0: p_elem.occur = 0
 
     def mapped_type(self, tchain, p_elem):
