@@ -1722,6 +1722,9 @@ def v_reference_deviate(ctx, stmt):
                     (t.i_module.arg, t.arg))
             return
         idx = t.parent.i_children.index(t)
+        if not hasattr(t.parent, 'i_not_supported'):
+            t.parent.i_not_supported = []
+        t.parent.i_not_supported.append(t)
         del t.parent.i_children[idx]
     elif stmt.arg == 'add':
         for c in stmt.substmts:
