@@ -116,7 +116,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template
-      match="yin:config|yin-default|yin:deviate|yin:error-app-tag
+      match="yin:config|yin:default|yin:deviate|yin:error-app-tag
 	     |yin:fraction-digits|yin:key|yin:length|yin:mandatory
 	     |yin:max-elements|yin:min-elements|yin:ordered-by
 	     |yin:path|yin:pattern|yin:position|yin:prefix
