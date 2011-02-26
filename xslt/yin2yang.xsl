@@ -171,7 +171,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="yin:text|yin:value">
+  <xsl:template match="yin:text|yin:error-message/yin:value">
     <xsl:variable name="qchar">
       <xsl:choose>
 	<xsl:when test="contains(.,'&quot;')">
