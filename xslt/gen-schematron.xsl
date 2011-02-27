@@ -342,7 +342,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:element name="sch:pattern">
 	<xsl:attribute name="id">
 	  <xsl:value-of
-	      select="concat('ID',translate($prevpath,':/','..'),
+	      select="concat('ID',translate($prevpath,':/','._'),
 		      '.', generate-id())"/>
         </xsl:attribute>
         <xsl:attribute name="is-a">
