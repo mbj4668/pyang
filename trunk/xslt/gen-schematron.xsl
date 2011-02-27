@@ -340,8 +340,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	test="key('refdef',@name)[descendant-or-self::rng:*[&annots;]|
                   descendant::rng:choice[@nma:mandatory]]">
       <xsl:element name="sch:pattern">
-        <xsl:attribute name="id">
-          <xsl:value-of select="generate-id()"/>
+	<xsl:attribute name="id">
+	  <xsl:value-of
+	      select="concat('ID',translate($prevpath,':/','..'),
+		      '.', generate-id())"/>
         </xsl:attribute>
         <xsl:attribute name="is-a">
           <xsl:value-of select="@name"/>
@@ -375,9 +377,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath">
         <xsl:value-of select="concat($prevpath,'/')"/>
-        <xsl:call-template name="qname">
-          <xsl:with-param name="name" select="@name"/>
-        </xsl:call-template>
+	<xsl:if test="not(contains(@name,':'))">
+	  <xsl:value-of select="concat($prefix,':')"/>
+	</xsl:if>
+	<xsl:value-of select="@name"/>
       </xsl:with-param>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
