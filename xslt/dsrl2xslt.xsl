@@ -74,6 +74,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                           select="/dsrl:maps/namespace::*[name() =
                                   substring-before($name,':')]"/>
             <xsl:element name="{$name}" namespace="{$ns}">
+	      <xsl:element name="xsl:processing-instruction">
+		<xsl:attribute name="name">dsrl</xsl:attribute>
+	      </xsl:element>
               <xsl:copy-of select="dsrl:default-content/*
                                    |dsrl:default-content/text()"/>
             </xsl:element>

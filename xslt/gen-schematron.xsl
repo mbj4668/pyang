@@ -503,9 +503,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="@nma:when">
     <xsl:call-template name="assert-element">
-      <xsl:with-param
-          name="test"
-          select="."/>
+      <xsl:with-param name="test">
+	<xsl:text>ancestor-or-self::*[processing-instruction('dsrl')] or </xsl:text>
+	<xsl:value-of select="concat('(',.,')')"/>
+      </xsl:with-param>
       <xsl:with-param
           name="message"
           select="concat('Node &quot;', ../@name,
