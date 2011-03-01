@@ -72,6 +72,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="name" select="@name"/>
       </xsl:call-template>
+      <xsl:if test="@nma:when">
+	<xsl:value-of select="concat('[',@nma:when,']')"/>
+      </xsl:if>
     </xsl:for-each>
   </xsl:template>
 
