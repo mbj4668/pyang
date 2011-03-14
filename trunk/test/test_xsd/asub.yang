@@ -19,6 +19,12 @@ submodule asub {
     }
   }
   
+  list x {
+    key name;
+    leaf name {
+      type string;
+    }
+  }
   container foo {
     uses A;
     leaf tt {
