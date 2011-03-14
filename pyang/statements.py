@@ -1290,7 +1290,7 @@ def v_expand_1_uses(ctx, stmt):
                     target.substmts.remove(old)
                 target.substmts.append(s)
 
-def v_inherit_properties(ctx, stmt):
+def v_inherit_properties(ctx, stmt, child=None):
     def iter(s, config_value, allow_explicit):
         cfg = s.search_one('config')
         if cfg is not None:
@@ -1317,6 +1317,10 @@ def v_inherit_properties(ctx, stmt):
                 else:
                     iter(ch, config_value, allow_explicit)
 
+    if child is not None:
+        iter(child, stmt.i_config, True)
+        return
+    
     for s in stmt.search('grouping') + stmt.search('augment'):
         iter(s, None, True)
     for s in stmt.i_children:
@@ -1399,9 +1403,6 @@ def v_expand_2_augment(ctx, stmt):
 
     for c in stmt.i_children:
         c.i_augment = stmt
-        if (stmt.i_target_node.i_config == False and
-            hasattr(c, 'i_config') and c.i_config == True):
-            err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
 
         ch = search_child(stmt.i_target_node.i_children,
                           stmt.i_module.i_modulename, c.arg)
@@ -1433,8 +1434,7 @@ def v_expand_2_augment(ctx, stmt):
         else:
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node
-
-        v_inherit_properties(ctx, stmt.i_target_node)
+            v_inherit_properties(ctx, stmt.i_target_node, c)
 
 def create_new_case(ctx, choice, child):
     new_case = Statement(child.top, child.parent, child.pos, 'case', child.arg)
@@ -1533,9 +1533,9 @@ def v_reference_list(ctx, stmt):
                 elif ((ptr is None) or (ptr.keyword != 'leaf')):
                     err_add(ctx.errors, key.pos, 'BAD_KEY', x)
                     return
-                type = ptr.search_one('type')
-                if type is not None:
-                    t = has_type(type, ['empty'])
+                type_ = ptr.search_one('type')
+                if type_ is not None:
+                    t = has_type(type_, ['empty'])
                     if t is not None:
                         err_add(ctx.errors, key.pos, 'BAD_TYPE_IN_KEY',
                                 (t.arg, x))
