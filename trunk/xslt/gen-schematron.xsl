@@ -159,7 +159,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="yam-namespaces"/>
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
-        select="rng:define[descendant-or-self::rng:*[&annots;]]"/>
+        select="rng:define[descendant-or-self::rng:element[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -172,7 +172,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:apply-templates select="self::rng:define[&annots;]"
 			   mode="annotdef"/>
       <xsl:apply-templates
-          select="descendant::rng:*[&annots;]">
+          select="descendant::rng:element[&annots;]">
         <xsl:with-param name="prevpath">$start</xsl:with-param>
         <xsl:with-param name="prefix">$pref</xsl:with-param>
       </xsl:apply-templates>
@@ -188,7 +188,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-        select="rng:define[descendant-or-self::rng:*[&annots;]]"/>
+        select="rng:define[descendant-or-self::rng:element[&annots;]]"/>
     <xsl:choose>
       <xsl:when test="$target='data' or $target='config' or
                       $target='get-reply' or $target='get-config-reply'">
@@ -215,7 +215,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
       </xsl:attribute>
       <xsl:apply-templates
-          select="descendant::rng:*[&annots;]">
+          select="descendant::rng:element[&annots;]">
         <xsl:with-param name="prevpath" select="$netconf-part"/>
         <xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
@@ -243,11 +243,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
+  <!--
+ 
   <xsl:template match="rng:choice[@nma:config='false']">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:if test="$target!='config' and $target!='get-config-reply'">
-      <xsl:apply-templates select="@nma:mandatory">
+      <xsl:apply-templates select="@nma:mandatory|@nma:when">
 	<xsl:with-param name="prevpath" select="$prevpath"/>
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
@@ -258,17 +260,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:if test="$features-off!=1">
-      <xsl:apply-templates select="@nma:mandatory">
+      <xsl:apply-templates select="@nma:mandatory|@nma:when">
 	<xsl:with-param name="prevpath" select="$prevpath"/>
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="rng:choice">
+  -->
+
+  <xsl:template match="rng:*">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:apply-templates select="@nma:mandatory|@nma:when">
+    <xsl:apply-templates select="&annots;">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -299,7 +303,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:choice/@nma:when">
+  <xsl:template match="rng:choice/@nma:when|rng:group/@nma:when|
+		       rng:interleave/@nma:when">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:element name="sch:rule">
@@ -319,7 +324,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	</xsl:with-param>
 	<xsl:with-param
 	    name="message"
-	    select="concat('Any choice case is valid only when &quot;',
+	    select="concat('Found nodes that are valid only when &quot;',
 		    .,'&quot;')"/>
       </xsl:call-template>
     </xsl:element>
