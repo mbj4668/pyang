@@ -580,18 +580,24 @@ class HybridDSDLSchema(object):
         """
         for a in auglist:
             par = a.parent
+            if p_elem.interleave:
+                kw = "interleave"
+            else:
+                kw = "group"
+            wel = SchemaNode(kw, p_elem, interleave=p_elem.interleave)
+            wel.occur = p_elem.occur
             if par.keyword == "uses":
-                self.handle_substmts(a, p_elem, pset)
+                self.handle_substmts(a, wel, pset)
                 continue
             if par.keyword == "submodule":
                 mnam = par.i_including_modulename
             else:
                 mnam = par.arg
             if self.prefix_stack[-1] == self.module_prefixes[mnam]:
-                self.handle_substmts(a, p_elem, pset)
+                self.handle_substmts(a, wel, pset)
             else:
                 self.prefix_stack.append(self.module_prefixes[mnam])
-                self.handle_substmts(a, p_elem, pset)
+                self.handle_substmts(a, wel, pset)
                 self.prefix_stack.pop()
 
     def current_revision(self, r_stmts):
