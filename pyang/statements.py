@@ -2210,7 +2210,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                 err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
                         (ptr.arg, ptr.pos))
                 return None
-            if ptr.search_one('type').arg != 'leafref':
+            if ptr.i_leafref is None:
                 err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
                         (ptr.arg, ptr.pos))
                 return None
