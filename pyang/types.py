@@ -542,23 +542,13 @@ def validate_path_expr(errors, path):
                 i = i + 1
             return s[i:]
     
-        def parse_identifier(s, is_absolute):
+        def parse_identifier(s):
             m = syntax.re_keyword_start.match(s)
             if m is None:
                 raise Abort
             s = s[m.end():]
             if m.group(2) is None:
                 # no prefix
-                return (m.group(3), s)
-            elif m.group(2) == path.i_module.i_prefix and is_absolute == False:
-                # reference to local module in a relative keypath -
-                # remove the prefix.  this makes it easier to handle
-                # leafrefs in groupings.  local identifiers in relative keypaths
-                # in groupings are resolved to point:
-                #   (i) within the grouping only (checked by
-                #       statements.validate_leafref_path()) and
-                #  (ii) to elements where the grouping is used.  this is
-                #       easier to handle if the prefix is removed here.
                 return (m.group(3), s)
             else:
                 return ((m.group(2), m.group(3)), s)
@@ -571,10 +561,10 @@ def validate_path_expr(errors, path):
                 else:
                     raise Abort
 
-        def parse_key_predicate(s, is_absolute):
+        def parse_key_predicate(s):
             s = s[1:] # skip '['
             s = skip_space(s)
-            (identifier, s) = parse_identifier(s, is_absolute)
+            (identifier, s) = parse_identifier(s)
             s = skip_space(s)
             s = s[1:] # skip '='
             s = skip_space(s)
@@ -597,7 +587,7 @@ def validate_path_expr(errors, path):
                     s = s[1:] # skip '/'
             dn = []
             while len(s) > 0:
-                (xidentifier, s) = parse_identifier(s, is_absolute)
+                (xidentifier, s) = parse_identifier(s)
                 dn.append(xidentifier)
                 s = skip_space(s)
                 if len(s) == 0:
@@ -609,17 +599,17 @@ def validate_path_expr(errors, path):
                     break
             return (('predicate', identifier, up, dn), s)
 
-        def parse_descendant(s, is_absolute):
+        def parse_descendant(s):
             dn = []
             # all '..'s are now parsed
             while len(s) > 0 and (not s[0].isspace()) and s[0] != ')':
-                (identifier, s) = parse_identifier(s, is_absolute)
+                (identifier, s) = parse_identifier(s)
                 dn.append(identifier)
                 s = skip_space(s)
                 if len(s) == 0:
                     break
                 while len(s) > 0 and s[0] == '[':
-                    (pred, s) = parse_key_predicate(s, is_absolute)
+                    (pred, s) = parse_key_predicate(s)
                     dn.append(pred)
                     s = skip_space(s)
                 if len(s) > 0 and s[0] == '/':
@@ -635,15 +625,14 @@ def validate_path_expr(errors, path):
             s = s[1:] # skip '('
             s = skip_space(s)
             (derefup, s) = parse_dot_dot(s)
-            (derefdn, s) = parse_descendant(s, is_absolute=False)
+            (derefdn, s) = parse_descendant(s)
             s = skip_space(s)
             s = s[1:] # skip ')'
             s = skip_space(s)
             s = s[1:] # skip '/'
 
         (up, s) = parse_dot_dot(s)
-        is_absolute = up == -1
-        (dn, s) = parse_descendant(s, is_absolute)
+        (dn, s) = parse_descendant(s)
         return (up, dn, derefup, derefdn)
 
     try:
