@@ -211,7 +211,9 @@ class uml_emitter:
             title = title[:len(title)-1]
 
         for m in modules:
-            self.module_prefixes.append(m.search_one('prefix').arg)
+            prefix = m.search_one('prefix');
+            if prefix is not None:
+                self.module_prefixes.append(prefix.arg)
             
         if not self.ctx_filterfile:
             self.emit_uml_header(title, fd)
@@ -746,7 +748,10 @@ class uml_emitter:
                 else:
                     s = s + p.arg
 
-                n = find_target_node(self._ctx, p)
+                if node.i_leafref_ptr is not None:
+                    n = node.i_leafref_ptr[0]
+                else:
+                    n = None
                 if p.arg.find(':') == -1: 
                     prefix = self.thismod_prefix
                 else:
@@ -760,7 +765,7 @@ class uml_emitter:
                         sys.stderr.write("Info: Leafref %s outside diagram. Prefix = %s\n" %(p.arg, prefix))
                         
                 else:
-                    sys.stderr.write("Did not find target \n")
+                    sys.stderr.write("Info: Did not find leafref target %s\n" %p.arg)
                 #if (n is not None) and (inthismodule):
                     # sys.stderr.write('leafref %s : target %s \n' %(p.arg, full_path(n)))
                     # sys.stderr.write('in this module %s : \n' %inthismodule)
