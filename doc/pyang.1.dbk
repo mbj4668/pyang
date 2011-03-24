@@ -55,14 +55,14 @@
     </cmdsynopsis>
     <cmdsynopsis>
       <command>pyang</command>
-      <group choice="opt">
+      <group choice="plain">
 	<arg choice="plain">-h</arg>
 	<arg choice="plain">--help</arg>
       </group>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>pyang</command>
-      <group choice="opt">
+      <group choice="plain">
 	<arg choice="plain">-v</arg>
 	<arg choice="plain">--version</arg>
       </group>
