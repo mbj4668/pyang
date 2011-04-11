@@ -1973,7 +1973,7 @@ def find_target_node(ctx, stmt, is_augment=False):
                 return None
     else:
         chs = [c for c in stmt.parent.parent.i_children \
-                   if hasattr(c, 'i_uses') and c.i_uses == stmt.parent]
+                   if hasattr(c, 'i_uses') and c.i_uses[0] == stmt.parent]
         node = search_child(chs, module.i_modulename, identifier)
         if node is None:
             err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
@@ -2321,7 +2321,10 @@ class Statement(object):
     def copy(self, parent=None, uses=None, nocopy=[], ignore=[], copyf=None):
         new = copy.copy(self)
         if uses is not None:
-            new.i_uses = uses
+            if hasattr(new, 'i_uses'):
+                new.i_uses.insert(0, uses)
+            else:
+                new.i_uses = [uses]
             new.i_uses_pos = uses.pos
         if parent == None:
             new.parent = self.parent
