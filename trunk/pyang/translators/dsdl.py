@@ -687,7 +687,11 @@ class HybridDSDLSchema(object):
                                      "min-elements", "max-elements"))
         for p in pset.pop(self.add_prefix(name, stmt), []):
             if p.path:
-                new_pset[p.pop()] = [p]
+                head = p.pop()
+                if head in new_pset:
+                    new_pset[head].append(p)
+                else:
+                    new_pset[head] = [p]
             else:
                 for refaug in p.plist:
                     if refaug.keyword == "augment":
