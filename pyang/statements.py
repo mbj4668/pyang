@@ -1288,6 +1288,7 @@ def v_expand_1_uses(ctx, stmt):
                 old = target.search_one(s.keyword)
                 if old is not None:
                     target.substmts.remove(old)
+                s.parent = target
                 target.substmts.append(s)
 
 def v_inherit_properties(ctx, stmt, child=None):
