@@ -320,6 +320,9 @@
 	<optional>
 	  <ref name="description-stmt"/>
 	</optional>
+	<optional>
+	  <ref name="reference-stmt"/>
+	</optional>
 	<ref name="an-extension"/>
       </interleave>
     </element>
