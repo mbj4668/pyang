@@ -262,8 +262,8 @@ error_codes = \
        '%s:%s in the leafref path for %s at %s is referenced more than once'),
     'LEAFREF_BAD_CONFIG':
       (1,
-       'the leafref path for %s at %s is config but refers to a '
-       'non-config leaf'),
+       'the leafref path for %s is config but refers to a '
+       'non-config leaf %s defined at %s'),
     'LEAFREF_DEREF_NOT_LEAFREF':
       (1,
        'the deref argument refers to node %s at %s which is'
