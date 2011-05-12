@@ -438,6 +438,8 @@ class HybridDSDLSchema(object):
             end += 1
         self.namespaces[uri] = new
         self.module_prefixes[module.arg] = new
+        for inc in module.search("include"):
+            self.module_prefixes[inc.arg] = new
         return new
 
     def register_identity(self, id_stmt):
@@ -959,7 +961,7 @@ class HybridDSDLSchema(object):
     def include_stmt(self, stmt, p_elem, pset):
         if stmt.parent.keyword == "module":
             subm = self.module.i_ctx.get_module(stmt.arg)
-            self.handle_substmts(subm, p_elem)
+            self.handle_substmts(subm, p_elem, pset)
 
     def leaf_stmt(self, stmt, p_elem, pset):
         qname = self.qname(stmt)
