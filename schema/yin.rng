@@ -1321,6 +1321,12 @@
       <attribute name="condition">
 	<data type="string"/>
       </attribute>
+      <optional>
+	<ref name="description-stmt"/>
+      </optional>
+      <optional>
+	<ref name="reference-stmt"/>
+      </optional>
       <ref name="an-extension"/>
     </element>
   </define>
