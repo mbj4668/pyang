@@ -33,6 +33,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:attribute name="ns">
       <xsl:choose>
 	<xsl:when test="$target='get-reply' or $target='config' or
+			$target='edit-config' or
 			$target='data' or $target='get-config-reply'
 			or $target='rpc' or $target='rpc-reply'">
 	  <xsl:text>urn:ietf:params:xml:ns:netconf:base:1.0</xsl:text>
@@ -63,10 +64,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:if>
   </xsl:template>
 
+  <xsl:template name="include-grammar">
+    <xsl:param name="file-name"/>
+    <xsl:element name="include" namespace="{$rng-uri}">
+      <xsl:attribute name="href">
+	<xsl:value-of select="$file-name"/>
+      </xsl:attribute>
+    </xsl:element>
+  </xsl:template>
+
   <xsl:template name="message-id">
     <xsl:element name="ref" namespace="{$rng-uri}">
       <xsl:attribute name="name">message-id-attribute</xsl:attribute>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="copy-and-continue">
+    <xsl:copy>
+      <xsl:apply-templates select="@*"/>
+      <xsl:apply-templates select="*|text()"/>
+    </xsl:copy>
   </xsl:template>
 
   <xsl:template match="/">
@@ -94,11 +111,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:call-template name="ns-attribute"/>
-      <xsl:element name="include" namespace="{$rng-uri}">
-        <xsl:attribute name="href">
-          <xsl:value-of select="$rng-lib"/>
-        </xsl:attribute>
-      </xsl:element>
+      <xsl:call-template name="include-grammar">
+	<xsl:with-param name="file-name" select="concat($rng-lib,'/relaxng-lib.rng')"/>
+      </xsl:call-template>
       <xsl:apply-templates select="rng:start"/>
     </xsl:copy>
   </xsl:template>
@@ -130,6 +145,25 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <xsl:element name="interleave" namespace="{$rng-uri}">
 	      <xsl:apply-templates
 		  select="rng:grammar[descendant::nma:data]"/>
+	    </xsl:element>
+	  </xsl:element>
+	</xsl:element>
+      </xsl:when>
+      <xsl:when test="$target='edit-config'">
+	<xsl:element name="element" namespace="{$rng-uri}">
+	  <xsl:attribute name="name">rpc</xsl:attribute>
+	  <xsl:call-template name="message-id"/>
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">edit-config</xsl:attribute>
+	    <xsl:element name="ref" namespace="{$rng-uri}">
+	      <xsl:attribute name="name">edit-config-parameters</xsl:attribute>
+	    </xsl:element>
+	    <xsl:element name="element" namespace="{$rng-uri}">
+	      <xsl:attribute name="name">config</xsl:attribute>
+	      <xsl:element name="interleave" namespace="{$rng-uri}">
+		<xsl:apply-templates
+		    select="rng:grammar[descendant::nma:data]"/>
+	      </xsl:element>
 	    </xsl:element>
 	  </xsl:element>
 	</xsl:element>
@@ -180,7 +214,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         name="subtree"
         select="descendant::nma:data[
                 $target='data' or $target='config' or
-                $target='get-reply' or $target='get-config-reply']
+		$target='edit-config' or $target='get-reply'
+		or $target='get-config-reply']
                 |descendant::nma:rpcs[$target='rpc' or
                 $target='rpc-reply']
                 |descendant::nma:notifications[$target='notification']"/>
@@ -189,12 +224,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:attribute name="ns">
           <xsl:value-of select="@ns"/>
         </xsl:attribute>
+	<xsl:if test="$target='edit-config'">
+	  <xsl:call-template name="include-grammar">
+	    <xsl:with-param name="file-name"
+			    select="concat($rng-lib,'/edit-config-attributes.rng')"/>
+	  </xsl:call-template>
+	</xsl:if>
         <xsl:if test="/rng:grammar/rng:define">
-          <xsl:element name="include" namespace="{$rng-uri}">
-            <xsl:attribute name="href">
-              <xsl:value-of select="concat($basename,'-gdefs.rng')"/>
-            </xsl:attribute>
-          </xsl:element>
+	  <xsl:call-template name="include-grammar">
+	    <xsl:with-param name="file-name" select="concat($basename,'-gdefs.rng')"/>
+	  </xsl:call-template>
         </xsl:if>
         <xsl:element name="start" namespace="{$rng-uri}">
           <xsl:apply-templates select="$subtree"/>
@@ -288,7 +327,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:*[@nma:config='false']">
     <xsl:choose>
-      <xsl:when test="($target='get-config-reply' or $target='config')">
+      <xsl:when test="($target='get-config-reply' or $target='config'
+		      or $target='edit-config')">
 	<xsl:element name="empty" namespace="{$rng-uri}"/>
       </xsl:when>
       <xsl:otherwise>
@@ -312,11 +352,50 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="rng:*">
+  <xsl:template match="rng:element">
+    <xsl:choose>
+      <xsl:when test="$target='edit-config'">
+	<xsl:choose>
+	  <xsl:when test="parent::rng:optional or parent::rng:zeroOrMore">
+	    <xsl:apply-templates select="." mode="edit"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:element name="optional" namespace="{$rng-uri}">
+	      <xsl:apply-templates select="." mode="edit"/>
+	    </xsl:element>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="copy-and-continue"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="rng:element" mode="edit">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
+      <xsl:element name="ref" namespace="{$rng-uri}">
+	<xsl:attribute name="name">operation-attribute</xsl:attribute>
+      </xsl:element>
+      <xsl:choose>
+	<xsl:when test="@nma:leaf-list='true' and @nma:ordered-by='user'">
+	  <xsl:element name="ref" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">yang-leaf-list-attributes</xsl:attribute>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="@nma:key and @nma:ordered-by='user'">
+	  <xsl:element name="ref" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">yang-list-attributes</xsl:attribute>
+	  </xsl:element>
+	</xsl:when>
+      </xsl:choose>
       <xsl:apply-templates select="*|text()"/>
     </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="rng:*">
+    <xsl:call-template name="copy-and-continue"/>
   </xsl:template>
 
 </xsl:stylesheet>

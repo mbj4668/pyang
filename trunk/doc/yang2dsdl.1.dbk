@@ -104,6 +104,12 @@
         operation.</para></listitem>
       </varlistentry>
       <varlistentry>
+        <term><literal>edit-config</literal></term>
+        <listitem><para>A complete NETCONF message
+        containing an &lt;nc:edit-config&gt; request. Only the RELAX
+	NG schema is generated for this target.</para></listitem>
+      </varlistentry>
+      <varlistentry>
         <term><literal>rpc</literal></term>
         <listitem><para>An RPC request defined in an input YANG
         module.</para></listitem>
@@ -145,14 +151,14 @@
           <filename><replaceable>basename</replaceable>-<replaceable>target</replaceable>.sch</filename>
         </term>
         <listitem><para>Schematron schema for the target document
-        type.</para></listitem>
+        type. Not generated for the "edit-config" target.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term>
           <filename><replaceable>basename</replaceable>-<replaceable>target</replaceable>.dsrl</filename>
         </term>
         <listitem><para>DSRL schema for the target document
-        type.</para></listitem>
+        type. Not generated for the "edit-config" target.</para></listitem>
       </varlistentry>
     </variablelist>
 
@@ -177,7 +183,8 @@
       </listitem>
     </orderedlist>
     <para>Steps <xref linkend="val-dsrl"/> and <xref
-    linkend="val-sch"/> will not be performed if step <xref
+    linkend="val-sch"/> are not performed for the "edit-config"
+    target, or if step <xref
     linkend="val-rng"/> reports any errors.</para>
     <para>Option <option>-s</option> may be used together with
     <option>-v</option> for validating an instance document without
@@ -261,6 +268,7 @@
           <userinput>config</userinput>,
           <userinput>get-reply</userinput>,
           <userinput>get-config-reply</userinput>,
+          <userinput>edit-config</userinput>,
           <userinput>rpc</userinput>, <userinput>rpc-reply</userinput>
           or <userinput>notification</userinput>.</para>
         </listitem>
@@ -335,6 +343,14 @@
         </term>
         <listitem>
           <para>RELAX NG library of common NETCONF elements.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <filename>/usr/local/share/yang/schema/edit-config-attributes.rng</filename>
+        </term>
+        <listitem>
+          <para>RELAX NG definitions of &lt;edit-config&gt; attributes.</para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -417,10 +433,6 @@
 	  distinguish replies to different RPC requests, for example
 	  if the replies have the same top-level element.
 	</para>
-      </listitem>
-      <listitem>
-	<para>Some targets such as <literal>edit-config</literal> have
-	not been implemented yet.</para>
       </listitem>
     </orderedlist>
 

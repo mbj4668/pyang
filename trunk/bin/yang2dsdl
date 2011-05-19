@@ -28,7 +28,7 @@ nofeat=0
 jing=0
 
 xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
-rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}/relaxng-lib.rng
+rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}
 
 usage() {
     cat <<EOF
@@ -46,7 +46,8 @@ Options:
   -h             Displays this help message and exits.
   -t <target>    Specifies the validation target. The argument <target>
                  must be one of: "data" (default), "config", "get-reply",
-                 "get-config-reply", "rpc", "rpc-reply" and "notification".
+                 "get-config-reply", "edit-config", "rpc", "rpc-reply"
+                 and "notification".
   -b <basename>  Specifies the basename of files in which the output
                  schemas are stored. The default is the concatenation
                  of the names of all input YANG modules connected
@@ -106,6 +107,9 @@ validate() {
         echo "RELAX NG schema '$btname.rng' not found."
 	exit 2
     fi
+    if [ "$target" = "edit-config" ] ; then
+	return
+    fi
     printf "\n== Adding default values... "
     if [ -f $btname.dsrl ] ; then
         xsltproc -o $dsrlxsl $xslt_dir/dsrl2xslt.xsl $btname.dsrl
@@ -148,8 +152,8 @@ while getopts ":ht:d:b:v:jns" opt ; do
             target=$OPTARG
             if [ "$target" != "data" ] && [ "$target" != "config" ] && \
 	       [ "$target" != "get-reply" ] && [ "$target" != "get-config-reply" ] \
-               && [ "$target" != "rpc" ] && [ "$target" != "rpc-reply" ] \
-               && [ "$target" != "notification" ]
+               && [ "$target" != "rpc" ] && [ "$target" != "rpc-reply" ] && \
+               [ "$target" != "edit-config" ] && [ "$target" != "notification" ]
             then
                 echo "Invalid argument for -t: $target."
                 rtfm
@@ -234,8 +238,10 @@ btname=$dir/$basename-$target
 
 if [ "$noschema" = "0" ] ; then
     gen_relaxng
-    gen_schematron
-    gen_dsrl
+    if [ "$target" != "edit-config" ] ; then
+        gen_schematron
+        gen_dsrl
+    fi
 else
     echo "== Using pre-generated schemas"
 fi
