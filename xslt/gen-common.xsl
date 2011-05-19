@@ -54,7 +54,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:param name="dc-uri">http://purl.org/dc/terms</xsl:param>
   <xsl:param
       name="nma-uri">urn:ietf:params:xml:ns:netmod:dsdl-annotations:1</xsl:param>
-  <xsl:param name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
+  <xsl:param
+      name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
+  <xsl:param name="yang-uri">urn:ietf:params:xml:ns:yang:1</xsl:param>
   <xsl:param name="en-uri">urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:param>
 
   <xsl:variable name="netconf-part">
@@ -66,6 +68,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           test="$target='get-config-reply' or
                 $target='get-reply'">
 	<xsl:text>/nc:rpc-reply/nc:data</xsl:text>
+      </xsl:when>
+      <xsl:when test="$target='edit-config'">
+	<xsl:text>/nc:rpc/nc:edit-config/nc:config</xsl:text>
       </xsl:when>
       <xsl:when test="$target='rpc'">
         <xsl:text>/nc:rpc</xsl:text>
@@ -85,14 +90,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="check-input-pars">
     <xsl:if test="not($target='get-reply' or $target='data' or
                   $target='rpc' or $target='rpc-reply' or
-                  $target='get-config-reply' or
+                  $target='get-config-reply' or $target='edit-config' or
                   $target='notification' or $target='config')">
       <xsl:message terminate="yes">
         <xsl:text>Bad 'target' parameter: </xsl:text>
         <xsl:value-of select="$target"/>
       </xsl:message>
     </xsl:if>
-    <xsl:if test="($target='data' or $target='config' or starts-with($target,'get'))
+    <xsl:if test="($target='data' or $target='config' or
+		  $target='edit-config' or starts-with($target,'get'))
                   and not(//nma:data/rng:*)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no data.</xsl:text>

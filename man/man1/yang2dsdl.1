@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: yang2dsdl
 .\"    Author: Ladislav Lhotka <lhotka@cesnet.cz>
-.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: 2011-02-16
 .\"    Manual: pyang manual
 .\"    Source: yang2dsdl-1.1
@@ -76,6 +76,11 @@ get\-config\-reply
 A complete NETCONF message containing a reply to the <nc:get\-config> operation\&.
 .RE
 .PP
+edit\-config
+.RS 4
+A complete NETCONF message containing an <nc:edit\-config> request\&. Only the RELAX NG schema is generated for this target\&.
+.RE
+.PP
 rpc
 .RS 4
 An RPC request defined in an input YANG module\&.
@@ -108,12 +113,12 @@ Auxiliary RELAX NG schema containing global named pattern definitions (common fo
 .PP
 \fIbasename\fR\-\fItarget\fR\&.sch
 .RS 4
-Schematron schema for the target document type\&.
+Schematron schema for the target document type\&. Not generated for the "edit\-config" target\&.
 .RE
 .PP
 \fIbasename\fR\-\fItarget\fR\&.dsrl
 .RS 4
-DSRL schema for the target document type\&.
+DSRL schema for the target document type\&. Not generated for the "edit\-config" target\&.
 .RE
 .PP
 Optional validation of an XML document stored in the file
@@ -159,7 +164,7 @@ Steps
 2
 and
 3
-will not be performed if step
+are not performed for the "edit\-config" target, or if step
 1
 reports any errors\&.
 .PP
@@ -228,6 +233,7 @@ Specifies the target XML document type using one of the following strings as exp
 \fBconfig\fR,
 \fBget\-reply\fR,
 \fBget\-config\-reply\fR,
+\fBedit\-config\fR,
 \fBrpc\fR,
 \fBrpc\-reply\fR
 or
@@ -274,6 +280,11 @@ Translates an SVRL report to plain text\&.
 /usr/local/share/yang/schema/relaxng\-lib\&.rng
 .RS 4
 RELAX NG library of common NETCONF elements\&.
+.RE
+.PP
+/usr/local/share/yang/schema/edit\-config\-attributes\&.rng
+.RS 4
+RELAX NG definitions of <edit\-config> attributes\&.
 .RE
 .SH "ENVIRONMENT VARIABLES"
 .PP
@@ -358,19 +369,6 @@ Instance validation failed
 .IP "  1." 4.2
 .\}
 The logic of command\-line arguments may not be able to distinguish replies to different RPC requests, for example if the replies have the same top\-level element\&.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04' 2.\h'+01'\c
-.\}
-.el \{\
-.sp -1
-.IP "  2." 4.2
-.\}
-Some targets such as
-edit\-config
-have not been implemented yet\&.
 .RE
 .SH "SEE ALSO"
 .PP
