@@ -356,7 +356,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:choose>
       <xsl:when test="$target='edit-config'">
 	<xsl:choose>
-	  <xsl:when test="parent::rng:optional or parent::rng:zeroOrMore">
+	  <xsl:when test="parent::rng:optional or
+			  parent::rng:zeroOrMore or
+			  contains(concat(../@nma:key,'
+			  '),concat(@name,' '))">
 	    <xsl:apply-templates select="." mode="edit"/>
 	  </xsl:when>
 	  <xsl:otherwise>
