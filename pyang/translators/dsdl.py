@@ -582,12 +582,15 @@ class HybridDSDLSchema(object):
         """
         for a in auglist:
             par = a.parent
-            if p_elem.interleave:
-                kw = "interleave"
+            if p_elem.name == "choice":
+                wel = p_elem
             else:
-                kw = "group"
-            wel = SchemaNode(kw, p_elem, interleave=p_elem.interleave)
-            wel.occur = p_elem.occur
+                if p_elem.interleave:
+                    kw = "interleave"
+                else:
+                    kw = "group"
+                wel = SchemaNode(kw, p_elem, interleave=p_elem.interleave)
+                wel.occur = p_elem.occur
             if par.keyword == "uses":
                 self.handle_substmts(a, wel, pset)
                 continue
