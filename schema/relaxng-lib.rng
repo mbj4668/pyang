@@ -4,6 +4,7 @@
 
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
 	 xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+	 xmlns:yg="urn:ietf:params:xml:ns:yang:1"
 	 xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
@@ -19,6 +20,102 @@
     <element name="nc:ok">
       <empty/>
     </element>
+  </define>
+
+  <define name="edit-config-parameters">
+    <element name="target">
+      <choice>
+	<element name="running">
+	  <empty/>
+	</element>
+	<element name="candidate">
+	  <empty/>
+	</element>
+      </choice>
+    </element>
+    <optional>
+      <element name="default-operation">
+	<choice>
+	  <value>merge</value>
+	  <value>replace</value>
+	  <value>none</value>
+	</choice>
+      </element>
+    </optional>
+    <optional>
+      <element name="test-option">
+	<choice>
+	  <value>test-then-set</value>
+	  <value>set</value>
+	  <value>test-only</value>
+	</choice>
+      </element>
+    </optional>
+    <optional>
+      <element name="error-option">
+	<choice>
+	  <value>stop-on-error</value>
+	  <value>continue-on-error</value>
+	  <value>rollback-on-error</value>
+	</choice>
+      </element>
+    </optional>
+  </define>
+
+  <define name="operation-attribute">
+    <attribute name="nc:operation">
+      <choice>
+	<value>merge</value>
+	<value>replace</value>
+	<value>create</value>
+	<value>delete</value>
+	<value>remove</value>
+      </choice>
+    </attribute>
+  </define>
+
+  <define name="yang-leaf-list-attributes">
+    <choice>
+      <attribute name="yg:insert">
+	<choice>
+	  <value>first</value>
+	  <value>last</value>
+	</choice>
+      </attribute>
+      <interleave>
+	<attribute name="yg:insert">
+	  <choice>
+	    <value>before</value>
+	    <value>after</value>
+	  </choice>
+	</attribute>
+	<attribute name="yg:value">
+	  <data type="string"/>
+	</attribute>
+      </interleave>
+    </choice>
+  </define>
+
+  <define name="yang-list-attributes">
+    <choice>
+      <attribute name="yg:insert">
+	<choice>
+	  <value>first</value>
+	  <value>last</value>
+	</choice>
+      </attribute>
+      <interleave>
+	<attribute name="yg:insert">
+	  <choice>
+	    <value>before</value>
+	    <value>after</value>
+	  </choice>
+	</attribute>
+	<attribute name="yg:key">
+	  <data type="string"/>
+	</attribute>
+      </interleave>
+    </choice>
   </define>
 
   <define name="eventTime-element">
