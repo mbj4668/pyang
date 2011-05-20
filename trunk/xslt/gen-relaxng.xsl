@@ -352,12 +352,27 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match="rng:oneOrMore">
+    <xsl:choose>
+      <xsl:when test="$target='edit-config'">
+	<xsl:element name="rng:zeroOrMore">
+	  <xsl:apply-templates select="@*"/>
+	  <xsl:apply-templates/>
+	</xsl:element>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="copy-and-continue"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match="rng:element">
     <xsl:choose>
       <xsl:when test="$target='edit-config'">
 	<xsl:choose>
 	  <xsl:when test="parent::rng:optional or
 			  parent::rng:zeroOrMore or
+			  parent::rng:oneOrMore or
 			  contains(concat(../@nma:key,'
 			  '),concat(@name,' '))">
 	    <xsl:apply-templates select="." mode="edit"/>
