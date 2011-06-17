@@ -1,0 +1,20 @@
+submodule qb {
+  belongs-to qa {
+    prefix a;
+  }
+
+  leaf bl {
+    type bt;
+  }
+  typedef bt {
+    type string;
+  }
+  grouping bg {
+    leaf bl {
+      type bt;
+    }
+  }
+  feature bf;
+  identity bi;
+  container bc;
+}

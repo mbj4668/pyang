@@ -212,7 +212,9 @@ class Context(object):
             if (modulename, revision) in self.modules:
                 return self.modules[(modulename, revision)]
             
-        if handle[0] == 'parsed':
+        if handle is None:
+            module = None
+        elif handle[0] == 'parsed':
             module = handle[1]
             ref = handle[2]
             if modulename != module.arg:

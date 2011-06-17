@@ -1,0 +1,29 @@
+submodule qf {
+  belongs-to qe {
+    prefix e;
+  }
+
+  import qa {
+    prefix a;
+  }
+
+  leaf fl {
+    type a:bt;
+  }
+  container fc {
+    if-feature a:bf;
+    uses a:bg;
+    leaf fl {
+      type identityref {
+        base a:bi;
+      }
+    }
+  }
+  augment /a:bc {
+    leaf fl {
+      type leafref {
+        path "/a:bl";
+      }
+    }
+  }
+}

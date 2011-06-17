@@ -993,8 +993,12 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
         if pmodule is None:
             return
     if name in pmodule.i_features:
-        stmt.i_feature = pmodule.i_features[name]
-        v_type_feature(ctx, stmt.i_feature)
+        f = pmodule.i_features[name]
+        if prefix is None and not is_submodule_included(stmt, f):
+            pass
+        else:
+            stmt.i_feature = pmodule.i_features[name]
+            v_type_feature(ctx, stmt.i_feature)
     if stmt.i_feature is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'FEATURE_NOT_FOUND', (name, pmodule.arg))
@@ -1039,8 +1043,12 @@ def v_type_base(ctx, stmt, no_error_report=False):
         if pmodule is None:
             return
     if name in pmodule.i_identities:
-        stmt.i_identity = pmodule.i_identities[name]
-        v_type_identity(ctx, stmt.i_identity)
+        i = pmodule.i_identities[name]
+        if prefix is None and not is_submodule_included(stmt, i):
+            pass
+        else:
+            stmt.i_identity = i
+            v_type_identity(ctx, stmt.i_identity)
     if stmt.i_identity is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
@@ -1913,18 +1921,32 @@ def search_data_node(children, modulename, identifier):
 def search_typedef(stmt, name):
     """Search for a typedef in scope
     First search the hierarchy, then the module and its submodules."""
+    mod = stmt.i_orig_module
     while stmt is not None:
         if name in stmt.i_typedefs:
-            return stmt.i_typedefs[name]
+            t = stmt.i_typedefs[name]
+            if (mod is not None and
+                mod != t.i_orig_module and
+                t.i_orig_module.keyword == 'submodule'):
+                # make sure this submodule is included
+                if mod.search_one('include', t.i_orig_module.arg) is None:
+                    return None
+            return t
         stmt = stmt.parent
     return None
 
 def search_grouping(stmt, name):
     """Search for a grouping in scope
     First search the hierarchy, then the module and its submodules."""
+    mod = stmt.i_orig_module
     while stmt is not None:
         if name in stmt.i_groupings:
-            return stmt.i_groupings[name]
+            g = stmt.i_groupings[name]
+            if mod is not None and g.i_orig_module.keyword == 'submodule':
+                # make sure this submodule is included
+                if mod.search_one('include', g.i_orig_module.arg) is None:
+                    return None
+            return g
         stmt = stmt.parent
     return None
 
@@ -1959,23 +1981,18 @@ def find_target_node(ctx, stmt, is_augment=False):
         is_absolute):
         # find the first node
         node = search_child(module.i_children, module.i_modulename, identifier)
+        if not is_submodule_included(stmt, node):
+            node = None
         if node is None:
-            # check all our submodules
-            for inc in module.search('include'):
-                submod = ctx.get_module(inc.arg)
-                if submod is not None:
-                    node = search_child(submod.i_children, submod.i_modulename,
-                                        identifier)
-                    if node is not None:
-                        break
-            if node is None:
-                err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
-                        (module.i_modulename, identifier))
-                return None
+            err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
+                    (module.i_modulename, identifier))
+            return None
     else:
         chs = [c for c in stmt.parent.parent.i_children \
                    if hasattr(c, 'i_uses') and c.i_uses[0] == stmt.parent]
         node = search_child(chs, module.i_modulename, identifier)
+        if not is_submodule_included(stmt, node):
+            node = None
         if node is None:
             err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
                     (module.i_modulename, identifier))
@@ -2047,6 +2064,19 @@ def iterate_i_children(stmt, f):
     except Abort:
         pass
 
+def is_submodule_included(src, tgt):
+    """Check that the tgt's submodule is included by src, if they belong
+    to the same module."""
+    if tgt is None:
+        return True
+    if (tgt.i_orig_module.keyword == 'submodule' and
+        src.i_orig_module != tgt.i_orig_module and
+        src.i_module.i_modulename == tgt.i_module.i_modulename):
+       if src.i_orig_module.search_one('include',
+                                        tgt.i_orig_module.arg) is None:
+            return False
+    return True
+
 def validate_leafref_path(ctx, stmt, path_spec, path):
     """Return the leaf that the path points to and the expanded path arg,
     or None on error."""
@@ -2090,9 +2120,11 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
         if up == -1: # absolute path
             (pmodule, name) = find_identifier(dn[0])
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
+            if not is_submodule_included(stmt, ptr):
+                ptr = None
             if ptr is None:
                 # check all our submodules
-                for inc in path.i_module.search('include'):
+                for inc in path.i_orig_module.search('include'):
                     submod = ctx.get_module(inc.arg)
                     if submod is not None:
                         ptr = search_child(submod.i_children,

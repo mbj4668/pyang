@@ -1,0 +1,6 @@
+qd.yang:9: error: TYPE_NOT_FOUND
+qd.yang:12: error: FEATURE_NOT_FOUND
+qd.yang:13: error: GROUPING_NOT_FOUND
+qd.yang:16: error: IDENTITY_NOT_FOUND
+qd.yang:20: error: NODE_NOT_FOUND
+qd.yang:23: error: LEAFREF_IDENTIFIER_NOT_FOUND
