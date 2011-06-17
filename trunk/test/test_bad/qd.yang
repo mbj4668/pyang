@@ -1,0 +1,29 @@
+submodule qd {
+  belongs-to qa {
+    prefix a;
+  }
+
+  include qc;
+
+  leaf dl {
+    type bt; // error; qb not included
+  }
+  container dc {
+    if-feature bf; // error; qb not included
+    uses bg; // error; qb not included
+    leaf dl {
+      type identityref {
+        base bi; // error; qb not included
+      }
+    }
+  }
+  augment /bc { // error; qb not included
+    leaf dl {
+      type leafref {
+        path "/bl"; // error; qb not included
+      }
+    }
+  }
+  
+
+}

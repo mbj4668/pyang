@@ -1,0 +1,30 @@
+module qe {
+  namespace "urn:qe";
+  prefix e;
+  
+  include qf;
+
+  import qa {
+    prefix a;
+  }
+
+  leaf el {
+    type a:bt;
+  }
+  container ec {
+    if-feature a:bf;
+    uses a:bg;
+    leaf el {
+      type identityref {
+        base a:bi;
+      }
+    }
+  }
+  augment /a:bc {
+    leaf el {
+      type leafref {
+        path "/a:bl";
+      }
+    }
+  }
+}

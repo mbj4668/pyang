@@ -1,0 +1,8 @@
+module qa {
+  namespace "urn:qa";
+  prefix a;
+  
+  include qb;
+  include qc;
+  include qd;
+}

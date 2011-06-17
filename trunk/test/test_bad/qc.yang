@@ -1,0 +1,27 @@
+submodule qc {
+  belongs-to qa {
+    prefix a;
+  }
+
+  include qb;
+
+  leaf cl {
+    type bt;
+  }
+  container cc {
+    if-feature bf;
+    uses bg;
+    leaf cl {
+      type identityref {
+        base bi;
+      }
+    }
+  }
+  augment /bc {
+    leaf cl {
+      type leafref {
+        path "/bl";
+      }
+    }
+  }
+}
