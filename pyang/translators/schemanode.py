@@ -141,7 +141,7 @@ class SchemaNode(object):
     def data_nodes_count(self):
         """Return the number of receiver's data subnodes."""
         return len([ch for ch in self.children if ch.name in
-                    ("element", "choice", "_list_","ref", "grammar")])
+                    ("element", "interleave", "group", "choice", "_list_","ref", "grammar")])
 
     def start_tag(self, alt=None, empty=False):
         """Return XML start tag for the receiver."""
