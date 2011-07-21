@@ -1145,35 +1145,35 @@ def v_expand_1_children(ctx, stmt):
 
 _refinements = [
     # (<keyword>, <list of refinements that can be applied to the <keyword>>,
-    #  <validation function>)
+    #  <merge>, <validation function>)
     ('description',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
-     None),
+     False, None),
     ('reference',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
-     None),
+     False, None),
     ('config',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'anyxml'],
-     None),
-    ('presence', ['container'], None),
-    ('must', ['container', 'leaf', 'leaf-list', 'list'], None),
+     False, None),
+    ('presence', ['container'], False, None),
+    ('must', ['container', 'leaf', 'leaf-list', 'list'], True, None),
     ('default', ['leaf', 'choice'],
-     lambda ctx, target, default: v_default(ctx, target, default)),
-    ('mandatory', ['leaf', 'choice'], None),
-    ('min-elements', ['leaf-list', 'list'], None),
-    ('max-elements', ['leaf-list', 'list'], None),
+     False, lambda ctx, target, default: v_default(ctx, target, default)),
+    ('mandatory', ['leaf', 'choice'], False, None),
+    ('min-elements', ['leaf-list', 'list'], False, None),
+    ('max-elements', ['leaf-list', 'list'], False, None),
     ('reference',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
-     None)
+     False, None)
 ]
 
-def add_refinement_element(keyword, element, v_fun=None):
+def add_refinement_element(keyword, element, merge = False, v_fun=None):
     """Add an element to the <keyword>'s list of refinements"""
-    for (key, valid_keywords, v_fun) in _refinements:
+    for (key, valid_keywords, m, v_fun) in _refinements:
         if key == keyword:
             valid_keywords.append(element)
             return
-    _refinements.append((keyword, [element], v_fun))
+    _refinements.append((keyword, [element], merge, v_fun))
 
 def v_default(ctx, target, default):
     type_ = target.search_one('type')
@@ -1242,6 +1242,20 @@ def v_expand_1_uses(ctx, stmt):
                      target.arg, keyword))
             return
 
+    def merge_from_refinement(target, refinement, keyword, valid_keywords,
+                              v_fun=None):
+        """allow `keyword` as a refinement in `valid_keywords`"""
+        for new in refinement.search(keyword):
+            if target.keyword in valid_keywords:
+                if v_fun is not None:
+                    v_fun(ctx, target, new)
+                target.substmts.append(new)
+            else:
+                err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
+                        (target.keyword, target.i_module.i_modulename,
+                         target.arg, keyword))
+                return
+
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
         # don't copy the type since it cannot be modified anyway.
@@ -1286,9 +1300,13 @@ def v_expand_1_uses(ctx, stmt):
             continue
         refined[target] = refinement.pos
 
-        for (keyword, valid_keywords, v_fun) in _refinements:
-            replace_from_refinement(target, refinement, keyword,
-                                    valid_keywords, v_fun)
+        for (keyword, valid_keywords, merge, v_fun) in _refinements:
+            if merge:
+                merge_from_refinement(target, refinement, keyword,
+                                      valid_keywords, v_fun)
+            else:
+                replace_from_refinement(target, refinement, keyword,
+                                        valid_keywords, v_fun)
 
         # replace all vendor-specific statements
         for s in refinement.substmts:
