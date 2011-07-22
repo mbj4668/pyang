@@ -332,7 +332,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:element name="empty" namespace="{$rng-uri}"/>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:copy><FOO/>
+	<xsl:copy>
 	  <xsl:apply-templates select="@*|*|text()"/>
 	</xsl:copy>
       </xsl:otherwise>
