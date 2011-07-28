@@ -19,7 +19,7 @@ all: $(MANPAGES)
 
 .PHONY: clean
 clean:
-	rm $(MANPAGES)
+	rm -f $(MANPAGES)
 
 ../man/man1/%.1: %.1.dbk
 	cat $< | \

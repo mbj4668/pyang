@@ -2,12 +2,13 @@
 sdist: MANIFEST doc
 	rm -f MANIFEST.in
 	python setup.py sdist
-	-# mv dist/pyang-*.tar.gz dist/pyang-src-*.tar.gz
+	-# mv dist/pyang-*.tar.gz dist/pyang_src-*.tar.gz
 
 # create a minimal package
 dist: doc
 	rm -f MANIFEST
 	echo "include LICENSE" > MANIFEST.in
+	echo "include env.sh" > MANIFEST.in
 	echo "recursive-include man *" >> MANIFEST.in
 	echo "recursive-include schema *" >> MANIFEST.in
 	echo "recursive-include xslt *" >> MANIFEST.in
