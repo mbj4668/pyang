@@ -1,4 +1,14 @@
-   1.2 - ???
+   1.2 - 2011-07-27
+        added edit-config target to yang2dsls
+       
+        if a submodule A includes submodule B, which includes
+          submodule C, definitions in C are visible in A, even if A does
+          not include C.  this bug has been fixed.
+
+        make sure additional must statements in refine are added; not
+          replacing existing ones.
+        fixed bug when checking for '..' in relative leafrefs
+        variuos augment bug fixes in yang2dsdl
         some xsd output fixes
         removed the --xsd-no-include option.  the xsd ouput never generates
           inlcude anymore
