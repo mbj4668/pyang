@@ -1,0 +1,7 @@
+submodule submodule4 {
+
+  belongs-to composite {
+    prefix c; 
+  }
+  include submodule2;
+}

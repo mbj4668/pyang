@@ -1,9 +1,11 @@
-composite.yang:8: error: BAD_INCLUDE
-composite.yang:10: error: TYPE_ALREADY_DEFINED
-composite.yang:14: error: IDENTITY_ALREADY_DEFINED
-composite.yang:16: error: FEATURE_ALREADY_DEFINED
+composite.yang:10: error: BAD_INCLUDE
+composite.yang:12: error: TYPE_ALREADY_DEFINED
+composite.yang:16: error: IDENTITY_ALREADY_DEFINED
+composite.yang:18: error: FEATURE_ALREADY_DEFINED
 submodule1.yang:11: error: TYPE_ALREADY_DEFINED
 submodule1.yang:19: error: GROUPING_ALREADY_DEFINED
 submodule2.yang:7: error: BAD_IMPORT
 submodule2.yang:7: warning: UNUSED_IMPORT
 submodule2.yang:11: error: MISSING_INCLUDE
+submodule5.yang:9: error: NODE_NOT_FOUND
+submodule5.yang:10: error: GROUPING_NOT_FOUND

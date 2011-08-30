@@ -1,0 +1,4 @@
+submodule5.yang:9: error: NODE_NOT_FOUND
+submodule5.yang:10: error: GROUPING_NOT_FOUND
+submodule2.yang:7: error: BAD_IMPORT
+submodule2.yang:7: warning: UNUSED_IMPORT
