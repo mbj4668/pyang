@@ -4,6 +4,8 @@ module composite {
 
   include submodule1;
   include submodule2;
+  include submodule4;
+  include submodule5;
 
   include crypto-base; // error: crypto-base is a module
 

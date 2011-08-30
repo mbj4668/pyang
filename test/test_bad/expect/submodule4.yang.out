@@ -1,0 +1,2 @@
+submodule2.yang:7: error: BAD_IMPORT
+submodule2.yang:7: warning: UNUSED_IMPORT

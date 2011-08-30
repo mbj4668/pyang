@@ -1,0 +1,12 @@
+submodule submodule5 {
+
+  belongs-to composite {
+    prefix c; 
+  }
+
+  include submodule4;
+
+  augment "/c:new" {  // error; defined in non-included submodule2
+    uses c:g1; // error; defined in non-included submodule2
+  }
+}
