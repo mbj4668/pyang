@@ -5,6 +5,7 @@
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
 	 ns="urn:ietf:params:xml:ns:yang:yin:1"
 	 xmlns:dc="http://purl.org/dc/terms"
+	 xmlns:html="http://www.w3.org/1999/xhtml"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
   <dc:title>RELAX NG Schema for YIN</dc:title>
@@ -261,20 +262,50 @@
   <define name="organization-stmt">
     <element name="organization">
       <interleave>
-	<element name="text">
-	  <text/>
-	</element>
+	<ref name="text-element"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
   </define>
 
+  <define name="text-element">
+    <element name="text">
+      <choice>
+	<text/>
+	<oneOrMore>
+	  <choice>
+	    <element name="html:p">
+	      <ref name="html-inline-content"/>
+	    </element>
+	    <element name="html:ul">
+	      <ref name="html-list-content"/>
+	    </element>
+	    <element name="html:ol">
+	      <ref name="html-list-content"/>
+	    </element>
+	  </choice>
+	</oneOrMore>
+      </choice>
+    </element>
+  </define>
+
+  <define name="html-inline-content">
+    <!-- This may be extended in the future -->
+    <text/>
+  </define>
+
+  <define name="html-list-content">
+    <oneOrMore>
+      <element name="html:li">
+	<ref name="html-inline-content"/>
+      </element>
+    </oneOrMore>
+  </define>
+
   <define name="contact-stmt">
     <element name="contact">
       <interleave>
-	<element name="text">
-	  <text/>
-	</element>
+	<ref name="text-element"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -283,9 +314,7 @@
   <define name="description-stmt">
     <element name="description">
       <interleave>
-	<element name="text">
-	  <text/>
-	</element>
+	<ref name="text-element"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
@@ -294,9 +323,7 @@
   <define name="reference-stmt">
     <element name="reference">
       <interleave>
-	<element name="text">
-	  <text/>
-	</element>
+	<ref name="text-element"/>
 	<ref name="an-extension"/>
       </interleave>
     </element>
