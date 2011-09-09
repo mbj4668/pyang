@@ -28,17 +28,108 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 		xmlns:yin="urn:ietf:params:xml:ns:yang:yin:1"
+		xmlns:html="http://www.w3.org/1999/xhtml"
 		version="1.0">
   <xsl:output method="text"/>
   <xsl:strip-space elements="*"/>
 
+  <xsl:param name="indent-step" select="2"/>
+  <xsl:param name="line-length" select="70"/>
+  <xsl:param name="list-bullets" select="'-*o+'"/>
+
+  <xsl:variable name="unit-indent">
+    <xsl:call-template name="repeat-string">
+      <xsl:with-param name="count" select="$indent-step"/>
+      <xsl:with-param name="string" select="' '"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:template name="repeat-string">
+    <xsl:param name="count"/>
+    <xsl:param name="string"/>
+    <xsl:choose>
+      <xsl:when test="not($count) or not($string)"/>
+      <xsl:when test="$count = 1">
+	<xsl:value-of select="$string"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:if test="$count mod 2">
+	  <xsl:value-of select="$string"/>
+	</xsl:if>
+	<xsl:call-template name="repeat-string">
+	  <xsl:with-param name="count" select="floor($count div 2)"/>
+	  <xsl:with-param name="string" select="concat($string,$string)"/>
+	</xsl:call-template> 
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name="indent">
-    <xsl:param name="level" select="0"/>
-    <xsl:if test="$level>0">
-      <xsl:text>  </xsl:text>
-      <xsl:call-template name="indent">
-	<xsl:with-param name="level" select="$level - 1"/>
-      </xsl:call-template>
+    <xsl:param name="level" select="1"/>
+    <xsl:call-template name="repeat-string">
+      <xsl:with-param name="count" select="$level"/>
+      <xsl:with-param name="string" select="$unit-indent"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template name="fill-text">
+    <xsl:param name="text"/>
+    <xsl:param name="length"/>
+    <xsl:param name="remains" select="$length"/>
+    <xsl:param name="prefix"/>
+    <xsl:if test="string-length($text) &gt; 0">
+      <xsl:variable name="next-word">
+	<xsl:choose>
+	  <xsl:when test="contains($text,' ')">
+	    <xsl:value-of select="substring-before($text,' ')"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:value-of select="$text"/>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:variable>
+      <xsl:variable name="rest">
+	<xsl:choose>
+	  <xsl:when test="contains($text,' ')">
+	    <xsl:value-of select="substring-after($text,' ')"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:text></xsl:text>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:variable>
+      <xsl:variable
+	  name="left"
+	  select="$remains - string-length($next-word) - 1"/>
+      <xsl:choose>
+	<xsl:when test="$remains = $length">
+	  <xsl:value-of select="$next-word"/>
+	  <xsl:call-template name="fill-text">
+	    <xsl:with-param name="text" select="$rest"/>
+	    <xsl:with-param name="length" select="$length"/>
+	    <xsl:with-param name="remains" select="$left + 1"/>
+	    <xsl:with-param name="prefix" select="$prefix"/>
+	  </xsl:call-template>
+	</xsl:when>
+	<xsl:when test="$left &lt;= 0">
+	  <xsl:value-of select="concat('&#xA;',$prefix)"/>
+	  <xsl:call-template name="fill-text">
+	    <xsl:with-param name="text" select="$text"/>
+	    <xsl:with-param name="length" select="$length"/>
+	    <xsl:with-param name="remains" select="$length"/>
+	    <xsl:with-param name="prefix" select="$prefix"/>
+	  </xsl:call-template>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:value-of select="concat(' ',$next-word)"/>
+	  <xsl:call-template name="fill-text">
+	    <xsl:with-param name="text" select="$rest"/>
+	    <xsl:with-param name="length" select="$length"/>
+	    <xsl:with-param name="remains" select="$left"/>
+	    <xsl:with-param name="prefix" select="$prefix"/>
+	  </xsl:call-template>
+	</xsl:otherwise>
+      </xsl:choose>
     </xsl:if>
   </xsl:template>
 
@@ -183,13 +274,108 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:choose>
     </xsl:variable>
     <xsl:text>&#xA;</xsl:text>
-    <xsl:call-template name="indent">
-      <xsl:with-param name="level" select="count(ancestor::*) - 1"/>
+    <xsl:variable name="prf">
+      <xsl:call-template name="indent">
+	<xsl:with-param name="level" select="count(ancestor::*)"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:value-of select="concat($prf,$qchar)"/>
+    <xsl:choose>
+      <xsl:when test="html:*">
+	<xsl:apply-templates select="html:p|html:ul|html:ol">
+	  <xsl:with-param name="prefix" select="concat($prf,' ')"/>
+	</xsl:apply-templates>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="fill-text">
+	  <xsl:with-param name="text" select="normalize-space(.)"/>
+	  <xsl:with-param
+	      name="length"
+	      select="$line-length - string-length($prf) - 1"/>
+	  <xsl:with-param name="prefix" select="concat($prf,' ')"/>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:value-of select="concat($qchar,';&#xA;')"/>
+  </xsl:template>
+
+  <xsl:template match="html:ul">
+    <xsl:param name="prefix"/>
+    <xsl:if test="position()>1">
+      <xsl:value-of select="concat('&#xA;&#xA;',$prefix)"/>
+    </xsl:if>
+    <xsl:apply-templates select="html:li">
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="html:ol">
+    <xsl:param name="prefix"/>
+    <xsl:if test="position()>1">
+      <xsl:value-of select="concat('&#xA;&#xA;',$prefix)"/>
+    </xsl:if>
+    <xsl:apply-templates select="html:li" mode="numbered">
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="html:p">
+    <xsl:param name="prefix"/>
+    <xsl:if test="position()>1">
+      <xsl:value-of select="concat('&#xA;&#xA;',$prefix)"/>
+    </xsl:if>
+    <xsl:apply-templates select="text()|html:br" mode="fill">
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="text()" mode="fill">
+    <xsl:param name="prefix"/>
+    <xsl:call-template name="fill-text">
+      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param
+	  name="length"
+	  select="$line-length - string-length($prefix)"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:call-template>
-    <xsl:value-of select="concat(' ',$qchar)"/>
-    <xsl:apply-templates select="text()"/>
-    <xsl:value-of select="$qchar"/>
-    <xsl:call-template name="semi-or-sub"/>
+  </xsl:template>
+
+  <xsl:template match="html:br" mode="fill">
+    <xsl:param name="prefix"/>
+    <xsl:value-of select="concat('&#xA;',$prefix)"/>
+  </xsl:template>
+
+  <xsl:template match="html:li">
+    <xsl:param name="prefix"/>
+    <xsl:if test="position()>1">
+      <xsl:value-of select="concat('&#xA;&#xA;',$prefix)"/>
+    </xsl:if>
+    <xsl:value-of
+	select="concat(substring($list-bullets,
+		count(ancestor::html:ul),1),' ')"/>
+    <xsl:call-template name="fill-text">
+      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param
+	  name="length"
+	  select="$line-length - string-length($prefix) - 2"/>
+      <xsl:with-param name="prefix" select="concat($prefix,'  ')"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="html:li" mode="numbered">
+    <xsl:param name="prefix"/>
+    <xsl:if test="position()>1">
+      <xsl:value-of select="concat('&#xA;&#xA;',$prefix)"/>
+    </xsl:if>
+    <xsl:value-of
+	select="concat(count(preceding-sibling::html:li) + 1,'. ')"/>
+    <xsl:call-template name="fill-text">
+      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param
+	  name="length"
+	  select="$line-length - string-length($prefix) - 3"/>
+      <xsl:with-param name="prefix" select="concat($prefix,'   ')"/>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="comment()">
