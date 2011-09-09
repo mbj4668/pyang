@@ -291,7 +291,11 @@
 
   <define name="html-inline-content">
     <!-- This may be extended in the future -->
-    <text/>
+    <mixed>
+      <element name="html:br">
+	<empty/>
+      </element>
+    </mixed>
   </define>
 
   <define name="html-list-content">
