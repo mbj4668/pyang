@@ -33,6 +33,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:output method="text"/>
   <xsl:strip-space elements="*"/>
 
+  <!-- The 'date' parameter, if set, overrides the value of the
+       'revision' statement. -->
+  <xsl:param name="date"/>
+
   <xsl:param name="indent-step" select="2"/>
   <xsl:param name="line-length" select="70"/>
   <xsl:param name="list-bullets" select="'-*o+'"/>
@@ -249,7 +253,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="yin:revision|yin:revision-date">
+  <xsl:template match="yin:revision">
+    <xsl:call-template name="statement">
+      <xsl:with-param name="arg">
+	<xsl:choose>
+	  <xsl:when test="$date">
+	    <xsl:value-of select="$date"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:value-of select="@date"/>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="yin:revision-date">
     <xsl:call-template name="statement">
       <xsl:with-param name="arg" select="@date"/>
     </xsl:call-template>
