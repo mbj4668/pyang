@@ -69,7 +69,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="indent">
-    <xsl:param name="level" select="1"/>
+    <xsl:param name="level" select="count(ancestor::*)"/>
     <xsl:call-template name="repeat-string">
       <xsl:with-param name="count" select="$level"/>
       <xsl:with-param name="string" select="$unit-indent"/>
@@ -81,11 +81,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="length"/>
     <xsl:param name="remains" select="$length"/>
     <xsl:param name="prefix"/>
+    <xsl:param name="wdelim" select="' '"/>
+    <xsl:param name="break" select="'&#xA;'"/>
     <xsl:if test="string-length($text) &gt; 0">
       <xsl:variable name="next-word">
 	<xsl:choose>
-	  <xsl:when test="contains($text,' ')">
-	    <xsl:value-of select="substring-before($text,' ')"/>
+	  <xsl:when test="contains($text, $wdelim)">
+	    <xsl:value-of select="substring-before($text, $wdelim)"/>
 	  </xsl:when>
 	  <xsl:otherwise>
 	    <xsl:value-of select="$text"/>
@@ -94,8 +96,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:variable>
       <xsl:variable name="rest">
 	<xsl:choose>
-	  <xsl:when test="contains($text,' ')">
-	    <xsl:value-of select="substring-after($text,' ')"/>
+	  <xsl:when test="contains($text, $wdelim)">
+	    <xsl:value-of select="substring-after($text, $wdelim)"/>
 	  </xsl:when>
 	  <xsl:otherwise>
 	    <xsl:text></xsl:text>
@@ -104,7 +106,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:variable>
       <xsl:variable
 	  name="left"
-	  select="$remains - string-length($next-word) - 1"/>
+	  select="$remains - string-length(concat($wdelim,$next-word))"/>
       <xsl:choose>
 	<xsl:when test="$remains = $length">
 	  <xsl:value-of select="$next-word"/>
@@ -113,24 +115,30 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <xsl:with-param name="length" select="$length"/>
 	    <xsl:with-param name="remains" select="$left + 1"/>
 	    <xsl:with-param name="prefix" select="$prefix"/>
+	    <xsl:with-param name="wdelim" select="$wdelim"/>
+	    <xsl:with-param name="break" select="$break"/>
 	  </xsl:call-template>
 	</xsl:when>
-	<xsl:when test="$left &lt;= 0">
-	  <xsl:value-of select="concat('&#xA;',$prefix)"/>
+	<xsl:when test="$left &lt; string-length($break)">
+	  <xsl:value-of select="concat($break,$prefix)"/>
 	  <xsl:call-template name="fill-text">
 	    <xsl:with-param name="text" select="$text"/>
 	    <xsl:with-param name="length" select="$length"/>
 	    <xsl:with-param name="remains" select="$length"/>
 	    <xsl:with-param name="prefix" select="$prefix"/>
+	    <xsl:with-param name="wdelim" select="$wdelim"/>
+	    <xsl:with-param name="break" select="$break"/>
 	  </xsl:call-template>
 	</xsl:when>
 	<xsl:otherwise>
-	  <xsl:value-of select="concat(' ',$next-word)"/>
+	  <xsl:value-of select="concat($wdelim,$next-word)"/>
 	  <xsl:call-template name="fill-text">
 	    <xsl:with-param name="text" select="$rest"/>
 	    <xsl:with-param name="length" select="$length"/>
 	    <xsl:with-param name="remains" select="$left"/>
 	    <xsl:with-param name="prefix" select="$prefix"/>
+	    <xsl:with-param name="wdelim" select="$wdelim"/>
+	    <xsl:with-param name="break" select="$break"/>
 	  </xsl:call-template>
 	</xsl:otherwise>
       </xsl:choose>
@@ -142,10 +150,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:when test="*">
 	<xsl:text> {&#xA;</xsl:text>
 	<xsl:apply-templates select="*|comment()"/>
-	<xsl:call-template name="indent">
-	  <xsl:with-param name="level"
-			  select="count(ancestor::*)"/>
-	</xsl:call-template>
+	<xsl:call-template name="indent"/>
 	<xsl:text>}&#xA;</xsl:text>
       </xsl:when>
       <xsl:otherwise>
@@ -154,13 +159,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="quote-char">
+    <xsl:choose>
+      <xsl:when test="contains(.,'&quot;')">
+	<xsl:text>'</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:text>"</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name="keyword">
     <xsl:if test="count(ancestor::yin:*)=1">
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
-    <xsl:call-template name="indent">
-      <xsl:with-param name="level" select="count(ancestor::*)"/>
-    </xsl:call-template>
+    <xsl:call-template name="indent"/>
     <xsl:value-of select="local-name(.)"/>
   </xsl:template>
 
@@ -169,6 +183,55 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="arg"/>
     <xsl:call-template name="keyword"/>
     <xsl:value-of select="concat(' ',$quote,$arg,$quote)"/>
+    <xsl:call-template name="semi-or-sub"/>
+  </xsl:template>
+
+  <xsl:template name="handle-path-arg">
+    <xsl:variable name="qchar">
+      <xsl:call-template name="quote-char"/>
+    </xsl:variable>
+    <xsl:variable name="cind">
+      <xsl:call-template name="indent">
+	<xsl:with-param name="level" select="count(ancestor::*)-1"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when
+	  test="string-length(concat($cind,local-name(..),.))
+		&lt; $line-length - 5">
+	<xsl:value-of select="concat(' ',$qchar,.,$qchar)"/>
+      </xsl:when>
+      <xsl:when test="string-length(concat($cind,$unit-indent,.))
+		      &lt; $line-length - 4">
+	<xsl:text>&#xA;</xsl:text>
+	<xsl:call-template name="indent"/>
+	<xsl:value-of select="concat($qchar,.,$qchar)"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:value-of select="concat(' ',$qchar)"/>
+	<xsl:call-template name="fill-text">
+	  <xsl:with-param name="text" select="."/>
+	  <xsl:with-param
+	      name="length"
+	      select="$line-length - 2 -
+		      string-length(concat($cind, local-name(..)))"/>
+	  <xsl:with-param name="prefix">
+	    <xsl:value-of select="$cind"/>
+	    <xsl:call-template name="repeat-string">
+	      <xsl:with-param
+		  name="count"
+		  select="string-length(local-name(..)) - 1"/>
+	      <xsl:with-param name="string" select="' '"/>
+	    </xsl:call-template>
+	    <xsl:value-of select="concat('+ ',$qchar)"/>
+	  </xsl:with-param>
+	  <xsl:with-param name="wdelim" select="'/'"/>
+	  <xsl:with-param name="break"
+			  select="concat('/',$qchar,'&#xA;')"/>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:value-of select="$qchar"/>
     <xsl:call-template name="semi-or-sub"/>
   </xsl:template>
 
@@ -198,10 +261,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="yin:augment|yin:deviation|yin:refine">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="quote">"</xsl:with-param>
-      <xsl:with-param name="arg" select="@target-node"/>
-    </xsl:call-template>
+    <xsl:call-template name="keyword"/>
+    <xsl:apply-templates select="@target-node"/>
   </xsl:template>
 
   <xsl:template match="yin:belongs-to|yin:import|yin:include">
@@ -214,13 +275,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       match="yin:config|yin:default|yin:deviate|yin:error-app-tag
 	     |yin:fraction-digits|yin:key|yin:length|yin:mandatory
 	     |yin:max-elements|yin:min-elements|yin:ordered-by
-	     |yin:path|yin:pattern|yin:position|yin:prefix
+	     |yin:pattern|yin:position|yin:prefix
 	     |yin:presence|yin:range|yin:require-instance
 	     |yin:status|yin:value|yin:yang-version|yin:yin-element">
     <xsl:call-template name="statement">
       <xsl:with-param name="quote">"</xsl:with-param>
       <xsl:with-param name="arg" select="@value"/>
     </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="yin:path">
+    <xsl:call-template name="keyword"/>
+    <xsl:apply-templates select="@value"/>
+  </xsl:template>
+
+  <xsl:template match="@target-node|yin:path/@value">
+    <xsl:call-template name="handle-path-arg"/>
   </xsl:template>
 
   <xsl:template match="yin:error-message">
@@ -283,20 +353,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="yin:text|yin:error-message/yin:value">
     <xsl:variable name="qchar">
-      <xsl:choose>
-	<xsl:when test="contains(.,'&quot;')">
-	  <xsl:text>'</xsl:text>
-	</xsl:when>
-	<xsl:otherwise>
-	  <xsl:text>"</xsl:text>
-	</xsl:otherwise>
-      </xsl:choose>
+      <xsl:call-template name="quote-char"/>
     </xsl:variable>
     <xsl:text>&#xA;</xsl:text>
     <xsl:variable name="prf">
-      <xsl:call-template name="indent">
-	<xsl:with-param name="level" select="count(ancestor::*)"/>
-      </xsl:call-template>
+      <xsl:call-template name="indent"/>
     </xsl:variable>
     <xsl:value-of select="concat($prf,$qchar)"/>
     <xsl:choose>
@@ -401,9 +462,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:if test="count(ancestor::yin:*)=1">
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
-    <xsl:call-template name="indent">
-      <xsl:with-param name="level" select="count(ancestor::*)"/>
-    </xsl:call-template>
+    <xsl:call-template name="indent"/>
     <xsl:text>/*</xsl:text>
     <xsl:value-of select="."/>
     <xsl:text>*/&#xA;</xsl:text>
