@@ -1,6 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- source file: yin.rng -->
+<!-- Program name: yin.rng
+
+Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+
+RELAX NG schema for YIN (see RFC 6110).
+
+NOTE:
+
+This schema supports the following non-standard YIN extension:
+Arguments of 'contact', 'description', error-message, 'organization'
+and 'reference' may contain the following HTML elements in the
+"http://www.w3.org/1999/xhtml" namespace:
+
+<html:p> - a paragraph of text
+<html:ul> - unordered list
+<html:ol> - ordered list
+
+The <html:p> elements may, apart from text, also contain empty
+<html:br/> elements that cause an unconditional line break.
+
+The list elements must contain one or more <html:li> elements
+representing list items with text and <html:br/> elements.
+
+==
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->
 
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
 	 ns="urn:ietf:params:xml:ns:yang:yin:1"
@@ -270,23 +306,27 @@
 
   <define name="text-element">
     <element name="text">
-      <choice>
-	<text/>
-	<oneOrMore>
-	  <choice>
-	    <element name="html:p">
-	      <ref name="html-inline-content"/>
-	    </element>
-	    <element name="html:ul">
-	      <ref name="html-list-content"/>
-	    </element>
-	    <element name="html:ol">
-	      <ref name="html-list-content"/>
-	    </element>
-	  </choice>
-	</oneOrMore>
-      </choice>
+      <ref name="text-with-markup"/>
     </element>
+  </define>
+
+  <define name="text-with-markup">
+    <choice>
+      <text/>
+      <oneOrMore>
+	<choice>
+	  <element name="html:p">
+	    <ref name="html-inline-content"/>
+	  </element>
+	  <element name="html:ul">
+	    <ref name="html-list-content"/>
+	  </element>
+	  <element name="html:ol">
+	    <ref name="html-list-content"/>
+	  </element>
+	</choice>
+      </oneOrMore>
+    </choice>
   </define>
 
   <define name="html-inline-content">
@@ -785,8 +825,7 @@
   <define name="error-message-stmt">
     <element name="error-message">
       <element name="value">
-	<text/>
-	<ref name="an-extension"/>
+	<ref name="text-with-markup"/>
       </element>
       <ref name="an-extension"/>
     </element>

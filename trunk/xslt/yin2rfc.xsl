@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 
-<!-- Program name: yin2yang.xsl
+<!-- Program name: yin2rfc.xsl
 
 Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
-Translates YIN to YANG (see RFC 6110).
+Translates YIN to YANG suitable for inclusion in xml2rfc source.
 
-NOTE:
+NOTES:
 
-See the comments at the beginning of yinlib.xsl for details of the
-translation and supported extensions.
+1. YANG source is enclosed in the <artwork> element and also uses the
+   demarcating labels <CODE BEGIN> and <CODE END>. 
+
+2. See the comments at the beginning of yinlib.xsl for details of the
+   translation and supported extensions.
 
 ==
 
@@ -28,16 +31,25 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 		xmlns:yin="urn:ietf:params:xml:ns:yang:yin:1"
+		xmlns:html="http://www.w3.org/1999/xhtml"
 		version="1.0">
-  <xsl:output method="text"/>
   <xsl:strip-space elements="*"/>
+  <xsl:output method="xml" omit-xml-declaration="yes"/>
 
   <xsl:include href="yinlib.xsl"/>
 
   <!-- Root element -->
 
   <xsl:template match="/">
-    <xsl:apply-templates select="yin:module|yin:submodule|comment()"/>
+    <xsl:element name="artwork">
+      <xsl:text>&#xA;&lt;CODE BEGINS&gt; file "</xsl:text>
+      <xsl:value-of
+	  select="concat(/yin:module/@name,'@',$revision)"/>
+      <xsl:text>"&#xA;&#xA;</xsl:text>
+      <xsl:apply-templates
+	  select="yin:module|yin:submodule|comment()"/>
+      <xsl:text>&#xA;&lt;CODE ENDS&gt;</xsl:text>
+    </xsl:element>
   </xsl:template>
 
 </xsl:stylesheet>
