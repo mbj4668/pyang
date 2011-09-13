@@ -83,6 +83,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:param name="wdelim" select="' '"/>
     <xsl:param name="break" select="'&#xA;'"/>
+    <xsl:param name="at-start" select="false()"/>
     <xsl:if test="string-length($text) &gt; 0">
       <xsl:variable name="next-word">
 	<xsl:choose>
@@ -108,7 +109,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  name="left"
 	  select="$remains - string-length(concat($wdelim,$next-word))"/>
       <xsl:choose>
-	<xsl:when test="$remains = $length">
+	<xsl:when test="$at-start">
 	  <xsl:value-of select="$next-word"/>
 	  <xsl:call-template name="fill-text">
 	    <xsl:with-param name="text" select="$rest"/>
@@ -128,6 +129,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <xsl:with-param name="prefix" select="$prefix"/>
 	    <xsl:with-param name="wdelim" select="$wdelim"/>
 	    <xsl:with-param name="break" select="$break"/>
+	    <xsl:with-param name="at-start" select="true()"/>
 	  </xsl:call-template>
 	</xsl:when>
 	<xsl:otherwise>
@@ -199,13 +201,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:when
 	  test="string-length(concat($cind,local-name(..),.))
 		&lt; $line-length - 5">
-	<xsl:value-of select="concat(' ',$qchar,.,$qchar)"/>
+	<xsl:value-of select="concat(' ',$qchar,.)"/>
       </xsl:when>
       <xsl:when test="string-length(concat($cind,$unit-indent,.))
 		      &lt; $line-length - 4">
 	<xsl:text>&#xA;</xsl:text>
 	<xsl:call-template name="indent"/>
-	<xsl:value-of select="concat($qchar,.,$qchar)"/>
+	<xsl:value-of select="concat($qchar,.)"/>
       </xsl:when>
       <xsl:otherwise>
 	<xsl:value-of select="concat(' ',$qchar)"/>
@@ -228,6 +230,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <xsl:with-param name="wdelim" select="'/'"/>
 	  <xsl:with-param name="break"
 			  select="concat('/',$qchar,'&#xA;')"/>
+	  <xsl:with-param name="at-start" select="true()"/>
 	</xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
@@ -365,18 +368,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:apply-templates select="html:p|html:ul|html:ol">
 	  <xsl:with-param name="prefix" select="concat($prf,' ')"/>
 	</xsl:apply-templates>
+	<xsl:value-of
+	    select="concat('&#xA;', $prf,$qchar,';&#xA;')"/>
       </xsl:when>
       <xsl:otherwise>
 	<xsl:call-template name="fill-text">
-	  <xsl:with-param name="text" select="normalize-space(.)"/>
+	  <xsl:with-param
+	      name="text"
+	      select="concat(normalize-space(.),$qchar,';&#xA;')"/>
 	  <xsl:with-param
 	      name="length"
 	      select="$line-length - string-length($prf) - 1"/>
 	  <xsl:with-param name="prefix" select="concat($prf,' ')"/>
+	  <xsl:with-param name="at-start" select="true()"/>
 	</xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:value-of select="concat($qchar,';&#xA;')"/>
   </xsl:template>
 
   <xsl:template match="html:ul">
@@ -417,6 +424,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  name="length"
 	  select="$line-length - string-length($prefix)"/>
       <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="at-start" select="true()"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -439,6 +447,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  name="length"
 	  select="$line-length - string-length($prefix) - 2"/>
       <xsl:with-param name="prefix" select="concat($prefix,'  ')"/>
+      <xsl:with-param name="at-start" select="true()"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -455,6 +464,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  name="length"
 	  select="$line-length - string-length($prefix) - 3"/>
       <xsl:with-param name="prefix" select="concat($prefix,'   ')"/>
+      <xsl:with-param name="at-start" select="true()"/>
     </xsl:call-template>
   </xsl:template>
 
