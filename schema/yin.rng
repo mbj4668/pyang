@@ -332,11 +332,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="html-inline-content">
     <!-- This may be extended in the future -->
     <mixed>
-      <optional>
+      <zeroOrMore>
 	<element name="html:br">
 	  <empty/>
 	</element>
-      </optional>
+      </zeroOrMore>
     </mixed>
   </define>
 
