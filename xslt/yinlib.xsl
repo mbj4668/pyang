@@ -261,7 +261,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:otherwise>
     </xsl:choose>
     <xsl:value-of select="$qchar"/>
-    <xsl:call-template name="semi-or-sub"/>
   </xsl:template>
 
   <xsl:template
@@ -286,6 +285,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="yin:augment|yin:deviation|yin:refine">
     <xsl:call-template name="keyword"/>
     <xsl:apply-templates select="@target-node"/>
+    <xsl:call-template name="semi-or-sub"/>
   </xsl:template>
 
   <xsl:template match="yin:belongs-to|yin:import|yin:include">
@@ -310,6 +310,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="yin:path">
     <xsl:call-template name="keyword"/>
     <xsl:apply-templates select="@value"/>
+    <xsl:call-template name="semi-or-sub"/>
   </xsl:template>
 
   <xsl:template match="@target-node|yin:path/@value">
