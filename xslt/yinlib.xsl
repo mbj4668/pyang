@@ -215,6 +215,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="handle-path-arg">
+    <xsl:param name="token-delim" select="'/'"/>
     <xsl:variable name="qchar">
       <xsl:call-template name="quote-char"/>
     </xsl:variable>
@@ -253,9 +254,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    </xsl:call-template>
 	    <xsl:value-of select="concat('+ ',$qchar)"/>
 	  </xsl:with-param>
-	  <xsl:with-param name="wdelim" select="'/'"/>
+	  <xsl:with-param name="wdelim" select="$token-delim"/>
 	  <xsl:with-param name="break"
-			  select="concat('/',$qchar,'&#xA;')"/>
+			  select="concat($token-delim,$qchar,'&#xA;')"/>
 	  <xsl:with-param name="at-start" select="true()"/>
 	</xsl:call-template>
       </xsl:otherwise>
@@ -334,9 +335,21 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="yin:must|yin:when">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="quote">"</xsl:with-param>
-      <xsl:with-param name="arg" select="@condition"/>
+    <xsl:call-template name="keyword"/>
+    <xsl:apply-templates select="@condition"/>
+    <xsl:call-template name="semi-or-sub"/>
+  </xsl:template>
+
+  <xsl:template match="@condition">
+    <xsl:call-template name="handle-path-arg">
+      <xsl:with-param name="token-delim">
+	<xsl:choose>
+	  <xsl:when test="contains(.,' ')">
+	    <xsl:text> </xsl:text>
+	  </xsl:when>
+	  <xsl:otherwise>/</xsl:otherwise>
+	</xsl:choose>
+      </xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
