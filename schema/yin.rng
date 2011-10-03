@@ -630,9 +630,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <define name="enum-stmt">
     <element name="enum">
-      <attribute name="name">
-	<ref name="identifier"/>
-      </attribute>
+      <attribute name="name"/>
       <interleave>
 	<optional>
 	  <ref name="value-stmt"/>
