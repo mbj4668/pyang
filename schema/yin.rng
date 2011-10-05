@@ -6,23 +6,6 @@ Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
 RELAX NG schema for YIN (see RFC 6110).
 
-NOTE:
-
-This schema supports the following non-standard YIN extension:
-Arguments of 'contact', 'description', error-message, 'organization'
-and 'reference' may contain the following HTML elements in the
-"http://www.w3.org/1999/xhtml" namespace:
-
-<html:p> - a paragraph of text
-<html:ul> - unordered list
-<html:ol> - ordered list
-
-The <html:p> elements may, apart from text, also contain empty
-<html:br/> elements that cause an unconditional line break.
-
-The list elements must contain one or more <html:li> elements
-representing list items with text and <html:br/> elements.
-
 ==
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -41,12 +24,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
 	 ns="urn:ietf:params:xml:ns:yang:yin:1"
 	 xmlns:dc="http://purl.org/dc/terms"
-	 xmlns:html="http://www.w3.org/1999/xhtml"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
   <dc:title>RELAX NG Schema for YIN</dc:title>
   <dc:creator>Ladislav Lhotka</dc:creator>
-  <dc:date>2010-04-15</dc:date>
+  <dc:date>2011-10-05</dc:date>
   <dc:subject>YIN, XML syntax for YANG</dc:subject>
   <dc:identifier>urn:ietf:params:xml:ns:yang:yin:1</dc:identifier>
   <dc:description>RELAX NG schema defines grammar for data models
@@ -306,46 +288,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <define name="text-element">
     <element name="text">
-      <ref name="text-with-markup"/>
+      <ref name="text-content"/>
     </element>
   </define>
 
-  <define name="text-with-markup">
-    <choice>
-      <text/>
-      <oneOrMore>
-	<choice>
-	  <element name="html:p">
-	    <ref name="html-inline-content"/>
-	  </element>
-	  <element name="html:ul">
-	    <ref name="html-list-content"/>
-	  </element>
-	  <element name="html:ol">
-	    <ref name="html-list-content"/>
-	  </element>
-	</choice>
-      </oneOrMore>
-    </choice>
-  </define>
-
-  <define name="html-inline-content">
-    <!-- This may be extended in the future -->
-    <mixed>
-      <zeroOrMore>
-	<element name="html:br">
-	  <empty/>
-	</element>
-      </zeroOrMore>
-    </mixed>
-  </define>
-
-  <define name="html-list-content">
-    <oneOrMore>
-      <element name="html:li">
-	<ref name="html-inline-content"/>
-      </element>
-    </oneOrMore>
+  <define name="text-content">
+    <text/>
   </define>
 
   <define name="contact-stmt">
@@ -823,7 +771,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="error-message-stmt">
     <element name="error-message">
       <element name="value">
-	<ref name="text-with-markup"/>
+	<ref name="text-content"/>
       </element>
       <ref name="an-extension"/>
     </element>
