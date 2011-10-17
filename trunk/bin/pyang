@@ -9,6 +9,7 @@ import pyang
 from pyang import plugin
 from pyang import error
 from pyang import util
+from pyang import hello
 
 def run():
 
@@ -91,6 +92,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="In YIN input modules, trim whitespace "
                              "in textual arguments."),
+        optparse.make_option("-L", "--hello",
+                             dest="hello",
+                             action="store_true",
+                             help="Filename of a server's hello message is "
+                             "given instead of module filename(s)."),
         ]
         
     optparser = optparse.OptionParser(usage, add_help_option = False)
@@ -146,39 +152,59 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     exit_code = 0
 
     modules = []
-    if len(filenames) == 0:
-        text = sys.stdin.read()
-        module = ctx.add_module('<stdin>', text)
-        if module is None:
-            exit_code = 1
-        else:
-            modules.append(module)
-    if (len(filenames) > 1 and
-        emit_obj is not None and
-        not emit_obj.multiple_modules):
-        print >> sys.stderr, "too many files to convert"
-        sys.exit(1)
-        
-    r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
-    for filename in filenames:
-        try:
-            fd = file(filename)
-            text = fd.read()
-        except IOError, ex:
-            sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+
+    if o.hello:
+        if len(filenames) > 1:
+            print >> sys.stderr, "multiple hello files given"
             sys.exit(1)
-        m = r.search(filename)
-        if m is not None:
-            (name, _dummy, rev, format) = m.groups()
-            name = os.path.basename(name)
-            module = ctx.add_module(filename, text, format, name, rev,
-                                    expect_failure_error=False)
+        if filenames:
+            try:
+                fd = open(filenames[0])
+            except IOError, ex:
+                sys.stderr.write("error %s: %s\n" % (filenames[0], str(ex)))
+                sys.exit(1)
         else:
-            module = ctx.add_module(filename, text)
-        if module is None:
-            exit_code = 1
-        else:
-            modules.append(module)
+            fd = sys.stdin
+        for (mn,rev) in hello.HelloParser().get_modules(fd):
+            mod = ctx.search_module(0, mn, rev)
+            if mod is None:
+                print >> sys.stderr, "module '%s' specified in hello not found" % mn
+                sys.exit(1)
+            modules.append(mod)
+    else:
+        if len(filenames) == 0:
+            text = sys.stdin.read()
+            module = ctx.add_module('<stdin>', text)
+            if module is None:
+                exit_code = 1
+            else:
+                modules.append(module)
+        if (len(filenames) > 1 and
+            emit_obj is not None and
+            not emit_obj.multiple_modules):
+            print >> sys.stderr, "too many files to convert"
+            sys.exit(1)
+
+        r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
+        for filename in filenames:
+            try:
+                fd = file(filename)
+                text = fd.read()
+            except IOError, ex:
+                sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+                sys.exit(1)
+            m = r.search(filename)
+            if m is not None:
+                (name, _dummy, rev, format) = m.groups()
+                name = os.path.basename(name)
+                module = ctx.add_module(filename, text, format, name, rev,
+                                        expect_failure_error=False)
+            else:
+                module = ctx.add_module(filename, text)
+            if module is None:
+                exit_code = 1
+            else:
+                modules.append(module)
 
     modulenames = []
     for m in modules:
@@ -256,6 +282,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     sys.exit(exit_code)
 
-
 if __name__ == '__main__':
     run()
+    
