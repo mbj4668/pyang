@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <refentry xmlns="http://docbook.org/ns/docbook"
-	  version="5.0"
-	  xmlns:xlink="http://www.w3.org/1999/xlink"
-	  xml:id="man.1.yang2dsdl">
+          version="5.0"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xml:id="man.1.yang2dsdl">
 
   <info>
     <author>
@@ -35,9 +35,20 @@
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
-      <arg choice="opt">-n</arg>
       <arg choice="plain" rep="repeat">
-        <replaceable>module</replaceable>
+        <replaceable>file</replaceable>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>yang2dsdl</command>
+      <arg choice="plain">-L</arg>
+      <arg choice="opt">-t <replaceable>target</replaceable></arg>
+      <arg choice="opt">-d <replaceable>dir</replaceable></arg>
+      <arg choice="opt">-b <replaceable>basename</replaceable></arg>
+      <arg choice="opt">-j</arg>
+      <arg choice="opt">-v <replaceable>instance</replaceable></arg>
+      <arg choice="plain">
+        <replaceable>file</replaceable>
       </arg>
     </cmdsynopsis>
     <cmdsynopsis>
@@ -64,7 +75,14 @@
     xlink:href="http://tools.ietf.org/html/rfc6110">RFC 6110</link>. Optionally,
     the script can validate an instance document of the given type
     against the schemas.</para>
-    <para>The input module(s) may be expressed in YANG or YIN
+    <para>The input YANG module(s) may be given either directly as
+    <replaceable>file</replaceable> parameter(s) on the command line,
+    or indirectly through a server &lt;hello&gt; message which also
+    declares capabilities and features supported by the server. The
+    latter alternative is indicated by the <option>-L</option> switch,
+    and only one <replaceable>file</replaceable> parameter may be
+    given in this case.</para>
+    <para>Input YANG module(s) may be expressed in YANG or YIN
     syntax. The output DSDL schemas are written to the directory
     <replaceable>dir</replaceable> (current directory by
     default). Unless the option <option>-s</option> is used, this
@@ -107,7 +125,7 @@
         <term><literal>edit-config</literal></term>
         <listitem><para>A complete NETCONF message
         containing an &lt;nc:edit-config&gt; request. Only the RELAX
-	NG schema is generated for this target.</para></listitem>
+        NG schema is generated for this target.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term><literal>rpc</literal></term>
@@ -216,7 +234,7 @@
           schemas are stored. The default is the concatenation of the
           names of all input YANG modules connected with the
           underscore character "_". This option is mandatory if
-	  <option>-s</option> is used.</para>
+          <option>-s</option> is used.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -237,15 +255,18 @@
         <term><option>-j</option></term>
         <listitem>
           <para>Uses <command>jing</command>(1) for RELAX NG validation
-	  instead of the default <command>xmllint</command>(1).</para>
+          instead of the default <command>xmllint</command>(1).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>-n</option></term>
+        <term><option>-L</option></term>
         <listitem>
-          <para>With this option, all features used in input YANG
-	  modules are considered unavailable. By default, all features
-	  are available.</para>
+          <para>
+            Interpret the <replaceable>file</replaceable> parameter as
+            the name of a file containing a server &lt;hello&gt;
+            message. In this case, exactly one
+            <replaceable>file</replaceable> parameter must be given.
+          </para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -363,7 +384,7 @@
         <term><envar>PYANG_XSLT_DIR</envar></term>
         <listitem>
           <para>Alternative directory for XSLT stylesheets. The
-	  default is installation dependent.</para>
+          default is installation dependent.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -377,7 +398,7 @@
         <term><envar>XSLT_OPTS</envar></term>
         <listitem>
           <para>Options to pass to the XSLT processor when generating
-	  the DSDL schemas. This is mainly useful for debugging.</para>
+          the DSDL schemas. This is mainly useful for debugging.</para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -405,20 +426,20 @@
     following meaning:</para>
     <variablelist>
       <varlistentry>
-	<term>0</term>
-	<listitem><para>No error (normal termination)</para></listitem>
+        <term>0</term>
+        <listitem><para>No error (normal termination)</para></listitem>
       </varlistentry>
       <varlistentry>
-	<term>1</term>
-	<listitem><para>Error in input parameters</para></listitem>
+        <term>1</term>
+        <listitem><para>Error in input parameters</para></listitem>
       </varlistentry>
       <varlistentry>
-	<term>2</term>
-	<listitem><para>Error in DSDL schema generation</para></listitem>
+        <term>2</term>
+        <listitem><para>Error in DSDL schema generation</para></listitem>
       </varlistentry>
       <varlistentry>
-	<term>3</term>
-	<listitem><para>Instance validation failed</para></listitem>
+        <term>3</term>
+        <listitem><para>Instance validation failed</para></listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -428,11 +449,11 @@
 
     <orderedlist>
       <listitem>
-	<para>
-	  The logic of command-line arguments may not be able to
-	  distinguish replies to different RPC requests, for example
-	  if the replies have the same top-level element.
-	</para>
+        <para>
+          The logic of command-line arguments may not be able to
+          distinguish replies to different RPC requests, for example
+          if the replies have the same top-level element.
+        </para>
       </listitem>
     </orderedlist>
 

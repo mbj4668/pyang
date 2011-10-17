@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: yang2dsdl
 .\"    Author: Ladislav Lhotka <lhotka@cesnet.cz>
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
 .\"      Date: 2011-07-27
 .\"    Manual: pyang manual
 .\"    Source: yang2dsdl-1.2
@@ -31,7 +31,9 @@
 yang2dsdl \- translates YANG data models to DSDL schemas and validates instance documents\&.
 .SH "SYNOPSIS"
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-v\ \fIinstance\fR] [\-n] \fImodule\fR...
+\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-v\ \fIinstance\fR] \fIfile\fR...
+.HP \w'\fByang2dsdl\fR\ 'u
+\fByang2dsdl\fR \-L [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-v\ \fIinstance\fR] \fIfile\fR
 .HP \w'\fByang2dsdl\fR\ 'u
 \fByang2dsdl\fR \-s [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] \-b\ \fIbasename\fR [\-j] \-v\ \fIinstance\fR
 .HP \w'\fByang2dsdl\fR\ 'u
@@ -41,7 +43,15 @@ yang2dsdl \- translates YANG data models to DSDL schemas and validates instance 
 This shell script facilitates the translation of a data model described by one or more input YANG modules to DSDL schemas (RELAX NG, Schematron and DSRL) for a selected instance XML document type, as described in
 \m[blue]\fBRFC\ \&6110\fR\m[]\&\s-2\u[1]\d\s+2\&. Optionally, the script can validate an instance document of the given type against the schemas\&.
 .PP
-The input module(s) may be expressed in YANG or YIN syntax\&. The output DSDL schemas are written to the directory
+The input YANG module(s) may be given either directly as
+\fIfile\fR
+parameter(s) on the command line, or indirectly through a server <hello> message which also declares capabilities and features supported by the server\&. The latter alternative is indicated by the
+\fB\-L\fR
+switch, and only one
+\fIfile\fR
+parameter may be given in this case\&.
+.PP
+Input YANG module(s) may be expressed in YANG or YIN syntax\&. The output DSDL schemas are written to the directory
 \fIdir\fR
 (current directory by default)\&. Unless the option
 \fB\-s\fR
@@ -210,9 +220,13 @@ Uses
 \fBxmllint\fR(1)\&.
 .RE
 .PP
-\fB\-n\fR
+\fB\-L\fR
 .RS 4
-With this option, all features used in input YANG modules are considered unavailable\&. By default, all features are available\&.
+Interpret the
+\fIfile\fR
+parameter as the name of a file containing a server <hello> message\&. In this case, exactly one
+\fIfile\fR
+parameter must be given\&.
 .RE
 .PP
 \fB\-s\fR
