@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="test-hello-a"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:li="http://example.com/test-hello-a">
+  <namespace uri="http://example.com/test-hello-a"/>
+  <prefix value="ta"/>
+  <revision date="2011-10-14"/>
+  <feature name="foo"/>
+  <container name="top">
+    <leaf name="foo-stuff">
+      <if-feature name="foo"/>
+      <type name="string"/>
+    </leaf>
+  </container>
+</module>
