@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="test-hello-b"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:li="http://example.com/test-hello-b">
+  <namespace uri="http://example.com/test-hello-b"/>
+  <prefix value="tb"/>
+  <import module="test-hello-a">
+    <prefix value="ta"/>
+  </import>
+  <revision date="2011-10-14"/>
+  <feature name="bar"/>
+  <augment target-node="/ta:top">
+    <leaf name="bar-stuff">
+      <if-feature name="bar"/>
+      <type name="boolean"/>
+    </leaf>
+  </augment>
+</module>
