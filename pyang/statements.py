@@ -357,6 +357,9 @@ def v_init_module(ctx, stmt):
                 stmt.i_unused_prefixes[p.arg] = i
 
     stmt.i_features = {}
+    # None means all features set
+    # otherwise i_active_features should contain a list of active features.
+    stmt.i_active_features = None
     stmt.i_identities = {}
     stmt.i_extensions = {}
 
