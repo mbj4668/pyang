@@ -170,11 +170,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         for (mn,rev) in hel.yang_modules():
             mod = ctx.search_module(0, mn, rev)
             if mod is None:
-                print >> sys.stderr, "module '%s' specified in hello not found" % mn
+                emarg = mn
+                if rev: emarg += "@" + rev
+                sys.stderr.write(
+                    "module '%s' specified in hello not found\n" % emarg)
                 sys.exit(1)
             mod.i_active_features=hel.get_features(mn)
             modules.append(mod)
-            print mod.i_active_features
+            print mn, "::", mod.i_active_features
         print ctx.capabilities
     else:
         if len(filenames) == 0:
