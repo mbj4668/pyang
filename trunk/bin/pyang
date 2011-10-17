@@ -187,8 +187,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                         "declared in module '%s'.\n" % (fea,mn))
                     sys.exit(1)
             modules.append(mod)
-            print mn, "::", mod.i_active_features
-        print ctx.capabilities
     else:
         if len(filenames) == 0:
             text = sys.stdin.read()
