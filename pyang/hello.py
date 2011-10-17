@@ -1,12 +1,38 @@
-import xml.parsers.expat, sys, re
+import xml.parsers.expat
 
 NC_NS_URI ="urn:ietf:params:xml:ns:netconf:base:1.0"
-YAM_URI = re.compile(r".+\?(\S+)\s*")
+CAPABILITIES = {
+    "urn:ietf:params:xml:ns:netconf:base:1.0" : "base",
+    "urn:ietf:params:netconf:base:1.1" : "base",
+    "urn:ietf:params:netconf:capability:writable-running:1.0" : "writable-running",
+    "urn:ietf:params:netconf:capability:candidate:1.0" : "candidate",
+    "urn:ietf:params:netconf:capability:startup:1.0" : "startup",
+    "urn:ietf:params:netconf:capability:url:1.0" : "url",
+    "urn:ietf:params:netconf:capability:xpath:1.0" : "xpath",
+    "urn:ietf:params:netconf:capability:notification:1.0" : "notification",
+    "urn:ietf:params:netconf:capability:with-defaults:1.0" : "with-defaults",
+    }
+
+class Capability:
+
+    def __init__(self, uri):
+        self.parameters = {}
+        if "?" in uri:
+            id, pars = uri.split("?")
+            self.parse_pars(pars)
+        else:
+            id = uri
+        self.id = id
+
+    def parse_pars(self,pars):
+        for p in pars.split("&"):
+            name, value=p.split("=")
+            self.parameters[name] = value
 
 class HelloParser:
 
     def __init__(self):
-        self.modules = {}
+        self.capabilities = []
         self.depth = self.state = 0
         self.buffer = ""
         self.parser = xml.parsers.expat.ParserCreate(namespace_separator=' ')
@@ -37,27 +63,34 @@ class HelloParser:
             elif self.state == self.depth == 2 and tag == "capabilities":
                 self.state = 1
             elif self.state == self.depth == 3 and tag == "capability":
-                m = YAM_URI.search(self.buffer)
-                if m:
-                    self.parse_parameters(m.group(1))
+                self.capabilities.append(Capability(self.buffer))
                 self.buffer = ""
                 self.state = 2
         self.depth -= 1
 
-    def parse_parameters(self, data):
-        pars = dict([ x.split("=") for x in data.split("&") ])
-        if "module" not in pars: return
-        mnam = pars["module"]
-        if "revision" in pars:
-            rev=pars["revision"]
-        else:
-            rev=None
-        if "features" in pars:
-            self.modules[(mnam,rev)] = pars["features"].split(",")
-        else:
-            self.modules[(mnam,rev)] = []
-
-    def get_modules(self, fd):
+    def parse(self, fd):
         self.parser.ParseFile(fd)
-        return self.modules
+        return self
+
+    def yang_modules(self):
+        """Return a list of advertized YANG module names with revisions.
+        """
+        return [ (c.parameters["module"], c.parameters.get("revision",None))
+                  for c in self.capabilities if "module" in c.parameters ]
+
+    def get_features(self, yam):
+        """Return list of features declared for module `yam`."""
+        mcap = [ c for c in self.capabilities
+                 if c.parameters.get("module", None) == yam ][0]
+        if "features" not in mcap.parameters: return []
+        return mcap.parameters["features"].split(",")
+
+    def registered_capabilities(self):
+        """Return dictionary of non-YANG capabilities.
+
+        Only capabilities from the `CAPABILITIES` dictionary are taken
+        into account.
+        """
+        return dict ([ (CAPABILITIES[c.id],c) for c in self.capabilities
+                 if c.id in CAPABILITIES ])
 
