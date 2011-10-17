@@ -21,10 +21,10 @@ target="data"
 basename=""
 dir="."
 instance=""
+pyang_opts="--dsdl-no-documentation --dsdl-no-dublin-core"
 gen_rng_parms=""
 noschema=0
 onlydata=0
-nofeat=0
 jing=0
 
 xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
@@ -33,14 +33,16 @@ rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}
 usage() {
     cat <<EOF
 
-Usage: 1. yang2dsdl [-t <target>] [-r] [-d <dir>] [-b <basename>] \\
-                    [-n] [-j] [-v <instance>] <module> ...
-       2. yang2dsdl [-t target] [-d <dir>] [-j] -s -b <basename> \\
+Usage: 1. yang2dsdl [-t <target>] [-d <dir>] [-b <basename>] \\
+                    [-j] [-v <instance>] <module> ...
+       2. yang2dsdl -L [-t <target>] [-d <dir>] [-b <basename>] \\
+                    [-j] [-v <instance>] <server-hello>
+       3. yang2dsdl -s [-t target] [-d <dir>] [-j] -b <basename> \\
                     -v <instance>
-       3. yang2dsdl -h
+       4. yang2dsdl -h
 
-Generates DSDL schemas from YANG module(s) and validates
-instance documents.
+Generates DSDL schemas from one or more YANG modules and
+validates instance documents.
 
 Options:
   -h             Displays this help message and exits.
@@ -52,7 +54,8 @@ Options:
                  schemas are stored. The default is the concatenation
                  of the names of all input YANG modules connected
                  with the underscore character "_".
-  -n             Consider all used features as unavailable.
+  -L             Use server hello message instead of YANG modules as
+                 the only input file.
                  (By default, all are considered available.)
   -d <dir>       Specifies the directory for output files
                  (current directory by default).
@@ -142,7 +145,7 @@ rtfm () {
     exit 1
 }
 
-while getopts ":ht:d:b:v:jns" opt ; do
+while getopts ":ht:d:b:v:jLs" opt ; do
     case $opt in
         h)
             usage
@@ -179,8 +182,8 @@ while getopts ":ht:d:b:v:jns" opt ; do
 	j)
 	    jing=1
 	    ;;
-	n)
-	    nofeat=1
+	L)
+	    pyang_opts="${pyang_opts} -L"
 	    ;;
         s)
             noschema=1
@@ -196,17 +199,13 @@ while getopts ":ht:d:b:v:jns" opt ; do
     esac
 done
 
-if [ "$nofeat" = "1" ] ; then
-    gen_rng_parms='--stringparam features-off 1'
-fi
-
 if [ "$noschema" = "1" ] && [ "$instance" = "" ] ; then
     echo "Option -s may only be used together with -v."
     exit 1
 fi
 
 shift $(($OPTIND-1))
-yam=$*
+infiles=$*
 randext=$(mktemp -u .XXXXXXXX)
 hybs=$dir/dsdl$randext
 schxsl=$dir/sch$randext
@@ -216,15 +215,15 @@ instwdef=$dir/inst$randext
 trap "cleanup" 0 1 2 3 15
 
 if [ "$noschema" = "0" ] ; then
-    if [ "$yam" = "" ] ; then
-	echo "No input YANG module given." >&2
+    if [ "$infiles" = "" ] ; then
+	echo "No input file(s) given." >&2
 	rtfm
     elif [ ! -w $dir ] ; then
         echo "Directory '$dir' not writable."
         exit 1
     fi
     pyang -f dsdl -o $hybs --dsdl-no-documentation \
-        --dsdl-no-dublin-core $yam
+        --dsdl-no-dublin-core $infiles
     [ $? -eq 0 ] || exit 2
     if [ "$basename" = "" ] ; then
         basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
