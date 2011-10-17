@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0"
-	  xml:id="man.1.pyang">
+          xml:id="man.1.pyang">
 
   <info>
     <author>
@@ -45,6 +45,7 @@
       <arg choice="opt">--canonical</arg>
       <arg choice="opt">--strict</arg>
       <arg choice="opt">--ietf</arg>
+      <arg choice="opt">--hello</arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
       <arg choice="opt">-p <replaceable>path</replaceable></arg>
@@ -56,20 +57,32 @@
     <cmdsynopsis>
       <command>pyang</command>
       <group choice="plain">
-	<arg choice="plain">-h</arg>
-	<arg choice="plain">--help</arg>
+        <arg choice="plain">-h</arg>
+        <arg choice="plain">--help</arg>
       </group>
     </cmdsynopsis>
     <cmdsynopsis>
       <command>pyang</command>
       <group choice="plain">
-	<arg choice="plain">-v</arg>
-	<arg choice="plain">--version</arg>
+        <arg choice="plain">-v</arg>
+        <arg choice="plain">--version</arg>
       </group>
     </cmdsynopsis>
+
     <para>
-      If no files are given, <command>pyang</command> reads one module
-      from stdin.
+      One or more <replaceable>file</replaceable> parameters may be
+      given on the command line. They denote either YANG modules to be
+      processed (in YANG or YIN syntax) or, using the
+      <option>--hello</option> switch, a server &lt;hello&gt; message
+      conforming to RFC 6241 and 6020, which completely defines the
+      data model - supported YANG modules as well as features and
+      capabilities. In the latter case, only one
+      <replaceable>file</replaceable> parameter may be present.
+    </para>
+
+    <para>
+      If no files are given, <command>pyang</command> reads input
+      from stdin, which must be one module or a server &lt;hello&gt; message.
     </para>
     <para>
       Only the most common options are listed here.  See below for a
@@ -99,276 +112,290 @@
 
       <varlistentry>
         <term>
-	  <option>-h</option>
-	  <option>--help</option>
-	</term>
+          <option>-h</option>
+          <option>--help</option>
+        </term>
         <listitem>
           <para>
-	    Print a short help text and exit.
-	  </para>
-	</listitem>
+            Print a short help text and exit.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-v</option>
-	  <option>--version</option>
-	</term>
+          <option>-v</option>
+          <option>--version</option>
+        </term>
         <listitem>
           <para>
-	    Print the version number and exit.
-	  </para>
-	</listitem>
+            Print the version number and exit.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-e</option>
-	  <option>--list-errors</option>
-	</term>
+          <option>-e</option>
+          <option>--list-errors</option>
+        </term>
         <listitem>
           <para>
-	    Print a listing of all error codes and messages pyang
-	    might generate, and then exit.
-	  </para>
-	</listitem>
+            Print a listing of all error codes and messages pyang
+            might generate, and then exit.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
-	<term>
+        <term>
           <option>--print-error-code</option>
         </term>
-	<listitem>
-	  <para>
+        <listitem>
+          <para>
             On errors, print the symbolic error code instead of the
             error message.
           </para>
-	</listitem>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-Werror</option>
-	</term>
+          <option>-Werror</option>
+        </term>
         <listitem>
           <para>
-	    Treat warnings as errors.
-	  </para>
-	</listitem>
+            Treat warnings as errors.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-Wnone</option>
-	</term>
+          <option>-Wnone</option>
+        </term>
         <listitem>
           <para>
-	    Do not print any warnings.
-	  </para>
-	</listitem>
+            Do not print any warnings.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>--canonical</option>
-	</term>
+          <option>--canonical</option>
+        </term>
         <listitem>
           <para>
-	    Validate the module(s) according to the canonical YANG order.
-	  </para>
-	</listitem>
+            Validate the module(s) according to the canonical YANG order.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
-	<term>
+        <term>
           <option>--strict</option>
         </term>
-	<listitem>
-	  <para>
+        <listitem>
+          <para>
             Force strict YANG compliance.  Currently this checks
             that the deref() function is not used in XPath expressions
             and leafrefs.
           </para>
-	</listitem>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>--ietf</option>
-	</term>
+          <option>--ietf</option>
+        </term>
         <listitem>
           <para>
-	    Validate the module(s) according to IETF rules as
-	    specified in RFC 6087.  In addition,
-	    it checks that the module is in canonical order, and that
-	    <option>--max-line-length</option> is 72 so that the
-	    module fits into an RFC.
-	  </para>
-	</listitem>
+            Validate the module(s) according to IETF rules as
+            specified in RFC 6087.  In addition,
+            it checks that the module is in canonical order, and that
+            <option>--max-line-length</option> is 72 so that the
+            module fits into an RFC.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>--trim-yin</option>
-	</term>
+          <option>-L</option>
+          <option>--hello</option>
+        </term>
         <listitem>
           <para>
-	    In YIN input modules, remove leading and trailing
-	    whitespace from every line in the arguments of the
-	    following statements: 'contact', 'description',
-	    'error-message', 'organization' and 'reference'. This way,
-	    the XML-indented argument texts look tidy after
-	    translating the module to the compact YANG syntax.
-	  </para>
-	</listitem>
+            Interpret the input file or standard input as a server
+            &lt;hello&gt; message. In this case, no more than one
+            <replaceable>file</replaceable> parameter may be given.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>--max-line-length</option>
-	  <replaceable>maxlen</replaceable>
-	</term>
+          <option>--trim-yin</option>
+        </term>
         <listitem>
           <para>
-	    Give a warning if any line is longer than
-	    <replaceable>maxlen</replaceable>.
-	  </para>
-	</listitem>
+            In YIN input modules, remove leading and trailing
+            whitespace from every line in the arguments of the
+            following statements: 'contact', 'description',
+            'error-message', 'organization' and 'reference'. This way,
+            the XML-indented argument texts look tidy after
+            translating the module to the compact YANG syntax.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>--max-identifier-length</option>
-	  <replaceable>maxlen</replaceable>
-	</term>
+          <option>--max-line-length</option>
+          <replaceable>maxlen</replaceable>
+        </term>
         <listitem>
           <para>
-	    Give a error if any identifier is longer than
-	    <replaceable>maxlen</replaceable>.
-	  </para>
-	</listitem>
+            Give a warning if any line is longer than
+            <replaceable>maxlen</replaceable>.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-f</option>
-	  <option>--format</option>
-	  <replaceable>format</replaceable>
-	</term>
+          <option>--max-identifier-length</option>
+          <replaceable>maxlen</replaceable>
+        </term>
         <listitem>
           <para>
-	    Convert the module(s) into
-	    <replaceable>format</replaceable>.  Some translators
-	    require a single module, and some can translate multiple
-	    modules at one time.  If no
-	    <replaceable>outfile</replaceable> file is specified, the
-	    result is printed on stdout.  The supported formats are
-	    listed in <xref linkend="man.1.pyang.output_formats"
-	    endterm="man.1.pyang.output_formats_title"/> below.
-	  </para>
-	</listitem>
+            Give a error if any identifier is longer than
+            <replaceable>maxlen</replaceable>.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-o</option>
-	  <option>--output</option>
-	  <replaceable>outfile</replaceable>
-	</term>
+          <option>-f</option>
+          <option>--format</option>
+          <replaceable>format</replaceable>
+        </term>
         <listitem>
           <para>
-	    Write the output to the file
-	    <replaceable>outfile</replaceable> instead of stdout.
-	  </para>
-	</listitem>
+            Convert the module(s) into
+            <replaceable>format</replaceable>.  Some translators
+            require a single module, and some can translate multiple
+            modules at one time.  If no
+            <replaceable>outfile</replaceable> file is specified, the
+            result is printed on stdout.  The supported formats are
+            listed in <xref linkend="man.1.pyang.output_formats"
+            endterm="man.1.pyang.output_formats_title"/> below.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
         <term>
-	  <option>-p</option>
-	  <option>--path</option>
-	  <replaceable>path</replaceable>
-	</term>
+          <option>-o</option>
+          <option>--output</option>
+          <replaceable>outfile</replaceable>
+        </term>
         <listitem>
           <para>
-	    <replaceable>path</replaceable> is a colon (:) separated
-	    list of directories to search for imported modules.  This
-	    option may be given multiple times.
-	  </para>
-	  <para>
-	    The following directories are always added to the search path:
-	  </para>
-	  <orderedlist numeration="arabic" spacing="compact">
-	    <listitem>
-	      <para>
-		current directory
-	      </para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		<envar>$YANG_MODPATH</envar>
-	      </para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		<envar>$HOME</envar><filename>/yang/modules</filename>
-	      </para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		<envar>$YANG_INSTALL</envar><filename>/yang/modules</filename>
-		OR if <envar>$YANG_INSTALL</envar> is unset
-		<filename>&lt;the default installation
-		directory&gt;/yang/modules</filename> (on Unix
-		systems: <filename>/usr/share/yang/modules</filename>)
-	      </para>
-	    </listitem>
-	  </orderedlist>
-	</listitem>
+            Write the output to the file
+            <replaceable>outfile</replaceable> instead of stdout.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
-	<term>
-	  <option>--plugindir</option>
-	  <replaceable>plugindir</replaceable>
-	</term>
-	<listitem>
-	  <para>
-	    Load all YANG plugins found in the directory
-	    <emphasis>plugindir</emphasis>.  This option may be given
-	    multiple times.
-	  </para>
-	  <para>
-	    list of directories to search for pyang plugins.  The
-	    following directories are always added to the search
-	    path:
-	  </para>
-	  <orderedlist numeration="arabic">
-	    <listitem>
-	      <para>
-		<filename>pyang/plugins</filename> from
-		where pyang is installed
-	    </para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		<envar>$PYANG_PLUGINPATH</envar>
-	      </para>
-	    </listitem>
-	  </orderedlist>
-	</listitem>
+        <term>
+          <option>-p</option>
+          <option>--path</option>
+          <replaceable>path</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <replaceable>path</replaceable> is a colon (:) separated
+            list of directories to search for imported modules.  This
+            option may be given multiple times.
+          </para>
+          <para>
+            The following directories are always added to the search path:
+          </para>
+          <orderedlist numeration="arabic" spacing="compact">
+            <listitem>
+              <para>
+                current directory
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                <envar>$YANG_MODPATH</envar>
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                <envar>$HOME</envar><filename>/yang/modules</filename>
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                <envar>$YANG_INSTALL</envar><filename>/yang/modules</filename>
+                OR if <envar>$YANG_INSTALL</envar> is unset
+                <filename>&lt;the default installation
+                directory&gt;/yang/modules</filename> (on Unix
+                systems: <filename>/usr/share/yang/modules</filename>)
+              </para>
+            </listitem>
+          </orderedlist>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--plugindir</option>
+          <replaceable>plugindir</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Load all YANG plugins found in the directory
+            <emphasis>plugindir</emphasis>.  This option may be given
+            multiple times.
+          </para>
+          <para>
+            list of directories to search for pyang plugins.  The
+            following directories are always added to the search
+            path:
+          </para>
+          <orderedlist numeration="arabic">
+            <listitem>
+              <para>
+                <filename>pyang/plugins</filename> from
+                where pyang is installed
+            </para>
+            </listitem>
+            <listitem>
+              <para>
+                <envar>$PYANG_PLUGINPATH</envar>
+              </para>
+            </listitem>
+          </orderedlist>
+        </listitem>
       </varlistentry>
       
       <varlistentry>
-	<term>
-	  <replaceable>file...</replaceable>
-	</term>
-	<listitem>
-	  <para>
-	    These are the names of the files containing the modules to
-	    be validated, or the module to be converted.
-	  </para>
-	</listitem>
+        <term>
+          <replaceable>file...</replaceable>
+        </term>
+        <listitem>
+          <para>
+            These are the names of the files containing the modules to
+            be validated, or the module to be converted.
+          </para>
+        </listitem>
       </varlistentry>
 
     </variablelist>
@@ -389,49 +416,49 @@
 
     <variablelist>
       <varlistentry>
-	<term><emphasis>yin</emphasis></term>
-	<listitem>
-	  <para>the XML syntax of YANG</para>
-	</listitem>
+        <term><emphasis>yin</emphasis></term>
+        <listitem>
+          <para>the XML syntax of YANG</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>yang</emphasis></term>
-	<listitem>
-	  <para>normal YANG syntax</para>
-	</listitem>
+        <term><emphasis>yang</emphasis></term>
+        <listitem>
+          <para>normal YANG syntax</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>dsdl</emphasis></term>
-	<listitem>
-	  <para>Hybrid DSDL schema (RELAX NG with annotations) which
-	  is primarily intended as an interim product used by
-	  <command>yang2dsdl</command>(1). See RFC 6110 for
-	  details.</para>
-	</listitem>
+        <term><emphasis>dsdl</emphasis></term>
+        <listitem>
+          <para>Hybrid DSDL schema (RELAX NG with annotations) which
+          is primarily intended as an interim product used by
+          <command>yang2dsdl</command>(1). See RFC 6110 for
+          details.</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>xsd</emphasis></term>
-	<listitem>
-	  <para>W3C XML Schema</para>
-	</listitem>
+        <term><emphasis>xsd</emphasis></term>
+        <listitem>
+          <para>W3C XML Schema</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>depend</emphasis></term>
-	<listitem>
-	  <para>Prints a Makefile dependency rule for the module</para>
-	</listitem>
+        <term><emphasis>depend</emphasis></term>
+        <listitem>
+          <para>Prints a Makefile dependency rule for the module</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>tree</emphasis></term>
-	<listitem>
-	  <para>tree structure of the module</para>
-	</listitem>
+        <term><emphasis>tree</emphasis></term>
+        <listitem>
+          <para>tree structure of the module</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>uml</emphasis></term>
-	<listitem>
-	  <para>Prints a file that can be read by plantuml to generate UML diagrams</para>
-	</listitem>
+        <term><emphasis>uml</emphasis></term>
+        <listitem>
+          <para>Prints a file that can be read by plantuml to generate UML diagrams</para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -444,20 +471,20 @@
 
     <variablelist>
       <varlistentry>
-	<term><option>--yang-canonical</option></term>
-	<listitem>
-	  <para>
-	    Generate all statements in the canonical order.
-	  </para>
-	</listitem>
+        <term><option>--yang-canonical</option></term>
+        <listitem>
+          <para>
+            Generate all statements in the canonical order.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--yang-remove-unused-imports</option></term>
-	<listitem>
-	  <para>
-	    Remove unused import statements from the output.
-	  </para>
-	</listitem>
+        <term><option>--yang-remove-unused-imports</option></term>
+        <listitem>
+          <para>
+            Remove unused import statements from the output.
+          </para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -469,23 +496,23 @@
     </para>
     <variablelist>
       <varlistentry>
-	<term><option>--yin-canonical</option></term>
-	<listitem>
-	  <para>
-	    Generate all statements in the canonical order.
-	  </para>
-	</listitem>
+        <term><option>--yin-canonical</option></term>
+        <listitem>
+          <para>
+            Generate all statements in the canonical order.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--yin-pretty-strings</option></term>
-	<listitem>
-	  <para>
-	    Pretty print strings, i.e. print with extra whitespace in
-	    the string.  This is not strictly correct, since the
-	    whitespace is significant within the strings in XML, but
-	    the output is more readable.
-	  </para>
-	</listitem>
+        <term><option>--yin-pretty-strings</option></term>
+        <listitem>
+          <para>
+            Pretty print strings, i.e. print with extra whitespace in
+            the string.  This is not strictly correct, since the
+            whitespace is significant within the strings in XML, but
+            the output is more readable.
+          </para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -497,30 +524,30 @@
     </para>
     <variablelist>
       <varlistentry>
-	<term><option>--dsdl-no-documentation</option></term>
-	<listitem>
-	  <para>
-	    Do not print documentation annotations
-	  </para>
-	</listitem>
+        <term><option>--dsdl-no-documentation</option></term>
+        <listitem>
+          <para>
+            Do not print documentation annotations
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--dsdl-no-dublin-core</option></term>
-	<listitem>
-	  <para>
-	    Do not print Dublin Core metadata terms
-	  </para>
-	</listitem>
+        <term><option>--dsdl-no-dublin-core</option></term>
+        <listitem>
+          <para>
+            Do not print Dublin Core metadata terms
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--dsdl-record-defs</option></term>
-	<listitem>
-	  <para>
-	    Record translations of all top-level typedefs and
-	    groupings in the output schema, even if they are not
-	    used. This is useful for translating library modules.
-	  </para>
-	</listitem>
+        <term><option>--dsdl-record-defs</option></term>
+        <listitem>
+          <para>
+            Record translations of all top-level typedefs and
+            groupings in the output schema, even if they are not
+            used. This is useful for translating library modules.
+          </para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -532,38 +559,38 @@
     </para>
     <variablelist>
       <varlistentry>
-	<term><option>--xsd-no-appinfo</option></term>
-	<listitem>
-	  <para>
-	    Do not print YANG specific appinfo.
-	  </para>
-	</listitem>
+        <term><option>--xsd-no-appinfo</option></term>
+        <listitem>
+          <para>
+            Do not print YANG specific appinfo.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--xsd-no-lecture</option></term>
-	<listitem>
-	  <para>
-	    Do not print the lecture about how the XSD can be used.
-	  </para>
-	</listitem>
+        <term><option>--xsd-no-lecture</option></term>
+        <listitem>
+          <para>
+            Do not print the lecture about how the XSD can be used.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--xsd-no-imports</option></term>
-	<listitem>
-	  <para>
-	    Do not generate any xs:imports.
-	  </para>
-	</listitem>
+        <term><option>--xsd-no-imports</option></term>
+        <listitem>
+          <para>
+            Do not generate any xs:imports.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--xsd-break-pattern</option></term>
-	<listitem>
-	  <para>
-	    Break long patterns so that they fit into RFCs. The
-	    resulting patterns might not always be valid XSD, so use
-	    with care.
-	  </para>
-	</listitem>
+        <term><option>--xsd-break-pattern</option></term>
+        <listitem>
+          <para>
+            Break long patterns so that they fit into RFCs. The
+            resulting patterns might not always be valid XSD, so use
+            with care.
+          </para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -592,28 +619,28 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
     <variablelist>
       <varlistentry>
-	<term><option>--depend-target</option></term>
-	<listitem>
-	  <para>
-	    Makefile rule target.  Default is the modulename.
-	  </para>
-	</listitem>
+        <term><option>--depend-target</option></term>
+        <listitem>
+          <para>
+            Makefile rule target.  Default is the modulename.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--depend-extension</option></term>
-	<listitem>
-	  <para>
-	    YANG module file name extension.  Default is no extension.
-	  </para>
-	</listitem>
+        <term><option>--depend-extension</option></term>
+        <listitem>
+          <para>
+            YANG module file name extension.  Default is no extension.
+          </para>
+        </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--depend-no-submodules</option></term>
-	<listitem>
-	  <para>
-	    Do not generate dependencies for included submodules.
-	  </para>
-	</listitem>
+        <term><option>--depend-no-submodules</option></term>
+        <listitem>
+          <para>
+            Do not generate dependencies for included submodules.
+          </para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -631,12 +658,12 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
     <variablelist>
       <varlistentry>
-	<term><option>--tree-help</option></term>
-	<listitem>
-	  <para>
-	    Print help on symbols used in the tree output and exit.
-	  </para>
-	</listitem>
+        <term><option>--tree-help</option></term>
+        <listitem>
+          <para>
+            Print help on symbols used in the tree output and exit.
+          </para>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -660,107 +687,107 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     <variablelist>
 
     <varlistentry>
-	<term><option>--uml-classes-only</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-classes-only</option></term>
+        <listitem>
+          <para>
         Generate UML with classes only, no attributes
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
 
     <varlistentry>
-	<term><option>--uml-split-pages=PAGES_LAYOUT</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-split-pages=PAGES_LAYOUT</option></term>
+        <listitem>
+          <para>
         Generate UML output split into pages, NxN, example 2x2. 
         One .png file per page will be rendered. 
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
-	
+        
     <varlistentry>
     <term><option>--uml-classes-only</option></term>
-	<listitem>
-	  <para>
+        <listitem>
+          <para>
         Generate UML with classes only, no attributes
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>    
     
     <varlistentry>
     <term><option>--uml-output-director=OUTPUT_DIRECTORY</option></term>
-	<listitem>
-	  <para>
-        Put the genereated .png files(s) in the specified output directory.
+        <listitem>
+          <para>
+        Put the generated .png files(s) in the specified output directory.
         Default is img/ 
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
     
     <varlistentry>
-	<term><option>--uml-title=TITLE</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-title=TITLE</option></term>
+        <listitem>
+          <para>
         Set the title of the generated UML diagram, (default is YANG module name).
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
     <varlistentry>
-	<term><option>--uml-header=HEADER</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-header=HEADER</option></term>
+        <listitem>
+          <para>
         Set the header of the generated UML diagram.
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
 
     <varlistentry>
-	<term><option>--uml-footer=FOOTER</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-footer=FOOTER</option></term>
+        <listitem>
+          <para>
         Set the footer of the generated UML diagram.
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
     
     <varlistentry>
-	<term><option>--uml-long-identifers</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-long-identifers</option></term>
+        <listitem>
+          <para>
         Use complete YANG schema identifiers for UML class names. 
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
     
    <varlistentry>
-	<term><option>--uml-no</option></term>
-	<listitem>
-	  <para>
-	    This option suppresses specified arguments in the generated UML diagram. Valid arguments are:  uses, leafref, identity, identityref, typedef, annotation, import, circles, stereotypes. Annotation suppresses YANG cosntructs rendered as annotations, examples module info, config statements for containers. Example --uml-no=circles,stereotypes,typedef,import
-	  </para>
-	</listitem>
+        <term><option>--uml-no</option></term>
+        <listitem>
+          <para>
+            This option suppresses specified arguments in the generated UML diagram. Valid arguments are:  uses, leafref, identity, identityref, typedef, annotation, import, circles, stereotypes. Annotation suppresses YANG constructs rendered as annotations, examples module info, config statements for containers. Example --uml-no=circles,stereotypes,typedef,import
+          </para>
+        </listitem>
     </varlistentry>
 
 
     <varlistentry>
-	<term><option>--uml-truncate</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-truncate</option></term>
+        <listitem>
+          <para>
         Leafref attributes and augment elements can have long paths making the classes too wide. This option will only show the tail of the path. Example  --uml-truncate=augment,leafref.
-	  </para>
-	</listitem>
+          </para>
+        </listitem>
     </varlistentry>
 
 
     <varlistentry>
-	<term><option>--uml-filter-file=FILTER_FILE</option></term>
-	<listitem>
-	  <para>
+        <term><option>--uml-filter-file=FILTER_FILE</option></term>
+        <listitem>
+          <para>
         NOT IMPLEMENTED: Only paths in the filter file will be
-        included in the diagram. A deault filter file is generated by
+        included in the diagram. A default filter file is generated by
         option --filter.
         </para>
-	</listitem>
+        </listitem>
       </varlistentry>
     </variablelist>
   </refsect1>
@@ -900,11 +927,11 @@ $ open img/ietf-netconf-monitoring.png
 
     <orderedlist>
       <listitem>
-	<para>
-	  The XPath arguments for the <emphasis>must</emphasis> and
-	  <emphasis>when</emphasis> statements are checked only for
-	  basic syntax errors.
-	</para>
+        <para>
+          The XPath arguments for the <emphasis>must</emphasis> and
+          <emphasis>when</emphasis> statements are checked only for
+          basic syntax errors.
+        </para>
       </listitem>
     </orderedlist>
 

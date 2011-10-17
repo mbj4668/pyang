@@ -26,9 +26,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <!-- String parameters -->
 
-  <!-- Are features available?
-       TODO: Make it more selective and include capabilities. -->
-  <xsl:param name="features-off" select="0"/>
   <!-- Validation target: one of "data", "config", "get-reply",
        "get-config-reply", "rpc", "rpc-reply", "notification" -->
   <xsl:param name="target">data</xsl:param>
@@ -67,10 +64,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:when
           test="$target='get-config-reply' or
                 $target='get-reply'">
-	<xsl:text>/nc:rpc-reply/nc:data</xsl:text>
+        <xsl:text>/nc:rpc-reply/nc:data</xsl:text>
       </xsl:when>
       <xsl:when test="$target='edit-config'">
-	<xsl:text>/nc:rpc/nc:edit-config/nc:config</xsl:text>
+        <xsl:text>/nc:rpc/nc:edit-config/nc:config</xsl:text>
       </xsl:when>
       <xsl:when test="$target='rpc'">
         <xsl:text>/nc:rpc</xsl:text>
@@ -82,7 +79,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:text>/en:notification</xsl:text>
       </xsl:when>
       <xsl:when test="$target='data'">
-	<xsl:text>/nc:data</xsl:text>
+        <xsl:text>/nc:data</xsl:text>
       </xsl:when>
     </xsl:choose>
   </xsl:variable>
@@ -98,7 +95,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='data' or $target='config' or
-		  $target='edit-config' or starts-with($target,'get'))
+                  $target='edit-config' or starts-with($target,'get'))
                   and not(//nma:data/rng:*)">
       <xsl:message terminate="yes">
         <xsl:text>Data model defines no data.</xsl:text>

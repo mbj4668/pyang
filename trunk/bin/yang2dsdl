@@ -183,7 +183,7 @@ while getopts ":ht:d:b:v:jLs" opt ; do
 	    jing=1
 	    ;;
 	L)
-	    pyang_opts="${pyang_opts} -L"
+	    pyang_opts="${pyang_opts} --hello"
 	    ;;
         s)
             noschema=1
@@ -222,8 +222,7 @@ if [ "$noschema" = "0" ] ; then
         echo "Directory '$dir' not writable."
         exit 1
     fi
-    pyang -f dsdl -o $hybs --dsdl-no-documentation \
-        --dsdl-no-dublin-core $infiles
+    pyang -f dsdl -o $hybs $pyang_opts $infiles
     [ $? -eq 0 ] || exit 2
     if [ "$basename" = "" ] ; then
         basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
