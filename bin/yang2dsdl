@@ -215,21 +215,6 @@ instwdef=$dir/inst$randext
 
 trap "cleanup" 0 1 2 3 15
 
-if [ "$hello" = "1" ] ; then
-    printf "\n== Validating hello file ...\n"
-    hellorng=$rng_lib/hello-server.rng
-    if [ "$jing" = "0" ] ; then
-	xmllint --noout --relaxng $hellorng $infiles
-	[ $? -eq 0 ] || exit 3
-    else
-	jing $hellorng $infiles
-	[ $? -eq 0 ] || exit 3
-	echo $infiles validates.
-	fi
-    pyang_opts="${pyang_opts} --hello"
-    printf "\n"
-fi
-
 if [ "$noschema" = "0" ] ; then
     if [ "$infiles" = "" ] ; then
 	echo "No input file(s) given." >&2
@@ -237,6 +222,20 @@ if [ "$noschema" = "0" ] ; then
     elif [ ! -w $dir ] ; then
         echo "Directory '$dir' not writable."
         exit 1
+    fi
+    if [ "$hello" = "1" ] ; then
+	printf "\n== Validating hello file ...\n"
+	hellorng=$rng_lib/hello-server.rng
+	if [ "$jing" = "0" ] ; then
+	    xmllint --noout --relaxng $hellorng $infiles
+	    [ $? -eq 0 ] || exit 3
+	else
+	    jing $hellorng $infiles
+	    [ $? -eq 0 ] || exit 3
+	    echo $infiles validates.
+	fi
+	pyang_opts="${pyang_opts} --hello"
+	printf "\n"
     fi
     pyang -f dsdl -o $hybs $pyang_opts $infiles
     [ $? -eq 0 ] || exit 2
