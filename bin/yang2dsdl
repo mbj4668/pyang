@@ -25,6 +25,7 @@ pyang_opts="--dsdl-no-documentation --dsdl-no-dublin-core"
 gen_rng_parms=""
 noschema=0
 onlydata=0
+hello=0
 jing=0
 
 xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
@@ -183,7 +184,7 @@ while getopts ":ht:d:b:v:jLs" opt ; do
 	    jing=1
 	    ;;
 	L)
-	    pyang_opts="${pyang_opts} --hello"
+	    hello=1
 	    ;;
         s)
             noschema=1
@@ -213,6 +214,21 @@ dsrlxsl=$dir/dsrl$randext
 instwdef=$dir/inst$randext
 
 trap "cleanup" 0 1 2 3 15
+
+if [ "$hello" = "1" ] ; then
+    printf "\n== Validating hello file ...\n"
+    hellorng=$rng_lib/hello-server.rng
+    if [ "$jing" = "0" ] ; then
+	xmllint --noout --relaxng $hellorng $infiles
+	[ $? -eq 0 ] || exit 3
+    else
+	jing $hellorng $infiles
+	[ $? -eq 0 ] || exit 3
+	echo $infiles validates.
+	fi
+    pyang_opts="${pyang_opts} --hello"
+    printf "\n"
+fi
 
 if [ "$noschema" = "0" ] ; then
     if [ "$infiles" = "" ] ; then
