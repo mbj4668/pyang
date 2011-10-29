@@ -333,6 +333,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 or $target='edit-config')">
         <xsl:element name="empty" namespace="{$rng-uri}"/>
       </xsl:when>
+      <xsl:when
+	  test="@nma:when and
+		not(parent::rng:optional or parent::rng:zeroOrMore)">
+	<xsl:element name="choice" namespace="{$rng-uri}">
+	  <xsl:element name="empty" namespace="{$rng-uri}"/>
+	  <xsl:apply-templates select="." mode="process"/>
+	</xsl:element>
+      </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates select="." mode="process"/>
       </xsl:otherwise>
@@ -370,12 +378,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
             </xsl:element>
           </xsl:otherwise>
         </xsl:choose>
-      </xsl:when>
-      <xsl:when test="@nma:when and not(parent::rng:optional)">
-	<xsl:element name="choice" namespace="{$rng-uri}">
-	  <xsl:element name="empty" namespace="{$rng-uri}"/>
-	  <xsl:call-template name="copy-and-continue"/>
-	</xsl:element>
       </xsl:when>
       <xsl:otherwise>
 	<xsl:call-template name="copy-and-continue"/>
