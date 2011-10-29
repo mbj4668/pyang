@@ -371,8 +371,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
+      <xsl:when test="@nma:when and not(parent::rng:optional)">
+	<xsl:element name="choice" namespace="{$rng-uri}">
+	  <xsl:element name="empty" namespace="{$rng-uri}"/>
+	  <xsl:call-template name="copy-and-continue"/>
+	</xsl:element>
+      </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="copy-and-continue"/>
+	<xsl:call-template name="copy-and-continue"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
