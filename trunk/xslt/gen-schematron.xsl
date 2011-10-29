@@ -215,7 +215,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
       </xsl:attribute>
       <xsl:apply-templates
-          select="descendant::rng:element[&annots;]">
+          select="descendant::rng:element[&annots;]|
+		  descendant::rng:interleave/@nma:when|
+		  descendant::rng:group/@nma:when|
+		  descendant::rng:choice/@nma:when|
+		  descendant::rng:choice/@nma:mandatory">
         <xsl:with-param name="prevpath" select="$netconf-part"/>
         <xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
