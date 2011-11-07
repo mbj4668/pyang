@@ -20,6 +20,7 @@ a.yang:138: error: CIRCULAR_DEPENDENCY
 a.yang:142: error: GROUPING_NOT_FOUND
 a.yang:147: error: ENUM_VALUE
 a.yang:157: error: ENUM_VALUE
+a.yang:167: error: TYPE_VALUE
 b.yang:5: error: CIRCULAR_DEPENDENCY
 d.yang:31: error: DUPLICATE_CHILD_NAME
 d.yang:35: error: DUPLICATE_CHILD_NAME

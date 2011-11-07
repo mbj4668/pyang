@@ -158,5 +158,18 @@ module a {
     }
   }
 
+  typedef myuint64 {
+    type uint64;
+    default 123456789123456789;
+  }
+  
+  container some-config {
+    leaf myuint64leaf {
+      type myuint64 {
+        range "1..50000000";
+      }
+    }
+  }
+
 }
 
