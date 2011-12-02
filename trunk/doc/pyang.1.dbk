@@ -665,6 +665,30 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>
+	  <option>--tree-depth</option>
+          <replaceable>depth</replaceable>
+	</term>
+        <listitem>
+          <para>
+            Levels of the tree to print.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+	  <option>--tree-path</option>
+          <replaceable>path</replaceable>
+	</term>
+        <listitem>
+          <para>
+            Subtree to print.  The <replaceable>path</replaceable> is
+            a slash ("/") separated path to a subtree to print.  For
+            example "/nacm/groups".
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 

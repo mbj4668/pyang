@@ -6,6 +6,7 @@ Idea copied from libsmi.
 import optparse
 import sys
 import re
+import string
 
 from pyang import plugin
 from pyang import statements
@@ -24,6 +25,13 @@ class TreePlugin(plugin.PyangPlugin):
                                  dest="tree_help",
                                  action="store_true",
                                  help="Print help on tree symbols and exit"),
+            optparse.make_option("--tree-depth",
+                                 type="int",
+                                 dest="tree_depth",
+                                 help="Number of levels to print"),
+            optparse.make_option("--tree-path",
+                                 dest="tree_path",
+                                 help="Subtree to print"),
             ]
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
@@ -37,7 +45,13 @@ class TreePlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        emit_tree(modules, fd)
+        if ctx.opts.tree_path is not None:
+            path = string.split(ctx.opts.tree_path, '/')
+            if path[0] == '':
+                path = path[1:]
+        else:
+            path = None
+        emit_tree(modules, fd, ctx.opts.tree_depth, path)
 
 def print_help():
     print """
@@ -71,7 +85,7 @@ Each node is printed as:
   <type> is the name of the type for leafs and leaf-lists
 """    
 
-def emit_tree(modules, fd):
+def emit_tree(modules, fd, depth, path):
     for module in modules:
         bstr = ""
         b = module.search_one('belongs-to')
@@ -80,19 +94,35 @@ def emit_tree(modules, fd):
         fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
-        print_children(chs, module, fd, ' ')
+        if path is not None and len(path) > 0:
+            print path, [ch.arg for ch in chs]
+            chs = [ch for ch in chs
+                   if ch.arg == path[0]]
+            path = path[1:]
+
+        print_children(chs, module, fd, ' ', path, depth)
 
         rpcs = module.search('rpc')
+        if path is not None and len(path) > 0:
+            rpcs = [rpc for rpc in rpcs
+                    if rpc.arg == path[0]]
+            path = path[1:]
         if len(rpcs) > 0:
             fd.write("rpcs:\n")
-            print_children(rpcs, module, fd, ' ')
+            print_children(rpcs, module, fd, path, depth, ' ')
 
         notifs = module.search('notification')
+        if path is not None and len(path) > 0:
+            notifs = [n for n in notifs
+                      if n.arg == path[0]]
+            path = path[1:]
         if len(notifs) > 0:
             fd.write("notifications:\n")
-            print_children(notifs, module, fd, ' ')
+            print_children(notifs, module, fd, path, depth, ' ')
 
-def print_children(i_children, module, fd, prefix, width=0):
+def print_children(i_children, module, fd, prefix, path, depth, width=0):
+    if depth == 0:
+        return
     def get_width(w, chs):
         for ch in chs:
             if ch.keyword in ['choice', 'case']:
@@ -120,9 +150,9 @@ def print_children(i_children, module, fd, prefix, width=0):
             ch.parent.search_one(ch.arg) is None):
             pass
         else:
-            print_node(ch, module, fd, newprefix, width)
+            print_node(ch, module, fd, newprefix, path, depth, width)
 
-def print_node(s, module, fd, prefix, width):
+def print_node(s, module, fd, prefix, path, depth, width):
     fd.write("%s%s--" % (prefix[0:-1], get_status_str(s)))
 
     if s.i_module.i_modulename == module.i_modulename:
@@ -158,10 +188,17 @@ def print_node(s, module, fd, prefix, width):
         fd.write(" [%s]" % re.sub('\s+', ' ', s.search_one('key').arg))
     fd.write('\n')
     if hasattr(s, 'i_children'):
+        if depth is not None:
+            depth = depth - 1
+        chs = s.i_children
+        if path is not None and len(path) > 0:
+            chs = [ch for ch in chs
+                   if ch.arg == path[0]]
+            path = path[1:]
         if s.keyword in ['choice', 'case']:
-            print_children(s.i_children, module, fd, prefix, width)
+            print_children(chs, module, fd, prefix, path, depth, width)
         else:
-            print_children(s.i_children, module, fd, prefix)
+            print_children(chs, module, fd, prefix, path, depth)
 
 def get_status_str(s):
     status = s.search_one('status')
