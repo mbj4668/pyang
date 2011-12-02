@@ -95,7 +95,6 @@ def emit_tree(modules, fd, depth, path):
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
         if path is not None and len(path) > 0:
-            print path, [ch.arg for ch in chs]
             chs = [ch for ch in chs
                    if ch.arg == path[0]]
             path = path[1:]
