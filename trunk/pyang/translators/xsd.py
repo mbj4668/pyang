@@ -109,6 +109,15 @@ def pyang_plugin_init():
 class XSDPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):
         optlist = [
+            optparse.make_option("--xsd-global-complex-types",
+                                 dest="xsd_global_complex_types",
+                                 action="store_true",
+                                 help="Make all complex types global instead" +
+                                      " of inline"),
+            optparse.make_option("--xsd-groups",
+                                 dest="xsd_groups",
+                                 action="store_true",
+                                 help="EXPERIMENTAL: does not yet work"),
             optparse.make_option("--xsd-no-appinfo",
                                  dest="xsd_no_appinfo",
                                  action="store_true",
@@ -432,9 +441,23 @@ def emit_xsd(ctx, module, fd):
         fd.write('\n')
         print_augment(ctx, module, fd, '  ', c)
 
+    # print groupings
+    if ctx.opts.xsd_groups and len(module.i_groupings) > 0:
+        fd.write('\n  <!-- YANG groupings -->\n')
+        for c in module.i_groupings:
+            fd.write('\n')
+            print_grouping(ctx, module, fd, '  ', module.i_groupings[c])
+    
     fd.write('\n')
+
     # print data definitions
+    ctx.xsd_ct_names = {}
+    ctx.xsd_ct_stack = []
     print_children(ctx, module, fd, module.i_children, '  ', [])
+    while ctx.xsd_ct_stack:
+        (path, uniq, uindent, extbase, cn, c, aname) = ctx.xsd_ct_stack.pop()
+        print_complex_type(ctx, module, fd, '  ', path,
+                           uniq, uindent, extbase, cn, c, aname)
 
     # then print all generated 'dummy' simpleTypes, if any
     if len(module.i_gen_typedef) > 0:
@@ -448,7 +471,18 @@ def emit_xsd(ctx, module, fd):
 
 def print_children(ctx, module, fd, children, indent, path,
                    uniq=[], uindent=''):
+    uses_list = []
     for c in children:
+        if (ctx.opts.xsd_groups and
+            hasattr(c, 'i_uses') and
+            c.i_uses[0].i_grouping.parent.parent == None and
+            c.i_uses[0].search_one('refine') is None):
+            # do not inline this child; print a reference to the grouping
+            # instead - only for top-level groupings
+            if c.i_uses[0] not in uses_list:
+                uses_list.append(c.i_uses[0])
+                fd.write(indent + '<xs:group ref="%s"/>\n' % c.i_uses[0].arg)
+            continue
         cn = c.keyword
         if cn in ['container', 'list', 'leaf', 'leaf-list', 'anyxml',
                   'notification', 'rpc']:
@@ -502,107 +536,70 @@ def print_children(ctx, module, fd, children, indent, path,
                 sgroup = ' substitutionGroup="nc:rpcOperation"'
                 extbase = 'nc:rpcOperationType'
 
-            fd.write(indent + '<xs:element name="%s"%s%s%s%s>\n' % \
+            if (cn in ['container', 'list', 'rpc', 'notification'] and
+                ctx.opts.xsd_global_complex_types):
+                ctype_name = c.arg
+                x = c.parent
+                idx = 0
+                while ctype_name in ctx.xsd_ct_names:
+                    # already taken; generate a new name
+                    # not ideal...
+                    if x is not None:
+                        ctype_name = '%s_%s' % (x.arg, ctype_name)
+                    else:
+                        ctype_name = '%s_%d' % (ctype_name, idx)
+                        idx = idx + 1
+                ctx.xsd_ct_names[ctype_name] = True
+                atype = ' type="%s"' % ctype_name
+            else:
+                ctype_name = None
+
+            fd.write(indent + '<xs:element name="%s"%s%s%s%s' % \
                    (c.arg, mino, maxo, atype, sgroup))
-            print_annotation(ctx, fd, indent + '  ', c)
-            if cn in ['container', 'list', 'rpc', 'notification']:
-                fd.write(indent + '  <xs:complexType>\n')
-                extindent = ''
-                if extbase != None:
-                    fd.write(indent + '    <xs:complexContent>\n')
-                    fd.write(indent + '      <xs:extension base="%s">\n' % \
-                                   extbase)
-                    extindent = '      '
-                fd.write(indent + extindent + '    <xs:sequence>\n')
-                if cn == 'rpc':
-                    if c.search_one('input') != None:
-                        chs = c.search_one('input').i_children
-                    else:
-                        chs = []
-                elif cn == 'list':
-                    # sort children so that all keys come first
-                    k = c.search_one('key')
-                    if k is not None:
-                        kchs = []
-                        chs = []
-                        keynames = k.arg.split()
-                        for ch in c.i_children:
-                            if ch.arg in keynames:
-                                kchs.append(ch)
-                            else:
-                                chs.append(ch)
-                        chs = kchs + chs
-                    else:
-                        chs = c.i_children
-                    k = c.search_one('key')
-                    if k is not None:
-                        # record the key constraints to be used by our
-                        # parent element
-                        ustr = uindent + \
-                                  '<xs:key name="key_%s">\n' % \
-                                  '_'.join(path + [c.arg])
-                        ustr += uindent + \
-                                  '  <xs:selector xpath="%s:%s"/>\n' % \
-                                  (module.i_xsd_prefix, c.arg)
-                        for expr in k.arg.split():
-                            f = '/'.join([module.i_xsd_prefix + ':' + x
-                                          for x in expr.split('/')])
-                            ustr += uindent + \
-                                      '  <xs:field xpath="%s"/>\n' % f
-                        ustr += uindent + '</xs:key>\n'
-                        uniq.append(ustr)
-                    i = 0
-                    for u in c.search('unique'):
-                        ustr = uindent + \
-                                 '<xs:unique name="unique_%s_%s">\n' % \
-                                 ('_'.join(path + [c.arg]), i)
-                        ustr += uindent + \
-                                  '  <xs:selector xpath="%s:%s"/>\n' % \
-                                  (module.i_xsd_prefix, c.arg)
-                        for expr in u.arg.split():
-                            f = '/'.join([module.i_xsd_prefix + ':' + x
-                                          for x in expr.split('/')])
-                            ustr += uindent + \
-                                      '  <xs:field xpath="%s"/>\n' % f
-                        ustr += uindent + '</xs:unique>\n'
-                        uniq.append(ustr)
-                        i += 1                        
-                else:
-                    chs = c.i_children
-                # allocate a new object for constraint recording
-                uniqes=[]
-                print_children(ctx, module, fd, chs,
-                               indent + extindent + '      ',
-                               [c.arg] + path,
-                               uniqes, indent + extindent + '  ')
-                # allow for augments
-                fd.write(indent + extindent + '      <xs:any minOccurs="0" '\
-                               'maxOccurs="unbounded"\n')
-                fd.write(indent + extindent +
-                           '              namespace="##other" '\
-                               'processContents="lax"/>\n')
-                fd.write(indent + extindent + '    </xs:sequence>\n')
-                if extbase != None:
-                    fd.write(indent + '      </xs:extension>\n')
-                    fd.write(indent + '    </xs:complexContent>\n')
-                fd.write(indent + '  </xs:complexType>\n')
-                # write the recorded key and unique constraints (if any)
-                for u in uniqes:
-                    fd.write(u)
+            has_body = print_annotation(ctx, fd, indent + '  ', c, '>\n')
+            inline_end = False
+            if (cn in ['container', 'list', 'rpc', 'notification'] and
+                not ctx.opts.xsd_global_complex_types):
+                if not has_body:
+                    fd.write('>\n')
+                print_complex_type(ctx, module, fd, indent + '  ', path,
+                                   uniq, uindent, extbase, cn, c, '')
             elif cn in ['leaf', 'leaf-list']:
                 if c.search_one('type').i_is_derived == True:
+                    if not has_body:
+                        fd.write('>\n')
                     print_simple_type(ctx, module, fd, indent + '  ',
                                       c.search_one('type'), c, '', None)
                 elif c.search_one('type').arg == 'empty':
+                    if not has_body:
+                        fd.write('>\n')
                     fd.write(indent + '  <xs:complexType/>\n')
+                elif not has_body:
+                    inline_end = True
             elif cn in ['anyxml']:
+                if not has_body:
+                    fd.write('>\n')
+                # FIXME: make one such global type, if needed
                 fd.write(indent + '  <xs:complexType>\n')
                 fd.write(indent + '    <xs:complexContent>\n')
                 fd.write(indent + '      <xs:extension base="xs:anyType"/>\n')
                 fd.write(indent + '    </xs:complexContent>\n')
                 fd.write(indent + '  </xs:complexType>\n')
                 
-            fd.write(indent + '</xs:element>\n')
+            if (cn in ['container', 'list', 'rpc', 'notification'] and
+                ctx.opts.xsd_global_complex_types):
+                if not has_body:
+                    fd.write('/>\n')
+                else:
+                    fd.write(indent + '</xs:element>\n')
+                # push to stack
+                ctx.xsd_ct_stack.append((path, uniq, uindent, extbase, cn, c,
+                                         ' name="%s"' % ctype_name))
+            elif inline_end:
+                fd.write('/>\n')
+            else:
+                fd.write(indent + '</xs:element>\n')
+
         elif cn == 'choice':
             fd.write(indent + '<xs:choice>\n')
             print_description(fd, indent + '  ', c.search_one('description'))
@@ -671,6 +668,15 @@ def print_augment(ctx, module, fd, indent, augment):
     fd.write(indent + '  </xs:sequence>\n')
     fd.write(indent + '</xs:group>\n')
 
+def print_grouping(ctx, module, fd, indent, grouping):
+    fd.write(indent + '<xs:group name="%s">\n' % grouping.arg)
+    print_description(fd, indent + '  ', grouping.search_one('description'))
+    fd.write(indent + '  <xs:sequence>\n')
+    print_children(ctx, module, fd, grouping.i_children,
+                   indent + '    ', [])
+    fd.write(indent + '  </xs:sequence>\n')
+    fd.write(indent + '</xs:group>\n')
+
 def print_description(fd, indent, descr):
     if descr != None:
         fd.write(indent + '<xs:annotation>\n')
@@ -694,6 +700,93 @@ def gen_new_import(module, modname, revision):
     module.i_gen_import.append(imp)
     return pre
 
+
+def print_complex_type(ctx, module, fd, indent, path, uniq, uindent, extbase,
+                       cn, c, aname):
+    fd.write(indent + '<xs:complexType%s>\n' % aname)
+    extindent = ''
+    if extbase != None:
+        fd.write(indent + '  <xs:complexContent>\n')
+        fd.write(indent + '    <xs:extension base="%s">\n' % \
+                       extbase)
+        extindent = '    '
+    fd.write(indent + extindent + '  <xs:sequence>\n')
+    if cn == 'rpc':
+        if c.search_one('input') != None:
+            chs = c.search_one('input').i_children
+        else:
+            chs = []
+    elif cn == 'list':
+        # sort children so that all keys come first
+        k = c.search_one('key')
+        if k is not None:
+            kchs = []
+            chs = []
+            keynames = k.arg.split()
+            for ch in c.i_children:
+                if ch.arg in keynames:
+                    kchs.append(ch)
+                else:
+                    chs.append(ch)
+            chs = kchs + chs
+        else:
+            chs = c.i_children
+        k = c.search_one('key')
+        if k is not None:
+            # record the key constraints to be used by our
+            # parent element
+            ustr = uindent + \
+                      '<xs:key name="key_%s">\n' % \
+                      '_'.join(path + [c.arg])
+            ustr += uindent + \
+                      '  <xs:selector xpath="%s:%s"/>\n' % \
+                      (module.i_xsd_prefix, c.arg)
+            for expr in k.arg.split():
+                f = '/'.join([module.i_xsd_prefix + ':' + x
+                              for x in expr.split('/')])
+                ustr += uindent + \
+                          '  <xs:field xpath="%s"/>\n' % f
+            ustr += uindent + '</xs:key>\n'
+            uniq.append(ustr)
+        i = 0
+        for u in c.search('unique'):
+            ustr = uindent + \
+                     '<xs:unique name="unique_%s_%s">\n' % \
+                     ('_'.join(path + [c.arg]), i)
+            ustr += uindent + \
+                      '  <xs:selector xpath="%s:%s"/>\n' % \
+                      (module.i_xsd_prefix, c.arg)
+            for expr in u.arg.split():
+                f = '/'.join([module.i_xsd_prefix + ':' + x
+                              for x in expr.split('/')])
+                ustr += uindent + \
+                          '  <xs:field xpath="%s"/>\n' % f
+            ustr += uindent + '</xs:unique>\n'
+            uniq.append(ustr)
+            i += 1                        
+    else:
+        chs = c.i_children
+    # allocate a new object for constraint recording
+    uniqes=[]
+    print_children(ctx, module, fd, chs,
+                   indent + extindent + '    ',
+                   [c.arg] + path,
+                   uniqes, indent + extindent)
+    # allow for augments
+    fd.write(indent + extindent + '    <xs:any minOccurs="0" '\
+                   'maxOccurs="unbounded"\n')
+    fd.write(indent + extindent +
+               '            namespace="##other" '\
+                   'processContents="lax"/>\n')
+    fd.write(indent + extindent + '  </xs:sequence>\n')
+    if extbase != None:
+        fd.write(indent + '    </xs:extension>\n')
+        fd.write(indent + '  </xs:complexContent>\n')
+    fd.write(indent + '</xs:complexType>\n')
+    # write the recorded key and unique constraints (if any)
+    for u in uniqes:
+        fd.write(u)
+    
 
 def print_simple_type(ctx, module, fd, indent, type, parent, attrstr, descr):
 
@@ -913,7 +1006,7 @@ def print_simple_type(ctx, module, fd, indent, type, parent, attrstr, descr):
         fd.write(indent + '  </xs:restriction>\n')
     fd.write(indent + '</xs:simpleType>\n')
 
-def print_annotation(ctx, fd, indent, obj):
+def print_annotation(ctx, fd, indent, obj, prestr=''):
     def is_appinfo(keyword):
         if util.is_prefixed(keyword) == True:
             return False
@@ -948,6 +1041,7 @@ def print_annotation(ctx, fd, indent, obj):
     stmts = [s for s in obj.substmts if is_appinfo(s.keyword)]
     if ((ctx.opts.xsd_no_appinfo == False and len(stmts) > 0) or
         obj.search_one('description') != None):
+        fd.write(prestr)
         fd.write(indent + '<xs:annotation>\n')
         if obj.search_one('description') != None:
             fd.write(indent + '  <xs:documentation>\n')
@@ -960,7 +1054,10 @@ def print_annotation(ctx, fd, indent, obj):
                 do_print(indent + '    ', stmt)
             fd.write(indent + '  </xs:appinfo>\n')
         fd.write(indent + '</xs:annotation>\n')
-
+        return True
+    else:
+        return False
+    
 # FIXME: I don't thik this is strictly correct - we should really just
 # print the string as-is, since whitespace in XSD is significant.
 def fmt_text(indent, data):
