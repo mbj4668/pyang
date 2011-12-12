@@ -452,10 +452,10 @@ def emit_xsd(ctx, module, fd):
 
     # print data definitions
     ctx.xsd_ct_names = {}
-    ctx.xsd_ct_stack = []
+    ctx.xsd_ct_queue = []
     print_children(ctx, module, fd, module.i_children, '  ', [])
-    while ctx.xsd_ct_stack:
-        (path, uniq, uindent, extbase, cn, c, aname) = ctx.xsd_ct_stack.pop()
+    while ctx.xsd_ct_queue:
+        (path, uniq, uindent, extbase, cn, c, aname) = ctx.xsd_ct_queue.pop()
         print_complex_type(ctx, module, fd, '  ', path,
                            uniq, uindent, extbase, cn, c, aname)
 
@@ -592,8 +592,8 @@ def print_children(ctx, module, fd, children, indent, path,
                     fd.write('/>\n')
                 else:
                     fd.write(indent + '</xs:element>\n')
-                # push to stack
-                ctx.xsd_ct_stack.append((path, uniq, uindent, extbase, cn, c,
+                # add to queue
+                ctx.xsd_ct_queue.insert(0, (path, uniq, uindent, extbase, cn, c,
                                          ' name="%s"' % ctype_name))
             elif inline_end:
                 fd.write('/>\n')
