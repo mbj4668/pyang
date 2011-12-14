@@ -1,2 +1,3 @@
-smi1.yang:19: error: BAD_VALUE
-smi1.yang:24: error: UNEXPECTED_KEYWORD
+smi1.yang:21: error: BAD_VALUE
+smi1.yang:26: error: UNEXPECTED_KEYWORD
+smi1.yang:32: error: SMIv2_BAD_SUBID
