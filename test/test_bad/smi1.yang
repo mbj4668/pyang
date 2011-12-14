@@ -1,27 +1,44 @@
 module smi1 {
 
-  smi:oid "1.3.6.4.1";
+  smiv2:alias "SMI1-MIB" {
+    smiv2:oid "1.3.6.4.1";
+  }
 
   namespace urn:t;
   prefix a;
 
-  import yang-smi {
-    prefix smi;
+  import ietf-yang-smiv2 {
+    prefix smiv2;
   }
 
   leaf x {
     type int32;
-    smi:oid "1.3.6.4.1";
+    smiv2:oid "1.3.6.4.1";
   }
 
   leaf y {
     type int32;
-    smi:oid "foobar"; // error: not an OID 
+    smiv2:oid "foobar"; // error: not an OID 
   }
 
   typedef foo {
     type int32;
-    smi:oid "1.3.3.4"; // error: oid not allowed here
-                       // this tests that extension grammar works
+    smiv2:oid "1.3.3.4"; // error: oid not allowed here
+                         // this tests that extension grammar works
   }
+
+  leaf z {
+    type int32;
+    smiv2:subid "1"; // error: no parent oid
+  }
+
+  container q {
+    smiv2:oid "1.1.5";
+    leaf z {
+      type int32;
+      smiv2:subid "1"; // error: no parent oid
+    }
+  }
+    
+
 }
