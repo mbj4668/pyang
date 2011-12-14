@@ -36,7 +36,7 @@ module smi1 {
     smiv2:oid "1.1.5";
     leaf z {
       type int32;
-      smiv2:subid "1"; // error: no parent oid
+      smiv2:subid "1";
     }
   }
     
