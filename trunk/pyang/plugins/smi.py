@@ -88,7 +88,10 @@ smi_stmts = [
      ['list']),
 
     ('alias', '*',
-     ('identifier', [((smi_module_name, 'oid'), '1')]),
+     ('identifier', [('status', '?'),
+                     ('description', '?'),
+                     ('reference', '?'),
+                     ((smi_module_name, 'oid'), '1')]),
      ['module', 'submodule']),
 
     ('oid', '?',
