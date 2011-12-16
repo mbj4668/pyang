@@ -3,11 +3,11 @@ module xt8 {
   prefix "xt8";
   namespace "urn:uri:foo";   // expect namespace before prefix
 
-  smi:oid "1.3.6.4.1";
+
 
   import ietf-yang-types { prefix yang; }
   import ext { prefix ext; }
-  import yang-smi { prefix smi; }
+  import ietf-yang-smiv2 { prefix smiv2; }
   contact "hej" { }
   description "arne" + /* hmm*/ ' ' + 'anka';
   organization "hopp";  // expected after import
