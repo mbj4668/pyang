@@ -12,7 +12,7 @@ XSD_OBJECTS := $(MIB_SOURCES:%.mib=%.xsd)
 RNG_OBJECTS := $(MIB_SOURCES:%.mib=%.rng)
 XML_OBJECTS := $(MIB_SOURCES:%.mib=%.xml)
 XML2_OBJECTS := $(MIB_SOURCES:%.mib=%.xml.2)
-STD_MODULES := ietf-yang-types.yang ietf-inet-types.yang yang-smi.yang
+STD_MODULES := ietf-yang-types.yang ietf-inet-types.yang ietf-yang-smiv2.yang
 STD_XSD := $(STD_MODULES:%.yang=%.xsd)
 
 test:
@@ -26,7 +26,7 @@ ietf-yang-types.yang:
 	cp ../../modules/$@ $@
 ietf-inet-types.yang:
 	cp ../../modules/$@ $@
-yang-smi.yang:
+ietf-yang-smiv2.yang:
 	cp ../../modules/$@ $@
 
 gen-xml: 
@@ -40,8 +40,7 @@ rng: $(RNG_OBJECTS)
 xml: $(XML_OBJECTS)
 
 %.yang:	%.mib
-	$(SMIDUMP) -f yang  $< | sed s/keyref/leafref/g > $@
-#	$(SMIDUMP) -f yang --yang-smi-extensions $< -o $@
+	$(SMIDUMP) -f yang  $< > $@
 
 %.yin:	%.yang
 	$(PYANG) -f yin $< -o $@
