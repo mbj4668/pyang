@@ -455,9 +455,9 @@ def emit_xsd(ctx, module, fd):
     ctx.xsd_ct_queue = []
     print_children(ctx, module, fd, module.i_children, '  ', [])
     while ctx.xsd_ct_queue:
-        (path, uniq, uindent, extbase, cn, c, aname) = ctx.xsd_ct_queue.pop()
+        (path, uindent, extbase, cn, c, aname) = ctx.xsd_ct_queue.pop()
         print_complex_type(ctx, module, fd, '  ', path,
-                           uniq, uindent, extbase, cn, c, aname)
+                           [], uindent, extbase, cn, c, aname)
 
     # then print all generated 'dummy' simpleTypes, if any
     if len(module.i_gen_typedef) > 0:
@@ -588,12 +588,21 @@ def print_children(ctx, module, fd, children, indent, path,
                 
             if (cn in ['container', 'list', 'rpc', 'notification'] and
                 ctx.opts.xsd_global_complex_types):
+                ustr = ""
+                for child in c.i_children:
+                    ustr += mk_ustr(module, path + [c.arg], indent+"  ",
+                                    child)
+                if ustr != "":
+                    if not has_body:
+                        has_body = True
+                        fd.write('>\n')
+                    fd.write(ustr)
                 if not has_body:
                     fd.write('/>\n')
                 else:
                     fd.write(indent + '</xs:element>\n')
                 # add to queue
-                ctx.xsd_ct_queue.insert(0, (path, uniq, uindent, extbase, cn, c,
+                ctx.xsd_ct_queue.insert(0, (path, uindent, extbase, cn, c,
                                          ' name="%s"' % ctype_name))
             elif inline_end:
                 fd.write('/>\n')
@@ -731,39 +740,8 @@ def print_complex_type(ctx, module, fd, indent, path, uniq, uindent, extbase,
             chs = kchs + chs
         else:
             chs = c.i_children
-        k = c.search_one('key')
-        if k is not None:
-            # record the key constraints to be used by our
-            # parent element
-            ustr = uindent + \
-                      '<xs:key name="key_%s">\n' % \
-                      '_'.join(path + [c.arg])
-            ustr += uindent + \
-                      '  <xs:selector xpath="%s:%s"/>\n' % \
-                      (module.i_xsd_prefix, c.arg)
-            for expr in k.arg.split():
-                f = '/'.join([module.i_xsd_prefix + ':' + x
-                              for x in expr.split('/')])
-                ustr += uindent + \
-                          '  <xs:field xpath="%s"/>\n' % f
-            ustr += uindent + '</xs:key>\n'
-            uniq.append(ustr)
-        i = 0
-        for u in c.search('unique'):
-            ustr = uindent + \
-                     '<xs:unique name="unique_%s_%s">\n' % \
-                     ('_'.join(path + [c.arg]), i)
-            ustr += uindent + \
-                      '  <xs:selector xpath="%s:%s"/>\n' % \
-                      (module.i_xsd_prefix, c.arg)
-            for expr in u.arg.split():
-                f = '/'.join([module.i_xsd_prefix + ':' + x
-                              for x in expr.split('/')])
-                ustr += uindent + \
-                          '  <xs:field xpath="%s"/>\n' % f
-            ustr += uindent + '</xs:unique>\n'
-            uniq.append(ustr)
-            i += 1                        
+        ustr = mk_ustr(module, path, uindent, c)
+        uniq.append(ustr)
     else:
         chs = c.i_children
     # allocate a new object for constraint recording
@@ -787,6 +765,41 @@ def print_complex_type(ctx, module, fd, indent, path, uniq, uindent, extbase,
     for u in uniqes:
         fd.write(u)
     
+def mk_ustr(module, path, uindent, c):
+    k = c.search_one('key')
+    ustr = ""
+    if k is not None:
+        # record the key constraints to be used by our
+        # parent element
+        ustr += uindent + \
+                  '<xs:key name="key_%s">\n' % \
+                  '_'.join(path + [c.arg])
+        ustr += uindent + \
+                  '  <xs:selector xpath="%s:%s"/>\n' % \
+                  (module.i_xsd_prefix, c.arg)
+        for expr in k.arg.split():
+            f = '/'.join([module.i_xsd_prefix + ':' + x
+                          for x in expr.split('/')])
+            ustr += uindent + \
+                      '  <xs:field xpath="%s"/>\n' % f
+        ustr += uindent + '</xs:key>\n'
+    i = 0
+    for u in c.search('unique'):
+        ustr = uindent + \
+                 '<xs:unique name="unique_%s_%s">\n' % \
+                 ('_'.join(path + [c.arg]), i)
+        ustr += uindent + \
+                  '  <xs:selector xpath="%s:%s"/>\n' % \
+                  (module.i_xsd_prefix, c.arg)
+        for expr in u.arg.split():
+            f = '/'.join([module.i_xsd_prefix + ':' + x
+                          for x in expr.split('/')])
+            ustr += uindent + \
+                      '  <xs:field xpath="%s"/>\n' % f
+        ustr += uindent + '</xs:unique>\n'
+        i += 1                        
+    return ustr
+
 
 def print_simple_type(ctx, module, fd, indent, type, parent, attrstr, descr):
 
