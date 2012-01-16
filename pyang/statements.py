@@ -1600,6 +1600,7 @@ def v_reference_list(ctx, stmt):
         uniques = stmt.search('unique')
         for u in uniques:
             found = []
+            uconfig = None
             for expr in u.arg.split():
                 if expr == '':
                     continue
@@ -1627,6 +1628,12 @@ def v_reference_list(ctx, stmt):
                     return
                 if ptr in found:
                     err_add(ctx.errors, u.pos, 'DUPLICATE_UNIQUE', expr)
+                if hasattr(ptr, 'i_config'):
+                    if uconfig is None:
+                        uconfig = ptr.i_config
+                    elif uconfig != ptr.i_config:
+                        err_add(ctx.errors, u.pos, 'BAD_UNIQUE_CONFIG', expr)
+                        return
                 # add this unique statement to ptr's list of unique conditions
                 # it is part of.
                 ptr.i_uniques.append(u)

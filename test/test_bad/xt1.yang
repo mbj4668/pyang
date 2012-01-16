@@ -332,7 +332,23 @@ module/*hej*/xt1 {
     }
   }
 
-
+  container qq {
+    list ul {
+      key x;
+      unique "a b"; // error; a is config, b is not
+      leaf x {
+        type string;
+      }
+      leaf a {
+        type int32;
+      }
+      leaf b {
+        type int32;
+        config false;
+      }
+    }
+  }
+    
 
 }
   
