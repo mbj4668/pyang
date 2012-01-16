@@ -37,7 +37,7 @@ patterns = [
     ('name', re.compile(ncnamestr)),
     ('attribute', re.compile(r'\@' + ncnamestr)),
     ('variable', re.compile(r'\$' + ncnamestr)),
-    ('literal', re.compile(r'(\".*\")|(\'.*\')')),
+    ('literal', re.compile(r'(\".*?\")|(\'.*?\')')),
     ]
 
 operators = [ 'div', 'and', 'or', 'mod' ]
@@ -54,7 +54,7 @@ def validate(s):
     """Validate the XPath expression in the string `s`
     Return True if the expression is correct, and throw
     SyntaxError on failure."""
-    tokens(s)
+    t = tokens(s)
     return True
 
 def tokens(s):
