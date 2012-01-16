@@ -222,6 +222,10 @@ error_codes = \
       (1,
        'the identifier "%s" in the unique argument does not reference '
        'an existing container or list'),
+    'BAD_UNIQUE_CONFIG':
+      (1,
+       'the identifer "%s" has not the same config property as the'
+       ' other nodes in the unique expression'),
     'DUPLICATE_KEY':
       (1,
        'the key "%s" must not be listed more than once'),
