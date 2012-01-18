@@ -41,15 +41,6 @@ data_def_stmts = [
     ('uses', '*'),
 ]
 
-case_data_def_stmts = [
-    ('container', '*'),
-    ('leaf', '*'),
-    ('leaf-list', '*'),
-    ('list', '*'),
-    ('anyxml', '*'),
-    ('uses', '*'),
-]
-
 body_stmts = [
     ('$interleave',
      [('extension', '*'),
@@ -373,7 +364,7 @@ stmt_map = {
           ('description', '?'),
           ('reference', '?'),
           ('$interleave',
-           case_data_def_stmts),
+           data_def_stmts),
           ]),
     'anyxml':
         ('identifier',
