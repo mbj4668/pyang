@@ -16,7 +16,7 @@ $(SCHEMAS): $(HELLO) $(MODULES)
 clean:
 	rm -f $(SCHEMAS) $BASE.{dsdl,tree} *-gdefs.rng *.rnc
 
-validate: $(INSTANCE) $(SCHEMAS)
+test: $(INSTANCE) $(SCHEMAS)
 	yang2dsdl -j -s $(Y2DOPTS) -v $<
 
 $(BASE).dsdl: $(HELLO) $(MODULES)
