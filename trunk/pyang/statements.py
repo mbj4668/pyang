@@ -1693,7 +1693,6 @@ def v_reference_leaf_leafref(ctx, stmt):
         stmt.i_leafref_expanded = True
         if ptr is not None:
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
-
         
 def v_reference_must(ctx, stmt):
     # verify that the xpath expression is correct, and that
@@ -2385,6 +2384,7 @@ class Statement(object):
 
     def copy(self, parent=None, uses=None, nocopy=[], ignore=[], copyf=None):
         new = copy.copy(self)
+        new.pos = copy.copy(new.pos)
         if uses is not None:
             if hasattr(new, 'i_uses'):
                 new.i_uses.insert(0, uses)
