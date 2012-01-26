@@ -940,6 +940,7 @@ class HybridDSDLSchema(object):
             celem.occur = 3
         self.handle_substmts(stmt, celem, new_pset)
         self.apply_augments(augs, celem, new_pset)
+        if not celem.children: SchemaNode("empty", celem)
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -1011,6 +1012,7 @@ class HybridDSDLSchema(object):
         if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, lelem, new_pset)
         self.apply_augments(augs, lelem, new_pset)
+        if not lelem.children: SchemaNode("empty", lelem)
 
     def must_stmt(self, stmt, p_elem, pset):
         mel = SchemaNode("nma:must", p_elem)
