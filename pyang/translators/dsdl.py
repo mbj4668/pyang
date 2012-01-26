@@ -795,7 +795,8 @@ class HybridDSDLSchema(object):
         for t in tchain:
             rstmt = t.search_one(kw)
             if rstmt is None: continue
-            ran = [ i.split("..") for i in rstmt.arg.split("|") ]
+            parts = [ p.strip() for p in rstmt.arg.split("|") ]
+            ran = [ [ i.strip() for i in p.split("..") ] for p in parts ]
             if ran[0][0] != 'min': lo = ran[0][0]
             if ran[-1][-1] != 'max': hi = ran[-1][-1]
         if ran is None: return None
