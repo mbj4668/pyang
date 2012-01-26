@@ -922,7 +922,7 @@ class HybridDSDLSchema(object):
             self.propagate_occur(chelem, 2)
         else:
             defv = self.get_default(stmt, refd)
-            if defv:
+            if defv is not None:
                 chelem.default_case = defv
             else:
                 chelem.occur = 3
@@ -985,7 +985,7 @@ class HybridDSDLSchema(object):
             self.propagate_occur(elem, 2)
         if elem.occur == 0:
             defv = self.get_default(stmt, refd)
-            if defv:
+            if defv is not None:
                 elem.default = defv
                 self.propagate_occur(elem, 1)
         self.handle_substmts(stmt, elem)
