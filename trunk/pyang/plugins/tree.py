@@ -108,7 +108,7 @@ def emit_tree(modules, fd, depth, path):
             path = path[1:]
         if len(rpcs) > 0:
             fd.write("rpcs:\n")
-            print_children(rpcs, module, fd, path, depth, ' ')
+            print_children(rpcs, module, fd, ' ', path, depth)
 
         notifs = module.search('notification')
         if path is not None and len(path) > 0:
@@ -117,7 +117,7 @@ def emit_tree(modules, fd, depth, path):
             path = path[1:]
         if len(notifs) > 0:
             fd.write("notifications:\n")
-            print_children(notifs, module, fd, path, depth, ' ')
+            print_children(notifs, module, fd, ' ', path, depth)
 
 def print_children(i_children, module, fd, prefix, path, depth, width=0):
     if depth == 0:
