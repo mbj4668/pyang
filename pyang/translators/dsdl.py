@@ -580,7 +580,7 @@ class HybridDSDLSchema(object):
         """
         for a in auglist:
             par = a.parent
-            if p_elem.name == "choice":
+            if p_elem.name == "choice" or a.search_one("when") is None:
                 wel = p_elem
             else:
                 if p_elem.interleave:
