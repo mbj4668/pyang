@@ -54,7 +54,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="revision-stmts"/>
 	  <ref name="body-stmts"/>
 	</group>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -72,7 +72,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="revision-stmts"/>
 	  <ref name="body-stmts"/>
 	</group>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -93,7 +93,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<ref name="yang-version-stmt"/>
       </optional>
       <ref name="belongs-to-stmt"/>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </interleave>
   </define>
 
@@ -154,7 +154,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="if-feature-stmt"/>
 	</zeroOrMore>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -164,7 +164,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="name">
 	<ref name="identifier-ref"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -178,7 +178,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="base-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -188,7 +188,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="name">
 	<ref name="identifier-ref"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -222,7 +222,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<value>1</value>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -233,7 +233,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </attribute>
       <interleave>
 	<ref name="prefix-stmt"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -243,7 +243,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="module">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -252,7 +252,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="uri">
 	<data type="anyURI"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -261,7 +261,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<ref name="identifier"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -272,7 +272,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </attribute>
       <interleave>
 	<ref name="prefix-stmt"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -281,7 +281,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <element name="organization">
       <interleave>
 	<ref name="text-element"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -300,7 +300,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <element name="contact">
       <interleave>
 	<ref name="text-element"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -309,7 +309,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <element name="description">
       <interleave>
 	<ref name="text-element"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -318,7 +318,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <element name="reference">
       <interleave>
 	<ref name="text-element"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -328,7 +328,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="name">
 	<data type="string"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -344,7 +344,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -359,7 +359,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="argument-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -373,7 +373,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<optional>
 	  <ref name="yin-element-stmt"/>
 	</optional>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -383,7 +383,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -401,7 +401,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="default-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -433,7 +433,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="union-type"/>
 	  <ref name="instance-identifier-type"/>
 	</choice>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -473,7 +473,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <optional>
 	    <ref name="reference-stmt"/>
 	  </optional>
-	  <ref name="an-extension"/>
+	  <ref name="extensions"/>
 	</interleave>
       </element>
     </optional>
@@ -493,7 +493,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  </data>
 	</attribute>
       </element>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </interleave>
   </define>
 
@@ -504,7 +504,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <interleave>
       <ref name="length-stmt"/>
       <ref name="pattern-stmts"/>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </interleave>
   </define>
 
@@ -527,7 +527,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <optional>
 	    <ref name="reference-stmt"/>
 	  </optional>
-	  <ref name="an-extension"/>
+	  <ref name="extensions"/>
 	</interleave>
       </element>
     </optional>
@@ -552,7 +552,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <optional>
 	    <ref name="reference-stmt"/>
 	  </optional>
-	  <ref name="an-extension"/>
+	  <ref name="extensions"/>
 	</interleave>
       </element>
     </zeroOrMore>
@@ -563,7 +563,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="string"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -584,7 +584,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="value-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -608,7 +608,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="position-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -618,7 +618,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="nonNegativeInteger"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -630,7 +630,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <optional>
 	<ref name="length-stmt"/>
       </optional>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </interleave>
   </define>
 
@@ -643,7 +643,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<attribute name="value">
 	  <ref name="path-arg"/>
 	</attribute>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </element>
       <optional>
 	<ref name="require-instance-stmt"/>
@@ -656,7 +656,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -690,7 +690,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<ref name="status-arg"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -707,7 +707,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -716,7 +716,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="boolean"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -725,7 +725,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="string"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -734,7 +734,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<ref name="ordered-by-arg"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -763,7 +763,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<optional>
 	  <ref name="reference-stmt"/>
 	</optional>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -773,7 +773,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <element name="value">
 	<ref name="text-content"/>
       </element>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
   
@@ -782,7 +782,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="string"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -791,7 +791,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="nonNegativeInteger"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
   
@@ -803,7 +803,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <data type="positiveInteger"/>
 	</choice>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -812,7 +812,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="value">
 	<data type="integer"/>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
   
@@ -830,7 +830,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="data-def-stmt"/>
 	  </choice>
 	</zeroOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -864,7 +864,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="data-def-stmt"/>
 	  </choice>
 	</zeroOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -898,7 +898,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="mandatory-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -935,7 +935,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="ordered-by-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -983,7 +983,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<oneOrMore>
 	  <ref name="data-def-stmt"/>
 	</oneOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -997,7 +997,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  </oneOrMore>
 	</list>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -1010,7 +1010,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  </oneOrMore>
 	</list>
       </attribute>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -1042,7 +1042,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="case-stmt"/>
 	  </choice>
 	</zeroOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1073,7 +1073,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<zeroOrMore>
 	  <ref name="case-data-def-stmt"/>
 	</zeroOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1100,7 +1100,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="mandatory-stmt"/>
 	</optional>
 	<ref name="status-desc-ref"/>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1124,7 +1124,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<zeroOrMore>
 	  <ref name="uses-augment-stmt"/>
 	</zeroOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1144,7 +1144,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="refine-case-stmts"/>
 	  <ref name="refine-anyxml-stmts"/>
 	</choice>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1305,7 +1305,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="case-stmt"/>
 	  </choice>
 	</oneOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1329,7 +1329,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="case-stmt"/>
 	  </choice>
 	</oneOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1345,7 +1345,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <optional>
 	<ref name="reference-stmt"/>
       </optional>
-      <ref name="an-extension"/>
+      <ref name="extensions"/>
     </element>
   </define>
 
@@ -1371,7 +1371,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<optional>
 	  <ref name="output-stmt"/>
 	</optional>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1388,7 +1388,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<oneOrMore>
 	  <ref name="data-def-stmt"/>
 	</oneOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1405,7 +1405,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<oneOrMore>
 	  <ref name="data-def-stmt"/>
 	</oneOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
@@ -1427,13 +1427,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="data-def-stmt"/>
 	  </choice>
 	</zeroOrMore>
-	<ref name="an-extension"/>
+	<ref name="extensions"/>
       </interleave>
     </element>
   </define>
 
-  <define name="an-extension">
-    <optional>
+  <define name="extensions">
+    <zeroOrMore>
       <element>
 	<anyName>
 	  <except>
@@ -1449,7 +1449,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  </choice>
 	</zeroOrMore>
       </element>
-    </optional>
+    </zeroOrMore>
   </define>
 
   <define name="any-element">
