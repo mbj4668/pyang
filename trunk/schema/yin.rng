@@ -980,9 +980,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <ref name="grouping-stmt"/>
 	  </choice>
 	</zeroOrMore>
-	<oneOrMore>
+	<zeroOrMore>
 	  <ref name="data-def-stmt"/>
-	</oneOrMore>
+	</zeroOrMore>
 	<ref name="extensions"/>
       </interleave>
     </element>
