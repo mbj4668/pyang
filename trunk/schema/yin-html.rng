@@ -23,7 +23,8 @@ The <html:p> elements may, apart from text, also contain empty
 The list elements must contain one or more <html:li> elements
 representing list items with text and <html:br/> elements.
 
-The <text> element may also contain the XInclude element <xi:include>.
+The <text> element may also have the xml:id attribute and contain the
+XInclude element <xi:include>.
 
 ==
 
@@ -61,27 +62,32 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <include href="yin.rng"/>
 
   <define name="text-content" combine="choice">
-      <oneOrMore>
-        <choice>
-          <element name="html:p">
-            <ref name="html-inline-content"/>
-          </element>
-          <element name="html:ul">
-            <ref name="html-list-content"/>
-          </element>
-          <element name="html:ol">
-            <ref name="html-list-content"/>
-          </element>
-          <element name="xi:include">
-            <attribute name="href">
-              <data type="anyURI"/>
-            </attribute>
-            <optional>
-              <attribute name="xpointer"/>
-            </optional>
-          </element>
-        </choice>
-      </oneOrMore>
+    <optional>
+      <attribute name="xml:id">
+        <data type="ID"/>
+      </attribute>
+    </optional>
+    <oneOrMore>
+      <choice>
+        <element name="html:p">
+          <ref name="html-inline-content"/>
+        </element>
+        <element name="html:ul">
+          <ref name="html-list-content"/>
+        </element>
+        <element name="html:ol">
+          <ref name="html-list-content"/>
+        </element>
+        <element name="xi:include">
+          <attribute name="href">
+            <data type="anyURI"/>
+          </attribute>
+          <optional>
+            <attribute name="xpointer"/>
+          </optional>
+        </element>
+      </choice>
+    </oneOrMore>
   </define>
 
   <define name="html-inline-content">
