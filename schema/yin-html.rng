@@ -10,8 +10,8 @@ NOTE:
 
 This schema supports the following non-standard YIN extension:
 Arguments of 'contact', 'description', error-message, 'organization'
-and 'reference' may contain the following HTML elements in the
-"http://www.w3.org/1999/xhtml" namespace:
+and 'reference' (wrapped in <text>) may contain the following HTML
+elements in the "http://www.w3.org/1999/xhtml" namespace:
 
 <html:p> - a paragraph of text
 <html:ul> - unordered list
@@ -22,6 +22,8 @@ The <html:p> elements may, apart from text, also contain empty
 
 The list elements must contain one or more <html:li> elements
 representing list items with text and <html:br/> elements.
+
+The <text> element may also contain the XInclude element <xi:include>.
 
 ==
 
@@ -39,9 +41,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
-	 ns="urn:ietf:params:xml:ns:yang:yin:1"
-	 xmlns:dc="http://purl.org/dc/terms"
-	 xmlns:html="http://www.w3.org/1999/xhtml"
+         ns="urn:ietf:params:xml:ns:yang:yin:1"
+         xmlns:dc="http://purl.org/dc/terms"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
   <dc:title>RELAX NG Schema for YIN with HTML extensions</dc:title>
@@ -59,17 +62,25 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <define name="text-content" combine="choice">
       <oneOrMore>
-	<choice>
-	  <element name="html:p">
-	    <ref name="html-inline-content"/>
-	  </element>
-	  <element name="html:ul">
-	    <ref name="html-list-content"/>
-	  </element>
-	  <element name="html:ol">
-	    <ref name="html-list-content"/>
-	  </element>
-	</choice>
+        <choice>
+          <element name="html:p">
+            <ref name="html-inline-content"/>
+          </element>
+          <element name="html:ul">
+            <ref name="html-list-content"/>
+          </element>
+          <element name="html:ol">
+            <ref name="html-list-content"/>
+          </element>
+          <element name="xi:include">
+            <attribute name="href">
+              <data type="anyURI"/>
+            </attribute>
+            <optional>
+              <attribute name="xpointer"/>
+            </optional>
+          </element>
+        </choice>
       </oneOrMore>
   </define>
 
@@ -77,9 +88,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <!-- This may be extended in the future -->
     <mixed>
       <zeroOrMore>
-	<element name="html:br">
-	  <empty/>
-	</element>
+        <element name="html:br">
+          <empty/>
+        </element>
       </zeroOrMore>
     </mixed>
   </define>
@@ -87,7 +98,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="html-list-content">
     <oneOrMore>
       <element name="html:li">
-	<ref name="html-inline-content"/>
+        <ref name="html-inline-content"/>
       </element>
     </oneOrMore>
   </define>
