@@ -217,6 +217,7 @@ _validation_map = {
 
 _v_i_children = {
     'unique_name':True,
+    'expand_2':True,
     'reference_1':True,
     'reference_2':True,
 }
