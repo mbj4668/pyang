@@ -4,7 +4,7 @@
 
 Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
 
-Translates YIN to YANG (see RFC 6110).
+Translates YIN to YANG (see RFC 6020).
 
 NOTES:
 
@@ -241,7 +241,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:otherwise>
 	<xsl:value-of select="concat(' ',$qchar)"/>
 	<xsl:call-template name="fill-text">
-	  <xsl:with-param name="text" select="."/>
+	  <xsl:with-param name="text" select="normalize-space(.)"/>
 	  <xsl:with-param
 	      name="length"
 	      select="$line-length - 2 -
