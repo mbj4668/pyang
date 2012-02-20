@@ -1,0 +1,25 @@
+module augtest {
+  namespace "http://example.com/augtest";
+  prefix "at";
+  grouping foobar {
+    container outer {
+      container inner {
+        leaf foo {
+          type uint8;
+        }
+      }
+    }
+  }
+  rpc agoj {
+    input {
+      uses foobar {
+        augment "outer/inner" {
+          when "foo!=42";
+          leaf bar {
+            type string;
+          }
+        }
+      }
+    }
+  }
+}
