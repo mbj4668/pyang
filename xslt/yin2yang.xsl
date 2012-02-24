@@ -352,7 +352,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:call-template name="handle-path-arg">
       <xsl:with-param name="token-delim">
 	<xsl:choose>
-	  <xsl:when test="contains(.,' ')">
+	  <xsl:when test="contains(substring(.,0,$line-length),' ')">
 	    <xsl:text> </xsl:text>
 	  </xsl:when>
 	  <xsl:otherwise>/</xsl:otherwise>

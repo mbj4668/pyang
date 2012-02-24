@@ -27,10 +27,6 @@
     </element>
   </start>
 
-  <define name="base-capability-uri">
-    <value>urn:ietf:params:netconf:base:1.1</value>
-  </define>
-
   <define name="session-id-element">
     <element name="session-id">
       <data type="unsignedInt"/>
@@ -41,11 +37,11 @@
     <interleave>
       <ref name="session-id-element"/>
       <element name="capabilities">
-	  <oneOrMore>
-	    <element name="capability">
-	      <data type="anyURI"/>
-	    </element>
-	  </oneOrMore>
+	<oneOrMore>
+	  <element name="capability">
+	    <data type="anyURI"/>
+	  </element>
+	</oneOrMore>
       </element>
     </interleave>
   </define>
