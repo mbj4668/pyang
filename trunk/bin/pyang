@@ -176,10 +176,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                     "module '%s' specified in hello not found.\n" % emarg)
                 sys.exit(1)
             # Get all features declared in mod
-            decl_feat = [ f.arg for f in mod.search("feature") ]
             mod.i_active_features=[]
             for fea in hel.get_features(mn):
-                if fea in decl_feat:
+                if fea in mod.i_features:
                     mod.i_active_features.append(fea)
                 else:
                     sys.stderr.write(
