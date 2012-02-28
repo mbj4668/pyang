@@ -41,7 +41,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:element>
       <xsl:apply-templates
           select="dsrl:element-map[not(dsrl:parent =
-                  preceding-sibling::dsrl:element-map/dsrl-parent)]"/>
+                  preceding-sibling::dsrl:element-map/dsrl:parent)]"/>
       <xsl:element name="xsl:template">
         <xsl:attribute name="match">*|@*</xsl:attribute>
         <xsl:element name="xsl:copy">
