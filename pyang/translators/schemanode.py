@@ -120,6 +120,16 @@ class SchemaNode(object):
         self.children = []
         self.attr = {}
 
+    def serialize_rng_children(self):
+        """Return serialization of RELAX NG children.
+        """
+        return ''.join([ch.serialize() for ch in self.children if ":" not in ch.name])
+
+    def serialize_annot_children(self):
+        """Return serialization of all annotation children.
+        """
+        return ''.join([ch.serialize() for ch in self.children if ":" in ch.name])
+
     def adjust_interleave(self, interleave):
         """Inherit interleave status from parent if undefined."""
         if interleave == None and self.parent:
@@ -155,7 +165,7 @@ class SchemaNode(object):
         if empty:
             return result + "/>"
         else:
-            return result + ">"
+            return result + ">" + self.serialize_annot_children()
 
     def end_tag(self, alt=None):
         """Return XML end tag for the receiver."""
@@ -169,8 +179,8 @@ class SchemaNode(object):
         """Return RELAX NG representation of the receiver and subtree.
         """
         return (self.ser_format.get(self.name, SchemaNode._default_format)
-                (self, occur) % (escape(self.text) + ''.join
-                                 ([ch.serialize() for ch in self.children])))
+                (self, occur) % (escape(self.text) +
+                                 self.serialize_rng_children()))
 
     def _default_format(self, occur):
         """Return the default serialization format.""" 
