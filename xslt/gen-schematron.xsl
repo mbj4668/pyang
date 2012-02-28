@@ -159,7 +159,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:call-template name="yam-namespaces"/>
       <xsl:call-template name="nc-namespace"/>
     <xsl:apply-templates
-        select="rng:define[descendant-or-self::rng:element[&annots;]]"/>
+        select="rng:define[descendant-or-self::rng:*[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
