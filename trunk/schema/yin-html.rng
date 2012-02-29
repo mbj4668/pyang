@@ -9,9 +9,9 @@ RELAX NG schema for YIN with extensions for HTML markup.
 NOTE:
 
 This schema supports the following non-standard YIN extension:
-Arguments of 'contact', 'description', error-message, 'organization'
-and 'reference' (wrapped in <text>) may contain the following HTML
-elements in the "http://www.w3.org/1999/xhtml" namespace:
+Arguments of 'contact', 'description', 'organization' and 'reference'
+(wrapped in <text>) may contain the following HTML elements in the
+"http://www.w3.org/1999/xhtml" namespace:
 
 <html:p> - a paragraph of text
 <html:ul> - unordered list

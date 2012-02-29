@@ -771,7 +771,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="error-message-stmt">
     <element name="error-message">
       <element name="value">
-	<ref name="text-content"/>
+	<text/>
       </element>
       <ref name="extensions"/>
     </element>
