@@ -11,9 +11,9 @@ NOTES:
 1. XML comments outside arguments are translated to YANG comments. 
 
 2. This stylesheet supports the following non-standard YIN extension:
-   Arguments of 'contact', 'description', error-message,
-   'organization' and 'reference' may contain the following HTML
-   elements in the "http://www.w3.org/1999/xhtml" namespace:
+   Arguments of 'contact', 'description', 'organization' and
+   'reference' may contain the following HTML elements in the
+   "http://www.w3.org/1999/xhtml" namespace:
 
    <html:p> - a paragraph of text
    <html:ul> - unordered list
@@ -216,7 +216,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:call-template name="semi-or-sub"/>
   </xsl:template>
 
-  <xsl:template name="handle-path-arg">
+  <xsl:template name="chop-arg">
     <xsl:param name="token-delim" select="'/'"/>
     <xsl:variable name="qchar">
       <xsl:call-template name="quote-char"/>
@@ -226,22 +226,23 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:with-param name="level" select="count(ancestor::*)-1"/>
       </xsl:call-template>
     </xsl:variable>
+    <xsl:variable name="txt" select="normalize-space(.)"/>
     <xsl:choose>
       <xsl:when
-	  test="string-length(concat($cind,local-name(..),.))
+	  test="string-length(concat($cind,local-name(..),$txt))
 		&lt; $line-length - 5">
-	<xsl:value-of select="concat(' ',$qchar,.)"/>
+	<xsl:value-of select="concat(' ',$qchar,$txt)"/>
       </xsl:when>
-      <xsl:when test="string-length(concat($cind,$unit-indent,.))
+      <xsl:when test="string-length(concat($cind,$unit-indent,$txt))
 		      &lt; $line-length - 4">
 	<xsl:text>&#xA;</xsl:text>
 	<xsl:call-template name="indent"/>
-	<xsl:value-of select="concat($qchar,.)"/>
+	<xsl:value-of select="concat($qchar,$txt)"/>
       </xsl:when>
       <xsl:otherwise>
 	<xsl:value-of select="concat(' ',$qchar)"/>
 	<xsl:call-template name="fill-text">
-	  <xsl:with-param name="text" select="normalize-space(.)"/>
+	  <xsl:with-param name="text" select="$txt"/>
 	  <xsl:with-param
 	      name="length"
 	      select="$line-length - 2 -
@@ -323,12 +324,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@target-node|yin:path/@value">
-    <xsl:call-template name="handle-path-arg"/>
+    <xsl:call-template name="chop-arg"/>
   </xsl:template>
 
   <xsl:template match="yin:error-message">
     <xsl:call-template name="keyword"/>
     <xsl:apply-templates select="yin:value"/>
+  </xsl:template>
+
+  <xsl:template match="yin:error-message/yin:value">
+    <xsl:call-template name="chop-arg">
+      <xsl:with-param name="token-delim" select="' '"/>
+    </xsl:call-template>
+    <xsl:text>;</xsl:text>
   </xsl:template>
 
   <xsl:template match="yin:contact|yin:description
@@ -349,7 +357,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@condition">
-    <xsl:call-template name="handle-path-arg">
+    <xsl:call-template name="chop-arg">
       <xsl:with-param name="token-delim">
 	<xsl:choose>
 	  <xsl:when test="contains(substring(.,0,$line-length),' ')">
@@ -387,7 +395,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="yin:text|yin:error-message/yin:value">
+  <xsl:template match="yin:text">
     <xsl:variable name="qchar">
       <xsl:call-template name="quote-char"/>
     </xsl:variable>
