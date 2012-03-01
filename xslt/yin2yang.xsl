@@ -336,7 +336,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:call-template name="chop-arg">
       <xsl:with-param name="token-delim" select="' '"/>
     </xsl:call-template>
-    <xsl:text>;</xsl:text>
+    <xsl:text>;&#xA;</xsl:text>
   </xsl:template>
 
   <xsl:template match="yin:contact|yin:description
