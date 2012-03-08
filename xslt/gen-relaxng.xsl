@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-relaxng.xsl
 
-Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2012 by Ladislav Lhotka, CESNET <lhotka@nic.cz>
 
 Creates RELAX NG schema from the hybrid DSDL schema (see RFC 6110).
 
@@ -28,6 +28,19 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:strip-space elements="*"/>
 
   <xsl:include href="gen-common.xsl"/>
+
+  <xsl:variable name="gdefs-file">
+    <xsl:value-of select="concat($basename,'-gdefs')"/>
+    <xsl:choose>
+      <xsl:when test="$target='get-config-reply' or $target='config'">
+	<xsl:text>-config</xsl:text>
+      </xsl:when>
+      <xsl:when test="$target='edit-config'">
+	<xsl:text>-edit</xsl:text>
+      </xsl:when>
+    </xsl:choose>
+    <xsl:text>.rng</xsl:text>
+  </xsl:variable>
 
   <xsl:template name="ns-attribute">
     <xsl:attribute name="ns">
@@ -232,7 +245,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         </xsl:if>
         <xsl:if test="/rng:grammar/rng:define">
           <xsl:call-template name="include-grammar">
-            <xsl:with-param name="file-name" select="concat($basename,'-gdefs.rng')"/>
+            <xsl:with-param name="file-name" select="$gdefs-file"/>
           </xsl:call-template>
         </xsl:if>
         <xsl:element name="start" namespace="{$rng-uri}">
