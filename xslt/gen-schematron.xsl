@@ -459,20 +459,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="nma:instance-identifier">
     <xsl:if test="not(@require-instance='false')">
-      <xsl:variable name="beg">
-	<xsl:if test="starts-with(.,'/')">
+      <xsl:element name="sch:let">
+	<xsl:attribute name="name">pth</xsl:attribute>
+	<xsl:attribute name="value">
+	  <xsl:text>concat('</xsl:text>
 	  <xsl:value-of select="$netconf-part"/>
-	</xsl:if>
-      </xsl:variable>
-      <xsl:call-template name="assert-element">
-	<xsl:with-param
-	    name="test"
-	    select="concat('dyn:evaluate(',$beg,.,')')"/>
-	<xsl:with-param
-	    name="message"
-	    select="concat('The element pointed to by &quot;',
-		    ../@name, '&quot; must exist')"/>
-      </xsl:call-template>
+	  <xsl:text>',.)</xsl:text>
+	</xsl:attribute>
+      </xsl:element>
+      <xsl:element name="sch:assert">
+	<xsl:attribute name="test">dyn:evaluate($pth)</xsl:attribute>
+	<xsl:text>The instance "</xsl:text>
+	<xsl:element name="sch:value-of">
+	  <xsl:attribute name="select">$pth</xsl:attribute>
+	</xsl:element>
+	<xsl:text>" must exist.</xsl:text>
+      </xsl:element>
     </xsl:if>
   </xsl:template>
 
