@@ -158,11 +158,14 @@
       </varlistentry>
       <varlistentry>
         <term>
-          <filename><replaceable>basename</replaceable>-gdefs.rng</filename>
+          <filename><replaceable>basename</replaceable>-gdefs-config.rng</filename>,
+	  <filename><replaceable>basename</replaceable>-gdefs-edit.rng</filename>,
+	  <filename><replaceable>basename</replaceable>-gdefs.rng</filename>
         </term>
         <listitem><para>Auxiliary RELAX NG schema containing global
-        named pattern definitions (common for all
-        targets).</para></listitem>
+        named pattern definitions. The first is generated for "config"
+	and "get-config-reply" targets, the second for "edit-config"
+	and the third for the remaining targets.</para></listitem>
       </varlistentry>
       <varlistentry>
         <term>
