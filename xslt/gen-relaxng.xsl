@@ -125,8 +125,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:when test="$target='config'">
 	  <xsl:element name="element" namespace="{$rng-uri}">
 	    <xsl:attribute name="name">config</xsl:attribute>
-	    <xsl:apply-templates
-		select="rng:grammar[descendant::nma:data]"/>
+	    <xsl:element name="interleave" namespace="{$rng-uri}">
+	      <xsl:apply-templates
+		  select="rng:grammar[descendant::nma:data]"/>
+	    </xsl:element>
 	  </xsl:element>
 	</xsl:when>
 	<xsl:when test="$target='get-reply' or
