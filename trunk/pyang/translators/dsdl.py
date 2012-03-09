@@ -387,7 +387,7 @@ class HybridDSDLSchema(object):
     def setup_top(self):
         """Create top-level elements of the hybrid schema."""
         self.top_grammar = SchemaNode("grammar")
-        self.tree = SchemaNode("start", interleave=True)
+        self.tree = SchemaNode("start")
 
     def create_roots(self, yam):
         """Create the top-level structure for module `yam`."""
