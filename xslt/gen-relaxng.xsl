@@ -58,25 +58,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:attribute>
   </xsl:template>
 
-  <xsl:template name="grammar-choice">
-    <xsl:choose>
-      <xsl:when test="count(rng:grammar)>1">
-        <xsl:element name="choice" namespace="{$rng-uri}">
-          <xsl:apply-templates select="rng:grammar"/>
-        </xsl:element>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:apply-templates select="rng:grammar"/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <xsl:template name="inner-grammar">
-    <xsl:param name="subtrees"/>
-    <xsl:if test="$subtrees">
-    </xsl:if>
-  </xsl:template>
-
   <xsl:template name="include-grammar">
     <xsl:param name="file-name"/>
     <xsl:element name="include" namespace="{$rng-uri}">
@@ -133,92 +114,92 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="/rng:grammar/rng:start">
     <xsl:copy>
-    <xsl:choose>
-      <xsl:when test="$target='data'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">data</xsl:attribute>
-          <xsl:apply-templates
-              select="rng:grammar[descendant::nma:data]"/>
-        </xsl:element>
-      </xsl:when>
-      <xsl:when test="$target='config'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">config</xsl:attribute>
-          <xsl:apply-templates
-              select="rng:grammar[descendant::nma:data]"/>
-        </xsl:element>
-      </xsl:when>
-      <xsl:when test="$target='get-reply' or
-                      $target='get-config-reply'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">rpc-reply</xsl:attribute>
-          <xsl:call-template name="message-id"/>
-          <xsl:element name="element" namespace="{$rng-uri}">
-            <xsl:attribute name="name">data</xsl:attribute>
-            <xsl:element name="interleave" namespace="{$rng-uri}">
-              <xsl:apply-templates
-                  select="rng:grammar[descendant::nma:data]"/>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:when>
-      <xsl:when test="$target='edit-config'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">rpc</xsl:attribute>
-          <xsl:call-template name="message-id"/>
-          <xsl:element name="element" namespace="{$rng-uri}">
-            <xsl:attribute name="name">edit-config</xsl:attribute>
-            <xsl:element name="ref" namespace="{$rng-uri}">
-              <xsl:attribute name="name">edit-config-parameters</xsl:attribute>
-            </xsl:element>
-            <xsl:element name="element" namespace="{$rng-uri}">
-              <xsl:attribute name="name">config</xsl:attribute>
-              <xsl:element name="interleave" namespace="{$rng-uri}">
-                <xsl:apply-templates
-                    select="rng:grammar[descendant::nma:data]"/>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:when>
-      <xsl:when test="$target='rpc'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">rpc</xsl:attribute>
-          <xsl:call-template name="message-id"/>
-          <xsl:element name="choice" namespace="{$rng-uri}">
-            <xsl:apply-templates
-                select="rng:grammar[descendant::nma:rpcs]"/>
-          </xsl:element>
-        </xsl:element>
-      </xsl:when>
-      <xsl:when test="$target='rpc-reply'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">rpc-reply</xsl:attribute>
-          <xsl:call-template name="message-id"/>
-          <xsl:element name="choice" namespace="{$rng-uri}">
-            <xsl:if test="descendant::nma:rpc[not(nma:output)]">
-              <xsl:element name="ref" namespace="{$rng-uri}">
-                <xsl:attribute name="name">ok-element</xsl:attribute>
-              </xsl:element>
-            </xsl:if>
-            <xsl:apply-templates
-                select="rng:grammar[descendant::nma:output]"/>
-          </xsl:element>
-        </xsl:element>
-      </xsl:when>
-      <xsl:when test="$target='notification'">
-        <xsl:element name="element" namespace="{$rng-uri}">
-          <xsl:attribute name="name">notification</xsl:attribute>
-          <xsl:element name="ref" namespace="{$rng-uri}">
-            <xsl:attribute name="name">eventTime-element</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="choice" namespace="{$rng-uri}">
-            <xsl:apply-templates
-                select="rng:grammar[descendant::nma:notification]"/>
-          </xsl:element>
-        </xsl:element>
-      </xsl:when>
-    </xsl:choose>
+      <xsl:choose>
+	<xsl:when test="$target='data'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">data</xsl:attribute>
+	    <xsl:apply-templates
+		select="rng:grammar[descendant::nma:data]"/>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="$target='config'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">config</xsl:attribute>
+	    <xsl:apply-templates
+		select="rng:grammar[descendant::nma:data]"/>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="$target='get-reply' or
+			$target='get-config-reply'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">rpc-reply</xsl:attribute>
+	    <xsl:call-template name="message-id"/>
+	    <xsl:element name="element" namespace="{$rng-uri}">
+	      <xsl:attribute name="name">data</xsl:attribute>
+	      <xsl:element name="interleave" namespace="{$rng-uri}">
+		<xsl:apply-templates
+		    select="rng:grammar[descendant::nma:data]"/>
+	      </xsl:element>
+	    </xsl:element>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="$target='edit-config'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">rpc</xsl:attribute>
+	    <xsl:call-template name="message-id"/>
+	    <xsl:element name="element" namespace="{$rng-uri}">
+	      <xsl:attribute name="name">edit-config</xsl:attribute>
+	      <xsl:element name="ref" namespace="{$rng-uri}">
+		<xsl:attribute name="name">edit-config-parameters</xsl:attribute>
+	      </xsl:element>
+	      <xsl:element name="element" namespace="{$rng-uri}">
+		<xsl:attribute name="name">config</xsl:attribute>
+		<xsl:element name="interleave" namespace="{$rng-uri}">
+		  <xsl:apply-templates
+		      select="rng:grammar[descendant::nma:data]"/>
+		</xsl:element>
+	      </xsl:element>
+	    </xsl:element>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="$target='rpc'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">rpc</xsl:attribute>
+	    <xsl:call-template name="message-id"/>
+	    <xsl:element name="choice" namespace="{$rng-uri}">
+	      <xsl:apply-templates
+		  select="rng:grammar[descendant::nma:rpcs]"/>
+	    </xsl:element>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="$target='rpc-reply'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">rpc-reply</xsl:attribute>
+	    <xsl:call-template name="message-id"/>
+	    <xsl:element name="choice" namespace="{$rng-uri}">
+	      <xsl:if test="descendant::nma:rpc[not(nma:output)]">
+		<xsl:element name="ref" namespace="{$rng-uri}">
+		  <xsl:attribute name="name">ok-element</xsl:attribute>
+		</xsl:element>
+	      </xsl:if>
+	      <xsl:apply-templates
+		  select="rng:grammar[descendant::nma:output]"/>
+	    </xsl:element>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:when test="$target='notification'">
+	  <xsl:element name="element" namespace="{$rng-uri}">
+	    <xsl:attribute name="name">notification</xsl:attribute>
+	    <xsl:element name="ref" namespace="{$rng-uri}">
+	      <xsl:attribute name="name">eventTime-element</xsl:attribute>
+	    </xsl:element>
+	    <xsl:element name="choice" namespace="{$rng-uri}">
+	      <xsl:apply-templates
+		  select="rng:grammar[descendant::nma:notification]"/>
+	    </xsl:element>
+	  </xsl:element>
+	</xsl:when>
+      </xsl:choose>
     </xsl:copy>
   </xsl:template>
 
