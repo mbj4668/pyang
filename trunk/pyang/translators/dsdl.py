@@ -912,7 +912,9 @@ class HybridDSDLSchema(object):
         self.apply_augments(augs, celem, new_pset)
 
     def choice_stmt(self, stmt, p_elem, pset):
-        chelem = SchemaNode.choice(p_elem)
+        delem = SchemaNode("div", p_elem)
+        delem.occur = p_elem.occur
+        chelem = SchemaNode.choice(delem)
         refd, augs, new_pset = self.process_patches(pset, stmt, chelem)
         left = self.lookup_expand(stmt, new_pset.keys())
         for a in augs:
