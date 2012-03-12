@@ -59,6 +59,10 @@ class SchemaNode(object):
 
     * `self.text` - text content.
     """
+
+    data_elems = ("element", "interleave", "group", "_list_","ref", "grammar")
+    """Elements corresponding to (groups of) YANG data nodes."""
+
     def element(cls, name, parent=None, interleave=None, occur=0):
         """Create an element node."""
         node = cls("element", parent, interleave=interleave)
@@ -150,8 +154,10 @@ class SchemaNode(object):
 
     def data_nodes_count(self):
         """Return the number of receiver's data subnodes."""
-        return len([ch for ch in self.children if ch.name in
-                    ("element", "interleave", "group", "choice", "_list_","ref", "grammar")])
+        return len([ch for ch in self.children
+                     if (ch.name in SchemaNode.data_elems or
+                         "nma:name" in ch.attr) # for choice
+                   ])
 
     def start_tag(self, alt=None, empty=False):
         """Return XML start tag for the receiver."""
