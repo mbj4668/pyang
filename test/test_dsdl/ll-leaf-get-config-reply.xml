@@ -7,6 +7,6 @@
   <nc:data>
     <le:leaf-2>2.71</le:leaf-2>
     <le:leaf-1>foo</le:leaf-1>
-    <le:pointer>../le:leaf-1</le:pointer>
+    <le:pointer>/le:leaf-1</le:pointer>
   </nc:data>
 </nc:rpc-reply>
