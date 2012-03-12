@@ -913,12 +913,13 @@ class HybridDSDLSchema(object):
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
+        chelem.attr["nma:name"] = stmt.arg
         refd, augs, new_pset = self.process_patches(pset, stmt, chelem)
         left = self.lookup_expand(stmt, new_pset.keys())
         for a in augs:
             left = self.lookup_expand(a, left)
         if refd["mandatory"] or stmt.search_one("mandatory", "true"):
-            chelem.attr["nma:mandatory"] = stmt.arg
+            chelem.attr["nma:mandatory"] = "true"
             self.propagate_occur(chelem, 2)
         else:
             defv = self.get_default(stmt, refd)
