@@ -143,7 +143,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:apply-templates mode="cases"/>
   </xsl:template>
 
-  <xsl:template match="rng:group|rng:interleave|rng:div" mode="cases">
+  <xsl:template match="rng:group|rng:interleave" mode="cases">
     <xsl:for-each select="rng:*">
       <xsl:apply-templates select="." mode="cases"/>
       <xsl:if test="position()!=last()">
@@ -200,10 +200,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
       <xsl:with-param name="content" select="@nma:default"/>
-      <xsl:with-param
-	  name="case"
-	  select="parent::rng:choice|../parent::rng:group|
-		  ../parent::rng:interleave"/>
+      <xsl:with-param name="case"
+                      select="parent::rng:choice|../parent::rng:group|
+                              ../parent::rng:interleave"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -214,10 +213,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
       <xsl:with-param name="content" select="rng:*"/>
-      <xsl:with-param
-	  name="case"
-	  select="parent::rng:choice|../parent::rng:group|
-		  ../parent::rng:interleave"/>
+      <xsl:with-param name="case"
+                      select="parent::rng:choice|../parent::rng:group|
+                              ../parent::rng:interleave"/>
     </xsl:call-template>
     <xsl:apply-templates select="rng:*">
       <xsl:with-param name="prevpath" select="$prevpath"/>

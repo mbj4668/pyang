@@ -226,8 +226,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
     <xsl:apply-templates
         mode="ref"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:div|
-		rng:ref|rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$netconf-part"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -357,8 +357,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:apply-templates
         mode="lookup-subel"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:div
-		|rng:ref|rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
         <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
@@ -404,8 +404,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:apply-templates
         mode="ref"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:div|
-		rng:ref|rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath">
         <xsl:value-of select="concat($prevpath,'/')"/>
 	<xsl:if test="not(contains(@name,':'))">
@@ -422,8 +422,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:apply-templates
         mode="ref"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:div|
-		rng:ref|rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -434,8 +434,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:param name="prefix"/>
     <xsl:apply-templates
         mode="ref"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:div|
-		rng:ref|rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
