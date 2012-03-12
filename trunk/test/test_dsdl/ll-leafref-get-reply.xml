@@ -3,6 +3,6 @@
 <nc:rpc-reply message-id="101" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
   <nc:data xmlns="http://example.com/ll/leafref">
     <seq><clef>foo</clef></seq>
-    <seq><clef>bar</clef></seq>
+    <seq><clef>baz</clef></seq>
   </nc:data>
 </nc:rpc-reply>
