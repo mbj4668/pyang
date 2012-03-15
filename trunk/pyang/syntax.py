@@ -48,7 +48,7 @@ path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + "|" + \
            deref_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
 descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
-schema_nodeid = "("+absolute_schema_nodeid+")|("+descendant_schema_nodeid+")"
+schema_nodeid = "("+absolute_schema_nodeid+"|"+descendant_schema_nodeid+")"
 unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
 key_arg = node_id + "(\s+" + node_id + ")*"
 re_schema_node_id_part = re.compile('/' + keyword)
