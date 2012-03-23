@@ -18,8 +18,8 @@ from pyang.error import err_add
 
 smi_module_name = 'ietf-yang-smiv2'
 
-re_smi_oid = re.compile("^(([0-1](\.[1-3]?[0-9]))|(2.(0|([1-9]\d*))))?"
-                          + "(\.(0|([1-9]\d*)))+$")
+re_smi_oid = re.compile("^(([0-1](\.[1-3]?[0-9]))|(2\.(0|([1-9]\d*))))"
+                          + "(\.(0|([1-9]\d*)))*$")
 
 class SMIPlugin(plugin.PyangPlugin):
     pass
@@ -96,7 +96,7 @@ smi_stmts = [
 
     ('oid', '?',
      ('smi-oid', []),
-     ['leaf', 'list', 'container', 'augment', 'notification']),
+     ['leaf', 'list', 'container', 'augment', 'notification', 'identity']),
     
     ('subid', '?',
      ('non-negative-integer', []),
