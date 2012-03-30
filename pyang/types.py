@@ -401,6 +401,7 @@ def validate_enums(errors, enums, stmt):
     values = {}
     next = 0
     for e in enums:
+        e.i_value = None
         value = e.search_one('value')
         if value is not None:
             try:
