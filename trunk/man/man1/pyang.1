@@ -401,6 +401,18 @@ YANG module file name extension\&. Default is no extension\&.
 .RS 4
 Do not generate dependencies for included submodules\&.
 .RE
+.PP
+\fB\-\-depend\-include\-path\fR
+.RS 4
+Include file path in the prerequisites\&. Note that if no
+\fB\-\-depend\-extension\fR
+has been given, the prerequisite is the filename as found, i\&.e\&., ending in "\&.yang" or "\&.yin"\&.
+.RE
+.PP
+\fB\-\-depend\-ignore\-module\fR
+.RS 4
+Name of YANG module or submodule to ignore in the prerequisites\&. This option can be given multiple times\&.
+.RE
 .SH "TREE OUTPUT"
 .PP
 The

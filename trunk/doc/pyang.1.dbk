@@ -642,6 +642,26 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term><option>--depend-include-path</option></term>
+        <listitem>
+          <para>
+            Include file path in the prerequisites.  Note that if no
+            <option>--depend-extension</option> has been given, the
+            prerequisite is the filename as found, i.e., ending in
+            ".yang" or ".yin".
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--depend-ignore-module</option></term>
+        <listitem>
+          <para>
+            Name of YANG module or submodule to ignore in the
+            prerequisites.  This option can be given multiple times.
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
