@@ -228,7 +228,7 @@ error_codes = \
        ' other nodes in the unique expression'),
     'UNIQUE_IS_KEY':
       (4,
-       'all keys in the list are redundately present in the unique statement'),
+       'all keys in the list are redundantly present in the unique statement'),
     'DUPLICATE_KEY':
       (1,
        'the key "%s" must not be listed more than once'),
