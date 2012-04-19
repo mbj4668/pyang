@@ -1649,6 +1649,7 @@ def v_reference_list(ctx, stmt):
                     key.remove(f)
             if len(key) == 0:
                 err_add(ctx.errors, u.pos, 'UNIQUE_IS_KEY', ())
+            u.i_leafs = found
             stmt.i_unique.append(found)
 
     v_key()
