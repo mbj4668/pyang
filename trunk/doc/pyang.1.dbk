@@ -49,7 +49,8 @@
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
       <arg choice="opt">-p <replaceable>path</replaceable></arg>
-      <arg choice="opt">-W <replaceable>what</replaceable></arg>
+      <arg choice="opt">-W <replaceable>warning</replaceable></arg>
+      <arg choice="opt">-E <replaceable>error</replaceable></arg>
       <arg choice="plain" rep="repeat">
         <replaceable>file</replaceable>
       </arg>
@@ -178,6 +179,54 @@
           <para>
             Do not print any warnings.
           </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-W</option>
+          <replaceable>errorcode</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Treat <replaceable>errorcode</replaceable> as a warning,
+            even if <option>-Werror</option> is given.
+          </para>
+          <para>
+            Use <option>--list-errors</option> to get a listing of all
+            errors and warnings.
+          </para>
+          <para>
+            The following example treats all warnings except the
+            warning for unused imports as errors:
+          </para>
+          <informalexample>
+            <screen>$ pyang --Werror -W UNUSED_IMPORT</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-E</option>
+          <replaceable>errorcode</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Treat the warning <replaceable>errorcode</replaceable> as
+            an error.
+          </para>
+          <para>
+            Use <option>--list-errors</option> to get a listing of all
+            errors and warnings.
+          </para>
+          <para>
+            The following example treats only the warning for unused
+            import as an error:
+          </para>
+          <informalexample>
+            <screen>$ pyang --Werror -W UNUSED_IMPORT</screen>
+          </informalexample>
         </listitem>
       </varlistentry>
 
