@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-hello] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwhat\fR] \fIfile\fR...
+\fBpyang\fR [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-hello] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -89,6 +89,54 @@ Treat warnings as errors\&.
 \fB\-Wnone\fR
 .RS 4
 Do not print any warnings\&.
+.RE
+.PP
+\fB\-W\fR \fIerrorcode\fR
+.RS 4
+Treat
+\fIerrorcode\fR
+as a warning, even if
+\fB\-Werror\fR
+is given\&.
+.sp
+Use
+\fB\-\-list\-errors\fR
+to get a listing of all errors and warnings\&.
+.sp
+The following example treats all warnings except the warning for unused imports as errors:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-Werror \-W UNUSED_IMPORT
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-E\fR \fIerrorcode\fR
+.RS 4
+Treat the warning
+\fIerrorcode\fR
+as an error\&.
+.sp
+Use
+\fB\-\-list\-errors\fR
+to get a listing of all errors and warnings\&.
+.sp
+The following example treats only the warning for unused import as an error:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-Werror \-W UNUSED_IMPORT
+.fi
+.if n \{\
+.RE
+.\}
 .RE
 .PP
 \fB\-\-canonical\fR

@@ -388,11 +388,11 @@ error_codes = \
 
     'UNUSED_TYPEDEF':
       (4,
-       'typedef %s not used'),
+       'locally scoped typedef %s not used'),
 
     'UNUSED_GROUPING':
       (4,
-       'grouping %s not used'),
+       'locally scoped grouping %s not used'),
 
     'KEY_HAS_DEFAULT':
       (4,

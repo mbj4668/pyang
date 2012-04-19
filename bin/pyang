@@ -41,8 +41,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("-e", "--list-errors",
                              dest="list_errors",
                              action="store_true",
-                             help="Print a listing of all error codes " \
-                             "and exit."),
+                             help="Print a listing of all error and warning " \
+                                 "codes and exit."),
         optparse.make_option("--print-error-code",
                              dest="print_error_code",
                              action="store_true",
@@ -51,7 +51,19 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("-W", 
                              dest="warnings",
                              action="append",
-                             default=[]),
+                             default=[],
+                             metavar="WARNING",
+                             help="If WARNING is 'error', treat all warnings " \
+                                 "as errors, except any listed WARNING. " \
+                                 "If WARNING is 'none', do not report any " \
+                                 "warnings."),
+        optparse.make_option("-E", 
+                             dest="errors",
+                             action="append",
+                             default=[],
+                             metavar="WARNING",
+                             help="Treat each WARNING as an error.  For a " \
+                                 "list of warnings, use --list-errors."),
         optparse.make_option("--canonical",
                              dest="canonical",
                              action="store_true",
@@ -259,21 +271,22 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             # the code includes submodules
             continue
         elevel = error.err_level(etag)
-        if error.is_warning(elevel):
-            type = "warning"
-            if 'error' in o.warnings:
+        if error.is_warning(elevel) and etag not in o.errors:
+            kind = "warning"
+            if 'error' in o.warnings and etag not in o.warnings:
+                kind = "error"
                 exit_code = 1
             elif 'none' in o.warnings:
                 continue
         else:
+            kind = "error"
             exit_code = 1
-            type = "error"
         if o.print_error_code == True:
             print >> sys.stderr, \
-                str(epos) + ': %s: %s' % (type, etag)
+                str(epos) + ': %s: %s' % (kind, etag)
         else:
             print >> sys.stderr, \
-                str(epos) + ': %s: ' % type + \
+                str(epos) + ': %s: ' % kind + \
                 error.err_to_str(etag, eargs)
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
