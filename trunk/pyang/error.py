@@ -226,6 +226,9 @@ error_codes = \
       (1,
        'the identifer "%s" has not the same config property as the'
        ' other nodes in the unique expression'),
+    'UNIQUE_IS_KEY':
+      (4,
+       'all keys in the list are redundately present in the unique statement'),
     'DUPLICATE_KEY':
       (1,
        'the key "%s" must not be listed more than once'),
