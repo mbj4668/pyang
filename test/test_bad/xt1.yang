@@ -335,6 +335,7 @@ module/*hej*/xt1 {
   container qq {
     list ul {
       key x;
+      unique x; // warning; redundant
       unique "a b"; // error; a is config, b is not
       leaf x {
         type string;
