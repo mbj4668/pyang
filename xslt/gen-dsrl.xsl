@@ -48,7 +48,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           <xsl:variable name="dummy">
             <en:dummy/>
           </xsl:variable>
-          <xsl:copy-of select="exsl:node-set($dummy)/namespace::*"/>
+          <xsl:copy-of select="exsl:node-set($dummy)/*/namespace::*"/>
         </xsl:when>
       </xsl:choose>
   </xsl:template>
