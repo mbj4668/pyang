@@ -640,7 +640,7 @@ class HybridDSDLSchema(object):
         """Append YIN representation of extension statement `stmt`."""
         ext = stmt.i_extension
         prf, extkw = stmt.raw_keyword
-        (modname,rev)=self.module.i_prefixes[prf]
+        (modname,rev)=stmt.i_module.i_prefixes[prf]
         prefix = self.add_namespace(
             statements.modulename_to_module(self.module,modname,rev))
         eel = SchemaNode(prefix + ":" + extkw, p_elem)
