@@ -910,6 +910,8 @@ class HybridDSDLSchema(object):
             left = self.lookup_expand(a, left)
         self.handle_substmts(stmt, celem, new_pset)
         self.apply_augments(augs, celem, new_pset)
+        if not celem.children:
+            celem.subnode(SchemaNode("empty"))
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
@@ -929,6 +931,8 @@ class HybridDSDLSchema(object):
                 chelem.occur = 3
         self.handle_substmts(stmt, chelem, new_pset)
         self.apply_augments(augs, chelem, new_pset)
+        if not chelem.children:
+            chelem.subnode(SchemaNode("empty"))
         
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.qname(stmt), p_elem)
