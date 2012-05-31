@@ -12,7 +12,7 @@ The Javascript tree output creates a html/javascript page with the model:
 
 https://pyang.googlecode.com/svn/trunk/doc/img/js.png
 
-You can  [https://pyang.googlecode.com/svn/trunk/doc/tree-uml/ietf-netconf-acm.htm try it] on the YANG module for access control [http://tools.ietf.org/html/rfc6536 RFC6536]
+You can  [TryJS try it ] on the YANG module for access control [http://tools.ietf.org/html/rfc6536 RFC6536]
 
 
 == Hyperbolic Tree ==
