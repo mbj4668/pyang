@@ -7,6 +7,7 @@ import re
 
 modules = glob.glob(os.path.join('modules', '*.yang'))
 xslt = glob.glob(os.path.join('xslt', '*.xsl'))
+images = glob.glob(os.path.join('tools/images', '*'))
 
 class PyangDist(Distribution):
 
@@ -58,6 +59,7 @@ setup(name='pyang',
                                       'man/man1/yang2dsdl.1']),
                   ('share/yang/modules', modules),
                   ('share/yang/xslt', xslt),
+                  ('share/yang/images', images),
                   ('share/yang/schema', ['schema/yin.rng',
                                          'schema/relaxng-lib.rng'])]
       )
