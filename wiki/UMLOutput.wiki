@@ -6,7 +6,7 @@
 In some circumstances it is useful to be able to visualize YANG models as UML diagrams.
 Pyang supports two different ways of doing this:
   * Render png using [http://plantuml.sourceforge.net/ PlantUML]: `pyang -f uml`
-  * Generate XMI which can be imported to [http://argouml.tigris.org/ ArgoUML] : `pyang -f xmi`
+  * Generate XMI (soon) which can be imported to [http://argouml.tigris.org/ ArgoUML] : `pyang -f xmi`
 
 
 == XMI for ArgoUML ==
