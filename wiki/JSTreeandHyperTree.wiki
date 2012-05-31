@@ -4,5 +4,19 @@
 
 The pyang -f tree generates an ASCII based tree representation that is great for navigating the model.
 There are two new (soon to be released) tree representations
-  * Javascript tree: pyang -f jstree
-  * Hyperbolic tree pyang - f hypertree
+  * Javascript tree: `pyang -f jstree`
+  * Hyperbolic tree: `pyang - f hypertree`
+
+== Javascript Tree ==
+The Javascript tree output creates a html/javascript page with the model:
+
+
+
+
+== Hyperbolic Tree ==
+For very large models a traditional tree can be hard to navigate. A [http://en.wikipedia.org/wiki/Hyperbolic_tree hyperbolic tree] can help.
+Personally I am not convinced if a get help or get dizzy.
+The hyperbolic output generates an xml file that can be displayed in [http://treebolic.sourceforge.net/ Treebolic]:
+
+
+
