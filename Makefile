@@ -13,6 +13,7 @@ dist: doc
 	echo "recursive-include schema *" >> MANIFEST.in
 	echo "recursive-include xslt *" >> MANIFEST.in
 	echo "recursive-include modules *" >> MANIFEST.in
+	echo "recursive-include tools/images *" >> MANIFEST.in
 	python setup.py sdist
 
 .PHONY:	test tags clean doc
