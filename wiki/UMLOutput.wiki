@@ -4,6 +4,31 @@
 = Introduction =
 
 In some circumstances it is useful to be able to visualize YANG models as UML diagrams.
+Pyang supports two different ways of doing this:
+  * Render png using [http://plantuml.sourceforge.net/ PlantUML]: `pyang -f uml`
+  * Generate XMI which can be imported to [http://argouml.tigris.org/ ArgoUML] : `pyang -f xmi`
+
+
+== XMI for ArgoUML ==
+I have given up on the I in XMI, the output only works for ArgoUML. Convince me that UML XMI is an interoperable standard.
+
+{{{
+pyang -f xmi ietf-netconf-acm.yang -o ietf-netconf-acm.htm
+}}}
+
+Then you can start ArgoUML and chose XMI Import.
+The easiest way is then to drag all or selected classes into the diagram and ask ArgoUML to auto-layout (Arrange - layout). After that, make the diagram look as you want.
+
+The tagged values tab will show YANG specifics like `config, status, mandatory` etc. If you select a class
+you get the tagged values for the container, list, if you select an attribute you get it for the leaf/leaf-list.
+
+
+https://pyang.googlecode.com/svn/trunk/doc/img/argo.png
+
+
+
+== PlantUML output ==
+
 The uml plugin to pyang generates a file that can be read by [http://plantuml.sourceforge.net/ plantuml].
 
 The following example converts the [http://tools.ietf.org/html/rfc6022 ietf-netconf-monitoring] module into a UML diagram:
