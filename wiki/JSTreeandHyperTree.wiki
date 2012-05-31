@@ -10,6 +10,8 @@ There are two new (soon to be released) tree representations
 == Javascript Tree ==
 The Javascript tree output creates a html/javascript page with the model:
 
+https://pyang.googlecode.com/svn/trunk/doc/img/js.png
+
 
 
 
@@ -18,5 +20,5 @@ For very large models a traditional tree can be hard to navigate. A [http://en.w
 Personally I am not convinced if a get help or get dizzy.
 The hyperbolic output generates an xml file that can be displayed in [http://treebolic.sourceforge.net/ Treebolic]:
 
-
+https://pyang.googlecode.com/svn/trunk/doc/img/ht.png
 
