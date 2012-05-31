@@ -59,6 +59,16 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="longids",
                                  default =False,
                                  help="Use the full schema identifiers for UML class names."),
+            optparse.make_option("--uml-inline-groupings",
+                                 action="store_true",
+                                 dest="inline",
+                                 default =False,
+                                 help="Inline groupings where they are used."),
+            optparse.make_option("--uml-inline-augments",
+                                 action="store_true",
+                                 dest="inline_augments",
+                                 default =False,
+                                 help="Inline groupings where they are used."),
             optparse.make_option("--uml-description",
                                  action="store_true",
                                  dest="descr",
@@ -67,7 +77,7 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-no",
                                  dest="no",
                                  default = "",                                 
-                                 help="Suppress parts of the diagram. \nValid suppress values are: uses, leafref, identity, identityref, typedef, import, annotation, circles, stereotypes. Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. \nExample --uml-no=circles,stereotypes,typedef,import"),
+                                 help="Suppress parts of the diagram. \nValid suppress values are: module, uses, leafref, identity, identityref, typedef, import, annotation, circles, stereotypes. Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. Module suppresses module box around the diagram and module information. \nExample --uml-no=circles,stereotypes,typedef,import"),
             optparse.make_option("--uml-truncate",
                                  dest="truncate",
                                  default = "",                                 
@@ -136,6 +146,8 @@ class uml_emitter:
     ctx_stereotypes = True
     ctx_truncate_leafrefs = False
     ctx_truncate_augments = False
+    ctx_inline_augments = False
+    ctx_no_module = False
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -173,6 +185,8 @@ class uml_emitter:
         # Title from option -t 
         self.ctx_title = ctx.opts.title
 
+        self.ctx_inline_augments = ctx.opts.inline_augments
+
         self.ctx_leafrefs = not "leafref" in ctx.opts.no.split(",")
         self.ctx_uses = not "uses" in ctx.opts.no.split(",")
         self.ctx_annotations = not "annotation" in ctx.opts.no.split(",")
@@ -183,7 +197,7 @@ class uml_emitter:
         self.ctx_circles = not "circles" in ctx.opts.no.split(",")
         self.ctx_stereotypes = not "stereotypes" in ctx.opts.no.split(",")
 
-        nostrings = ("leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes")
+        nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes")
         if ctx.opts.no != "":
             for no_opt in ctx.opts.no.split(","):
                 if no_opt not in nostrings:
@@ -193,6 +207,7 @@ class uml_emitter:
 
         self.ctx_truncate_augments = "augment" in ctx.opts.truncate.split(",")
         self.ctx_truncate_leafrefs = "leafref" in ctx.opts.truncate.split(",")
+        self.ctx_no_module = "module" in ctx.opts.no.split(",")
 
         truncatestrings = ("augment", "leafref")
         if ctx.opts.truncate != "":
@@ -226,12 +241,14 @@ class uml_emitter:
             self.emit_uml_header(title, fd)
 
         for module in modules:
+            if not self.ctx_no_module:
                 self.emit_module_header(module, fd)
-                for s in modulei_children:
-                    self.emit_stmt(module, s, fd)
+            self.emit_module_class(module, fd)
+            for s in module.substmts:
+                self.emit_stmt(module, s, fd)
 
-                if not self.ctx_filterfile:
-                    self.post_process_module(fd)
+            if not self.ctx_filterfile:
+                self.post_process_module(fd)
         if not self.ctx_filterfile:
             self.post_process_diagram(fd)
 
@@ -245,7 +262,7 @@ class uml_emitter:
 
         if stmt.keyword == 'container':
             self.emit_container(mod, stmt, fd)
-            for s in stmti_children:
+            for s in stmt.substmts:
                 self.emit_child_stmt(stmt, s, fd)
 
         elif stmt.keyword == 'augment' and (not self.ctx_filterfile):
@@ -254,12 +271,13 @@ class uml_emitter:
              if self.ctx_truncate_augments:
                  a = '...' + a[a.rfind('/'):]
              
-             fd.write('class \"%s\" as %s << (A,CadetBlue) augment>>\n' %(a, self.full_path(stmt)))
+             if not self.ctx_inline_augments:
+                 fd.write('class \"%s\" as %s << (A,CadetBlue) augment>>\n' %(a, self.full_path(stmt)))
              # ugly, the augmented elemented is suffixed with _ in emit_header
              # fd.write('_%s <-- %s : augment \n' %(self.full_path(stmt), self.full_path(stmt)))
 
              # also, since we are the root, add the module as parent
-             if not (self.full_path(stmt)) in self.augmentpaths:
+             if (not (self.full_path(stmt)) in self.augmentpaths) and (not self.ctx_inline_augments):
                  fd.write('%s *--  %s \n' %(self.full_path(mod), self.full_path(stmt)))
                  self.augmentpaths.append(self.full_path(stmt))
 
@@ -270,22 +288,31 @@ class uml_emitter:
                  prefix = stmt.arg[1:stmt.arg.find(':')]
 
              node = find_target_node(self._ctx, stmt, True)
-             if node is not None and prefix in self.module_prefixes:
+             if node is not None and prefix in self.module_prefixes and not self.ctx_inline_augments:
                  # sys.stderr.write("Found augment target : %s , %s \n" %(stmt.arg, self.full_path(node)))
                  self.augments.append(self.full_path(stmt) + '-->' + self.full_path(node) + ' : augments' + '\n')
              else:
                  # sys.stderr.write("Not Found augment target : %s \n" %(stmt.arg))
                  pass
-             
-             for s in stmti_children:
-                 self.emit_child_stmt(stmt, s, fd)
+
+             if self.ctx_inline_augments and node is not None:
+                 # Emit augment target, in case that module was given as input this results in duplicate, but plantUML do not care
+                 # The False flag stops emit_child from continuing iterating further down the tree
+                 self.emit_child_stmt(node.parent, node, fd, False)
+                 for s in stmt.substmts:
+                     s.parent = node
+                     self.emit_child_stmt(node, s, fd)
+
+             else:
+                 for s in stmt.substmts:
+                     self.emit_child_stmt(stmt, s, fd)
 
         elif stmt.keyword == 'list':
             self.emit_list(mod, stmt, fd)
-            for s in stmti_children:
+            for s in stmt.substmts:
                 self.emit_child_stmt(stmt, s, fd)
 
-        elif stmt.keyword == 'grouping':
+        elif stmt.keyword == 'grouping' and not self._ctx.opts.inline:
             self.emit_grouping(mod, stmt, fd, True)
 
         elif stmt.keyword == 'choice':
@@ -293,7 +320,7 @@ class uml_emitter:
                  fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(stmt), self.full_path(stmt)))
                  fd.write('%s .. %s : choice \n' % (self.full_path(mod), self.full_path(stmt)))
             # sys.stderr.write('in choice %s \n', self.full_path(mod))        
-            for children in stmti_children:
+            for children in stmt.substmts:
                 self.emit_child_stmt(stmt, children, fd)
 
         elif stmt.keyword == 'case':
@@ -301,7 +328,7 @@ class uml_emitter:
                 fd.write('class \"%s\" as %s \n' %(self.full_display_path(stmt), self.full_path(stmt)))
                 fd.write('%s ..  %s  : choice\n' % (self.full_path(mod), self.full_path(stmt)))
             # sys.stderr.write('in case %s \n', full_path(mod))
-            for children in modi_children:
+            for children in mod.substmts:
                     self.emit_child_stmt(stmt, children, fd)
 
         elif stmt.keyword == 'identity':
@@ -324,11 +351,11 @@ class uml_emitter:
         # I think we have covered all....
         # else:
             # sys.stderr.write('skipping top level: %s:%s\n' % (stmt.keyword, stmt.arg))
-            # for s in stmti_children:
+            # for s in stmt.substmts:
               # emit_stmt(mod, s, fd)
 
 
-    def emit_child_stmt(self, parent, node, fd):
+    def emit_child_stmt(self, parent, node, fd, cont = True):
          keysign = ''
          keyprefix = ''
          uniquesign = ''
@@ -344,41 +371,49 @@ class uml_emitter:
              
          if node.keyword == 'container':
              self.emit_container(parent, node, fd)
-             for children in nodei_children:
-                self.emit_child_stmt(node, children, fd)
-         elif node.keyword == 'grouping':
+             if cont:
+                for children in node.substmts:
+                    self.emit_child_stmt(node, children, fd)
+         elif node.keyword == 'grouping' and not self._ctx.opts.inline:
              self.emit_grouping(parent, node, fd)
 
          elif node.keyword == 'list':
              self.emit_list(parent, node, fd)
-             for children in nodei_children:
-                self.emit_child_stmt(node, children, fd)
+             if cont:
+                 for children in node.substmts:
+                     self.emit_child_stmt(node, children, fd)
 
          elif node.keyword == 'choice':
              if (not self.ctx_filterfile):
                  fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(node), self.full_path(node)))
                  fd.write('%s .. %s : choice \n' % (self.full_path(parent), self.full_path(node)))
-             for children in nodei_children:
-                 # try pointing to parent
-                 self.emit_child_stmt(node, children, fd)
-                 # self.emit_child_stmt(parent, children, fd)
+             if cont:
+                 for children in node.substmts:
+                     # try pointing to parent
+                     self.emit_child_stmt(node, children, fd)
+                     # self.emit_child_stmt(parent, children, fd)
          elif node.keyword == 'case':
              # sys.stderr.write('in case \n')
              if (not self.ctx_filterfile):
                 fd.write('class \"%s\" as %s <<case>>\n' %(self.full_display_path(node), self.full_path(node)))
                 fd.write('%s .. %s  : choice %s\n' % (self.full_path(parent), self.full_path(node), node.parent.arg))
-             for children in nodei_children:
-                self.emit_child_stmt(node, children, fd)
+             if cont:
+                 for children in node.substmts:
+                     self.emit_child_stmt(node, children, fd)
          elif node.keyword == 'uses':
-             if (not self.ctx_filterfile):                          
+             if (not self.ctx_filterfile) and not (self._ctx.opts.inline):                          
                  fd.write('%s : %s {uses} \n' %(self.full_path(parent), node.arg))
-             self.emit_uses(parent, node)
-             if hasattr(node, 'i_uses'):
-                 grouping_node = node.i_uses[0]
+             if not (self._ctx.opts.inline): 
+                 self.emit_uses(parent, node)
+             if hasattr(node, 'i_grouping') and (self._ctx.opts.inline) and cont:
+                 grouping_node = node.i_grouping
                  if grouping_node is not None:
                      # inline grouping here
-                     sys.stderr.write('Found target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
-                  
+                     # sys.stderr.write('Found  target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
+                     for children in grouping_node.substmts:
+                         # make the inlined parent to parent rather then the grouping to make full path unique
+                         children.parent = parent;
+                         self.emit_child_stmt(parent, children, fd)
 
          # moved stuff below here in order to include annotations for classes-only
          elif (node.keyword == 'description') and (self.ctx_description):
@@ -551,7 +586,7 @@ class uml_emitter:
             fd.write('package \"%s\" as %s \n' %(inc.arg, self.make_plantuml_keyword(inc.arg)))
             fd.write('end package\n')
 
-
+    def emit_module_class(self, module, fd):
         fd.write('class \"%s\" as %s << (M, #33CCFF) module>> \n' %(self.full_display_path(module), self.full_path(module)))
 
 
@@ -573,10 +608,16 @@ class uml_emitter:
 
 
     def emit_container(self, parent, node, fd):
+        presence = node.search_one("presence")
+        if presence is not None:
+            cardinality = "0..1"
+        else:
+            cardinality = "1"
+            
         if (not self.ctx_filterfile):
         # and ((not self.ctx_usefilterfile) or (self.ctx_usefilterfile and (self.full_path(node) in self.filterpaths))):        
             fd.write('class \"%s\" as  %s <<container>> \n' %(self.full_display_path(node), self.full_path(node)))
-            fd.write('%s *-- \"1\" %s \n' %(self.full_path(parent), self.full_path(node)))
+            fd.write('%s *-- \"%s\" %s \n' %(self.full_path(parent), cardinality, self.full_path(node)))
         else:
             fd.write(self.full_path(node) + '\n')
 
@@ -621,7 +662,7 @@ class uml_emitter:
              fd.write('%s : %s(' %(self.full_path(parent), action.arg) )
              # pretty ugly, but unlike for rpc and notifs we do not want to unfold a complete UML structure
              # rather a in out param list
-             for params in actioni_children:
+             for params in action.substmts:
                  if params.keyword == 'input':
                      inputs = params.search('leaf')
                      inputs += params.search('leaf-list')
@@ -644,7 +685,7 @@ class uml_emitter:
                          fd.write(' out: %s' %(self.make_plantuml_keyword(o.arg)) )
              fd.write(')\n')
 
-             for params in actioni_children:
+             for params in action.substmts:
                  use = params.search('uses')
                  for u in use:
                      self.emit_uses(parent, u)
@@ -659,9 +700,9 @@ class uml_emitter:
             if e.arg == 'enumeration':
                     # enum_name = self.full_path(t, False)
                     fd.write('enum \"%s\" as %s\n' %(t.arg, self.full_path(t)))
-                    for enums in ei_children[:3]:
+                    for enums in e.substmts[:3]:
                          fd.write('%s : %s \n' %(self.full_path(t), enums.arg))
-                    if (len(ei_children) > 3):
+                    if (len(e.substmts) > 3):
                          fd.write('%s : %s \n' %(self.full_path(t), "..."))
             else:
                     fd.write('class \"%s\" as %s << (T, YellowGreen) typedef>>\n' %(t.arg, self.make_plantuml_keyword(t.arg)))
@@ -673,13 +714,13 @@ class uml_emitter:
         # notif as class stereotype, ugly, but easier to layout params
         fd.write('class \"%s\" as %s << (N,#00D1B2) notification>> \n' %(self.full_display_path(stmt), self.full_path(stmt)))
         fd.write('%s -- %s : notification \n' %(self.make_plantuml_keyword(module.arg), self.full_path(stmt)))
-        for params in stmti_children:
+        for params in stmt.substmts:
                 self.emit_child_stmt(stmt, params, fd)
 
         # ALTERNATIVE 2
         # notif as oper, better, but hard to layout params
         #fd.write('%s : notif:%s()\n' %(make_plantuml_keyword(module), make_plantuml_keyword(stmt.arg)) )
-        #for params in stmti_children:
+        #for params in stmt.substmts:
         #        emit_child_stmt(stmt, params, fd)
 
     def emit_uses(self, parent, node):
@@ -709,7 +750,7 @@ class uml_emitter:
             # fd.write('%s --  %s \n' %(self.full_path(module), self.full_path(stmt)))
         else:
             fd.write(self.full_path(stmt) + '\n')
-        for children in stmti_children:
+        for children in stmt.substmts:
                 self.emit_child_stmt(stmt, children, fd)
 
     def attribs(self, node):
@@ -752,9 +793,9 @@ class uml_emitter:
         s = t.arg
         if t.arg == 'enumeration':
             s = s + ' : {'
-            for enums in ti_children[:3]:
+            for enums in t.substmts[:3]:
                 s = s + enums.arg + ','
-            if len(ti_children) > 3:
+            if len(t.substmts) > 3:
                 s = s + "..."
             s = s + '}'
         elif t.arg == 'leafref':
@@ -1040,8 +1081,9 @@ class uml_emitter:
 
         self.based = []
         self.post_strings = []
-        
-        fd.write("end package\n\n")
+
+        if not self.ctx_no_module:
+            fd.write("end package\n\n")
 
 
         
