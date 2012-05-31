@@ -65,5 +65,3 @@ rpcs:
       +--ro output    
          +--ro data
 }}}
-
-Test: <a href="../src/TODO">todo</a>
