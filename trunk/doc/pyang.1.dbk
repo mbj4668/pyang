@@ -797,16 +797,7 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
           </para>
         </listitem>
     </varlistentry>
-        
-    <varlistentry>
-    <term><option>--uml-classes-only</option></term>
-        <listitem>
-          <para>
-        Generate UML with classes only, no attributes
-          </para>
-        </listitem>
-    </varlistentry>    
-    
+            
     <varlistentry>
     <term><option>--uml-output-director=OUTPUT_DIRECTORY</option></term>
         <listitem>
@@ -869,6 +860,24 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
         Leafref attributes and augment elements can have long paths making the classes too wide. This option will only show the tail of the path. Example  --uml-truncate=augment,leafref.
           </para>
         </listitem>
+    </varlistentry>
+
+    <varlistentry>
+	<term><option>--uml-inline-groupings</option></term>
+	<listitem>
+	  <para>
+	    Render the diagram with groupings inlined.
+	  </para>
+	</listitem>
+    </varlistentry>
+
+    <varlistentry>
+	<term><option>--uml-inline-augments</option></term>
+	<listitem>
+	  <para>
+	    Render the diagram with augments inlined.
+	  </para>
+	</listitem>
     </varlistentry>
 
 
