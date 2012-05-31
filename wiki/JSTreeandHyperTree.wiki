@@ -12,7 +12,9 @@ The Javascript tree output creates a html/javascript page with the model:
 
 https://pyang.googlecode.com/svn/trunk/doc/img/js.png
 
-You can  [https://pyang.googlecode.com/svn/trunk/doc/tree-uml/ietf-netconf-acm.htm  try it ] on the YANG module for access control [http://tools.ietf.org/html/rfc6536 RFC6536]
+You can  [http://yang-central.org/tmp/ietf-netconf-acm.htm  try it ] on the YANG module for access control [http://tools.ietf.org/html/rfc6536 RFC6536].
+
+A larger example [http://yang-central.org/tmp/ipfix.html ipfix]
 
 
 == Hyperbolic Tree ==
@@ -20,7 +22,10 @@ For very large models a traditional tree can be hard to navigate. A [http://en.w
 Personally I am not convinced if a get help or get dizzy.
 The hyperbolic output generates an xml file that can be displayed in [http://treebolic.sourceforge.net/ Treebolic]:
 
-https://pyang.googlecode.com/svn/trunk/doc/img/ht.png
+https://pyang.googlecode.com/svn/trunk/doc/img/ht.png.
+
+
+[http://yang-central.org/tmp/ipfix-hypertree.html Try it] for the large ipfix model.
 
 Generate the file:
 {{{
