@@ -48,6 +48,9 @@ Pass the {{{-Xmx<SIZE>m}}} to java like:
 $ java -Xmx1024m -jar plantuml.jar ietf-netconf-monitoring.uml 
 }}}
 
+
+Please note that the uml output has numerous options to tweak and simplify the layout. To skip details try the `--uml-no=` parameter. In many cases you like to inline augments and groupings, use the `--uml-inline` parameters.
+
 You can also pass several YANG files to the UML output format, but the files must be given in dependency order. (Multi-file does not work for module/sub-module dependancies)
  
 https://pyang.googlecode.com/svn/trunk/doc/img/monitor1.png
