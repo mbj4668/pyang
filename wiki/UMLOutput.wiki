@@ -13,7 +13,7 @@ Pyang supports two different ways of doing this:
 I have given up on the I in XMI, the output only works for ArgoUML. Convince me that UML XMI is an interoperable standard.
 
 {{{
-pyang -f xmi ietf-netconf-acm.yang -o ietf-netconf-acm.htm
+pyang -f xmi ietf-netconf-acm.yang -o ietf-netconf-acm.xmi
 }}}
 
 Then you can start ArgoUML and chose XMI Import.
