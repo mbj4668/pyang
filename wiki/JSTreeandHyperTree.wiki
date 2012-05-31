@@ -21,3 +21,30 @@ Personally I am not convinced if a get help or get dizzy.
 The hyperbolic output generates an xml file that can be displayed in [http://treebolic.sourceforge.net/ Treebolic]:
 
 https://pyang.googlecode.com/svn/trunk/doc/img/ht.png
+
+Generate the file:
+{{{
+pyang -f hypertree ietf-ipfix.yang -o ietf-ipfix.xml
+}}}
+
+
+In order to use the xml file, put the `TreebolicAppletDom.jar` in a proper location. Write a small html file like:
+
+{{{
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf8">
+<title>IETF IPFIX</title>
+</head>
+
+<body bgcolor="#3A6EA5" text="#FFFFFF" link="#FF0000" vlink="#FFFFFF">
+
+<applet code="treebolic.applet.Treebolic.class" archive="TreebolicAppletDom.jar" id="Treebolic" width="100%" height="100%">
+  <param name="doc" value="ietf-ipfix.xml">
+</applet>
+
+</body>
+
+</html>
+
+}}}
