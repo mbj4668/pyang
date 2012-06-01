@@ -424,7 +424,7 @@
               <para>
                 <filename>pyang/plugins</filename> from
                 where pyang is installed
-            </para>
+              </para>
             </listitem>
             <listitem>
               <para>
@@ -509,7 +509,28 @@
           <para>Prints a file that can be read by plantuml to generate UML diagrams</para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term><emphasis>xmi</emphasis></term>
+        <listitem>
+          <para>Prints a file that can be imported to ArgoUML</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>jstree</emphasis></term>
+        <listitem>
+          <para>HTML/JavaScript tree navigator</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>hypertree</emphasis></term>
+        <listitem>
+          <para>A hyperbolic tree navigator that can be displayed by treebolic</para>
+        </listitem>
+      </varlistentry>
+
+
     </variablelist>
+    
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.yang_output">
@@ -659,8 +680,8 @@
 
     <informalexample>
       <screen>$ pyang -f depend --depend-target mymod.c \
-    --depend-extension .yang mymod.yang
-mymod.c : ietf-yang-types.yang my-types.yang</screen>
+      --depend-extension .yang mymod.yang
+      mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </informalexample>
 
     <para>
@@ -761,6 +782,111 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </variablelist>
   </refsect1>
 
+
+  <refsect1 xml:id="man.1.pyang.xmioutput">
+    <title>XMI Output</title>
+    <para>
+      The <emphasis>xmi</emphasis> output prints an XMI file
+      that can be imported by ArgUML http://argouml.tigris.org/.
+    </para>
+    <para>
+      Drag all classes to the diagram area in ArgoUML and use
+      the Arrange-Layout menu.
+    </para>
+    <para>
+      XMI output specific option:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--xmi-help</option></term>
+        <listitem>
+          <para>
+            Print help on XMI usage and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.jstree">
+    <title>jstree Output</title>
+    <para>
+      The <emphasis>jstree</emphasis> output prints an HTML/JavaScript
+      based YANG browser. It references an images folder that needs to
+      exist in the same folder as the generated file. This is installed
+      as share/yang/images in the pyang installation directory.
+      The easiest way is to symlink to this directory.
+    </para>
+    <para>
+      jstree output specific option:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--jstree-help</option></term>
+        <listitem>
+          <para>
+            Print help on jstree usage and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.hypertree">
+    <title>hypertree output</title>
+    <para>
+      The <emphasis>hypertree</emphasis> output generates a hyperbolic YANG
+      browser. The generated xml file can be imported to treebolic. 
+      Download treebolic from http://treebolic.sourceforge.net/en/index.html.
+    </para>
+    <informalexample>
+      <screen>
+        Color coding in the tree:
+        * Light green node background : config = True
+        * Light yellow node background : config = False
+        * Red node foreground : mandatory = True
+        * White leaf node background : index 
+        * Orange foreground : presence container
+      </screen>
+    </informalexample>
+
+    <para>
+      The xml file references an images folder that needs to
+      exist in the same folder as the generated file. This is installed
+      as share/yang/images in the pyang installation directory.
+      The easiest way is to symlink to this directory.
+    </para>
+    <para>
+      <userinput>pyang -f hypertree model.yang -o model.xml</userinput>
+    </para>
+    <para>
+      Prepare a HTML file that links to the generated XMI file:
+    </para>    
+    <informalexample>
+      <programlisting>
+        &lt;applet code="treebolic.applet.Treebolic.class" archive="TreebolicAppletDom.jar" id="Treebolic" width="100%" height="100%"&gt;
+        &lt;param name="doc" value="model.xml"&gt;
+        &lt;/applet&gt;
+      </programlisting>
+    </informalexample>
+    <para>
+      hypertree output specific option:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--hypertree-help</option></term>
+        <listitem>
+          <para>
+            Print help on hypertree usage and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+
   <refsect1 xml:id="man.1.pyang.uml_output">
     <title>UML Output</title>
     <para>
@@ -779,116 +905,122 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 
     <variablelist>
 
-    <varlistentry>
+      <varlistentry>
         <term><option>--uml-classes-only</option></term>
         <listitem>
           <para>
-        Generate UML with classes only, no attributes
+            Generate UML with classes only, no attributes
           </para>
         </listitem>
-    </varlistentry>
+      </varlistentry>
 
-    <varlistentry>
+      <varlistentry>
         <term><option>--uml-split-pages=PAGES_LAYOUT</option></term>
         <listitem>
           <para>
-        Generate UML output split into pages, NxN, example 2x2. 
-        One .png file per page will be rendered. 
+            Generate UML output split into pages, NxN, example 2x2. 
+            One .png file per page will be rendered. 
           </para>
         </listitem>
-    </varlistentry>
-            
-    <varlistentry>
-    <term><option>--uml-output-director=OUTPUT_DIRECTORY</option></term>
+      </varlistentry>
+      
+      <varlistentry>
+        <term><option>--uml-output-director=OUTPUT_DIRECTORY</option></term>
         <listitem>
           <para>
-        Put the generated .png files(s) in the specified output directory.
-        Default is img/ 
+            Put the generated .png files(s) in the specified output directory.
+            Default is img/ 
           </para>
         </listitem>
-    </varlistentry>
-    
-    <varlistentry>
+      </varlistentry>
+      
+      <varlistentry>
         <term><option>--uml-title=TITLE</option></term>
         <listitem>
           <para>
-        Set the title of the generated UML diagram, (default is YANG module name).
+            Set the title of the generated UML diagram, (default is YANG module name).
           </para>
         </listitem>
-    </varlistentry>
-    <varlistentry>
+      </varlistentry>
+      <varlistentry>
         <term><option>--uml-header=HEADER</option></term>
         <listitem>
           <para>
-        Set the header of the generated UML diagram.
+            Set the header of the generated UML diagram.
           </para>
         </listitem>
-    </varlistentry>
+      </varlistentry>
 
-    <varlistentry>
+      <varlistentry>
         <term><option>--uml-footer=FOOTER</option></term>
         <listitem>
           <para>
-        Set the footer of the generated UML diagram.
+            Set the footer of the generated UML diagram.
           </para>
         </listitem>
-    </varlistentry>
-    
-    <varlistentry>
+      </varlistentry>
+      
+      <varlistentry>
         <term><option>--uml-long-identifers</option></term>
         <listitem>
           <para>
-        Use complete YANG schema identifiers for UML class names. 
+            Use complete YANG schema identifiers for UML class names. 
           </para>
         </listitem>
-    </varlistentry>
-    
-   <varlistentry>
+      </varlistentry>
+      
+      <varlistentry>
         <term><option>--uml-no</option></term>
         <listitem>
           <para>
-            This option suppresses specified arguments in the generated UML diagram. Valid arguments are:  uses, leafref, identity, identityref, typedef, annotation, import, circles, stereotypes. Annotation suppresses YANG constructs rendered as annotations, examples module info, config statements for containers. Example --uml-no=circles,stereotypes,typedef,import
+            This option suppresses specified arguments in the generated UML diagram. 
+            Valid arguments are:  uses, leafref, identity, identityref, typedef, annotation, 
+            import, circles, stereotypes. Annotation suppresses YANG constructs rendered as annotations, 
+            examples module info, config statements for containers. 
+            Example --uml-no=circles,stereotypes,typedef,import
           </para>
         </listitem>
-    </varlistentry>
+      </varlistentry>
 
 
-    <varlistentry>
+      <varlistentry>
         <term><option>--uml-truncate</option></term>
         <listitem>
           <para>
-        Leafref attributes and augment elements can have long paths making the classes too wide. This option will only show the tail of the path. Example  --uml-truncate=augment,leafref.
+            Leafref attributes and augment elements can have long paths making the 
+            classes too wide. This option will only show the tail of the path. 
+            Example  --uml-truncate=augment,leafref.
           </para>
         </listitem>
-    </varlistentry>
+      </varlistentry>
 
-    <varlistentry>
+      <varlistentry>
 	<term><option>--uml-inline-groupings</option></term>
 	<listitem>
 	  <para>
 	    Render the diagram with groupings inlined.
 	  </para>
 	</listitem>
-    </varlistentry>
+      </varlistentry>
 
-    <varlistentry>
+      <varlistentry>
 	<term><option>--uml-inline-augments</option></term>
 	<listitem>
 	  <para>
 	    Render the diagram with augments inlined.
 	  </para>
 	</listitem>
-    </varlistentry>
+      </varlistentry>
 
 
-    <varlistentry>
+      <varlistentry>
         <term><option>--uml-filter-file=FILTER_FILE</option></term>
         <listitem>
           <para>
-        NOT IMPLEMENTED: Only paths in the filter file will be
-        included in the diagram. A default filter file is generated by
-        option --filter.
-        </para>
+            NOT IMPLEMENTED: Only paths in the filter file will be
+            included in the diagram. A default filter file is generated by
+            option --filter.
+          </para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -939,31 +1071,31 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
     <informalexample>
       <programlisting>
-/* without deref */
+        /* without deref */
 
-leaf my-ip {
-    type leafref {
+        leaf my-ip {
+        type leafref {
         path "/server/ip";
-    }
-}
-leaf my-port {
-    type leafref {
+        }
+        }
+        leaf my-port {
+        type leafref {
         path "/server[ip = current()/../my-ip]/port";
-    }
-}
+        }
+        }
 
-/* with deref */
+        /* with deref */
 
-leaf my-ip {
-    type leafref {
+        leaf my-ip {
+        type leafref {
         path "/server/ip";
-    }
-}
-leaf my-port {
-    type leafref {
+        }
+        }
+        leaf my-port {
+        type leafref {
         path "deref(../my-ip)/../port";
-    }
-}
+        }
+        }
       </programlisting>
     </informalexample>
     
@@ -990,17 +1122,17 @@ leaf my-port {
       <screen>$ pyang -f yin -o ietf-yang-types.yin ietf-yang-types.yang</screen>
     </informalexample>
 
-   <para>
+    <para>
       The following example converts the ietf-netconf-monitoring module into
       a UML diagram:
     </para>
 
     <informalexample>
       <screen>
-$ pyang -f uml ietf-netconf-monitoring.yang > \
-      ietf-netconf-monitoring.uml
-$ java -jar plantuml.jar ietf-netconf-monitoring.uml 
-$ open img/ietf-netconf-monitoring.png 
+        $ pyang -f uml ietf-netconf-monitoring.yang > \
+        ietf-netconf-monitoring.uml
+        $ java -jar plantuml.jar ietf-netconf-monitoring.uml 
+        $ open img/ietf-netconf-monitoring.png 
       </screen>
     </informalexample>
   </refsect1>
