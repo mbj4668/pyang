@@ -882,6 +882,18 @@
           </para>
         </listitem>
       </varlistentry>
+
+      <varlistentry>
+        <term><option>--xmi-no-assoc-names</option></term>
+        <listitem>
+          <para>
+            Do not print association names. ArgoUML has no way of hiding the
+            association name and the diagram gets cluttered.
+          </para>
+        </listitem>
+      </varlistentry>
+
+
     </variablelist>
 
   </refsect1>
