@@ -18,18 +18,18 @@ class HyperTreePlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):
         optlist = [
             optparse.make_option("--hypertree-help",
-                                 dest="tree_help",
+                                 dest="ht_tree_help",
                                  action="store_true",
-                                 help="Print help on tree symbols and exit"),
+                                 help="Print help on hypertree usage and exit"),
             optparse.make_option("--hypertree-path",
-                                 dest="tree_path",
+                                 dest="ht_tree_path",
                                  help="Subtree to print"),
             ]
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
 
     def setup_ctx(self, ctx):
-        if ctx.opts.tree_help:
+        if ctx.opts.ht_tree_help:
             print_help()
             sys.exit(0)
 
@@ -37,7 +37,7 @@ class HyperTreePlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        if ctx.opts.tree_path is not None:
+        if ctx.opts.ht_tree_path is not None:
             path = string.split(ctx.opts.tree_path, '/')
             if path[0] == '':
                 path = path[1:]
