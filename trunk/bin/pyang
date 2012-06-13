@@ -75,9 +75,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--max-identifier-length",
                              type="int",
                              dest="max_identifier_len"),
-        optparse.make_option("--check-explicit-default",
-                             dest="chk_statement_explicit_default",
-                             action="store_true"),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
