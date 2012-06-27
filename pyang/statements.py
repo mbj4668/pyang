@@ -1797,11 +1797,28 @@ def v_reference_deviate(ctx, stmt):
                     t.substmts.append(c)
     else: # delete or replace
         for c in stmt.substmts:
+            if (c.keyword == 'config'
+                and stmt.arg == 'replace'
+                and hasattr(t, 'i_config')):
+                # config is special: since it is an inherited property
+                # with a default, all nodes has a config property.  this means
+                # that it can only be replaced.
+                # first, set the property...
+                if c.arg == 'true':
+                    t.i_config = True
+                elif c.arg == 'false':
+                    t.i_config = False
+                # ... and then modify the original statement, if any
+                old = t.search_one(c.keyword)
+                if old is not None:
+                    old.arg = c.arg
+                else:
+                    t.substmts.append(c)
             if c.keyword in _singleton_keywords:
                 old = t.search_one(c.keyword)
             else:
                 old = t.search_one(c.keyword, c.arg)
-            if old == None:
+            if old is None:
                 err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
                         (c.keyword, t.i_module.arg, t.arg))
             else:
