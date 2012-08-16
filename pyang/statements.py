@@ -820,6 +820,7 @@ def v_type_leaf(ctx, stmt):
                                        defval, ' for the default value')
     elif (default is None and
           type_.i_typedef is not None and
+          hasattr(type_.i_typedef, 'i_default') and
           type_.i_typedef.i_default is not None):
         stmt.i_default = type_.i_typedef.i_default
         stmt.i_default_str = type_.i_typedef.i_default_str
