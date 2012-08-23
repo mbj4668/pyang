@@ -2,7 +2,7 @@
 
 <!-- Program name: yin2yang.xsl
 
-Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Translates YIN to YANG (see RFC 6020).
 

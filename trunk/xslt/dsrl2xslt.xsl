@@ -2,7 +2,7 @@
 
 <!-- Program name: dsrl2xslt.xsl
 
-Copyright © 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Translates subset of DSRL to an XSLT stylesheet.
 

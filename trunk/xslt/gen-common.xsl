@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-common.xsl
 
-Copyright © 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Common templates for schema-generating stylesheets.
 

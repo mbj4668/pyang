@@ -1,4 +1,4 @@
-# Copyright (c) 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+# Copyright (c) 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 #                       Martin Bjorklund <mbj@tail-f.com>
 #
 # Translator of YANG to the hybrid DSDL schema (see RFC 6110).
