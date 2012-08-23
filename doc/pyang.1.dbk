@@ -510,7 +510,7 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>xmi</emphasis></term>
+	<term><emphasis>xmi</emphasis></term>
         <listitem>
           <para>Prints a file that can be imported to ArgoUML</para>
         </listitem>
@@ -527,8 +527,13 @@
           <para>A hyperbolic tree navigator that can be displayed by treebolic</para>
         </listitem>
       </varlistentry>
-
-
+      <varlistentry>
+        <term><emphasis>jsonxsl</emphasis></term>
+        <listitem>
+          <para>Generates XSLT stylesheet for transforming XML
+	  instance documents into JSON.</para>
+        </listitem>
+      </varlistentry>
     </variablelist>
     
   </refsect1>
@@ -744,7 +749,7 @@
       used by this format.
     </para>
     <para>
-      Tree output specific option:
+      Tree output specific options:
     </para>
     <variablelist>
       <varlistentry>
@@ -1038,6 +1043,33 @@
     </variablelist>
   </refsect1>
 
+  <refsect1 xml:id="man.1.pyang.jsonxsl_output">
+    <title>JSONXSL Output</title>
+    <para>
+      The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
+      stylesheet that can be used for transforming an XML document
+      into JSON text as specified in draft-lhotka-yang-json-01. The
+      XML document must be a valid instance of the data model which is
+      specified as one or more input YANG modules (or via a
+      &lt;hello&gt; message, see the <option>--hello</option> option).
+    </para>
+    <para>
+      Current limitations:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>Values of "instance-identifier" type are not properly transformed.</para>
+      </listitem>
+      <listitem>
+	<para>Values of "union" type are always rendered as strings.</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      The generated stylesheet includes the file
+      <filename>jsonxsl-templates.xsl</filename> which is a part of
+      <command>pyang</command> distribution.
+    </para>
+  </refsect1>
 
   <refsect1 xml:id="man.1.pyang.yang_extensions.xpath_functions">
     <title>YANG Extensions</title>

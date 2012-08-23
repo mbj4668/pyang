@@ -24,7 +24,8 @@ class PyangDist(Distribution):
             are marked with '@prefix@'.
             """
             if prefix is None: return
-            files = ("bin/yang2dsdl", "man/man1/yang2dsdl.1")
+            files = ("bin/yang2dsdl", "man/man1/yang2dsdl.1",
+                     "pyang/plugins/jsonxsl.py")
             regex = re.compile("^(.*)/usr/local(.*)$")
             for f in files:
                   inf = open(f)
