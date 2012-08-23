@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: pyang
 .\"    Author: Martin Bjorklund <mbj@tail-f.com>
-.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: 2011-07-27
 .\"    Manual: pyang manual
 .\"    Source: pyang-1.2
@@ -338,6 +338,26 @@ tree structure of the module
 .RS 4
 Prints a file that can be read by plantuml to generate UML diagrams
 .RE
+.PP
+\fIxmi\fR
+.RS 4
+Prints a file that can be imported to ArgoUML
+.RE
+.PP
+\fIjstree\fR
+.RS 4
+HTML/JavaScript tree navigator
+.RE
+.PP
+\fIhypertree\fR
+.RS 4
+A hyperbolic tree navigator that can be displayed by treebolic
+.RE
+.PP
+\fIjsonxsl\fR
+.RS 4
+Generates XSLT stylesheet for transforming XML instance documents into JSON\&.
+.RE
 .SH "YANG OUTPUT"
 .PP
 Options for the
@@ -424,8 +444,8 @@ output generates a Makefile dependency rule for files based on a YANG module\&. 
 .\}
 .nf
 $ pyang \-f depend \-\-depend\-target mymod\&.c \e
-    \-\-depend\-extension \&.yang mymod\&.yang
-mymod\&.c : ietf\-yang\-types\&.yang my\-types\&.yang
+      \-\-depend\-extension \&.yang mymod\&.yang
+      mymod\&.c : ietf\-yang\-types\&.yang my\-types\&.yang
 .fi
 .if n \{\
 .RE
@@ -469,7 +489,7 @@ output prints the resulting schema tree from one or more modules\&. Use
 \fBpyang \-\-tree\-help\fR
 to print a description on the symbols used by this format\&.
 .PP
-Tree output specific option:
+Tree output specific options:
 .PP
 \fB\-\-tree\-help\fR
 .RS 4
@@ -486,6 +506,85 @@ Levels of the tree to print\&.
 Subtree to print\&. The
 \fIpath\fR
 is a slash ("/") separated path to a subtree to print\&. For example "/nacm/groups"\&.
+.RE
+.SH "XMI OUTPUT"
+.PP
+The
+\fIxmi\fR
+output prints an XMI file that can be imported by ArgUML http://argouml\&.tigris\&.org/\&.
+.PP
+Drag all classes to the diagram area in ArgoUML and use the Arrange\-Layout menu\&.
+.PP
+XMI output specific option:
+.PP
+\fB\-\-xmi\-help\fR
+.RS 4
+Print help on XMI usage and exit\&.
+.RE
+.SH "JSTREE OUTPUT"
+.PP
+The
+\fIjstree\fR
+output prints an HTML/JavaScript based YANG browser\&. It references an images folder that needs to exist in the same folder as the generated file\&. This is installed as share/yang/images in the pyang installation directory\&. The easiest way is to symlink to this directory\&.
+.PP
+jstree output specific option:
+.PP
+\fB\-\-jstree\-help\fR
+.RS 4
+Print help on jstree usage and exit\&.
+.RE
+.SH "HYPERTREE OUTPUT"
+.PP
+The
+\fIhypertree\fR
+output generates a hyperbolic YANG browser\&. The generated xml file can be imported to treebolic\&. Download treebolic from http://treebolic\&.sourceforge\&.net/en/index\&.html\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+        Color coding in the tree:
+        * Light green node background : config = True
+        * Light yellow node background : config = False
+        * Red node foreground : mandatory = True
+        * White leaf node background : index 
+        * Orange foreground : presence container
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The xml file references an images folder that needs to exist in the same folder as the generated file\&. This is installed as share/yang/images in the pyang installation directory\&. The easiest way is to symlink to this directory\&.
+.PP
+
+\fBpyang \-f hypertree model\&.yang \-o model\&.xml\fR
+.PP
+Prepare a HTML file that links to the generated XMI file:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+        <applet code="treebolic\&.applet\&.Treebolic\&.class" archive="TreebolicAppletDom\&.jar" id="Treebolic" width="100%" height="100%">
+        <param name="doc" value="model\&.xml">
+        </applet>
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+hypertree output specific option:
+.PP
+\fB\-\-hypertree\-help\fR
+.RS 4
+Print help on hypertree usage and exit\&.
+.RE
+.PP
+\fB\-\-xmi\-no\-assoc\-names\fR
+.RS 4
+Do not print association names\&. ArgoUML has no way of hiding the association name and the diagram gets cluttered\&.
 .RE
 .SH "UML OUTPUT"
 .PP
@@ -508,11 +607,6 @@ Generate UML with classes only, no attributes
 \fB\-\-uml\-split\-pages=PAGES_LAYOUT\fR
 .RS 4
 Generate UML output split into pages, NxN, example 2x2\&. One \&.png file per page will be rendered\&.
-.RE
-.PP
-\fB\-\-uml\-classes\-only\fR
-.RS 4
-Generate UML with classes only, no attributes
 .RE
 .PP
 \fB\-\-uml\-output\-director=OUTPUT_DIRECTORY\fR
@@ -550,10 +644,57 @@ This option suppresses specified arguments in the generated UML diagram\&. Valid
 Leafref attributes and augment elements can have long paths making the classes too wide\&. This option will only show the tail of the path\&. Example \-\-uml\-truncate=augment,leafref\&.
 .RE
 .PP
+\fB\-\-uml\-inline\-groupings\fR
+.RS 4
+Render the diagram with groupings inlined\&.
+.RE
+.PP
+\fB\-\-uml\-inline\-augments\fR
+.RS 4
+Render the diagram with augments inlined\&.
+.RE
+.PP
 \fB\-\-uml\-filter\-file=FILTER_FILE\fR
 .RS 4
 NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram\&. A default filter file is generated by option \-\-filter\&.
 .RE
+.SH "JSONXSL OUTPUT"
+.PP
+The
+\fIjsonxsl\fR
+output generates an XSLT 1\&.0 stylesheet that can be used for transforming an XML document into JSON text as specified in draft\-lhotka\-yang\-json\-01\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules (or via a <hello> message, see the
+\fB\-\-hello\fR
+option)\&.
+.PP
+Current limitations:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Values of "instance\-identifier" type are not properly transformed\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Values of "union" type are always rendered as strings\&.
+.RE
+.PP
+The generated stylesheet includes the file
+jsonxsl\-templates\&.xsl
+which is a part of
+\fBpyang\fR
+distribution\&.
 .SH "YANG EXTENSIONS"
 .PP
 This section describes XPath functions that can be used in "must", "when", or "path" expressions in YANG modules, in addition to the core XPath 1\&.0 functions\&.
@@ -588,31 +729,31 @@ function:
 .RS 4
 .\}
 .nf
-/* without deref */
+        /* without deref */
 
-leaf my\-ip {
-    type leafref {
+        leaf my\-ip {
+        type leafref {
         path "/server/ip";
-    }
-}
-leaf my\-port {
-    type leafref {
+        }
+        }
+        leaf my\-port {
+        type leafref {
         path "/server[ip = current()/\&.\&./my\-ip]/port";
-    }
-}
+        }
+        }
 
-/* with deref */
+        /* with deref */
 
-leaf my\-ip {
-    type leafref {
+        leaf my\-ip {
+        type leafref {
         path "/server/ip";
-    }
-}
-leaf my\-port {
-    type leafref {
+        }
+        }
+        leaf my\-port {
+        type leafref {
         path "deref(\&.\&./my\-ip)/\&.\&./port";
-    }
-}
+        }
+        }
       
 .fi
 .if n \{\
@@ -650,10 +791,10 @@ The following example converts the ietf\-netconf\-monitoring module into a UML d
 .RS 4
 .\}
 .nf
-$ pyang \-f uml ietf\-netconf\-monitoring\&.yang > \e
-      ietf\-netconf\-monitoring\&.uml
-$ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml 
-$ open img/ietf\-netconf\-monitoring\&.png 
+        $ pyang \-f uml ietf\-netconf\-monitoring\&.yang > \e
+        ietf\-netconf\-monitoring\&.uml
+        $ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml 
+        $ open img/ietf\-netconf\-monitoring\&.png 
       
 .fi
 .if n \{\
