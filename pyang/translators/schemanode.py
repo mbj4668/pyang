@@ -1,4 +1,4 @@
-# Copyright (c) 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+# Copyright (c) 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 #
 # Python class representing a node in a RELAX NG schema.
 #

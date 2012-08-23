@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-relaxng.xsl
 
-Copyright © 2012 by Ladislav Lhotka, CESNET <lhotka@nic.cz>
+Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Creates RELAX NG schema from the hybrid DSDL schema (see RFC 6110).
 

@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-schematron.xsl
 
-Copyright © 2011 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Creates Schematron schema from the hybrid DSDL schema (see RFC 6110).
 

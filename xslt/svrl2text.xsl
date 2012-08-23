@@ -2,7 +2,7 @@
 
 <!-- Program name: svrl2text.xsl
 
-Copyright © 2010 by Ladislav Lhotka, CESNET <lhotka@cesnet.cz>
+Copyright © 2010 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Translates SVRL to simple plain text reports.
 
