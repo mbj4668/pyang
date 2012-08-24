@@ -1054,6 +1054,11 @@
       &lt;hello&gt; message, see the <option>--hello</option> option).
     </para>
     <para>
+      The document element (root) of the XML document must be
+      &lt;nc:data&gt;, where "nc" is the namespace prefix for the
+      standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1.0".
+    </para>
+    <para>
       Current limitations:
     </para>
     <itemizedlist>
