@@ -73,8 +73,10 @@ def type_param(node, ct):
         typ = "unquoted"
     elif t == "empty":
         typ = "empty"
+    elif t == "string":
+        typ = "string"
     else:
-        typ = "quoted"
+        typ = "other"
     xsl_withparam("type", typ, ct)
 
 def qname(node):
