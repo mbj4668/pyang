@@ -43,12 +43,15 @@ def emit_json_xsl(modules, fd):
     tree.write(fd, encoding="utf-8", xml_declaration=True)
 
 def process_children(node, path):
-    dchs = data_children(node)
-    for ch in dchs:
+    chs = node.i_children
+    for ch in chs:
+        if ch.keyword in ["choice", "case"]:
+            process_children(ch, path)
+            continue
         p = path + "/" + qname(ch)
         tmpl = xsl_template(p)
         nt = xsl_calltemplate(ch.keyword, tmpl)
-        if [c.arg for c in dchs].count(ch.arg) > 1:
+        if [c.arg for c in chs].count(ch.arg) > 1:
             xsl_withparam("nsid", ch.i_module.i_modulename + ":", nt)
         if ch.keyword in ["leaf", "leaf-list"]:
             type_param(ch, nt)
@@ -76,10 +79,6 @@ def type_param(node, ct):
 
 def qname(node):
     return node.i_module.i_prefix + ":" + node.arg
-
-def data_children(node):
-    return [ch for ch in node.i_children
-            if ch.keyword in statements.data_definition_keywords]
 
 def xsl_template(name):
     return ET.SubElement(ss, "template" , match = name) 
