@@ -1063,9 +1063,6 @@
     </para>
     <itemizedlist>
       <listitem>
-	<para>Values of "instance-identifier" type are not properly transformed.</para>
-      </listitem>
-      <listitem>
 	<para>Values of "union" type are always rendered as strings.</para>
       </listitem>
     </itemizedlist>
