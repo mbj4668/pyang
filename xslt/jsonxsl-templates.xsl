@@ -63,6 +63,77 @@
     </xsl:call-template>
   </xsl:template>
 
+  <xsl:template name="ii-expr">
+    <xsl:param name="text" select="substring(.,2)"/>
+    <xsl:text>/</xsl:text>
+    <xsl:choose>
+      <xsl:when test="contains($text,'/')">
+	<xsl:call-template name="ii-node">
+	  <xsl:with-param name="text" select="substring-before($text,'/')"/>
+	</xsl:call-template>
+	<xsl:call-template name="ii-expr">
+	  <xsl:with-param name="text" select="substring-after($text,'/')"/>
+	</xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="ii-node">
+	  <xsl:with-param name="text" select="$text"/>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="ii-node">
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="contains($text,'[')">
+	<xsl:call-template name="ii-label">
+	  <xsl:with-param name="text"
+			  select="substring-before($text,'[')"/>
+	</xsl:call-template>
+	<xsl:call-template name="ii-keys">
+	  <xsl:with-param name="text" select="substring-after($text,'[')"/>
+	</xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="ii-label">
+	  <xsl:with-param name="text" select="$text"/>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="ii-keys">
+    <xsl:param name="text"/>
+    <xsl:text>[</xsl:text>
+    <xsl:call-template name="ii-label">
+      <xsl:with-param name="text" select="substring-before($text,']')"/>
+    </xsl:call-template>
+    <xsl:text>]</xsl:text>
+    <xsl:if test="contains($text,'[')">
+      <xsl:call-template name="ii-keys">
+	<xsl:with-param name="text" select="substring-after($text,'[')"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="ii-label">
+    <xsl:param name="text"/>
+    <xsl:variable name="pref"
+		  select="substring-before(normalize-space($text),':')"/>
+    <xsl:choose>
+      <xsl:when test="string-length($pref) = 0">
+	<xsl:value-of select="$text"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="nsuri-to-module">
+	  <xsl:with-param name="uri" select="namespace::*[name()=$pref]"/>
+	</xsl:call-template>
+	<xsl:value-of select="concat(':', substring-after($text,':'))"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name="object-name">
     <xsl:param name="nsid"/>
     <xsl:value-of select="concat('&quot;', $nsid, local-name(.), '&quot;: ')"/>
@@ -82,6 +153,11 @@
       </xsl:when>
       <xsl:when test="$type='empty'">
 	<xsl:text>[null]</xsl:text>
+      </xsl:when>
+      <xsl:when test="$type='instance-identifier'">
+	<xsl:text>"</xsl:text>
+	<xsl:call-template name="ii-expr"/>
+	<xsl:text>"</xsl:text>
       </xsl:when>
       <xsl:when test="$type='string'">
 	<xsl:text>"</xsl:text>

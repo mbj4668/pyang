@@ -35,10 +35,15 @@ def emit_json_xsl(modules, fd):
                              "/usr/local/share/yang/xslt")
     ET.SubElement(ss, "include", href=xsltdir + "/jsonxsl-templates.xsl")
     ET.SubElement(ss, "strip-space", elements="*")
+    nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
+    ET.SubElement(nsmap, "param", name="uri")
+    choo = ET.SubElement(nsmap, "choose")
     tree = ET.ElementTree(ss)
     for module in modules:
         ns_uri = module.search_one("namespace").arg
         ss.attrib["xmlns:" + module.i_prefix] = ns_uri
+        when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
+        xsl_text(module.i_modulename, when)
         process_children(module, "/nc:data")
     tree.write(fd, encoding="utf-8", xml_declaration=True)
 
@@ -73,6 +78,8 @@ def type_param(node, ct):
         typ = "unquoted"
     elif t == "empty":
         typ = "empty"
+    elif t == "instance-identifier":
+        typ = "instance-identifier"
     elif t == "string":
         typ = "string"
     else:
