@@ -125,16 +125,24 @@ def emit_arg(stmt, fd, indent, indentstep):
     arg = arg.replace('\\', r'\\')
     arg = arg.replace('"', r'\"')
     arg = arg.replace('\t', r'\t')
-    lines = arg.splitlines()
+    lines = arg.splitlines(True)
     if len(lines) <= 1:
+        if len(arg) > 0 and arg[-1] == '\n':
+            arg = arg[:-1] + r'\n'
         if stmt.keyword in _force_newline_arg:
             fd.write('\n' + indent + indentstep + '"' + arg + '"')
         else:
             fd.write(' "' + arg + '"')
     else:
         fd.write('\n')
-        fd.write(indent + indentstep + '"' + lines[0] + '\n')
+        fd.write(indent + indentstep + '"' + lines[0])
         for line in lines[1:-1]:
-            fd.write(indent + indentstep + ' ' + line + '\n')
-        fd.write(indent + indentstep + ' ' + lines[-1] + '"')
+            fd.write(indent + indentstep + ' ' + line)
+        # write last line
+        fd.write(indent + indentstep + ' ' + lines[-1])
+        if lines[-1][-1] == '\n':
+            # last line ends with a newline, indent the ending quote
+            fd.write(indent + indentstep + '"')
+        else:
+            fd.write('"')
 
