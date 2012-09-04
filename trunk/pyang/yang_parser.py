@@ -6,10 +6,11 @@ import error
 import util
 import statements
 import syntax
+import collections
 
 class YangTokenizer(object):
     def __init__(self, text, pos, errors, max_line_len=None):
-        self.lines = text.splitlines(True)
+        self.lines = collections.deque(text.splitlines(True))
         self.pos = pos
         self.buf = ''
         self.offset = 0
@@ -21,8 +22,7 @@ class YangTokenizer(object):
     def readline(self):
         if len(self.lines) == 0:
             raise error.Eof
-        self.buf = self.lines[0]
-        del self.lines[0]
+        self.buf = self.lines.popleft()
         self.pos.line += 1
         self.offset = 0
         if (self.max_line_len is not None and
