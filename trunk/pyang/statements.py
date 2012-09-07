@@ -24,10 +24,10 @@ class Abort(Exception):
 re_path = re.compile('(.*)/(.*)')
 re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 
-yang_xpath_functions = (
+yang_xpath_functions = [
     'current',
     'deref', # pyang extension
-    )
+    ]
 
 ### Validation
 
@@ -306,6 +306,9 @@ def is_keyword_with_children(keyword):
 
 def add_keywords_with_no_explicit_config(keyword):
     _keywords_with_no_explicit_config.append(keyword)
+
+def add_xpath_function(name):
+    yang_xpath_functions.append(name)
 
 ###
 
@@ -1716,7 +1719,8 @@ def v_reference_must(ctx, stmt):
                 i = s.find(':')
                 if i != -1:
                     prefix = s[:i]
-                    prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+                    prefix_to_module(stmt.i_module, prefix, stmt.pos,
+                                     ctx.errors)
             elif tokname == 'variable':
                 err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
             elif tokname == 'function' and (s not in xpath.core_functions and
