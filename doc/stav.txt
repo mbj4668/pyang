@@ -34,7 +34,7 @@
    The following terms are used within this document:
 
    - operational state data: A hierarchically ordered set of parameters
-     from which one can determine device state and behaviour.
+     from which one can determine device state and behavior.
 
    - configuration: A separate overlay/blueprint containing only data
      explicitly specified by a client (all clients?).  A configuration
@@ -50,11 +50,48 @@
    - As little changes to NETCONF and YANG as possible.
    - Clarification of the terms "operational state data" and "configuration".
 
+   * Architecture of the device management system
+
+   ** Operational State Datastore 
+
+   The essential component of the device management system described
+   in this document is the operation state datastore. It is a
+   hierarchical database of all parameters that provide information
+   about the instantaneous state of the device and immediately
+   influence its behavior.
+
+   The operational state datastore is a conceptual data
+   structure. This means that device implementations may choose any
+   suitable representation of the datastore, or it may even generate
+   it dynamically upon request.
+
+   Operational state may be modified through one or more management
+   channels (see below), or through operation of network
+   protocols. All such means of accessing and changing the operational
+   state act conceptually on the same data - the operational state
+   datastore. It means, for instance, that any change caused by a
+   network protocol is immediately visible to all management channels.  
+
+   ** Management Channels
+
+   Management channels provide users and applications with an
+   interface for viewing and manipulating the operational state
+   datastore. Examples of management channels are CLI, NETCONF and
+   SNMP. A device may implement multiple management channels.
+
+   Each management channel defines its specific application
+   programming interface (API) for reading and writing the operational
+   state datastore, and a set of rules for using the
+   channel.
+
+   Section XXX of this document contains the specification of one
+   particular management channel - the NETCONF protocol.
+
    * Problems
 
    FIXME: this section is really just random thoughts.
 
-   Unlcear if this is a pure NETCONF, pure YANG, or mixed NETCONF/YANG
+   Unclear if this is a pure NETCONF, pure YANG, or mixed NETCONF/YANG
    problem.
 
    ** Problem 1
