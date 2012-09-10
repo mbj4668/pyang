@@ -1,321 +1,320 @@
-   # -*- outline -*-
-   #
+# -*- outline -*-
+#
 
-   This document defines the concept of operational state data in the
-   context of YANG and the Network Configuration Protocol (NETCONF).  It
-   updates RFC 6020 with rules for how to model the operational state,
-   and defines NETCONF operations to retreive and modify the operational
-   state.
+This document defines the concept of operational state data in the
+context of YANG and the Network Configuration Protocol (NETCONF).  It
+updates RFC 6020 with rules for how to model the operational state,
+and defines NETCONF operations to retreive and modify the operational
+state.
 
-   * Introduction
+* Introduction
 
-   ** Terminology
+** Terminology
 
-   The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-   "OPTIONAL" in this document are to be interpreted as described in BCP
-   14, ^RFC2119^.
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in BCP
+14, ^RFC2119^.
 
-   *** Terms
+*** Terms
 
-   The following terms are defined in ^RFC6241^ and are not redefined
-   here:
+The following terms are defined in ^RFC6241^ and are not redefined
+here:
 
-   - client
-   - server
+- client
+- datastore
+- server
 
-   The following terms are defined in ^RFC6020^ and are not redefined
-   here:
+The following terms are defined in ^RFC6020^ and are not redefined
+here:
 
-   - data model
-   - schema tree
-   - data node
+- data model
+- schema tree
+- data node
 
-   The following terms are used within this document:
+The following terms are used within this document:
 
-   - operational state data: A hierarchically ordered set of parameters
-     from which one can determine device state and behavior.
+- operational state data: The data in the operational state datastore.
 
-   - configuration: A separate overlay/blueprint containing only data
-     explicitly specified by a client (all clients?).  A configuration
-     schema is congruent to a subtree of OSD schema. However,
-     configuration may contain parts that are currently not allowed in
-     OSD (pre-provisioning).
+- operational state datastore: A conceptual data structure from which
+  one can determine device state and behavior.
 
-   * Objectives
+- configuration: A separate overlay/blueprint containing only data
+  explicitly specified by a client (all clients?).  A configuration
+  schema is congruent to a subtree of OSD schema. However,
+  configuration may contain parts that are currently not present in
+  OSD (pre-provisioning).
 
-   - Develop a general model applicable not only to NETCONF but also
-     to other approaches (RESTful, editable state data etc.).
-   - Develop a specific model for NETCONF and YANG.
-   - As little changes to NETCONF and YANG as possible.
-   - Clarification of the terms "operational state data" and "configuration".
+* Objectives
 
-   * Architecture of the device management system
+- Develop a general model applicable not only to NETCONF but also
+  to other approaches (RESTful, editable state data etc.).
+- Develop a specific model for NETCONF and YANG.
+- As little changes to NETCONF and YANG as possible.
+- Clarification of the terms "operational state data" and "configuration".
 
-   ** Operational State Datastore 
+* Architecture of the device management system
 
-   The essential component of the device management system described
-   in this document is the operation state datastore. It is a
-   hierarchical database of all parameters that provide information
-   about the instantaneous state of the device and immediately
-   influence its behavior.
+** Operational State Datastore
 
-   The operational state datastore is a conceptual data
-   structure. This means that device implementations may choose any
-   suitable representation of the datastore, or it may even generate
-   it dynamically upon request.
+The essential component of the device management system described in
+this document is the operational state datastore.  It consists of all
+parameters that provide information about the instantaneous state of
+the device and immediately influences the device's behavior.
 
-   Operational state may be modified through one or more management
-   channels (see below), or through operation of network
-   protocols. All such means of accessing and changing the operational
-   state act conceptually on the same data - the operational state
-   datastore. It means, for instance, that any change caused by a
-   network protocol is immediately visible to all management channels.  
+The operational state datastore is a conceptual data structure.  This
+means that implementations may choose any suitable representation of
+the datastore, including dynamically generating it upon request.
 
-   ** Management Channels
+Operational state may be modified through one or more management
+interface, or through the operation of network protocols.  All such
+means of accessing and changing the operational state act conceptually
+on the same data - the operational state datastore.  It means, for
+instance, that any change caused by a network protocol is immediately
+visible to all management interfaces.
 
-   Management channels provide users and applications with an
-   interface for viewing and manipulating the operational state
-   datastore. Examples of management channels are CLI, NETCONF and
-   SNMP. A device may implement multiple management channels.
+** Management Interfaces
 
-   Each management channel defines its specific application
-   programming interface (API) for reading and writing the operational
-   state datastore, and a set of rules for using the
-   channel.
+Management interfaces provide users and applications with an interface
+for viewing and manipulating the operational state datastore.
+Examples of management interfaces are NETCONF, SNMP, and the CLI.  A
+device may implement multiple management interfaces.
 
-   Section XXX of this document contains the specification of one
-   particular management channel - the NETCONF protocol.
+Each management interface has its own rules for reading and writing
+the operational state datastore.
 
-   * Problems
+Section XXX of this document contains the specification of one
+particular management interface - the NETCONF protocol.
 
-   FIXME: this section is really just random thoughts.
+* Problems
 
-   Unclear if this is a pure NETCONF, pure YANG, or mixed NETCONF/YANG
-   problem.
+FIXME: this section is really just random thoughts.
 
-   ** Problem 1
+Unclear if this is a pure NETCONF, pure YANG, or mixed NETCONF/YANG
+problem.
 
-   Suppose we want to model a list of interfaces.  We allow
-   "pre-configuration", i.e., it is ok to configure an interface for
-   which there is currently no hardware.
-
-     list interface {
-       key name;
-       leaf name { ... }
-       leaf in-packets {
-	 type yang:counter64;
-	 config false;
-       }
-       ...
-     }
+** Problem 1
 
-   Our system has hardware for "eth0" and "eth1".  In the config we have:
-
-      <interface>
-	<name>eth0</name>
-	...
-      </interface>
-      <interface>
-	<name>eth2</name>
-	...
-      </interface>
-
-   We can see this by doing <get-config>.
-
-   Operationally, however, the interfaces used are "eth0" and "eth1",
-   although "eth1" does not have any configuration and does not
-   send/receive packets.
-
-   Now, how can we see "eth1"?  If we use <get> we will get the running
-   config + state data.
-
-   + Is it ok to see "eth1" in the interface list on <get> although it
-     is not configured?  I don't think so, since a client has no way of
-     telling which instances were configured and which instances were
-     not.
-
-    If it is ok, we're done.
-
-   + If it is not ok, how about a new operation <get-operational> which
-     *would* return both "eth0" and "eth1".  This is a NETCONF-only solution
-     to this problem.
-
-   + The last (non-optimal, boring) alternative is to duplicate the entire
-     interface list:
-
-       list interface {
-	 key name;
-	 leaf name { ...}
-	 ...
-       }
+Suppose we want to model a list of interfaces.  We allow
+"pre-configuration", i.e., it is ok to configure an interface for
+which there is currently no hardware.
 
-       list interface-oper {
-	 config false;
-	 key name;
-	 leaf name { ...}
-	 leaf in-packets { ... }
-	 ...
-       }
-
-   ** Problem 2
-
-   "The speed problem".
-
-     leaf speed {
-       type enumeration {
-	 enum "10";
-	 enum "100";
-	 enum "auto";
-       }
-     }
-
-   The value "auto" will be in the config, but operationally, some value
-   (10 or 100) is being used.
-
-   ** Problem 3
-
-   Sometimes we want external clients be able to modify the operational
-   data.
-
-   + Current solution: define a special RPC for each such
-     modification.
-
-   + New RPC:  <edit-operational>.  Works like <edit-config>.
-     Requires YANG support to mark which nodes can be edited this way.
+  list interface {
+    key name;
+    leaf name { ... }
+    leaf in-packets {
+      type yang:counter64;
+      config false;
+    }
+    ...
+  }
 
-   + New datastore "operational" that works with <edit-config>.
-     Requires YANG support to mark which nodes can be edited this way.
-     Drawback: possibly need to update several documents that assumes
-     the current set of data stores.
+Our system has hardware for "eth0" and "eth1".  In the config we have:
 
-   I think this is somewhat orthogonal to Problem 1 and 2.
+   <interface>
+     <name>eth0</name>
+     ...
+   </interface>
+   <interface>
+     <name>eth2</name>
+     ...
+   </interface>
+
+We can see this by doing <get-config>.
+
+Operationally, however, the interfaces used are "eth0" and "eth1",
+although "eth1" does not have any configuration and does not
+send/receive packets.
+
+Now, how can we see "eth1"?  If we use <get> we will get the running
+config + state data.
+
++ Is it ok to see "eth1" in the interface list on <get> although it
+  is not configured?  I don't think so, since a client has no way of
+  telling which instances were configured and which instances were
+  not.
+
+ If it is ok, we're done.
+
++ If it is not ok, how about a new operation <get-operational> which
+  *would* return both "eth0" and "eth1".  This is a NETCONF-only solution
+  to this problem.
+
++ The last (non-optimal, boring) alternative is to duplicate the entire
+  interface list:
 
-   ** Thoughts from Phil
+    list interface {
+      key name;
+      leaf name { ...}
+      ...
+    }
 
-   This is a very big area and a weak point for netconf/yang.  There
-   are many related areas:
+    list interface-oper {
+      config false;
+      key name;
+      leaf name { ...}
+      leaf in-packets { ... }
+      ...
+    }
+
+** Problem 2
+
+"The speed problem".
+
+  leaf speed {
+    type enumeration {
+      enum "10";
+      enum "100";
+      enum "auto";
+    }
+  }
+
+The value "auto" will be in the config, but operationally, some value
+(10 or 100) is being used.
+
+** Problem 3
+
+Sometimes we want external clients be able to modify the operational
+data.
+
++ Current solution: define a special RPC for each such
+  modification.
+
++ New RPC:  <edit-operational>.  Works like <edit-config>.
+  Requires YANG support to mark which nodes can be edited this way.
 
-   - default configuration for lists (e.g. list of predefined policies)
-   - discovered values (learned from local info, e.g. max mtu)
-   - learned values (learned from external sources, e.g. RADIUS)
-   - "live" data (current values, e.g. current interface speed)
++ New datastore "operational" that works with <edit-config>.
+  Requires YANG support to mark which nodes can be edited this way.
+  Drawback: possibly need to update several documents that assumes
+  the current set of data stores.
 
-   We also have JUNOS-specific issues like:
-   - configuration groups
-   - transient configuration
+I think this is somewhat orthogonal to Problem 1 and 2.
 
-   We also have new/emerging issues like:
-   - SDN
-   - application-based provisioning
+** Thoughts from Phil
 
-   There is a lot of overlap between the sorts of data, but there are
-   distinct behaviours associated with each.  I'm not at all happy
-   with an answer that says each of these need to be handled in a
-   distinct manner.  I'm not sure if we can make a "grand unified
-   theory" of not-quite-config data, but maybe it's time we took a
-   stab at it.
+This is a very big area and a weak point for netconf/yang.  There
+are many related areas:
 
-   ** Proposed Solution
+- default configuration for lists (e.g. list of predefined policies)
+- discovered values (learned from local info, e.g. max mtu)
+- learned values (learned from external sources, e.g. RADIUS)
+- "live" data (current values, e.g. current interface speed)
 
-   Introduce the idea of "operational" data.  The data model for the
-   operational data is the entire schema tree, both config true and
-   config false nodes.  Constraints (mandatory, must etc.) do not apply to
-   this data.
+We also have JUNOS-specific issues like:
+- configuration groups
+- transient configuration
 
-   (We could potentially add a new YANG statement "operational
-   true/false" which then could be used to mark config true data as NOT
-   being part of the operational data tree.  Unclear if this is needed
-   though.)
+We also have new/emerging issues like:
+- SDN
+- application-based provisioning
 
-   Introduce a new rpc operation "get-operational", which would return
-   the operational data tree.
+There is a lot of overlap between the sorts of data, but there are
+distinct behaviours associated with each.  I'm not at all happy
+with an answer that says each of these need to be handled in a
+distinct manner.  I'm not sure if we can make a "grand unified
+theory" of not-quite-config data, but maybe it's time we took a
+stab at it.
 
-   Note that when get-config is used to retrieve a config true node, the
-   value stored in the data store is returned.  When get-operational is
-   used to retrieve the same node, the value actually used by the device
-   is returned.  This value may or may not be the same as the value in
-   the data store.  For example, an ip address leaf could be received
-   over DHCP.
+** Proposed Solution
 
-   Need to figure out the life-cycle / persistency requirements.  Very
-   unclear how this should work.
+Introduce the idea of "operational" data.  The data model for the
+operational data is the entire schema tree, both config true and
+config false nodes.  Constraints (mandatory, must etc.) do not apply to
+this data.
 
-   *** Alt. 1
+(We could potentially add a new YANG statement "operational
+true/false" which then could be used to mark config true data as NOT
+being part of the operational data tree.  Unclear if this is needed
+though.)
 
-   Introduce edit-operational.  This modifies the subset of the
-   operational data tree that is also marked as writable.
+Introduce a new rpc operation "get-operational", which would return
+the operational data tree.
 
-   Drawback: does not handle persistent operarational data.
+Note that when get-config is used to retrieve a config true node, the
+value stored in the data store is returned.  When get-operational is
+used to retrieve the same node, the value actually used by the device
+is returned.  This value may or may not be the same as the value in
+the data store.  For example, an ip address leaf could be received
+over DHCP.
 
-   If we have persistent operational data, this has to be its own data
-   store that can be read and written.
+Need to figure out the life-cycle / persistency requirements.  Very
+unclear how this should work.
 
-   A data model w/o the writable markers cannot be written to.  This is a
-   problem, since it is not obvious that the original designer though
-   about future use cases.  For example, our route tables are read-only.
-   Then IRS comes along and wants to write to this data.  Do we have to
-   update our spec?  Not good.  Obe option is for IRS to publish a
-   deviation data model that added the writable statement to our model.
-   This would be backwards compliant and good.  Even better would be if
-   they could publish a conformance statement in a module, w/o the meed
-   for deviations.
+*** Alt. 1
 
-   *** Alt. 2
+Introduce edit-operational.  This modifies the subset of the
+operational data tree that is also marked as writable.
 
-   Introduce the idea of control data.  This would be a separate data
-   tree.  Unclear if this data model could be all operational data, or
-   only the config false tree.  One problem with this is how you delete
-   some operational data?  If it is deleted from the control layer, why
-   is it also deleted from operational?
+Drawback: does not handle persistent operarational data.
 
-   Also unclear how this layer would be populated.  If there is some data
-   hierarchy created in operational state, and someone wants to modify a
-   leaf deep down in the hierarchy, the hierarchy would have to be
-   created by the app, in order to set the leaf.
+If we have persistent operational data, this has to be its own data
+store that can be read and written.
 
-   * YANG Module @module@
+A data model w/o the writable markers cannot be written to.  This is a
+problem, since it is not obvious that the original designer though
+about future use cases.  For example, our route tables are read-only.
+Then IRS comes along and wants to write to this data.  Do we have to
+update our spec?  Not good.  Obe option is for IRS to publish a
+deviation data model that added the writable statement to our model.
+This would be backwards compliant and good.  Even better would be if
+they could publish a conformance statement in a module, w/o the meed
+for deviations.
 
-   RFC Ed.: update the date below with the date of RFC publication and
-   remove this note.
+*** Alt. 2
 
-   !! include-figure ietf-netconf-operational.yang extract-to="ietf-netconf-operational.yang"
+Introduce the idea of control data.  This would be a separate data
+tree.  Unclear if this data model could be all operational data, or
+only the config false tree.  One problem with this is how you delete
+some operational data?  If it is deleted from the control layer, why
+is it also deleted from operational?
 
-   * IANA Considerations @iana@
+Also unclear how this layer would be populated.  If there is some data
+hierarchy created in operational state, and someone wants to modify a
+leaf deep down in the hierarchy, the hierarchy would have to be
+created by the app, in order to set the leaf.
 
-   This document registers a URI in the IETF XML registry
-   ^RFC3688^. Following the format in RFC 3688, the following
-   registration is requested to be made.
+* YANG Module @module@
 
-	URI: urn:ietf:params:xml:ns:yang:ietf-netconf-operational
+RFC Ed.: update the date below with the date of RFC publication and
+remove this note.
 
-	Registrant Contact: The NETMOD WG of the IETF.
+!! include-figure ietf-netconf-operational.yang extract-to="ietf-netconf-operational.yang"
 
-	XML: N/A, the requested URI is an XML namespace.
+* IANA Considerations @iana@
 
-   This document registers a YANG module in the YANG Module Names
-   registry ^RFC6020^.
+This document registers a URI in the IETF XML registry
+^RFC3688^. Following the format in RFC 3688, the following
+registration is requested to be made.
 
-     name:         ietf-netconf-operational
-     namespace:    urn:ietf:params:xml:ns:yang:ietf-netconf-operational
-     prefix:       oper
-     reference:    RFC XXXX
+     URI: urn:ietf:params:xml:ns:yang:ietf-netconf-operational
 
-   * Security Considerations
+     Registrant Contact: The NETMOD WG of the IETF.
 
-   TBD
+     XML: N/A, the requested URI is an XML namespace.
 
-   *! start-appendix
+This document registers a YANG module in the YANG Module Names
+registry ^RFC6020^.
 
-   * Example: TBD
+  name:         ietf-netconf-operational
+  namespace:    urn:ietf:params:xml:ns:yang:ietf-netconf-operational
+  prefix:       oper
+  reference:    RFC XXXX
 
-   {{document:
-       name ;
-       ipr trust200902;
-       category std;
-       updates 6020;
-       references operational-back.xml;
-       title "Operational Data in NETCONF and YANG";
-       contributor "author:Martin Bjorklund:Tail-f Systems:mbj@tail-f.com";
-       contributor "author:Ladislav Lhotka:CZ.NIC:lhotka@nic.cz";
-   }}
+* Security Considerations
+
+TBD
+
+*! start-appendix
+
+* Example: TBD
+
+{{document:
+    name ;
+    ipr trust200902;
+    category std;
+    updates 6020;
+    references operational-back.xml;
+    title "Operational Data in NETCONF and YANG";
+    contributor "author:Martin Bjorklund:Tail-f Systems:mbj@tail-f.com";
+    contributor "author:Ladislav Lhotka:CZ.NIC:lhotka@nic.cz";
+}}
