@@ -86,7 +86,81 @@ the operational state datastore.
 Section XXX of this document contains the specification of one
 particular management interface - the NETCONF protocol.
 
+
 * Problem Statement
+
+* NETCONF
+
+From the viewpoint of this document, the NETCONF protocol ^RFC6241^ is
+an instance of a management interface. It doesn't allow clients to
+directly modify the operational state datastore. Instead, a client
+edits the "running" configuration datastore which is then mapped by
+the NETCONF server to the operational state datastore.
+
+This section describes the conceptual model for the "running"
+configuration datastore and its relationship to the operational state
+datastore.
+
+Note that NETCONF servers may implement other optional datastores such
+as "candidate" or "startup". They serve different purposes but their
+common characteristic is that they do not interact directly with the
+operational state - their contents must first be copied to "running"
+in order to be applied. In the following, the term "configuration
+datastore" means the "running" configuration datastore.
+
+** Configuration Datastore
+
+The configuration datastore can be thought of as a blueprint for the
+operational datastore, subject to the following rules:
+
+1. The configuration datastore is congruent to a subtree of the
+   operational state datastore. In other words, this means that:
+
+    - every data node in the configuration datastore has a
+      corresponding data node with the same name in the operational
+      state tree,
+
+    - the configuration datastore forms a single connected tree.
+
+2. The configuration datastore MAY contain data nodes (subtrees) that
+   are currently disabled in the operational state data (see Section
+   XXX [when]).
+
+** Applying the Contents of the Configuration Datastore
+
+If a NETCONF client edits the configuration datastore, the server MUST
+immediately attempt to project the changes into the operational state
+datastore, after performing some validation steps. The procedure is as
+follows:
+
+1. The new configuration must be syntactically valid (conform to a
+   data model schema) and the values of leaf nodes must have the
+   correct datatypes. If this is not satisfied, the edit is rejected.
+
+2. The disabled parts of the operational state datastore are
+   determined by evaluating the XPath expressions in all 'when'
+   statements. The available tree for XPath evaluation are the new
+   contents of the configuration datastore superposed onto the
+   operational state datastore. [That is, for config=true data the values
+   are taken from the configuration datastore, for config=false data
+   from the OS datastore.]
+
+   It is not an error if the configuration datastore contains data
+   nodes that correspond to the disabled parts of the configuration
+   datastore. However, such data nodes MUST NOT be used in any way for
+   changing the operational state datastore.
+
+3. Semantic constraints expressed by XPath expressions in 'must'
+   statements are validated. The available tree for XPath evaluation
+   is the same as in step 2, except that the disabled nodes (as
+   determined in step 2) are considered to be missing. If any of these
+   XPath expressions evaluate to "false" the edit is rejected.
+
+4. Finally, the values of the configuration datastore that were
+   modified by the edit (except the disabled parts) are transferred to
+   the corresponding nodes in the operational state datastore. 
+
+* Problems
 
 ** Modelling and Retrieving Operational State
 
