@@ -86,21 +86,34 @@ the operational state datastore.
 Section XXX of this document contains the specification of one
 particular management interface - the NETCONF protocol.
 
-* Problems
+* Problem Statement
 
-FIXME: this section is really just random thoughts.
+** Modelling and Retrieving Operational State
 
-Unclear if this is a pure NETCONF, pure YANG, or mixed NETCONF/YANG
-problem.
+The NETCONF operation <get> returns both device state data and the
+running configuration.  This implies that any state data must be
+modelled separately from the configuration data, leading to
+duplication of data models.
 
-** Problem 1
+This approach has several drawbacks.  It is counter-intuitive to data
+model designers, who tend to mix configuration parameters with state
+parameters (see ^ex-if-list-1^ for an example).  Data model
+duplication is error prone and leads to bigger data models, that are
+more difficult to understand.  Further, there is no formal information
+in the data model about the relationship between the configuration
+data and the operational state data.
+
+*** Example: Interface List @ex-if-list-1@
 
 Suppose we want to model a list of interfaces.  We allow
-"pre-configuration", i.e., it is ok to configure an interface for
-which there is currently no hardware.
+pre-configuration, i.e., it is legal to configure an interface for
+which there is currently no hardware present in the system.  In this
+simple example, each interface has a name and a counter of the number
+of packets received.  The counter is operational state data.
 
   list interface {
     key name;
+
     leaf name { ... }
     leaf in-packets {
       type yang:counter64;
@@ -109,7 +122,8 @@ which there is currently no hardware.
     ...
   }
 
-Our system has hardware for "eth0" and "eth1".  In the config we have:
+A particular device has hardware for two interfaces; "eth0" and
+"eth1".  In the configuration there is:
 
    <interface>
      <name>eth0</name>
@@ -124,27 +138,18 @@ We can see this by doing <get-config>.
 
 Operationally, however, the interfaces used are "eth0" and "eth1",
 although "eth1" does not have any configuration and does not
-send/receive packets.
+send or receive packets.
 
 Now, how can we see "eth1"?  If we use <get> we will get the running
-config + state data.
+configuration and state data.  So, <get> will not show us "eth1",
+since it is not present in the running configuration.
 
-+ Is it ok to see "eth1" in the interface list on <get> although it
-  is not configured?  I don't think so, since a client has no way of
-  telling which instances were configured and which instances were
-  not.
-
- If it is ok, we're done.
-
-+ If it is not ok, how about a new operation <get-operational> which
-  *would* return both "eth0" and "eth1".  This is a NETCONF-only solution
-  to this problem.
-
-+ The last (non-optimal, boring) alternative is to duplicate the entire
-  interface list:
+With NETCONF as currently defined, the only alternative is to
+duplicate the data model:
 
     list interface {
       key name;
+
       leaf name { ...}
       ...
     }
@@ -152,70 +157,68 @@ config + state data.
     list interface-oper {
       config false;
       key name;
+
       leaf name { ...}
       leaf in-packets { ... }
       ...
     }
 
-** Problem 2
+** Modifying the Operational State
 
-"The speed problem".
+In some cases, it is useful for clients to directly modify the
+operational state.  An example of this is the recent discussions
+around an Interface to the Routing System (IRS), where a client needs
+to modify the routing table, without storing routes in the
+configuration.
 
-  leaf speed {
-    type enumeration {
-      enum "10";
-      enum "100";
-      enum "auto";
+With NETCONF as currently designed, the only way to do this is to
+define separate operations.  This leads to another kind of data model
+duplication, where every writable parameter is modelled both as state
+data that can be retrieved using the <get> operation, and also as
+input parameters to at least one rpc operation.  
+
+*** Example: Routing Table Modification
+
+Suppose we want to model IPv4 routing tables as operational state, and
+we also want to be able to let a client modify this data.  We have to
+do:
+
+  list routing-table {
+    config false;
+    key name;
+
+    leaf name { ... }
+    list route {
+      key id;
+
+      leaf id { ... }
+      leaf dest-prefix { ... }
+      leaf next-hop { ... }
+      ...
+    }
+  }
+  
+  rpc add-route {
+    input {
+      leaf routing-table-name { ... }
+      leaf route-id { ... }
+      leaf dest-prefix { ... }
+      leaf dest-prefix { ... }
+      leaf next-gop { ... }
+    }
+  }
+  
+  rpc delete-route {
+    input {
+      leaf routing-table-name { ... }
+      leaf route-id { ... }
     }
   }
 
-The value "auto" will be in the config, but operationally, some value
-(10 or 100) is being used.
-
-** Problem 3
-
-Sometimes we want external clients be able to modify the operational
-data.
-
-+ Current solution: define a special RPC for each such
-  modification.
-
-+ New RPC:  <edit-operational>.  Works like <edit-config>.
-  Requires YANG support to mark which nodes can be edited this way.
-
-+ New datastore "operational" that works with <edit-config>.
-  Requires YANG support to mark which nodes can be edited this way.
-  Drawback: possibly need to update several documents that assumes
-  the current set of data stores.
-
-I think this is somewhat orthogonal to Problem 1 and 2.
-
-** Thoughts from Phil
-
-This is a very big area and a weak point for netconf/yang.  There
-are many related areas:
-
-- default configuration for lists (e.g. list of predefined policies)
-- discovered values (learned from local info, e.g. max mtu)
-- learned values (learned from external sources, e.g. RADIUS)
-- "live" data (current values, e.g. current interface speed)
-
-We also have JUNOS-specific issues like:
-- configuration groups
-- transient configuration
-
-We also have new/emerging issues like:
-- SDN
-- application-based provisioning
-
-There is a lot of overlap between the sorts of data, but there are
-distinct behaviours associated with each.  I'm not at all happy
-with an answer that says each of these need to be handled in a
-distinct manner.  I'm not sure if we can make a "grand unified
-theory" of not-quite-config data, but maybe it's time we took a
-stab at it.
-
 ** Proposed Solution
+
+[NOT FINISHED]
+
 
 Introduce the idea of "operational" data.  The data model for the
 operational data is the entire schema tree, both config true and
@@ -260,19 +263,6 @@ This would be backwards compliant and good.  Even better would be if
 they could publish a conformance statement in a module, w/o the meed
 for deviations.
 
-*** Alt. 2
-
-Introduce the idea of control data.  This would be a separate data
-tree.  Unclear if this data model could be all operational data, or
-only the config false tree.  One problem with this is how you delete
-some operational data?  If it is deleted from the control layer, why
-is it also deleted from operational?
-
-Also unclear how this layer would be populated.  If there is some data
-hierarchy created in operational state, and someone wants to modify a
-leaf deep down in the hierarchy, the hierarchy would have to be
-created by the app, in order to set the leaf.
-
 * YANG Module @module@
 
 RFC Ed.: update the date below with the date of RFC publication and
@@ -306,7 +296,111 @@ TBD
 
 *! start-appendix
 
-* Example: TBD
+*** Example: Interface List @ex-if-list-2@
+
+With the proposed solution, the interface list example from
+^ex-if-list-2, can be solved with a single list:
+
+  list interface {
+    key name;
+
+    leaf name { ... }
+    leaf in-packets {
+      type yang:counter64;
+      config false;
+    }
+    ...
+  }
+
+The operation <get-operational> will return the interfaces available
+on the device:
+
+   <interface>
+     <name>eth0</name>
+     ...
+   </interface>
+   <interface>
+     <name>eth1</name>
+     ...
+   </interface>
+
+And <get-config> on running will return the configured interfaces,
+just as before:
+
+   <interface>
+     <name>eth0</name>
+     ...
+   </interface>
+   <interface>
+     <name>eth2</name>
+     ...
+   </interface>
+
+* Example: Interface Speed
+
+A typical problem is when the value space for the configuration data
+is a superset of the value space for the operational state data.  An
+example of this is Ethernet duplex, which can be configured as "half",
+"full", or "auto", but the operationally used value is either "half"
+or "full".  Without the definition of operational state in this
+document, this would have to be modelled as two separate leafs:
+
+  leaf duplex {
+    type enumeration {
+      enum "half";
+      enum "full";
+      enum "auto";
+    }
+  }
+  
+  leaf oper-duplex {
+    type enumeration {
+      enum "half";
+      enum "full";
+    }
+  }
+
+With the solution defined in this document, a single leaf is
+sufficient:
+
+  leaf duplex {
+    type enumeration {
+      enum "half";
+      enum "full";
+      enum "auto";
+    }
+  }
+
+* Example: Admin vs. Oper State
+
+Another common problem is when the value space for the configured data
+is a subset of the operarational state data.  An example is an
+interface's desired state, and its operational state.  The desired
+state can be "up" or "down", but the operational state can be "up",
+"lower-layer-down", "testing", etc.
+
+These kind of situations are still best modelled as two separate
+leafs, one "admin-state" and one "oper-state".
+
+
+* Old Ideas
+
+[REMOVE THIS SECTION]
+
+Introduce the idea of control data.  This would be a separate data
+tree.  Unclear if this data model could be all operational data, or
+only the config false tree.  One problem with this is how you delete
+some operational data?  If it is deleted from the control layer, why
+is it also deleted from operational?
+
+Also unclear how this layer would be populated.  If there is some data
+hierarchy created in operational state, and someone wants to modify a
+leaf deep down in the hierarchy, the hierarchy would have to be
+created by the app, in order to set the leaf.
+
+
+
+
 
 {{document:
     name ;
