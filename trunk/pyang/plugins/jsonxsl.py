@@ -30,6 +30,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
         emit_json_xsl(modules, fd)
 
 def emit_json_xsl(modules, fd):
+    tree = ET.ElementTree(ss)
     ET.SubElement(ss, "output", method="text")
     xsltdir = os.environ.get("PYANG_XSLT_DIR",
                              "/usr/local/share/yang/xslt")
@@ -38,13 +39,12 @@ def emit_json_xsl(modules, fd):
     nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
     ET.SubElement(nsmap, "param", name="uri")
     choo = ET.SubElement(nsmap, "choose")
-    tree = ET.ElementTree(ss)
     for module in modules:
         ns_uri = module.search_one("namespace").arg
         ss.attrib["xmlns:" + module.i_prefix] = ns_uri
         when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
         xsl_text(module.i_modulename, when)
-        process_children(module, "/nc:data")
+        process_children(module, "//nc:*")
     tree.write(fd, encoding="utf-8", xml_declaration=True)
 
 def process_children(node, path):

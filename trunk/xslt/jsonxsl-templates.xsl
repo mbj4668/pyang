@@ -273,7 +273,11 @@
 
   <xsl:template match="@*|text()|comment()|processing-instruction()" mode="anyxml"/>
 
-  <xsl:template match="/nc:data">
+  <xsl:template match="/">
+    <xsl:apply-templates select="//nc:data|//nc:config"/>
+  </xsl:template>
+
+  <xsl:template match="nc:data|nc:config">
     <xsl:text>{</xsl:text>
     <xsl:apply-templates select="*"/>
     <xsl:text>}</xsl:text>

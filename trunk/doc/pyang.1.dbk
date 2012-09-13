@@ -1047,16 +1047,22 @@
     <title>JSONXSL Output</title>
     <para>
       The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
-      stylesheet that can be used for transforming an XML document
+      stylesheet that can be used for transforming an XML instance document
       into JSON text as specified in draft-lhotka-yang-json-01. The
       XML document must be a valid instance of the data model which is
       specified as one or more input YANG modules (or via a
       &lt;hello&gt; message, see the <option>--hello</option> option).
     </para>
     <para>
-      The document element (root) of the XML document must be
-      &lt;nc:data&gt;, where "nc" is the namespace prefix for the
-      standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1.0".
+      The data tree(s) must be wrapped in either &lt;nc:data&gt; or
+      &lt;nc:config&gt; element, where "nc" is the namespace prefix
+      for the standard NETCONF URI
+      "urn:ietf:params:xml:ns:netconf:base:1.0". Other elements, such
+      as &lt;nc:rpc-reply&gt;, &lt;nc:edit-config&gt; or
+      &lt;nc:target&gt; may be present as ancestor or sibling nodes
+      of &lt;nc:data&gt; or &lt;nc:config&gt;. This means that the
+      input XML document may be, for instance, a complete NETCONF RPC
+      request or response.
     </para>
     <para>
       Current limitations:
