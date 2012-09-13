@@ -14,6 +14,7 @@ ss = ET.Element("stylesheet",
                 {"version": "1.0",
                  "xmlns": "http://www.w3.org/1999/XSL/Transform",
                  "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0"})
+"""Root element of the output XSLT stylesheet."""
 
 def pyang_plugin_init():
     plugin.register_plugin(JsonXslPlugin())
@@ -30,6 +31,12 @@ class JsonXslPlugin(plugin.PyangPlugin):
         emit_json_xsl(modules, fd)
 
 def emit_json_xsl(modules, fd):
+    """Main control function.
+
+    Set up the top-level parts of the stylesheet, the process
+    recursively all nodes in all data trees, and finally emit the
+    serialized stylesheet.
+    """
     tree = ET.ElementTree(ss)
     ET.SubElement(ss, "output", method="text")
     xsltdir = os.environ.get("PYANG_XSLT_DIR",
@@ -48,6 +55,11 @@ def emit_json_xsl(modules, fd):
     tree.write(fd, encoding="utf-8", xml_declaration=True)
 
 def process_children(node, path):
+    """Process all children of `node`.
+
+    `path` is the Xpath of `node` which is used in the 'select'
+    attribute of XSLT templates.
+    """
     chs = node.i_children
     for ch in chs:
         if ch.keyword in ["choice", "case"]:
@@ -64,6 +76,8 @@ def process_children(node, path):
             process_children(ch, p)
 
 def type_param(node, ct):
+    """Resolve the type of a leaf or leaf-list node for JSON.
+    """
     while 1:
         tstat = node.search_one("type")
         if tstat.arg == "leafref":
@@ -87,20 +101,40 @@ def type_param(node, ct):
     xsl_withparam("type", typ, ct)
 
 def qname(node):
+    """Return the qualified name of `node`.
+
+    In JSON, namespace identifiers are YANG module names.
+    """
     return node.i_module.i_prefix + ":" + node.arg
 
 def xsl_template(name):
+    """Construct an XSLT 'template' element matching `name`."""
     return ET.SubElement(ss, "template" , match = name) 
 
 def xsl_text(text, parent):
+    """Construct an XSLT 'text' element containing `text`.
+
+    `parent` is this element's parent.
+    """
     res = ET.SubElement(parent, "text")
     res.text = text
     return res
 
 def xsl_calltemplate(name, parent):
+    """Construct an XSLT 'call-template' element.
+
+    `parent` is this element's parent.
+    `name` is the name of the template to be called.
+    """
     return ET.SubElement(parent, "call-template", name=name)
 
 def xsl_withparam(name, value, parent):
+    """Construct an XSLT 'with-param' element.
+
+    `parent` is this element's parent.
+    `name` is the parameter name.
+    `value` is the parameter value.
+    """
     res = ET.SubElement(parent, "with-param", name=name)
     res.text = value
     return res
