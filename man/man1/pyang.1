@@ -662,11 +662,11 @@ NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram\&
 .PP
 The
 \fIjsonxsl\fR
-output generates an XSLT 1\&.0 stylesheet that can be used for transforming an XML document into JSON text as specified in draft\-lhotka\-yang\-json\-01\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules (or via a <hello> message, see the
+output generates an XSLT 1\&.0 stylesheet that can be used for transforming an XML instance document into JSON text as specified in draft\-lhotka\-yang\-json\-01\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules (or via a <hello> message, see the
 \fB\-\-hello\fR
 option)\&.
 .PP
-The document element (root) of the XML document must be <nc:data>, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0"\&.
+The data tree(s) must be wrapped in either <nc:data> or <nc:config> element, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0"\&. Other elements, such as <nc:rpc\-reply>, <nc:edit\-config> or <nc:target> may be present as ancestor or sibling nodes of <nc:data> or <nc:config>\&. This means that the input XML document may be, for instance, a complete NETCONF RPC request or response\&.
 .PP
 Current limitations:
 .sp
