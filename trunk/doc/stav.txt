@@ -40,10 +40,10 @@ The following terms are used within this document:
   one can determine device state and behavior.
 
 - configuration: A separate overlay/blueprint containing only data
-  explicitly specified by a client (all clients?).  A configuration
-  schema is congruent to a subtree of OSD schema. However,
-  configuration may contain parts that are currently not present in
-  OSD (pre-provisioning).
+  explicitly specified by clients.  The configuration's schema is
+  congruent to a subtree of the operational state datastore's schema.
+  The configuration may contain data that is currently not present in
+  the operational state datastore (pre-provisioning).
 
 * Objectives
 
@@ -222,7 +222,9 @@ modified over NETCONF.  introduce oper:writable
 This document updates section 8 of RFC 6020 with rules for the
 operational state datastore.
 
-No constraints are enforced on the operational state datastore.
+No constraints are enforced on the operational state datastore.  For
+example, this means that a mandatory "config true" leaf does not have
+to be present in the operational state datastore.
 
 * Protocol Operations
 
@@ -271,26 +273,27 @@ contains the value "half".
 
 ** <edit-operational>
 
-[NOT FINISHED]
+[NOT FINISHED - NOT CLEAR IF WE NEED THIS]
 
 Introduce edit-operational.  This modifies the subset of the
 operational data tree that is also marked as writable.
 
-Drawback: does not handle persistent operarational data.
-
-If we have persistent operational data, this has to be its own data
-store that can be read and written.
+Drawback: does not handle persistent operarational data.  If we have
+persistent operational data, this has to be its own data store that
+can be read and written.
 
 A data model w/o the writable markers cannot be written to.  This is a
 problem, since it is not obvious that the original designer though
 about future use cases.  For example, our route tables are read-only.
 Then IRS comes along and wants to write to this data.  Do we have to
-update our spec?  Not good.  Obe option is for IRS to publish a
+update our spec?  Not good.  One option is for IRS to publish a
 deviation data model that added the writable statement to our model.
 This would be backwards compliant and good.  Even better would be if
-they could publish a conformance statement in a module, w/o the meed
+they could publish a conformance statement in a module, w/o the need
 for deviations.
 
+## mbj: removed b/c (1) maybe we'll do edits, and (2) it describes
+## stuff already in 6241.
 # * NETCONF
 #
 # From the viewpoint of this document, the NETCONF protocol ^RFC6241^ is
@@ -315,52 +318,49 @@ for deviations.
 The configuration datastore can be thought of as a blueprint for the
 operational datastore, subject to the following rules:
 
-1. The configuration datastore is congruent to a subtree of the
-   operational state datastore. In other words, this means that:
++ The configuration datastore is congruent to a subtree of the
+  operational state datastore.  This means that every data node in the
+  configuration datastore has a corresponding data node with the same
+  name in the operational state tree.
 
-    - every data node in the configuration datastore has a
-      corresponding data node with the same name in the operational
-      state tree,
++ The configuration datastore MAY contain data nodes (subtrees) that
+  are currently disabled, and thus not present in the operational
+  state datastore.
 
-    - the configuration datastore forms a single connected tree.
+When a NETCONF client modifies the "running" configuration datastore,
+the server MUST immediately attempt to project the changes into the
+operational state datastore.
 
-2. The configuration datastore MAY contain data nodes (subtrees) that
-   are currently disabled in the operational state data (see Section
-   XXX [when]).
-
-** Applying the Contents of the Configuration Datastore
-
-If a NETCONF client edits the configuration datastore, the server MUST
-immediately attempt to project the changes into the operational state
-datastore, after performing some validation steps. The procedure is as
-follows:
-
-1. The new configuration must be syntactically valid (conform to a
-   data model schema) and the values of leaf nodes must have the
-   correct datatypes. If this is not satisfied, the edit is rejected.
-
-2. The disabled parts of the operational state datastore are
-   determined by evaluating the XPath expressions in all 'when'
-   statements. The available tree for XPath evaluation are the new
-   contents of the configuration datastore superposed onto the
-   operational state datastore. [That is, for config=true data the values
-   are taken from the configuration datastore, for config=false data
-   from the OS datastore.]
-
-   It is not an error if the configuration datastore contains data
-   nodes that correspond to the disabled parts of the configuration
-   datastore. However, such data nodes MUST NOT be used in any way for
-   changing the operational state datastore.
-
-3. Semantic constraints expressed by XPath expressions in 'must'
-   statements are validated. The available tree for XPath evaluation
-   is the same as in step 2, except that the disabled nodes (as
-   determined in step 2) are considered to be missing. If any of these
-   XPath expressions evaluate to "false" the edit is rejected.
-
-4. Finally, the values of the configuration datastore that were
-   modified by the edit (except the disabled parts) are transferred to
-   the corresponding nodes in the operational state datastore. 
+## mbj: removed b/c it describes what's already described in 6020 and
+## 6241.
+# ** Applying the Contents of the Configuration Datastore
+#
+# + The new configuration must be syntactically valid (conform to a data
+#   model schema) and the values of leaf nodes must have the correct
+#   datatypes. If this is not satisfied, the edit is rejected.
+#
+# + The disabled parts of the operational state datastore are determined
+#   by evaluating the XPath expressions in all 'when' statements. The
+#   available tree for XPath evaluation are the new contents of the
+#   configuration datastore superposed onto the operational state
+#   datastore. [That is, for config=true data the values are taken from
+#   the configuration datastore, for config=false data from the OS
+#   datastore.]
+#
+#   It is not an error if the configuration datastore contains data
+#   nodes that correspond to the disabled parts of the configuration
+#   datastore. However, such data nodes MUST NOT be used in any way for
+#   changing the operational state datastore.
+#
+# + Semantic constraints expressed by XPath expressions in 'must'
+#   statements are validated. The available tree for XPath evaluation is
+#   the same as in step 2, except that the disabled nodes (as determined
+#   in step 2) are considered to be missing. If any of these XPath
+#   expressions evaluate to "false" the edit is rejected.
+#
+# + Finally, the values of the configuration datastore that were
+#   modified by the edit (except the disabled parts) are transferred to
+#   the corresponding nodes in the operational state datastore.
 
 * YANG Module @module@
 
@@ -391,7 +391,8 @@ registry ^RFC6020^.
 
 * Security Considerations
 
-TBD
+This document does not introduce any new security concerns in addition
+to those specified in ^RFC6020^ and ^RFC6241^.
 
 *! start-appendix
 
@@ -480,26 +481,6 @@ state can be "up" or "down", but the operational state can be "up",
 
 These kind of situations are still best modelled as two separate
 leafs, one "admin-state" and one "oper-state".
-
-
-* Old Ideas
-
-[REMOVE THIS SECTION]
-
-Introduce the idea of control data.  This would be a separate data
-tree.  Unclear if this data model could be all operational data, or
-only the config false tree.  One problem with this is how you delete
-some operational data?  If it is deleted from the control layer, why
-is it also deleted from operational?
-
-Also unclear how this layer would be populated.  If there is some data
-hierarchy created in operational state, and someone wants to modify a
-leaf deep down in the hierarchy, the hierarchy would have to be
-created by the app, in order to set the leaf.
-
-
-
-
 
 {{document:
     name ;
