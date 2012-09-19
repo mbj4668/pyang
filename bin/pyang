@@ -168,12 +168,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             sys.exit(1)
         if filenames:
             try:
-                fd = open(filenames[0])
+                fd = open(filenames[0], "rb")
             except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filenames[0], str(ex)))
                 sys.exit(1)
-        else:
+        elif sys.version < "3":
             fd = sys.stdin
+        else:
+            fd = sys.stdin.buffer
         hel = hello.HelloParser().parse(fd)
         ctx.capabilities = hel.registered_capabilities()
         for (mn,rev) in hel.yang_modules():
