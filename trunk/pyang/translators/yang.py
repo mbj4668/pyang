@@ -3,9 +3,9 @@
 import optparse
 import re
 
-from pyang import plugin
-from pyang import util
-from pyang import grammar
+from .. import plugin
+from .. import util
+from .. import grammar
 
 def pyang_plugin_init():
     plugin.register_plugin(YANGPlugin())

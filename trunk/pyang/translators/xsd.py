@@ -6,11 +6,10 @@ from xml.sax.saxutils import escape
 import optparse
 import re
 
-import pyang
-from pyang import plugin
-from pyang import util
-from pyang import statements
-from pyang import error
+from .. import plugin
+from .. import util
+from .. import statements
+from .. import error
 
 yang_to_xsd_types = \
   {'int8':'byte',
@@ -396,7 +395,8 @@ def emit_xsd(ctx, module, fd):
         fd.write('    <xs:documentation>\n')
         fd.write('      This schema was generated from the YANG module %s\n' % \
                      module.arg)
-        fd.write('      by pyang version %s.\n' % pyang.__version__)
+## FIXME: how do I import pyang?
+#        fd.write('      by pyang version %s.\n' % pyang.__version__)
         fd.write('\n')
         fd.write('      The schema describes an instance document consisting\n')
         fd.write('      of the entire configuration data store, operational\n')
@@ -656,7 +656,7 @@ def xsd_type_name(ctx, type, parent):
                 return "%s:%s" % (othermod.i_xsd_prefix, type.i_typedef.arg)
         else:
             # cannot happen
-            print type.arg
+            print(type.arg)
             assert False
     else:
         return type.arg

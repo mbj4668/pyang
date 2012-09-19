@@ -11,7 +11,7 @@ def init(plugindirs=[]):
     """Initialize the plugin framework"""
 
     # initialize the builtin plugins
-    from translators import yang,yin,dsdl,xsd
+    from .translators import yang,yin,dsdl,xsd
     yang.pyang_plugin_init()
     yin.pyang_plugin_init()
     dsdl.pyang_plugin_init()
@@ -35,9 +35,9 @@ def init(plugindirs=[]):
                 pluginmod = __import__(fname[:-3])
                 try:
                     pluginmod.pyang_plugin_init()
-                except AttributeError, s:
-                    print pluginmod.__dict__
-                    raise AttributeError, pluginmod.__file__ + ': ' + str(s)
+                except AttributeError as s:
+                    print(pluginmod.__dict__)
+                    raise AttributeError(pluginmod.__file__ + ': ' + str(s))
         sys.path = syspath
 
 

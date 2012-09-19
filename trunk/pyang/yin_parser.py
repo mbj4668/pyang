@@ -1,13 +1,12 @@
 import sys
-
 from xml.parsers import expat
 import copy
 
-import syntax
-import grammar
-import error
-import statements
-import util
+from . import syntax
+from . import grammar
+from . import error
+from . import statements
+from . import util
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 
@@ -89,7 +88,7 @@ class YinParser(object):
             self.parser.Parse(text, True)
         except error.Abort:
             return None
-        except expat.ExpatError, ex:
+        except expat.ExpatError as ex:
             self.pos.line = ex.lineno
             error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
                           str(ex).split(":")[0])

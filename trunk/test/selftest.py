@@ -36,7 +36,7 @@ def chk_error_codes():
     for x in error.error_codes:
         (retcode, res, err) = oscmd('grep %s %s' % (x, filesstr))
         if retcode != 0:
-            print >> sys.stderr, "Error code: %s not used" % x
+            sys.stderr.write("Error code: %s not used" % x)
             found_error = True
 
 def chk_stmts():
@@ -49,9 +49,8 @@ def chk_stmts():
             targets = util.listsdelete((map,name), stmtmaps)
             for (tmap, tname) in targets: 
                 if stmt not in tmap:
-                    print >> sys.stderr, \
-                        "Stmt %s in %s not found in %s" % \
-                        (stmt, name, tname)
+                    sys.stderr.write("Stmt %s in %s not found in %s" % \
+                                         (stmt, name, tname))
                     found_error = True
     if found_error:
         return
@@ -59,14 +58,12 @@ def chk_stmts():
         (argname, yinelem) = syntax.yin_map[s]
         (xargname, xyinelem, xsdappinfo) = xsd.yang_keywords[s]
         if argname != xargname:
-            print >> sys.stderr, \
-                "Stmt %s argname mismatch in syntax.yin_map " \
-                "and xsd.yang_keywords" % s
+            sys.stderr.write("Stmt %s argname mismatch in syntax.yin_map " \
+                                 "and xsd.yang_keywords" % s)
             found_error = True
         if yinelem != xyinelem:
-            print >> sys.stderr, \
-                "Stmt %s yinelem mismatch in syntax.yin_map " \
-                "and xsd.yang_keywords" % s
+            sys.stderr.write("Stmt %s yinelem mismatch in syntax.yin_map " \
+                                 "and xsd.yang_keywords" % s)
             found_error = True
             
 

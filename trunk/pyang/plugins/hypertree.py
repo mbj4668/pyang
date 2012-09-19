@@ -46,7 +46,7 @@ class HyperTreePlugin(plugin.PyangPlugin):
         emit_tree(modules, fd, path)
 
 def print_help():
-    print """
+    print("""
 Prints an XML file that can be loaded to
 http://treebolic.sourceforge.net/
 
@@ -66,7 +66,7 @@ into a web page:
 
 The browser references an images folder which is installed at share/yang/images in the pyang installation folder.
 Copy or link to that folder.
-"""    
+""")    
 
 
 keyword2icon = {'container':'container.png','list':'list.png', 'leaf':'leaf.png','leaflist':'leaf-list.png', 'leafref':'leafref.png', 'choice':'choice.png', 'case':'case.png', 'module':'module.png', 'rpc':'hammer.png', 'action':'hammer.png', 'notificattion':'notification.png'}

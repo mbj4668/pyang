@@ -84,7 +84,7 @@ def tokens(s):
                         tok = (m.group(0), m.group(0))
                     else:
                         e = "%s: unknown operator %s" % (pos+1, m.group(0))
-                        raise SyntaxError, e
+                        raise SyntaxError(e)
                 elif tokname == 'name':
                     # check if next token is '('
                     if re_open_para.match(s, pos + len(m.group(0))):
@@ -102,7 +102,7 @@ def tokens(s):
                             tok = ('axis', m.group(0))
                         else:
                             e = "%s: unknown axis %s" % (pos+1, m.group(0))
-                            raise SyntaxError, e
+                            raise SyntaxError(e)
                     else:
                         tok = ('name', m.group(0))
                 else:
@@ -113,7 +113,7 @@ def tokens(s):
                 break
         if matched == False:
             # no patterns matched
-            raise SyntaxError, "at position %s" % str(pos+1)
+            raise SyntaxError("at position %s" % str(pos+1))
     return toks
 
 def _preceding_token(toks):

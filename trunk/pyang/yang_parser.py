@@ -2,10 +2,10 @@
 
 The parser does not check any keywords or grammar.
 """
-import error
-import util
-import statements
-import syntax
+from . import error
+from . import util
+from . import statements
+from . import syntax
 import collections
 
 class YangTokenizer(object):
@@ -215,7 +215,7 @@ class YangParser(object):
             stmt = self._parse_statement(None)
         except error.Abort:
             return None
-        except error.Eof, e:
+        except error.Eof as e:
             error.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
             return None
         try:

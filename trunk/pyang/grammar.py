@@ -1,8 +1,8 @@
 """Description of YANG & YIN grammar."""
 
-from pyang import util
-from pyang import error
-import syntax
+from . import util
+from . import error
+from . import syntax
 
 module_header_stmts = [
     ('yang-version', '?'),
@@ -70,8 +70,9 @@ top_stmts = [
 ]
 """Top-level statements."""
 
-def add_stmt(stmt, (arg, rules)):
+def add_stmt(stmt, arg_rules):
     """Use by plugins to add grammar for an extension statement."""
+    (arg, rules) = arg_rules
     stmt_map[stmt] = (arg, rules)
 
 def add_to_stmts_rules(stmts, rules):

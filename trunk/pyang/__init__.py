@@ -6,12 +6,12 @@ import sys
 import zlib
 import re
 
-import error
-import yang_parser
-import yin_parser
-import grammar
-import util
-import statements
+from . import error
+from . import yang_parser
+from . import yin_parser
+from . import grammar
+from . import util
+from . import statements
 
 __version__ = '1.2'
 __date__ = '2011-07-27'
@@ -86,7 +86,10 @@ class Context(object):
                     error.err_add(self.errors, module.pos, 'WBAD_REVISION',
                                   (latest_rev, ref, expect_revision))
 
-        module.i_adler32 = zlib.adler32(text)
+        if sys.version < '3':
+            module.i_adler32 = zlib.adler32(text)
+        else:
+            module.i_adler32 = zlib.adler32(text.encode('UTF-8'))
         return self.add_parsed_module(module)
 
     def add_parsed_module(self, module):
@@ -153,7 +156,7 @@ class Context(object):
                 # now we must read the revision from the module
                 try:
                     r = self.repository.get_module_from_handle(handle)
-                except self.repository.ReadError, ex:
+                except self.repository.ReadError as ex:
                     i += 1
                     continue
                 (ref, format, text) = r
@@ -229,7 +232,7 @@ class Context(object):
                 r = self.repository.get_module_from_handle(handle)
                 (ref, format, text) = r
                 module = self.add_module(ref, text, format, modulename, revision)
-            except self.repository.ReadError, ex:
+            except self.repository.ReadError as ex:
                 error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
                 module = None
 
@@ -298,7 +301,7 @@ class Context(object):
                     p = yang_parser.YangParser(extra)
 
                 return p.parse(self, ref, text)
-            except self.repository.ReadError, ex:
+            except self.repository.ReadError as ex:
                 return None
 
     def validate(self):
@@ -357,14 +360,14 @@ class FileRepository(Repository):
         """
 
         Repository.__init__(self)
-        self.dirs = string.split(path, os.pathsep)
+        self.dirs = path.split(os.pathsep)
         
         # add standard search path
         self.dirs.append('.')
 
         modpath = os.getenv('YANG_MODPATH')
         if modpath is not None:
-            self.dirs.extend(string.split(modpath, os.pathsep))
+            self.dirs.extend(modpath.split(os.pathsep))
 
         home = os.getenv('HOME')
         if home is not None:
@@ -401,9 +404,9 @@ class FileRepository(Repository):
     # this code parses all modules :(  need to do this lazily
     def _peek_revision(self, absfilename, format, ctx):
         try:
-            fd = file(absfilename)
+            fd = open(absfilename)
             text = fd.read()
-        except IOError, ex:
+        except IOError as ex:
             return None
         if format == 'yin':
             p = yin_parser.YinParser()
@@ -425,9 +428,9 @@ class FileRepository(Repository):
     def get_module_from_handle(self, handle):
         (format, absfilename) = handle
         try:
-            fd = file(absfilename)
+            fd = open(absfilename)
             text = fd.read()
-        except IOError, ex:
+        except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
 
         if format is None:
