@@ -58,17 +58,23 @@ The following terms are used within this document:
 ** Modelling and Retrieving Operational State
 
 The NETCONF operation <get> returns both device state data and the
-running configuration.  This implies that any state data must be
-modelled separately from the configuration data, leading to
-duplication of data models.
+running configuration.  Quite often, device parameters require a dual
+representation, both as configuration and state data.
 
-This approach has several drawbacks.  It is counter-intuitive to data
-model designers, who tend to mix configuration parameters with state
-parameters (see ^ex-if-list-1^ for an example).  Data model
-duplication is error prone and leads to bigger data models, that are
-more difficult to understand.  Further, there is no formal information
-in the data model about the relationship between the configuration
-data and the operational state data.
+For instance, an IP address may be specified in an interface
+configuration but, depending on other circumstances, this address may
+not be used for that interface. In any case, an operator should be
+able to obtain the addresses that are in operational use.
+
+This implies that some state data must be modelled separately from the
+configuration data, which leads to a certain amount of duplication in
+data models. However, this approach has several drawbacks.  It is
+counter-intuitive to data model designers, for whom configuration and
+state parameters are closely related (see ^ex-if-list-1^ for an
+example).  Data model duplication is error prone and leads to bigger
+data models, that are more difficult to understand.  Further, there is
+no formal information in the data model about the relationship between
+the configuration and operational state data.
 
 *** Example: Interface List @ex-if-list-1@
 
@@ -89,8 +95,8 @@ of packets received.  The counter is operational state data.
     ...
   }
 
-A particular device has hardware for two interfaces; "eth0" and
-"eth1".  In the configuration there is:
+A particular device has hardware for two interfaces with names "eth0"
+and "eth1".  In the configuration there is:
 
    <interface>
      <name>eth0</name>
@@ -107,9 +113,9 @@ Operationally, however, the interfaces used are "eth0" and "eth1",
 although "eth1" does not have any configuration and does not
 send or receive packets.
 
-Now, how can we see "eth1"?  If we use <get> we will get the running
-configuration and state data.  So, <get> will not show us "eth1",
-since it is not present in the running configuration.
+How can an operator learn about the presence of "eth1"?  The <get>
+returns running configuration and state data together.  So, <get> will
+not show "eth1", since it is not present in the running configuration.
 
 With NETCONF as currently defined, the only alternative is to
 duplicate the data model:
@@ -142,7 +148,14 @@ With NETCONF as currently designed, the only way to do this is to
 define separate operations.  This leads to another kind of data model
 duplication, where every writable parameter is modelled both as state
 data that can be retrieved using the <get> operation, and also as
-input parameters to at least one rpc operation.  
+input parameters to at least one rpc operation.
+
+[LL: My idea was that this would be treated as an alternative
+management interface that needn't necessarily be implemented with
+NETCONF means. SNMP is another example of such a parallel
+interface. We just have to make sure that the operational state
+datastore is able to work with multiple management interfaces but
+otherwise the is no need to define these interfaces in this draft.] 
 
 *** Example: Routing Table Modification
 
@@ -182,15 +195,31 @@ do:
     }
   }
 
-* Operational State Datastore
+* Datastores
 
-This document introduces the operational state datastore.  It consists
-of all parameters that provide information about the instantaneous
-state of the device and immediately influences the device's behavior.
+[LL: I think we should use the terms "operational state datastore" and
+"configuration datastore" consistently throughout the document. The
+terms like "parameters actually used by the device" are IMO too fuzzy.] 
+
+The fundamental idea of this document is to model operational state
+data as an explicit data structure - the operational state datastore.
+It is available to all management interfaces, which includes NETCONF
+but also other interfaces such as SNMP.
+
+Then, the NETCONF-specific "running" configuration datastore is
+modeled as a separate overlay data structure whose layout is identical
+to the subset of the oerational state datastore that repersents
+configuration.
+  
+** Operational State Datastore
+
+The operational state datastore consists of all parameters that
+provide information about the instantaneous state of the device and
+immediately influences the device's behavior.
 
 The operational state datastore is a conceptual data structure.  This
 means that implementations may choose any suitable representation of
-the datastore, including dynamically generating it upon request.
+the datastore, or even generate it dynamically upon request.
 
 Operational state may be modified through one or more management
 interfaces, or through the operation of network protocols.  All such
@@ -199,11 +228,148 @@ on the same data - the operational state datastore.  It means, for
 instance, that any change caused by a network protocol is immediately
 visible to all management interfaces.
 
-* Modelling Operational State
+Data nodes in the operational state datastore fall into two disjoint
+categories:
 
-The schema for the operational state datastore is made up of all data
-nodes defined in YANG modules, specifically both "config true" and
-"config false" data nodes.
+- configuration/state
+- state only
+
+The former category includes data nodes that may be directly modified
+by a management interface. In contrast, data nodes in the latter
+category are read-only from the point of view of management
+interfaces and can only only be modified by other means such as
+network protocols.
+
+In YANG terms, data nodes are tagged as configuration/state or state
+only by means on the "config" statement: the former category is
+"config true" while the latter is "config false".
+
+[LL: These definitions are not NETCONF specific and make YANG data
+models potentially usable by other management interfaces.]     
+
+** Configuration Datastore
+
+The configuration datastore is specific to the NETCONF management
+interface. It can be thought of as a blueprint for the operational
+datastore. Specifically, the schema for the configuration datastore is
+congruent to a subtree of the schema for operational state datastore
+containing only "config true" nodes.  In other words, every data node
+in the configuration datastore schema has a corresponding data node
+with the same name in the operational datastore schema, and the latter
+data node is "config true".
+
+Whenever a NETCONF client modifies the configuration datastore, the
+server MUST immediately attempt to project the changes into the
+operational state datastore. Most of the time, it simply means copying
+the values in the configuration datastore to the corresponding
+nodes in the operation state datastore.
+
+However, the configuration datastore may contain data nodes that are
+not projected into the operational state datastore. This happens in
+the following three scenarios:
+
+1. Pre-provisioned configuration prepared for hardware components that
+   are not yet present in the device. See ^ex-if-list-1^ above.
+
+2. Pre-provisioned configuration for components (hardware, protocols,
+   etc.) that are intended to replace an existing item but are of a
+   different type.
+
+3. Parts of configuration that are momentarily not applicable.
+
+In scenario 1, the server has to determine that the particular hardware
+component is not present. In scenarios 2 and 3, a configuration data
+node is ignored if a "when" condition that is specified for that node
+or its ancestor evaluates to "false".
+
+*** Example: Interface Replacement
+
+This example is a use case for scenario 2. Consider the following data
+model fragment:
+
+  list interface {
+    key "name";
+    leaf name { ... };
+    leaf type { ... };
+    leaf local-name { ... };
+    container ppp {
+      when "../../type = 'PPP'";
+      leaf flow-control { ... };
+      ...
+    }
+    container ethernet {
+      when "../../type = 'Ethernet'";
+      leaf duplex { ... };
+      ...
+    }
+  }
+
+Assume a device initially has only a serial modem connection using PPP but a
+migration to an Ethernet link is being prepared. The configuration may
+then contain
+
+  <interface>
+    <name>uplink</name>
+    <type>PPP</type>
+    <local-name>ppp0</local-name>
+    <ppp>
+      <flow-control>crtscts</flow-control>
+      ...
+    </ppp>
+    <ethernet>
+      <duplex>full</duplex>
+      ...
+    </ethernet>
+    ...
+  </interface>
+
+When this configuration is applied, the <ethernet> subtree is ignored
+because its "when" condition evaluates to "false".
+
+After the Ethernet uplink connection is established, an operator
+changes the value of "type" to "Ethernet" and the value of
+"local-name" to "eth0". Consequently, the <ethernet> part of the configuration is
+applied and <ppp> now ignored.
+
+*** Example: IP Address Assignment
+
+This example is a use case for scenario 3. Consider the following data
+model fragment:
+
+  container dhcp {
+    leaf enabled { ... };
+    ...
+  }
+  container ipv4 {
+    leaf ip {
+      when "../../dhcp/enabled = 'false'";
+      ...
+    }
+    ...
+  }
+
+Here is a configuration snippet:
+
+  <dhcp>
+    <enabled>true</enabled>
+    ...
+  </dhcp>
+  <ipv4>
+    <ip>192.0.2.1</ip>
+  </ipv4>
+
+Since the "when" condition under "ip" evaluates to "false", the
+configured IP address 192.0.2.1 is not used. The node "ipv4/ip" in the
+operational state datastore probably contains a different address
+obtained from DHCP.  
+
+* NETCONF Operations and Datastores
+
+This section explains the semantics of both existing and new NETCONF
+operations in terms of how they affect the contents of the
+configuration and operational state datastores.
+
+[LL: This section has to be expanded and heavily edited.]
 
 Note that when <get-config> is used to retrieve a "config true" node,
 the value stored in the datastore is returned.  When <get-operational>
@@ -214,17 +380,24 @@ value in the datastore.
 ? Should there be a YANG statement 'operational <bool>' so that config
 true nodes can be marked as not being part of the operational schema?
 
+[LL: We should first try to avoid it. If it turns out to be necessary,
+then perhaps a single node, e.g. "role" could be used, allowing three
+values: "config", "state" and "both".]
+
 By default, nodes in the operational data store cannot be directly
 modified over NETCONF.  introduce oper:writable
 
-** Constraints
+[LL: As I said, I would not consider this case in this document.]
 
-This document updates section 8 of RFC 6020 with rules for the
-operational state datastore.
+## LL: I removed this subsection because it contradicts my text.
+# ** Constraints
+#
+# This document updates section 8 of RFC 6020 with rules for the
+# operational state datastore.
 
-No constraints are enforced on the operational state datastore.  For
-example, this means that a mandatory "config true" leaf does not have
-to be present in the operational state datastore.
+# No constraints are enforced on the operational state datastore.  For
+# example, this means that a mandatory "config true" leaf does not have
+# to be present in the operational state datastore.
 
 * Protocol Operations
 
@@ -234,6 +407,10 @@ This document introduces a new operation <get-operational>, which is
 used to retreive the operational state data from a device.  Note how
 this operation differs from <get>, which is used to retrieve both the
 running configuration and state data.
+
+[LL: WRT <get>: what happens if a config=true value is present in OSD
+but not in config? Should the OSD value be used? (I assume that
+configuration only merges all previous edits.)] 
 
 <get-operational> takes the same parameters as <get>.
 
@@ -250,6 +427,10 @@ leaf for ethernet duplex:
     }
     config true;
   }
+
+[LL: Here we have a case when the datatype is not the sam for config
+and OSD - "auto" can only appear in config. Should we address this
+somehow?]
   
 Suppose a device with this data model implements the candidate
 datastore.  The following is an example of data from such a device:
@@ -274,6 +455,7 @@ contains the value "half".
 ** <edit-operational>
 
 [NOT FINISHED - NOT CLEAR IF WE NEED THIS]
+[LL: I think we don't need it.]
 
 Introduce edit-operational.  This modifies the subset of the
 operational data tree that is also marked as writable.
@@ -313,23 +495,6 @@ for deviations.
 # in order to be applied. In the following, the term "configuration
 # datastore" means the "running" configuration datastore.
 
-* Configuration Datastore
-
-The configuration datastore can be thought of as a blueprint for the
-operational datastore, subject to the following rules:
-
-+ The configuration datastore is congruent to a subtree of the
-  operational state datastore.  This means that every data node in the
-  configuration datastore has a corresponding data node with the same
-  name in the operational state tree.
-
-+ The configuration datastore MAY contain data nodes (subtrees) that
-  are currently disabled, and thus not present in the operational
-  state datastore.
-
-When a NETCONF client modifies the "running" configuration datastore,
-the server MUST immediately attempt to project the changes into the
-operational state datastore.
 
 ## mbj: removed b/c it describes what's already described in 6020 and
 ## 6241.
