@@ -54,7 +54,7 @@ class TreePlugin(plugin.PyangPlugin):
         emit_tree(modules, fd, ctx.opts.tree_depth, path)
 
 def print_help():
-    print """
+    print("""
 Each node is printed as:
 
 <status> <flags> <name> <opts>   <type>
@@ -83,7 +83,7 @@ Each node is printed as:
     [<keys>] for a list's keys
 
   <type> is the name of the type for leafs and leaf-lists
-"""    
+""")    
 
 def emit_tree(modules, fd, depth, path):
     for module in modules:

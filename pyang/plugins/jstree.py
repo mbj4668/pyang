@@ -46,12 +46,12 @@ class JSTreePlugin(plugin.PyangPlugin):
         emit_footer(fd)
 
 def print_help():
-    print """
+    print("""
 Generates a html/javascript page that presents a tree-navigator
 to the YANG module(s). Assumes that an images folder exists
 relative to the html file. This images folder is installed in
 share/yang/images in the  pyang install folder.
-"""
+""")
 
 def emit_css(fd):
     fd.write("""

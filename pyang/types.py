@@ -1,9 +1,8 @@
 """YANG built-in types"""
 
-from error import err_add
-import util
-import syntax
-import statements
+from .error import err_add
+from . import util
+from . import syntax
 
 class Abort(Exception):
     pass
@@ -69,6 +68,27 @@ class Decimal64Value(object):
         if not isinstance(other, Decimal64Value):
             return True
         return self.__cmp__(other) != 0
+
+    def __lt__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return True
+        return self.value < other.value
+
+    def __le__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return True
+        return self.value <= other.value
+
+    def __gt__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return False
+        return self.value > other.value
+
+    def __ge__(self, other):
+        if not isinstance(other, Decimal64Value):
+            return False
+        return self.value >= other.value
+
 
 class Decimal64TypeSpec(TypeSpec):
     def __init__(self, fraction_digits):
@@ -182,8 +202,8 @@ class IdentityrefTypeSpec(TypeSpec):
             pmodule = self.base.i_module
         else:
             # this is a prefixed name, check the imported modules
-            pmodule = statements.prefix_to_module(self.base.i_module, prefix,
-                                                  pos, errors)
+            pmodule = util.prefix_to_module(self.base.i_module, prefix,
+                                            pos, errors)
             if pmodule is None:
                 return None
         if name not in pmodule.i_identities:
@@ -261,8 +281,9 @@ class RangeTypeSpec(TypeSpec):
             if self.base.validate(errors, pos, val, errstr) == False:
                 return False
             for (lo, hi) in self.ranges:
-                if ((lo == 'min' or val >= lo) and
-                    ((hi == None and val == lo) or hi == 'max' or val <= hi)):
+                if ((lo == 'min' or lo == 'max' or val >= lo) and
+                    ((hi is None and val == lo) or hi == 'max' or \
+                         (hi is not None and val <= hi))):
                     return True
             err_add(errors, pos, 'TYPE_VALUE',
                     (str(val), self.definition, 'range error' + errstr +
@@ -339,7 +360,8 @@ class LengthTypeSpec(TypeSpec):
         vallen = len(val)
         for (lo, hi) in self.lengths:
             if ((lo == 'min' or vallen >= lo) and
-                ((hi == None and vallen == lo) or hi == 'max' or vallen <= hi)):
+                ((hi is None and vallen == lo) or hi == 'max' or 
+                 (hi is not None and vallen <= hi))):
                 return True
         err_add(errors, pos, 'TYPE_VALUE',
                 (val, self.definition, 'length error' + errstr + 
@@ -357,7 +379,7 @@ def validate_pattern_expr(errors, stmt):
         try:
             re = libxml2.regexpCompile(stmt.arg)
             return (re, stmt.pos)
-        except libxml2.treeError, v:
+        except libxml2.treeError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
     except ImportError:
@@ -555,8 +577,8 @@ def validate_path_expr(errors, path):
                 return ((m.group(2), m.group(3)), s)
 
                 prefix = m.group(2)
-                mod = statements.prefix_to_module(path.i_module, prefix,
-                                                  path.pos, errors)
+                mod = util.prefix_to_module(path.i_module, prefix,
+                                            path.pos, errors)
                 if mod is not None:
                     return ((mod, m.group(3)), s)
                 else:

@@ -58,7 +58,7 @@ optparser.add_options(optlist)
 (o, args) = optparser.parse_args()
     
 if len(args) > 1:
-    print >> sys.stderr, "too many files to convert"
+    print("too many files to convert", file=sys.stderr)
     sys.exit(1)
 
 
@@ -72,7 +72,7 @@ else:
     try:
         fd = file(filename)
         buf = fd.read()
-    except IOError, ex:
+    except IOError as ex:
         sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
         sys.exit(1)
 

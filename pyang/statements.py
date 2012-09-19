@@ -1,13 +1,14 @@
 import copy
 import re
 
-import util
-from util import attrsearch, keysearch
-from error import err_add
-import types
-import syntax
-import grammar
-import xpath
+from . import util
+from .util import attrsearch, keysearch, prefix_to_module, \
+    prefix_to_modulename_and_revision
+from .error import err_add
+from . import types
+from . import syntax
+from . import grammar
+from . import xpath
 
 ### Exceptions
 
@@ -1727,7 +1728,7 @@ def v_reference_must(ctx, stmt):
                                             s not in yang_xpath_functions):
                 err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
 
-    except SyntaxError, e:
+    except SyntaxError as e:
           err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
 def v_reference_when(ctx, stmt):
@@ -1893,34 +1894,6 @@ def chk_uses_pos(s, pos):
         return s.i_uses_pos
     else:
         return pos
-
-def prefix_to_modulename_and_revision(module, prefix, pos, errors):
-    if prefix == '':
-        return module.arg, None
-    if prefix == module.i_prefix:
-        return module.arg, None
-    try:
-        (modulename, revision) = module.i_prefixes[prefix]
-    except KeyError:
-        if prefix not in module.i_missing_prefixes:
-            err_add(errors, pos, 'PREFIX_NOT_DEFINED', prefix)
-        module.i_missing_prefixes[prefix] = True
-        return None, None
-    # remove the prefix from the unused
-    if prefix in module.i_unused_prefixes:
-        del module.i_unused_prefixes[prefix]
-    return modulename, revision
-
-def prefix_to_module(module, prefix, pos, errors):
-    if prefix == '':
-        return module
-    if prefix == module.i_prefix:
-        return module
-    modulename, revision = \
-        prefix_to_modulename_and_revision(module, prefix, pos, errors)
-    if modulename is None:
-        return None
-    return module.i_ctx.get_module(modulename, revision)
 
 def modulename_to_module(module, modulename, revision=None):
     if modulename == module.arg:
@@ -2457,13 +2430,13 @@ class Statement(object):
 
     def pprint(self, indent='', f=None):
         """debug function"""
-        print indent + util.keyword_to_str(self.keyword) + " " + self.arg
+        print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)
         if f is not None:
              f(self, indent)
         for x in self.substmts:
             x.pprint(indent + ' ', f)
         if hasattr(self, 'i_children'):
-            print indent + '--- i_children ---'
+            print(indent + '--- i_children ---')
             for x in self.i_children:
                 x.pprint(indent + ' ', f)
 
@@ -2485,12 +2458,12 @@ def validate_status(errors, x, y, defn, ref):
 
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "
-    print "%s%s %s      %s %s" % (indent * istr, stmt.keyword, stmt.arg, stmt, stmt.parent)
+    print("%s%s %s      %s %s" % (indent * istr, stmt.keyword, stmt.arg, stmt, stmt.parent))
     if substmts and stmt.substmts != []:
-        print "%s  substatements:" % (indent * istr)
+        print("%s  substatements:" % (indent * istr))
         for s in stmt.substmts:
             print_tree(s, substmts, i_children, indent+1)
     if i_children and hasattr(stmt, 'i_children'):
-        print "%s  i_children:" % (indent * istr)
+        print("%s  i_children:" % (indent * istr))
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)

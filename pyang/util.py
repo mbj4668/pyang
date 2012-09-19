@@ -1,5 +1,17 @@
 import datetime
 
+from .error import err_add
+
+## unicode literal support
+import sys
+if sys.version < '3':
+    import codecs
+    def u(x):
+        return codecs.unicode_escape_decode(x)[0]
+else:
+    def u(x):
+        return x
+
 def attrsearch(tag, attr, list):
     for x in list:
         if x.__dict__[attr] == tag:
@@ -13,10 +25,10 @@ def keysearch(tag, n, list):
     return None
 
 def dictsearch(val, dict):
-    n = dict.iteritems()
+    n = iter(dict.items())
     try:
         while True:
-            (k,v) = n.next()
+            (k,v) = next(n)
             if v == val:
                 return k
     except StopIteration:
@@ -26,7 +38,7 @@ def is_prefixed(identifier):
     return type(identifier) == type(()) and len(identifier) == 2
 
 def is_local(identifier):
-    return type(identifier) == type('') or type(identifier) == type(u'')
+    return type(identifier) == type('') or type(identifier) == type(u(''))
 
 def keyword_to_str(keyword):
     if is_prefixed(keyword):
@@ -64,3 +76,31 @@ def get_latest_revision(module):
         return "unknown"
     else:
         return latest
+
+def prefix_to_modulename_and_revision(module, prefix, pos, errors):
+    if prefix == '':
+        return module.arg, None
+    if prefix == module.i_prefix:
+        return module.arg, None
+    try:
+        (modulename, revision) = module.i_prefixes[prefix]
+    except KeyError:
+        if prefix not in module.i_missing_prefixes:
+            err_add(errors, pos, 'PREFIX_NOT_DEFINED', prefix)
+        module.i_missing_prefixes[prefix] = True
+        return None, None
+    # remove the prefix from the unused
+    if prefix in module.i_unused_prefixes:
+        del module.i_unused_prefixes[prefix]
+    return modulename, revision
+
+def prefix_to_module(module, prefix, pos, errors):
+    if prefix == '':
+        return module
+    if prefix == module.i_prefix:
+        return module
+    modulename, revision = \
+        prefix_to_modulename_and_revision(module, prefix, pos, errors)
+    if modulename is None:
+        return None
+    return module.i_ctx.get_module(modulename, revision)

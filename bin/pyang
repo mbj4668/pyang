@@ -78,7 +78,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
-                             "are: " +  ', '.join(fmts.keys())),
+                             "are: " +  ', '.join(list(fmts.keys()))),
         optparse.make_option("-o", "--output",
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
@@ -121,15 +121,15 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         for tag in error.error_codes:
             (level, fmt) = error.error_codes[tag]
             if error.is_warning(level):
-                print "Warning: %s" % tag
+                print("Warning: %s" % tag)
             else:
-                print "Error:   %s" % tag
-            print "Message: %s" % fmt
-            print ""
+                print("Error:   %s" % tag)
+            print("Message: %s" % fmt)
+            print("")
         sys.exit(0)
 
     if o.outfile != None and o.format == None:
-        print >> sys.stderr, "no format specified"
+        sys.stderr.write("no format specified\n")
         sys.exit(1)
 
     filenames = args
@@ -151,7 +151,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     
     if o.format != None:
         if o.format not in fmts:
-            print >> sys.stderr, "unsupported format '%s'" % o.format
+            sys.stderr.write("unsupported format '%s'\n" % o.format)
             sys.exit(1)
         emit_obj = fmts[o.format]
         emit_obj.setup_fmt(ctx)
@@ -164,12 +164,12 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     if o.hello:
         if len(filenames) > 1:
-            print >> sys.stderr, "multiple hello files given"
+            sys.stderr.write("multiple hello files given\n")
             sys.exit(1)
         if filenames:
             try:
                 fd = open(filenames[0])
-            except IOError, ex:
+            except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filenames[0], str(ex)))
                 sys.exit(1)
         else:
@@ -206,15 +206,15 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         if (len(filenames) > 1 and
             emit_obj is not None and
             not emit_obj.multiple_modules):
-            print >> sys.stderr, "too many files to convert"
+            sys.stderr.write("too many files to convert\n")
             sys.exit(1)
 
         r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
         for filename in filenames:
             try:
-                fd = file(filename)
+                fd = open(filename)
                 text = fd.read()
-            except IOError, ex:
+            except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
                 sys.exit(1)
             m = r.search(filename)
@@ -244,20 +244,17 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if emit_obj is not None and len(modules) > 0:
         emit_obj.post_validate(ctx, modules)
 
-    def cmp_error(e1, e2):
-        pos1 = e1[0]
-        pos2 = e2[0]
-        if pos1.ref == pos2.ref:
-            return cmp(pos1.line, pos2.line)
-        if len(filenames) > 0 and pos1.ref == filenames[0]:
-            # first print error for the first filename given
-            return -1;
-        if pos1.ref < pos2.ref:
-            return -1;
-        return 1
+    def keyfun(e):
+        if e[0].ref == filenames[0]:
+            return 0
+        else:
+            return 1
 
-    ctx.errors.sort(cmp_error)
-
+    ctx.errors.sort(key=lambda e: (e[0].ref, e[0].line))
+    if len(filenames) > 0:
+        # first print error for the first filename given
+        ctx.errors.sort(key=keyfun)
+    
     for (epos, etag, eargs) in ctx.errors:
         if (ctx.implicit_errors == False and
             hasattr(epos.top, 'i_modulename') and
@@ -279,12 +276,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             kind = "error"
             exit_code = 1
         if o.print_error_code == True:
-            print >> sys.stderr, \
-                str(epos) + ': %s: %s' % (kind, etag)
+            sys.stderr.write(str(epos) + ': %s: %s\n' % (kind, etag))
         else:
-            print >> sys.stderr, \
-                str(epos) + ': %s: ' % kind + \
-                error.err_to_str(etag, eargs)
+            sys.stderr.write(str(epos) + ': %s: ' % kind + \
+                                 error.err_to_str(etag, eargs) + '\n')
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
         if o.outfile == None:
@@ -294,9 +289,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             fd = open(tmpfile, "w+")
         try:
             emit_obj.emit(ctx, modules, fd)
-        except error.EmitError, e:
+        except error.EmitError as e:
             if e.msg != "":
-                print >> sys.stderr, e.msg
+                sys.stderr.write(e.msg + '\n')
             if tmpfile != None:
                 fd.close()
                 os.remove(tmpfile)

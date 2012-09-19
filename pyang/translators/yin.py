@@ -6,11 +6,11 @@ from xml.sax.saxutils import escape
 import optparse
 import re
 
-from pyang import plugin
-from pyang import util
-from pyang import grammar
-from pyang import syntax
-from pyang import statements
+from .. import plugin
+from .. import util
+from .. import grammar
+from .. import syntax
+from .. import statements
 
 yin_namespace = "urn:ietf:params:xml:ns:yang:yin:1"
 

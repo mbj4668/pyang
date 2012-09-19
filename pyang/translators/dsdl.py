@@ -46,10 +46,10 @@ import sys
 import optparse
 import time
 
-import pyang
-from pyang import plugin, error, xpath, util, statements, types
 
-from schemanode import SchemaNode
+from .. import plugin, error, xpath, util, statements, types
+
+from .schemanode import SchemaNode
 
 def pyang_plugin_init():
     plugin.register_plugin(DSDLPlugin())
@@ -353,7 +353,7 @@ class HybridDSDLSchema(object):
         gpset = {}
         self.gg_level = 0
         for module in modules: self.add_namespace(module)
-        for module in modules[0].i_ctx.modules.values():
+        for module in list(modules[0].i_ctx.modules.values()):
             for i in module.i_identities:
                 self.register_identity(module.i_identities[i])
         for module in modules:
@@ -372,16 +372,17 @@ class HybridDSDLSchema(object):
             if record_defs: self.preload_defs()
             self.prefix_stack = [self.module_prefixes[module.arg]]
             self.create_roots(module)
-            self.lookup_expand(module, gpset.keys())
+            self.lookup_expand(module, list(gpset.keys()))
             self.handle_substmts(module, self.data, gpset)
-            for d in self.local_defs.values():
+            for d in list(self.local_defs.values()):
                 self.local_grammar.subnode(d)
             self.tree.subnode(self.local_grammar)
             self.all_defs.update(self.local_defs)
         self.all_defs.update(self.global_defs)
         self.dc_element(self.top_grammar, "date", time.strftime("%Y-%m-%d"))
-        self.dc_element(self.top_grammar, "creator",
-                        "Pyang %s, DSDL plugin" % pyang.__version__)
+## FIXME: how do I import pyang?
+#        self.dc_element(self.top_grammar, "creator",
+#                        "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
 
     def setup_top(self):
@@ -431,7 +432,7 @@ class HybridDSDLSchema(object):
         if uri in self.namespaces: return self.namespaces[uri]
         end = 1
         new = prefix
-        while new in self.namespaces.values():
+        while new in list(self.namespaces.values()):
             new = "%s%x" % (prefix,end)
             end += 1
         self.namespaces[uri] = new
@@ -905,7 +906,7 @@ class HybridDSDLSchema(object):
         if p_elem.default_case != stmt.arg:
             celem.occur = 3
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
-        left = self.lookup_expand(stmt, new_pset.keys())
+        left = self.lookup_expand(stmt, list(new_pset.keys()))
         for a in augs:
             left = self.lookup_expand(a, left)
         self.handle_substmts(stmt, celem, new_pset)
@@ -917,7 +918,7 @@ class HybridDSDLSchema(object):
         chelem = SchemaNode.choice(p_elem)
         chelem.attr["nma:name"] = stmt.arg
         refd, augs, new_pset = self.process_patches(pset, stmt, chelem)
-        left = self.lookup_expand(stmt, new_pset.keys())
+        left = self.lookup_expand(stmt, list(new_pset.keys()))
         for a in augs:
             left = self.lookup_expand(a, left)
         if refd["mandatory"] or stmt.search_one("mandatory", "true"):
@@ -937,7 +938,7 @@ class HybridDSDLSchema(object):
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.qname(stmt), p_elem)
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
-        left = self.lookup_expand(stmt, new_pset.keys())
+        left = self.lookup_expand(stmt, list(new_pset.keys()))
         for a in augs:
             left = self.lookup_expand(a, left)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg
@@ -1010,7 +1011,7 @@ class HybridDSDLSchema(object):
         if keyst: lelem.keys = [self.add_prefix(k, stmt)
                                 for k in keyst.arg.split()]
         refd, augs, new_pset = self.process_patches(pset, stmt, lelem)
-        left = self.lookup_expand(stmt, new_pset.keys() + lelem.keys)
+        left = self.lookup_expand(stmt, list(new_pset.keys()) + lelem.keys)
         for a in augs:
             left = self.lookup_expand(a, left)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
@@ -1116,7 +1117,7 @@ class HybridDSDLSchema(object):
                 expand = True
                 self.add_patch(pset, sub)
         if expand:
-            self.lookup_expand(grp, pset.keys())
+            self.lookup_expand(grp, list(pset.keys()))
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
             uname, dic = self.unique_def_name(stmt.i_grouping,
                                               not(p_elem.interleave))

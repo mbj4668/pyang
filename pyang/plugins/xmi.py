@@ -57,9 +57,9 @@ class XMIPlugin(plugin.PyangPlugin):
         
 
 def print_help():
-    print """
+    print("""
 Prints a xmi file that can be imported to ArgoUML
-"""
+""")
 
 
 def emit_yang_xmi(fd, ctx):
@@ -78,7 +78,7 @@ def emit_yang_xmi(fd, ctx):
 
 
 def print_xmi_header(modules, fd, path, ctx):
-    print """<?xml version = '1.0' encoding = 'UTF-8' ?>
+    print("""<?xml version = '1.0' encoding = 'UTF-8' ?>
 <XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Tue May 15 07:06:45 CEST 2012'>
   <XMI.header>
     <XMI.documentation>
@@ -88,13 +88,13 @@ def print_xmi_header(modules, fd, path, ctx):
     <XMI.metamodel xmi.name="UML" xmi.version="1.4"/>
   </XMI.header>
   <XMI.content>
-""" 
+""") 
 
 def print_xmi_footer(modules, fd, path, ctx):
-    print """
+    print("""
   </XMI.content>
 </XMI>
-"""
+""")
 
 
 def print_module_info(module, fd, ctx):
