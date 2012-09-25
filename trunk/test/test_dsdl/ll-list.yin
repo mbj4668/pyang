@@ -11,12 +11,16 @@
   <list name="list-1">
     <key value="leaf-1 leaf-2"/>
     <unique tag="leaf-3 li:leaf-4"/>
+    <unique tag="li:leaf-5"/>
     <leaf name="leaf-3">
       <type name="string">
 	<length value="0..1"/>
       </type>
     </leaf>
     <uses name="key-1"/>
+    <leaf name="leaf-5">
+      <type name="uint8"/>
+    </leaf>
     <grouping name="key-1">
       <uses name="key-2"/>
       <leaf name="leaf-1">

@@ -1106,7 +1106,8 @@ class HybridDSDLSchema(object):
         def addpref(nid):
             return "/".join([self.add_prefix(c, stmt)
                              for c in nid.split("/")])
-        p_elem.attr["nma:unique"] = " ".join(
+        uel = SchemaNode("nma:unique", p_elem)
+        uel.attr["tag"] = " ".join(
             [addpref(nid) for nid in stmt.arg.split()])
 
     def uses_stmt(self, stmt, p_elem, pset):

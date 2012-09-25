@@ -22,7 +22,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 <!-- Edit the "annots" entity to select the annotations to take into
      account. -->
 <!DOCTYPE stylesheet [
-<!ENTITY annots "nma:must|nma:instance-identifier|@nma:key|@nma:unique|
+<!ENTITY annots "nma:must|nma:instance-identifier|nma:unique|@nma:key|
 @nma:max-elements|@nma:min-elements|@nma:when|@nma:leafref|@nma:leaf-list|
 @nma:mandatory">
 ]>
@@ -480,19 +480,22 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="@nma:key">
     <xsl:call-template name="list-unique">
+      <xsl:with-param name="tag" select="."/>
       <xsl:with-param
           name="message">Duplicate key</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="@nma:unique">
+  <xsl:template match="nma:unique">
     <xsl:call-template name="list-unique">
+      <xsl:with-param name="tag" select="@tag"/>
       <xsl:with-param
           name="message">Violated uniqueness for</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template name="list-unique">
+    <xsl:param name="tag"/>
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
@@ -502,11 +505,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         </xsl:call-template>
         <xsl:text>[</xsl:text>
         <xsl:call-template name="check-dup-expr">
-          <xsl:with-param name="nodelist" select="."/>
+          <xsl:with-param name="nodelist" select="$tag"/>
         </xsl:call-template>
         <xsl:text>]</xsl:text>
       </xsl:attribute>
-      <xsl:value-of select="concat($message, ' &quot;',.,'&quot;')"/>
+      <xsl:value-of select="concat($message, ' &quot;',$tag,'&quot;')"/>
     </xsl:element>
   </xsl:template>
 
