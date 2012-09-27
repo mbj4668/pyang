@@ -114,8 +114,9 @@ although "eth1" does not have any configuration and does not
 send or receive packets.
 
 How can an operator learn about the presence of "eth1"?  The <get>
-returns running configuration and state data together.  So, <get> will
-not show "eth1", since it is not present in the running configuration.
+operation returns the running configuration and state data together.
+So, <get> will not show "eth1", since it is not present in the running
+configuration.
 
 With NETCONF as currently defined, the only alternative is to
 duplicate the data model:
@@ -150,12 +151,12 @@ duplication, where every writable parameter is modelled both as state
 data that can be retrieved using the <get> operation, and also as
 input parameters to at least one rpc operation.
 
-[LL: My idea was that this would be treated as an alternative
-management interface that needn't necessarily be implemented with
-NETCONF means. SNMP is another example of such a parallel
-interface. We just have to make sure that the operational state
-datastore is able to work with multiple management interfaces but
-otherwise the is no need to define these interfaces in this draft.] 
+# [LL: My idea was that this would be treated as an alternative
+# management interface that needn't necessarily be implemented with
+# NETCONF means. SNMP is another example of such a parallel
+# interface. We just have to make sure that the operational state
+# datastore is able to work with multiple management interfaces but
+# otherwise the is no need to define these interfaces in this draft.] 
 
 *** Example: Routing Table Modification
 
@@ -196,10 +197,6 @@ do:
   }
 
 * Datastores
-
-[LL: I think we should use the terms "operational state datastore" and
-"configuration datastore" consistently throughout the document. The
-terms like "parameters actually used by the device" are IMO too fuzzy.] 
 
 The fundamental idea of this document is to model operational state
 data as an explicit data structure - the operational state datastore.
@@ -244,8 +241,10 @@ In YANG terms, data nodes are tagged as configuration/state or state
 only by means on the "config" statement: the former category is
 "config true" while the latter is "config false".
 
-[LL: These definitions are not NETCONF specific and make YANG data
-models potentially usable by other management interfaces.]     
+# [LL: These definitions are not NETCONF specific and make YANG data
+# models potentially usable by other management interfaces.]     
+#
+# mbj: yes!
 
 ** Configuration Datastore
 
@@ -365,11 +364,11 @@ obtained from DHCP.
 
 * NETCONF Operations and Datastores
 
+[Editor's Note: This section has to be expanded.]
+
 This section explains the semantics of both existing and new NETCONF
 operations in terms of how they affect the contents of the
 configuration and operational state datastores.
-
-[LL: This section has to be expanded and heavily edited.]
 
 Note that when <get-config> is used to retrieve a "config true" node,
 the value stored in the datastore is returned.  When <get-operational>
@@ -380,24 +379,48 @@ value in the datastore.
 ? Should there be a YANG statement 'operational <bool>' so that config
 true nodes can be marked as not being part of the operational schema?
 
-[LL: We should first try to avoid it. If it turns out to be necessary,
-then perhaps a single node, e.g. "role" could be used, allowing three
-values: "config", "state" and "both".]
+#[LL: We should first try to avoid it. If it turns out to be necessary,
+#then perhaps a single node, e.g. "role" could be used, allowing three
+#values: "config", "state" and "both".]
 
 By default, nodes in the operational data store cannot be directly
 modified over NETCONF.  introduce oper:writable
 
-[LL: As I said, I would not consider this case in this document.]
+** Constraints
 
-## LL: I removed this subsection because it contradicts my text.
-# ** Constraints
-#
-# This document updates section 8 of RFC 6020 with rules for the
-# operational state datastore.
+This document updates section 8 of RFC 6020 with rules for the
+operational state datastore.
 
-# No constraints are enforced on the operational state datastore.  For
-# example, this means that a mandatory "config true" leaf does not have
-# to be present in the operational state datastore.
+[Editor's Note: Need to discuss these alternatives more, and document
+one of them.]
+
+There are a couple of design alternatives here:
+
+*** Alt. A
+
+No constraints ("must", "mandatory", "unique", "min-elements",
+"max-elements") are enforced on the operational state datastore.  For
+example, this means that a mandatory "config true" leaf does not have
+to be present in the operational state datastore.
+
+The problem with this approach is that there is no way to formally
+define constraints on the OSD in the data model.  Such constraints can
+be specified in description statement though.
+
+*** Alt. B
+
+Change the definitions of mandatory, must, to work on osd instead of
+config.
+
+This would be a major backwards incompatible change to YANG, and it
+would not be possible to define constraints on the configuration.
+
+*** Alt. C
+
+Introduce new YANG statements for OSD constraints, e.g. osd:must,
+osd:mandatory etc.
+
+The drawback with this is that it adds complexity.
 
 * Protocol Operations
 
@@ -408,9 +431,13 @@ used to retreive the operational state data from a device.  Note how
 this operation differs from <get>, which is used to retrieve both the
 running configuration and state data.
 
-[LL: WRT <get>: what happens if a config=true value is present in OSD
-but not in config? Should the OSD value be used? (I assume that
-configuration only merges all previous edits.)] 
+# [LL: WRT <get>: what happens if a config=true value is present in OSD
+# but not in config? Should the OSD value be used? (I assume that
+# configuration only merges all previous edits.)] 
+#
+# mbj: This is actually a bit unclear.  But this is why we should
+# depreacte <get>, or at least ignore it...
+
 
 <get-operational> takes the same parameters as <get>.
 
@@ -428,9 +455,11 @@ leaf for ethernet duplex:
     config true;
   }
 
-[LL: Here we have a case when the datatype is not the sam for config
-and OSD - "auto" can only appear in config. Should we address this
-somehow?]
+# [LL: Here we have a case when the datatype is not the sam for config
+# and OSD - "auto" can only appear in config. Should we address this
+# somehow?]
+#
+# mbj: I think not.
   
 Suppose a device with this data model implements the candidate
 datastore.  The following is an example of data from such a device:
@@ -454,8 +483,7 @@ contains the value "half".
 
 ** <edit-operational>
 
-[NOT FINISHED - NOT CLEAR IF WE NEED THIS]
-[LL: I think we don't need it.]
+[Editor's note: NOT FINISHED - not clear if we need this]
 
 Introduce edit-operational.  This modifies the subset of the
 operational data tree that is also marked as writable.
