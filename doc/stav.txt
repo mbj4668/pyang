@@ -4,7 +4,7 @@
 This document defines the concept of operational state data in the
 context of YANG and the Network Configuration Protocol (NETCONF).  It
 updates RFC 6020 with rules for how to model the operational state,
-and defines NETCONF operations to retreive and modify the operational
+and defines NETCONF operations to retrieve and modify the operational
 state.
 
 * Introduction
@@ -55,7 +55,7 @@ The following terms are used within this document:
 
 * Problem Statement
 
-** Modelling and Retrieving Operational State
+** Modeling and Retrieving Operational State
 
 The NETCONF operation <get> returns both device state data and the
 running configuration.  Quite often, device parameters require a dual
@@ -147,7 +147,7 @@ configuration.
 
 With NETCONF as currently designed, the only way to do this is to
 define separate operations.  This leads to another kind of data model
-duplication, where every writable parameter is modelled both as state
+duplication, where every writable parameter is modeled both as state
 data that can be retrieved using the <get> operation, and also as
 input parameters to at least one rpc operation.
 
@@ -185,7 +185,7 @@ do:
       leaf route-id { ... }
       leaf dest-prefix { ... }
       leaf dest-prefix { ... }
-      leaf next-gop { ... }
+      leaf next-hop { ... }
     }
   }
   
@@ -199,9 +199,9 @@ do:
 * Datastores
 
 The fundamental idea of this document is to model operational state
-data as an explicit data structure - the operational state datastore.
-It is available to all management interfaces, which includes NETCONF
-but also other interfaces such as SNMP.
+data as an explicit data structure called the operational state
+datastore.  It is available to all management interfaces, which
+includes NETCONF but also other interfaces such as SNMP.
 
 Then, the NETCONF-specific "running" configuration datastore is
 modeled as a separate overlay data structure whose layout is identical
@@ -225,61 +225,121 @@ on the same data - the operational state datastore.  It means, for
 instance, that any change caused by a network protocol is immediately
 visible to all management interfaces.
 
-Data nodes in the operational state datastore fall into two disjoint
-categories:
+The schema for the operational state datastore is made up of all data
+nodes defined in YANG modules, specifically both "config true" and
+"config false" data nodes.
 
-- configuration/state
-- state only
+Note that when <get-config> is used to retrieve a "config true" node,
+the value stored in the datastore is returned.  When <get-operational>
+is used to retrieve the same node, the value actually used by the
+device is returned.  This value may or may not be the same as the
+value in the datastore.
 
-The former category includes data nodes that may be directly modified
-by a management interface. In contrast, data nodes in the latter
-category are read-only from the point of view of management
-interfaces and can only only be modified by other means such as
-network protocols.
+? Should there be a YANG statement 'operational <bool>' so that config
+true nodes can be marked as not being part of the operational schema?
 
-In YANG terms, data nodes are tagged as configuration/state or state
-via the "config" statement: the former category is "config true" while
-the latter is "config false".
-
+# Data nodes in the operational state datastore fall into two disjoint
+# categories:
+#
+# - configuration/state
+# - state only
+#
+## should we distinguish between read-only and read-write state, the
+## latter could be counters etc?
+#
+# The former category includes data nodes that may be directly modified
+# by a management interface. In contrast, data nodes in the latter
+# category are read-only from the point of view of management
+# interfaces and can only only be modified by other means such as
+# network protocols.
+#
+# In YANG terms, data nodes are tagged as configuration/state or state
+# via the "config" statement: the former category is "config true" while
+# the latter is "config false".
+#
 # [LL: These definitions are not NETCONF specific and make YANG data
 # models potentially usable by other management interfaces.]     
 #
 # mbj: yes!
 
+#[LL: We should first try to avoid it. If it turns out to be necessary,
+#then perhaps a single node, e.g. "role" could be used, allowing three
+#values: "config", "state" and "both".]
+
+Nodes in the operational data store cannot be directly
+modified using the standard NETCONF operations.  
+
+? introduce oper:writable for nodes that can be modified by
+<edit-operational>.
+
+*** Constraints
+
+This document updates section 8 of RFC 6020 with rules for the
+operational state datastore.
+
+[Editor's Note: Need to discuss these alternatives more, and document
+one of them.]
+
+There are a couple of design alternatives here:
+
+**** Alternative A
+
+No constraints ("must", "mandatory", "unique", "min-elements",
+"max-elements") are enforced on the operational state datastore.  For
+example, this means that a mandatory "config true" leaf does not have
+to be present in the operational state datastore.
+
+The problem with this approach is that there is no way to formally
+define constraints on the OSD in the data model. This may be needed in
+order to allow for coexistence of NETCONF with other management
+interfaces that do not use the configuration datastore. Such
+constraints can be specified in description statement though.
+
+**** Alternative B
+
+Change the definitions of mandatory, must, to work on osd instead of
+config.
+
+This would be a major backwards incompatible change to YANG, and it
+would not be possible to define constraints on the configuration.
+
+**** Alternative C
+
+Introduce new YANG statements for OSD constraints, e.g. osd:must,
+osd:mandatory etc.
+
+The drawback with this is that it adds complexity.
+
 ** Configuration Datastore
 
-The configuration datastore is specific to the NETCONF management
-interface. It can be thought of as a blueprint for the operational
-datastore. Specifically, the schema for the configuration datastore is
-congruent to a subtree of the schema for operational state datastore
-containing only "config true" nodes.  In other words, every data node
-in the configuration datastore schema has a corresponding data node
-with the same name in the operational datastore schema, and the latter
-data node is "config true".
+The configuration datastore can be thought of as a blueprint for the
+operational datastore.  Specifically, the schema for the configuration
+datastore is congruent to a subtree of the schema for operational
+state datastore containing only "config true" nodes.  In other words,
+every data node in the configuration datastore schema has a
+corresponding data node with the same name in the operational
+datastore schema, and the latter data node is "config true".
 
 Whenever a NETCONF client modifies the configuration datastore, the
 server MUST immediately attempt to project the changes into the
-operational state datastore. Most of the time, it simply means copying
+operational state datastore.  Most of the time, it simply means copying
 the values in the configuration datastore to the corresponding
-nodes in the operation state datastore.
+nodes in the operational state datastore.  If a leaf's default value
+is in use (See section 7.6.1. of RFC 6020), the default value is
+copied to the operational data store.
 
-However, the configuration datastore may contain data nodes that are
-not projected into the operational state datastore. This happens in
-the following three scenarios:
+The configuration datastore may contain data nodes that are not
+projected into the operational state datastore.  This happens in the
+following three scenarios:
 
-1. Pre-provisioned configuration prepared for hardware components that
-   are not yet present in the device. See ^ex-if-list-1^ above.
++ Pre-provisioned configuration prepared for hardware components that
+  are not yet present in the device. See ^ex-if-list-1^ above.
 
-2. Pre-provisioned configuration for components (hardware, protocols,
-   etc.) that are intended to replace an existing item but are of a
-   different type.
++ Pre-provisioned configuration for components (hardware, protocols,
+  etc.) that are intended to replace an existing item but are of a
+  different type.
 
-3. Parts of configuration that are momentarily not applicable.
-
-In scenario 1, the server has to determine that the particular hardware
-component is not present. In scenarios 2 and 3, a configuration data
-node is ignored if a "when" condition that is specified for that node
-or its ancestor evaluates to "false".
++ Parts of configuration that are momentarily not applicable.
 
 *** Example: Interface Replacement
 
@@ -370,78 +430,27 @@ This section explains the semantics of both existing and new NETCONF
 operations in terms of how they affect the contents of the
 configuration and operational state datastores.
 
-Note that when <get-config> is used to retrieve a "config true" node,
-the value stored in the configuration datastore is returned.  When
-<get-operational> is used to retrieve the same node, the value
-actually used by the device is returned.  This value may or may not be
-the same as the value in the configuration datastore.
-
-? Should there be a YANG statement 'operational <bool>' so that config
-true nodes can be marked as not being part of the operational schema?
-
-#[LL: We should first try to avoid it. If it turns out to be necessary,
-#then perhaps a single node, e.g. "role" could be used, allowing three
-#values: "config", "state" and "both".]
-
-Nodes in the operational data store cannot be directly
-modified using the standard NETCONF operations.  introduce oper:writable
-
-** Constraints
-
-This document updates section 8 of RFC 6020 with rules for the
-operational state datastore.
-
-[Editor's Note: Need to discuss these alternatives more, and document
-one of them.]
-
-There are a couple of design alternatives here:
-
-*** Alternative A
-
-No constraints ("must", "mandatory", "unique", "min-elements",
-"max-elements") are enforced on the operational state datastore.  For
-example, this means that a mandatory "config true" leaf does not have
-to be present in the operational state datastore.
-
-The problem with this approach is that there is no way to formally
-define constraints on the OSD in the data model. This may be needed in
-order to allow for coexistence of NETCONF with other management
-interfaces that do not use the configuration datastore. Such
-constraints can be specified in description statement though.
-
-*** Alternative B
-
-Change the definitions of mandatory, must, to work on osd instead of
-config.
-
-This would be a major backwards incompatible change to YANG, and it
-would not be possible to define constraints on the configuration.
-
-*** Alternative C
-
-Introduce new YANG statements for OSD constraints, e.g. osd:must,
-osd:mandatory etc.
-
-The drawback with this is that it adds complexity.
-
 * Protocol Operations
 
 ** <get-operational>
 
 This document introduces a new operation <get-operational>, which is
-used to retreive the operational state data from a device.  Note how
+used to retrieve the operational state data from a device.  Note how
 this operation differs from <get>, which is used to retrieve both the
 running configuration and state data.
+
+<get-operational> takes the same parameters as <get>.
+
+Since leafs with default values defined in the data model are always
+explicitly set in the operational data store, there is no need
+for :with-defaults handling in the <get-operational> operation.
 
 # [LL: WRT <get>: what happens if a config=true value is present in OSD
 # but not in config? Should the OSD value be used? (I assume that
 # configuration only merges all previous edits.)] 
 #
 # mbj: This is actually a bit unclear.  But this is why we should
-# depreacte <get>, or at least ignore it...
-
-
-<get-operational> takes the same parameters as <get>.
+# deprecated <get>, or at least ignore it...
 
 *** Example: Ethernet Duplex
 
@@ -457,7 +466,7 @@ leaf for ethernet duplex:
     config true;
   }
 
-# [LL: Here we have a case when the datatype is not the sam for config
+# [LL: Here we have a case when the data type is not the same for config
 # and OSD - "auto" can only appear in config. Should we address this
 # somehow?]
 #
@@ -480,7 +489,7 @@ datastore.  The following is an example of data from such a device:
 
 In this example, the running configuration tells the device to
 negotiate the duplex mode, and the current, operationally used, value
-is "full".  At the same time, the (uncomitted) candidate configuration
+is "full".  At the same time, the (uncommitted) candidate configuration
 contains the value "half".
 
 ** <edit-operational>
@@ -490,7 +499,7 @@ contains the value "half".
 Introduce edit-operational.  This modifies the subset of the
 operational data tree that is also marked as writable.
 
-Drawback: does not handle persistent operarational data.  If we have
+Drawback: does not handle persistent operational data.  If we have
 persistent operational data, this has to be its own data store that
 can be read and written.
 
@@ -532,7 +541,7 @@ for deviations.
 #
 # + The new configuration must be syntactically valid (conform to a data
 #   model schema) and the values of leaf nodes must have the correct
-#   datatypes. If this is not satisfied, the edit is rejected.
+#   data types. If this is not satisfied, the edit is rejected.
 #
 # + The disabled parts of the operational state datastore are determined
 #   by evaluating the XPath expressions in all 'when' statements. The
@@ -634,11 +643,11 @@ just as before:
 * Example: Ethernet Duplex
 
 A typical problem is when the value space for the configuration data
-is a superset of the value space for the operational state data.  An
+is a super set of the value space for the operational state data.  An
 example of this is Ethernet duplex, which can be configured as "half",
 "full", or "auto", but the operationally used value is either "half"
 or "full".  Without the definition of operational state in this
-document, this would have to be modelled as two separate leafs:
+document, this would have to be modeled as two separate leafs:
 
   leaf duplex {
     type enumeration {
@@ -674,7 +683,7 @@ interface's desired state, and its operational state.  The desired
 state can be "up" or "down", but the operational state can be "up",
 "lower-layer-down", "testing", etc.
 
-These kind of situations are still best modelled as two separate
+These kind of situations are still best modeled as two separate
 leafs, one "admin-state" and one "oper-state".
 
 {{document:
