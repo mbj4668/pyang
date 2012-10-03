@@ -272,44 +272,6 @@ modified using the standard NETCONF operations.
 ? introduce oper:writable for nodes that can be modified by
 <edit-operational>.
 
-*** Constraints
-
-This document updates section 8 of RFC 6020 with rules for the
-operational state datastore.
-
-[Editor's Note: Need to discuss these alternatives more, and document
-one of them.]
-
-There are a couple of design alternatives here:
-
-**** Alternative A
-
-No constraints ("must", "mandatory", "unique", "min-elements",
-"max-elements") are enforced on the operational state datastore.  For
-example, this means that a mandatory "config true" leaf does not have
-to be present in the operational state datastore.
-
-The problem with this approach is that there is no way to formally
-define constraints on the OSD in the data model. This may be needed in
-order to allow for coexistence of NETCONF with other management
-interfaces that do not use the configuration datastore. Such
-constraints can be specified in description statement though.
-
-**** Alternative B
-
-Change the definitions of mandatory, must, to work on osd instead of
-config.
-
-This would be a major backwards incompatible change to YANG, and it
-would not be possible to define constraints on the configuration.
-
-**** Alternative C
-
-Introduce new YANG statements for OSD constraints, e.g. osd:must,
-osd:mandatory etc.
-
-The drawback with this is that it adds complexity.
-
 ** Configuration Datastore
 
 The configuration datastore can be thought of as a blueprint for the
@@ -422,13 +384,43 @@ configured IP address 192.0.2.1 is not used. The node "ipv4/ip" in the
 operational state datastore probably contains a different address
 obtained from DHCP.  
 
-* NETCONF Operations and Datastores
+* Constraints
 
-[Editor's Note: This section has to be expanded.]
+This document updates section 8 of RFC 6020 with rules for the
+operational state datastore.
 
-This section explains the semantics of both existing and new NETCONF
-operations in terms of how they affect the contents of the
-configuration and operational state datastores.
+[Editor's Note: Need to discuss these alternatives more, and document
+one of them.]
+
+There are a couple of design alternatives here:
+
+** Alternative A
+
+No constraints ("must", "mandatory", "unique", "min-elements",
+"max-elements") are enforced on the operational state datastore.  For
+example, this means that a mandatory "config true" leaf does not have
+to be present in the operational state datastore.
+
+The problem with this approach is that there is no way to formally
+define constraints on the OSD in the data model. This may be needed in
+order to allow for coexistence of NETCONF with other management
+interfaces that do not use the configuration datastore. Such
+constraints can be specified in description statement though.
+
+** Alternative B
+
+Change the definitions of mandatory, must, to work on osd instead of
+config.
+
+This would be a major backwards incompatible change to YANG, and it
+would not be possible to define constraints on the configuration.
+
+** Alternative C
+
+Introduce new YANG statements for OSD constraints, e.g. osd:must,
+osd:mandatory etc.
+
+The drawback with this is that it adds complexity.
 
 * Protocol Operations
 
