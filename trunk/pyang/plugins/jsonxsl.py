@@ -88,7 +88,7 @@ def type_param(node, ct):
         node = tstat.i_typedef
     t = tstat.arg
     if t in ["boolean", "int8", "int16", "int32", "int64",
-             "uint8", "uint16", "uint32", "uint64"]:
+             "uint8", "uint16", "uint32", "uint64", "decimal64"]:
         typ = "unquoted"
     elif t == "empty":
         typ = "empty"
