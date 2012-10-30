@@ -63,75 +63,53 @@
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template name="ii-expr">
-    <xsl:param name="text" select="substring(.,2)"/>
-    <xsl:text>/</xsl:text>
-    <xsl:choose>
-      <xsl:when test="contains($text,'/')">
-	<xsl:call-template name="ii-node">
-	  <xsl:with-param name="text" select="substring-before($text,'/')"/>
-	</xsl:call-template>
-	<xsl:call-template name="ii-expr">
-	  <xsl:with-param name="text" select="substring-after($text,'/')"/>
-	</xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:call-template name="ii-node">
-	  <xsl:with-param name="text" select="$text"/>
-	</xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <xsl:template name="ii-node">
+  <xsl:template name="eat-quoted">
     <xsl:param name="text"/>
-    <xsl:choose>
-      <xsl:when test="contains($text,'[')">
-	<xsl:call-template name="ii-label">
-	  <xsl:with-param name="text"
-			  select="substring-before($text,'[')"/>
-	</xsl:call-template>
-	<xsl:call-template name="ii-keys">
-	  <xsl:with-param name="text" select="substring-after($text,'[')"/>
-	</xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:call-template name="ii-label">
-	  <xsl:with-param name="text" select="$text"/>
-	</xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <xsl:template name="ii-keys">
-    <xsl:param name="text"/>
-    <xsl:text>[</xsl:text>
-    <xsl:call-template name="ii-label">
-      <xsl:with-param name="text" select="substring-before($text,']')"/>
+    <xsl:param name="qch">'</xsl:param>
+    <xsl:value-of select="concat(substring-before($text,$qch),$qch)"/>
+    <xsl:call-template name="eat-unquoted">
+      <xsl:with-param name="text" select="substring-after($text,$qch)"/>
     </xsl:call-template>
-    <xsl:text>]</xsl:text>
-    <xsl:if test="contains($text,'[')">
-      <xsl:call-template name="ii-keys">
-	<xsl:with-param name="text" select="substring-after($text,'[')"/>
-      </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template name="eat-unquoted">
+    <xsl:param name="text"/>
+    <xsl:if test="string-length($text) &gt; 0">
+      <xsl:variable name="first" select="substring($text,1,1)"/>
+      <xsl:variable name="quotes">'"</xsl:variable>
+      <xsl:value-of select="$first"/>
+      <xsl:choose>
+	<xsl:when test="$first='/' or $first='[' and
+			string-length(substring-before($text,':'))
+			&lt; string-length(substring-before($text,']'))">
+	  <xsl:call-template name="translate-prefix">
+	    <xsl:with-param name="prf" select="substring-before(substring($text,2),':')"/>
+	  </xsl:call-template>
+	  <xsl:call-template name="eat-unquoted">
+	    <xsl:with-param name="text" select="substring-after($text,':')"/>
+	  </xsl:call-template>
+	</xsl:when>
+	<xsl:when test="contains($quotes,$first)">
+	  <xsl:call-template name="eat-quoted">
+	    <xsl:with-param name="text" select="substring($text,2)"/>
+	    <xsl:with-param name="qch" select="$first"/>
+	  </xsl:call-template>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:call-template name="eat-unquoted">
+	    <xsl:with-param name="text" select="substring($text,2)"/>
+	  </xsl:call-template>
+	</xsl:otherwise>
+      </xsl:choose>
     </xsl:if>
   </xsl:template>
 
-  <xsl:template name="ii-label">
-    <xsl:param name="text"/>
-    <xsl:variable name="pref"
-		  select="substring-before(normalize-space($text),':')"/>
-    <xsl:choose>
-      <xsl:when test="string-length($pref) = 0">
-	<xsl:value-of select="$text"/>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:call-template name="nsuri-to-module">
-	  <xsl:with-param name="uri" select="namespace::*[name()=$pref]"/>
-	</xsl:call-template>
-	<xsl:value-of select="concat(':', substring-after($text,':'))"/>
-      </xsl:otherwise>
-    </xsl:choose>
+  <xsl:template name="translate-prefix">
+    <xsl:param name="prf"/>
+    <xsl:call-template name="nsuri-to-module">
+      <xsl:with-param name="uri" select="namespace::*[name()=normalize-space($prf)]"/>
+    </xsl:call-template>
+    <xsl:text>:</xsl:text>
   </xsl:template>
 
   <xsl:template name="object-name">
@@ -155,8 +133,17 @@
 	<xsl:text>[null]</xsl:text>
       </xsl:when>
       <xsl:when test="$type='instance-identifier'">
+	<xsl:variable name="cont" select="normalize-space(.)"/>
+	<xsl:if test="not(starts-with($cont,'/'))">
+	  <xsl:message terminate="yes">
+	    <xsl:value-of
+		select="concat('Wrong instance identifier: ', $cont)"/>
+	  </xsl:message>
+	</xsl:if>
 	<xsl:text>"</xsl:text>
-	<xsl:call-template name="ii-expr"/>
+	<xsl:call-template name="eat-unquoted">
+	  <xsl:with-param name="text" select="$cont"/>
+	</xsl:call-template>
 	<xsl:text>"</xsl:text>
       </xsl:when>
       <xsl:when test="$type='string'">
