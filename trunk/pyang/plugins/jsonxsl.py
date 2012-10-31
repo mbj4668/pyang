@@ -94,6 +94,8 @@ def type_param(node, ct):
         typ = "empty"
     elif t == "instance-identifier":
         typ = "instance-identifier"
+    elif t == "identityref":
+        typ = "identityref"
     elif t == "string":
         typ = "string"
     else:

@@ -146,6 +146,23 @@
 	</xsl:call-template>
 	<xsl:text>"</xsl:text>
       </xsl:when>
+      <xsl:when test="$type='identityref'">
+	<xsl:variable name="cont" select="normalize-space(.)"/>
+	<xsl:text>"</xsl:text>
+	<xsl:choose>
+	  <xsl:when test="contains($cont,':')">
+	    <xsl:call-template name="translate-prefix">
+	      <xsl:with-param name="prf"
+			      select="substring-before($cont,':')"/>
+	    </xsl:call-template>
+	    <xsl:value-of select="substring-after($cont, ':')"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:value-of select="$cont"/>
+	  </xsl:otherwise>
+	</xsl:choose>
+	<xsl:text>"</xsl:text>
+      </xsl:when>
       <xsl:when test="$type='string'">
 	<xsl:text>"</xsl:text>
 	<xsl:call-template name="escape-text"/>
