@@ -1,0 +1,261 @@
+#! /usr/bin/env python
+
+import sys
+import os
+import numbers
+import re
+import argparse
+import json
+import xml.etree.ElementTree as ET
+
+class Error(Exception):
+    """Abstract base class for exceptions in this program."""
+
+    def __init__(self, path):
+        self.path = path
+
+    def __str__(self):
+        return "error at " + self.path
+
+class DataTypeError(Error):
+    """Exception raised for values with wrong type."""
+
+    return_value = 3
+
+    def __init__(self, path, type, value):
+        Error.__init__(self, path)
+        self.type = type
+        self.value = value
+
+    def __str__(self):
+        return (Error.__str__(self) +
+                ": '%s' is not a valid value of '%s' type" % (str(self.value), self.type))
+
+class NodeTypeError(Error):
+    """Exception raised if the JSON object type doesn't fit the data model."""
+
+    return_value = 4
+
+    def __init__(self, path, node_type):
+        Error.__init__(self, path)
+        self.node_type = node_type
+
+    def __str__(self):
+        return (Error.__str__(self) + ":  must be a " + self.node_type)
+
+class InvalidNodeError(Error):
+    """Exception raised for nodes that are not found in the data model."""
+
+    return_value = 5
+
+    def __str__(self):
+        return (Error.__str__(self) + ": invalid node")
+
+class AmbiguousNameError(Error):
+    """Exception raised for nodes whose unqualified name is ambiguous."""
+
+    return_value = 6
+
+    def __str__(self):
+        return (Error.__str__(self) + ": ambiguous name (needs module prefix)")
+
+class JSONError(Error):
+    """Exception raised for broken JSON input."""
+    
+    return_value = 7
+
+    def __str__(self):
+        return (Error.__str__(self) + ": broken JSON data")
+
+class Translator:
+    """Translate JSON to XML according to a YANG data model.
+
+    Instance variables:
+
+    - `self.prefix`: dictionary mapping module names to prefixes
+    """
+
+    def __init__(self, jtox):
+        self.jtox = jtox
+        self.prefix = { k: v[0] for k, v in jtox["modules"].items() }
+        ident = "[a-zA-Z_][-_.a-zA-Z0-9]*"
+        self.qn_re = re.compile(r"^\s*(%s(?::%s)?)\s*(.*)$" % ((ident,)*2))
+        self.num_re = re.compile(r"^\s*([0-9]+)\s*\]\s*(.*)$")
+        self.bra_re = re.compile(r"""^=([^"'\]]*(?:"[^"]*"|'[^']*')?)\s*\]\s*(.*)$""")
+
+    def translate(self, json_doc, xml_root):
+        """Translate `json_doc` and attach the result under `xml_root`."""
+        self.path = "/"
+        return self.translate_obj(json_doc, self.jtox["tree"], xml_root)
+        
+    def translate_obj(self, json_obj, node, xml_parent):
+        for key in json_obj:
+            self.path += key
+            tag, prefix, node_spec = self.node_lookup(key, node)
+            if node_spec[0] == "container":
+                if not isinstance(json_obj[key], dict):
+                    raise NodeTypeError(self.path, "container")
+                el = ET.SubElement(xml_parent, prefix + ":" + tag)
+                self.path += "/"
+                self.translate_obj(json_obj[key], node_spec[1], el)
+            elif node_spec[0] == "list":
+                if not isinstance(json_obj[key], list) or json_obj[key] == [None]:
+                    raise NodeTypeError(self.path, "list")
+                i = 0
+                for child in json_obj[key]:
+                    if not isinstance(child, dict):
+                        raise NodeTypeError(self.path, "list")
+                    el = ET.SubElement(xml_parent, prefix + ":" + tag)
+                    self.path += "/%d/" % i
+                    self.translate_obj(child, node_spec[1], el)
+                    i += 1
+            elif node_spec[0] == "leaf":
+                tval = self.text_value(json_obj[key], node_spec[1], prefix)
+                if tval is None :
+                    tsp = node_spec[1][0] if isinstance(node_spec[1], list) else node_spec[1]
+                    raise DataTypeError(self.path, tsp, json_obj[key])
+                el = ET.SubElement(xml_parent, prefix + ":" + tag)
+                el.text = tval
+
+    def node_lookup(self, name, parent):
+        """Return tag, translated prefix and node specification for `name`."""
+        try:
+            if ":" in name:
+                m, t = name.split(":")
+                p = self.prefix[m]
+                return (t, p, parent[t][p])
+            else:
+                prdict = parent[name]
+                if len(prdict) > 1:
+                    raise AmbiguousNameError(self.path)
+                return (name,) + prdict.items()[0]
+        except KeyError:
+            raise InvalidNodeError(self.path)
+        
+
+
+    def text_value(self, value, type_spec, prefix):
+        """Return `value` in text form.
+
+        Return `None` if `value` cannot be represented as an instance
+        of the datatype specified by `type_spec`.
+
+        Arguments:
+
+        - `value`: leaf value as found in JSON;
+        
+        - `type_spec`: type specification produced by the "jtox" plugin;
+
+        - `prefix`: XML namespace prefix of the containing leaf
+        """
+        t = type_spec[0] if isinstance(type_spec, list) else type_spec 
+        if t == 'empty':
+            return "" if value == [None] else None
+        if t[0:3] == "int":
+            bits = int(t[3:])
+            return "%d" % value if ((isinstance(value, numbers.Integral) or
+                 isinstance(value, numbers.Real) and value.is_integer())
+                 and -2**(bits-1) <= value < 2**(bits-1)) else None
+        if t[0:4] == "uint":
+            bits = int(t[4:])
+            return "%d" % value if ((isinstance(value, numbers.Integral) or
+                 isinstance(value, numbers.Real) and value.is_integer())
+                 and 0 <= value < 2**bits) else None
+        if t == "decimal64":
+            fmt = "%%.%df" % type_spec[1]
+            return fmt % value if isinstance(value, numbers.Real) else None
+        if t == "boolean":
+            if value is True:
+                return "true"
+            elif value is False:
+                return "false"
+            else:
+                return None
+        if t == "union":
+            for memb in type_spec[1]:
+                tval = self.text_value(value, memb, prefix)
+                if tval is not None: return tval
+            return None
+        if t == "identityref":
+            try:
+                comp = value.split(":")
+            except TypeError:
+                return None
+            return value if len(comp) == 1 else self.prefix[comp[0]] + ":" + comp[1]
+        if t == "instance-identifier":
+            return self.translate_ii(value)
+        return str(value)
+
+    def translate_ii(self, ii):
+        """Return translated value of an instance-identifier leaf."""
+        result = ""
+        node = self.jtox["tree"]
+        rest = ii.strip()
+        while len(rest) > 0:
+            result += rest[0]
+            zb = rest[1:]
+            if rest[0] == "/":
+                mo = self.qn_re.search(zb)
+                t, p, spec = self.node_lookup(mo.group(1), node)
+                result += p + ":" + t
+                rest = mo.group(2)
+                if spec[0] in ("container", "list"):
+                    node = spec[1]
+            elif rest[0] == "[":
+                mo = self.num_re.search(zb)
+                if mo is None:
+                    mo = self.qn_re.search(zb)
+                    t, p, spec = self.node_lookup(mo.group(1), node)
+                    result += p + ":" + t + "="
+                    mo = self.bra_re.search(mo.group(2))
+                result += mo.group(1).strip() + "]"
+                rest = mo.group(2)
+            else:
+                return None
+        return result
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="JSON to XML conversion driven by a YANG data model.")
+    parser.add_argument("jtox", metavar="driver_file", action="store",
+                        help="driver file produced by YANG plugin 'jtox'")
+    parser.add_argument("json", metavar='json_file', action="store",
+                        help="JSON instance document (or '-' for standard input)")
+    parser.add_argument("-t", "--target", action="store", default="data",
+                        help="type of the resulting XML document (default: data)")
+    parser.add_argument("-o", "--output", action="store",
+                        help="output file (default: standard output)") 
+    args = parser.parse_args()
+    if args.target not in ["data", "config"]:
+        sys.stderr.write("%s: error: unknown target '%s'\n" % (parser.prog, args.target))
+        return 2
+    try:
+        dfile = open(args.jtox)
+        jfile = open(args.json)
+        outfile = sys.stdout if args.output is None else open(args.output, "w")
+        inst = json.load(jfile)
+        jtox = json.load(dfile)
+    except IOError as e:
+        sys.stderr.write("%s: error: %s: '%s'\n" %
+                         (parser.prog, e.strerror,e.filename))
+        return 1
+    except ValueError as e:
+        sys.stderr.write("%s: error: %s\n" %
+                         (parser.prog, e.message))
+        return 1
+    modules = jtox["modules"]
+    root_el = ET.Element(args.target,
+                           {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
+    for m in modules:
+        root_el.attrib["xmlns:" + modules[m][0]] = modules[m][1]
+    trans = Translator(jtox)
+    try:
+        trans.translate(inst, root_el)
+    except Error as e:
+        sys.stderr.write(parser.prog + ": " + str(e) + "\n")
+        return e.return_value
+    ET.ElementTree(root_el).write(outfile, encoding="utf-8", xml_declaration=True)
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
