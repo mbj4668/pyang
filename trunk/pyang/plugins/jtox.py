@@ -59,7 +59,7 @@ def process_children(node, parent):
         if ch.keyword in ["choice", "case"]:
             process_children(ch, parent)
             continue
-        ndata = [mods[ch.i_module.arg][0], ch.keyword]
+        ndata = [ch.keyword]
         if ch.keyword in ["container", "list"]:
             ndata.append({})
             process_children(ch, ndata[-1])
@@ -68,7 +68,10 @@ def process_children(node, parent):
             ndata.append(ltyp.arg)
             if ltyp.arg == "union":
                 ndata.append([base_type(x).arg for x in ltyp.i_type_spec.types])
-        parent[ch.arg] = ndata
+        if ch.arg in parent:
+            parent[ch.arg][mods[ch.i_module.arg][0]] = ndata
+        else:
+            parent[ch.arg] = {mods[ch.i_module.arg][0]: ndata}
 
 def base_type(type):
     """Return the base type of `type`."""
