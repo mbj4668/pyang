@@ -68,10 +68,11 @@ def process_children(node, parent):
             ndata.append(ltyp.arg)
             if ltyp.arg == "union":
                 ndata.append([base_type(x).arg for x in ltyp.i_type_spec.types])
+        modname = ch.i_module.i_modulename
         if ch.arg in parent:
-            parent[ch.arg][mods[ch.i_module.arg][0]] = ndata
+            parent[ch.arg][mods[modname][0]] = ndata
         else:
-            parent[ch.arg] = {mods[ch.i_module.arg][0]: ndata}
+            parent[ch.arg] = {mods[modname][0]: ndata}
 
 def base_type(type):
     """Return the base type of `type`."""
