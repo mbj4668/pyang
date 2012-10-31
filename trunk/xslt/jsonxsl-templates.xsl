@@ -106,10 +106,17 @@
 
   <xsl:template name="translate-prefix">
     <xsl:param name="prf"/>
-    <xsl:call-template name="nsuri-to-module">
-      <xsl:with-param name="uri" select="namespace::*[name()=normalize-space($prf)]"/>
-    </xsl:call-template>
-    <xsl:text>:</xsl:text>
+    <xsl:variable name="modname">
+      <xsl:call-template name="nsuri-to-module">
+	<xsl:with-param name="uri" select="namespace::*[name()=normalize-space($prf)]"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:if test="string-length($modname)=0">
+      <xsl:message terminate="yes">
+	<xsl:value-of select="concat('Undefined namespace prefix: ', $prf)"/>
+      </xsl:message>
+    </xsl:if>
+    <xsl:value-of select="concat($modname, ':')"/>
   </xsl:template>
 
   <xsl:template name="object-name">
