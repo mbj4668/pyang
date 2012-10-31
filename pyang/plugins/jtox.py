@@ -10,6 +10,12 @@ import json
 from pyang import plugin
 from pyang import statements
 
+mods = {}
+"""Dictionary containing module prefixes and URIs.
+
+   Keys are module names, values are pairs [prefix, uri].
+"""
+
 def pyang_plugin_init():
     plugin.register_plugin(JtoXPlugin())
 
@@ -28,10 +34,20 @@ def emit_jtox(modules, fd):
     """Main control function.
     """
     tree = {}
-    mods = {}
+    prefixes = []
+    def unique_prefix(p):
+        """Disambiguate the module prefix."""
+        suffix = 0
+        while p in prefixes:
+            p += "%d" % suffix
+            suffix += 1
+        return p
     for module in modules:
         uri = module.search_one("namespace").arg
-        mods[module.i_modulename] = [module.i_prefix, uri]
+        prf = unique_prefix(module.i_prefix)
+        prefixes.append(prf)
+        mods[module.i_modulename] = [prf, uri]
+    for module in modules:
         process_children(module, tree)
     json.dump({"modules": mods, "tree": tree}, fd)
 
@@ -43,7 +59,7 @@ def process_children(node, parent):
         if ch.keyword in ["choice", "case"]:
             process_children(ch, parent)
             continue
-        ndata = [ch.keyword]
+        ndata = [mods[ch.i_module.arg][0], ch.keyword]
         if ch.keyword in ["container", "list"]:
             ndata.append({})
             process_children(ch, ndata[-1])
