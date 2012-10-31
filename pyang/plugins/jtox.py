@@ -62,14 +62,9 @@ def process_children(node, parent):
         ndata = [ch.keyword]
         if ch.keyword in ["container", "list"]:
             ndata.append({})
-            process_children(ch, ndata[-1])
+            process_children(ch, ndata[1])
         elif ch.keyword in ["leaf", "leaf-list"]:
-            ltyp = base_type(ch.search_one("type"))
-            ndata.append(ltyp.arg)
-            if ltyp.arg == "union":
-                ndata.append([base_type(x).arg for x in ltyp.i_type_spec.types])
-            elif ltyp.arg == "decimal64":
-                ndata.append(int(ltyp.search_one("fraction-digits").arg))
+            ndata.append(base_type(ch.search_one("type")))
         modname = ch.i_module.i_modulename
         if ch.arg in parent:
             parent[ch.arg][mods[modname][0]] = ndata
@@ -86,5 +81,10 @@ def base_type(type):
         else:
             node = type.i_typedef
         type = node.search_one("type")
-    return type
+    if type.arg == "decimal64":
+        return [type.arg, int(type.search_one("fraction-digits").arg)]
+    elif type.arg == "union":
+        return [type.arg, [base_type(x) for x in type.i_type_spec.types]]
+    else:
+        return type.arg
 
