@@ -227,7 +227,7 @@ def main():
         return 2
     try:
         dfile = open(args.jtox)
-        jfile = open(args.json)
+        jfile = sys.stdin if args.json == "-" else open(args.json)
         outfile = sys.stdout if args.output is None else open(args.output, "w")
         inst = json.load(jfile)
         jtox = json.load(dfile)
