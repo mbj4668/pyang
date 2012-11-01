@@ -11,6 +11,8 @@ import xml.etree.ElementTree as ET
 class Error(Exception):
     """Abstract base class for exceptions in this program."""
 
+    return_value = 3
+
     def __init__(self, path):
         self.path = path
 
@@ -19,8 +21,6 @@ class Error(Exception):
 
 class DataTypeError(Error):
     """Exception raised for values with wrong type."""
-
-    return_value = 3
 
     def __init__(self, path, type, value):
         Error.__init__(self, path)
@@ -34,8 +34,6 @@ class DataTypeError(Error):
 class NodeTypeError(Error):
     """Exception raised if the JSON object type doesn't fit the data model."""
 
-    return_value = 4
-
     def __init__(self, path, node_type):
         Error.__init__(self, path)
         self.node_type = node_type
@@ -46,15 +44,11 @@ class NodeTypeError(Error):
 class InvalidNodeError(Error):
     """Exception raised for nodes that are not found in the data model."""
 
-    return_value = 5
-
     def __str__(self):
         return (Error.__str__(self) + ": invalid node")
 
 class AmbiguousNameError(Error):
     """Exception raised for nodes whose unqualified name is ambiguous."""
-
-    return_value = 6
 
     def __str__(self):
         return (Error.__str__(self) + ": ambiguous name (needs module prefix)")
@@ -62,8 +56,6 @@ class AmbiguousNameError(Error):
 class JSONError(Error):
     """Exception raised for broken JSON input."""
     
-    return_value = 7
-
     def __str__(self):
         return (Error.__str__(self) + ": broken JSON data")
 

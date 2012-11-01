@@ -41,7 +41,10 @@ One or more
 \fIfile\fR
 parameters may be given on the command line\&. They denote either YANG modules to be processed (in YANG or YIN syntax) or, using the
 \fB\-\-hello\fR
-switch, a server <hello> message conforming to RFC 6241 and 6020, which completely defines the data model \- supported YANG modules as well as features and capabilities\&. In the latter case, only one
+switch, a server <hello> message conforming to
+\m[blue]\fBRFC 6241\fR\m[]\&\s-2\u[1]\d\s+2
+and
+\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2, which completely defines the data model \- supported YANG modules as well as features and capabilities\&. In the latter case, only one
 \fIfile\fR
 parameter may be present\&.
 .PP
@@ -54,7 +57,7 @@ Only the most common options are listed here\&. See below for a complete list of
 .PP
 The
 \fBpyang\fR
-program is used to validate YANG modules (RFC 6020)\&. It is also used to convert YANG modules into equivalent YIN modules\&. From a valid module, a W3C XML Schema (XSD) or a hybrid DSDL schema (RFC 6110) can be generated\&.
+program is used to validate YANG modules (\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2)\&. It is also used to convert YANG modules into equivalent YIN modules\&. From a valid module, a W3C XML Schema (XSD) or a hybrid DSDL schema (\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[3]\d\s+2) can be generated\&.
 .PP
 If no
 \fIformat\fR
@@ -151,7 +154,8 @@ Force strict YANG compliance\&. Currently this checks that the deref() function 
 .PP
 \fB\-\-ietf\fR
 .RS 4
-Validate the module(s) according to IETF rules as specified in RFC 6087\&. In addition, it checks that the module is in canonical order, and that
+Validate the module(s) according to IETF rules as specified in
+\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[4]\d\s+2\&. In addition, it checks that the module is in canonical order, and that
 \fB\-\-max\-line\-length\fR
 is 72 so that the module fits into an RFC\&.
 .RE
@@ -316,7 +320,9 @@ normal YANG syntax
 \fIdsdl\fR
 .RS 4
 Hybrid DSDL schema (RELAX NG with annotations) which is primarily intended as an interim product used by
-\fByang2dsdl\fR(1)\&. See RFC 6110 for details\&.
+\fByang2dsdl\fR(1)\&. See
+\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[3]\d\s+2
+for details\&.
 .RE
 .PP
 \fIxsd\fR
@@ -357,6 +363,11 @@ A hyperbolic tree navigator that can be displayed by treebolic
 \fIjsonxsl\fR
 .RS 4
 Generates XSLT stylesheet for transforming XML instance documents into JSON\&.
+.RE
+.PP
+\fIjtox\fR
+.RS 4
+Generates a driver file for transforming JSON instance documents into XML\&.
 .RE
 .SH "YANG OUTPUT"
 .PP
@@ -662,7 +673,8 @@ NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram\&
 .PP
 The
 \fIjsonxsl\fR
-output generates an XSLT 1\&.0 stylesheet that can be used for transforming an XML instance document into JSON text as specified in draft\-lhotka\-yang\-json\-01\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules (or via a <hello> message, see the
+output generates an XSLT 1\&.0 stylesheet that can be used for transforming an XML instance document into JSON text as specified in
+\m[blue]\fBdraft\-lhotka\-netmod\-yang\-json\-00\fR\m[]\&\s-2\u[5]\d\s+2\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules on the command line (or via a <hello> message, see the
 \fB\-\-hello\fR
 option)\&.
 .PP
@@ -686,6 +698,24 @@ jsonxsl\-templates\&.xsl
 which is a part of
 \fBpyang\fR
 distribution\&.
+.SH "JTOX OUTPUT"
+.PP
+The
+\fIjtox\fR
+output generates a driver file which can be used as one of the inputs to
+\fBjson2xml\fR
+for transforming a JSON document to XML as specified in
+\m[blue]\fBdraft\-lhotka\-netmod\-yang\-json\-00\fR\m[]\&\s-2\u[5]\d\s+2\&.
+.PP
+The
+\fIjtox\fR
+output itself is a JSON document containing a concise representation of the data model which is specified as one or more input YANG modules on the command line (or via a <hello> message, see the
+\fB\-\-hello\fR
+option)\&.
+.PP
+See
+\fBjson2xml\fR
+manual page for more information\&.
 .SH "YANG EXTENSIONS"
 .PP
 This section describes XPath functions that can be used in "must", "when", or "path" expressions in YANG modules, in addition to the core XPath 1\&.0 functions\&.
@@ -834,4 +864,30 @@ CZ\&.NIC
 .br
 Tail\-f Systems
 .RS 4
+.RE
+.SH "NOTES"
+.IP " 1." 4
+RFC 6241
+.RS 4
+\%http://tools.ietf.org/html/rfc6241
+.RE
+.IP " 2." 4
+RFC 6020
+.RS 4
+\%http://tools.ietf.org/html/rfc6020
+.RE
+.IP " 3." 4
+RFC 6110
+.RS 4
+\%http://tools.ietf.org/html/rfc6110
+.RE
+.IP " 4." 4
+RFC 6087
+.RS 4
+\%http://tools.ietf.org/html/rfc6087
+.RE
+.IP " 5." 4
+draft-lhotka-netmod-yang-json-00
+.RS 4
+\%http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00
 .RE

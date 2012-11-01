@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
           xml:id="man.1.pyang">
 
   <info>
@@ -75,10 +76,13 @@
       given on the command line. They denote either YANG modules to be
       processed (in YANG or YIN syntax) or, using the
       <option>--hello</option> switch, a server &lt;hello&gt; message
-      conforming to RFC 6241 and 6020, which completely defines the
-      data model - supported YANG modules as well as features and
-      capabilities. In the latter case, only one
-      <replaceable>file</replaceable> parameter may be present.
+      conforming to <link
+      xlink:href="http://tools.ietf.org/html/rfc6241">RFC 6241</link>
+      and <link xlink:href="http://tools.ietf.org/html/rfc6020">RFC
+      6020</link>, which completely defines the data model - supported
+      YANG modules as well as features and capabilities. In the latter
+      case, only one <replaceable>file</replaceable> parameter may be
+      present.
     </para>
 
     <para>
@@ -95,9 +99,13 @@
     <title>Description</title>
     <para>
       The <command>pyang</command> program is used to validate YANG
-      modules (RFC 6020).  It is also used to convert YANG modules into
+      modules (<link
+      xlink:href="http://tools.ietf.org/html/rfc6020">RFC
+      6020</link>).  It is also used to convert YANG modules into
       equivalent YIN modules.  From a valid module, a W3C XML Schema
-      (XSD) or a hybrid DSDL schema (RFC 6110) can be generated.
+      (XSD) or a hybrid DSDL schema (<link
+      xlink:href="http://tools.ietf.org/html/rfc6110">RFC 6110</link>)
+      can be generated.
     </para>
 
     <para>
@@ -261,8 +269,10 @@
         <listitem>
           <para>
             Validate the module(s) according to IETF rules as
-            specified in RFC 6087.  In addition,
-            it checks that the module is in canonical order, and that
+            specified in <link
+            xlink:href="http://tools.ietf.org/html/rfc6087">RFC
+            6087</link>.  In addition, it checks that the module is in
+            canonical order, and that
             <option>--max-line-length</option> is 72 so that the
             module fits into an RFC.
           </para>
@@ -481,8 +491,9 @@
         <listitem>
           <para>Hybrid DSDL schema (RELAX NG with annotations) which
           is primarily intended as an interim product used by
-          <command>yang2dsdl</command>(1). See RFC 6110 for
-          details.</para>
+          <command>yang2dsdl</command>(1). See <link
+          xlink:href="http://tools.ietf.org/html/rfc6110">RFC
+          6110</link> for details.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -532,6 +543,13 @@
         <listitem>
           <para>Generates XSLT stylesheet for transforming XML
 	  instance documents into JSON.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>jtox</emphasis></term>
+        <listitem>
+          <para>Generates a driver file for transforming JSON
+	  instance documents into XML.</para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -1047,11 +1065,13 @@
     <title>JSONXSL Output</title>
     <para>
       The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
-      stylesheet that can be used for transforming an XML instance document
-      into JSON text as specified in draft-lhotka-yang-json-01. The
+      stylesheet that can be used for transforming an XML instance
+      document into JSON text as specified in <link
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00">draft-lhotka-netmod-yang-json-00</link>. The
       XML document must be a valid instance of the data model which is
-      specified as one or more input YANG modules (or via a
-      &lt;hello&gt; message, see the <option>--hello</option> option).
+      specified as one or more input YANG modules on the command line
+      (or via a &lt;hello&gt; message, see the
+      <option>--hello</option> option).
     </para>
     <para>
       The data tree(s) must be wrapped in either &lt;nc:data&gt; or
@@ -1076,6 +1096,27 @@
       The generated stylesheet includes the file
       <filename>jsonxsl-templates.xsl</filename> which is a part of
       <command>pyang</command> distribution.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.jtox_output">
+    <title>JTOX Output</title>
+    <para>
+      The <emphasis>jtox</emphasis> output generates a driver file
+      which can be used as one of the inputs to
+      <command>json2xml</command> for transforming a JSON document
+      to XML as specified in <link
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00">draft-lhotka-netmod-yang-json-00</link>.
+    </para>
+    <para>
+      The <emphasis>jtox</emphasis> output itself is a JSON document
+      containing a concise representation of the data model which is
+      specified as one or more input YANG modules on the command line
+      (or via a &lt;hello&gt; message, see the
+      <option>--hello</option> option).
+    </para>
+    <para>
+      See <command>json2xml</command> manual page for more information.
     </para>
   </refsect1>
 
