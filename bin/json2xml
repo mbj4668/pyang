@@ -85,7 +85,8 @@ class Translator:
 
     def translate(self, json_doc, xml_root):
         """Translate `json_doc` and attach the result under `xml_root`."""
-        return self.translate_obj(json_doc, self.jtox["tree"], xml_root, "/")
+        d = json.load(json_doc) if isinstance(json_doc, file) else json.loads(json_doc)
+        return self.translate_obj(d, self.jtox["tree"], xml_root, "/")
         
     def translate_obj(self, json_obj, node, xml_parent, path):
         for key in json_obj:
@@ -132,7 +133,7 @@ class Translator:
 
 
     def text_value(self, value, type_spec, prefix, path):
-        """Return `value` in text form.
+        """Return `value` translated to its XML form.
 
         Return `None` if `value` cannot be represented as an instance
         of the datatype specified by `type_spec`.
@@ -144,6 +145,8 @@ class Translator:
         - `type_spec`: type specification produced by the "jtox" plugin;
 
         - `prefix`: XML namespace prefix of the containing leaf
+
+        - `path`: path of the node containing `value` (for error reporting)
         """
         t = type_spec[0] if isinstance(type_spec, list) else type_spec 
         if t == 'empty':
@@ -211,6 +214,7 @@ class Translator:
         return str(value)
 
 def main():
+    """Parse arguments, open files, create and run the translator."""
     parser = argparse.ArgumentParser(
         description="JSON to XML conversion driven by a YANG data model.")
     parser.add_argument("jtox", metavar="driver_file", action="store",
@@ -229,7 +233,6 @@ def main():
         dfile = open(args.jtox)
         jfile = sys.stdin if args.json == "-" else open(args.json)
         outfile = sys.stdout if args.output is None else open(args.output, "w")
-        inst = json.load(jfile)
         jtox = json.load(dfile)
     except IOError as e:
         sys.stderr.write("%s: error: %s: '%s'\n" %
@@ -246,7 +249,7 @@ def main():
         root_el.attrib["xmlns:" + modules[m][0]] = modules[m][1]
     trans = Translator(jtox)
     try:
-        trans.translate(inst, root_el)
+        trans.translate(jfile, root_el)
     except Error as e:
         sys.stderr.write(parser.prog + ": " + str(e) + "\n")
         return e.return_value
