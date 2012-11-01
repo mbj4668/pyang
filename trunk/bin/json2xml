@@ -29,7 +29,7 @@ class DataTypeError(Error):
 
     def __str__(self):
         return (Error.__str__(self) +
-                ": '%s' is not a valid value of '%s' type" % (str(self.value), self.type))
+                ': "%s" is not a valid value of "%s" type' % (str(self.value), self.type))
 
 class NodeTypeError(Error):
     """Exception raised if the JSON object type doesn't fit the data model."""
@@ -81,43 +81,40 @@ class Translator:
         ident = "[a-zA-Z_][-_.a-zA-Z0-9]*"
         self.qn_re = re.compile(r"^\s*(%s(?::%s)?)\s*(.*)$" % ((ident,)*2))
         self.num_re = re.compile(r"^\s*([0-9]+)\s*\]\s*(.*)$")
-        self.bra_re = re.compile(r"""^=([^"'\]]*(?:"[^"]*"|'[^']*')?)\s*\]\s*(.*)$""")
+        self.bra_re = re.compile(r"""^=\s*([^"'\]\s]+|"[^"]*"|'[^']*')\s*\]\s*(.*)$""")
 
     def translate(self, json_doc, xml_root):
         """Translate `json_doc` and attach the result under `xml_root`."""
-        self.path = "/"
-        return self.translate_obj(json_doc, self.jtox["tree"], xml_root)
+        return self.translate_obj(json_doc, self.jtox["tree"], xml_root, "/")
         
-    def translate_obj(self, json_obj, node, xml_parent):
+    def translate_obj(self, json_obj, node, xml_parent, path):
         for key in json_obj:
-            self.path += key
-            tag, prefix, node_spec = self.node_lookup(key, node)
+            new_path = path + key
+            tag, prefix, node_spec = self.node_lookup(key, node, new_path)
             if node_spec[0] == "container":
                 if not isinstance(json_obj[key], dict):
-                    raise NodeTypeError(self.path, "container")
+                    raise NodeTypeError(new_path, "container")
                 el = ET.SubElement(xml_parent, prefix + ":" + tag)
-                self.path += "/"
-                self.translate_obj(json_obj[key], node_spec[1], el)
+                self.translate_obj(json_obj[key], node_spec[1], el, new_path + "/")
             elif node_spec[0] == "list":
                 if not isinstance(json_obj[key], list) or json_obj[key] == [None]:
-                    raise NodeTypeError(self.path, "list")
+                    raise NodeTypeError(new_path, "list")
                 i = 0
                 for child in json_obj[key]:
                     if not isinstance(child, dict):
-                        raise NodeTypeError(self.path, "list")
+                        raise NodeTypeError(new_path, "list")
                     el = ET.SubElement(xml_parent, prefix + ":" + tag)
-                    self.path += "/%d/" % i
-                    self.translate_obj(child, node_spec[1], el)
+                    self.translate_obj(child, node_spec[1], el, new_path + "/%d/" % i)
                     i += 1
             elif node_spec[0] == "leaf":
-                tval = self.text_value(json_obj[key], node_spec[1], prefix)
+                tval = self.text_value(json_obj[key], node_spec[1], prefix, new_path)
                 if tval is None :
                     tsp = node_spec[1][0] if isinstance(node_spec[1], list) else node_spec[1]
-                    raise DataTypeError(self.path, tsp, json_obj[key])
+                    raise DataTypeError(new_path, tsp, json_obj[key])
                 el = ET.SubElement(xml_parent, prefix + ":" + tag)
                 el.text = tval
 
-    def node_lookup(self, name, parent):
+    def node_lookup(self, name, parent, path):
         """Return tag, translated prefix and node specification for `name`."""
         try:
             if ":" in name:
@@ -127,14 +124,14 @@ class Translator:
             else:
                 prdict = parent[name]
                 if len(prdict) > 1:
-                    raise AmbiguousNameError(self.path)
+                    raise AmbiguousNameError(path)
                 return (name,) + prdict.items()[0]
         except KeyError:
-            raise InvalidNodeError(self.path)
+            raise InvalidNodeError(path)
         
 
 
-    def text_value(self, value, type_spec, prefix):
+    def text_value(self, value, type_spec, prefix, path):
         """Return `value` in text form.
 
         Return `None` if `value` cannot be represented as an instance
@@ -173,7 +170,7 @@ class Translator:
                 return None
         if t == "union":
             for memb in type_spec[1]:
-                tval = self.text_value(value, memb, prefix)
+                tval = self.text_value(value, memb, prefix, path)
                 if tval is not None: return tval
             return None
         if t == "identityref":
@@ -183,36 +180,35 @@ class Translator:
                 return None
             return value if len(comp) == 1 else self.prefix[comp[0]] + ":" + comp[1]
         if t == "instance-identifier":
-            return self.translate_ii(value)
-        return str(value)
-
-    def translate_ii(self, ii):
-        """Return translated value of an instance-identifier leaf."""
-        result = ""
-        node = self.jtox["tree"]
-        rest = ii.strip()
-        while len(rest) > 0:
-            result += rest[0]
-            zb = rest[1:]
-            if rest[0] == "/":
-                mo = self.qn_re.search(zb)
-                t, p, spec = self.node_lookup(mo.group(1), node)
-                result += p + ":" + t
-                rest = mo.group(2)
-                if spec[0] in ("container", "list"):
-                    node = spec[1]
-            elif rest[0] == "[":
-                mo = self.num_re.search(zb)
-                if mo is None:
-                    mo = self.qn_re.search(zb)
-                    t, p, spec = self.node_lookup(mo.group(1), node)
-                    result += p + ":" + t + "="
-                    mo = self.bra_re.search(mo.group(2))
-                result += mo.group(1).strip() + "]"
-                rest = mo.group(2)
-            else:
+            result = ""
+            node = self.jtox["tree"]
+            try:
+                rest = value.strip()
+                while len(rest) > 0:
+                    result += rest[0]
+                    zb = rest[1:]
+                    if rest[0] == "/":
+                        mo = self.qn_re.search(zb)
+                        t, p, spec = self.node_lookup(mo.group(1), node, path)
+                        result += p + ":" + t
+                        rest = mo.group(2)
+                        if spec[0] in ("container", "list"):
+                            node = spec[1]
+                    elif rest[0] == "[":
+                        mo = self.num_re.search(zb)
+                        if mo is None:
+                            mo = self.qn_re.search(zb)
+                            t, p, spec = self.node_lookup(mo.group(1), node, path)
+                            result += p + ":" + t + "="
+                            mo = self.bra_re.search(mo.group(2))
+                        result += mo.group(1).strip() + "]"
+                        rest = mo.group(2)
+                    else:
+                        return None
+            except:
                 return None
-        return result
+            return result
+        return str(value)
 
 def main():
     parser = argparse.ArgumentParser(
