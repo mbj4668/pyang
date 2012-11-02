@@ -94,11 +94,24 @@ class Translator:
         return self.translate_obj(d, self.jtox["tree"], xml_root, "/")
         
     def translate_obj(self, json_obj, node, xml_parent, path):
+        """Translate object and attach it to the output XML tree.
+
+        Arguments:
+
+        - `json_obj`: JSON object to translate,
+
+        - `node`: corresponding schema node in the jtox driver structure,
+
+        - `xml_parent`: parent XML element for the resulting tree
+
+        - `path`: JSON pointer of `json_obj` (for error messages)
+        
+        """ 
         for key in json_obj:
             job = json_obj[key]
             new_path = path + key
-            tag, modname, node_spec = self.node_lookup(key, node, new_path)
-            qn = self.et_qname(modname, tag)
+            tag, mod_name, node_spec = self.node_lookup(key, node, new_path)
+            qn = self.et_qname(mod_name, tag)
             if node_spec[0] == "container":
                 if not isinstance(job, dict):
                     raise NodeTypeError(new_path, "container")
@@ -112,7 +125,7 @@ class Translator:
                     if not isinstance(child, dict):
                         raise NodeTypeError(new_path, "list")
                     el = ET.SubElement(xml_parent, qn)
-                    self.translate_obj(child, node_spec[1], el, new_path + "/%d/" % i)
+                    self.translate_obj(child, node_spec[1], el, new_path + "/%d" % i)
                     # Rearrange the subtree so that keys come first and in order
                     keys = node_spec[2]
                     keys.reverse()
@@ -122,18 +135,28 @@ class Translator:
                         el.insert(0,knode)
                     i += 1
             elif node_spec[0] == "leaf":
-                tval = self.text_value(job, node_spec[1], modname, new_path)
-                if tval is None :
-                    tsp = node_spec[1][0] if isinstance(node_spec[1], list) else node_spec[1]
-                    raise DataTypeError(new_path, tsp, job)
-                el = ET.SubElement(xml_parent, qn)
-                el.text = tval
+                self.handle_leaf(job, node_spec[1], mod_name, qn, xml_parent, new_path)
+            elif node_spec[0] == "leaf-list":
+                i = 0
+                for child in job:
+                    self.handle_leaf(child, node_spec[1], mod_name, qn,
+                                     xml_parent, new_path + "/%d" % i)
+                    i += 1
             elif node_spec[0] == "anyxml":
                 el = ET.SubElement(xml_parent, qn)
                 if isinstance(job, dict):
                     self.handle_anyxml(job, el)
                 else:
                     el.text = str(job)
+
+    def handle_leaf(self, value, ytyp, mod_name, leaf_name, xml_parent, path):
+        """Install the transformed leaf with `value` under `xml_parent`."""
+        tval = self.text_value(value, ytyp, mod_name, path)
+        if tval is None :
+            tsp = ytyp[0] if isinstance(node_spec[1], list) else ytyp
+            raise DataTypeError(path, tsp, value)
+        el = ET.SubElement(xml_parent, leaf_name)
+        el.text = tval
 
     def handle_anyxml(self, obj, parent):
         """Translate anyxml content from JSON object `obj` and attach under `el`."""
@@ -143,12 +166,12 @@ class Translator:
                 el = ET.SubElement(parent, ch)
                 self.handle_anyxml(cobj, el)
             elif isinstance(cobj, list):
-                for i in cobj:    
+                for eob in cobj:    
                     el = ET.SubElement(parent, ch)
-                    if isinstance(i, dict):
-                        self.handle_anyxml(i, el)
+                    if isinstance(eob, dict):
+                        self.handle_anyxml(eob, el)
                     else:
-                        el.text = str(i)
+                        el.text = str(eob)
             else:
                 el = ET.SubElement(parent, ch)
                 el.text = str(cobj)
@@ -166,7 +189,7 @@ class Translator:
                 return (name,) + alts.items()[0]
         except KeyError:
             raise InvalidNodeError(path)
-        
+
     def text_value(self, value, type_spec, mod_name, path):
         """Return `value` translated to its XML form.
 
