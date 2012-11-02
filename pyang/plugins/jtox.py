@@ -60,16 +60,21 @@ def process_children(node, parent):
             process_children(ch, parent)
             continue
         ndata = [ch.keyword]
-        if ch.keyword in ["container", "list"]:
+        if ch.keyword == "container":
             ndata.append({})
             process_children(ch, ndata[1])
+        elif ch.keyword == "list":
+            ndata.append({})
+            process_children(ch, ndata[1])
+            ndata.append([(k.i_module.i_modulename, k.arg)
+                          for k in ch.i_key])
         elif ch.keyword in ["leaf", "leaf-list"]:
             ndata.append(base_type(ch.search_one("type")))
         modname = ch.i_module.i_modulename
         if ch.arg in parent:
-            parent[ch.arg][mods[modname][0]] = ndata
+            parent[ch.arg][modname] = ndata
         else:
-            parent[ch.arg] = {mods[modname][0]: ndata}
+            parent[ch.arg] = {modname: ndata}
 
 def base_type(type):
     """Return the base type of `type`."""
