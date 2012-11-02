@@ -279,7 +279,7 @@ def main():
                          (parser.prog, e.message))
         return 1
     nc_uri = "urn:ietf:params:xml:ns:netconf:base:1.0"
-    ET.register_namespace("", nc_uri)
+    ET.register_namespace("nc", nc_uri)
     root_el = ET.Element("{%s}%s" % (nc_uri, args.target))
     trans = Translator(jtox)
     try:
