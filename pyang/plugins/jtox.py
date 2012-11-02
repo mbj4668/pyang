@@ -38,7 +38,7 @@ def emit_jtox(modules, fd):
     def unique_prefix(p):
         """Disambiguate the module prefix."""
         suffix = 0
-        while p in prefixes:
+        while p == "nc" or p in prefixes:
             p += "%d" % suffix
             suffix += 1
         return p
