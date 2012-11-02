@@ -95,19 +95,20 @@ class Translator:
         
     def translate_obj(self, json_obj, node, xml_parent, path):
         for key in json_obj:
+            job = json_obj[key]
             new_path = path + key
             tag, modname, node_spec = self.node_lookup(key, node, new_path)
             qn = self.et_qname(modname, tag)
             if node_spec[0] == "container":
-                if not isinstance(json_obj[key], dict):
+                if not isinstance(job, dict):
                     raise NodeTypeError(new_path, "container")
                 el = ET.SubElement(xml_parent, qn)
-                self.translate_obj(json_obj[key], node_spec[1], el, new_path + "/")
+                self.translate_obj(job, node_spec[1], el, new_path + "/")
             elif node_spec[0] == "list":
-                if not isinstance(json_obj[key], list) or json_obj[key] == [None]:
+                if not isinstance(job, list) or job == [None]:
                     raise NodeTypeError(new_path, "list")
                 i = 0
-                for child in json_obj[key]:
+                for child in job:
                     if not isinstance(child, dict):
                         raise NodeTypeError(new_path, "list")
                     el = ET.SubElement(xml_parent, qn)
@@ -121,12 +122,36 @@ class Translator:
                         el.insert(0,knode)
                     i += 1
             elif node_spec[0] == "leaf":
-                tval = self.text_value(json_obj[key], node_spec[1], modname, new_path)
+                tval = self.text_value(job, node_spec[1], modname, new_path)
                 if tval is None :
                     tsp = node_spec[1][0] if isinstance(node_spec[1], list) else node_spec[1]
-                    raise DataTypeError(new_path, tsp, json_obj[key])
+                    raise DataTypeError(new_path, tsp, job)
                 el = ET.SubElement(xml_parent, qn)
                 el.text = tval
+            elif node_spec[0] == "anyxml":
+                el = ET.SubElement(xml_parent, qn)
+                if isinstance(job, dict):
+                    self.handle_anyxml(job, el)
+                else:
+                    el.text = str(job)
+
+    def handle_anyxml(self, obj, parent):
+        """Translate anyxml content from JSON object `obj` and attach under `el`."""
+        for ch in obj:
+            cobj = obj[ch]
+            if isinstance(cobj, dict):
+                el = ET.SubElement(parent, ch)
+                self.handle_anyxml(cobj, el)
+            elif isinstance(cobj, list):
+                for i in cobj:    
+                    el = ET.SubElement(parent, ch)
+                    if isinstance(i, dict):
+                        self.handle_anyxml(i, el)
+                    else:
+                        el.text = str(i)
+            else:
+                el = ET.SubElement(parent, ch)
+                el.text = str(cobj)
 
     def node_lookup(self, name, parent, path):
         """Return tag, module name and node specification for `name`."""
