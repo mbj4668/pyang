@@ -424,7 +424,8 @@ class HybridDSDLSchema(object):
         prev = None
         res = ""
         for tok in toks:
-            if tok[0] == "/" and prev not in (".", "]", "name", "wildcard", "prefix-test"):
+            if tok[0] == "/" and prev not in (".", "..", ")", "]", "name",
+                                              "wildcard", "prefix-test"):
                 res += "$root"
             elif tok[0] == "name" and ":" not in tok[1]:
                 res += pref
