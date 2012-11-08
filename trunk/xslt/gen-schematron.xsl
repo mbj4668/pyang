@@ -156,8 +156,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="/rng:grammar">
-      <xsl:call-template name="yam-namespaces"/>
-      <xsl:call-template name="nc-namespace"/>
+    <xsl:call-template name="yam-namespaces"/>
+    <xsl:call-template name="nc-namespace"/>
+    <xsl:element name="sch:let">
+      <xsl:attribute name="name">root</xsl:attribute>
+      <xsl:attribute name="value">
+	<xsl:value-of select="$netconf-part"/>
+      </xsl:attribute>
+    </xsl:element>
     <xsl:apply-templates
         select="rng:define[descendant-or-self::rng:*[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
@@ -551,14 +557,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@nma:leafref">
-    <xsl:variable name="beg">
-      <xsl:if test="starts-with(.,'/')">
-	<xsl:value-of select="$netconf-part"/>
-      </xsl:if>
-    </xsl:variable>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-        <xsl:value-of select="concat('not(',$beg,.,'=.)')"/>
+        <xsl:value-of select="concat('not(',.,'=.)')"/>
       </xsl:attribute>
         <xsl:value-of
             select="concat('Leaf &quot;',.,
