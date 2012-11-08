@@ -408,17 +408,29 @@ class HybridDSDLSchema(object):
                                         interleave=False)
 
     def yang_to_xpath(self, xpe):
-        """Transform YANG's `xpath` to standard XPath 1.0
+        """Transform YANG's `xpath` to a form suitable for Schematron.
 
-        Prefixes are added to unprefixed local names. Inside global
-        groupings, the prefix is represented as the variable '$pref'
-        which is substituted via Schematron abstract patterns.
+        1. Prefixes are added to unprefixed local names. Inside global
+           groupings, the prefix is represented as the variable
+           '$pref' which is substituted via Schematron abstract
+           patterns.
+        2. '$root' is prepended to every absolute location path.
         """
         if self.gg_level:
-            pref = "$pref"
+            pref = "$pref:"
         else:
-            pref = self.prefix_stack[-1]
-        return xpath.add_prefix(pref, xpe)
+            pref = self.prefix_stack[-1] + ":"
+        toks = xpath.tokens(xpe)
+        prev = None
+        res = ""
+        for tok in toks:
+            if tok[0] == "/" and prev not in (".", "]", "name", "wildcard", "prefix-test"):
+                res += "$root"
+            elif tok[0] == "name" and ":" not in tok[1]:
+                res += pref
+            res += tok[1]
+            if tok[0] != "whitespace": prev = tok[0]
+        return res
 
     def add_namespace(self, module):
         """Add item uri:prefix for `module` to `self.namespaces`.
