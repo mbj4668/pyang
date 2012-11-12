@@ -87,11 +87,14 @@ Each node is printed as:
 
 def emit_tree(modules, fd, depth, path):
     for module in modules:
-        bstr = ""
-        b = module.search_one('belongs-to')
-        if b is not None:
-            bstr = " (belongs-to %s)" % b.arg
-        fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
+        printed_header = False
+
+        def print_header():
+            bstr = ""
+            b = module.search_one('belongs-to')
+            if b is not None:
+                bstr = " (belongs-to %s)" % b.arg
+            fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
 
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
@@ -99,7 +102,11 @@ def emit_tree(modules, fd, depth, path):
             chs = [ch for ch in chs if ch.arg == path[0]]
             path = path[1:]
 
-        print_children(chs, module, fd, ' ', path, depth)
+        if len(chs) > 0:
+            if not printed_header:
+                print_header()
+                print_header = True
+            print_children(chs, module, fd, ' ', path, depth)
 
         rpcs = module.search('rpc')
         if path is not None:
@@ -109,6 +116,9 @@ def emit_tree(modules, fd, depth, path):
             else:
                 rpcs = []
         if len(rpcs) > 0:
+            if not printed_header:
+                print_header()
+                print_header = True
             fd.write("rpcs:\n")
             print_children(rpcs, module, fd, ' ', path, depth)
 
@@ -120,6 +130,9 @@ def emit_tree(modules, fd, depth, path):
             else:
                 notifs = []
         if len(notifs) > 0:
+            if not printed_header:
+                print_header()
+                print_header = True
             fd.write("notifications:\n")
             print_children(notifs, module, fd, ' ', path, depth)
 
