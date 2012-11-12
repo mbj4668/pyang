@@ -83,7 +83,7 @@ Each node is printed as:
     [<keys>] for a list's keys
 
   <type> is the name of the type for leafs and leaf-lists
-""")    
+""")
 
 def emit_tree(modules, fd, depth, path):
     for module in modules:
@@ -92,29 +92,33 @@ def emit_tree(modules, fd, depth, path):
         if b is not None:
             bstr = " (belongs-to %s)" % b.arg
         fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
+
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
         if path is not None and len(path) > 0:
-            chs = [ch for ch in chs
-                   if ch.arg == path[0]]
+            chs = [ch for ch in chs if ch.arg == path[0]]
             path = path[1:]
 
         print_children(chs, module, fd, ' ', path, depth)
 
         rpcs = module.search('rpc')
-        if path is not None and len(path) > 0:
-            rpcs = [rpc for rpc in rpcs
-                    if rpc.arg == path[0]]
-            path = path[1:]
+        if path is not None:
+            if len(path) > 0:
+                rpcs = [rpc for rpc in rpcs if rpc.arg == path[0]]
+                path = path[1:]
+            else:
+                rpcs = []
         if len(rpcs) > 0:
             fd.write("rpcs:\n")
             print_children(rpcs, module, fd, ' ', path, depth)
 
         notifs = module.search('notification')
-        if path is not None and len(path) > 0:
-            notifs = [n for n in notifs
-                      if n.arg == path[0]]
-            path = path[1:]
+        if path is not None:
+            if len(path) > 0:
+                notifs = [n for n in notifs if n.arg == path[0]]
+                path = path[1:]
+            else:
+                notifs = []
         if len(notifs) > 0:
             fd.write("notifications:\n")
             print_children(notifs, module, fd, ' ', path, depth)
@@ -134,7 +138,7 @@ def print_children(i_children, module, fd, prefix, path, depth, width=0):
                 if nlen > w:
                     w = nlen
         return w
-    
+
     if width == 0:
         width = get_width(0, i_children)
 
@@ -212,7 +216,7 @@ def get_flags_str(s):
     if s.keyword == 'rpc':
         return '-x'
     elif s.keyword == 'notification':
-        return '-n'    
+        return '-n'
     elif s.i_config == True:
         return 'rw'
     else:
