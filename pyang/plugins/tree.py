@@ -105,7 +105,7 @@ def emit_tree(modules, fd, depth, path):
         if len(chs) > 0:
             if not printed_header:
                 print_header()
-                print_header = True
+                printed_header = True
             print_children(chs, module, fd, ' ', path, depth)
 
         rpcs = module.search('rpc')
@@ -118,7 +118,7 @@ def emit_tree(modules, fd, depth, path):
         if len(rpcs) > 0:
             if not printed_header:
                 print_header()
-                print_header = True
+                printed_header = True
             fd.write("rpcs:\n")
             print_children(rpcs, module, fd, ' ', path, depth)
 
@@ -132,7 +132,7 @@ def emit_tree(modules, fd, depth, path):
         if len(notifs) > 0:
             if not printed_header:
                 print_header()
-                print_header = True
+                printed_header = True
             fd.write("notifications:\n")
             print_children(notifs, module, fd, ' ', path, depth)
 
