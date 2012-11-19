@@ -1159,7 +1159,7 @@ def v_expand_1_children(ctx, stmt):
     return 'continue'
 
 _refinements = [
-    # (<keyword>, <list of refinements that can be applied to the <keyword>>,
+    # (<keyword>, <list of keywords for which <keyword> can be refined>,
     #  <merge>, <validation function>)
     ('description',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
@@ -1171,15 +1171,12 @@ _refinements = [
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'anyxml'],
      False, None),
     ('presence', ['container'], False, None),
-    ('must', ['container', 'leaf', 'leaf-list', 'list'], True, None),
+    ('must', ['container', 'leaf', 'leaf-list', 'list', 'anyxml'], True, None),
     ('default', ['leaf', 'choice'],
      False, lambda ctx, target, default: v_default(ctx, target, default)),
-    ('mandatory', ['leaf', 'choice'], False, None),
+    ('mandatory', ['leaf', 'choice', 'anyxml'], False, None),
     ('min-elements', ['leaf-list', 'list'], False, None),
     ('max-elements', ['leaf-list', 'list'], False, None),
-    ('reference',
-     ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
-     False, None)
 ]
 
 def add_refinement_element(keyword, element, merge = False, v_fun=None):
@@ -2178,6 +2175,10 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
             dn = dn[1:]
         else:
             while up > 0:
+                if ptr is None: # or ptr.keyword == 'grouping':
+                    err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                            (stmt.arg, stmt.pos))
+                    raise NotFound
                 if ptr.keyword in ('augment', 'grouping'):
                     # don't check the path here - check in the expanded tree
                     raise Abort
@@ -2200,6 +2201,10 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                         raise NotFound
                 path_list.append(('up', ptr))
                 up = up - 1
+            if ptr is None: # or ptr.keyword == 'grouping':
+                err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                        (stmt.arg, stmt.pos))
+                raise NotFound
         if ptr.keyword in ('augment', 'grouping'):
             # don't check the path here - check in the expanded tree
             raise Abort
