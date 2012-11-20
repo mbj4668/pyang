@@ -554,16 +554,14 @@ class HybridDSDLSchema(object):
         an RPC, in which case the name gets the "__rpc" suffix.
         """
         module = self.main_module(stmt)
-        name = "__" + stmt.arg
-        if stmt.parent.keyword in ("module", "submodule"):
-            defs = self.global_defs
-        else:
+        name = ""
+        while True:
+            name = "__" + stmt.arg + name
+            if stmt.keyword == "grouping": name = "_" + name
+            if stmt.parent.parent is None: break
             stmt = stmt.parent
-            while stmt.parent:
-                name = "__" + stmt.arg + name
-                if stmt.keyword == "grouping": name = "_" + name
-                stmt = stmt.parent
-            defs = self.local_defs
+        defs = (self.global_defs if stmt.keyword == "grouping"
+                else self.local_defs)
         if inrpc: name += "__rpc"
         return (module.arg + name, defs)
 
@@ -1139,12 +1137,11 @@ class HybridDSDLSchema(object):
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
             uname, dic = self.unique_def_name(stmt.i_grouping,
                                               not(p_elem.interleave))
-            gname = "_" + uname
             if uname not in dic:
-                self.install_def(gname, stmt.i_grouping, dic,
+                self.install_def(uname, stmt.i_grouping, dic,
                                  p_elem.interleave)
-            elem = SchemaNode("ref", p_elem).set_attr("name", gname)
-            occur = dic[gname].occur
+            elem = SchemaNode("ref", p_elem).set_attr("name", uname)
+            occur = dic[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
             self.handle_substmts(stmt, elem)
             return
