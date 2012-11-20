@@ -554,14 +554,18 @@ class HybridDSDLSchema(object):
         an RPC, in which case the name gets the "__rpc" suffix.
         """
         module = self.main_module(stmt)
+        name = "__" + stmt.arg
         if stmt.parent.keyword in ("module", "submodule"):
-            name = stmt.arg
             defs = self.global_defs
         else:
-            name = "__".join(stmt.full_path())
+            stmt = stmt.parent
+            while stmt.parent:
+                name = "__" + stmt.arg + name
+                if stmt.keyword == "grouping": name = "_" + name
+                stmt = stmt.parent
             defs = self.local_defs
         if inrpc: name += "__rpc"
-        return (module.arg + "__" + name, defs)
+        return (module.arg + name, defs)
 
     def add_patch(self, pset, augref):
         """Add patch corresponding to `augref` to `pset`.
