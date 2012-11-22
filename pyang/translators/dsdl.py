@@ -552,7 +552,8 @@ class HybridDSDLSchema(object):
             if stmt.keyword == "grouping": name = "_" + name
             if stmt.parent.parent is None: break
             stmt = stmt.parent
-        defs = (self.global_defs if stmt.keyword == "grouping"
+        defs = (self.global_defs
+                if stmt.keyword in ("grouping", "typedef")
                 else self.local_defs)
         if inrpc: name += "__rpc"
         return (module.arg + name, defs)
