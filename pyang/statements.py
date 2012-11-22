@@ -2416,23 +2416,6 @@ class Statement(object):
             copyf(self, new)
         return new
 
-    # FIXME: remove / rewrite
-    def full_path(self):
-        """Return full path of the receiver.
-
-        This function makes sense mostly for definition statements
-        ('typedef' and 'grouping'). The returned value is a list of
-        data tree node identifiers containing receiver's argument and
-        arguments of all ancestor statements up to but not including
-        'module' or 'submodule' (in reverse order).
-        """
-        path = [self.arg]
-        node = self.parent
-        while node.parent is not None:
-            path.insert(0, node.arg)
-            node = node.parent
-        return path
-
     def pprint(self, indent='', f=None):
         """debug function"""
         print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)
