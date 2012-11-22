@@ -970,10 +970,10 @@ class HybridDSDLSchema(object):
     def if_feature_stmt(self, stmt, p_elem, pset):
         feat = stmt.i_feature
         module = feat.main_module()
-        try:
+        if module.i_ctx.hello:
             if feat.arg not in module.i_active_features:
                 p_elem.subnode(SchemaNode("notAllowed"))
-        except TypeError:  # slot i_active_features missing
+        else:
             self.add_namespace(module)
             p_elem.attr["nma:if-feature"] = \
                 self.module_prefixes[module.arg] + ":" + feat.arg

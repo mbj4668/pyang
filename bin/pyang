@@ -145,6 +145,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.max_line_len = o.max_line_len
     ctx.max_identifier_len = o.max_identifier_len
     ctx.trim_yin = o.trim_yin
+    ctx.hello = False                 # data model from hello?
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
@@ -178,6 +179,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             fd = sys.stdin.buffer
         hel = hello.HelloParser().parse(fd)
         ctx.capabilities = hel.registered_capabilities()
+        ctx.hello = True
         for (mn,rev) in hel.yang_modules():
             mod = ctx.search_module(0, mn, rev)
             if mod is None:
