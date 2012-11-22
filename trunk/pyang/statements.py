@@ -2416,6 +2416,13 @@ class Statement(object):
             copyf(self, new)
         return new
 
+    def main_module(self):
+        """Return the main module to which the receiver belongs."""
+        if self.i_module.keyword == "submodule":
+            return self.i_module.i_ctx.get_module(
+                self.i_module.i_including_modulename)
+        return self.i_module
+
     def pprint(self, indent='', f=None):
         """debug function"""
         print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)

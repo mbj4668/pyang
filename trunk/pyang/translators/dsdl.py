@@ -459,7 +459,7 @@ class HybridDSDLSchema(object):
 
         Fill in (recursively) all derivations from base identities.
         """
-        module = self.main_module(id_stmt)
+        module = id_stmt.main_module()
         self.add_namespace(module)
         qid = self.module_prefixes[module.arg] + ":" + id_stmt.arg
         if qid in self.identity_deps: return qid
@@ -538,14 +538,6 @@ class HybridDSDLSchema(object):
             return defst.arg
         return None
 
-    def main_module(self, stmt):
-        """Return the main module to which `stmt` belongs.
-        """
-        if stmt.i_module.keyword == "submodule":
-            return stmt.i_module.i_ctx.get_module(
-                stmt.i_module.i_including_modulename)
-        return stmt.i_module
-
     def unique_def_name(self, stmt, inrpc=False):
         """Mangle the name of `stmt` (typedef or grouping).
 
@@ -553,7 +545,7 @@ class HybridDSDLSchema(object):
         to be installed. The `inrpc` flag indicates when we are inside
         an RPC, in which case the name gets the "__rpc" suffix.
         """
-        module = self.main_module(stmt)
+        module = stmt.main_module()
         name = ""
         while True:
             name = "__" + stmt.arg + name
@@ -977,7 +969,7 @@ class HybridDSDLSchema(object):
 
     def if_feature_stmt(self, stmt, p_elem, pset):
         feat = stmt.i_feature
-        module = self.main_module(feat)
+        module = feat.main_module()
         try:
             if feat.arg not in module.i_active_features:
                 p_elem.subnode(SchemaNode("notAllowed"))
@@ -1184,7 +1176,7 @@ class HybridDSDLSchema(object):
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
-        module = self.main_module(bid)
+        module = bid.main_module()
         qid = self.module_prefixes[module.arg] + ":" + bid.arg
         self.add_identity(qid)
         SchemaNode("ref", p_elem).set_attr("name",
