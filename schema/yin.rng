@@ -105,12 +105,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <optional>
 	<ref name="contact-stmt"/>
       </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
+      <ref name="desc-ref"/>
     </interleave>
   </define>
   
@@ -132,14 +127,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="body-stmts">
     <zeroOrMore>
       <choice>
+	<ref name="extension-stmt"/>
 	<ref name="feature-stmt"/>
 	<ref name="identity-stmt"/>
-	<ref name="extension-stmt"/>
 	<ref name="typedef-stmt"/>
 	<ref name="grouping-stmt"/>
 	<ref name="data-def-stmt"/>
+	<ref name="augment-stmt"/>
 	<ref name="rpc-stmt"/>
 	<ref name="notification-stmt"/>
+	<ref name="deviation-stmt"/>
       </choice>
     </zeroOrMore>
   </define>
@@ -201,19 +198,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <ref name="choice-stmt"/>
       <ref name="anyxml-stmt"/>
       <ref name="uses-stmt"/>
-      <ref name="augment-stmt"/>
-    </choice>
-  </define>
-
-  <define name="case-data-def-stmt">
-    <choice>
-      <ref name="container-stmt"/>
-      <ref name="leaf-stmt"/>
-      <ref name="leaf-list-stmt"/>
-      <ref name="list-stmt"/>
-      <ref name="anyxml-stmt"/>
-      <ref name="uses-stmt"/>
-      <ref name="augment-stmt"/>
     </choice>
   </define>
 
@@ -338,12 +322,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<data type="date"/>
       </attribute>
       <interleave>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="desc-ref"/>
 	<ref name="extensions"/>
       </interleave>
     </element>
@@ -410,6 +389,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <element name="type">
       <interleave>
 	<choice>
+	  <ref name="decimal64-type"/>
+	  <ref name="integer-type"/>
+	  <ref name="string-type"/>
+	  <ref name="enumeration-type"/>
+	  <ref name="bits-type"/>
+	  <ref name="binary-type"/>
+	  <ref name="leafref-type"/>
+	  <ref name="identityref-type"/>
+	  <ref name="union-type"/>
+	  <ref name="instance-identifier-type"/>
 	  <group>
 	    <attribute name="name">
 	      <ref name="identifier-ref"/>
@@ -422,20 +411,52 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	      </interleave>
 	    </choice>
 	  </group>
-	  <ref name="integer-type"/>
-	  <ref name="decimal64-type"/>
-	  <ref name="string-type"/>
-	  <ref name="enumeration-type"/>
-	  <ref name="bits-type"/>
-	  <ref name="binary-type"/>
-	  <ref name="leafref-type"/>
-	  <ref name="identityref-type"/>
-	  <ref name="union-type"/>
-	  <ref name="instance-identifier-type"/>
 	</choice>
 	<ref name="extensions"/>
       </interleave>
     </element>
+  </define>
+
+  <define name="decimal64-type">
+    <attribute name="name">
+      <value>decimal64</value>
+    </attribute>
+    <interleave>
+      <ref name="fraction-digits-stmt"/>
+      <ref name="range-stmt"/>
+      <ref name="extensions"/>
+    </interleave>
+  </define>
+
+  <define name="fraction-digits-stmt">
+    <element name="fraction-digits">
+      <attribute name="value">
+	<data type="unsignedByte">
+	  <param name="minInclusive">1</param>
+	  <param name="maxInclusive">18</param>
+	</data>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="range-stmt">
+    <optional>
+      <element name="range">
+	<attribute name="value">
+	  <ref name="range-expr"/>
+	</attribute>
+	<interleave>
+	  <optional>
+	    <ref name="error-message-stmt"/>
+	  </optional>
+	  <optional>
+	    <ref name="error-app-tag-stmt"/>
+	  </optional>
+	  <ref name="desc-ref"/>
+	  <ref name="extensions"/>
+	</interleave>
+      </element>
+    </optional>
   </define>
 
   <define name="integer-type">
@@ -452,49 +473,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </choice>
     </attribute>
     <ref name="range-stmt"/>
-  </define>
-
-  <define name="range-stmt">
-    <optional>
-      <element name="range">
-	<attribute name="value">
-	  <ref name="range-expr"/>
-	</attribute>
-	<interleave>
-	  <optional>
-	    <ref name="error-message-stmt"/>
-	  </optional>
-	  <optional>
-	    <ref name="error-app-tag-stmt"/>
-	  </optional>
-	  <optional>
-	    <ref name="description-stmt"/>
-	  </optional>
-	  <optional>
-	    <ref name="reference-stmt"/>
-	  </optional>
-	  <ref name="extensions"/>
-	</interleave>
-      </element>
-    </optional>
-  </define>
-
-  <define name="decimal64-type">
-    <attribute name="name">
-      <value>decimal64</value>
-    </attribute>
-    <interleave>
-      <ref name="range-stmt"/>
-      <element name="fraction-digits">
-	<attribute name="value">
-	  <data type="unsignedByte">
-	    <param name="minInclusive">1</param>
-	    <param name="maxInclusive">18</param>
-	  </data>
-	</attribute>
-      </element>
-      <ref name="extensions"/>
-    </interleave>
   </define>
 
   <define name="string-type">
@@ -521,12 +499,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <optional>
 	    <ref name="error-app-tag-stmt"/>
 	  </optional>
-	  <optional>
-	    <ref name="description-stmt"/>
-	  </optional>
-	  <optional>
-	    <ref name="reference-stmt"/>
-	  </optional>
+	  <ref name="desc-ref"/>
 	  <ref name="extensions"/>
 	</interleave>
       </element>
@@ -546,12 +519,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <optional>
 	    <ref name="error-app-tag-stmt"/>
 	  </optional>
-	  <optional>
-	    <ref name="description-stmt"/>
-	  </optional>
-	  <optional>
-	    <ref name="reference-stmt"/>
-	  </optional>
+	  <ref name="desc-ref"/>
 	  <ref name="extensions"/>
 	</interleave>
       </element>
@@ -638,23 +606,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <attribute name="name">
       <value>leafref</value>
     </attribute>
-    <interleave>
-      <element name="path">
-	<attribute name="value">
-	  <ref name="path-arg"/>
-	</attribute>
-	<ref name="extensions"/>
-      </element>
-      <optional>
-	<ref name="require-instance-stmt"/>
-      </optional>
-    </interleave>
+    <ref name="path-stmt"/>
   </define>
 
-  <define name="require-instance-stmt">
-    <element name="require-instance">
+  <define name="path-stmt">
+    <element name="path">
       <attribute name="value">
-	<data type="boolean"/>
+        <ref name="path-arg"/>
       </attribute>
       <ref name="extensions"/>
     </element>
@@ -683,6 +641,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <optional>
       <ref name="require-instance-stmt"/>
     </optional>
+  </define>
+
+  <define name="require-instance-stmt">
+    <element name="require-instance">
+      <attribute name="value">
+	<data type="boolean"/>
+      </attribute>
+      <ref name="extensions"/>
+    </element>
   </define>
 
   <define name="status-stmt">
@@ -757,12 +724,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<optional>
 	  <ref name="error-app-tag-stmt"/>
 	</optional>
-	<optional>
-	  <ref name="description-stmt"/>
-	</optional>
-	<optional>
-	  <ref name="reference-stmt"/>
-	</optional>
+	<ref name="desc-ref"/>
 	<ref name="extensions"/>
       </interleave>
     </element>
@@ -1071,7 +1033,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	</zeroOrMore>
 	<ref name="status-desc-ref"/>
 	<zeroOrMore>
-	  <ref name="case-data-def-stmt"/>
+	  <ref name="data-def-stmt"/>
 	</zeroOrMore>
 	<ref name="extensions"/>
       </interleave>
@@ -1141,9 +1103,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	  <ref name="refine-leaf-list-stmts"/>
 	  <ref name="refine-list-stmts"/>
 	  <ref name="refine-choice-stmts"/>
-	  <ref name="refine-case-stmts"/>
 	  <ref name="refine-anyxml-stmts"/>
 	</choice>
+	<ref name="desc-ref"/>
 	<ref name="extensions"/>
       </interleave>
     </element>
@@ -1159,12 +1121,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </optional>
       <optional>
 	<ref name="config-stmt"/>
-      </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
       </optional>
     </interleave>
   </define>
@@ -1183,12 +1139,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <optional>
 	<ref name="mandatory-stmt"/>
       </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
     </interleave>
   </define>
   
@@ -1205,12 +1155,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </optional>
       <optional>
 	<ref name="max-elements-stmt"/>
-      </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
       </optional>
     </interleave>
   </define>
@@ -1229,12 +1173,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <optional>
 	<ref name="max-elements-stmt"/>
       </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
     </interleave>
   </define>
 
@@ -1249,23 +1187,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <optional>
 	<ref name="mandatory-stmt"/>
       </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
-    </interleave>
-  </define>
-
-  <define name="refine-case-stmts">
-    <interleave>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
     </interleave>
   </define>
 
@@ -1276,12 +1197,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </optional>
       <optional>
 	<ref name="mandatory-stmt"/>
-      </optional>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
       </optional>
     </interleave>
   </define>
@@ -1339,12 +1254,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <attribute name="condition">
 	<data type="string"/>
       </attribute>
-      <optional>
-	<ref name="description-stmt"/>
-      </optional>
-      <optional>
-	<ref name="reference-stmt"/>
-      </optional>
+      <ref name="desc-ref"/>
       <ref name="extensions"/>
     </element>
   </define>
@@ -1432,6 +1342,122 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </element>
   </define>
 
+  <define name="deviation-stmt">
+    <element name="deviation">
+      <attribute name="target-node">
+	<ref name="absolute-schema-nodeid"/>
+      </attribute>
+      <interleave>
+	<ref name="desc-ref"/>
+	<choice>
+	  <ref name="deviate-not-supported-stmt"/>
+	  <oneOrMore>
+	    <choice>
+	      <ref name="deviate-add-stmt"/>
+	      <ref name="deviate-replace-stmt"/>
+	      <ref name="deviate-delete-stmt"/>
+	    </choice>
+	  </oneOrMore>
+	</choice>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="deviate-not-supported-stmt">
+    <element name="deviate">
+      <attribute name="value">
+	<value>not-supported</value>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="deviate-add-stmt">
+    <element name="deviate">
+      <attribute name="value">
+	<value>add</value>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="units-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<zeroOrMore>
+	  <ref name="unique-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="default-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="mandatory-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="min-elements-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="max-elements-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="deviate-delete-stmt">
+    <element name="deviate">
+      <attribute name="value">
+	<value>add</value>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="units-stmt"/>
+	</optional>
+	<zeroOrMore>
+	  <ref name="must-stmt"/>
+	</zeroOrMore>
+	<zeroOrMore>
+	  <ref name="unique-stmt"/>
+	</zeroOrMore>
+	<optional>
+	  <ref name="default-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="deviate-replace-stmt">
+    <element name="deviate">
+      <attribute name="value">
+	<value>add</value>
+      </attribute>
+      <interleave>
+	<optional>
+	  <ref name="type-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="units-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="default-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="config-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="mandatory-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="min-elements-stmt"/>
+	</optional>
+	<optional>
+	  <ref name="max-elements-stmt"/>
+	</optional>
+      </interleave>
+    </element>
+  </define>
+
   <define name="extensions">
     <zeroOrMore>
       <element>
@@ -1468,17 +1494,23 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <!-- Common combinations of patterns -->
 
-  <define name="status-desc-ref">
+  <define name="desc-ref">
     <interleave>
-      <optional>
-	<ref name="status-stmt"/>
-      </optional>
       <optional>
 	<ref name="description-stmt"/>
       </optional>
       <optional>
 	<ref name="reference-stmt"/>
       </optional>
+    </interleave>
+  </define>
+
+  <define name="status-desc-ref">
+    <interleave>
+      <optional>
+	<ref name="status-stmt"/>
+      </optional>
+      <ref name="desc-ref"/>
     </interleave>
   </define>
 
