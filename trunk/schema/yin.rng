@@ -1519,12 +1519,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="identifier">
     <data type="NCName">
       <param name="pattern">[_A-Za-z][_\-A-Za-z0-9.]*</param>
+      <param name="pattern">.|..|[^xX].*|.[^mM].*|..[^lL].*</param>
     </data>
   </define>
 
   <define name="identifier-ref">
     <data type="Name">
       <param name="pattern">([_A-Za-z][_\-A-Za-z0-9.]*:)?[_A-Za-z][_\-A-Za-z0-9.]*</param>
+      <param
+	  name="pattern">(.|..|[^xX].*|.[^mM].*|..[^lL].*):(.|..|[^xX].*|.[^mM].*|..[^lL].*)|[^:]{1,2}|[^xX][^:]*|.[^mM:][^:]*|.[^:][^lL:][^:]*</param>
     </data>
   </define>
 
