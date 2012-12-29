@@ -38,14 +38,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:include href="gen-common.xsl"/>
 
+  <!-- Fast access to named pattern definitions by their name -->
   <xsl:key name="refdef" match="//rng:define" use="@name"/>
 
   <xsl:template name="assert-element">
     <xsl:param name="test"/>
-    <xsl:param name="message">
-      <xsl:value-of
-          select="concat('Condition &quot;', $test, '&quot; must be true')"/>
-    </xsl:param>
+    <xsl:param name="message"/>
     <xsl:element name="sch:assert">
       <xsl:attribute name="test">
         <xsl:value-of select="$test"/>
@@ -56,10 +54,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template name="report-element">
     <xsl:param name="test"/>
-    <xsl:param name="message">
-      <xsl:value-of
-          select="concat('Violated condition &quot;', $test, '&quot;')"/>
-    </xsl:param>
+    <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
         <xsl:value-of select="$test"/>
@@ -68,6 +63,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
+  <!-- Insert namespace declaration based on the target document type -->
   <xsl:template name="nc-namespace">
     <xsl:choose>
       <xsl:when test="$target='config' or $target='get-reply' or
@@ -82,25 +78,27 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="qname">
-    <xsl:param name="name"/>
+    <xsl:param name="name" select="@name"/>
     <xsl:if test="not(contains($name,':'))">$pref:</xsl:if>
     <xsl:value-of select="$name"/>
   </xsl:template>
 
-  <xsl:template name="self-path">
-    <xsl:param name="prevpath"/>
-    <xsl:value-of select="$prevpath"/>
-    <xsl:for-each select="ancestor-or-self::rng:element">
-      <xsl:text>/</xsl:text>
-      <xsl:call-template name="qname">
-        <xsl:with-param name="name" select="@name"/>
-      </xsl:call-template>
-    </xsl:for-each>
+  <xsl:template name="uproot">
+    <xsl:param name="path" select="."/>
+    <xsl:choose>
+      <xsl:when test="starts-with($path,'$root')">
+	<xsl:value-of select="concat($netconf-part,'/',
+			      substring-after($path,'/'))"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:value-of select="$path"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="yam-namespaces">
-    <!-- Make <ns> elements for all YANG module namespaces by
-         excluding others declared in the input schema -->
+    <!-- Declare all YANG module namespaces by excluding others
+         declared in the input hybrid schema -->
     <xsl:for-each
         select="namespace::*[not(name()='xml' or .=$rng-uri or
                 .=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
@@ -141,6 +139,50 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="top-rule">
+    <xsl:param name="ctx">$start</xsl:param>
+    <xsl:variable
+	name="todo"
+	select="(descendant::rng:choice[@nma:when or @nma:mandatory]
+		|(descendant::group|descendant::interleave)[@nma:when])
+		[not(ancestor::rng:element)]"/>
+    <xsl:if test="count($todo) &gt; 0">
+      <xsl:element name="sch:rule">
+	<xsl:attribute name="context">
+	  <xsl:value-of select="$ctx"/>
+	</xsl:attribute>
+	<xsl:apply-templates select="$todo">
+	  <xsl:with-param name="prefix">$pref</xsl:with-param>
+	</xsl:apply-templates>
+      </xsl:element>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="element-count">
+    <xsl:param name="ord">&lt;</xsl:param>
+    <xsl:variable name="qn">
+      <xsl:call-template name="qname">
+	<xsl:with-param name="name" select="../@name"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:call-template name="assert-element">
+      <xsl:with-param
+	  name="test"
+	  select="concat('preceding-sibling::',$qn,
+		  ' or count(../',$qn,')',$ord,'=',.)"/>
+      <xsl:with-param name="message">
+	<xsl:text>Number of </xsl:text>
+	<xsl:if test="../@nma:leaf-list">leaf-</xsl:if>
+	<xsl:text>list entries must be at </xsl:text>
+	<xsl:choose>
+	  <xsl:when test="$ord='&lt;'">most </xsl:when>
+	  <xsl:otherwise>least </xsl:otherwise>
+	</xsl:choose>
+	<xsl:value-of select="."/>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="sch:schema">
@@ -158,6 +200,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="/rng:grammar">
     <xsl:call-template name="yam-namespaces"/>
     <xsl:call-template name="nc-namespace"/>
+    <!-- The global 'root' variable contains the target-dependent
+         prefix of every absolute path. -->
     <xsl:element name="sch:let">
       <xsl:attribute name="name">root</xsl:attribute>
       <xsl:attribute name="value">
@@ -165,7 +209,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:attribute>
     </xsl:element>
     <xsl:apply-templates
-        select="rng:define[descendant-or-self::rng:*[&annots;]]"/>
+        select="rng:define[descendant::rng:*[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -175,26 +219,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="@name"/>
       </xsl:attribute>
-      <xsl:apply-templates select="self::rng:define[&annots;]"
-			   mode="annotdef"/>
-      <xsl:apply-templates
-          select="descendant::rng:element[&annots;]">
-        <xsl:with-param name="prevpath">$start</xsl:with-param>
-        <xsl:with-param name="prefix">$pref</xsl:with-param>
-      </xsl:apply-templates>
-    </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:define" mode="annotdef">
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">$start</xsl:attribute>
-      <xsl:apply-templates select="&annots;"/>
+      <!-- handle descendant choices without intervening elements-->
+      <xsl:call-template name="top-rule"/>
+      <!-- handle all descendant elements-->
+      <xsl:apply-templates select="descendant::rng:element"/>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-        select="rng:define[descendant-or-self::rng:element[&annots;]]"/>
+        select="rng:define[descendant::rng:*[&annots;]]"/>
     <xsl:choose>
       <xsl:when test="$target='data' or $target='config' or
                       $target='get-reply' or $target='get-config-reply'">
@@ -220,14 +254,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
       </xsl:attribute>
-      <xsl:apply-templates
-          select="descendant::rng:element[&annots;]|
-		  descendant::rng:interleave/@nma:when|
-		  descendant::rng:group/@nma:when|
-		  descendant::rng:choice/@nma:when|
-		  descendant::rng:choice/@nma:mandatory">
-        <xsl:with-param name="prevpath" select="$netconf-part"/>
-        <xsl:with-param name="prefix" select="$prefix"/>
+      <!-- The 'pref' variable in the Schematron schema contains the
+	   module prefix for the current pattern. -->
+      <xsl:call-template name="top-rule">
+	<xsl:with-param name="ctx" select="$netconf-part"/>
+      </xsl:call-template>
+      <xsl:apply-templates select="descendant::rng:element">
+	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
     </xsl:element>
     <xsl:apply-templates
@@ -240,132 +273,102 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="rng:element">
-    <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-      <xsl:call-template name="self-path">
-        <xsl:with-param name="prevpath" select="$prevpath"/>
-        <xsl:with-param name="prefix" select="$prefix"/>
-      </xsl:call-template>
-      </xsl:attribute>
-      <xsl:apply-templates select="&annots;"/>
-    </xsl:element>
-  </xsl:template>
-
-  <!--
- 
-  <xsl:template match="rng:choice[@nma:config='false']">
-    <xsl:param name="prevpath"/>
-    <xsl:param name="prefix"/>
-    <xsl:if test="$target!='config' and $target!='get-config-reply'">
-      <xsl:apply-templates select="@nma:mandatory|@nma:when">
-	<xsl:with-param name="prevpath" select="$prevpath"/>
-	<xsl:with-param name="prefix" select="$prefix"/>
-      </xsl:apply-templates>
+    <xsl:variable
+	name="todo"
+	select="&annots;|(descendant::rng:choice[@nma:when or @nma:mandatory]
+		|(descendant::rng:interleave|descendant::rng:group)
+		[@nma:when])[count(ancestor::rng:element[1]|current())=1]"/>
+    <xsl:if test="count($todo) &gt; 0">
+      <xsl:element name="sch:rule">
+	<xsl:attribute name="context">
+	  <xsl:choose>
+	    <xsl:when test="ancestor::rng:define">$start</xsl:when>
+	    <xsl:otherwise>
+	      <xsl:value-of select="$netconf-part"/>
+	    </xsl:otherwise>
+	  </xsl:choose>
+	  <xsl:for-each select="ancestor-or-self::rng:element">
+	    <xsl:text>/</xsl:text>
+	    <xsl:call-template name="qname"/>
+	  </xsl:for-each>
+	</xsl:attribute>
+	<xsl:apply-templates select="$todo">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
+      </xsl:element>
     </xsl:if>
   </xsl:template>
-
-  <xsl:template match="rng:choice[@nma:if-feature]">
-    <xsl:param name="prevpath"/>
-    <xsl:param name="prefix"/>
-    <xsl:if test="$features-off!=1">
-      <xsl:apply-templates select="@nma:mandatory|@nma:when">
-	<xsl:with-param name="prevpath" select="$prevpath"/>
-	<xsl:with-param name="prefix" select="$prefix"/>
-      </xsl:apply-templates>
-    </xsl:if>
-  </xsl:template>
-
-  -->
 
   <xsl:template match="rng:*">
-    <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:apply-templates select="&annots;">
-      <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:choice/@nma:mandatory">
-    <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-	<xsl:call-template name="self-path">
-	  <xsl:with-param name="prevpath" select="$prevpath"/>
+    <xsl:call-template name="assert-element">
+      <xsl:with-param name="test">
+	<xsl:apply-templates select=".." mode="lookup-subel">
 	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:call-template>
-      </xsl:attribute>
-      <xsl:call-template name="assert-element">
-	<xsl:with-param name="test">
-	  <xsl:apply-templates select=".." mode="lookup-subel">
-	    <xsl:with-param name="prefix" select="$prefix"/>
-	  </xsl:apply-templates>
-	  <xsl:text>false()</xsl:text>
-	</xsl:with-param>
-	<xsl:with-param
-	    name="message"
-	    select="concat('Node(s) from one case of mandatory choice &quot;',
-		    .,'&quot; must exist')"/>
-      </xsl:call-template>
-    </xsl:element>
+	</xsl:apply-templates>
+	<xsl:text>false()</xsl:text>
+      </xsl:with-param>
+      <xsl:with-param
+	  name="message"
+	  select="concat('Node(s) from one case of mandatory choice &quot;',
+		  ../@nma:name,'&quot; must exist')"/>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="rng:choice/@nma:when|rng:group/@nma:when|
 		       rng:interleave/@nma:when">
-    <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:element name="sch:rule">
-      <xsl:attribute name="context">
-	<xsl:call-template name="self-path">
-	  <xsl:with-param name="prevpath" select="$prevpath"/>
+    <xsl:call-template name="report-element">
+      <xsl:with-param name="test">
+	<xsl:value-of select="concat('not(', ., ') and (')"/>
+	<xsl:apply-templates select=".." mode="lookup-subel">
 	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:call-template>
-      </xsl:attribute>
-      <xsl:call-template name="report-element">
-	<xsl:with-param name="test">
-	  <xsl:value-of select="concat('not(', ., ') and (')"/>
-	  <xsl:apply-templates select=".." mode="lookup-subel">
-	    <xsl:with-param name="prefix" select="$prefix"/>
-	  </xsl:apply-templates>
-	  <xsl:text>false())</xsl:text>
-	</xsl:with-param>
-	<xsl:with-param
-	    name="message"
-	    select="concat('Found nodes that are valid only when &quot;',
-		    .,'&quot;')"/>
-      </xsl:call-template>
-    </xsl:element>
+	</xsl:apply-templates>
+	<xsl:text>false())</xsl:text>
+      </xsl:with-param>
+      <xsl:with-param
+	  name="message"
+	  select="concat('Found nodes that are valid only when &quot;',
+		  .,'&quot;')"/>
+    </xsl:call-template>
   </xsl:template>
-
+  
   <xsl:template match="rng:element" mode="lookup-subel">
     <xsl:param name="prefix"/>
     <xsl:choose>
       <xsl:when test="contains(@name, ':')">
-        <xsl:value-of select="concat(@name, ' or ')"/>
+	<xsl:value-of select="@name"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:value-of select="concat($prefix, ':', @name, ' or ')"/>
+	<xsl:value-of select="concat($prefix, ':', @name)"/>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:text> or </xsl:text>
   </xsl:template>
 
   <xsl:template match="rng:ref" mode="lookup-subel">
     <xsl:param name="prefix"/>
-    <xsl:apply-templates select="key('refdef', @name)" mode="lookup-subel">
-        <xsl:with-param name="prefix" select="$prefix"/>
+    <xsl:apply-templates select="key('refdef', @name)"
+			 mode="lookup-subel">
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:*" mode="lookup-subel">
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-        mode="lookup-subel"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
-        <xsl:with-param name="prefix" select="$prefix"/>
+	mode="lookup-subel"
+	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+      <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
 
@@ -374,35 +377,37 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:ref" mode="ref">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:if
-	test="key('refdef',@name)[descendant-or-self::rng:*[&annots;]]">
-      <xsl:element name="sch:pattern">
-	<xsl:attribute name="id">
-	  <xsl:value-of
-	      select="concat('ID',translate($prevpath,':/','._'),
-		      '.', generate-id())"/>
-        </xsl:attribute>
-        <xsl:attribute name="is-a">
-          <xsl:value-of select="@name"/>
-        </xsl:attribute>
-        <xsl:element name="sch:param">
-          <xsl:attribute name="name">start</xsl:attribute>
-          <xsl:attribute name="value">
-            <xsl:value-of select="$prevpath"/>
-          </xsl:attribute>
-        </xsl:element>
-        <xsl:element name="sch:param">
-          <xsl:attribute name="name">pref</xsl:attribute>
-          <xsl:attribute name="value">
-            <xsl:value-of select="$prefix"/>
-          </xsl:attribute>
-        </xsl:element>
-      </xsl:element>
-    </xsl:if>
-    <xsl:apply-templates select="key('refdef',@name)" mode="ref">
-      <xsl:with-param name="prevpath" select="$prevpath"/>
-      <xsl:with-param name="prefix" select="$prefix"/>
-    </xsl:apply-templates>
+    <xsl:choose>
+      <xsl:when
+	  test="key('refdef',@name)[descendant::rng:*[&annots;]]">
+	<xsl:element name="sch:pattern">
+	  <xsl:attribute name="id">
+	    <xsl:value-of select="generate-id()"/>
+	  </xsl:attribute>
+	  <xsl:attribute name="is-a">
+	    <xsl:value-of select="@name"/>
+	  </xsl:attribute>
+	  <xsl:element name="sch:param">
+	    <xsl:attribute name="name">start</xsl:attribute>
+	    <xsl:attribute name="value">
+	      <xsl:value-of select="$prevpath"/>
+	    </xsl:attribute>
+	  </xsl:element>
+	  <xsl:element name="sch:param">
+	    <xsl:attribute name="name">pref</xsl:attribute>
+	    <xsl:attribute name="value">
+	      <xsl:value-of select="$prefix"/>
+	    </xsl:attribute>
+	  </xsl:element>
+	</xsl:element>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:apply-templates select="key('refdef',@name)" mode="ref">
+	  <xsl:with-param name="prevpath" select="$prevpath"/>
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:apply-templates>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="rng:element" mode="ref">
@@ -423,18 +428,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:define" mode="ref">
-    <xsl:param name="prevpath"/>
-    <xsl:param name="prefix"/>
-    <xsl:apply-templates
-        mode="ref"
-        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
-      <xsl:with-param name="prevpath" select="$prevpath"/>
-      <xsl:with-param name="prefix" select="$prefix"/>
-    </xsl:apply-templates>
-  </xsl:template>
-
   <xsl:template match="rng:*" mode="ref">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
@@ -448,19 +441,20 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="nma:must">
-    <xsl:choose>
-      <xsl:when test="nma:error-message">
-        <xsl:call-template name="assert-element">
-          <xsl:with-param name="test" select="@assert"/>
-          <xsl:with-param name="message" select="nma:error-message"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:call-template name="assert-element">
-          <xsl:with-param name="test" select="@assert"/>
-        </xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:call-template name="assert-element">
+      <xsl:with-param name="test" select="@assert"/>
+      <xsl:with-param name="message">
+	<xsl:choose>
+	  <xsl:when test="nma:error-message">
+	    <xsl:value-of select="nma:error-message"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:value-of
+		select="concat('Condition &quot;', @assert, '&quot; must be true')"/>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="nma:instance-identifier">
@@ -470,7 +464,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:attribute name="value">
 	  <xsl:text>concat('</xsl:text>
 	  <xsl:value-of select="$netconf-part"/>
-	  <xsl:text>',.)</xsl:text>
+	  <xsl:text>', .)</xsl:text>
 	</xsl:attribute>
       </xsl:element>
       <xsl:element name="sch:assert">
@@ -520,26 +514,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="@nma:max-elements">
-    <xsl:call-template name="assert-element">
-      <xsl:with-param
-          name="test"
-          select="concat('count(../',../@name,')&lt;=',.,
-                  ' or preceding-sibling::',../@name)"/>
-      <xsl:with-param
-          name="message"
-          select="concat('Number of list items must be at most ',.)"/>
-    </xsl:call-template>
+    <xsl:call-template name="element-count"/>
   </xsl:template>
 
   <xsl:template match="@nma:min-elements">
-    <xsl:call-template name="assert-element">
-      <xsl:with-param
-          name="test"
-          select="concat('count(../',../@name,')&gt;=',.)"/>
-      <xsl:with-param
-          name="message"
-          select="concat('List &quot;',../@name,
-                  '&quot; - item count must be at least ',.)"/>
+    <xsl:call-template name="element-count">
+      <xsl:with-param name="ord">&gt;</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
@@ -559,15 +539,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="@nma:leafref">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-        <xsl:value-of select="concat('not(',.,'=.)')"/>
+	<xsl:value-of select="concat('not(',.,'=.)')"/>
       </xsl:attribute>
-        <xsl:value-of
-            select="concat('Leaf &quot;',.,
-                    '&quot; does not exist for leafref value &quot;')"/>
-        <xsl:element name="sch:value-of">
-          <xsl:attribute name="select">.</xsl:attribute>
-        </xsl:element>
-        <xsl:text>&quot;</xsl:text>
+      <xsl:text>Leaf &quot;</xsl:text>
+      <xsl:call-template name="uproot"/>
+      <xsl:text>&quot; does not exist for leafref value &quot;</xsl:text>
+      <xsl:element name="sch:value-of">
+	<xsl:attribute name="select">.</xsl:attribute>
+      </xsl:element>
+      <xsl:text>&quot;</xsl:text>
     </xsl:element>
   </xsl:template>
 
