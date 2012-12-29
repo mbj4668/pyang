@@ -19,8 +19,54 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- Edit the "annots" entity to select the annotations to take into
-     account. -->
+<!--
+The Schematron schema is generated from the hybrid schema and contains
+the following (Schematron) patterns:
+
+1. One pattern for each YANG module that contributes to the data
+   model. Its "id" attribute is the module name.
+
+2. One *abstract* pattern for every RELAX NG named pattern definition
+   ("rng:define") that contains semantic annotations defined by the
+   "&annots;" entity. The "id" attribute of the pattern is the name of
+   the named pattern definition. The abstract patterns accept two
+   parameters representing the context in which the abstract pattern
+   is instantiated:
+   • "start" - current path (prepended to every absolute path),
+   • "pref" - namespace prefix (to be used for all unprefixed node
+     names).
+
+3. One instantiation for every use of the abstract patterns form the
+   previous items. Its "id" attribute is set via "generate-id()" and
+   the "is-a" attribute contains the name of the corresponding
+   abstract pattern. The instantiation sets the two parameters -
+   "start" and "pref" according to the current context.
+
+This XSLT stylesheet scans the input hybrid schema three times - each
+pass generates the patterns of one of the above types.
+
+Schematron patterns of the types 1 and 2 contain Schematron rules -
+one rule for each "rng:element" pattern in the hybrid schema that contains
+semantic annotations. The "context" attribute of the "sch:rule"
+element contains the absolute path of the element, including an
+initial part consisting of NETCONF top-level elements.
+
+Every semantic annotation is then translated to an "sch:assert" or
+"sch:report" element.
+
+The stylesheet uses the following modes:
+
+- "lookup-subel": This mode is used for finding all "rng:element"
+  patterns that are children of an annotated "rng:interleave",
+  "rng:group" or "rng:choice" pattern. Such patterns correspond to a
+  YANG "choice" having either "when" or "mandatory" constraint, or to
+  a conditional YANG "augment" (with "when" substatement).
+
+- "ref": This mode is used for generating the type 3 patterns,
+  i.e. all instantiations of abstract patterns.
+ -->
+
+<!-- This entity contains all semantic annotations. -->
 <!DOCTYPE stylesheet [
 <!ENTITY annots "nma:must|nma:instance-identifier|nma:unique|@nma:key|
 @nma:max-elements|@nma:min-elements|@nma:when|@nma:leafref|@nma:leaf-list|
@@ -41,6 +87,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <!-- Fast access to named pattern definitions by their name -->
   <xsl:key name="refdef" match="//rng:define" use="@name"/>
 
+  <!-- Insert a Schematron assert -->
   <xsl:template name="assert-element">
     <xsl:param name="test"/>
     <xsl:param name="message"/>
@@ -52,6 +99,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
+  <!-- Insert a Schematron report -->
   <xsl:template name="report-element">
     <xsl:param name="test"/>
     <xsl:param name="message"/>
@@ -77,12 +125,17 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <!-- Add prefix to an unprefixed node name. The prefix may be
+       missing only inside "rng:define" so the prefix is
+       parametric. -->
   <xsl:template name="qname">
     <xsl:param name="name" select="@name"/>
     <xsl:if test="not(contains($name,':'))">$pref:</xsl:if>
     <xsl:value-of select="$name"/>
   </xsl:template>
 
+  <!-- Replace the "$root" variable with the actual top-level NETCONF
+       path. -->
   <xsl:template name="uproot">
     <xsl:param name="path" select="."/>
     <xsl:choose>
@@ -96,9 +149,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <!-- Declare all YANG module namespaces by excluding others declared
+       in the input hybrid schema -->
   <xsl:template name="yam-namespaces">
-    <!-- Declare all YANG module namespaces by excluding others
-         declared in the input hybrid schema -->
     <xsl:for-each
         select="namespace::*[not(name()='xml' or .=$rng-uri or
                 .=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
@@ -106,16 +159,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:for-each>
   </xsl:template>
 
-  <xsl:template name="uniq-expr-comp">
-    <xsl:param name="key"/>
-    <xsl:variable name="qkey">
-      <xsl:call-template name="qname">
-        <xsl:with-param name="name" select="$key"/>
-      </xsl:call-template>
-    </xsl:variable>
-    <xsl:value-of select="concat($qkey,'=current()/',$qkey)"/>
-  </xsl:template>
-
+  <!-- Generate the XPath expression that is used for checking
+       uniqueness of list keys or the "unique" constraint. -->
   <xsl:template name="check-dup-expr">
     <xsl:param name="nodelist"/>
     <xsl:choose>
@@ -139,8 +184,24 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <!-- This template is called form the previous one, it generates one
+  part of the uniqueness check. -->
+  <xsl:template name="uniq-expr-comp">
+    <xsl:param name="key"/>
+    <xsl:variable name="qkey">
+      <xsl:call-template name="qname">
+        <xsl:with-param name="name" select="$key"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:value-of select="concat($qkey,'=current()/',$qkey)"/>
+  </xsl:template>
+
+  <!-- Handle annotated non-element patterns at the top level of the
+       schema or at the top level of an "rng:define" -->
   <xsl:template name="top-rule">
     <xsl:param name="ctx">$start</xsl:param>
+    <!-- Get all annotated non-element patterns that are not inside a
+    "rng:element" pattern. -->
     <xsl:variable
 	name="todo"
 	select="(descendant::rng:choice[@nma:when or @nma:mandatory]
@@ -158,6 +219,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:if>
   </xsl:template>
 
+  <!-- Generate the assert for checking a limit for the count of list
+       entries ("nma:min-elements" and "nma:max-elements")  -->
   <xsl:template name="element-count">
     <xsl:param name="ord">&lt;</xsl:param>
     <xsl:variable name="qn">
@@ -183,6 +246,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
   </xsl:template>
 
+  <!-- The root node. -->
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="sch:schema">
@@ -219,9 +283,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="@name"/>
       </xsl:attribute>
-      <!-- handle descendant choices without intervening elements-->
+      <!-- Handle descendant top-level choices with annots. -->
       <xsl:call-template name="top-rule"/>
-      <!-- handle all descendant elements-->
+      <!-- Handle all descendant element patterns with annots. -->
       <xsl:apply-templates select="descendant::rng:element"/>
     </xsl:element>
   </xsl:template>
@@ -247,6 +311,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="nma:data|nma:input|nma:output|nma:notification">
+    <!-- The namespace prefix of the current module. -->
     <xsl:variable
         name="prefix"
         select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
@@ -254,15 +319,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:attribute name="id">
         <xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
       </xsl:attribute>
-      <!-- The 'pref' variable in the Schematron schema contains the
-	   module prefix for the current pattern. -->
+      <!-- Handle top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule">
 	<xsl:with-param name="ctx" select="$netconf-part"/>
       </xsl:call-template>
+      <!-- Handle all descendant element patterns with annots. -->
       <xsl:apply-templates select="descendant::rng:element">
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
     </xsl:element>
+    <!-- Generate instantiations of abstract patterns. -->
     <xsl:apply-templates
         mode="ref"
         select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
@@ -274,6 +340,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:element">
     <xsl:param name="prefix"/>
+    <!-- Get all non-element patterns with annotations that belong to
+    the current element (i.e. there is no "rng:element" in between). -->
     <xsl:variable
 	name="todo"
 	select="&annots;|(descendant::rng:choice[@nma:when or @nma:mandatory]
@@ -307,6 +375,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:apply-templates>
   </xsl:template>
 
+  <!-- Check that one or more nodes from one of the cases exist. -->
   <xsl:template match="rng:choice/@nma:mandatory">
     <xsl:param name="prefix"/>
     <xsl:call-template name="assert-element">
@@ -323,6 +392,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:call-template>
   </xsl:template>
 
+  <!-- Check that no subelement exists if the "when" condition is
+       false. -->
   <xsl:template match="rng:choice/@nma:when|rng:group/@nma:when|
 		       rng:interleave/@nma:when">
     <xsl:param name="prefix"/>
@@ -332,6 +403,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:apply-templates select=".." mode="lookup-subel">
 	  <xsl:with-param name="prefix" select="$prefix"/>
 	</xsl:apply-templates>
+	<!-- This terminates the sequence of or-ed subelements. -->
 	<xsl:text>false())</xsl:text>
       </xsl:with-param>
       <xsl:with-param
@@ -356,6 +428,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:ref" mode="lookup-subel">
     <xsl:param name="prefix"/>
+    <!-- Just follow the reference. -->
     <xsl:apply-templates select="key('refdef', @name)"
 			 mode="lookup-subel">
       <xsl:with-param name="prefix" select="$prefix"/>
@@ -380,6 +453,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:choose>
       <xsl:when
 	  test="key('refdef',@name)[descendant::rng:*[&annots;]]">
+	<!-- A "rng:define" with annotations: instantiate the
+	     corresponding abstract pattern.-->
 	<xsl:element name="sch:pattern">
 	  <xsl:attribute name="id">
 	    <xsl:value-of select="generate-id()"/>
@@ -402,6 +477,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	</xsl:element>
       </xsl:when>
       <xsl:otherwise>
+	<!-- No annotations, just follow the reference. -->
 	<xsl:apply-templates select="key('refdef',@name)" mode="ref">
 	  <xsl:with-param name="prevpath" select="$prevpath"/>
 	  <xsl:with-param name="prefix" select="$prefix"/>
@@ -418,6 +494,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
                 rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath">
+	<!-- Update the path. -->
         <xsl:value-of select="concat($prevpath,'/')"/>
 	<xsl:if test="not(contains(@name,':'))">
 	  <xsl:value-of select="concat($prefix,':')"/>
@@ -439,6 +516,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
+
+  <!-- Templates for individual annotations, see RFC 6110. -->
 
   <xsl:template match="nma:must">
     <xsl:call-template name="assert-element">
