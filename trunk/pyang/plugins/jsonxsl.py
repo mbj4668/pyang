@@ -13,7 +13,8 @@ from pyang import statements
 ss = ET.Element("stylesheet",
                 {"version": "1.0",
                  "xmlns": "http://www.w3.org/1999/XSL/Transform",
-                 "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0"})
+                 "xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0",
+                 "xmlns:en": "urn:ietf:params:xml:ns:netconf:notification:1.0"})
 """Root element of the output XSLT stylesheet."""
 
 def pyang_plugin_init():
@@ -51,8 +52,39 @@ def emit_json_xsl(modules, fd):
         ss.attrib["xmlns:" + module.i_prefix] = ns_uri
         when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
         xsl_text(module.i_modulename, when)
-        process_children(module, "//nc:*")
+        process_module(module)
     tree.write(fd, encoding="utf-8", xml_declaration=True)
+
+def process_module(yam):
+    """Process data nodes, RPCs and notifications in a single module."""
+    for ch in yam.i_children[:]:
+        if ch.keyword == "rpc":
+            process_rpc(ch)
+        elif ch.keyword == "notification":
+            process_notification(ch)
+        else:
+            continue
+        yam.i_children.remove(ch)
+    process_children(yam, "//nc:*")
+
+def process_rpc(rpc):
+    """Process input and output parts of `rpc`."""
+    p = "/nc:rpc/" + qname(rpc)
+    tmpl = xsl_template(p)
+    xsl_calltemplate("container", tmpl)
+    inp = rpc.search_one("input")
+    if inp is not None:
+        process_children(inp, p)
+    outp = rpc.search_one("output")
+    if outp is not None:
+        process_children(outp, "/nc:rpc-reply")
+
+def process_notification(ntf):
+    """Process event notification `ntf`."""
+    p = "/en:notification/" + qname(ntf)
+    tmpl = xsl_template(p)
+    xsl_calltemplate("container", tmpl)
+    process_children(ntf, p)
 
 def process_children(node, path):
     """Process all children of `node`.

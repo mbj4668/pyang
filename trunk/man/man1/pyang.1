@@ -678,7 +678,7 @@ output generates an XSLT 1\&.0 stylesheet that can be used for transforming an X
 \fB\-\-hello\fR
 option)\&.
 .PP
-The data tree(s) must be wrapped in either <nc:data> or <nc:config> element, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0"\&. Other elements, such as <nc:rpc\-reply>, <nc:edit\-config> or <nc:target> may be present as ancestor or sibling nodes of <nc:data> or <nc:config>\&. This means that the input XML document may be, for instance, a complete NETCONF RPC request or response\&.
+The data tree(s) must be wrapped at least in either <nc:data> or <nc:config> element, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0", or the XML instance document has to be a complete NETCONF RPC request/reply or notification\&. Translation of RPCs and notifications defined by the data model is also supported\&.
 .PP
 Current limitations:
 .sp

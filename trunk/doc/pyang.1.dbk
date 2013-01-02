@@ -1074,15 +1074,13 @@
       <option>--hello</option> option).
     </para>
     <para>
-      The data tree(s) must be wrapped in either &lt;nc:data&gt; or
-      &lt;nc:config&gt; element, where "nc" is the namespace prefix
-      for the standard NETCONF URI
-      "urn:ietf:params:xml:ns:netconf:base:1.0". Other elements, such
-      as &lt;nc:rpc-reply&gt;, &lt;nc:edit-config&gt; or
-      &lt;nc:target&gt; may be present as ancestor or sibling nodes
-      of &lt;nc:data&gt; or &lt;nc:config&gt;. This means that the
-      input XML document may be, for instance, a complete NETCONF RPC
-      request or response.
+      The data tree(s) must be wrapped at least in either
+      &lt;nc:data&gt; or &lt;nc:config&gt; element, where "nc" is the
+      namespace prefix for the standard NETCONF URI
+      "urn:ietf:params:xml:ns:netconf:base:1.0", or the XML instance
+      document has to be a complete NETCONF RPC request/reply or
+      notification. Translation of RPCs and notifications defined by
+      the data model is also supported.
     </para>
     <para>
       Current limitations:

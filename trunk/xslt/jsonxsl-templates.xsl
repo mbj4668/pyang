@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 		xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+		xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
 		version="1.0">
 
   <xsl:template name="commaq">
@@ -285,13 +286,27 @@
   <xsl:template match="@*|text()|comment()|processing-instruction()" mode="anyxml"/>
 
   <xsl:template match="/">
-    <xsl:apply-templates select="//nc:data|//nc:config"/>
+    <xsl:apply-templates
+	select="//nc:data|//nc:config|nc:rpc|nc:rpc-reply|
+		en:notification"/>
   </xsl:template>
 
-  <xsl:template match="nc:data|nc:config">
+  <xsl:template match="nc:data|nc:config|nc:rpc|nc:rpc-reply|en:notification">
     <xsl:text>{</xsl:text>
     <xsl:apply-templates select="*"/>
     <xsl:text>}</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="/en:notification/en:eventTime">
+    <xsl:call-template name="leaf">
+      <xsl:with-param name="type">other</xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="/nc:rpc-reply/nc:ok">
+    <xsl:call-template name="leaf">
+      <xsl:with-param name="type">empty</xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="*">
