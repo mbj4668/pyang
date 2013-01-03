@@ -83,7 +83,9 @@ def process_notification(ntf):
     """Process event notification `ntf`."""
     p = "/en:notification/" + qname(ntf)
     tmpl = xsl_template(p)
-    xsl_calltemplate("container", tmpl)
+    ct = xsl_calltemplate("container", tmpl)
+    if ntf.arg == "eventTime":            # local name collision
+        xsl_withparam("nsid", ntf.i_module.i_modulename + ":", ct)
     process_children(ntf, p)
 
 def process_children(node, path):
@@ -99,11 +101,11 @@ def process_children(node, path):
             continue
         p = path + "/" + qname(ch)
         tmpl = xsl_template(p)
-        nt = xsl_calltemplate(ch.keyword, tmpl)
+        ct = xsl_calltemplate(ch.keyword, tmpl)
         if [c.arg for c in chs].count(ch.arg) > 1:
-            xsl_withparam("nsid", ch.i_module.i_modulename + ":", nt)
+            xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
         if ch.keyword in ["leaf", "leaf-list"]:
-            type_param(ch, nt)
+            type_param(ch, ct)
         elif ch.keyword != "anyxml":
             process_children(ch, p)
 
