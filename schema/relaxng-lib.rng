@@ -7,6 +7,16 @@
 	 xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
+  <define name="__anyxml__">
+    <zeroOrMore>
+      <choice>
+	<attribute><anyName/></attribute>
+	<element><anyName/><ref name="__anyxml__"/></element>
+	<text/>
+      </choice>
+    </zeroOrMore>
+  </define>
+
   <define name="message-id-attribute">
     <attribute name="message-id">
       <data type="string">

@@ -34,6 +34,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:include href="gen-common.xsl"/>
 
+  <!-- Fast access to named pattern definitions by their name -->
+  <xsl:key name="refdef" match="//rng:define" use="@name"/>
+
   <xsl:template name="nc-namespace">
       <xsl:choose>
 	<xsl:when test="$target='config' or $target='get-reply' or
@@ -281,7 +284,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:ref[@name='__anyxml__']"/>
+  <xsl:template match="rng:parentRef"/>
 
   <xsl:template match="rng:*">
     <xsl:param name="prevpath" select="$netconf-part"/>
@@ -295,7 +298,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:ref">
     <xsl:param name="prevpath" select="$netconf-part"/>
     <xsl:param name="prefix"/>
-    <xsl:apply-templates select="//rng:define[@name=current()/@name]">
+    <xsl:apply-templates select="key('refdef', @name)">
       <xsl:with-param name="prevpath">
 	<xsl:call-template name="parent-path">
 	  <xsl:with-param name="prevpath" select="$prevpath"/>
@@ -306,7 +309,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:element|rng:data" mode="copy"/>
+  <xsl:template
+      match="rng:element|rng:data|rng:parentRef"
+      mode="copy"/>
 
   <xsl:template match="rng:ref" mode="copy">
     <xsl:param name="prefix"/>

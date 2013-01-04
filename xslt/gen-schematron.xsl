@@ -445,8 +445,6 @@ The stylesheet uses the following modes:
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:ref[@name='__anyxml__']" mode="ref"/>
-
   <xsl:template match="rng:ref" mode="ref">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
