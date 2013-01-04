@@ -1171,7 +1171,7 @@ class HybridDSDLSchema(object):
                                            "__" + qid.replace(":","_"))
 
     def instance_identifier_type(self, tchain, p_elem):
-        SchemaNode("data", p_elem).set_attr("type", "string")
+        SchemaNode("parentRef", p_elem).attr["name"] = "__instance-identifier__"
         ii = SchemaNode("nma:instance-identifier", p_elem)
         rinst = tchain[0].search_one("require-instance")
         if rinst: ii.attr["require-instance"] = rinst.arg
