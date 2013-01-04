@@ -155,9 +155,6 @@ class HybridDSDLSchema(object):
       pattern definitions. The keys are mangled names of the
       definitions.
 
-    * `self.has_anyxml`: boolean flag indicating presence of the
-      'anyxml' statement in any input YANG module.
-
     * `self.identities`: dictionary of identity names as keys and the
       corresponding name pattern definitions as values.
 
@@ -224,12 +221,6 @@ class HybridDSDLSchema(object):
         "string": "string",
     }
     """Mapping of simple datatypes from YANG to W3C datatype library"""
-
-    anyxml_def = ('<define name="__anyxml__"><zeroOrMore><choice>' +
-                  '<attribute><anyName/></attribute>' +
-                  '<element><anyName/><ref name="__anyxml__"/></element>' +
-                  '<text/></choice></zeroOrMore></define>')
-    """This definition is inserted first time 'anyxml' is found ."""
 
     data_nodes = ("leaf", "container", "leaf-list", "list",
                   "anyxml", "rpc", "notification")
@@ -317,10 +308,6 @@ class HybridDSDLSchema(object):
     def serialize(self):
         """Return the string representation of the receiver."""
         res = '<?xml version="1.0" encoding="UTF-8"?>'
-        self.top_grammar.attr["xmlns"] = \
-            "http://relaxng.org/ns/structure/1.0"
-        self.top_grammar.attr["datatypeLibrary"] = \
-            "http://www.w3.org/2001/XMLSchema-datatypes"
         for ns in self.namespaces:
             self.top_grammar.attr["xmlns:" + self.namespaces[ns]] = ns
         res += self.top_grammar.start_tag()
@@ -331,8 +318,6 @@ class HybridDSDLSchema(object):
             res += self.global_defs[d].serialize()
         for i in self.identities:
             res += self.identities[i].serialize()
-        if self.has_anyxml:
-            res += self.anyxml_def
         return res + self.top_grammar.end_tag()
 
     def from_modules(self, modules, no_dc=False, no_a=False,
@@ -347,7 +332,6 @@ class HybridDSDLSchema(object):
         self.all_defs = {}
         self.identity_deps = {}
         self.identities = {}
-        self.has_anyxml = False
         self.debug = debug
         self.module_prefixes = {}
         gpset = {}
@@ -388,13 +372,17 @@ class HybridDSDLSchema(object):
     def setup_top(self):
         """Create top-level elements of the hybrid schema."""
         self.top_grammar = SchemaNode("grammar")
+        self.top_grammar.attr = {
+            "xmlns": "http://relaxng.org/ns/structure/1.0",
+            "datatypeLibrary": "http://www.w3.org/2001/XMLSchema-datatypes"}
         self.tree = SchemaNode("start")
 
     def create_roots(self, yam):
         """Create the top-level structure for module `yam`."""
         self.local_grammar = SchemaNode("grammar")
-        self.local_grammar.attr["ns"] = yam.search_one("namespace").arg
-        self.local_grammar.attr["nma:module"] = self.module.arg
+        self.local_grammar.attr = {
+            "ns": yam.search_one("namespace").arg,
+            "nma:module": self.module.arg}
         src_text = "YANG module '%s'" % yam.arg
         revs = yam.search("revision")
         if len(revs) > 0:
@@ -482,9 +470,9 @@ class HybridDSDLSchema(object):
         self.identities[ident] = parent
         if self.identity_deps[ident]:
             parent = SchemaNode.choice(parent, occur=2)
-        SchemaNode("value", parent, ident).attr["type"]="QName"
+        SchemaNode("value", parent, ident).attr["type"] = "QName"
         for i in self.identity_deps[ident]:
-            SchemaNode("ref", parent).attr["name"]=trname(i)
+            SchemaNode("ref", parent).attr["name"] = trname(i)
             self.add_identity(i)
 
     def preload_defs(self):
@@ -888,9 +876,8 @@ class HybridDSDLSchema(object):
         pass
 
     def anyxml_stmt(self, stmt, p_elem, pset):
-        self.has_anyxml = True
         elem = SchemaNode.element(self.qname(stmt), p_elem)
-        SchemaNode("ref", elem).set_attr("name", "__anyxml__")
+        SchemaNode("parentRef", elem).set_attr("name", "__anyxml__")
         refd = self.process_patches(pset, stmt, elem)[0]
         if p_elem.name == "choice":
             elem.occur = 3

@@ -392,7 +392,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="rng:element" mode="edit">
     <xsl:copy>
       <xsl:apply-templates select="@*|*|text()"/>
-      <xsl:if test="not(rng:anyName or rng:ref[@name='__anyxml__'])">
+      <xsl:if test="not(rng:parentRef[@name='__anyxml__'])">
         <xsl:element name="ref" namespace="{$rng-uri}">
           <xsl:attribute name="name">operation-attribute</xsl:attribute>
         </xsl:element>
