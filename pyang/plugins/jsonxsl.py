@@ -16,6 +16,21 @@ ss = ET.Element("stylesheet",
                  "xmlns:en": "urn:ietf:params:xml:ns:netconf:notification:1.0"})
 """Root element of the output XSLT stylesheet."""
 
+type_class = {t:"unquoted" for t in
+              ("boolean", "int8", "int16", "int32", "int64",
+               "uint8", "uint16", "uint32", "uint64", "decimal64")}
+"""Classification of types suited for JSON translation."""
+
+type_class.update({t:t for t in
+                   ("empty", "instance-identifier", "identityref", "string")})
+
+union_class = {t:"integer" for t in
+               ("int8", "int16", "int32", "int64",
+               "uint8", "uint16", "uint32", "uint64")}
+"""Classification of types needed for resolving union-typed values."""
+
+union_class.update({"decimal64": "decimal", "boolean": "boolean"})
+
 def pyang_plugin_init():
     plugin.register_plugin(JsonXslPlugin())
 
@@ -114,29 +129,36 @@ def process_children(node, path):
 def type_param(node, ct):
     """Resolve the type of a leaf or leaf-list node for JSON.
     """
-    while 1:
-        tstat = node.search_one("type")
-        if tstat.arg == "leafref":
-            node = tstat.i_type_spec.i_target_node
-            continue
-        if tstat.i_typedef is None:
-            break
-        node = tstat.i_typedef
-    t = tstat.arg
-    if t in ["boolean", "int8", "int16", "int32", "int64",
-             "uint8", "uint16", "uint32", "uint64", "decimal64"]:
-        typ = "unquoted"
-    elif t == "empty":
-        typ = "empty"
-    elif t == "instance-identifier":
-        typ = "instance-identifier"
-    elif t == "identityref":
-        typ = "identityref"
-    elif t == "string":
-        typ = "string"
+    types = get_types(node)
+    if len(types) == 1:
+        xsl_withparam("type", type_class.get(types[0], "other"), ct)
+    elif types[0] in ["string", "enumeration", "bits", "binary",
+                      "identityref", "instance-identifier"]:
+        xsl_withparam("type", "string", ct)
     else:
-        typ = "other"
-    xsl_withparam("type", typ, ct)
+        opts = []
+        for t in types:
+            ut = union_class.get(t, "other")
+            if ut not in opts:
+                opts.append(ut)
+                if ut == "other": break
+                if ut == "decimal" and "integer" not in opts: opts.append("integer")
+        xsl_withparam("type", "union", ct)
+        xsl_withparam("options", ",".join(opts) + ",", ct)
+
+def get_types(node):
+    res = []
+    def resolve(typ):
+        if typ.arg == "leafref":
+            resolve(typ.i_type_spec.i_target_node.search_one("type"))
+        elif typ.arg == "union":
+            for ut in typ.i_type_spec.types: resolve(ut)
+        elif typ.i_typedef is not None:
+            resolve(typ.i_typedef.search_one("type"))
+        else:
+            res.append(typ.arg)
+    resolve(node.search_one("type"))
+    return res
 
 def qname(node):
     """Return the qualified name of `node`.

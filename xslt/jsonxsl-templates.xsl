@@ -4,6 +4,89 @@
 		xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
 		version="1.0">
 
+  <xsl:variable name="DIGITS">0123456789</xsl:variable>
+
+  <xsl:template name="value-type">
+    <xsl:choose>
+      <xsl:when test=". = 'true' or . = 'false'">boolean</xsl:when>
+      <xsl:otherwise>
+	<xsl:variable name="unsigned">
+	  <xsl:choose>
+	    <xsl:when test="contains('+-', substring(.,1,1))">
+	      <xsl:value-of select="substring(.,2)"/>
+	    </xsl:when>
+	    <xsl:otherwise>
+	      <xsl:value-of select="."/>
+	    </xsl:otherwise>
+	  </xsl:choose>
+	</xsl:variable>
+	<xsl:choose>
+	  <xsl:when test="contains($unsigned, '.')">
+	    <xsl:variable name="whole"
+			  select="substring-before($unsigned,'.')"/>
+	    <xsl:variable name="fract"
+			  select="substring-after($unsigned,'.')"/>
+	    <xsl:choose>
+	      <xsl:when
+		  test="string-length($whole) > 0 and
+			string-length($fract) > 0 and
+			string-length(translate(
+			concat($whole, $fract), $DIGITS, '')) = 0">decimal</xsl:when>
+	      <xsl:otherwise>other</xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:choose>
+	      <xsl:when
+		  test="string-length($unsigned) > 0 and
+			string-length(translate($unsigned,
+			$DIGITS, '')) = 0">integer</xsl:when>
+	      <xsl:otherwise>other</xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="resolve-union">
+    <xsl:param name="options"/>
+    <xsl:variable name="res">
+      <xsl:call-template name="first-type-match">
+	<xsl:with-param name="type">
+	  <xsl:call-template name="value-type"/>
+	</xsl:with-param>
+	<xsl:with-param name="options" select="$options"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="$res = 'other'">string</xsl:when>
+      <xsl:otherwise>unquoted</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="first-type-match">
+    <xsl:param name="type"/>
+    <xsl:param name="options"/>
+    <xsl:choose>
+      <xsl:when test="string-length($options) &gt; 0">
+	<xsl:choose>
+	  <xsl:when test="$type=substring-before($options,',')">
+	    <xsl:value-of select="$type"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	    <xsl:call-template name="first-type-match">
+	      <xsl:with-param name="type" select="$type"/>
+	      <xsl:with-param name="options"
+			      select="substring-after($options,',')"/>
+	    </xsl:call-template>
+	  </xsl:otherwise>
+	</xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>other</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name="commaq">
     <xsl:if test="following-sibling::*[name() != name(current())
 		  and name() != name(preceding-sibling::*)]">
@@ -133,7 +216,17 @@
 
   <xsl:template name="json-value">
     <xsl:param name="type">string</xsl:param>
+    <xsl:param name="options"/>
     <xsl:choose>
+      <xsl:when test="$type='union'">
+	<xsl:call-template name="json-value">
+	  <xsl:with-param name="type">
+	    <xsl:call-template name="resolve-union">
+	      <xsl:with-param name="options" select="$options"/>
+	    </xsl:call-template>
+	  </xsl:with-param>
+	</xsl:call-template>
+      </xsl:when>
       <xsl:when test="$type='unquoted'">
 	<xsl:value-of select="normalize-space(.)"/>
       </xsl:when>
@@ -192,17 +285,20 @@
 
   <xsl:template name="leaf">
     <xsl:param name="type"/>
+    <xsl:param name="options"/>
     <xsl:param name="nsid"/>
     <xsl:value-of
 	select="concat('&quot;', $nsid, local-name(.), '&quot;: ')"/>
     <xsl:call-template name="json-value">
       <xsl:with-param name="type" select="$type"/>
+      <xsl:with-param name="options" select="$options"/>
     </xsl:call-template>
     <xsl:call-template name="commaq"/>
   </xsl:template>
 
   <xsl:template name="leaf-list">
     <xsl:param name="type"/>
+    <xsl:param name="options"/>
     <xsl:param name="nsid"/>
     <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
       <xsl:value-of
@@ -210,6 +306,7 @@
       <xsl:for-each select="../*[name()=name(current())]">
 	<xsl:call-template name="json-value">
 	  <xsl:with-param name="type" select="$type"/>
+	  <xsl:with-param name="options" select="$options"/>
 	</xsl:call-template>
 	<xsl:if test="position() != last()">
 	  <xsl:text>, </xsl:text>
