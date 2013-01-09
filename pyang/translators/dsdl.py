@@ -47,7 +47,7 @@ import optparse
 import time
 
 
-from .. import plugin, error, xpath, util, statements, types
+from pyang import plugin, error, xpath, util, statements, types
 
 from .schemanode import SchemaNode
 
@@ -89,7 +89,6 @@ class DSDLPlugin(plugin.PyangPlugin):
         emit_dsdl(ctx, modules, fd)
 
 def emit_dsdl(ctx, modules, fd):
-    # No errors are allowed
     for (epos, etag, eargs) in ctx.errors:
         if error.is_error(error.err_level(etag)):
             raise error.EmitError("DSDL translation needs a valid module")

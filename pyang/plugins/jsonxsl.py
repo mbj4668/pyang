@@ -7,8 +7,7 @@ that translates datastore contents from XML to JSON.
 import os
 import xml.etree.ElementTree as ET
 
-from pyang import plugin
-from pyang import statements
+from pyang import plugin, statements, error
 
 ss = ET.Element("stylesheet",
                 {"version": "1.0",
@@ -29,15 +28,18 @@ class JsonXslPlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        emit_json_xsl(modules, fd)
+        emit_json_xsl(modules, ctx, fd)
 
-def emit_json_xsl(modules, fd):
+def emit_json_xsl(modules, ctx, fd):
     """Main control function.
 
     Set up the top-level parts of the stylesheet, the process
     recursively all nodes in all data trees, and finally emit the
     serialized stylesheet.
     """
+    for (epos, etag, eargs) in ctx.errors:
+        if error.is_error(error.err_level(etag)):
+            raise error.EmitError("JSONXSL plugin needs a valid module")
     tree = ET.ElementTree(ss)
     ET.SubElement(ss, "output", method="text")
     xsltdir = os.environ.get("PYANG_XSLT_DIR",

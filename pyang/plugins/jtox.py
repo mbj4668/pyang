@@ -7,8 +7,7 @@ that translates datastore contents from XML to JSON.
 import os
 import json
 
-from pyang import plugin
-from pyang import statements
+from pyang import plugin, statements, error
 
 mods = {}
 """Dictionary containing module prefixes and URIs.
@@ -28,11 +27,14 @@ class JtoXPlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        emit_jtox(modules, fd)
+        emit_jtox(modules, ctx, fd)
 
-def emit_jtox(modules, fd):
+def emit_jtox(modules, ctx, fd):
     """Main control function.
     """
+    for (epos, etag, eargs) in ctx.errors:
+        if error.is_error(error.err_level(etag)):
+            raise error.EmitError("JTOX plugin needs a valid module")
     tree = {}
     prefixes = []
     def unique_prefix(p):
