@@ -533,13 +533,13 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
         else:
             match_res = None
         if match_res is None and chk_grammar == True:
-            error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD', 
+            error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD',
                           util.keyword_to_str(stmt.raw_keyword))
         elif match_res is not None and chk_grammar == True:
             try:
                 (arg_type, subspec) = stmt_map[stmt.keyword]
             except KeyError:
-                error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD', 
+                error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD',
                               util.keyword_to_str(stmt.raw_keyword))
                 return
             # verify the statement's argument
@@ -566,7 +566,7 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
         else:
             # unknown extension
             stmt.is_grammatically_valid = True
-            _chk_stmts(ctx, stmt.pos, stmt.substmts, stmt, 
+            _chk_stmts(ctx, stmt.pos, stmt.substmts, stmt,
                        [('$any', '*')], canonical)
         # update last know position
         pos = stmt.pos
@@ -619,7 +619,7 @@ def _match_stmt(ctx, stmt, spec, canonical):
                 # check if this alternative matches - check for a
                 # match with each optional keyword
                 save_errors = ctx.errors
-                match_res = _match_stmt(ctx, stmt, cases[j], False)
+                match_res = _match_stmt(ctx, stmt, cases[j], canonical)
                 if match_res != None:
                     # this case branch matched, use it
                     # remove the choice and add res to the spec
