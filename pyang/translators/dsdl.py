@@ -157,9 +157,9 @@ class HybridDSDLSchema(object):
     * `self.identities`: dictionary of identity names as keys and the
       corresponding name pattern definitions as values.
 
-    * `self.identity_deps: dictionary showing the dependences among
-      identities - identity_name -> list of all identities that define
-      identity_name as their base.
+    * `self.identity_deps: each item has an identity (statement) as
+      the key and a list of identities derived from the key identity
+      as the value.
 
     * `self.local_defs`: dictionary of local named pattern
       definitions. The keys are mangled names of the definitions.
@@ -336,9 +336,10 @@ class HybridDSDLSchema(object):
         gpset = {}
         self.gg_level = 0
         for module in modules: self.add_namespace(module)
-        for module in list(modules[0].i_ctx.modules.values()):
-            for i in module.i_identities:
-                self.register_identity(module.i_identities[i])
+        for module in modules[0].i_ctx.modules.values():
+            if module.keyword == "module":
+                for idn in module.i_identities.values():
+                    self.register_identity(idn)
         for module in modules:
             self.module = module
             self.prefix_stack = [self.module_prefixes[module.arg]]
@@ -442,37 +443,32 @@ class HybridDSDLSchema(object):
         return new
 
     def register_identity(self, id_stmt):
-        """Register identity `ident` in `self.identity_deps`.
-
-        Fill in (recursively) all derivations from base identities.
+        """Register `id_stmt` with its base identity, if any.
         """
-        module = id_stmt.main_module()
-        self.add_namespace(module)
-        qid = self.module_prefixes[module.arg] + ":" + id_stmt.arg
-        if qid in self.identity_deps: return qid
-        self.identity_deps[qid] = []
         bst = id_stmt.search_one("base")
-        if not bst: return qid
-        bist = bst.i_identity
-        bn = self.register_identity(bist)
-        self.identity_deps[bn].append(qid)
-        return qid
+        if bst:
+            bder = self.identity_deps.setdefault(bst.i_identity, [])
+            bder.append(id_stmt)
 
-    def add_identity(self, ident):
-        """Add `id_stmt` and all derivates to `self.identities`.
+    def add_derived_identity(self, id_stmt):
+        """Add pattern def for `id_stmt` and all derived identities.
 
-        `ident` must be a fully qualified identity name.
+        The corresponding "ref" pattern is returned.
         """
-        def trname(iname): return "__" + iname.replace(":","_")
-        if ident in self.identities: return
-        parent = SchemaNode.define(trname(ident))
-        self.identities[ident] = parent
-        if self.identity_deps[ident]:
-            parent = SchemaNode.choice(parent, occur=2)
-        SchemaNode("value", parent, ident).attr["type"] = "QName"
-        for i in self.identity_deps[ident]:
-            SchemaNode("ref", parent).attr["name"] = trname(i)
-            self.add_identity(i)
+        p = self.add_namespace(id_stmt.main_module())
+        if id_stmt not in self.identities:   # add named pattern def
+            self.identities[id_stmt] = SchemaNode.define("__%s_%s" %
+                                                         (p, id_stmt.arg))
+            parent = self.identities[id_stmt]
+            if id_stmt in self.identity_deps:
+                parent = SchemaNode.choice(parent, occur=2)
+                for i in self.identity_deps[id_stmt]:
+                    parent.subnode(self.add_derived_identity(i))
+            idval = SchemaNode("value", parent, p+":"+id_stmt.arg)
+            idval.attr["type"] = "QName"
+        res = SchemaNode("ref")
+        res.attr["name"] = self.identities[id_stmt].attr["name"]
+        return res
 
     def preload_defs(self):
         """Preload all top-level definitions."""
@@ -1163,11 +1159,14 @@ class HybridDSDLSchema(object):
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
-        module = bid.main_module()
-        qid = self.module_prefixes[module.arg] + ":" + bid.arg
-        self.add_identity(qid)
-        SchemaNode("ref", p_elem).set_attr("name",
-                                           "__" + qid.replace(":","_"))
+        if bid not in self.identity_deps:
+            p_elem.subnode(SchemaNode("notAllowed"))
+            return
+        der = self.identity_deps[bid]
+        if len(der) > 1:
+            p_elem = SchemaNode.choice(p_elem, occur=2)
+        for i in der:
+            p_elem.subnode(self.add_derived_identity(i))
 
     def instance_identifier_type(self, tchain, p_elem):
         SchemaNode("parentRef", p_elem).attr["name"] = "__instance-identifier__"
