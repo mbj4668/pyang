@@ -1,6 +1,6 @@
 """SMIv2 plugin
 
-draft-ietf-netmod-smi-yang-03 compatible.
+RFC 6643 compatible.
 
 Verifies the grammar of the smiv2 extension statements, and sets
 i_smi_oid built from the smiv2:oid and smiv2:subid statements.

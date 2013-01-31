@@ -1,3 +1,35 @@
+   1.3 - 2013-01-31
+         added new plugins: hypertree and jstree
+         added command line flags -W and -E to treat warnings as errors
+         xsd: added command line flag --xsd-global-complex-types
+         tree: added command line flasgs  --tree-depth and
+               --tree-path to prune the printed tree
+
+         #58 - detect when a leaf restricts a type so that the type's
+               default value becomes illegal
+         #59 - given an error if a list's unique statement references
+               leafs which have different config flags
+         #60 - xpath tokenizer bug fix
+         #62 - dsdl: handle empty default values
+         #63 - dsdl: handle empty containers and lists.
+         #66 - dsdl: interleave module grammars
+         #68 - dsdl: schematron rule for instance identifier.
+         #73 - dsdl: fixed bug when a submodule used an extension from
+               an imported  module
+         #74 - dsdl: correctly handle empty choice and case nodes
+         #79 - dsdl: now treats identity derivation as irreflexive and
+               transitive
+         allow choice in case
+         fixed bug when checking the canonical order for length and pattern
+            (any orded was accepted)
+         dsdl: proper handling of instance-identifiers
+         pyang now works with python 3, as well as old 2.x
+         yang output plugin quote fix for strings ending in newline
+         smiv2: allow smiv2:oid under identity
+         smiv2: fixes in oid regexp
+         smiv2: RFC 6643 compatible
+         ... and numerous other minor fixes
+
    1.2 - 2011-07-27
         added edit-config target to yang2dsls
        
