@@ -7,7 +7,7 @@ sdist: MANIFEST doc
 # create a minimal package
 dist: doc
 	rm -f MANIFEST
-	echo "exclude LICENSE" > MANIFEST.in
+	echo "include LICENSE" > MANIFEST.in
 	echo "include env.sh" >> MANIFEST.in
 	echo "recursive-include man *" >> MANIFEST.in
 	echo "recursive-include schema *" >> MANIFEST.in
