@@ -1,5 +1,6 @@
    1.3 - 2013-01-31
          added new plugins: hypertree and jstree
+         added new plugins: jsonxsl and jtox
          added command line flags -W and -E to treat warnings as errors
          xsd: added command line flag --xsd-global-complex-types
          tree: added command line flasgs  --tree-depth and
