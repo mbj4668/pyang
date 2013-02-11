@@ -619,7 +619,10 @@ def _match_stmt(ctx, stmt, spec, canonical):
                 # check if this alternative matches - check for a
                 # match with each optional keyword
                 save_errors = ctx.errors
-                match_res = _match_stmt(ctx, stmt, cases[j], canonical)
+                if spec == top_stmts:
+                    match_res = _match_stmt(ctx, stmt, cases[j], False)
+                else:
+                    match_res = _match_stmt(ctx, stmt, cases[j], canonical)
                 if match_res != None:
                     # this case branch matched, use it
                     # remove the choice and add res to the spec
