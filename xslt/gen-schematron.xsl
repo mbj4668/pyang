@@ -423,7 +423,7 @@ The stylesheet uses the following modes:
 	<xsl:value-of select="concat($prefix, ':', @name)"/>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:text> or </xsl:text>
+    <xsl:text>[not(processing-instruction('dsrl'))] or </xsl:text>
   </xsl:template>
 
   <xsl:template match="rng:ref" mode="lookup-subel">
