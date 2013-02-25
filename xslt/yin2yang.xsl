@@ -189,17 +189,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template name="quote-char">
-    <xsl:choose>
-      <xsl:when test="contains(.,'&quot;')">
-	<xsl:text>'</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:text>"</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
   <xsl:template name="keyword">
     <xsl:if test="count(ancestor::yin:*)=1">
       <xsl:text>&#xA;</xsl:text>
@@ -209,24 +198,65 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="statement">
-    <xsl:param name="quote"/>
     <xsl:param name="arg"/>
     <xsl:call-template name="keyword"/>
-    <xsl:value-of select="concat(' ',$quote,$arg,$quote)"/>
+    <xsl:value-of select="concat(' ', $arg)"/>
     <xsl:call-template name="semi-or-sub"/>
+  </xsl:template>
+
+  <xsl:template name="statement-dq">    <!-- double-quoted arg -->
+    <xsl:param name="arg"/>
+    <xsl:call-template name="statement">
+      <xsl:with-param name="arg">
+	<xsl:text>"</xsl:text>
+	<xsl:call-template name="escape-text">
+	  <xsl:with-param name="text" select="$arg"/>
+	</xsl:call-template>
+	<xsl:text>"</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template name="escape-text">
+    <xsl:param name="text"/>
+    <xsl:if test="string-length($text) &gt; 0">
+      <xsl:call-template name="escape-char">
+	<xsl:with-param name="char" select="substring($text,1,1)"/>
+      </xsl:call-template>
+      <xsl:call-template name="escape-text">
+	<xsl:with-param name="text" select="substring($text,2)"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="escape-char">
+    <xsl:param name="char"/>
+    <xsl:variable name="simple-escapes">"\</xsl:variable>
+    <xsl:choose>
+      <xsl:when test="contains($simple-escapes, $char)">
+	<xsl:value-of select="concat('\', $char)"/>
+      </xsl:when>
+      <xsl:when test="$char='&#9;'">\t</xsl:when>
+      <xsl:when test="$char='&#10;'">\n</xsl:when>
+      <xsl:otherwise>
+	<xsl:value-of select="$char"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="chop-arg">
     <xsl:param name="token-delim" select="'/'"/>
-    <xsl:variable name="qchar">
-      <xsl:call-template name="quote-char"/>
-    </xsl:variable>
+    <xsl:variable name="qchar">"</xsl:variable>
     <xsl:variable name="cind">
       <xsl:call-template name="indent">
 	<xsl:with-param name="level" select="count(ancestor::*)-1"/>
       </xsl:call-template>
     </xsl:variable>
-    <xsl:variable name="txt" select="normalize-space(.)"/>
+    <xsl:variable name="txt">
+      <xsl:call-template name="escape-text">
+	<xsl:with-param name="text" select="normalize-space(.)"/>
+      </xsl:call-template>
+    </xsl:variable>
     <xsl:choose>
       <xsl:when
 	  test="string-length(concat($cind,local-name(..),$txt))
@@ -286,8 +316,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="yin:units">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="quote">"</xsl:with-param>
+    <xsl:call-template name="statement-dq">
       <xsl:with-param name="arg" select="@name"/>
     </xsl:call-template>
   </xsl:template>
@@ -311,13 +340,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	     |yin:pattern|yin:position|yin:prefix
 	     |yin:presence|yin:range|yin:require-instance
 	     |yin:status|yin:value|yin:yang-version|yin:yin-element">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="quote">"</xsl:with-param>
+    <xsl:call-template name="statement-dq">
       <xsl:with-param name="arg" select="@value"/>
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="yin:path">
+  <xsl:template match="yin:path|yin:pattern">
     <xsl:call-template name="keyword"/>
     <xsl:apply-templates select="@value"/>
     <xsl:call-template name="semi-or-sub"/>
@@ -325,6 +353,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="@target-node|yin:path/@value">
     <xsl:call-template name="chop-arg"/>
+  </xsl:template>
+
+  <xsl:template match="yin:pattern/@value">
+    <xsl:call-template name="chop-arg">
+      <xsl:with-param name="token-delim">|</xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="yin:error-message">
@@ -370,8 +404,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="yin:namespace">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="quote">"</xsl:with-param>
+    <xsl:call-template name="statement-dq">
       <xsl:with-param name="arg" select="@uri"/>
     </xsl:call-template>
   </xsl:template>
@@ -389,16 +422,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="yin:unique">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="quote">"</xsl:with-param>
+    <xsl:call-template name="statement-dq">
       <xsl:with-param name="arg" select="@tag"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="yin:text">
-    <xsl:variable name="qchar">
-      <xsl:call-template name="quote-char"/>
-    </xsl:variable>
+    <xsl:variable name="qchar">"</xsl:variable>
     <xsl:text>&#xA;</xsl:text>
     <xsl:variable name="prf">
       <xsl:call-template name="indent"/>
@@ -414,9 +444,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:when>
       <xsl:otherwise>
 	<xsl:call-template name="fill-text">
-	  <xsl:with-param
-	      name="text"
-	      select="concat(normalize-space(.),$qchar,';&#xA;')"/>
+	  <xsl:with-param name="text">
+	    <xsl:call-template name="escape-text">
+	      <xsl:with-param
+		  name="text"
+		  select="normalize-space(.)"/>
+	    </xsl:call-template>
+	    <xsl:value-of select="concat($qchar,';&#xA;')"/>
+	  </xsl:with-param>
 	  <xsl:with-param
 	      name="length"
 	      select="$line-length - string-length($prf) - 1"/>
@@ -460,7 +495,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template match="text()" mode="fill">
     <xsl:param name="prefix"/>
     <xsl:call-template name="fill-text">
-      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param name="text">
+	<xsl:call-template name="escape-text">
+	  <xsl:with-param name="text" select="normalize-space(.)"/>
+	</xsl:call-template>
+      </xsl:with-param>
       <xsl:with-param
 	  name="length"
 	  select="$line-length - string-length($prefix)"/>
@@ -483,7 +522,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	select="concat(substring($list-bullets,
 		count(ancestor::html:ul),1),' ')"/>
     <xsl:call-template name="fill-text">
-      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param name="text">
+	<xsl:call-template name="escape-text">
+	  <xsl:with-param name="text" select="normalize-space(.)"/>
+	</xsl:call-template>
+      </xsl:with-param>
       <xsl:with-param
 	  name="length"
 	  select="$line-length - string-length($prefix) - 2"/>
@@ -500,7 +543,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:value-of
 	select="concat(count(preceding-sibling::html:li) + 1,'. ')"/>
     <xsl:call-template name="fill-text">
-      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param name="text">
+	<xsl:call-template name="escape-text">
+	  <xsl:with-param name="text" select="normalize-space(.)"/>
+	</xsl:call-template>
+      </xsl:with-param>
       <xsl:with-param
 	  name="length"
 	  select="$line-length - string-length($prefix) - 3"/>
