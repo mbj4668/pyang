@@ -384,8 +384,11 @@
 
   <xsl:template match="/">
     <xsl:apply-templates
-	select="//nc:data|//nc:config|nc:rpc|nc:rpc-reply|
-		en:notification"/>
+	select="nc:data|nc:config|nc:rpc|nc:rpc-reply|en:notification"/>
+  </xsl:template>
+
+  <xsl:template match="nc:rpc-reply[nc:data or nc:config]">
+    <xsl:apply-templates select="nc:data|nc:config"/>
   </xsl:template>
 
   <xsl:template match="nc:data|nc:config|nc:rpc|nc:rpc-reply|en:notification">
