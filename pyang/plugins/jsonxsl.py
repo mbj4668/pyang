@@ -82,30 +82,32 @@ def process_module(yam):
         else:
             continue
         yam.i_children.remove(ch)
-    process_children(yam, "//nc:*")
+    process_children(yam, "//nc:*", 1)
 
 def process_rpc(rpc):
     """Process input and output parts of `rpc`."""
     p = "/nc:rpc/" + qname(rpc)
     tmpl = xsl_template(p)
-    xsl_calltemplate("container", tmpl)
+    ct = xsl_calltemplate("container", tmpl)
+    xsl_withparam("level", "1", ct)
     inp = rpc.search_one("input")
     if inp is not None:
-        process_children(inp, p)
+        process_children(inp, p, 2)
     outp = rpc.search_one("output")
     if outp is not None:
-        process_children(outp, "/nc:rpc-reply")
+        process_children(outp, "/nc:rpc-reply", 1)
 
 def process_notification(ntf):
     """Process event notification `ntf`."""
     p = "/en:notification/" + qname(ntf)
     tmpl = xsl_template(p)
     ct = xsl_calltemplate("container", tmpl)
+    xsl_withparam("level", "1", ct)
     if ntf.arg == "eventTime":            # local name collision
         xsl_withparam("nsid", ntf.i_module.i_modulename + ":", ct)
-    process_children(ntf, p)
+    process_children(ntf, p, 2)
 
-def process_children(node, path):
+def process_children(node, path, level):
     """Process all children of `node`.
 
     `path` is the Xpath of `node` which is used in the 'select'
@@ -114,17 +116,19 @@ def process_children(node, path):
     chs = node.i_children
     for ch in chs:
         if ch.keyword in ["choice", "case"]:
-            process_children(ch, path)
+            process_children(ch, path, level)
             continue
         p = path + "/" + qname(ch)
         tmpl = xsl_template(p)
         ct = xsl_calltemplate(ch.keyword, tmpl)
+        xsl_withparam("level", "%d" % level, ct)
         if [c.arg for c in chs].count(ch.arg) > 1:
             xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
         if ch.keyword in ["leaf", "leaf-list"]:
             type_param(ch, ct)
         elif ch.keyword != "anyxml":
-            process_children(ch, p)
+            offset = 2 if ch.keyword == "list" else 1
+            process_children(ch, p, level + offset)
 
 def type_param(node, ct):
     """Resolve the type of a leaf or leaf-list node for JSON.

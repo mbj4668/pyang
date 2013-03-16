@@ -680,7 +680,7 @@ option)\&.
 .PP
 The data tree(s) must be wrapped at least in either <nc:data> or <nc:config> element, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0", or the XML instance document has to be a complete NETCONF RPC request/reply or notification\&. Translation of RPCs and notifications defined by the data model is also supported\&.
 .PP
-Current limitations:
+The generated stylesheet accepts the following parameters that modify its behaviour:
 .sp
 .RS 4
 .ie n \{\
@@ -690,10 +690,21 @@ Current limitations:
 .sp -1
 .IP \(bu 2.3
 .\}
-Values of "union" type are always rendered as strings\&.
+\fIcompact\fR: setting this parameter to 1 results in a compact representation of the JSON text, i\&.e\&. without any whitespace\&. The default is 0 which means that the JSON output is pretty\-printed\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIind\-step\fR: indentation step, i\&.e\&. the number of spaces to use for each level\&. The default value is 2 spaces\&. Note that this setting is only useful for pretty\-printed output (compact=0)\&.
 .RE
 .PP
-The generated stylesheet includes the file
+The stylesheet also includes the file
 jsonxsl\-templates\&.xsl
 which is a part of
 \fBpyang\fR

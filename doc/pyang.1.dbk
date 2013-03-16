@@ -1083,15 +1083,25 @@
       the data model is also supported.
     </para>
     <para>
-      Current limitations:
+      The generated stylesheet accepts the following parameters that
+      modify its behaviour:
     </para>
     <itemizedlist>
       <listitem>
-	<para>Values of "union" type are always rendered as strings.</para>
+	<para><emphasis>compact</emphasis>: setting this parameter to
+	1 results in a compact representation of the JSON text,
+	i.e. without any whitespace. The default is 0 which means that
+	the JSON output is pretty-printed.</para>
+      </listitem>
+      <listitem>
+	<para><emphasis>ind-step</emphasis>: indentation step,
+	i.e. the number of spaces to use for each level. The default
+	value is 2 spaces. Note that this setting is only useful for
+	pretty-printed output (compact=0).</para>
       </listitem>
     </itemizedlist>
     <para>
-      The generated stylesheet includes the file
+      The stylesheet also includes the file
       <filename>jsonxsl-templates.xsl</filename> which is a part of
       <command>pyang</command> distribution.
     </para>
