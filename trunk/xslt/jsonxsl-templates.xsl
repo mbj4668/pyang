@@ -3,8 +3,49 @@
 		xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
 		xmlns:en="urn:ietf:params:xml:ns:netconf:notification:1.0"
 		version="1.0">
+  <!-- Compact output? -->
+  <xsl:param name="compact" select="0"/>
+  <!-- Indentation step -->
+  <xsl:param name="ind-step" select="2"/>
+  <xsl:variable name="unit-indent">
+    <xsl:call-template name="repeat-string">
+      <xsl:with-param name="count" select="$ind-step"/>
+      <xsl:with-param name="string" select="' '"/>
+    </xsl:call-template>
+  </xsl:variable>
 
   <xsl:variable name="DIGITS">0123456789</xsl:variable>
+
+  <xsl:template name="repeat-string">
+    <xsl:param name="count"/>
+    <xsl:param name="string"/>
+    <xsl:choose>
+      <xsl:when test="not($count) or not($string)"/>
+      <xsl:when test="$count = 1">
+	<xsl:value-of select="$string"/>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:if test="$count mod 2">
+	  <xsl:value-of select="$string"/>
+	</xsl:if>
+	<xsl:call-template name="repeat-string">
+	  <xsl:with-param name="count" select="floor($count div 2)"/>
+	  <xsl:with-param name="string" select="concat($string,$string)"/>
+	</xsl:call-template> 
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="nl-indent">
+    <xsl:param name="level" select="0"/>
+    <xsl:if test="$compact = 0">
+      <xsl:text>&#xA;</xsl:text>
+      <xsl:call-template name="repeat-string">
+	<xsl:with-param name="count" select="$level"/>
+	<xsl:with-param name="string" select="$unit-indent"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
 
   <xsl:template name="value-type">
     <xsl:choose>
@@ -90,7 +131,7 @@
   <xsl:template name="commaq">
     <xsl:if test="following-sibling::*[name() != name(current())
 		  and name() != name(preceding-sibling::*)]">
-      <xsl:text>, </xsl:text>
+      <xsl:text>,</xsl:text>
     </xsl:if>
   </xsl:template>
 
@@ -203,17 +244,6 @@
     <xsl:value-of select="concat($modname, ':')"/>
   </xsl:template>
 
-  <xsl:template name="object-name">
-    <xsl:param name="nsid"/>
-    <xsl:value-of select="concat('&quot;', $nsid, local-name(.), '&quot;: ')"/>
-  </xsl:template>
-
-  <xsl:template name="json-object">
-    <xsl:text>{</xsl:text>
-    <xsl:apply-templates/>
-    <xsl:text>}</xsl:text>
-  </xsl:template>
-
   <xsl:template name="json-value">
     <xsl:param name="type">string</xsl:param>
     <xsl:param name="options"/>
@@ -276,17 +306,29 @@
   </xsl:template>
 
   <xsl:template name="container">
+    <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
     <xsl:value-of
-	select="concat('&quot;', $nsid, local-name(.), '&quot;: ')"/>
-    <xsl:call-template name="json-object"/>
+	select="concat('&quot;', $nsid, local-name(.), '&quot;: {')"/>
+    <xsl:apply-templates/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
+    <xsl:text>}</xsl:text>
     <xsl:call-template name="commaq"/>
   </xsl:template>
 
   <xsl:template name="leaf">
+    <xsl:param name="level" select="0"/>
     <xsl:param name="type"/>
     <xsl:param name="options"/>
     <xsl:param name="nsid"/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
     <xsl:value-of
 	select="concat('&quot;', $nsid, local-name(.), '&quot;: ')"/>
     <xsl:call-template name="json-value">
@@ -297,64 +339,109 @@
   </xsl:template>
 
   <xsl:template name="leaf-list">
+    <xsl:param name="level" select="0"/>
     <xsl:param name="type"/>
     <xsl:param name="options"/>
     <xsl:param name="nsid"/>
     <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
+      <xsl:call-template name="nl-indent">
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
       <xsl:value-of
 	  select="concat('&quot;', $nsid, local-name(.), '&quot;: [')"/>
       <xsl:for-each select="../*[name()=name(current())]">
+	<xsl:call-template name="nl-indent">
+	  <xsl:with-param name="level" select="$level+1"/>
+	</xsl:call-template>
 	<xsl:call-template name="json-value">
 	  <xsl:with-param name="type" select="$type"/>
 	  <xsl:with-param name="options" select="$options"/>
 	</xsl:call-template>
 	<xsl:if test="position() != last()">
-	  <xsl:text>, </xsl:text>
+	  <xsl:text>,</xsl:text>
 	</xsl:if>
       </xsl:for-each>
+      <xsl:call-template name="nl-indent">
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
       <xsl:text>]</xsl:text>
       <xsl:call-template name="commaq"/>
     </xsl:if>
   </xsl:template>
 
   <xsl:template name="list">
+    <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
     <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
+      <xsl:call-template name="nl-indent">
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
       <xsl:value-of
 	  select="concat('&quot;', $nsid, local-name(.), '&quot;: [')"/>
       <xsl:for-each select="../*[name()=name(current())]">
-	<xsl:call-template name="json-object"/>
+	<xsl:call-template name="nl-indent">
+	  <xsl:with-param name="level" select="$level+1"/>
+	</xsl:call-template>
+	<xsl:text>{</xsl:text>
+	<xsl:apply-templates/>
+	<xsl:call-template name="nl-indent">
+	  <xsl:with-param name="level" select="$level+1"/>
+	</xsl:call-template>
+	<xsl:text>}</xsl:text>
 	<xsl:if test="position() != last()">
-	  <xsl:text>, </xsl:text>
+	  <xsl:text>,</xsl:text>
 	</xsl:if>
       </xsl:for-each>
+      <xsl:call-template name="nl-indent">
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
       <xsl:text>]</xsl:text>
       <xsl:call-template name="commaq"/>
     </xsl:if>
   </xsl:template>
 
   <xsl:template name="anyxml">
+    <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
     <xsl:value-of
-	select="concat('&quot;', $nsid, local-name(.), '&quot;: ')"/>
-    <xsl:text>{</xsl:text>
-    <xsl:apply-templates mode="anyxml"/>
+	select="concat('&quot;', $nsid, local-name(.), '&quot;: {')"/>
+    <xsl:apply-templates mode="anyxml">
+      <xsl:with-param name="level" select="$level+1"/>
+    </xsl:apply-templates>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
     <xsl:text>}</xsl:text>
     <xsl:call-template name="commaq"/>
   </xsl:template>
 
   <xsl:template match="*" mode="anyxml">
+    <xsl:param name="level" select="0"/>
     <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
+      <xsl:call-template name="nl-indent">
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
       <xsl:value-of
 	  select="concat('&quot;', local-name(.), '&quot;: ')"/>
       <xsl:choose>
 	<xsl:when test="following-sibling::*[name()=name(current())]">
 	  <xsl:text>[</xsl:text>
 	  <xsl:for-each select="../*[name()=name(current())]">
+	    <xsl:call-template name="nl-indent">
+	      <xsl:with-param name="level" select="$level+1"/>
+	    </xsl:call-template>
 	    <xsl:choose>
 	      <xsl:when test="*">
 		<xsl:text>{</xsl:text>
-		<xsl:apply-templates mode="anyxml"/>
+		<xsl:apply-templates mode="anyxml">
+		  <xsl:with-param name="level" select="$level+2"/>
+		</xsl:apply-templates>
+		<xsl:call-template name="nl-indent">
+		  <xsl:with-param name="level" select="$level+1"/>
+		</xsl:call-template>
 		<xsl:text>}</xsl:text>
 	      </xsl:when>
 	      <xsl:otherwise>
@@ -362,14 +449,22 @@
 	      </xsl:otherwise>
 	    </xsl:choose>
 	    <xsl:if test="position() != last()">
-	      <xsl:text>, </xsl:text>
+	      <xsl:text>,</xsl:text>
 	    </xsl:if>
 	  </xsl:for-each>
+	  <xsl:call-template name="nl-indent">
+	    <xsl:with-param name="level" select="$level"/>
+	  </xsl:call-template>
 	  <xsl:text>]</xsl:text>
 	</xsl:when>
 	<xsl:when test="*">
 	  <xsl:text>{</xsl:text>
-	  <xsl:apply-templates mode="anyxml"/>
+	  <xsl:apply-templates mode="anyxml">
+	    <xsl:with-param name="level" select="$level+1"/>
+	  </xsl:apply-templates>
+	  <xsl:call-template name="nl-indent">
+	    <xsl:with-param name="level" select="$level"/>
+	  </xsl:call-template>
 	  <xsl:text>}</xsl:text>
 	</xsl:when>
 	<xsl:otherwise>
@@ -394,17 +489,20 @@
   <xsl:template match="nc:data|nc:config|nc:rpc|nc:rpc-reply|en:notification">
     <xsl:text>{</xsl:text>
     <xsl:apply-templates select="*"/>
-    <xsl:text>}</xsl:text>
+    <xsl:call-template name="nl-indent"/>
+    <xsl:text>}&#xA;</xsl:text>
   </xsl:template>
 
   <xsl:template match="/en:notification/en:eventTime">
     <xsl:call-template name="leaf">
+      <xsl:with-param name="level" select="1"/>
       <xsl:with-param name="type">other</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="/nc:rpc-reply/nc:ok">
     <xsl:call-template name="leaf">
+      <xsl:with-param name="level" select="1"/>
       <xsl:with-param name="type">empty</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
