@@ -46,6 +46,7 @@
       <arg choice="opt">--canonical</arg>
       <arg choice="opt">--strict</arg>
       <arg choice="opt">--ietf</arg>
+      <arg choice="opt">--lax-xpath-checks</arg>
       <arg choice="opt">--hello</arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
@@ -275,6 +276,19 @@
             canonical order, and that
             <option>--max-line-length</option> is 72 so that the
             module fits into an RFC.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--lax-xpath-checks</option>
+        </term>
+        <listitem>
+          <para>
+            Lax checks of XPath expressions.  Specifically, do not
+            generate an error if an XPath expression uses a variable
+            or an unknown function.
           </para>
         </listitem>
       </varlistentry>

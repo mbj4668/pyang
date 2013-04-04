@@ -1716,6 +1716,8 @@ def v_reference_must(ctx, stmt):
                     prefix = s[:i]
                     prefix_to_module(stmt.i_module, prefix, stmt.pos,
                                      ctx.errors)
+            elif ctx.lax_xpath_checks == True:
+                pass
             elif tokname == 'variable':
                 err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
             elif tokname == 'function' and (s not in xpath.core_functions and
