@@ -16,17 +16,17 @@ ss = ET.Element("stylesheet",
                  "xmlns:en": "urn:ietf:params:xml:ns:netconf:notification:1.0"})
 """Root element of the output XSLT stylesheet."""
 
-type_class = {t:"unquoted" for t in
-              ("boolean", "int8", "int16", "int32", "int64",
-               "uint8", "uint16", "uint32", "uint64", "decimal64")}
+type_class = dict((t,"unquoted") for t in
+                  ("boolean", "int8", "int16", "int32", "int64",
+                   "uint8", "uint16", "uint32", "uint64", "decimal64"))
 """Classification of types suited for JSON translation."""
 
-type_class.update({t:t for t in
-                   ("empty", "instance-identifier", "identityref", "string")})
+type_class.update((t,t) for t in
+                  ("empty", "instance-identifier", "identityref", "string"))
 
-union_class = {t:"integer" for t in
-               ("int8", "int16", "int32", "int64",
-               "uint8", "uint16", "uint32", "uint64")}
+union_class = dict((t,"integer") for t in
+                   ("int8", "int16", "int32", "int64",
+                   "uint8", "uint16", "uint32", "uint64"))
 """Classification of types needed for resolving union-typed values."""
 
 union_class.update({"decimal64": "decimal", "boolean": "boolean"})
