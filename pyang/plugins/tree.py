@@ -79,7 +79,7 @@ Each node is printed as:
 
   <opts> is one of:
     ?  for an optional leaf or presence container
-    *  for a leaf-list
+    *  for a leaf-list or list
     [<keys>] for a list's keys
 
   <type> is the name of the type for leafs and leaf-lists
@@ -177,6 +177,7 @@ def print_node(s, module, fd, prefix, path, depth, width):
         name = s.i_module.i_prefix + ':' + s.arg
     flags = get_flags_str(s)
     if s.keyword == 'list':
+        name += '*'
         fd.write(flags + " " + name)
     elif s.keyword == 'container':
         p = s.search_one('presence')
