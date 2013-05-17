@@ -18,7 +18,7 @@ ss = ET.Element("stylesheet",
 
 type_class = dict((t,"unquoted") for t in
                   ("boolean", "int8", "int16", "int32", "int64",
-                   "uint8", "uint16", "uint32", "uint64", "decimal64"))
+                   "uint8", "uint16", "uint32", "uint64"))
 """Classification of types suited for JSON translation."""
 
 type_class.update((t,t) for t in
@@ -29,7 +29,7 @@ union_class = dict((t,"integer") for t in
                    "uint8", "uint16", "uint32", "uint64"))
 """Classification of types needed for resolving union-typed values."""
 
-union_class.update({"decimal64": "decimal", "boolean": "boolean"})
+union_class.update({"boolean": "boolean"})
 
 def pyang_plugin_init():
     plugin.register_plugin(JsonXslPlugin())
@@ -134,15 +134,27 @@ def type_param(node, ct):
     """Resolve the type of a leaf or leaf-list node for JSON.
     """
     types = get_types(node)
+    ftyp = types[0]
     if len(types) == 1:
-        xsl_withparam("type", type_class.get(types[0], "other"), ct)
-    elif types[0] in ["string", "enumeration", "bits", "binary",
-                      "identityref", "instance-identifier"]:
+        if ftyp in type_class:
+            jtyp = type_class[ftyp]
+        elif ftyp.startswith("decimal@"):
+            jtyp = "unquoted"
+        else:
+            jtyp = "other"
+        xsl_withparam("type", jtyp, ct)
+    elif ftyp in ["string", "enumeration", "bits", "binary",
+                  "identityref", "instance-identifier"]:
         xsl_withparam("type", "string", ct)
     else:
         opts = []
         for t in types:
-            ut = union_class.get(t, "other")
+            if t in union_class:
+                ut = union_class[t]
+            elif t.startswith("decimal@"):
+                ut = t
+            else:
+                ut = "other"    
             if ut not in opts:
                 opts.append(ut)
                 if ut == "other": break
@@ -157,6 +169,9 @@ def get_types(node):
             resolve(typ.i_type_spec.i_target_node.search_one("type"))
         elif typ.arg == "union":
             for ut in typ.i_type_spec.types: resolve(ut)
+        elif typ.arg == "decimal64":
+            res.append("decimal@" +
+                       typ.search_one("fraction-digits").arg)
         elif typ.i_typedef is not None:
             resolve(typ.i_typedef.search_one("type"))
         else:
