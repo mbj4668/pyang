@@ -72,7 +72,10 @@
 		  test="string-length($whole) > 0 and
 			string-length($fract) > 0 and
 			string-length(translate(
-			concat($whole, $fract), $DIGITS, '')) = 0">decimal</xsl:when>
+			concat($whole, $fract), $DIGITS, '')) = 0">
+	      <xsl:value-of select="concat('decimal@',
+				    string-length($fract))"/>
+	      </xsl:when>
 	      <xsl:otherwise>other</xsl:otherwise>
 	    </xsl:choose>
 	  </xsl:when>
@@ -111,9 +114,14 @@
     <xsl:param name="options"/>
     <xsl:choose>
       <xsl:when test="string-length($options) &gt; 0">
+	<xsl:variable name="fst" select="substring-before($options,',')"/>
 	<xsl:choose>
-	  <xsl:when test="$type=substring-before($options,',')">
-	    <xsl:value-of select="$type"/>
+	  <xsl:when test="$type=$fst or starts-with($fst,'decimal@')
+			  and ($type='integer' or
+			  starts-with($type,'decimal@') and
+			  substring-after($type,'@') &lt;=
+			  substring-after($fst,'@'))">
+	    <xsl:value-of select="$fst"/>
 	  </xsl:when>
 	  <xsl:otherwise>
 	    <xsl:call-template name="first-type-match">
