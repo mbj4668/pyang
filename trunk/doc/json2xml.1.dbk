@@ -49,7 +49,7 @@
     <para>This program translates <replaceable>json_file</replaceable>
     into XML using the procedure specified in
     <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00">draft-lhotka-netmod-yang-json-00</link>.</para>
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-01">draft-lhotka-netmod-yang-json-01</link>.</para>
     <para>The translation uses a second input file,
     <replaceable>driver_file</replaceable>, which contains a concise
     JSON representation of the YANG data model to which
@@ -148,7 +148,7 @@
   <refsect1 xml:id="man.1.json2xml.seealso">
     <title>See Also</title>
     <para><link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00">draft-lhotka-netmod-yang-json-00</link>, <citerefentry>
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-01">draft-lhotka-netmod-yang-json-01</link>, <citerefentry>
       <refentrytitle>pyang</refentrytitle>
       <manvolnum>1</manvolnum>
       </citerefentry>,
