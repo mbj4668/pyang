@@ -165,6 +165,7 @@
   </xsl:template>
 
   <xsl:template name="escape-text">
+    <xsl:param name="tte" select="."/>
     <xsl:call-template name="escape-char">
       <xsl:with-param name="char" select="'&#xD;'"/>
       <xsl:with-param name="echar" select="'r'"/>
@@ -184,7 +185,7 @@
 		    <xsl:call-template name="escape-char">
 		      <xsl:with-param name="char" select="'\'"/>
 		      <xsl:with-param name="echar" select="'\'"/>
-		      <xsl:with-param name="text" select="."/>
+		      <xsl:with-param name="text" select="$tte"/>
 		    </xsl:call-template>
 		  </xsl:with-param>
 		</xsl:call-template>
@@ -280,8 +281,12 @@
 	  </xsl:message>
 	</xsl:if>
 	<xsl:text>"</xsl:text>
-	<xsl:call-template name="eat-unquoted">
-	  <xsl:with-param name="text" select="$cont"/>
+	<xsl:call-template name="escape-text">
+	  <xsl:with-param name="tte">
+	    <xsl:call-template name="eat-unquoted">
+	      <xsl:with-param name="text" select="$cont"/>
+	    </xsl:call-template>
+	  </xsl:with-param>
 	</xsl:call-template>
 	<xsl:text>"</xsl:text>
       </xsl:when>
