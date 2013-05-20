@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: pyang
 .\"    Author: Martin Bjorklund <mbj@tail-f.com>
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2013-01-31
 .\"    Manual: pyang manual
 .\"    Source: pyang-1.3
@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-hello] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-lax\-xpath\-checks] [\-\-hello] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -160,6 +160,11 @@ Validate the module(s) according to IETF rules as specified in
 is 72 so that the module fits into an RFC\&.
 .RE
 .PP
+\fB\-\-lax\-xpath\-checks\fR
+.RS 4
+Lax checks of XPath expressions\&. Specifically, do not generate an error if an XPath expression uses a variable or an unknown function\&.
+.RE
+.PP
 \fB\-L\fR \fB\-\-hello\fR
 .RS 4
 Interpret the input file or standard input as a server <hello> message\&. In this case, no more than one
@@ -203,7 +208,6 @@ instead of stdout\&.
 .PP
 \fB\-p\fR \fB\-\-path\fR \fIpath\fR
 .RS 4
-
 \fIpath\fR
 is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
 .sp
@@ -228,7 +232,6 @@ current directory
 .sp -1
 .IP "  2." 4.2
 .\}
-
 \fB$YANG_MODPATH\fR
 .RE
 .sp
@@ -240,7 +243,6 @@ current directory
 .sp -1
 .IP "  3." 4.2
 .\}
-
 \fB$HOME\fR/yang/modules
 .RE
 .sp
@@ -252,7 +254,6 @@ current directory
 .sp -1
 .IP "  4." 4.2
 .\}
-
 \fB$YANG_INSTALL\fR/yang/modules
 OR if
 \fB$YANG_INSTALL\fR
@@ -278,7 +279,6 @@ list of directories to search for pyang plugins\&. The following directories are
 .sp -1
 .IP "  1." 4.2
 .\}
-
 pyang/plugins
 from where pyang is installed
 .RE
@@ -291,7 +291,6 @@ from where pyang is installed
 .sp -1
 .IP "  2." 4.2
 .\}
-
 \fB$PYANG_PLUGINPATH\fR
 .RE
 .RE
@@ -568,7 +567,6 @@ output generates a hyperbolic YANG browser\&. The generated xml file can be impo
 .PP
 The xml file references an images folder that needs to exist in the same folder as the generated file\&. This is installed as share/yang/images in the pyang installation directory\&. The easiest way is to symlink to this directory\&.
 .PP
-
 \fBpyang \-f hypertree model\&.yang \-o model\&.xml\fR
 .PP
 Prepare a HTML file that links to the generated XMI file:
@@ -731,15 +729,11 @@ manual page for more information\&.
 .PP
 This section describes XPath functions that can be used in "must", "when", or "path" expressions in YANG modules, in addition to the core XPath 1\&.0 functions\&.
 .PP
-
 \fBpyang\fR
 can be instructed to reject the usage of these functions with the parameter
 \fI\-\-strict\fR\&.
 .PP
-
-\fBFunction:\fR
-\fInode\-set\fR
-\fBderef\fR(\fInode\-set\fR)
+\fBFunction:\fR\fInode\-set\fR\fBderef\fR(\fInode\-set\fR)
 .PP
 The
 \fBderef\fR
