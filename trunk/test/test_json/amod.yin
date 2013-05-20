@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="amod"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:a="http://example.com/a">
+  <namespace uri="http://example.com/a"/>
+  <prefix value="a"/>
+  <include module="asub"/>
+  <feature name="abc"/>
+  <identity name="abstract"/>
+  <identity name="concrete">
+    <base name="abstract"/>
+  </identity>
+  <container name="top">
+    <typedef name="bool">
+      <type name="union">
+	<type name="boolean"/>
+	<type name="uint8">
+	  <range value="0|1"/>
+	</type>
+	<type name="enumeration">
+	  <enum name="yes"/>
+	  <enum name="no"/>
+	</type>
+      </type>
+    </typedef>
+    <leaf name="foo">
+      <type name="decimal64">
+	<fraction-digits value="2"/>
+      </type>
+      <default value="-1"/>
+    </leaf>
+    <leaf-list name="pac">
+      <type name="bool"/>
+    </leaf-list>
+    <leaf name="bar">
+      <type name="empty"/>
+    </leaf>
+    <leaf-list name="baz">
+      <type name="union">
+	<type name="decimal64">
+	  <fraction-digits value="4"/>
+	</type>
+	<type name="string"/>
+      </type>
+    </leaf-list>
+    <leaf name="mek">
+      <type name="leafref">
+	<path value="/a:top/a:foo"/>
+      </type>
+    </leaf>
+    <anyxml name="junk"/>
+  </container>
+</module>

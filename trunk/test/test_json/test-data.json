@@ -1,0 +1,36 @@
+{
+  "top": {
+    "foo": 42.99,
+    "pac": [
+      "yes",
+      0,
+      true
+    ],
+    "junk": {
+      "one": "1",
+      "two": [
+        "deux",
+        "zwei"
+      ]
+    },
+    "amod:bar": [null],
+    "baz": [
+      3.1415,
+      "2.71828"
+    ],
+    "mek": 42.99,
+    "bmod:bar": "foo.example.com",
+    "abar": "/amod:subtop/bmod:pac[bmod:k1=\"0\"][bmod:k2='w/o]']/bmod:pusu"
+  },
+  "subtop": {
+    "amod:baz": "192.168.1.10",
+    "bmod:baz": false,
+    "pac": [
+      {
+        "k1": 0,
+        "k2": "w/o]",
+        "pusu": "amod:concrete"
+      }
+    ]
+  }
+}

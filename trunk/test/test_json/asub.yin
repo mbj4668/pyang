@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<submodule name="asub"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://a">
+  <belongs-to module="amod">
+    <prefix value="a"/>
+  </belongs-to>
+  <import module="ietf-inet-types">
+    <prefix value="inet"/>
+  </import>
+  <container name="subtop">
+    <leaf name="baz">
+      <type name="inet:host"/>
+    </leaf>
+  </container>
+</submodule>
