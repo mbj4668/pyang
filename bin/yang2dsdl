@@ -29,7 +29,7 @@ hello=0
 jing=0
 
 xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
-rng_lib=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}
+schema_dir=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}
 
 usage() {
     cat <<EOF
@@ -70,7 +70,8 @@ EOF
 gen_relaxng() {
     echo "== Generating RELAX NG schema '$btname.rng'"
     rngparms="$XSLT_OPTS $gen_rng_parms --stringparam target $target \
-	--stringparam basename $basename --stringparam rng-lib $rng_lib \
+	--stringparam basename $basename \
+        --stringparam rng-lib $schema_dir/relaxng-lib.rng \
         $xslt_dir/gen-relaxng.xsl $hybs"
     xsltproc --output $btname.rng $rngparms
     [ $? -eq 0 ] || exit 2
@@ -224,7 +225,7 @@ if [ "$noschema" = "0" ] ; then
     fi
     if [ "$hello" = "1" ] ; then
 	printf "\n== Validating hello file ...\n"
-	hellorng=$rng_lib/hello-server.rng
+	hellorng=$schema_dir/hello-server.rng
 	if [ "$jing" = "0" ] ; then
 	    xmllint --noout --relaxng $hellorng $infiles
 	    [ $? -eq 0 ] || exit 3
