@@ -1642,12 +1642,13 @@ def v_reference_list(ctx, stmt):
                 err_add(ctx.errors, u.pos, 'BAD_UNIQUE', u.arg)
                 return
             # check if all leafs in the unique statements are keys
-            key = list(stmt.i_key)
-            for f in found:
-                if f in key:
-                    key.remove(f)
-            if len(key) == 0:
-                err_add(ctx.errors, u.pos, 'UNIQUE_IS_KEY', ())
+            if len(stmt.i_key) > 0:
+                key = list(stmt.i_key)
+                for f in found:
+                    if f in key:
+                        key.remove(f)
+                if len(key) == 0:
+                    err_add(ctx.errors, u.pos, 'UNIQUE_IS_KEY', ())
             u.i_leafs = found
             stmt.i_unique.append(found)
 
