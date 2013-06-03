@@ -1,4 +1,4 @@
-# Copyright (c) 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+# Copyright (c) 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 #                       Martin Bjorklund <mbj@tail-f.com>
 #
 # Translator of YANG to the hybrid DSDL schema (see RFC 6110).
@@ -932,7 +932,10 @@ class HybridDSDLSchema(object):
         for a in augs:
             left = self.lookup_expand(a, left)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg
-            or refd["presence"] or stmt.search_one("presence")):
+            or p_elem.name == "case" and
+            p_elem.parent.default_case != stmt.parent.arg and
+            len(stmt.parent.i_children) < 2 or
+            refd["presence"] or stmt.search_one("presence")):
             celem.occur = 3
         self.handle_substmts(stmt, celem, new_pset)
         self.apply_augments(augs, celem, new_pset)
@@ -975,8 +978,10 @@ class HybridDSDLSchema(object):
         else:
             p_elem.subnode(elem)
         refd = self.process_patches(pset, stmt, elem)[0]
-        if p_elem.name == "choice":
-            if p_elem.default_case != stmt.arg:
+        if (p_elem.name == "choice" and p_elem.default_case != stmt.arg or
+            p_elem.name == "case" and
+            p_elem.parent.default_case != stmt.parent.arg and
+            len(stmt.parent.i_children) < 2):
                 elem.occur = 3
         elif refd["mandatory"] or stmt.search_one("mandatory", "true"):
             self.propagate_occur(elem, 2)

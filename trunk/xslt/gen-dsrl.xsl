@@ -2,9 +2,9 @@
 
 <!-- Program name: gen-dsrl.xsl
 
-Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+Copyright © 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
-Creates DSRL schema from the hybrid DSDL schema (RFC 6110).
+Creates DSRL schema from the hybrid DSDL schema (see RFC 6110).
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -37,26 +37,31 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <!-- Fast access to named pattern definitions by their name -->
   <xsl:key name="refdef" match="//rng:define" use="@name"/>
 
+  <!-- Named templates -->
+
   <xsl:template name="nc-namespace">
-      <xsl:choose>
-	<xsl:when test="$target='config' or $target='get-reply' or
-			$target='get-config-reply' or $target='data'
-			or $target='rpc' or $target='rpc-reply'">
-	  <xsl:variable name="dummy">
-	    <nc:dummy/>
-	  </xsl:variable>
-	  <xsl:copy-of select="exsl:node-set($dummy)/*/namespace::*"/>
-	</xsl:when>
-	<xsl:when test="$target='notification'">
-	  <xsl:variable name="dummy">
-	    <en:dummy/>
-	  </xsl:variable>
-	  <xsl:copy-of select="exsl:node-set($dummy)/*/namespace::*"/>
-	</xsl:when>
-      </xsl:choose>
+    <!-- Insert namespace declaration for the top-level NETCONF part
+	 of the target document type.  -->
+    <xsl:choose>
+      <xsl:when test="$target='config' or $target='get-reply' or
+		      $target='get-config-reply' or $target='data'
+		      or $target='rpc' or $target='rpc-reply'">
+	<xsl:variable name="dummy">
+	  <nc:dummy/>
+	</xsl:variable>
+	<xsl:copy-of select="exsl:node-set($dummy)/*/namespace::*"/>
+      </xsl:when>
+      <xsl:when test="$target='notification'">
+	<xsl:variable name="dummy">
+	  <en:dummy/>
+	</xsl:variable>
+	<xsl:copy-of select="exsl:node-set($dummy)/*/namespace::*"/>
+      </xsl:when>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="qname">
+    <!-- Prepend the current prefix, if it is missing. -->
     <xsl:param name="prefix"/>
     <xsl:param name="name"/>
     <xsl:if test="not(contains($name,':'))">
@@ -66,6 +71,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="parent-path">
+    <!-- Slash-separated pathe from root to the parent node of the
+	 context element, with 'when' conditions, if they are present. -->
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:value-of select="$prevpath"/>
@@ -82,6 +89,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="yam-namespaces">
+    <!-- Copy namespace declarations of all YANG modules. -->
     <xsl:for-each
 	select="namespace::*[not(name()='xml' or .=$rng-uri or
 		.=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
@@ -90,10 +98,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="element-map">
+    <!-- Construct DSRL 'element-map' with all parameters.
+
+         The 'condition' parameter contains additional condition(s)
+	 for the parent context (resulting from the processing of
+	 choice's cases.
+    -->
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:param name="content"/>
-    <xsl:param name="case" select="boolean(0)"/>
+    <xsl:param name="condition"/>
     <xsl:element name="dsrl:element-map">
       <xsl:element name="dsrl:parent">
 	<xsl:variable name="ppath">
@@ -108,16 +122,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	    <xsl:value-of select="$ppath"/>
 	  </xsl:otherwise>
 	</xsl:choose>
-	<xsl:if test="$case">
-	  <xsl:apply-templates select="ancestor::rng:choice[1]"
-			       mode="cases"/>
-	</xsl:if>
+	<xsl:value-of select="$condition"/>
       </xsl:element>
       <xsl:element name="dsrl:name">
-	<xsl:if test="not(contains(@name,':'))">
-	  <xsl:value-of select="concat($prefix,':')"/>
-	</xsl:if>
-	<xsl:value-of select="@name"/>
+	<xsl:call-template name="qname">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	  <xsl:with-param name="name" select="@name"/>
+	</xsl:call-template>
       </xsl:element>
       <xsl:element name="dsrl:default-content">
 	<xsl:apply-templates select="$content" mode="copy">
@@ -127,34 +138,24 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="rng:choice" mode="cases">
-    <xsl:text>[not(</xsl:text>
-    <xsl:for-each select="rng:*[not(@nma:default or @nma:implicit='true')]">
-      <xsl:apply-templates select="." mode="cases"/>
-      <xsl:if test="position()!=last()">
-	<xsl:text>|</xsl:text>
-      </xsl:if>
-    </xsl:for-each>
-    <xsl:text>)]</xsl:text>
+  <xsl:template name="no-other-cases">
+    <!-- Construct the Xpath expression stating that no nodes from
+	 othet cases of a choice exist. -->
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:variable name="cnodes">
+      <xsl:apply-templates select="ancestor::rng:choice[1]"
+			   mode="case-nodes">
+	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="except" select="generate-id()"/>
+      </xsl:apply-templates>
+    </xsl:variable>
+    <xsl:value-of
+	select="concat($condition,'[not(',
+		substring-after($cnodes,'|'),')]')"/>
   </xsl:template>
 
-  <xsl:template match="rng:element" mode="cases">
-    <xsl:value-of select="@name"/>
-  </xsl:template>
-
-  <xsl:template match="rng:oneOrMore|rng:zeroOrMore" mode="cases">
-    <xsl:apply-templates mode="cases"/>
-  </xsl:template>
-
-  <xsl:template match="rng:group|rng:interleave" mode="cases">
-    <xsl:for-each select="rng:*">
-      <xsl:apply-templates select="." mode="cases"/>
-      <xsl:if test="position()!=last()">
-	<xsl:text>|</xsl:text>
-      </xsl:if>
-    </xsl:for-each>
-  </xsl:template>
-
+  <!-- Root element -->
   <xsl:template match="/">
     <xsl:call-template name="check-input-pars"/>
     <xsl:element name="dsrl:maps">
@@ -196,29 +197,124 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="rng:element[@nma:default]">
-    <xsl:param name="prevpath" select="$netconf-part"/>
+  <xsl:template match="nma:*">
+    <!-- Section of the hybrid schema depending on $target.
+
+         The following two parameters are passed down the chain of
+	 templates:
+         - 'prevpath': slash-separated path of the current element's
+	    parent,
+         - 'prefix': namespace prefix of the current module.
+    -->
     <xsl:param name="prefix"/>
+    <xsl:apply-templates select="rng:*">
+      <xsl:with-param name="prevpath" select="$netconf-part"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:element[@nma:default]">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
     <xsl:call-template name="element-map">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
       <xsl:with-param name="content" select="@nma:default"/>
-      <xsl:with-param name="case"
-		      select="parent::rng:choice|../parent::rng:group|
-			      ../parent::rng:interleave"/>
+      <xsl:with-param name="condition" select="$condition"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="rng:element[@nma:implicit='true']">
-    <xsl:param name="prevpath" select="$netconf-part"/>
+    <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
     <xsl:call-template name="element-map">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
       <xsl:with-param name="content" select="rng:*"/>
-      <xsl:with-param name="case"
-		      select="parent::rng:choice|../parent::rng:group|
-			      ../parent::rng:interleave"/>
+      <xsl:with-param name="condition" select="$condition"/>
+    </xsl:call-template>
+    <xsl:apply-templates select="rng:*">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:parentRef"/>
+
+  <xsl:template match="rng:*">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:apply-templates select="rng:*">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="condition" select="$condition"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:ref">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:apply-templates select="key('refdef', @name)">
+      <xsl:with-param name="prevpath">
+	<xsl:call-template name="parent-path">
+	  <xsl:with-param name="prevpath" select="$prevpath"/>
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:call-template>
+      </xsl:with-param>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="condition" select="$condition"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:choice">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:apply-templates select="rng:*" mode="choice">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="condition" select="$condition"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <!-- Mode 'choice': classify the choice's cases and perform the
+       corresponding actions. -->
+
+  <xsl:template match="rng:element[@nma:default]" mode="choice">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:call-template name="element-map">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="content" select="@nma:default"/>
+      <xsl:with-param name="condition">
+	<xsl:call-template name="no-other-cases">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	  <xsl:with-param name="condition" select="$condition"/>
+	</xsl:call-template>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="rng:element[@nma:implicit='true']" mode="choice">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:call-template name="element-map">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="content" select="rng:*"/>
+      <xsl:with-param name="condition">
+	<xsl:call-template name="no-other-cases">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	  <xsl:with-param name="condition" select="$condition"/>
+	</xsl:call-template>
+      </xsl:with-param>
     </xsl:call-template>
     <xsl:apply-templates select="rng:*">
       <xsl:with-param name="prevpath" select="$prevpath"/>
@@ -227,17 +323,103 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template
-      match="rng:choice/rng:group[not(@nma:implicit='true')]
-	     /rng:optional/rng:element|
-	     rng:choice/rng:interleave[not(@nma:implicit='true')]
-	     /rng:optional/rng:element">
-    <xsl:param name="prevpath" select="$netconf-part"/>
+      match="rng:group[@nma:implicit='true']|
+	     rng:interleave[@nma:implicit='true']"
+      mode="choice">
+    <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
     <xsl:apply-templates select="rng:*">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="condition">
+	<xsl:call-template name="no-other-cases">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	  <xsl:with-param name="condition" select="$condition"/>
+	</xsl:call-template>
+      </xsl:with-param>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:group|rng:interleave" mode="choice">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:param name="condition"/>
+    <xsl:apply-templates select="rng:*">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="condition">
+	<xsl:variable name="cnodes">
+	  <xsl:apply-templates select="." mode="case-nodes">
+	    <xsl:with-param name="prefix" select="$prefix"/>
+	  </xsl:apply-templates>
+	</xsl:variable>
+	<xsl:value-of select="concat($condition, '[',
+			      substring-after($cnodes,'|'),']')"/>
+      </xsl:with-param>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:*" mode="choice">
+    <xsl:param name="prevpath"/>
+    <xsl:param name="prefix"/>
+    <xsl:apply-templates select=".">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
+
+  <!-- Mode 'case-nodes': construct a partial XPath expression
+       consisting of names of all first-level descendant nodes
+       separated by '|', except the node whose id is in the 'except'
+       parameter.
+
+       This is used for generating constraints for choice's cases.
+  -->
+
+  <xsl:template match="rng:element" mode="case-nodes">
+    <xsl:param name="prefix"/>
+    <xsl:param name="except"/>
+    <xsl:if test="generate-id() != $except">
+      <xsl:text>|</xsl:text>
+      <xsl:call-template name="qname">
+	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="name" select="@name"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="rng:ref" mode="case-nodes">
+    <xsl:param name="prefix"/>
+    <xsl:param name="except"/>
+    <xsl:apply-templates select="key('refdef', @name)" mode="case-nodes">
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="except" select="$except"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="rng:group|rng:interleave" mode="case-nodes">
+    <xsl:param name="prefix"/>
+    <xsl:param name="except"/>
+    <xsl:if test="generate-id() != $except">
+      <xsl:apply-templates select="rng:*" mode="case-nodes">
+	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="except" select="$except"/>
+      </xsl:apply-templates>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="rng:*" mode="case-nodes">
+    <xsl:param name="prefix"/>
+    <xsl:param name="except"/>
+    <xsl:apply-templates select="rng:*" mode="case-nodes">
+      <xsl:with-param name="prefix" select="$prefix"/>
+      <xsl:with-param name="except" select="$except"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <!-- Mode 'copy': create the default contents in element-maps from
+       the hybrid schema. -->
 
   <xsl:template
       match="rng:choice/rng:group[not(@nma:implicit='true')]|
@@ -282,31 +464,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 		 namespace="{namespace::*[name()=$act-prefix]}">
       <xsl:value-of select="@nma:default"/>
     </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="rng:parentRef"/>
-
-  <xsl:template match="rng:*">
-    <xsl:param name="prevpath" select="$netconf-part"/>
-    <xsl:param name="prefix"/>
-    <xsl:apply-templates select="rng:*">
-      <xsl:with-param name="prevpath" select="$prevpath"/>
-      <xsl:with-param name="prefix" select="$prefix"/>
-    </xsl:apply-templates>
-  </xsl:template>
-
-  <xsl:template match="rng:ref">
-    <xsl:param name="prevpath" select="$netconf-part"/>
-    <xsl:param name="prefix"/>
-    <xsl:apply-templates select="key('refdef', @name)">
-      <xsl:with-param name="prevpath">
-	<xsl:call-template name="parent-path">
-	  <xsl:with-param name="prevpath" select="$prevpath"/>
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:call-template>
-      </xsl:with-param>
-      <xsl:with-param name="prefix" select="$prefix"/>
-    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template
