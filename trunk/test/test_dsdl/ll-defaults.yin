@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-defaults"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/defaults">
+  <namespace uri="http://example.com/ll/defaults"/>
+  <prefix value="df"/>
+  <typedef name="myuint8">
+    <type name="uint8">
+      <range value="1..max"/>
+    </type>
+    <default value="42"/>
+  </typedef>
+  <grouping name="foo">
+    <leaf name="leaf6">
+      <type name="uint8"/>
+      <default value="6"/>
+    </leaf>
+  </grouping>
+  <container name="outer">
+    <must condition="flag = 'true'"/>
+    <leaf name="flag">
+      <type name="boolean"/>
+      <default value="true"/>
+    </leaf>
+    <container name="inner">
+      <must condition="cnt1/leaf3=3 and cnt1/leaf6=6"/>
+      <must condition="not(leaf4|leaf5)"/>
+      <choice name="ch1">
+	<default value="c1"/>
+	<case name="c1">
+	  <choice name="ch2">
+	    <default value="cnt1"/>
+	    <container name="cnt1">
+	      <leaf name="leaf3">
+		<type name="uint8"/>
+		<default value="3"/>
+	      </leaf>
+	      <uses name="foo"/>
+	    </container>
+	    <leaf name="leaf4">
+	      <type name="myuint8"/>
+	    </leaf>
+	  </choice>
+	</case>
+	<leaf name="leaf5">
+	  <type name="uint8"/>
+	  <default value="5"/>
+	</leaf>
+      </choice>
+    </container>
+  </container>
+</module>
