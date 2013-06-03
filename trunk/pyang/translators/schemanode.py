@@ -124,15 +124,10 @@ class SchemaNode(object):
         self.children = []
         self.attr = {}
 
-    def serialize_rng_children(self):
-        """Return serialization of RELAX NG children.
+    def serialize_children(self):
+        """Return serialization of receiver's children.
         """
-        return ''.join([ch.serialize() for ch in self.children if ":" not in ch.name])
-
-    def serialize_annot_children(self):
-        """Return serialization of all annotation children.
-        """
-        return ''.join([ch.serialize() for ch in self.children if ":" in ch.name])
+        return ''.join([ch.serialize() for ch in self.children])
 
     def adjust_interleave(self, interleave):
         """Inherit interleave status from parent if undefined."""
@@ -171,7 +166,7 @@ class SchemaNode(object):
         if empty:
             return result + "/>"
         else:
-            return result + ">" + self.serialize_annot_children()
+            return result + ">"
 
     def end_tag(self, alt=None):
         """Return XML end tag for the receiver."""
@@ -184,16 +179,16 @@ class SchemaNode(object):
     def serialize(self, occur=None):
         """Return RELAX NG representation of the receiver and subtree.
         """
-        return (self.ser_format.get(self.name, SchemaNode._default_format)
-                (self, occur) % (escape(self.text) +
-                                 self.serialize_rng_children()))
+        if self.text or self.children:
+            fmt = self.ser_format.get(self.name, SchemaNode._default_format)
+            return fmt(self, occur) % (escape(self.text) +
+                                       self.serialize_children())
+        else:
+            return self.start_tag(empty=True)
 
     def _default_format(self, occur):
         """Return the default serialization format.""" 
-        if self.text or self.children:
-            return self.start_tag() + self._chorder() + self.end_tag()
-        else:
-            return self.start_tag(empty=True) + "%s"
+        return self.start_tag() + self._chorder() + self.end_tag()
 
     def _define_format(self, occur):
         """Return the serialization format for a define node.""" 
@@ -214,7 +209,7 @@ class SchemaNode(object):
                 self.attr["nma:implicit"] = "true"
         fmt = self.start_tag() + self._chorder() + self.end_tag()
         if (occ == 2 or self.parent.name == "choice"
-            or self.parent.name == "case" and self.data_nodes_count() == 1):
+            or self.parent.name == "case" and self.parent.data_nodes_count() == 1):
             return fmt
         else:
             return "<optional>" + fmt + "</optional>"
