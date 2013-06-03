@@ -2,7 +2,7 @@
 
 <!-- Program name: dsrl2xslt.xsl
 
-Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+Copyright © 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Translates subset of DSRL to an XSLT stylesheet.
 
@@ -28,6 +28,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:output method="xml"/>
 
+  <!-- The key for each "element-map" is the XSLT expression in
+       'parent'. -->
+  <xsl:key name="parent"
+	   match="dsrl:element-map"
+	   use="dsrl:parent"/>
+
   <xsl:template match="dsrl:maps">
     <xsl:element name="xsl:stylesheet">
       <xsl:copy-of select="namespace::*"/>
@@ -39,9 +45,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:element name="xsl:strip-space">
 	<xsl:attribute name="elements">*</xsl:attribute>
       </xsl:element>
+      <!-- Muenchian method for selecting only the first element from
+	   the set with the same content of 'parent'.-->
       <xsl:apply-templates
-	  select="dsrl:element-map[not(dsrl:parent =
-		  preceding-sibling::dsrl:element-map/dsrl:parent)]"/>
+	  select="dsrl:element-map[count(.|key('parent',dsrl:parent)[1])=1]"/>
       <xsl:element name="xsl:template">
 	<xsl:attribute name="match">*|@*</xsl:attribute>
 	<xsl:element name="xsl:copy">
@@ -54,17 +61,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template match="dsrl:element-map">
-    <xsl:variable name="parent" select="normalize-space(dsrl:parent)"/>
     <xsl:element name="xsl:template">
       <xsl:attribute name="match">
-	<xsl:value-of select="$parent"/>
+	<xsl:value-of select="dsrl:parent"/>
       </xsl:attribute>
       <xsl:element name="xsl:copy">
 	<xsl:element name="xsl:apply-templates">
 	  <xsl:attribute name="select">*|@*|text()</xsl:attribute>
 	</xsl:element>
-	<xsl:for-each select="../dsrl:element-map
-			      [normalize-space(dsrl:parent)=$parent]">
+	<xsl:for-each select="key('parent', dsrl:parent)">
 	  <xsl:variable name="name" select="dsrl:name"/>
 	  <xsl:element name="xsl:if">
 	    <xsl:attribute name="test">
