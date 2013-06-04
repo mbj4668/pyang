@@ -63,7 +63,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="qname">
     <!-- Prepend the current prefix, if it is missing. -->
     <xsl:param name="prefix"/>
-    <xsl:param name="name"/>
+    <xsl:param name="name" select="@name"/>
     <xsl:if test="not(contains($name,':'))">
       <xsl:value-of select="concat($prefix,':')"/>
     </xsl:if>
@@ -80,7 +80,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:text>/</xsl:text>
       <xsl:call-template name="qname">
 	<xsl:with-param name="prefix" select="$prefix"/>
-	<xsl:with-param name="name" select="@name"/>
       </xsl:call-template>
       <xsl:if test="@nma:when">
 	<xsl:value-of select="concat('[',@nma:when,']')"/>
@@ -127,7 +126,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:element name="dsrl:name">
 	<xsl:call-template name="qname">
 	  <xsl:with-param name="prefix" select="$prefix"/>
-	  <xsl:with-param name="name" select="@name"/>
 	</xsl:call-template>
       </xsl:element>
       <xsl:element name="dsrl:default-content">
@@ -384,7 +382,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:text>|</xsl:text>
       <xsl:call-template name="qname">
 	<xsl:with-param name="prefix" select="$prefix"/>
-	<xsl:with-param name="name" select="@name"/>
       </xsl:call-template>
     </xsl:if>
   </xsl:template>
@@ -431,7 +428,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:variable name="name">
       <xsl:call-template name="qname">
 	<xsl:with-param name="prefix" select="$prefix"/>
-	<xsl:with-param name="name" select="@name"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:element name="{$name}"
@@ -447,7 +443,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:variable name="name">
       <xsl:call-template name="qname">
 	<xsl:with-param name="prefix" select="$prefix"/>
-	<xsl:with-param name="name" select="@name"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:variable name="act-prefix">
@@ -472,8 +467,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
   <xsl:template match="rng:ref" mode="copy">
     <xsl:param name="prefix"/>
-    <xsl:apply-templates select="//rng:define[@name=current()/@name]"
-			 mode="copy">
+    <xsl:apply-templates select="key('refdef',@name)" mode="copy">
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
