@@ -71,7 +71,7 @@ gen_relaxng() {
     echo "== Generating RELAX NG schema '$btname.rng'"
     rngparms="$XSLT_OPTS $gen_rng_parms --stringparam target $target \
 	--stringparam basename $basename \
-        --stringparam rng-lib $schema_dir/relaxng-lib.rng \
+        --stringparam schema-dir $schema_dir \
         $xslt_dir/gen-relaxng.xsl $hybs"
     xsltproc --output $btname.rng $rngparms
     [ $? -eq 0 ] || exit 2

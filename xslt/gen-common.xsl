@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-common.xsl
 
-Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+Copyright © 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Common templates for schema-generating stylesheets.
 
@@ -30,7 +30,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
        "get-config-reply", "rpc", "rpc-reply", "notification" -->
   <xsl:param name="target">data</xsl:param>
   <!-- Full path of the RELAX NG library file -->
-  <xsl:param name="rng-lib">relaxng-lib.rng</xsl:param>
+  <xsl:param name="schema-dir">.</xsl:param>
   <!-- Output of RELAX NG global defs only? -->
   <xsl:param name="gdefs-only" select="0"/>
   <!-- Base name of the output schemas -->

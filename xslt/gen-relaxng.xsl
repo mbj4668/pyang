@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-relaxng.xsl
 
-Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+Copyright © 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Creates RELAX NG schema from the hybrid DSDL schema (see RFC 6110).
 
@@ -108,7 +108,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       <xsl:apply-templates select="@*"/>
       <xsl:call-template name="ns-attribute"/>
       <xsl:call-template name="include-grammar">
-        <xsl:with-param name="file-name" select="$rng-lib"/>
+        <xsl:with-param name="file-name" select="concat($schema-dir,'/relaxng-lib.rng')"/>
       </xsl:call-template>
       <xsl:apply-templates select="rng:start"/>
     </xsl:copy>
@@ -226,8 +226,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         </xsl:attribute>
         <xsl:if test="$target='edit-config'">
           <xsl:call-template name="include-grammar">
-            <xsl:with-param name="file-name"
-                            select="concat($rng-lib,'/edit-config-attributes.rng')"/>
+            <xsl:with-param
+		name="file-name"
+		select="concat($schema-dir,'/edit-config-attributes.rng')"/>
           </xsl:call-template>
         </xsl:if>
         <xsl:if test="/rng:grammar/rng:define">
