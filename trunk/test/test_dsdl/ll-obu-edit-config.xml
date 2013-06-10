@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<nc:rpc xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+	xmlns:yang="urn:ietf:params:xml:ns:yang:1"
+	xmlns="http://example.com/ll/obu"
+	message-id="42">
+  <nc:edit-config>
+    <nc:target>
+      <nc:running/>
+    </nc:target>
+    <nc:config>
+      <users>
+	<user nc:operation="create"
+	      yang:insert="first">
+	  <uid>1000</uid>
+	  <login>alice</login>
+	</user>
+	<user nc:operation="create"
+	      yang:insert="after"
+	      yang:key="[uid = '1000']">
+	  <uid>1001</uid>
+	  <login>bob</login>
+	</user>
+      </users>
+      <admins>
+	<admin nc:operation="create"
+	       yang:insert="after"
+	       yang:value="bob">chaos</admin>
+      </admins>
+    </nc:config>
+  </nc:edit-config>
+</nc:rpc>

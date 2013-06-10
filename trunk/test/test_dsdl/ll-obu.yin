@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-obu"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/obu">
+  <namespace uri="http://example.com/ll/obu"/>
+  <prefix value="obu"/>
+  <container name="users">
+    <list name="user">
+      <key value="uid"/>
+      <ordered-by value="user"/>
+      <min-elements value="1"/>
+      <leaf name="uid">
+	<type name="uint16"/>
+      </leaf>
+      <leaf name="login">
+	<type name="string"/>
+      </leaf>
+    </list>
+  </container>
+  <container name="admins">
+    <leaf-list name="admin">
+      <ordered-by value="user"/>
+      <type name="string"/>
+    </leaf-list>
+  </container>
+</module>

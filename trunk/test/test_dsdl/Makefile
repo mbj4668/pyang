@@ -22,6 +22,9 @@ test: all
 %-get-config-reply.log: %-get-config-reply.xml %.yin
 	$(YANG2DSDL) -t get-config-reply -v $^ > $@
 
+%-edit-config.log: %-edit-config.xml %.yin
+	$(YANG2DSDL) -t edit-config -v $^ > $@
+
 %-rpc.log: %-rpc.xml %.yin
 	$(YANG2DSDL) -t rpc -v $^ > $@
 
