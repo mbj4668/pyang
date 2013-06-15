@@ -2462,3 +2462,18 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
         print("%s  i_children:" % (indent * istr))
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)
+
+def mk_path_str(s, with_prefixes=False):
+    """Returns the XPath path of the node"""
+    if s.keyword in ['choice', 'case']:
+        return mk_path_str(s.parent)
+    def name(s):
+        if with_prefixes:
+            return s.i_module.i_prefix + ":" + s.arg
+        else:
+            return s.arg
+    if s.parent.keyword in ['module', 'submodule']:
+        return "/" + name(s)
+    else:
+        p = mk_path_str(s.parent, with_prefixes)
+        return p + "/" + name(s)
