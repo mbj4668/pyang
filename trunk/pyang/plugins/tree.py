@@ -57,7 +57,7 @@ def print_help():
     print("""
 Each node is printed as:
 
-<status> <flags> <name> <opts>   <type>
+<status> <flags> <name> <opts> <type> <if-features>
 
   <status> is one of:
     +  for current
@@ -83,6 +83,9 @@ Each node is printed as:
     [<keys>] for a list's keys
 
   <type> is the name of the type for leafs and leaf-lists
+
+  <if-features> is the list of features this node depends on, printed
+    within curly brackets and a question mark "{...}?"
 """)
 
 def emit_tree(modules, fd, depth, path):
@@ -95,6 +98,7 @@ def emit_tree(modules, fd, depth, path):
             if b is not None:
                 bstr = " (belongs-to %s)" % b.arg
             fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
+            printed_header = True
 
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
@@ -107,6 +111,17 @@ def emit_tree(modules, fd, depth, path):
                 print_header()
                 printed_header = True
             print_children(chs, module, fd, ' ', path, depth)
+
+        for augment in module.search('augment'):
+            if (hasattr(augment.i_target_node, 'i_module') and
+                augment.i_target_node.i_module not in modules):
+                # this augment has not been printed; print it
+                if not printed_header:
+                    print_header()
+                    printed_header = True
+                fd.write("augment %s:\n" % augment.arg)
+                print_children(augment.i_children, module, fd,
+                               ' ', path, depth)
 
         rpcs = module.search('rpc')
         if path is not None:
@@ -203,6 +218,11 @@ def print_node(s, module, fd, prefix, path, depth, width):
 
     if s.keyword == 'list' and s.search_one('key') is not None:
         fd.write(" [%s]" % re.sub('\s+', ' ', s.search_one('key').arg))
+
+    features = s.search('if-feature')
+    if len(features) > 0:
+        fd.write(" {%s}?" % ",".join([f.arg for f in features]))
+
     fd.write('\n')
     if hasattr(s, 'i_children'):
         if depth is not None:
