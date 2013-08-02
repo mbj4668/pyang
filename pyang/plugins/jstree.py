@@ -12,6 +12,7 @@ import sys
 from pyang import plugin
 from pyang import statements
 
+
 def pyang_plugin_init():
     plugin.register_plugin(JSTreePlugin())
 
@@ -39,19 +40,19 @@ class JSTreePlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        emit_header(fd)
+        emit_header(modules, fd)
         emit_css(fd)
         emit_js(fd)
         emit_tree(modules, fd)
         emit_footer(fd)
 
 def print_help():
-    print("""
+    print """
 Generates a html/javascript page that presents a tree-navigator
 to the YANG module(s). Assumes that an images folder exists
 relative to the html file. This images folder is installed in
 share/yang/images in the  pyang install folder.
-""")
+"""
 
 def emit_css(fd):
     fd.write("""
@@ -81,6 +82,20 @@ ol#root {  padding-left: 5px; margin-top: 2px; margin-bottom: 1px; list-style: n
 .leaf { background: url(images/leaf.png) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
 .leaf-list { background: url(images/leaf-plus.png) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
 .action { background: url(images/hammer.png) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
+
+# .folder { background:url(data:image/gif;base64,R0lGODlhGgAOALMLAJmZmYuLi3p6ev///+zs7MzMzGZmZqqqqrS0tLq6uuHh4f///wAAAAAAAAAAAAAAACH5BAEAAAsALAAAAAAaAA4AAASJcMlJq714qgROKUtxAABBgJkUFMQwFEhyFoFAKini7idSHwGDQXAYYAADxQdBOjiBQqGgYKx4AomCYoYAHqLRVVUCKCBdSthhCgYDKIDuTpnoGgptgxged3FHBgpgU2MTASsmdCM1gkNFGDVaHx91QQQ3KZGSZocHBCEpEgIrCYdxn6EVAnoIGREAOw==)  no-repeat; float: left; padding-right: 3px }
+
+# .doc { background:url(data:image/gif;base64,R0lGODlhDAAOALMJAMzMzODg4P///+np6a+vr+7u7jMzM5mZmYmJif///wAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAkALAAAAAAMAA4AAARFEEhyCAEjackPCESwBRxwCKD4BSSACCgxrKyJ3B42sK2FSINgsAa4AApI4W5yFCCTywts+txJp9TC4IrFcruwi2FMLgMiADs=) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
+
+# .leaf { background:url(data:image/png;base64,
+# iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAd9JREFUeNqkk09r1EAYxp83/7PsFnbZWhJXtlqk3kSFLUJFL1I/hwePfgB705PgQcQP4TeQ4kHUHqxW8Cr2H0XTpS1u7abJJjuz8e2kbqxUpOwLzySZmfzeZ2beoSzLMEpoGDEM1dw38i9i6UfY/6EJc+KxWDD+MeywZlm3WRdY1SN8EfnKTwQ0McCDKX+yde3S5UZtrFZxLccmIpimBtc1+alj/vmT18Ml/PmzrVtPb16dbTUnmn6SSERdiZi6KJct2LYLKWXuReYeFCDrq3eHNJq/fmWmNV6Z8Pf3I2TZAEQC9foYSiULQkilAWQKgZ+FA6FWeMOvezP1yrgfhhGSpMcZAc87owajqDfcvb1uJ+Ska8cBwJ3z3mTjIIwRHoRwHB3VqscgMZxwGKWSjaXlz9+5a6EA9FU7ZRpWubPXYesCvn8Ocdw7tkGmaWBtvd3++mX9IxtZ/BtQS5PU2t3dwfT0RbacFEfOm+a6NoJgq734bmmZsz/i7rgApKrVt7d30GiczY+ZS1zTCKIv0iiMwk/vV7e+bQYfOPNDmNj4XRWkJt7Sytz56oSaODyeH6wVrsyXnO4tWRTDystKvpBDB/dYb7iMnzEoOPVdyOJsjol3yaGAAacKGvU6/xJgAAaUrPTQ8rsPAAAAAElFTkSuQmCC) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
+
+# .leaf-list { background:url(data:image/png;base64,
+# iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAiFJREFUeNqkUz1v00AYfs6JPxIllRLcVHGDktKFAamCQCpQESBR2oEVGNhY2BgY6T9ADAix8BcY2CskurAgJRIgJpC6EehXnG/H9tnHm7OVtjSIoa/0vL7z3T33vB/HhBA4jSk4pSWle5KMZoyQiGn/R82wRn4z+Y9lg7BCWCWcI+Ri+kOLIp9KUEaIZ4tWpVY9v1TKz+SzKc3QGWNQVQWplErfBDZev9iahHD0sJ7QXt64tFIrz5Ut1w0w7AVwWA+ZjAZdTyEIgkhLEGmQBMKXY4MpbOPqxeXabHbO6naHECIEYxymOYN0WgPngUSIwANH51ABlxFet8zispmdtfr9IVx3RDcCxWJBLg6Ho0n22j27T5duHycA1heKldKg76A/6MMwEsjlikTEJxvGlk7r+FT//JN+bR4S+NIvqkktY7dtks5hWWfhOKNjCaqHP7Bj27ybaWvMx0exYMTV9iXynutp+/t7FLNJkt0JHMeV234PDvi9Ow+SwlT9cDXniIoRK/CkT+zu7qFUmo/KTC2uKAzc597XcDvxyz7wvJAPO0HnDHwxZqxTHRpMbrypZKDi/ZSeGJenJdazV249vF34e3Hr3YeY4JrylOYFauNXRNQ8wXI3+4aoquPxhftL1W9vvzTigjSiPnDEGk0eMYM1iWCajsfgJMYX9VbQApwQUNllJFmcg1A+jKPVOmk7lCguGs3n36l2rDE+jHkdfwQYAGBi2aFI3ki2AAAAAElFTkSuQmCC) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
+
+# .action { background:url(data:image/png;base64,
+# iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA3UlEQVQ4Eb1Tiw2EIAwtl1sAR3AFZnEGRnAXV3AEV9BVcASur3cl9QKayyU2Afp5fW0FXc6ZnHOZfhDOcQp/qjIMA83zTN57SinRvu8aKue2beLXgiAqBCEEIUBi13W0LAtN0yQJIEU8xihk4zhS3/fvzjECCzZZ1l7XNTO4xICxcdjSATvLTOwESmy0iurWZ3XEHxI92dBqS1DokqCVXPyYqbYYkPlmMEL5NlVczQkfCDQZegv39wj3EOAq9fVhNiv3dGArfuuXHaD92o+lRO5zZWofTjs34w7PXYEvUq2x3ivJZWkAAAAASUVORK5CYII=) no-repeat; float: left; height: 14px; width: 12px; padding-right: 3px; margin-left: 20px;}
+
 
 .tier1 { margin-left: 0; }
 .tier2 { margin-left: 1.5em; }
@@ -120,6 +135,7 @@ function toggleRows(elm) {
      if (document.all) newDisplay = "block"; //IE4+ specific code
      else newDisplay = "table-row"; //Netscape and Mozilla
      elm.style.backgroundImage = "url(images/folder-open.gif)";
+     // elm.style.backgroundImage = url(data:image/gif;base64,R0lGODlhGgAOALMLAJmZmYuLi3p6ev///+zs7MzMzGZmZqqqqrS0tLq6uuHh4f///wAAAAAAAAAAAAAAACH5BAEAAAsALAAAAAAaAA4AAASJcMlJq714qgROKUtxAABBgJkUFMQwFEhyFoFAKini7idSHwGDQXAYYAADxQdBOjiBQqGgYKx4AomCYoYAHqLRVVUCKCBdSthhCgYDKIDuTpnoGgptgxged3FHBgpgU2MTASsmdCM1gkNFGDVaHx91QQQ3KZGSZocHBCEpEgIrCYdxn6EVAnoIGREAOw==);
     }
     break;
    }
@@ -136,7 +152,8 @@ function toggleRows(elm) {
      var tier = cell.getElementsByTagName("DIV")[0];
      var folder = tier.getElementsByTagName("A")[0];
      if (folder.getAttribute("onclick") != null) {
-      folder.style.backgroundImage = "url(images/folder-closed.gif)";
+     folder.style.backgroundImage = "url(images/folder-closed.gif)";
+     //folder.style.backgroundImage = url(data:image/gif;base64,R0lGODlhGgAOALMLAJmZmYuLi3p6ev///+zs7MzMzGZmZqqqqrS0tLq6uuHh4f///wAAAAAAAAAAAAAAACH5BAEAAAsALAAAAAAaAA4AAASJcMlJq714qgROKUtxAABBgJkUFMQwFEhyFoFAKini7idSHwGDQXAYYAADxQdBOjiBQqGgYKx4AomCYoYAHqLRVVUCKCBdSthhCgYDKIDuTpnoGgptgxged3FHBgpgU2MTASsmdCM1gkNFGDVaHx91QQQ3KZGSZocHBCEpEgIrCYdxn6EVAnoIGREAOw==);
      }
    }
  }
@@ -162,7 +179,7 @@ function collapseAllRows() {
 </script>
 """)
  
-def emit_header(fd):
+def emit_header(modules, fd):
     fd.write("""
  <title>YANG Navigator</title>
 </head>
@@ -170,8 +187,23 @@ def emit_header(fd):
 <body onload=\"collapseAllRows();\"> 
 
 <div class=\"app\">
-
 <div style=\"background: #eee; border: dashed 1px #000;\">
+""")
+    for module in modules:
+        bstr = ""
+        b = module.search_one('belongs-to')
+        if b is not None:
+            bstr = " (belongs-to %s)" % b.arg
+        ns = module.search_one('namespace')
+        if ns is not None:
+            nsstr = ns.arg
+        pr = module.search_one('prefix')
+        if pr is not None:
+            prstr = pr.arg
+
+        fd.write("<h1> %s: %s%s, Namespace:%s, Prefix:%s</h1> \n" % (module.keyword.capitalize(), module.arg, bstr, nsstr, prstr))
+
+    fd.write("""
  <table width=\"100%\">
 
 
@@ -183,6 +215,7 @@ def emit_header(fd):
   <th align=left>Flags</th>
   <th align=left>Opts</th>
   <th align=left>Status</th>
+  <th align=left>Path</th>
 </tr>
 """)
 
@@ -197,6 +230,7 @@ def emit_footer(fd):
 
 levelcnt = [0]*100
 
+
 def emit_tree(modules, fd):
     global levelcnt
     for module in modules:
@@ -204,7 +238,14 @@ def emit_tree(modules, fd):
         b = module.search_one('belongs-to')
         if b is not None:
             bstr = " (belongs-to %s)" % b.arg
-        fd.write("<h1> %s: %s%s </h1> \n" % (module.keyword, module.arg, bstr))
+        ns = module.search_one('namespace')
+        if ns is not None:
+            nsstr = ns.arg
+        pr = module.search_one('prefix')
+        if pr is not None:
+            prstr = pr.arg
+
+        # fd.write("<h1> %s: %s%s ! Namespace %s ! Prefix %s</h1> \n" % (module.keyword, module.arg, bstr, nsstr, prstr))
 
         levelcnt[1] += 1
         fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a id=\"p3\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\"></a>%s</div></td> \n" %(levelcnt[1], module.arg))
@@ -276,7 +317,8 @@ def print_node(s, module, fd, prefix, level=0):
         p = s.search_one('presence')
         if p is not None:
             # name += '?'
-            options = '?'
+            pr_str = p.arg
+            options = "<abbr title=\"" + pr_str + "\">Presence</abbr>"
         # fd.write(flags + " " + name)
     elif s.keyword  == 'choice':
         folder = True
@@ -284,7 +326,7 @@ def print_node(s, module, fd, prefix, level=0):
         if m is None or m.arg == 'false':
             # fd.write(flags + ' (' + s.arg + ')')
             name = '(' + s.arg + ')'
-            options = '?'
+            options = 'Choice'
         else:
             # fd.write(flags + ' (' + s.arg + ')?')
             name = '(' + s.arg + ')'
@@ -324,10 +366,13 @@ def print_node(s, module, fd, prefix, level=0):
     for i in range(2,level+1):
         idstring += '-' + str(levelcnt[i])
 
+    pathstr = statements.mk_path_str(s, True)
             
     if folder:
-        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a id=\"p6000\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\"></a><a title=\"%s\" target=\"src\" href=\"yang-module.shtml#%s\">%s</a></div></td> \n" %(idstring, level, descrstring, s.arg, name))
-        fd.write('<td title="I am a title">%s</td>   <td>%s</td>  <td>%s</td>  <td>%s</td>  <td>%s</td></tr> \n' %(s.keyword, nodetype, flags, options, status))
+        # hypertext link to non-existing YANG HTML....
+        #fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a id=\"p6000\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\"></a><a title=\"%s\" target=\"src\" href=\"yang-module.shtml#%s\">%s</a></div></td> \n" %(idstring, level, descrstring, s.arg, name))
+        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a id=\"p6000\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\"></a>%s</div></td> \n" %(idstring, level, name))
+        fd.write('<td title="I am a title">%s</td>   <td>%s</td>  <td>%s</td>  <td>%s</td>  <td>%s</td> <td>%s</td> </tr> \n' %(s.keyword, nodetype, flags, options, status, pathstr))
     else:
         if s.keyword == ('tailf-common', 'action'):
             classstring = "action"
@@ -337,7 +382,9 @@ def print_node(s, module, fd, prefix, level=0):
             classstring = s.keyword
             typeinfo = typestring(s)
             typename = nodetype
-        fd.write('<tr id=\"%s\" class=\"a\"><td><div id=9999 class=tier%s> <a href =\"#\" class=\"%s\"></a><a title=\"%s\" target=\"src\" href=\"yang-module.shtml#%s\">%s</a></div> </td>   <td>%s</td>  <td><abbr title=\"%s\">%s</abbr></td>  <td>%s</td>  <td>%s</td>  <td>%s</td></tr> \n' %(idstring, level,classstring, descrstring, s.keyword, name,s.keyword, typeinfo, typename, flags, options, status))
+            # hypertext link to non-existing YANG HTML....
+            #fd.write('<tr id=\"%s\" class=\"a\"><td><div id=9999 class=tier%s> <a href =\"#\" class=\"%s\"></a><a title=\"%s\" target=\"src\" href=\"yang-module.shtml#%s\">%s</a></div> </td>   <td>%s</td>  <td><abbr title=\"%s\">%s</abbr></td>  <td>%s</td>  <td>%s</td>  <td>%s</td><td>%s</td</tr> \n' %(idstring, level,classstring, descrstring, s.keyword, name,s.keyword, typeinfo, typename, flags, options, status, pathstr))
+        fd.write('<tr id=\"%s\" class=\"a\"><td><div id=9999 class=tier%s> <a href =\"#\" class=\"%s\"></a>%s</div> </td>   <td>%s</td>  <td><abbr title=\"%s\">%s</abbr></td>  <td>%s</td>  <td>%s</td>  <td>%s</td><td>%s</td</tr> \n' %(idstring, level,classstring, name,s.keyword, typeinfo, typename, flags, options, status, pathstr))
 
     if hasattr(s, 'i_children'):
         level += 1
@@ -439,18 +486,16 @@ def action_params(action):
 
 
 def full_path(stmt):
-    pathsep = "_I_"
+    pathsep = "/"
     path = stmt.arg
-    if stmt.keyword == 'case':
-        path = path + '-case'
-    elif stmt.keyword == 'grouping':
-        path = path + '-grouping'
-
-    while stmt.parent is not None:
-        stmt = stmt.parent
-        if stmt.arg is not None:
+    exclude =  ['grouping', 'choice', 'case', 'submodule', 'module']
+    if (stmt.keyword not in exclude):
+        while stmt.parent is not None:
+            stmt = stmt.parent
+            if (stmt.arg is not None) and (stmt.keyword not in exclude):
                 path = stmt.arg + pathsep + path
-    return make_keyword(path)
+    return path
+
 
 def make_keyword(s):
     s = s.replace('-', '_')
