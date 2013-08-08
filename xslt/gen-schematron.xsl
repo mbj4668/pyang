@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-schematron.xsl
 
-Copyright © 2012 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+Copyright © 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Creates Schematron schema from the hybrid DSDL schema (see RFC 6110).
 
@@ -134,7 +134,7 @@ The stylesheet uses the following modes:
     <xsl:value-of select="$name"/>
   </xsl:template>
 
-  <!-- Replace the "$root" variable with the actual top-level NETCONF
+  <!-- Replace "$root" with the actual top-level NETCONF
        path. -->
   <xsl:template name="uproot">
     <xsl:param name="path" select="."/>
@@ -200,12 +200,13 @@ The stylesheet uses the following modes:
        schema or at the top level of an "rng:define" -->
   <xsl:template name="top-rule">
     <xsl:param name="ctx">$start</xsl:param>
+    <xsl:param name="prefix">$pref</xsl:param>
     <!-- Get all annotated non-element patterns that are not inside a
     "rng:element" pattern. -->
     <xsl:variable
 	name="todo"
 	select="(descendant::rng:choice[@nma:when or @nma:mandatory]
-		|(descendant::group|descendant::interleave)[@nma:when])
+		|descendant::rng:ref[@nma:when])
 		[not(ancestor::rng:element)]"/>
     <xsl:if test="count($todo) &gt; 0">
       <xsl:element name="sch:rule">
@@ -213,7 +214,7 @@ The stylesheet uses the following modes:
 	  <xsl:value-of select="$ctx"/>
 	</xsl:attribute>
 	<xsl:apply-templates select="$todo">
-	  <xsl:with-param name="prefix">$pref</xsl:with-param>
+	  <xsl:with-param name="prefix" select="$prefix"/>
 	</xsl:apply-templates>
       </xsl:element>
     </xsl:if>
@@ -283,7 +284,7 @@ The stylesheet uses the following modes:
       <xsl:attribute name="id">
 	<xsl:value-of select="@name"/>
       </xsl:attribute>
-      <!-- Handle descendant top-level choices with annots. -->
+      <!-- Handle descendant top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule"/>
       <!-- Handle all descendant element patterns with annots. -->
       <xsl:apply-templates select="descendant::rng:element"/>
@@ -322,6 +323,7 @@ The stylesheet uses the following modes:
       <!-- Handle top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule">
 	<xsl:with-param name="ctx" select="$netconf-part"/>
+	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
       <!-- Handle all descendant element patterns with annots. -->
       <xsl:apply-templates select="descendant::rng:element">
@@ -345,7 +347,7 @@ The stylesheet uses the following modes:
     <xsl:variable
 	name="todo"
 	select="&annots;|(descendant::rng:choice[@nma:when or @nma:mandatory]
-		|(descendant::rng:interleave|descendant::rng:group)
+		|(descendant::rng:interleave|descendant::rng:group|descendant::rng:ref)
 		[@nma:when])[count(ancestor::rng:element[1]|current())=1]"/>
     <xsl:if test="count($todo) &gt; 0">
       <xsl:element name="sch:rule">
@@ -394,8 +396,9 @@ The stylesheet uses the following modes:
 
   <!-- Check that no subelement exists if the "when" condition is
        false. -->
-  <xsl:template match="rng:choice/@nma:when|rng:group/@nma:when|
-		       rng:interleave/@nma:when">
+  <xsl:template
+      match="rng:choice/@nma:when|rng:group/@nma:when|
+	     rng:interleave/@nma:when|rng:ref/@nma:when">
     <xsl:param name="prefix"/>
     <xsl:call-template name="report-element">
       <xsl:with-param name="test">
