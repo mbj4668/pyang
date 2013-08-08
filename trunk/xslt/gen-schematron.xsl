@@ -287,7 +287,9 @@ The stylesheet uses the following modes:
       <!-- Handle descendant top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule"/>
       <!-- Handle all descendant element patterns with annots. -->
-      <xsl:apply-templates select="descendant::rng:element"/>
+      <xsl:apply-templates select="descendant::rng:element">
+	<xsl:with-param name="prefix">$pref</xsl:with-param>
+      </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
 
