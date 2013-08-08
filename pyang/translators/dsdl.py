@@ -959,6 +959,7 @@ class HybridDSDLSchema(object):
         if module.i_ctx.hello:
             if feat.arg not in module.i_active_features:
                 p_elem.subnode(SchemaNode("notAllowed"))
+                p_elem.occur = 0
         else:
             self.add_namespace(module)
             p_elem.attr["nma:if-feature"] = \
@@ -1166,6 +1167,7 @@ class HybridDSDLSchema(object):
         bid = tchain[0].search_one("base").i_identity
         if bid not in self.identity_deps:
             p_elem.subnode(SchemaNode("notAllowed"))
+            p_elem.occur = 0
             return
         der = self.identity_deps[bid]
         if len(der) > 1:
