@@ -148,7 +148,7 @@ def v_chk_default(ctx, stmt):
 
 def v_chk_required_substmt(ctx, stmt):
     if stmt.keyword in _required_substatements:
-        (required ,d) = _required_substatements[stmt.keyword]
+        (required, s) = _required_substatements[stmt.keyword]
         for r in required:
             if stmt.search_one(r) is None:
                 err_add(ctx.errors, stmt.pos,
