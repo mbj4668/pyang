@@ -1147,8 +1147,7 @@ class HybridDSDLSchema(object):
         zom = SchemaNode("zeroOrMore", elem)
         choi = SchemaNode.choice(zom, occur=2)
         for bit in tchain[0].search("bit"):
-            optel = SchemaNode("optional", choi)
-            SchemaNode("value", optel, bit.arg)
+            SchemaNode("value", choi, bit.arg)
 
     def boolean_type(self, tchain, p_elem):
         elem = SchemaNode.choice(p_elem, occur=2)
