@@ -288,7 +288,7 @@ class HybridDSDLSchema(object):
             "bits": self.bits_type,
             "decimal64": self.numeric_type,
             "enumeration": self.choice_type,
-            "empty": self.empty_type,
+            "empty": self.noop,
             "identityref": self.identityref_type,
             "instance-identifier": self.instance_identifier_type,
             "int8": self.numeric_type,
@@ -901,8 +901,6 @@ class HybridDSDLSchema(object):
             left = self.lookup_expand(a, left)
         self.handle_substmts(stmt, celem, new_pset)
         self.apply_augments(augs, celem, new_pset)
-        if not celem.children:
-            celem.subnode(SchemaNode("empty"))
 
     def choice_stmt(self, stmt, p_elem, pset):
         chelem = SchemaNode.choice(p_elem)
@@ -922,8 +920,6 @@ class HybridDSDLSchema(object):
                 chelem.occur = 3
         self.handle_substmts(stmt, chelem, new_pset)
         self.apply_augments(augs, chelem, new_pset)
-        if not chelem.children:
-            chelem.subnode(SchemaNode("empty"))
         
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.qname(stmt), p_elem)
@@ -939,7 +935,6 @@ class HybridDSDLSchema(object):
             celem.occur = 3
         self.handle_substmts(stmt, celem, new_pset)
         self.apply_augments(augs, celem, new_pset)
-        if not celem.children: SchemaNode("empty", celem)
 
     def description_stmt(self, stmt, p_elem, pset):
         # ignore imported and top-level descriptions + desc. of enum
@@ -1014,10 +1009,10 @@ class HybridDSDLSchema(object):
         if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, lelem, new_pset)
         self.apply_augments(augs, lelem, new_pset)
-        if not lelem.children: SchemaNode("empty", lelem)
 
     def must_stmt(self, stmt, p_elem, pset):
-        mel = SchemaNode("nma:must", p_elem)
+        mel = SchemaNode("nma:must")
+        p_elem.annot(mel)
         mel.attr["assert"] = self.yang_to_xpath(stmt.arg)
         em = stmt.search_one("error-message")
         if em:
@@ -1102,7 +1097,8 @@ class HybridDSDLSchema(object):
         def addpref(nid):
             return "/".join([self.add_prefix(c, stmt)
                              for c in nid.split("/")])
-        uel = SchemaNode("nma:unique", p_elem)
+        uel = SchemaNode("nma:unique")
+        p_elem.annot(uel)
         uel.attr["tag"] = " ".join(
             [addpref(nid) for nid in stmt.arg.split()])
 
@@ -1176,7 +1172,8 @@ class HybridDSDLSchema(object):
 
     def instance_identifier_type(self, tchain, p_elem):
         SchemaNode("parentRef", p_elem).attr["name"] = "__instance-identifier__"
-        ii = SchemaNode("nma:instance-identifier", p_elem)
+        ii = SchemaNode("nma:instance-identifier")
+        p_elem.annot(ii)
         rinst = tchain[0].search_one("require-instance")
         if rinst: ii.attr["require-instance"] = rinst.arg
 

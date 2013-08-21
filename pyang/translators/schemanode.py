@@ -60,9 +60,6 @@ class SchemaNode(object):
     * `self.text` - text content.
     """
 
-    data_elems = ("element", "interleave", "group", "_list_","ref", "grammar")
-    """Elements corresponding to (groups of) YANG data nodes."""
-
     def element(cls, name, parent=None, interleave=None, occur=0):
         """Create an element node."""
         node = cls("element", parent, interleave=interleave)
@@ -122,12 +119,18 @@ class SchemaNode(object):
         self.text = text
         self.adjust_interleave(interleave)
         self.children = []
+        self.annots = []
         self.attr = {}
 
     def serialize_children(self):
         """Return serialization of receiver's children.
         """
         return ''.join([ch.serialize() for ch in self.children])
+
+    def serialize_annots(self):
+        """Return serialization of receiver's annotation elements.
+        """
+        return ''.join([ch.serialize() for ch in self.annots])
 
     def adjust_interleave(self, interleave):
         """Inherit interleave status from parent if undefined."""
@@ -142,17 +145,15 @@ class SchemaNode(object):
         node.parent = self
         node.adjust_interleave(None)
 
+    def annot(self, node):
+        """Add `node` as an annotation of the receiver."""
+        self.annots.append(node)
+        node.parent = self
+        
     def set_attr(self, key, value):
         """Set attribute `key` to `value` and return the receiver."""
         self.attr[key] = value
         return self
-
-    def data_nodes_count(self):
-        """Return the number of receiver's data subnodes."""
-        return len([ch for ch in self.children
-                     if (ch.name in SchemaNode.data_elems or
-                         "nma:name" in ch.attr) # for choice
-                   ])
 
     def start_tag(self, alt=None, empty=False):
         """Return XML start tag for the receiver."""
@@ -164,7 +165,7 @@ class SchemaNode(object):
         for it in self.attr:
             result += ' %s="%s"' % (it, escape(self.attr[it], {'"':"&quot;", '%': "%%"}))
         if empty:
-            return result + "/>"
+            return result + "/>%s"
         else:
             return result + ">"
 
@@ -179,22 +180,26 @@ class SchemaNode(object):
     def serialize(self, occur=None):
         """Return RELAX NG representation of the receiver and subtree.
         """
-        if self.text or self.children:
-            fmt = self.ser_format.get(self.name, SchemaNode._default_format)
-            return fmt(self, occur) % (escape(self.text) +
-                                       self.serialize_children())
-        else:
-            return self.start_tag(empty=True)
+        fmt = self.ser_format.get(self.name, SchemaNode._default_format)
+        return fmt(self, occur) % (escape(self.text) +
+                                   self.serialize_children())
 
     def _default_format(self, occur):
         """Return the default serialization format.""" 
-        return self.start_tag() + self._chorder() + self.end_tag()
+        if self.text or self.children:
+            return self.start_tag() + "%s" + self.end_tag()
+        return self.start_tag(empty=True)
 
+    def _wrapper_format(self, occur):
+        """Return the serializatiopn format for <start>."""
+        return self.start_tag() + self._chorder() + self.end_tag()
+        
     def _define_format(self, occur):
         """Return the serialization format for a define node.""" 
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
-        return self.start_tag() + self._chorder() + self.end_tag()
+        middle = self._chorder() if self.children else "<empty/>%s"
+        return self.start_tag() + middle + self.end_tag()
 
     def _element_format(self, occur):
         """Return the serialization format for an element node.""" 
@@ -207,16 +212,17 @@ class SchemaNode(object):
                 self.attr["nma:default"] = self.default
             else:
                 self.attr["nma:implicit"] = "true"
-        fmt = self.start_tag() + self._chorder() + self.end_tag()
+        middle = self._chorder() if self.children else "<empty/>%s"
+        fmt = self.start_tag() + self.serialize_annots() + middle + self.end_tag()
         if (occ == 2 or self.parent.name == "choice"
-            or self.parent.name == "case" and self.parent.data_nodes_count() == 1):
+            or self.parent.name == "case" and len(self.parent.children) == 1):
             return fmt
         else:
             return "<optional>" + fmt + "</optional>"
 
     def _chorder(self):
         """Add <interleave> if child order is arbitrary."""
-        if (self.interleave and self.data_nodes_count() > 1):
+        if (self.interleave and len(self.children) > 1):
             return "<interleave>%s</interleave>"
         return "%s"
 
@@ -236,12 +242,15 @@ class SchemaNode(object):
             ord_ = "oneOrMore"
             if int(self.minEl) > 1:
                 self.attr["nma:min-elements"] = self.minEl
-        return ("<" + ord_ + ">" + self.start_tag("element") + keys +
-                self._chorder() + self.end_tag("element") + "</" + ord_ + ">")
+        middle = self._chorder() if self.children else "<empty/>%s"
+        return ("<" + ord_ + ">" + self.start_tag("element") +
+                self.serialize_annots() + keys +
+                middle + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self, occur):
         """Return the serialization format for a choice node.""" 
-        fmt = self.start_tag() + "%s" + self.end_tag()
+        middle = "%s" if self.children else "<empty/>%s"
+        fmt = self.start_tag() + middle + self.end_tag()
         if self.occur != 2:
             return "<optional>" + fmt + "</optional>"
         else:
@@ -251,13 +260,18 @@ class SchemaNode(object):
         """Return the serialization format for a case node.""" 
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
-        if len(self.children) == 1 or not self.interleave:
+        ccnt = len(self.children)
+        if ccnt == 0: return "<empty/>%s"
+        if ccnt == 1 or not self.interleave:
             return self.start_tag("group") + "%s" + self.end_tag("group")
-        else:
-            return (self.start_tag("interleave") + "%s" +
-                    self.end_tag("interleave"))
+        return (self.start_tag("interleave") + "%s" +
+                self.end_tag("interleave"))
 
-    ser_format = { "element": _element_format,
+    ser_format = { "nma:data": _wrapper_format,
+                   "nma:input": _wrapper_format,
+                   "nma:notification": _wrapper_format,
+                   "nma:output": _wrapper_format,
+                   "element": _element_format,
                    "_list_": _list_format,
                    "choice": _choice_format,
                    "case": _case_format,
