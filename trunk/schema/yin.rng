@@ -1408,7 +1408,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="deviate-delete-stmt">
     <element name="deviate">
       <attribute name="value">
-	<value>add</value>
+	<value>delete</value>
       </attribute>
       <interleave>
 	<optional>
@@ -1430,7 +1430,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <define name="deviate-replace-stmt">
     <element name="deviate">
       <attribute name="value">
-	<value>add</value>
+	<value>replace</value>
       </attribute>
       <interleave>
 	<optional>
