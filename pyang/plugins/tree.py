@@ -124,7 +124,8 @@ def emit_tree(modules, fd, depth, path):
                 print_children(augment.i_children, module, fd,
                                ' ', path, depth)
 
-        rpcs = module.search('rpc')
+        rpcs = [ch for ch in module.i_children
+                if ch.keyword == 'rpc']
         if path is not None:
             if len(path) > 0:
                 rpcs = [rpc for rpc in rpcs if rpc.arg == path[0]]
@@ -138,7 +139,8 @@ def emit_tree(modules, fd, depth, path):
             fd.write("rpcs:\n")
             print_children(rpcs, module, fd, ' ', path, depth)
 
-        notifs = module.search('notification')
+        notifs = [ch for ch in module.i_children
+                  if ch.keyword == 'notification']
         if path is not None:
             if len(path) > 0:
                 notifs = [n for n in notifs if n.arg == path[0]]
