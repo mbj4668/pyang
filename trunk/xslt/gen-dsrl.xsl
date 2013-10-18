@@ -71,7 +71,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   </xsl:template>
 
   <xsl:template name="parent-path">
-    <!-- Slash-separated pathe from root to the parent node of the
+    <!-- Slash-separated path from root to the parent node of the
 	 context element, with 'when' conditions, if they are present. -->
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
@@ -339,7 +339,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="rng:group|rng:interleave" mode="choice">
+  <xsl:template match="rng:group[count(rng:*) &gt; 1]|
+		       rng:interleave[count(rng:*) &gt; 1]"
+		mode="choice">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:param name="condition"/>
