@@ -5,7 +5,7 @@ import re
 ### Regular expressions - constraints on arguments
 
 # keywords and identifiers
-identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
+identifier = r"(?![xX][mM][lL])[_A-Za-z][._\-A-Za-z0-9]*"
 prefix = identifier
 keyword = '((' + prefix + '):)?(' + identifier + ')'
 
@@ -17,7 +17,7 @@ re_keyword_start = re.compile('^' + keyword)
 
 pos_integer = r"[1-9][0-9]*"
 nonneg_integer = r"(0|[1-9])[0-9]*"
-integer_ = r"[-+]?" + nonneg_integer 
+integer_ = r"[-+]?" + nonneg_integer
 decimal_ = r"(\+|\-)?[0-9]+(\.[0-9]+)?"
 length_str = '((min|max|[0-9]+)\s*' \
              '(\.\.\s*' \
@@ -43,7 +43,8 @@ absolute_path_arg = "(?:/" + node_id + "(" + path_predicate + ")*)+"
 descendant_path_arg = node_id + "(" + path_predicate + ")*" + \
                       "(?:" + absolute_path_arg + ")?"
 relative_path_arg = r"(\.\./)*" + descendant_path_arg
-deref_path_arg = r"deref\s*\(\s*(?:" + relative_path_arg + ")\s*\)/\.\./" + relative_path_arg
+deref_path_arg = r"deref\s*\(\s*(?:" + relative_path_arg + \
+                 ")\s*\)/\.\./" + relative_path_arg
 path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + "|" + \
            deref_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
@@ -58,7 +59,7 @@ scheme = "[A-Za-z][-+.A-Za-z0-9]*"
 unreserved = "[-._~A-Za-z0-9]"
 pct_encoded = "%[0-9A-F]{2}"
 sub_delims = "[!$&'()*+,;=]"
-pchar = ("(" + unreserved + "|" + pct_encoded + "|" + 
+pchar = ("(" + unreserved + "|" + pct_encoded + "|" +
          sub_delims + "|[:@])")
 segment = pchar + "*"
 segment_nz = pchar + "+"
@@ -176,7 +177,7 @@ def chk_fraction_digits_arg(s):
             return False
     except ValueError:
         return False
-        
+
 def add_arg_type(arg_type, regexp):
     """Add a new arg_type to the map.
     Used by extension plugins to register their own argument types."""
