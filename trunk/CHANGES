@@ -1,5 +1,19 @@
-   1.4 - ???
+   1.4 - 2013-10-24
          added option --lax-xpath-checks
+         deprecated the xsd output plugin
+         tree: now prints augmented nodes
+         tree: now prints rpcs nad notifications defined in submodules
+         tree: new syntax for presence containers
+         tree: mark lists with '*'
+         allow 'must' under 'anyxml'
+         fixed unique check for keys
+
+         #83 - reject identifiers that start with "[xX][mM][lL]"
+         #89 - dsdl: handle % in strings
+         #90 - do not crash on null key statements
+         #92 - dsdl: handle conditional uses
+         #93 - dsdl: fixed problem  with anyxml
+         #94 - dsdl: mandatory choice inside a grouping
 
    1.3 - 2013-01-31
          added new plugins: hypertree and jstree

@@ -116,7 +116,7 @@ class XSDPlugin(plugin.PyangPlugin):
             optparse.make_option("--xsd-groups",
                                  dest="xsd_groups",
                                  action="store_true",
-                                 help="EXPERIMENTAL: does not yet work"),
+                                 help="EXPERIMENTAL: does not work correctly"),
             optparse.make_option("--xsd-no-appinfo",
                                  dest="xsd_no_appinfo",
                                  action="store_true",
@@ -136,7 +136,8 @@ class XSDPlugin(plugin.PyangPlugin):
                                  help="Do not generate the lecture about "
                                       "how the XSD can be used")
             ]
-        g = optparser.add_option_group("XSD output specific options")
+        g = optparser.add_option_group(
+            "DEPRECATED: XSD output specific options")
         g.add_options(optlist)
     def add_output_format(self, fmts):
         fmts['xsd'] = self

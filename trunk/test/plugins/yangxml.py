@@ -24,7 +24,7 @@ def emit_xml(module, fd):
     c = pick(module.i_children)
     attrs = ' xmlns="%s"' % module.search_one('namespace').arg
     if c.keyword == 'choice':
-        print >> sys.stderr, "Cannot handle choice on top-level"
+        sys.stderr.write("Cannot handle choice on top-level")
         sys.exit(1)
     emit_stmt(c, fd, '', attrs, 1)
 

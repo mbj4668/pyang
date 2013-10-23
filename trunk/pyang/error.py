@@ -14,7 +14,6 @@ class Position(object):
             return s
         else:
             return str(self.uses_pos) + ' (at ' + s + ')'
-            
 
 ### Exceptions
 
@@ -221,7 +220,11 @@ error_codes = \
     'BAD_UNIQUE_PART':
       (1,
        'the identifier "%s" in the unique argument does not reference '
-       'an existing container or list'),
+       'an existing container'),
+    'BAD_UNIQUE_PART_LIST':
+      (1,
+       'the identifier "%s" in the unique argument references a list; '
+       'this is not legal'),
     'BAD_UNIQUE_CONFIG':
       (1,
        'the identifer "%s" has not the same config property as the'
@@ -243,33 +246,33 @@ error_codes = \
        'could not verify pattern: %s'),
     'LEAFREF_TOO_MANY_UP':
       (1,
-       'the leafref path for %s at %s has too many ".."'),
+       'the path for %s at %s has too many ".."'),
     'LEAFREF_IDENTIFIER_NOT_FOUND':
       (1,
-       '%s:%s in the leafref path for %s at %s is not found'),
+       '%s:%s in the path for %s at %s is not found'),
     'LEAFREF_IDENTIFIER_BAD_NODE':
       (1,
-       '%s:%s in the leafref path for %s at %s references a %s node'),
+       '%s:%s in the path for %s at %s references a %s node'),
     'LEAFREF_BAD_PREDICATE':
       (1,
-       '%s:%s in the leafref path for %s at %s has a predicate, '
+       '%s:%s in the path for %s at %s has a predicate, '
        'but is not a list'),
     'LEAFREF_BAD_PREDICATE_PTR':
       (1,
-       '%s:%s in the leafref path\'s predicate for %s at %s is compared '
+       '%s:%s in the path\'s predicate for %s at %s is compared '
        'with a leaf that is not a correct leafref'),
     'LEAFREF_NOT_LEAF':
       (1,
-       'the leafref path for %s at %s does not refer to a leaf'),
+       'the path for %s at %s does not refer to a leaf'),
     'LEAFREF_NO_KEY':
       (1,
-       '%s:%s in the leafref path for %s at %s is not the name of a key leaf'),
+       '%s:%s in the path for %s at %s is not the name of a key leaf'),
     'LEAFREF_MULTIPLE_KEYS':
       (1,
-       '%s:%s in the leafref path for %s at %s is referenced more than once'),
+       '%s:%s in the path for %s at %s is referenced more than once'),
     'LEAFREF_BAD_CONFIG':
       (1,
-       'the leafref path for %s is config but refers to a '
+       'the path for %s is config but refers to a '
        'non-config leaf %s defined at %s'),
     'LEAFREF_DEREF_NOT_LEAFREF':
       (1,
@@ -400,11 +403,11 @@ error_codes = \
     'KEY_HAS_DEFAULT':
       (4,
        'default value for a key leaf is ignored'),
-    
+
     'KEY_HAS_MANDATORY_FALSE':
       (4,
        '"mandatory" statement for a key leaf is ignored'),
-    
+
     'LONG_LINE':
       (4,
        'line length %s exceeds %s characters'),
@@ -438,7 +441,7 @@ def err_add(errors, pos, tag, args):
     error = (copy.copy(pos), tag, args)
     # surely this can be done more elegant??
     for (p, t, a) in errors:
-        if (p.line == pos.line and p.ref == pos.ref and 
+        if (p.line == pos.line and p.ref == pos.ref and
             p.top == pos.top and t == tag and a == args):
             return
     errors.append(error)
