@@ -27,6 +27,9 @@ re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 
 yang_xpath_functions = [
     'current',
+    ]
+
+extra_xpath_functions = [
     'deref', # pyang extension
     ]
 
@@ -79,7 +82,8 @@ def validate_module(ctx, module):
                     for s in stmt.i_children:
                         iterate(s, phase)
                 for s in stmt.substmts:
-                    if hasattr(s, 'i_has_i_children'):
+                    if (hasattr(s, 'i_has_i_children') or
+                        (phase, s.keyword) in _v_i_children_keywords):
                         iterate(s, phase)
             else:
                 for s in stmt.substmts:
@@ -118,7 +122,6 @@ _validation_phases = [
     #   verifies all typedefs, types and groupings
     'type',
     'type_2',
-
 
     # expansion phases:
     #   first expansion: copy data definition stmts into i_children
@@ -225,6 +228,10 @@ _v_i_children = {
 """Phases in this dict are run over the stmts which has i_children.
 Note that the tests are not run in grouping definitions."""
 
+_v_i_children_keywords = {
+}
+"""Keywords in this dict are iterated over in a phase in _v_i_children."""
+
 _keyword_with_children = {
     'module':True,
     'submodule':True,
@@ -251,6 +258,9 @@ _data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
 
 _keywords_with_no_explicit_config = ['rpc', 'notification']
 
+_copy_uses_keywords = []
+
+_copy_augment_keywords = []
 
 def add_validation_phase(phase, before=None, after=None):
     """Add a validation phase to the framework.
@@ -292,9 +302,13 @@ def add_validation_var(var_name, var_fun):
 
 def set_phase_i_children(phase):
     """Marks that the phase is run over the expanded i_children.
-    
+
     Default is to run over substmts."""
     _v_i_children[phase] = True
+
+def add_keyword_phase_i_children(phase, keyword):
+    """Marks that the stmt is run in the expanded i_children phase."""
+    _v_i_children_keywords[(phase, keyword)] = True
 
 def add_data_keyword(keyword):
     _data_keywords.append(keyword)
@@ -308,8 +322,14 @@ def is_keyword_with_children(keyword):
 def add_keywords_with_no_explicit_config(keyword):
     _keywords_with_no_explicit_config.append(keyword)
 
+def add_copy_uses_keyword(keyword):
+    _copy_uses_keywords.append(keyword)
+
+def add_copy_augment_keyword(keyword):
+    _copy_augment_keywords.append(keyword)
+
 def add_xpath_function(name):
-    yang_xpath_functions.append(name)
+    extra_xpath_functions.append(name)
 
 ###
 
@@ -469,13 +489,13 @@ def v_import_module(ctx, stmt):
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
         return ctx.search_module(i.pos, modulename, rev)
-        
+
     for i in imports:
         module = add_module(i)
         if module is not None and module.keyword != 'module':
             err_add(ctx.errors, i.pos,
                     'BAD_IMPORT', (module.keyword, i.arg))
-    
+
     for i in includes:
         submodule = add_module(i)
         if submodule is not None and submodule.keyword != 'submodule':
@@ -605,7 +625,7 @@ def v_type_typedef(ctx, stmt):
         type_.i_type_spec.validate(ctx.errors, stmt.pos,
                                    stmt.i_default,
                                    ' for the inherited default value ')
-    elif (default is not None and 
+    elif (default is not None and
           default.arg is not None and
           type_.i_type_spec is not None):
         stmt.i_default = type_.i_type_spec.str_to_val(ctx.errors,
@@ -677,7 +697,7 @@ def v_type_type(ctx, stmt):
     if stmt.i_type_spec is None:
         # an error has been added already; skip further validation
         return
-        
+
     # check the fraction-digits - only applicable when the type is the builtin
     # decimal64
     frac = stmt.search_one('fraction-digits')
@@ -801,7 +821,7 @@ def v_type_type(ctx, stmt):
         if t is not None:
             err_add(ctx.errors, stmt.pos, 'BAD_TYPE_IN_UNION', (t.arg, t.pos))
             return False
-        
+
 def v_type_leaf(ctx, stmt):
     stmt.i_default = None
     stmt.i_default_str = ""
@@ -828,7 +848,8 @@ def v_type_leaf(ctx, stmt):
         # validate the type's default value with our new restrictions
         if type_.i_type_spec is not None:
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
-                                       stmt.i_default, ' for the default  value')
+                                       stmt.i_default,
+                                       ' for the default  value')
 
 
     if default is not None:
@@ -882,9 +903,11 @@ def v_type_grouping(ctx, stmt):
 
     # search for circular grouping definitions
     def validate_uses(s):
-        if s.keyword == "uses" and s.is_grammatically_valid == True:
+        if (s.keyword == "uses" and
+            hasattr(s, 'is_grammatically_valid') and
+            s.is_grammatically_valid == True):
             v_type_uses(ctx, s, no_error_report=True)
-            
+
     iterate_stmt(stmt, validate_uses)
 
     stmt.i_is_validated = True
@@ -919,7 +942,7 @@ def v_type_uses(ctx, stmt, no_error_report=False):
         if i_grouping is not None and i_grouping.is_grammatically_valid == True:
             if v_type_grouping(ctx, i_grouping) == True:
                 stmt.i_grouping = i_grouping
-            
+
     else:
         # this is a prefixed name, check the imported modules
         pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
@@ -937,11 +960,11 @@ def v_type_augment(ctx, stmt):
     stmt.i_has_i_children = True
     if stmt.parent.keyword == 'uses' and stmt.arg.startswith("/"):
         stmt.i_target_node = None
-        err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
+        err_add(ctx.errors, stmt.pos, 'BAD_VALUE',
                 (stmt.arg, "descendant-node-id"))
     elif stmt.parent.keyword != 'uses' and not stmt.arg.startswith("/"):
         stmt.i_target_node = None
-        err_add(ctx.errors, stmt.pos, 'BAD_VALUE', 
+        err_add(ctx.errors, stmt.pos, 'BAD_VALUE',
                 (stmt.arg, "absolute-node-id"))
 
 def v_type_extension(ctx, stmt):
@@ -952,10 +975,20 @@ def v_type_extension(ctx, stmt):
     if module is None:
         return
     if identifier not in module.i_extensions:
-        err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
-                (identifier, module.arg))
-        return
-    stmt.i_extension = module.i_extensions[identifier]
+        if module.i_modulename == stmt.i_orig_module.i_modulename:
+            # extension defined in current submodule
+            if identifier not in stmt.i_orig_module.i_extensions:
+                err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
+                        (identifier, module.arg))
+                return
+            else:
+                stmt.i_extension = stmt.i_orig_module.i_extensions[identifier]
+        else:
+            err_add(ctx.errors, stmt.pos, 'EXTENSION_NOT_DEFINED',
+                    (identifier, module.arg))
+            return
+    else:
+        stmt.i_extension = module.i_extensions[identifier]
     ext_arg = stmt.i_extension.search_one('argument')
     if stmt.arg is not None and ext_arg is None:
         err_add(ctx.errors, stmt.pos, 'EXTENSION_ARGUMENT_PRESENT',
@@ -1064,7 +1097,7 @@ def v_type_base(ctx, stmt, no_error_report=False):
     if stmt.i_identity is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
-    
+
 ### Expand phases
 
 data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
@@ -1127,7 +1160,8 @@ def v_expand_1_children(ctx, stmt):
         stmt.i_expanded = False
     for s in stmt.substmts:
         if s.keyword in ['input', 'output']:
-            # must create a copy of the statement which sets the argument
+            # must create a copy of the statement which sets the argument,
+            # since we need to keep the original stmt hierarchy valid
             news = s.copy(nocopy=['type','typedef','grouping'])
             news.i_groupings = s.i_groupings
             news.i_typedefs = s.i_typedefs
@@ -1196,7 +1230,7 @@ def v_default(ctx, target, default):
         if defval is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
                                        defval, ' for the default value')
-              
+
 def v_expand_1_uses(ctx, stmt):
     if (hasattr(stmt, 'is_grammatically_valid') and
         stmt.is_grammatically_valid == False):
@@ -1204,10 +1238,10 @@ def v_expand_1_uses(ctx, stmt):
 
     if stmt.i_grouping is None:
         return
-    
+
     # possibly expand any uses within the grouping
     v_expand_1_children(ctx, stmt.i_grouping)
-    
+
     def find_refine_node(refinement):
         # parse the path into a list of two-tuples of (prefix,identifier)
         pstr = '/' + refinement.arg
@@ -1296,6 +1330,13 @@ def v_expand_1_uses(ctx, stmt):
                       copyf=post_copy)
         stmt.parent.i_children.append(newg)
 
+    # copy plain statements from the grouping
+    for s in stmt.i_grouping.substmts:
+        if s.keyword in _copy_uses_keywords:
+            news = s.copy()
+            news.parent = stmt.parent
+            stmt.parent.substmts.append(news)
+
     # keep track of already refined nodes
     refined = {}
     # then apply all refinements
@@ -1356,7 +1397,7 @@ def v_inherit_properties(ctx, stmt, child=None):
     if child is not None:
         iter(child, stmt.i_config, True)
         return
-    
+
     for s in stmt.search('grouping') + stmt.search('augment'):
         iter(s, None, True)
     for s in stmt.i_children:
@@ -1415,7 +1456,7 @@ def v_expand_2_augment(ctx, stmt):
     if stmt.i_module.i_modulename != stmt.i_target_node.i_module.i_modulename:
         for sc in stmt.i_children:
             chk_mandatory(sc)
-            
+
     # copy the expanded children into the target node
     def add_tmp_children(node, tmp_children):
         for tmp in tmp_children:
@@ -1462,7 +1503,7 @@ def v_expand_2_augment(ctx, stmt):
             else:
                 err_add(ctx.errors, c.pos, 'DUPLICATE_CHILD_NAME',
                         (stmt.arg, stmt.pos, c.arg, ch.pos))
-                return                
+                return
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
             # create an artifical case node for the shorthand
             new_case = create_new_case(ctx, stmt.i_target_node, c)
@@ -1471,6 +1512,10 @@ def v_expand_2_augment(ctx, stmt):
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node
             v_inherit_properties(ctx, stmt.i_target_node, c)
+    for s in stmt.substmts:
+        if s.keyword in _copy_augment_keywords:
+            stmt.i_target_node.substmts.append(s)
+            s.parent = stmt.i_target_node
 
 def create_new_case(ctx, choice, child):
     new_case = Statement(child.top, child.parent, child.pos, 'case', child.arg)
@@ -1514,7 +1559,7 @@ def v_unique_name_children(ctx, stmt):
 
     dict = {}
     chs = stmt.i_children
-        
+
     def check(c):
         key = (c.i_module.i_modulename, c.arg)
         if key in dict:
@@ -1545,12 +1590,13 @@ def v_reference_list(ctx, stmt):
         key = stmt.search_one('key')
         if stmt.i_config == True and key is None:
             if hasattr(stmt, 'i_uses_pos'):
-                err_add(ctx.errors, stmt.i_uses_pos, 'NEED_KEY_USES', (stmt.pos))
+                err_add(ctx.errors, stmt.i_uses_pos, 'NEED_KEY_USES',
+                        (stmt.pos))
             else:
                 err_add(ctx.errors, stmt.pos, 'NEED_KEY', ())
 
         stmt.i_key = []
-        if key is not None:
+        if key is not None and key.arg is not None:
             found = []
             for x in key.arg.split():
                 if x == '':
@@ -1583,11 +1629,11 @@ def v_reference_list(ctx, stmt):
                 if mandatory is not None and mandatory.arg == 'false':
                     err_add(ctx.errors, mandatory.pos,
                             'KEY_HAS_MANDATORY_FALSE', ())
-                    
+
                 if ptr.i_config != stmt.i_config:
                     err_add(ctx.errors, ptr.search_one('config').pos,
                             'KEY_BAD_CONFIG', name)
-                    
+
                 stmt.i_key.append(ptr)
                 ptr.i_is_key = True
                 found.append(x)
@@ -1623,6 +1669,8 @@ def v_reference_list(ctx, stmt):
                     if ptr is None:
                         err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
                         return
+                    if ptr.keyword == 'list':
+                        err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART_LIST', x)
                 if ((ptr is None) or (ptr.keyword != 'leaf')):
                     err_add(ctx.errors, u.pos, 'BAD_UNIQUE', expr)
                     return
@@ -1642,7 +1690,7 @@ def v_reference_list(ctx, stmt):
                 err_add(ctx.errors, u.pos, 'BAD_UNIQUE', u.arg)
                 return
             # check if all leafs in the unique statements are keys
-            if len(stmt.i_key) > 0:
+            if len(list(stmt.i_key)) > 0:
                 key = list(stmt.i_key)
                 for f in found:
                     if f in key:
@@ -1650,7 +1698,7 @@ def v_reference_list(ctx, stmt):
                 if len(key) == 0:
                     err_add(ctx.errors, u.pos, 'UNIQUE_IS_KEY', ())
             u.i_leafs = found
-            stmt.i_unique.append(found)
+            stmt.i_unique.append((u, found))
 
     v_key()
     v_unique()
@@ -1688,7 +1736,9 @@ def v_reference_choice(ctx, stmt):
 def v_reference_leaf_leafref(ctx, stmt):
     """Verify that all leafrefs in a leaf or leaf-list have correct path"""
 
-    if stmt.i_leafref is not None and stmt.i_leafref_expanded is False:
+    if (hasattr(stmt, 'i_leafref') and
+        stmt.i_leafref is not None and
+        stmt.i_leafref_expanded is False):
         path_type_spec = stmt.i_leafref
         x = validate_leafref_path(ctx, stmt,
                                   path_type_spec.path_spec,
@@ -1702,12 +1752,15 @@ def v_reference_leaf_leafref(ctx, stmt):
         stmt.i_leafref_expanded = True
         if ptr is not None:
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
-        
+
 def v_reference_must(ctx, stmt):
     # verify that the xpath expression is correct, and that
     # each prefix is defined
     # NOTE: currently only primitive tokenization is done; we should
     # also parse the expression to detect more errors
+    v_xpath(ctx, stmt)
+
+def v_xpath(ctx, stmt):
     try:
         toks = xpath.tokens(stmt.arg)
         for (tokname, s) in toks:
@@ -1722,14 +1775,15 @@ def v_reference_must(ctx, stmt):
             elif tokname == 'variable':
                 err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
             elif tokname == 'function' and (s not in xpath.core_functions and
-                                            s not in yang_xpath_functions):
+                                            s not in yang_xpath_functions and
+                                            s not in extra_xpath_functions):
                 err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
 
     except SyntaxError as e:
           err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
 def v_reference_when(ctx, stmt):
-    v_reference_must(ctx, stmt)
+    v_xpath(ctx, stmt)
 
 def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
@@ -1775,11 +1829,13 @@ def v_reference_deviate(ctx, stmt):
             err_add(ctx.errors, stmt.pos, 'BAD_DEVIATE_KEY',
                     (t.i_module.arg, t.arg))
             return
-        idx = t.parent.i_children.index(t)
         if not hasattr(t.parent, 'i_not_supported'):
             t.parent.i_not_supported = []
         t.parent.i_not_supported.append(t)
+        idx = t.parent.i_children.index(t)
         del t.parent.i_children[idx]
+        idx = t.parent.substmts.index(t)
+        del t.parent.substmts[idx]
     elif stmt.arg == 'add':
         for c in stmt.substmts:
             if c.keyword in _singleton_keywords:
@@ -1817,6 +1873,25 @@ def v_reference_deviate(ctx, stmt):
                     old.arg = c.arg
                 else:
                     t.substmts.append(c)
+                # make sure the target's children have proper config stmts
+                sub = t.substmts
+                if hasattr(t, 'i_children'):
+                    sub = sub + t.i_children
+                for d in sub:
+                    if d.keyword in data_definition_keywords:
+                        if (hasattr(d, 'i_config') and
+                            d.i_config != t.i_config):
+                            # this child has another config property,
+                            # maybe fix the statment
+                            old = d.search_one('config')
+                            if old is None:
+                                negc = copy.copy(c)
+                                if c.arg == 'true':
+                                    negc.arg = 'false'
+                                else:
+                                    negc.arg = 'true'
+                                d.substmts.append(negc)
+
             if c.keyword in _singleton_keywords:
                 old = t.search_one(c.keyword)
             else:
@@ -1828,9 +1903,14 @@ def v_reference_deviate(ctx, stmt):
                 idx = t.substmts.index(old)
                 del t.substmts[idx]
                 if stmt.arg == 'replace':
+                    if (c.keyword == 'type'
+                        and c.i_typedef is not None
+                        and c.arg.find(":") == -1
+                        and t.i_module.i_prefix !=
+                            c.i_module.i_prefix):
+                        c.arg = c.i_module.i_prefix + ':' + c.arg
                     t.substmts.append(c)
-            
-                
+
 # FIXME: after deviation, we need to re-run some of the tests, e.g. if
 # the deviation added a default value it needs to be checked.
 def v_reference_deviation_4(ctx, stmt):
@@ -1841,10 +1921,12 @@ def v_reference_deviation_4(ctx, stmt):
     t = stmt.i_target_node
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
+        v_reference_leaf_leafref(ctx, t)
     elif t.keyword == 'leaf-list':
         v_type_leaf_list(ctx, t)
+        v_reference_leaf_leafref(ctx, t)
     elif t.keyword == 'list':
-        v_reference_list(ctx, t) 
+        v_reference_list(ctx, t)
 
 
 ### Unused definitions phase
@@ -1865,14 +1947,14 @@ def v_unused_typedef(ctx, stmt):
         if stmt.i_is_unused == True:
             err_add(ctx.errors, stmt.pos,
                     'UNUSED_TYPEDEF', stmt.arg)
-            
+
 def v_unused_grouping(ctx, stmt):
     if stmt.parent.parent is not None:
         # this is a locallay scoped grouping
         if stmt.i_is_unused == True:
             err_add(ctx.errors, stmt.pos,
                     'UNUSED_GROUPING', stmt.arg)
-            
+
 ### Strcit phase
 
 def v_strict_xpath(ctx, stmt):
@@ -1910,7 +1992,9 @@ def has_type(type, names):
             return r
     if not hasattr(type, 'i_typedef'):
         return None
-    if type.i_typedef is not None and type.i_typedef.i_is_circular == False:
+    if (type.i_typedef is not None and
+        hasattr(type.i_typedef, 'i_is_circular') and
+        type.i_typedef.i_is_circular == False):
         t = type.i_typedef.search_one('type')
         if t is not None:
             return has_type(t, names)
@@ -2006,7 +2090,7 @@ def find_target_node(ctx, stmt, is_augment=False):
         arg = "/" + stmt.arg # to make node_id_part below work
     # parse the path into a list of two-tuples of (prefix,identifier)
     path = [(m[1], m[2]) for m in syntax.re_schema_node_id_part.findall(arg)]
-    # find the module of the first node in the path 
+    # find the module of the first node in the path
     (prefix, identifier) = path[0]
     module = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
     if module is None:
@@ -2033,7 +2117,7 @@ def find_target_node(ctx, stmt, is_augment=False):
             err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
                     (module.i_modulename, identifier))
             return None
-        
+
     # then recurse down the path
     for (prefix, identifier) in path[1:]:
         if hasattr(node, 'i_children'):
@@ -2108,12 +2192,14 @@ def is_submodule_included(src, tgt):
     if (tgt.i_orig_module.keyword == 'submodule' and
         src.i_orig_module != tgt.i_orig_module and
         src.i_module.i_modulename == tgt.i_module.i_modulename):
-       if src.i_orig_module.search_one('include',
+        if src.i_orig_module.search_one('include',
                                         tgt.i_orig_module.arg) is None:
             return False
     return True
 
-def validate_leafref_path(ctx, stmt, path_spec, path):
+def validate_leafref_path(ctx, stmt, path_spec, path,
+                          accept_non_leaf_target=False,
+                          accept_non_config_target=False):
     """Return the leaf that the path points to and the expanded path arg,
     or None on error."""
 
@@ -2123,8 +2209,11 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
     # module where the path is defined, except if found within
     # a grouping, in which case it default to the module where the
     # grouping is used.
-    if path.parent.parent.keyword == 'typedef':
+    if (path.parent.parent is not None and
+        path.parent.parent.keyword == 'typedef'):
         local_module = path.i_module
+    elif stmt.keyword == 'module':
+        local_module = stmt
     else:
         local_module = stmt.i_module
 
@@ -2150,13 +2239,13 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
         if type(x) == type(()) and len(x) == 4 and x[0] == 'predicate':
             return True
         return False
-    
+
     def follow_path(ptr, up, dn):
         path_list = []
         if up == -1: # absolute path
             (pmodule, name) = find_identifier(dn[0])
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
-            if not is_submodule_included(stmt, ptr):
+            if not is_submodule_included(path, ptr):
                 ptr = None
             if ptr is None:
                 # check all our submodules
@@ -2183,7 +2272,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                     # don't check the path here - check in the expanded tree
                     raise Abort
                 ptr = ptr.parent
-                if ptr is None: # or ptr.keyword == 'grouping':
+                if ptr is None:
                     err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
@@ -2235,13 +2324,19 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                                 (pmodule.arg, pname, stmt.arg, stmt.pos))
                         raise NotFound
                     keys.append((pmodule.arg, pname))
+                    if pup == 0:
+                        i = i + 1
+                        break
                     # check what this predicate refers to; make sure it's
                     # another leaf; either of type leafref to keyleaf, OR same
                     # type as the keyleaf
                     (xkey_list, x_key, xleaf, _x) = follow_path(stmt, pup, pdn)
+                    stmt.i_derefed_leaf = xleaf
                     if xleaf.i_leafref_ptr is None:
-                        err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE_PTR',
-                                (pmodule.arg, pname, stmt.arg, stmt.pos))
+                        if not accept_non_leaf_target:
+                            err_add(ctx.errors, pathpos,
+                                    'LEAFREF_BAD_PREDICATE_PTR',
+                                    (pmodule.arg, pname, stmt.arg, stmt.pos))
                     else:
                         (xptr, xpos) = xleaf.i_leafref_ptr
                         if xptr != pleaf:
@@ -2259,6 +2354,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                                'module', 'submodule', 'input', 'output',
                                'notification']:
                 ptr = search_data_node(ptr.i_children, module_name, name)
+                if not is_submodule_included(path, ptr):
+                    ptr = None
                 if ptr is None:
                     err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
                             (module_name, name, stmt.arg, stmt.pos))
@@ -2287,6 +2384,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
                 err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
                         (ptr.arg, ptr.pos))
                 return None
+            stmt.i_derefed_leaf = ptr
             # make sure the referenced leaf is expanded
             if ptr.i_leafref_expanded is False:
                 v_reference_leaf_leafref(ctx, ptr)
@@ -2322,7 +2420,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
             expanded_path = path.arg
         # ptr is now the node that the leafref path points to
         # check that it is a leaf
-        if ptr.keyword not in ('leaf', 'leaf-list'):
+        if (ptr.keyword not in ('leaf', 'leaf-list') and
+            not accept_non_leaf_target):
             err_add(ctx.errors, pathpos, 'LEAFREF_NOT_LEAF',
                     (stmt.arg, stmt.pos))
             return None
@@ -2331,7 +2430,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path):
             err_add(ctx.errors, pathpos, 'LEAFREF_MULTIPLE_KEYS',
                     (ptr.i_module.i_modulename, ptr.arg, stmt.arg, stmt.pos))
         if ((hasattr(stmt, 'i_config') and stmt.i_config == True) and
-            ptr.i_config == False):
+            ptr.i_config == False and not accept_non_config_target):
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, ptr.arg, ptr.pos))
         return ptr, expanded_path, path_list
@@ -2370,7 +2469,7 @@ class Statement(object):
 
         self.arg = arg
         """the statement's argument;  a string or None"""
-        
+
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
@@ -2430,10 +2529,11 @@ class Statement(object):
              f(self, indent)
         for x in self.substmts:
             x.pprint(indent + ' ', f)
-        if hasattr(self, 'i_children'):
-            print(indent + '--- i_children ---')
-            for x in self.i_children:
-                x.pprint(indent + ' ', f)
+        if hasattr(self, 'i_children') and len(self.i_children) > 0:
+           print indent + '--- BEGIN i_children ---'
+           for x in self.i_children:
+               x.pprint(indent + ' ', f)
+           print indent + '--- END i_children ---'
 
 
 ## FIXME: not used
@@ -2453,7 +2553,8 @@ def validate_status(errors, x, y, defn, ref):
 
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "
-    print("%s%s %s      %s %s" % (indent * istr, stmt.keyword, stmt.arg, stmt, stmt.parent))
+    print("%s%s %s      %s %s" % (indent * istr, stmt.keyword,
+                                  stmt.arg, stmt, stmt.parent))
     if substmts and stmt.substmts != []:
         print("%s  substatements:" % (indent * istr))
         for s in stmt.substmts:

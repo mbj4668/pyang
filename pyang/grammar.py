@@ -78,9 +78,28 @@ def add_stmt(stmt, arg_rules):
 def add_to_stmts_rules(stmts, rules):
     """Use by plugins to add extra rules to the existing rules for
     a statement."""
+    def is_rule_less_than(ra, rb):
+        rka = ra[0]
+        rkb = rb[0]
+        if not util.is_prefixed(rkb):
+            # old rule is non-prefixed; append new rule after
+            return False
+        if not util.is_prefixed(rka):
+            # old rule prefixed, but new rule is not, insert
+            return True
+        # both are prefixed, compare modulename
+        return rka[0] < rkb[0]
     for s in stmts:
         (arg, rules0) = stmt_map[s]
-        stmt_map[s] = (arg, rules0 + rules)
+        for r in rules:
+            i = 0
+            while i < len(rules0):
+                if is_rule_less_than(r, rules0[i]):
+                    rules0.insert(i, r)
+                    break
+                i += 1
+            if i == len(rules0):
+                rules0.insert(i, r)
 
 stmt_map = {
     'module':

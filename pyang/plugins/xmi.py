@@ -17,10 +17,6 @@ class XMIPlugin(plugin.PyangPlugin):
 
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--xmi-help",
-                                 dest="xmi_help",
-                                 action="store_true",
-                                 help="Print help on xmi output and exit"),
             optparse.make_option("--xmi-path",
                                  dest="xmi_tree_path",
                                  help="Subtree to print"),
@@ -33,11 +29,6 @@ class XMIPlugin(plugin.PyangPlugin):
             ]
         g = optparser.add_option_group("XMI output specific options")
         g.add_options(optlist)
-
-    def setup_ctx(self, ctx):
-        if ctx.opts.xmi_help:
-            print_help()
-            sys.exit(0)
 
     def setup_fmt(self, ctx):
         ctx.implicit_errors = False
@@ -54,13 +45,6 @@ class XMIPlugin(plugin.PyangPlugin):
         emit_yang_xmi(fd, ctx)
         emit_modules_xmi(modules, fd, path, ctx)
         print_xmi_footer(modules, fd, path, ctx)
-        
-
-def print_help():
-    print("""
-Prints a xmi file that can be imported to ArgoUML
-""")
-
 
 def emit_yang_xmi(fd, ctx):
     fd.write("<UML:Model xmi.id = \'yang' name = \'yang\' isSpecification = \'false\' isRoot = \'false\' isLeaf = \'false\' isAbstract = \'false\'>\n")
@@ -88,7 +72,7 @@ def print_xmi_header(modules, fd, path, ctx):
     <XMI.metamodel xmi.name="UML" xmi.version="1.4"/>
   </XMI.header>
   <XMI.content>
-""") 
+""")
 
 def print_xmi_footer(modules, fd, path, ctx):
     print("""
@@ -110,7 +94,7 @@ def print_module_info(module, fd, ctx):
 
     print_tag(module, 'author', authorstring, fd, ctx)
 
-    print_description(module, fd, ctx)        
+    print_description(module, fd, ctx)
 
     if module.search_one('revision'):
         revstring = module.search_one('revision').arg
@@ -125,9 +109,9 @@ def print_stereotypes(fd, ctx):
         fd.write("isSpecification = 'false' isRoot = 'false' isLeaf = 'false' isAbstract = 'false'> \n")
         fd.write("<UML:Stereotype.baseClass>Class</UML:Stereotype.baseClass> \n")
         fd.write(" </UML:Stereotype> \n")
-        
+
 def print_tag_definitions(fd, ctx):
-   # xmi.id, name 
+   # xmi.id, name
    tags = [('yang:description', 'documentation'), ('yang:config', 'config'), ('yang:mandatory', 'mandatory'), ('yang:status', 'status'), ('yang:path', 'path'), ('yang:presence', 'presence'), ('yang:when', 'when'), ('yang:must', 'must'), ('yang:author', 'author'), ('yang:version', 'version'), ('yang:min-elements', 'min-elements'), ('yang:max-elements', 'max-elements'), ('yang:ordered-by', 'ordered-by'), ('yang:default','default'), ('yang:key', 'key')]
    for t in tags:
        fd.write("<UML:TagDefinition xmi.id = '%s' name = '%s' isSpecification = 'false'> \n" %(t[0], t[1]))
@@ -173,7 +157,7 @@ def iterate_children(parent, s, module, fd, path, ctx):
            print_node(s, ch, module, fd, path, ctx)
 
 def print_class_stuff(s, fd, ctx):
-    print_description(s, fd, ctx)            
+    print_description(s, fd, ctx)
     print_tags(s, fd, ctx)
     # We need to recurse children here to get closing class tag
     print_attributes(s, fd, ctx)
@@ -181,13 +165,12 @@ def print_class_stuff(s, fd, ctx):
     close_class(s, fd, ctx)
     print_associations(s,fd, ctx)
 
-    
 def print_node(parent, s, module, fd, path, ctx, root='false'):
 
     # We have a UML class
     if (s.keyword == "container"):
         print_container(s, fd, ctx, root)
-        print_class_stuff(s, fd, ctx)            
+        print_class_stuff(s, fd, ctx)
 
         # Do not try to create relationship to module
         if (parent != module):
@@ -195,14 +178,13 @@ def print_node(parent, s, module, fd, path, ctx, root='false'):
             if presence is not None:
                 print_aggregation(parent, s, fd, "0", "1", ctx)
             else:
-                print_aggregation(parent, s, fd, "1", "1", ctx)                
+                print_aggregation(parent, s, fd, "1", "1", ctx)
 
         # Continue to find classes
         iterate_children(parent, s, module, fd, path, ctx)
-        
     elif s.keyword == "list":
         print_list(s, fd, ctx, root)
-        print_class_stuff(s, fd, ctx)            
+        print_class_stuff(s, fd, ctx)
 
         # Do not try to create relationship to module
         if (parent != module):
@@ -232,7 +214,7 @@ def print_node(parent, s, module, fd, path, ctx, root='false'):
 
         # Continue to find classes
         iterate_children(parent, s, module, fd, path, ctx)
-        
+
     elif s.keyword == 'case':
         print_case(s,fd, ctx)
         print_class_stuff(s, fd, ctx)
@@ -253,13 +235,13 @@ def print_node(parent, s, module, fd, path, ctx, root='false'):
 
     elif s.keyword == 'notification':
         print_notification(s, fd, ctx)
-        print_class_stuff(s, fd, ctx)            
+        print_class_stuff(s, fd, ctx)
 
         iterate_children(parent, s, module, fd, path, ctx)
 
     elif s.keyword in  ['input','output'] and (len(s.i_children) > 0):
         print_inout(parent, s, fd, ctx)
-        print_class_stuff(s, fd, ctx)            
+        print_class_stuff(s, fd, ctx)
         iterate_children(parent, s, module, fd, path, ctx)
         print_aggregation(parent, s, fd, "1", "1", ctx)
 
@@ -269,11 +251,8 @@ def print_node(parent, s, module, fd, path, ctx, root='false'):
         iterate_children(parent, s, module, fd, path, ctx)
         print_aggregation(parent, s, fd, "1", "1", ctx)
 
-        
-
 def close_class(s, fd, ctx):
     fd.write("</UML:Class>\n")
-
 
 def print_attributes(s,fd, ctx):
     if hasattr(s, 'i_children'):
@@ -281,14 +260,14 @@ def print_attributes(s,fd, ctx):
             if ch.keyword == "leaf":
                    print_leaf(ch, fd, ctx)
             elif ch.keyword == "leaf-list":
-                   print_leaflist(ch, fd, ctx)                   
+                   print_leaflist(ch, fd, ctx)
 
 def print_actions(s,fd, ctx):
     if hasattr(s, 'i_children'):
         for ch in s.i_children:
             if ch.keyword == ('tailf-common', 'action'):
                 print_action_operation(ch,fd, ctx)
-                
+
 def print_associations(s, fd, ctx):
     # find leafrefs and identityrefs
 
@@ -297,8 +276,6 @@ def print_associations(s, fd, ctx):
             if hasattr(ch, 'i_leafref_ptr') and (ch.i_leafref_ptr is not None):
                 to = ch.i_leafref_ptr[0]
                 print_association(s, to.parent, ch, to, "leafref", fd, ctx)
-                #            elif hasattr(ch, 'i_identity') and (ch.i_identity is not None):
-                #                print_association(s, to, "identityref", fd)
 
 def fix_xml_string(string, ctx):
         fixed = ''.join([x for x in string if ord(x) < 128])
@@ -315,7 +292,7 @@ def print_description(s, fd, ctx):
     else:
         descrstring = "No YANG description";
     fd.write("<UML:ModelElement.taggedValue>")
-    fd.write("<UML:TaggedValue xmi.id = '%s-description' isSpecification = 'false'> \n" %fullpath(s))
+    fd.write("<UML:TaggedValue xmi.id = 'tag-%s-description' isSpecification = 'false'> \n" %fullpath(s))
     fd.write("<UML:TaggedValue.dataValue>%s</UML:TaggedValue.dataValue> \n" %descrstring)
     fd.write("<UML:TaggedValue.type> \n")
     fd.write("<UML:TagDefinition xmi.idref = 'yang:description'/> \n")
@@ -349,12 +326,12 @@ def print_aggregation(parent, s, fd, lower, upper, ctx):
     fd.write("</UML:Multiplicity.range> \n")
     fd.write("</UML:Multiplicity> \n")
     fd.write("</UML:AssociationEnd.multiplicity> \n")
-    
+
     fd.write("<UML:AssociationEnd.participant> \n")
     fd.write("<UML:Class xmi.idref = \'%s\'/> \n" %fullpath(s))
     fd.write("</UML:AssociationEnd.participant> \n")
     fd.write("</UML:AssociationEnd> \n")
-    
+
     fd.write("</UML:Association.connection> \n")
 
     fd.write("</UML:Association> \n")
@@ -488,7 +465,6 @@ def print_leaflist(leaf, fd, ctx):
 
 
 def print_association(fromclass, toclass, fromleaf, toleaf, association, fd, ctx):
-    sys.stderr.write("print assoc \n")
     if ctx.opts.xmi_no_assoc_names:
         fd.write("<UML:Association xmi.id = '%s-from-%s-to-%s' isSpecification = 'false' isRoot = 'false' isLeaf = 'false' isAbstract = 'false'>\n" %(association, fullpath(fromleaf), fullpath(toleaf)))
     else:
@@ -514,17 +490,13 @@ def print_association(fromclass, toclass, fromleaf, toleaf, association, fd, ctx
     fd.write("</UML:Multiplicity.range> \n")
     fd.write("</UML:Multiplicity> \n")
     fd.write("</UML:AssociationEnd.multiplicity> \n")
-              
 
-
-    
     fd.write("<UML:AssociationEnd.participant> \n")
     fd.write("<UML:Class xmi.idref = '%s'/> \n " %fullpath(toclass))
     fd.write("</UML:AssociationEnd.participant> \n")
     fd.write("</UML:AssociationEnd> \n")
     fd.write("</UML:Association.connection> \n")
     fd.write("</UML:Association>\n")
-
 
 def print_typedefs(module, fd, ctx):
     for stmt in module.substmts:
@@ -545,7 +517,7 @@ def print_typedef(typedef, fd, ctx):
             fd.write("<UML:EnumerationLiteral xmi.id = 'typedef-%s-enum-%s-literal-%s' name = '%s' isSpecification = 'false'/> \n" %(typedef.arg, e.arg, enums.arg, enums.arg))
             fd.write("</UML:Enumeration.literal> \n")
         fd.write("</UML:Enumeration> \n")
-            
+
     else: # We have a plain typedef
         fd.write("<UML:DataType xmi.id = \'typedef-%s \' \n" %typedef.arg)
         fd.write(" name = '%s' isSpecification = 'false' isRoot = 'false' isLeaf = 'false' isAbstract = 'false'/> \n" %typedef.arg)
@@ -589,7 +561,7 @@ def print_tags(s, fd, ctx):
         config = "true"
 
     print_tag(s, "config", config, fd, ctx)
-    
+
     # mandatory ?
     mandatory = "true"
     m = s.search_one('mandatory')
@@ -608,7 +580,7 @@ def print_tags(s, fd, ctx):
 
 def print_tag(s, tagname, tagvalue, fd, ctx):
     fd.write("<UML:ModelElement.taggedValue>")
-    fd.write("<UML:TaggedValue xmi.id = '%s-%s' isSpecification = 'false'> \n" %(fullpath(s), tagname))
+    fd.write("<UML:TaggedValue xmi.id = 'tag-%s-%s' isSpecification = 'false'> \n" %(fullpath(s), tagname))
     fd.write("<UML:TaggedValue.dataValue>%s</UML:TaggedValue.dataValue> \n" %tagvalue)
     fd.write("<UML:TaggedValue.type> \n")
     fd.write("<UML:TagDefinition xmi.idref = 'yang:%s'/> \n" %tagname)

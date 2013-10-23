@@ -48,7 +48,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="On errors, print the error code instead " \
                              "of the error message."),
-        optparse.make_option("-W", 
+        optparse.make_option("-W",
                              dest="warnings",
                              action="append",
                              default=[],
@@ -57,7 +57,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                                  "as errors, except any listed WARNING. " \
                                  "If WARNING is 'none', do not report any " \
                                  "warnings."),
-        optparse.make_option("-E", 
+        optparse.make_option("-E",
                              dest="errors",
                              action="append",
                              default=[],
@@ -111,7 +111,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              help="Filename of a server's hello message is "
                              "given instead of module filename(s)."),
         ]
-        
+
     optparser = optparse.OptionParser(usage, add_help_option = False)
     optparser.version = '%prog ' + pyang.__version__
     optparser.add_options(optlist)
@@ -139,7 +139,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     filenames = args
 
     path = ":".join(o.path)
-    
+
     repos = pyang.FileRepository(path)
 
     ctx = pyang.Context(repos)
@@ -154,7 +154,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
-    
+
     if o.format != None:
         if o.format not in fmts:
             sys.stderr.write("unsupported format '%s'\n" % o.format)
@@ -164,8 +164,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         emit_obj = None
 
-    exit_code = 0
+    for p in plugin.plugins:
+        p.pre_load_modules(ctx)
 
+    exit_code = 0
     modules = []
 
     if o.hello:
@@ -245,6 +247,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         for s in m.search('include'):
             modulenames.append(s.arg)
 
+    for p in plugin.plugins:
+        p.pre_validate_ctx(ctx, modules)
+
     if emit_obj is not None and len(modules) > 0:
         emit_obj.pre_validate(ctx, modules)
 
@@ -252,6 +257,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     if emit_obj is not None and len(modules) > 0:
         emit_obj.post_validate(ctx, modules)
+
+    for p in plugin.plugins:
+        p.post_validate_ctx(ctx, modules)
 
     def keyfun(e):
         if e[0].ref == filenames[0]:
@@ -263,7 +271,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if len(filenames) > 0:
         # first print error for the first filename given
         ctx.errors.sort(key=keyfun)
-    
+
     for (epos, etag, eargs) in ctx.errors:
         if (ctx.implicit_errors == False and
             hasattr(epos.top, 'i_modulename') and
@@ -289,6 +297,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         else:
             sys.stderr.write(str(epos) + ': %s: ' % kind + \
                                  error.err_to_str(etag, eargs) + '\n')
+
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
         if o.outfile == None:

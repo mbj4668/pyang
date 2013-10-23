@@ -20,7 +20,7 @@ def init(plugindirs=[]):
     # search for plugins in std directory
     basedir = os.path.split(sys.modules['pyang'].__file__)[0]
     plugindirs.insert(0, basedir + "/plugins")
-    
+
     # add paths from env
     pluginpath = os.getenv('PYANG_PLUGINPATH')
     if pluginpath is not None:
@@ -39,7 +39,6 @@ def init(plugindirs=[]):
                     print(pluginmod.__dict__)
                     raise AttributeError(pluginmod.__file__ + ': ' + str(s))
         sys.path = syspath
-
 
 def register_plugin(plugin):
     """Call this to register a pyang plugin. See class PyangPlugin
@@ -102,12 +101,26 @@ class PyangPlugin(object):
         """
         return
 
-    def pre_validate(self, ctx, module):
-        """Called before the module is validated"""
+    def pre_load_modules(self, ctx):
+        """Called for the selected plugin, before any modules are loaded"""
         return
 
-    def post_validate(self, ctx, module):
-        """Called after the module has been validated"""
+    def pre_validate_ctx(self, ctx, modules):
+        """Called for all plugins, before the modules are validated"""
+        return
+
+    def pre_validate(self, ctx, modules):
+        """Called for the selected plugin, before the modules are validated"""
+        return
+
+    def post_validate(self, ctx, modules):
+        """Called for the selected plugin, after the modules
+        have been validated"""
+        return
+
+    def post_validate_ctx(self, ctx, modules):
+        """Called for the selected plugin, after the modules
+        have been validated"""
         return
 
     def emit(self, ctx, modules, writef):
@@ -119,8 +132,3 @@ class PyangPlugin(object):
         Raise error.EmitError on failure.
         """
         return
-
-
-    
-
-    

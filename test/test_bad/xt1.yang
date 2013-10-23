@@ -172,7 +172,7 @@ module/*hej*/xt1 {
 
     list ul {
       key x;
-      unique "c/a c/b";
+      unique "c/a c/b"; // error; goes down into sublist
       leaf z {type int32;}
       uses Bar {
 	refine x {default 103239;}

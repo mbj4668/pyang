@@ -37,13 +37,15 @@ class PyangDist(Distribution):
                         if mo is None:
                               ouf.write(line)
                         else:
-                              ouf.write(mo.group(1) + prefix + mo.group(2) + "\n")
+                              ouf.write(mo.group(1) + prefix + mo.group(2) +
+                                        "\n")
                   ouf.close()
 
       def run_commands(self):
             opts = self.command_options
             if "install" in opts:
-                  self.preprocess_files(opts["install"].get("prefix", ("", None))[1])
+                  self.preprocess_files(opts["install"].get("prefix",
+                                                            ("", None))[1])
             Distribution.run_commands(self)
 
 setup(name='pyang',
@@ -64,4 +66,3 @@ setup(name='pyang',
                   ('share/yang/schema', ['schema/yin.rng',
                                          'schema/relaxng-lib.rng'])]
       )
-      

@@ -1,6 +1,11 @@
 """SMIv2 plugin
 
-RFC 6643 compatible.
+Verifies SMIv2 YANG statements as defined in RFC 6643.
+
+This implementation relaxes one rule from RFC 6643; it allows
+smiv2:subid if an ancestor statement has a smiv2:oid or smiv2:subid
+statement.  RFC 6643 requires the parent statement to have the
+smiv2:oid or smiv2:subid statement.
 
 Verifies the grammar of the smiv2 extension statements, and sets
 i_smi_oid built from the smiv2:oid and smiv2:subid statements.
@@ -36,12 +41,12 @@ def pyang_plugin_init():
 
     # Register the plugin
     plugin.register_plugin(SMIPlugin())
-    
+
     # Add our special argument syntax checkers
     syntax.add_arg_type('smi-oid', _chk_smi_oid)
     syntax.add_arg_type('smi-max-access', _chk_smi_max_access)
 
-    # Register that we handle extensions from the YANG module 'smi' 
+    # Register that we handle extensions from the YANG module 'ietf-yang-smiv2'
     grammar.register_extension_module(smi_module_name)
 
     # Register the special grammar
@@ -66,7 +71,7 @@ def pyang_plugin_init():
                          "subid and oid cannot be given at the same time")
 
 smi_stmts = [
-    
+
     # (<keyword>, <occurance when used>,
     #  (<argument type name | None>, <substmts>),
     #  <list of keywords where <keyword> can occur>)
@@ -97,24 +102,24 @@ smi_stmts = [
     ('oid', '?',
      ('smi-oid', []),
      ['leaf', 'list', 'container', 'augment', 'notification', 'identity']),
-    
+
     ('subid', '?',
      ('non-negative-integer', []),
      ['leaf', 'list', 'container', 'augment', 'notification']),
-    
+
 ]
-    
+
 re_sub = re.compile("[0-9]+")
 
 def v_set_oid(ctx, stmt):
     oid = [int(s) for s in re_sub.findall(stmt.arg)]
     stmt.parent.i_smi_oid = oid
-    
+
 def v_set_subid(ctx, stmt):
     if stmt.parent.search_one((smi_module_name, 'oid')) is not None:
         err_add(ctx.errors, stmt.pos, 'SMIv2_SUBID_AND_OID', ())
         return
-        
+
     def find_ancestor_oid(s):
         if s.parent is None:
             return None

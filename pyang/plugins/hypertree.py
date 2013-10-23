@@ -25,7 +25,7 @@ class HyperTreePlugin(plugin.PyangPlugin):
                                  dest="ht_tree_path",
                                  help="Subtree to print"),
             ]
-        g = optparser.add_option_group("Tree output specific options")
+        g = optparser.add_option_group("Hypertree output specific options")
         g.add_options(optlist)
 
     def setup_ctx(self, ctx):
@@ -54,25 +54,49 @@ Colors:
 * Light green node background : config = True
 * Light yellow node background : config = False
 * Red node foreground : mandatory = True
-* White leaf node background : index 
+* White leaf node background : index
 * Orange foreground : presence container
 
 For example in order to use the applet version embed the following
 into a web page:
 
-<applet code="treebolic.applet.Treebolic.class" archive="TreebolicAppletDom.jar" id="Treebolic" width="100%" height="100%">
+<applet code="treebolic.applet.Treebolic.class"
+        archive="TreebolicAppletDom.jar"
+        id="Treebolic" width="100%" height="100%">
   <param name="doc" value="ietf-netconf-monitoring.xml">
 </applet>
 
-The browser references an images folder which is installed at share/yang/images in the pyang installation folder.
+The browser references an images folder which is installed at
+share/yang/images in the pyang installation folder.
 Copy or link to that folder.
-""")    
+""")
 
 
-keyword2icon = {'container':'container.png','list':'list.png', 'leaf':'leaf.png','leaflist':'leaf-list.png', 'leafref':'leafref.png', 'choice':'choice.png', 'case':'case.png', 'module':'module.png', 'rpc':'hammer.png', 'action':'hammer.png', 'notificattion':'notification.png'}
-keyword2color = {'container':'container.png','leaf':'leaf.png','leaflist':'leaf-list.png', 'leafref':'leafref.png', 'choice':'choice.png', 'case':'case.png', 'module':'module.png'}
-fgcolors = {'index':'00cc00', 'mandatory':'ff0000', 'presence':'f79d5f'} # green, red, orange
-bgcolors = {'config':'e1f4b2', 'noconfig':'fafbb7'} # lightgreen, lightyellow
+keyword2icon = {'container':'container.png',
+                'list':'list.png',
+                'leaf':'leaf.png',
+                'leaflist':'leaf-list.png',
+                'leafref':'leafref.png',
+                'choice':'choice.png',
+                'case':'case.png',
+                'module':'module.png',
+                'rpc':'hammer.png',
+                'action':'hammer.png',
+                'notificattion':'notification.png'}
+keyword2color = {'container':'container.png',
+                 'leaf':'leaf.png',
+                 'leaflist':'leaf-list.png',
+                 'leafref':'leafref.png',
+                 'choice':'choice.png',
+                 'case':'case.png',
+                 'module':'module.png'}
+fgcolors = {'index':'00cc00',     # green
+            'mandatory':'ff0000', # red
+            'presence':'f79d5f',  # orange
+            }
+bgcolors = {'config':'e1f4b2',    # lightgreen
+            'noconfig':'fafbb7',  # lightyellow
+            }
 leafrefs = []
 
 def emit_tree(modules, fd, path):
@@ -105,7 +129,7 @@ def emit_tree(modules, fd, path):
     fd.write("<edges hyperbolic=\"true\">")
     print_edges(fd)
     fd.write("</edges>")
-    
+
     fd.write("</tree>\n")
     fd.write("<tools>\n")
     fd.write("<menu>\n")
@@ -140,10 +164,9 @@ def print_node(s, module, fd, path):
     bgcolorstring ="backcolor=\"" + bgcolors['noconfig'] + "\""
     if s.i_config == True:
         bgcolorstring = "backcolor=\"" + bgcolors['config'] + "\""
-        
+
     if s.keyword == 'leaf' and hasattr(s, 'i_is_key'):
         fd.write("<node id=\"%s\" forecolor=\"%s\">\n" %(fullpath(s), fgcolors['index']))
-       
     else:
         m = s.search_one('mandatory')
         if m is not None and m.arg == 'true':
@@ -152,7 +175,7 @@ def print_node(s, module, fd, path):
             p = s.search_one('presence')
             if p is not None:
                 colorstring = "forecolor=\"" + fgcolors['presence'] + "\""
-                
+
         fd.write("<node id=\"%s\" %s %s>\n" %(fullpath(s), colorstring, bgcolorstring))
 
     fd.write("<label> %s </label>\n" %name)
@@ -163,7 +186,6 @@ def print_node(s, module, fd, path):
     if kw in keyword2icon:
         fd.write("<img src=\"%s\"/>\n" %keyword2icon[kw])
 
-        
     descr = s.search_one("description")
     if descr is not None:
         content = descr.arg
@@ -206,7 +228,7 @@ def get_flags_str(s):
     if s.keyword == 'rpc' or s.keyword == ('tailf-common', 'action'):
         return '-x'
     elif s.keyword == 'notification':
-        return '-n'    
+        return '-n'
     elif hasattr(s, 'i_tree_flags_str'):
         return s.i_tree_flags_str
     elif s.i_config == True:
@@ -231,7 +253,6 @@ def get_typename(s):
         if p is not None:
             s = s + p.arg
       return s
-
 
 def fullpath(stmt):
         pathsep = "_I_"

@@ -103,8 +103,7 @@
       modules (<link
       xlink:href="http://tools.ietf.org/html/rfc6020">RFC
       6020</link>).  It is also used to convert YANG modules into
-      equivalent YIN modules.  From a valid module, a W3C XML Schema
-      (XSD) or a hybrid DSDL schema (<link
+      equivalent YIN modules.  From a valid module a hybrid DSDL schema (<link
       xlink:href="http://tools.ietf.org/html/rfc6110">RFC 6110</link>)
       can be generated.
     </para>
@@ -458,7 +457,7 @@
           </orderedlist>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term>
           <replaceable>file...</replaceable>
@@ -513,7 +512,7 @@
       <varlistentry>
         <term><emphasis>xsd</emphasis></term>
         <listitem>
-          <para>W3C XML Schema</para>
+          <para>DEPRECATED: W3C XML Schema</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -531,11 +530,12 @@
       <varlistentry>
         <term><emphasis>uml</emphasis></term>
         <listitem>
-          <para>Prints a file that can be read by plantuml to generate UML diagrams</para>
+          <para>Prints a file that can be read by plantuml to
+          generate UML diagrams</para>
         </listitem>
       </varlistentry>
       <varlistentry>
-	<term><emphasis>xmi</emphasis></term>
+        <term><emphasis>xmi</emphasis></term>
         <listitem>
           <para>Prints a file that can be imported to ArgoUML</para>
         </listitem>
@@ -549,25 +549,26 @@
       <varlistentry>
         <term><emphasis>hypertree</emphasis></term>
         <listitem>
-          <para>A hyperbolic tree navigator that can be displayed by treebolic</para>
+          <para>A hyperbolic tree navigator that can be displayed
+          by treebolic</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>jsonxsl</emphasis></term>
         <listitem>
           <para>Generates XSLT stylesheet for transforming XML
-	  instance documents into JSON.</para>
+          instance documents into JSON.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>jtox</emphasis></term>
         <listitem>
           <para>Generates a driver file for transforming JSON
-	  instance documents into XML.</para>
+          instance documents into XML.</para>
         </listitem>
       </varlistentry>
     </variablelist>
-    
+
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.yang_output">
@@ -662,6 +663,10 @@
   <refsect1 xml:id="man.1.pyang.xsd_output">
     <title>XSD Output</title>
     <para>
+      NOTE: The XSD ouput plugin is deprecated.  Use the dsdl plugin
+      instead.
+    </para>
+    <para>
       Options for the <emphasis>xsd</emphasis> output format:
     </para>
     <variablelist>
@@ -717,8 +722,8 @@
 
     <informalexample>
       <screen>$ pyang -f depend --depend-target mymod.c \
-      --depend-extension .yang mymod.yang
-      mymod.c : ietf-yang-types.yang my-types.yang</screen>
+    --depend-extension .yang mymod.yang
+mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </informalexample>
 
     <para>
@@ -794,9 +799,9 @@
       </varlistentry>
       <varlistentry>
         <term>
-	  <option>--tree-depth</option>
+          <option>--tree-depth</option>
           <replaceable>depth</replaceable>
-	</term>
+        </term>
         <listitem>
           <para>
             Levels of the tree to print.
@@ -805,9 +810,9 @@
       </varlistentry>
       <varlistentry>
         <term>
-	  <option>--tree-path</option>
+          <option>--tree-path</option>
           <replaceable>path</replaceable>
-	</term>
+        </term>
         <listitem>
           <para>
             Subtree to print.  The <replaceable>path</replaceable> is
@@ -833,16 +838,6 @@
     <para>
       XMI output specific option:
     </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--xmi-help</option></term>
-        <listitem>
-          <para>
-            Print help on XMI usage and exit.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.jstree">
@@ -874,19 +869,29 @@
     <title>hypertree output</title>
     <para>
       The <emphasis>hypertree</emphasis> output generates a hyperbolic YANG
-      browser. The generated xml file can be imported to treebolic. 
+      browser. The generated xml file can be imported to treebolic.
       Download treebolic from http://treebolic.sourceforge.net/en/index.html.
     </para>
-    <informalexample>
-      <screen>
-        Color coding in the tree:
-        * Light green node background : config = True
-        * Light yellow node background : config = False
-        * Red node foreground : mandatory = True
-        * White leaf node background : index 
-        * Orange foreground : presence container
-      </screen>
-    </informalexample>
+    <para>
+      Color coding in the tree:
+    <itemizedlist>
+      <listitem>
+        <para>Light green node background : config = True</para>
+      </listitem>
+      <listitem>
+        <para>Light yellow node background : config = False</para>
+      </listitem>
+      <listitem>
+        <para>Red node foreground : mandatory = True</para>
+      </listitem>
+      <listitem>
+        <para>White leaf node background : index</para>
+      </listitem>
+      <listitem>
+        <para>Orange foreground : presence container</para>
+      </listitem>
+    </itemizedlist>
+    </para>
 
     <para>
       The xml file references an images folder that needs to
@@ -899,12 +904,14 @@
     </para>
     <para>
       Prepare a HTML file that links to the generated XMI file:
-    </para>    
+    </para>
     <informalexample>
       <programlisting>
-        &lt;applet code="treebolic.applet.Treebolic.class" archive="TreebolicAppletDom.jar" id="Treebolic" width="100%" height="100%"&gt;
-        &lt;param name="doc" value="model.xml"&gt;
-        &lt;/applet&gt;
+&lt;applet code="treebolic.applet.Treebolic.class"
+        archive="TreebolicAppletDom.jar"
+        id="Treebolic" width="100%" height="100%"&gt;
+  &lt;param name="doc" value="model.xml"&gt;
+&lt;/applet&gt;
       </programlisting>
     </informalexample>
     <para>
@@ -945,8 +952,9 @@
       that it requires graphviz, http://www.graphviz.org/.
     </para>
     <para>
-      For large diagrams you may need to increase the Java heap-size by the -XmxSIZEm option, to java.
-      For example: <userinput>java -Xmx1024m -jar plantuml.jar ....</userinput>
+      For large diagrams you may need to increase the Java heap-size
+      by the -XmxSIZEm option, to java.  For example: <userinput>java
+      -Xmx1024m -jar plantuml.jar ....</userinput>
     </para>
     <para>
       Options for the <emphasis>UML</emphasis> output format:
@@ -967,27 +975,28 @@
         <term><option>--uml-split-pages=PAGES_LAYOUT</option></term>
         <listitem>
           <para>
-            Generate UML output split into pages, NxN, example 2x2. 
-            One .png file per page will be rendered. 
+            Generate UML output split into pages, NxN, example 2x2.
+            One .png file per page will be rendered.
           </para>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term><option>--uml-output-director=OUTPUT_DIRECTORY</option></term>
         <listitem>
           <para>
             Put the generated .png files(s) in the specified output directory.
-            Default is img/ 
+            Default is "img/"
           </para>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term><option>--uml-title=TITLE</option></term>
         <listitem>
           <para>
-            Set the title of the generated UML diagram, (default is YANG module name).
+            Set the title of the generated UML diagram, (default is
+            YANG module name).
           </para>
         </listitem>
       </varlistentry>
@@ -1008,25 +1017,27 @@
           </para>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term><option>--uml-long-identifers</option></term>
         <listitem>
           <para>
-            Use complete YANG schema identifiers for UML class names. 
+            Use complete YANG schema identifiers for UML class names.
           </para>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term><option>--uml-no</option></term>
         <listitem>
           <para>
-            This option suppresses specified arguments in the generated UML diagram. 
-            Valid arguments are:  uses, leafref, identity, identityref, typedef, annotation, 
-            import, circles, stereotypes. Annotation suppresses YANG constructs rendered as annotations, 
-            examples module info, config statements for containers. 
-            Example --uml-no=circles,stereotypes,typedef,import
+            This option suppresses specified arguments in the
+            generated UML diagram.  Valid arguments are: uses,
+            leafref, identity, identityref, typedef, annotation,
+            import, circles, stereotypes. Annotation suppresses YANG
+            constructs rendered as annotations, examples module info,
+            config statements for containers.  Example
+            --uml-no=circles,stereotypes,typedef,import
           </para>
         </listitem>
       </varlistentry>
@@ -1036,31 +1047,31 @@
         <term><option>--uml-truncate</option></term>
         <listitem>
           <para>
-            Leafref attributes and augment elements can have long paths making the 
-            classes too wide. This option will only show the tail of the path. 
-            Example  --uml-truncate=augment,leafref.
+            Leafref attributes and augment elements can have long
+            paths making the classes too wide. This option will only
+            show the tail of the path.  Example
+            --uml-truncate=augment,leafref.
           </para>
         </listitem>
       </varlistentry>
 
       <varlistentry>
-	<term><option>--uml-inline-groupings</option></term>
-	<listitem>
-	  <para>
-	    Render the diagram with groupings inlined.
-	  </para>
-	</listitem>
+        <term><option>--uml-inline-groupings</option></term>
+        <listitem>
+          <para>
+            Render the diagram with groupings inlined.
+          </para>
+        </listitem>
       </varlistentry>
 
       <varlistentry>
-	<term><option>--uml-inline-augments</option></term>
-	<listitem>
-	  <para>
-	    Render the diagram with augments inlined.
-	  </para>
-	</listitem>
+        <term><option>--uml-inline-augments</option></term>
+        <listitem>
+          <para>
+            Render the diagram with augments inlined.
+          </para>
+        </listitem>
       </varlistentry>
-
 
       <varlistentry>
         <term><option>--uml-filter-file=FILTER_FILE</option></term>
@@ -1081,7 +1092,7 @@
       The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
       stylesheet that can be used for transforming an XML instance
       document into JSON text as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00">draft-lhotka-netmod-yang-json-00</link>. The
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>. The
       XML document must be a valid instance of the data model which is
       specified as one or more input YANG modules on the command line
       (or via a &lt;hello&gt; message, see the
@@ -1102,16 +1113,16 @@
     </para>
     <itemizedlist>
       <listitem>
-	<para><emphasis>compact</emphasis>: setting this parameter to
-	1 results in a compact representation of the JSON text,
-	i.e. without any whitespace. The default is 0 which means that
-	the JSON output is pretty-printed.</para>
+        <para><emphasis>compact</emphasis>: setting this parameter to
+        1 results in a compact representation of the JSON text,
+        i.e. without any whitespace. The default is 0 which means that
+        the JSON output is pretty-printed.</para>
       </listitem>
       <listitem>
-	<para><emphasis>ind-step</emphasis>: indentation step,
-	i.e. the number of spaces to use for each level. The default
-	value is 2 spaces. Note that this setting is only useful for
-	pretty-printed output (compact=0).</para>
+        <para><emphasis>ind-step</emphasis>: indentation step,
+        i.e. the number of spaces to use for each level. The default
+        value is 2 spaces. Note that this setting is only useful for
+        pretty-printed output (compact=0).</para>
       </listitem>
     </itemizedlist>
     <para>
@@ -1128,7 +1139,7 @@
       which can be used as one of the inputs to
       <command>json2xml</command> for transforming a JSON document
       to XML as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json-00">draft-lhotka-netmod-yang-json-00</link>.
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>.
     </para>
     <para>
       The <emphasis>jtox</emphasis> output itself is a JSON document
@@ -1186,34 +1197,33 @@
     </para>
     <informalexample>
       <programlisting>
-        /* without deref */
+/* without deref */
 
-        leaf my-ip {
-        type leafref {
-        path "/server/ip";
-        }
-        }
-        leaf my-port {
-        type leafref {
-        path "/server[ip = current()/../my-ip]/port";
-        }
-        }
+leaf my-ip {
+  type leafref {
+    path "/server/ip";
+  }
+}
+leaf my-port {
+  type leafref {
+    path "/server[ip = current()/../my-ip]/port";
+  }
+}
 
-        /* with deref */
+/* with deref */
 
-        leaf my-ip {
-        type leafref {
-        path "/server/ip";
-        }
-        }
-        leaf my-port {
-        type leafref {
-        path "deref(../my-ip)/../port";
-        }
-        }
+leaf my-ip {
+  type leafref {
+    path "/server/ip";
+  }
+}
+leaf my-port {
+  type leafref {
+    path "deref(../my-ip)/../port";
+  }
+}
       </programlisting>
     </informalexample>
-    
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.example">
@@ -1244,10 +1254,10 @@
 
     <informalexample>
       <screen>
-        $ pyang -f uml ietf-netconf-monitoring.yang > \
-        ietf-netconf-monitoring.uml
-        $ java -jar plantuml.jar ietf-netconf-monitoring.uml 
-        $ open img/ietf-netconf-monitoring.png 
+$ pyang -f uml ietf-netconf-monitoring.yang > \
+    ietf-netconf-monitoring.uml
+$ java -jar plantuml.jar ietf-netconf-monitoring.uml
+$ open img/ietf-netconf-monitoring.png
       </screen>
     </informalexample>
   </refsect1>

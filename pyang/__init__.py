@@ -13,19 +13,19 @@ from . import grammar
 from . import util
 from . import statements
 
-__version__ = '1.3'
-__date__ = '2013-01-31'
+__version__ = '1.4'
+__date__ = '2013-10-24'
 
 class Context(object):
     """Class which encapsulates a parse session"""
 
     def __init__(self, repository):
         """`repository` is a `Repository` instance"""
-        
+
         self.modules = {}
         """dict of (modulename,revision):<class Statement>
         contains all modules and submodule found"""
-        
+
         self.revs = {}
         """dict of modulename:(revision,handle)
         contains all modulenames and revisions found in the repository"""
@@ -76,8 +76,8 @@ class Context(object):
             else:
                 error.err_add(self.errors, module.pos, 'WBAD_MODULE_NAME',
                               (module.arg, ref, expect_modulename))
+        latest_rev = util.get_latest_revision(module)
         if expect_revision is not None:
-            latest_rev = util.get_latest_revision(module)
             if expect_revision != latest_rev:
                 if expect_failure_error:
                     error.err_add(self.errors, module.pos, 'BAD_REVISION',
@@ -86,6 +86,11 @@ class Context(object):
                 else:
                     error.err_add(self.errors, module.pos, 'WBAD_REVISION',
                                   (latest_rev, ref, expect_revision))
+
+        if module.arg not in self.revs:
+            self.revs[module.arg] = []
+            revs = self.revs[module.arg]
+            revs.append((latest_rev, None))
 
         if sys.version < '3':
             module.i_adler32 = zlib.adler32(text)
@@ -103,7 +108,8 @@ class Context(object):
         top_keywords = ['module', 'submodule']
         if module.keyword not in top_keywords:
             error.err_add(self.errors, module.pos,
-                          'UNEXPECTED_KEYWORD_N', (module.keyword, top_keywords))
+                          'UNEXPECTED_KEYWORD_N',
+                          (module.keyword, top_keywords))
             return None
 
         rev = util.get_latest_revision(module)
@@ -137,7 +143,7 @@ class Context(object):
                 return self.modules[(modulename, revision)]
         else:
             return None
-    
+
     def _get_latest_rev(self, revs):
         self._ensure_revs(revs)
         latest = None
@@ -164,7 +170,7 @@ class Context(object):
 
                 if format == None:
                     format = util.guess_format(text)
-                    
+
                 if format == 'yin':
                     p = yin_parser.YinParser({'no_include':True,
                                               'no_extensions':True})
@@ -215,7 +221,7 @@ class Context(object):
             (revision, handle) = self._get_latest_rev(self.revs[modulename])
             if (modulename, revision) in self.modules:
                 return self.modules[(modulename, revision)]
-            
+
         if handle is None:
             module = None
         elif handle[0] == 'parsed':
@@ -232,7 +238,8 @@ class Context(object):
             try:
                 r = self.repository.get_module_from_handle(handle)
                 (ref, format, text) = r
-                module = self.add_module(ref, text, format, modulename, revision)
+                module = self.add_module(ref, text, format,
+                                         modulename, revision)
             except self.repository.ReadError as ex:
                 error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
                 module = None
@@ -284,7 +291,7 @@ class Context(object):
             (revision, handle) = self._get_latest_rev(self.revs[modulename])
             if (modulename, revision) in self.modules:
                 return self.modules[(modulename, revision)]
-            
+
         if handle[0] == 'parsed':
             module = handle[1]
             return module
@@ -362,7 +369,7 @@ class FileRepository(Repository):
 
         Repository.__init__(self)
         self.dirs = path.split(os.pathsep)
-        
+
         # add standard search path
         self.dirs.append('.')
 
@@ -400,7 +407,7 @@ class FileRepository(Repository):
                         absfilename = absfilename[2:]
                     handle = (format, absfilename)
                     self.modules.append((name, rev, handle))
-                    
+
     # FIXME: bad strategy; when revisions are not used in the filename
     # this code parses all modules :(  need to do this lazily
     def _peek_revision(self, absfilename, format, ctx):
@@ -413,7 +420,7 @@ class FileRepository(Repository):
             p = yin_parser.YinParser()
         else:
             p = yang_parser.YangParser()
-        
+
         # FIXME: optimization - do not parse the entire text
         # just to read the revisions...
         module = p.parse(ctx, absfilename, text)
