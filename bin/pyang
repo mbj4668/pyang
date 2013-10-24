@@ -126,6 +126,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             (level, fmt) = error.error_codes[tag]
             if error.is_warning(level):
                 print("Warning: %s" % tag)
+            elif error.allow_warning(level):
+                print("Minor Error:   %s" % tag)
             else:
                 print("Error:   %s" % tag)
             print("Message: %s" % fmt)
@@ -289,6 +291,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 exit_code = 1
             elif 'none' in o.warnings:
                 continue
+        elif etag in o.warnings and error.allow_warning(elevel):
+            kind = "warning"
         else:
             kind = "error"
             exit_code = 1
