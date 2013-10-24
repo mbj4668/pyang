@@ -7,6 +7,7 @@
          tree: mark lists with '*'
          allow 'must' under 'anyxml'
          fixed unique check for keys
+         reject leaf-list of type empty
 
          #83 - reject identifiers that start with "[xX][mM][lL]"
          #89 - dsdl: handle % in strings
