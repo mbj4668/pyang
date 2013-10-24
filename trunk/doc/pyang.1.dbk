@@ -199,6 +199,8 @@
           <para>
             Treat <replaceable>errorcode</replaceable> as a warning,
             even if <option>-Werror</option> is given.
+            <replaceable>errorcode</replaceable> must be a warning or
+            a minor error.
           </para>
           <para>
             Use <option>--list-errors</option> to get a listing of all

@@ -33,6 +33,11 @@ class EmitError(Exception):
 
 ### error codes
 
+## level:
+##    1: critical error, can not be made into a warning
+##    2: major error, can not be made into a warning
+##    3: minor error, can be made into warning with -W
+##    4: warning
 error_codes = \
     {
     'READ_ERROR':
@@ -78,7 +83,7 @@ error_codes = \
       (1,
        'did not expect an argument, got "%s"'),
     'XML_IDENTIFIER':
-      (1,
+      (3,
        'illegal identifier "%s", must not start with [xX][mM][lL]'),
     'TRAILING_GARBAGE':
       (2,
@@ -111,7 +116,7 @@ error_codes = \
       (4,
        'unexpected modulename "%s" in %s, should be %s'),
     'BAD_REVISION':
-      (2,
+      (3,
        'unexpected latest revision "%s" in %s, should be %s'),
     'WBAD_REVISION':
       (4,
@@ -236,7 +241,7 @@ error_codes = \
       (4,
        'all keys in the list are redundantly present in the unique statement'),
     'DUPLICATE_KEY':
-      (1,
+      (2,
        'the key "%s" must not be listed more than once'),
     'DUPLICATE_UNIQUE':
       (3,
@@ -371,13 +376,13 @@ error_codes = \
       (2,
        'config true cannot be set when the parent is config false'),
     'XPATH_SYNTAX_ERROR':
-      (1,
+      (2,
        'XPath syntax error: %s'),
     'XPATH_VARIABLE':
-      (1,
+      (2,
        'XPath variable "%s" is not defined in the XPath context'),
     'XPATH_FUNCTION':
-      (1,
+      (2,
        'XPath function "%s" is not defined in the XPath context'),
     'AUGMENT_MANDATORY':
       (1,
@@ -455,3 +460,5 @@ def is_warning(level):
 def is_error(level):
     return level < 4
 
+def allow_warning(level):
+    return level > 2
