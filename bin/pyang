@@ -138,6 +138,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         sys.stderr.write("no format specified\n")
         sys.exit(1)
 
+    # patch the error spec so that -W errors are treated as warnings
+    for w in o.warnings:
+        if w in error.error_codes:
+            (level, wstr) = error.error_codes[w]
+            if error.allow_warning(level):
+                error.error_codes[w] = (4, wstr)
+
     filenames = args
 
     path = ":".join(o.path)
@@ -291,8 +298,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 exit_code = 1
             elif 'none' in o.warnings:
                 continue
-        elif etag in o.warnings and error.allow_warning(elevel):
-            kind = "warning"
         else:
             kind = "error"
             exit_code = 1
