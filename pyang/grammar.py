@@ -1,5 +1,7 @@
 """Description of YANG & YIN grammar."""
 
+import re
+
 from . import util
 from . import error
 from . import syntax
@@ -508,6 +510,10 @@ where <occurance> is one of: '?', '1', '+', '*'.
 and <case> is a list of substatements
 """
 
+
+re_identifier_illegal_prefix = re.compile("^[xX][mM][lL]")
+
+
 extension_modules = []
 """A list of YANG module names for which extensions are validated"""
 
@@ -574,7 +580,12 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                   syntax.arg_type_map[arg_type](stmt.arg) == False):
                 error.err_add(ctx.errors, stmt.pos,
                               'BAD_VALUE', (stmt.arg, arg_type))
-            elif (arg_type == 'identifier' and ctx.max_identifier_len is not None
+            elif (arg_type == 'identifier' and
+                  re_identifier_illegal_prefix.search(stmt.arg) is not None):
+                error.err_add(ctx.errors, stmt.pos, 'XML_IDENTIFIER',
+                              stmt.arg)
+            elif (arg_type == 'identifier' and
+                  ctx.max_identifier_len is not None
                   and len(stmt.arg) > ctx.max_identifier_len):
                 error.err_add(ctx.errors, stmt.pos, 'LONG_IDENTIFIER',
                               (stmt.arg, ctx.max_identifier_len))
