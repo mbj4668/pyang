@@ -859,7 +859,16 @@ def v_type_leaf(ctx, stmt):
             return False
 
 def v_type_leaf_list(ctx, stmt):
-    _v_type_common_leaf(ctx, stmt)
+    if _v_type_common_leaf(ctx, stmt) == False:
+        return
+    type_ = stmt.search_one('type')
+    if type_ is not None:
+        t = has_type(type_, ['empty'])
+        if t is not None:
+            err_add(ctx.errors, stmt.pos, 'BAD_TYPE_IN_LEAF_LIST',
+                    (t.arg))
+            return False
+    return True
 
 def _v_type_common_leaf(ctx, stmt):
     stmt.i_leafref = None # path_type_spec
