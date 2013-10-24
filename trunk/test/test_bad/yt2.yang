@@ -73,4 +73,8 @@ module yt2 {
         }
     }
 
+    container xml; // error illegal identifier
+    container axml; // legal
+    container xMLprefix; // error
+
 }

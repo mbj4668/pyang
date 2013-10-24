@@ -77,6 +77,9 @@ error_codes = \
     'UNEXPECTED_ARGUMENT':
       (1,
        'did not expect an argument, got "%s"'),
+    'XML_IDENTIFIER':
+      (1,
+       'illegal identifier "%s", must not start with [xX][mM][lL]'),
     'TRAILING_GARBAGE':
       (2,
        'trailing garbage after module'),

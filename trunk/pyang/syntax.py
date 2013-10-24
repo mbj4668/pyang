@@ -5,7 +5,7 @@ import re
 ### Regular expressions - constraints on arguments
 
 # keywords and identifiers
-identifier = r"(?![xX][mM][lL])[_A-Za-z][._\-A-Za-z0-9]*"
+identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
 prefix = identifier
 keyword = '((' + prefix + '):)?(' + identifier + ')'
 
