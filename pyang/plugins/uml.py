@@ -122,8 +122,8 @@ class UMLPlugin(plugin.PyangPlugin):
         umldoc = uml_emitter(ctx)
         umldoc.emit(modules, fd)
 
-    def fatal(self, exitCode=1):
-        raise error.EmitError(self, exitCode)
+    def fatal(self, errstr, exitCode=1):
+        raise error.EmitError(errstr, exitCode)
 
 
 class uml_emitter:
