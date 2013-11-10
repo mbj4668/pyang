@@ -2539,10 +2539,10 @@ class Statement(object):
         for x in self.substmts:
             x.pprint(indent + ' ', f)
         if hasattr(self, 'i_children') and len(self.i_children) > 0:
-           print indent + '--- BEGIN i_children ---'
+           print(indent + '--- BEGIN i_children ---')
            for x in self.i_children:
                x.pprint(indent + ' ', f)
-           print indent + '--- END i_children ---'
+           print(indent + '--- END i_children ---')
 
 
 ## FIXME: not used
