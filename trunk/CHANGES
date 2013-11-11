@@ -1,3 +1,6 @@
+   1.4.1 - 2013-11-11
+         #96 - 1.4 doesn't work with Pyhton 3
+
    1.4 - 2013-10-24
          added option --lax-xpath-checks
          deprecated the xsd output plugin
