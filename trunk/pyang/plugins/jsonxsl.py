@@ -5,6 +5,7 @@ that translates datastore contents from XML to JSON.
 """
 
 import os
+import sys
 import xml.etree.ElementTree as ET
 
 from pyang import plugin, statements, error
@@ -70,7 +71,8 @@ def emit_json_xsl(modules, ctx, fd):
         when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
         xsl_text(module.i_modulename, when)
         process_module(module)
-    tree.write(fd, encoding="utf-8", xml_declaration=True)
+    tree.write(fd, encoding="utf-8" if sys.version < "3" else "unicode",
+               xml_declaration=True)
 
 def process_module(yam):
     """Process data nodes, RPCs and notifications in a single module."""
