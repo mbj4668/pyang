@@ -7,7 +7,9 @@ import re
 
 modules = glob.glob(os.path.join('modules', '*.yang'))
 xslt = glob.glob(os.path.join('xslt', '*.xsl'))
-images = glob.glob(os.path.join('tools/images', '*'))
+schema = glob.glob(os.path.join('schema', '*.rng'))
+images = glob.glob(os.path.join('tools', 'images', '*'))
+man1 = glob.glob(os.path.join('man', 'man1', '*.1'))
 
 class PyangDist(Distribution):
 
@@ -18,10 +20,7 @@ class PyangDist(Distribution):
       """
 
       def preprocess_files(self, prefix):
-            """Insert the installation prefix where necessary.
-
-            The template files have the '.in' suffix and the locations
-            are marked with '@prefix@'.
+            """Change the installation prefix where necessary.
             """
             if prefix is None: return
             files = ("bin/yang2dsdl", "man/man1/yang2dsdl.1",
@@ -55,14 +54,12 @@ setup(name='pyang',
       description="A YANG (RFC 6020) validator and converter",
       url='http://code.google.com/p/pyang',
       distclass=PyangDist,
-      scripts=['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl'],
+      scripts=['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml'],
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],
       data_files=[('.', []),
-                  ('share/man/man1', ['man/man1/pyang.1',
-                                      'man/man1/yang2dsdl.1']),
+                  ('share/man/man1', man1),
                   ('share/yang/modules', modules),
                   ('share/yang/xslt', xslt),
                   ('share/yang/images', images),
-                  ('share/yang/schema', ['schema/yin.rng',
-                                         'schema/relaxng-lib.rng'])]
+                  ('share/yang/schema', schema)]
       )
