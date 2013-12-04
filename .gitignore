@@ -1,5 +1,6 @@
 MANIFEST
 TAGS
+build
 dist
 *.rnc
 schemas.xml
