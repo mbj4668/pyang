@@ -1161,6 +1161,8 @@ class HybridDSDLSchema(object):
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
         if bid not in self.identity_deps:
+            sys.stderr.write("%s: warning: identityref has empty value space\n"
+                             % tchain[0].pos)
             p_elem.subnode(SchemaNode("notAllowed"))
             p_elem.occur = 0
             return
