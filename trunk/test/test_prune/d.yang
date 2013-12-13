@@ -1,0 +1,18 @@
+module d {
+  namespace urn:d;
+  prefix d;
+
+  import a {
+    prefix a;
+  }
+
+  deviation "/a:x/a:baz" {
+    deviate not-supported;
+  }
+
+  deviation "/a:x/a:bubba" {
+    deviate replace {
+      type int32;
+    }
+  }
+}

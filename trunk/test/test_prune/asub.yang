@@ -1,0 +1,22 @@
+submodule asub {
+  belongs-to a {
+    prefix a;
+  }
+
+  include atop;
+  feature fox;
+
+  notification bar-notif {
+    if-feature bar;
+  }
+
+  notification fox-notif {
+    if-feature fox;
+  }
+
+  augment /a:top {
+    if-feature bar;
+    container bar-sub;
+  }
+
+}

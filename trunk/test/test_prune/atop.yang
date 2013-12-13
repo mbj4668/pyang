@@ -1,0 +1,10 @@
+submodule atop {
+  belongs-to a {
+    prefix a;
+  }
+
+  feature bar;
+
+  container top;
+
+}

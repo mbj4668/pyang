@@ -123,6 +123,8 @@ _validation_phases = [
     'type',
     'type_2',
 
+    'prune',
+
     # expansion phases:
     #   first expansion: copy data definition stmts into i_children
     'expand_1',
@@ -181,6 +183,9 @@ _validation_map = {
     ('type_2', 'typedef'):lambda ctx, s: v_type_typedef(ctx, s),
     ('type_2', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
     ('type_2', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
+
+    ('prune', 'module'):lambda ctx, s: v_prune_module(ctx, s),
+    ('prune', 'submodule'):lambda ctx, s: v_prune_module(ctx, s),
 
     ('expand_1', 'module'):lambda ctx, s: v_expand_1_children(ctx, s),
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
@@ -384,6 +389,7 @@ def v_init_module(ctx, stmt):
     stmt.i_features = {}
     stmt.i_identities = {}
     stmt.i_extensions = {}
+    stmt.i_prune = []
 
     stmt.i_including_modulename = None
 
@@ -1053,6 +1059,15 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
         else:
             stmt.i_feature = pmodule.i_features[name]
             v_type_feature(ctx, stmt.i_feature)
+            if pmodule.i_modulename in ctx.features:
+                if name not in ctx.features[pmodule.i_modulename]:
+                    # prune this statement.
+                    # since this function can be called several times,
+                    # (from v_type_feature), we must check if the stmt
+                    # already has been scheduled for removal
+                    if stmt.parent not in stmt.i_module.i_prune:
+                        stmt.i_module.i_prune.append(stmt.parent)
+
     if stmt.i_feature is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'FEATURE_NOT_FOUND', (name, pmodule.arg))
@@ -1106,6 +1121,13 @@ def v_type_base(ctx, stmt, no_error_report=False):
     if stmt.i_identity is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
+
+### Prune phase
+
+def v_prune_module(ctx, stmt):
+    for s in stmt.i_prune:
+        idx = s.parent.substmts.index(s)
+        del s.parent.substmts[idx]
 
 ### Expand phases
 
