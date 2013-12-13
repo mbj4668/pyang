@@ -1,3 +1,11 @@
+   1.5 -
+         added --features to prune the data model by removing unsupported
+           features
+         added --deviation-module to prune the data module by applying
+           devaitions from a separate module
+         added outpur plugin 'capability' to print the capability string for
+           a module
+
    1.4.1 - 2013-11-11
          #96 - 1.4 doesn't work with Pyhton 3
 

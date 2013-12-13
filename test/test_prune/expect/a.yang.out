@@ -1,0 +1,8 @@
+module: a
+   +--rw top
+   +--rw x
+      +--rw bubba?   int32
+rpcs:
+   +---x foo-rpc     {foo}?
+notifications:
+   +---n fox-notif     {fox}?

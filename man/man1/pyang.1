@@ -208,6 +208,51 @@ Write the output to the file
 instead of stdout\&.
 .RE
 .PP
+\fB\-\-features\fR \fIfeatures\fR
+.RS 4
+
+\fIfeatures\fR
+is a string on the form
+\fImodulename\fR:[\fIfeature\fR(,\fIfeature\fR)*]
+.sp
+This option is used to prune the data model by removing all nodes that are defined with a "if\-feature" that is not listed as
+\fIfeature\fR\&. This option affects all output formats\&.
+.sp
+This option can be given multiple times\&.
+.sp
+For example, to view the tree output for a module with all if\-feature:d nodes removed, do:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-f tree \-\-features mymod: mymod\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-\-deviation\-module\fR \fIfile\fR
+.RS 4
+This option is used to apply the deviations defined in
+\fIfile\fR\&. This option affects all output formats\&.
+.sp
+This option can be given multiple times\&.
+.sp
+For example, to view the tree output for a module with some deviations applied, do:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-f tree \-\-deviation\-module mymod\-devs\&.yang mymod\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
 \fB\-p\fR \fB\-\-path\fR \fIpath\fR
 .RS 4
 
@@ -316,12 +361,12 @@ option\&. These options and formats are listed in
 .PP
 \fIyin\fR
 .RS 4
-the XML syntax of YANG
+The XML syntax of YANG\&.
 .RE
 .PP
 \fIyang\fR
 .RS 4
-normal YANG syntax
+Normal YANG syntax\&.
 .RE
 .PP
 \fIdsdl\fR
@@ -334,37 +379,37 @@ for details\&.
 .PP
 \fIxsd\fR
 .RS 4
-DEPRECATED: W3C XML Schema
+DEPRECATED: W3C XML Schema\&.
 .RE
 .PP
 \fIdepend\fR
 .RS 4
-Prints a Makefile dependency rule for the module
+Prints a Makefile dependency rule for the module\&.
 .RE
 .PP
 \fItree\fR
 .RS 4
-tree structure of the module
+Prints a tree structure of the module\&.
 .RE
 .PP
 \fIuml\fR
 .RS 4
-Prints a file that can be read by plantuml to generate UML diagrams
+Prints a file that can be read by plantuml to generate UML diagrams\&.
 .RE
 .PP
 \fIxmi\fR
 .RS 4
-Prints a file that can be imported to ArgoUML
+Prints a file that can be imported to ArgoUML\&.
 .RE
 .PP
 \fIjstree\fR
 .RS 4
-HTML/JavaScript tree navigator
+HTML/JavaScript tree navigator\&.
 .RE
 .PP
 \fIhypertree\fR
 .RS 4
-A hyperbolic tree navigator that can be displayed by treebolic
+A hyperbolic tree navigator that can be displayed by treebolic\&.
 .RE
 .PP
 \fIjsonxsl\fR
@@ -375,6 +420,11 @@ Generates XSLT stylesheet for transforming XML instance documents into JSON\&.
 \fIjtox\fR
 .RS 4
 Generates a driver file for transforming JSON instance documents into XML\&.
+.RE
+.PP
+\fIcapability\fR
+.RS 4
+Prints a capabaility URL for each given module, with the features and devations given\&.
 .RE
 .SH "YANG OUTPUT"
 .PP

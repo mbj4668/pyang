@@ -386,6 +386,58 @@
 
       <varlistentry>
         <term>
+          <option>--features</option>
+          <replaceable>features</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <replaceable>features</replaceable> is a string on the form <replaceable>modulename</replaceable>:[<replaceable>feature</replaceable>(,<replaceable>feature</replaceable>)*]
+          </para>
+          <para>
+              This option is used to prune the data model by removing
+              all nodes that are defined with a "if-feature" that is
+              not listed as <replaceable>feature</replaceable>.  This option
+              affects all output formats.
+          </para>
+          <para>
+              This option can be given multiple times.
+          </para>
+          <para>
+              For example, to view the tree output for a module with all
+              if-feature:d nodes removed, do:
+          </para>
+          <informalexample>
+            <screen>$ pyang -f tree --features mymod: mymod.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--deviation-module</option>
+          <replaceable>file</replaceable>
+        </term>
+        <listitem>
+          <para>
+              This option is used to apply the deviations defined in
+              <replaceable>file</replaceable>.  This option
+              affects all output formats.
+          </para>
+          <para>
+              This option can be given multiple times.
+          </para>
+          <para>
+              For example, to view the tree output for a module with some
+              deviations applied, do:
+          </para>
+          <informalexample>
+            <screen>$ pyang -f tree --deviation-module mymod-devs.yang mymod.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>-p</option>
           <option>--path</option>
           <replaceable>path</replaceable>
@@ -492,13 +544,13 @@
       <varlistentry>
         <term><emphasis>yin</emphasis></term>
         <listitem>
-          <para>the XML syntax of YANG</para>
+          <para>The XML syntax of YANG.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>yang</emphasis></term>
         <listitem>
-          <para>normal YANG syntax</para>
+          <para>Normal YANG syntax.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -514,45 +566,45 @@
       <varlistentry>
         <term><emphasis>xsd</emphasis></term>
         <listitem>
-          <para>DEPRECATED: W3C XML Schema</para>
+          <para>DEPRECATED: W3C XML Schema.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>depend</emphasis></term>
         <listitem>
-          <para>Prints a Makefile dependency rule for the module</para>
+          <para>Prints a Makefile dependency rule for the module.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>tree</emphasis></term>
         <listitem>
-          <para>tree structure of the module</para>
+          <para>Prints a tree structure of the module.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>uml</emphasis></term>
         <listitem>
           <para>Prints a file that can be read by plantuml to
-          generate UML diagrams</para>
+          generate UML diagrams.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>xmi</emphasis></term>
         <listitem>
-          <para>Prints a file that can be imported to ArgoUML</para>
+          <para>Prints a file that can be imported to ArgoUML.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>jstree</emphasis></term>
         <listitem>
-          <para>HTML/JavaScript tree navigator</para>
+          <para>HTML/JavaScript tree navigator.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>hypertree</emphasis></term>
         <listitem>
           <para>A hyperbolic tree navigator that can be displayed
-          by treebolic</para>
+          by treebolic.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -567,6 +619,13 @@
         <listitem>
           <para>Generates a driver file for transforming JSON
           instance documents into XML.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>capability</emphasis></term>
+        <listitem>
+          <para>Prints a capabaility URL for each given module, with
+          the features and devations given.</para>
         </listitem>
       </varlistentry>
     </variablelist>
