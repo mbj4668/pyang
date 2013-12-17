@@ -199,7 +199,8 @@ class SchemaNode(object):
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
         middle = self._chorder() if self.children else "<empty/>%s"
-        return self.start_tag() + middle + self.end_tag()
+        return (self.start_tag() + self.serialize_annots()
+                + middle + self.end_tag())
 
     def _element_format(self, occur):
         """Return the serialization format for an element node.""" 
