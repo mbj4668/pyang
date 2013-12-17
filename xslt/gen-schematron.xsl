@@ -21,7 +21,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 <!--
 The Schematron schema is generated from the hybrid schema and contains
-the following (Schematron) patterns:
+the following Schematron patterns:
 
 1. One pattern for each YANG module that contributes to the data
    model. Its "id" attribute is the module name.
@@ -265,7 +265,7 @@ The stylesheet uses the following modes:
   <xsl:template match="/rng:grammar">
     <xsl:call-template name="yam-namespaces"/>
     <xsl:call-template name="nc-namespace"/>
-    <!-- The global 'root' variable contains the target-dependent
+    <!-- Schematron variable 'root' contains the target-dependent
 	 prefix of every absolute path. -->
     <xsl:element name="sch:let">
       <xsl:attribute name="name">root</xsl:attribute>
@@ -274,7 +274,7 @@ The stylesheet uses the following modes:
       </xsl:attribute>
     </xsl:element>
     <xsl:apply-templates
-	select="rng:define[descendant::rng:*[&annots;]]"/>
+	select="rng:define[@nma:leafref|descendant::rng:*[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -287,15 +287,27 @@ The stylesheet uses the following modes:
       <!-- Handle descendant top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule"/>
       <!-- Handle all descendant element patterns with annots. -->
-      <xsl:apply-templates select="descendant::rng:element">
-	<xsl:with-param name="prefix">$pref</xsl:with-param>
-      </xsl:apply-templates>
+      <xsl:choose>
+	<xsl:when test="@nma:leafref">
+	  <xsl:element name="sch:rule">
+	    <xsl:attribute name="context">$start</xsl:attribute>
+	    <xsl:apply-templates select="@nma:leafref">
+	      <xsl:with-param name="prefix">$pref</xsl:with-param>
+	    </xsl:apply-templates>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:apply-templates select="descendant::rng:element">
+	    <xsl:with-param name="prefix">$pref</xsl:with-param>
+	  </xsl:apply-templates>
+	</xsl:otherwise>
+      </xsl:choose>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-	select="rng:define[descendant::rng:*[&annots;]]"/>
+	select="rng:define[@nma:leafref|descendant::rng:*[&annots;]]"/>
     <xsl:choose>
       <xsl:when test="$target='data' or $target='config' or
 		      $target='get-reply' or $target='get-config-reply'">
@@ -455,7 +467,7 @@ The stylesheet uses the following modes:
     <xsl:param name="prefix"/>
     <xsl:choose>
       <xsl:when
-	  test="key('refdef',@name)[descendant::rng:*[&annots;]]">
+	  test="key('refdef',@name)[@nma:leafref|descendant::rng:*[&annots;]]">
 	<!-- A "rng:define" with annotations: instantiate the
 	     corresponding abstract pattern.-->
 	<xsl:element name="sch:pattern">
