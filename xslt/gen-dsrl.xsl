@@ -432,10 +432,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
     </xsl:variable>
+    <xsl:variable name="act-prefix" select="substring-before($name,':')"/>
     <xsl:element name="{$name}"
-		 namespace="{namespace::*[name()=$prefix]}">
+		 namespace="{namespace::*[name()=$act-prefix]}">
       <xsl:apply-templates select="rng:*" mode="copy">
-	<xsl:with-param name="prefix" select="$prefix"/>
+	<xsl:with-param name="prefix" select="$act-prefix"/>
       </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
@@ -447,16 +448,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
     </xsl:variable>
-    <xsl:variable name="act-prefix">
-      <xsl:choose>
-	<xsl:when test="contains(@name,':')">
-	  <xsl:value-of select="substring-before(@name,':')"/>
-	</xsl:when>
-	<xsl:otherwise>
-	  <xsl:value-of select="$prefix"/>
-	</xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
+    <xsl:variable name="act-prefix" select="substring-before($name,':')"/>
     <xsl:element name="{$name}"
 		 namespace="{namespace::*[name()=$act-prefix]}">
       <xsl:value-of select="@nma:default"/>
