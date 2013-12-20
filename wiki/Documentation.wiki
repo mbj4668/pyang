@@ -1,8 +1,5 @@
 #summary Links to YANG and pyang docs
 
-Nice documentation about YANG and related tools is available from
-http://www.yang-central.org, in particular:
-
 = Tutorials =
 
   * [http://www.yang-central.org/twiki/bin/view/Main/DhcpTutorial DHCP Tutorial] explains the basic concepts of YANG on a canonical example of a DHCP server configuration.
@@ -13,3 +10,7 @@ http://www.yang-central.org, in particular:
 
   * [http://www.yang-central.org/twiki/pub/Main/YangTools/pyang.1.html pyang]
   * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang2dsdl.1.html yang2dsdl]
+
+Other documentation about YANG and related tools is available from
+http://www.yang-central.org.
+
