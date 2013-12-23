@@ -70,6 +70,26 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:value-of select="$name"/>
   </xsl:template>
 
+  <xsl:template name="actual-prefix">
+    <!-- Replace first '$pref' variable with the current prefix -->
+    <xsl:param name="text" select="@nma:when"/>
+    <xsl:param name="prefix"/>
+    <xsl:choose>
+      <xsl:when test="contains($text,'$pref:')">
+	<xsl:value-of select="substring-before($text,'$pref:')"/>
+	<xsl:value-of select="concat($prefix,':')"/>
+	<xsl:call-template name="actual-prefix">
+	  <xsl:with-param name="text"
+			  select="substring-after($text,'$pref:')"/>
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name="parent-path">
     <!-- Slash-separated path from root to the parent node of the
 	 context element, with 'when' conditions, if they are present. -->
@@ -82,7 +102,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	<xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
       <xsl:if test="@nma:when">
-	<xsl:value-of select="concat('[',@nma:when,']')"/>
+	<xsl:text>[</xsl:text>
+	<xsl:call-template name="actual-prefix">
+	  <xsl:with-param name="prefix" select="$prefix"/>
+	</xsl:call-template>
+	<xsl:text>]</xsl:text>
       </xsl:if>
     </xsl:for-each>
   </xsl:template>
