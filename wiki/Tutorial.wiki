@@ -1,0 +1,6 @@
+#summary Working with data models and instances.
+
+= Introduction =
+
+Foo.
+
