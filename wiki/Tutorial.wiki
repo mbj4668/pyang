@@ -1,8 +1,10 @@
 #summary Working with data models and instances.
+#labels YANG,XML,configuration,data models
 
 = Introduction =
 
 This is a tutorial-style guide to the development of
 [http://tools.ietf.org/html/rfc6020 YANG] data models and
-corresponding data instances.
+corresponding data instances – configurations, state data, RPC
+requests or replies, and notifications.
 
