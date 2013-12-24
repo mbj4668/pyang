@@ -8,3 +8,27 @@ This is a tutorial-style guide to the development of
 corresponding data instances – configurations, state data, RPC
 requests or replies, and notifications.
 
+Several steps in the workflow involve editing files. They will be
+explained using the [http://www.gnu.org/software/emacs Emacs] text
+editor and, in particular, with its excellent
+[http://www.thaiopensource.com/nxml-mode/ nXML mode] that allow for
+schema-aware editing of XML files and on-the-fly validation. Of course, other
+editors may be used instead, although editing XML files may not be as
+convenient as it is in Emacs.
+
+= YANG Data Model =
+
+In YANG terms, a data model consists of one or more YANG
+modules. Pyang can parse several YANG modules at once, and some
+plugins also support multi-module data models. However, other plugins
+can only process one YANG module (or submodule) at a time. An example
+of the latter are the `yin` and `yang` plugins that translate standard
+YANG syntax to XML-based YIN syntax, and vice versa.
+
+In this tutorial, we will use only a single module, but let's briefly
+describe how to deal with more complex data models in pyang. The
+easiest option is to supply multiple modules on the command line:
+
+{{{
+$ pyang foo.yang bar.yang
+}}}
