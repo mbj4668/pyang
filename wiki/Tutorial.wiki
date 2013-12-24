@@ -2,5 +2,7 @@
 
 = Introduction =
 
-Foo.
+This is a tutorial-style guide to the development of
+[http://tools.ietf.org/html/rfc6020 YANG] data models and
+corresponding data instances.
 
