@@ -247,7 +247,7 @@ class HybridDSDLSchema(object):
             "enum" : self.enum_stmt,
             "feature": self.noop,
             "identity": self.noop,
-            "if-feature": self.if_feature_stmt,
+            "if-feature": self.noop,
             "extension": self.noop,
             "import" : self.noop,
             "include" : self.include_stmt,
@@ -947,18 +947,6 @@ class HybridDSDLSchema(object):
         elem = SchemaNode("value", p_elem, stmt.arg)
         for sub in stmt.search("status"):
             self.handle_stmt(sub, elem)
-
-    def if_feature_stmt(self, stmt, p_elem, pset):
-        feat = stmt.i_feature
-        module = feat.main_module()
-        if module.i_ctx.hello:
-            if feat.arg not in module.i_active_features:
-                p_elem.subnode(SchemaNode("notAllowed"))
-                p_elem.occur = 0
-        else:
-            self.add_namespace(module)
-            p_elem.attr["nma:if-feature"] = \
-                self.module_prefixes[module.arg] + ":" + feat.arg
 
     def include_stmt(self, stmt, p_elem, pset):
         if stmt.parent.keyword == "module":
