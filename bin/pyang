@@ -161,6 +161,23 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     filenames = args
 
+    # Parse hello if present
+    if o.hello:
+        if len(filenames) > 1:
+            sys.stderr.write("multiple hello files given\n")
+            sys.exit(1)
+        if filenames:
+            try:
+                fd = open(filenames[0], "rb")
+            except IOError as ex:
+                sys.stderr.write("error %s: %s\n" % (filenames[0], str(ex)))
+                sys.exit(1)
+        elif sys.version < "3":
+            fd = sys.stdin
+        else:
+            fd = sys.stdin.buffer
+        hel = hello.HelloParser().parse(fd)
+
     path = ":".join(o.path)
 
     repos = pyang.FileRepository(path)
@@ -173,11 +190,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.max_identifier_len = o.max_identifier_len
     ctx.trim_yin = o.trim_yin
     ctx.lax_xpath_checks = o.lax_xpath_checks
-    ctx.hello = False                 # data model from hello?
     ctx.deviation_modules = []
 
     # make a map of features to support, per module
     ctx.features = {}
+    if o.hello:
+        for (mn,rev) in hel.yang_modules():
+            ctx.features[mn] = hel.get_features(mn)
     for f in ctx.opts.features:
         (modulename, features) = parse_features_string(f)
         ctx.features[modulename] = features
@@ -201,22 +220,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     modules = []
 
     if o.hello:
-        if len(filenames) > 1:
-            sys.stderr.write("multiple hello files given\n")
-            sys.exit(1)
-        if filenames:
-            try:
-                fd = open(filenames[0], "rb")
-            except IOError as ex:
-                sys.stderr.write("error %s: %s\n" % (filenames[0], str(ex)))
-                sys.exit(1)
-        elif sys.version < "3":
-            fd = sys.stdin
-        else:
-            fd = sys.stdin.buffer
-        hel = hello.HelloParser().parse(fd)
         ctx.capabilities = hel.registered_capabilities()
-        ctx.hello = True
         for (mn,rev) in hel.yang_modules():
             mod = ctx.search_module(0, mn, rev)
             if mod is None:
@@ -225,16 +229,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 sys.stderr.write(
                     "module '%s' specified in hello not found.\n" % emarg)
                 sys.exit(1)
-            # Get all features declared in mod
-            mod.i_active_features=[]
-            for fea in hel.get_features(mn):
-                if fea in mod.i_features:
-                    mod.i_active_features.append(fea)
-                else:
-                    sys.stderr.write(
-                        "feature '%s' specified in hello not "
-                        "declared in module '%s'.\n" % (fea,mn))
-                    sys.exit(1)
             modules.append(mod)
     else:
         if len(filenames) == 0:
