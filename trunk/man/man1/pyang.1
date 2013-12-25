@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: pyang
 .\"    Author: Martin Bjorklund <mbj@tail-f.com>
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2013-11-11
 .\"    Manual: pyang manual
 .\"    Source: pyang-1.4.1
@@ -210,7 +210,6 @@ instead of stdout\&.
 .PP
 \fB\-\-features\fR \fIfeatures\fR
 .RS 4
-
 \fIfeatures\fR
 is a string on the form
 \fImodulename\fR:[\fIfeature\fR(,\fIfeature\fR)*]
@@ -218,9 +217,14 @@ is a string on the form
 This option is used to prune the data model by removing all nodes that are defined with a "if\-feature" that is not listed as
 \fIfeature\fR\&. This option affects all output formats\&.
 .sp
-This option can be given multiple times\&.
+This option can be given multiple times, and may be also combined with
+\fB\-\-hello\fR\&. If a
+\fB\-\-features\fR
+option specifies different supported features for a module than the hello file, the
+\fB\-\-features\fR
+option takes precedence\&.
 .sp
-For example, to view the tree output for a module with all if\-feature:d nodes removed, do:
+For example, to view the tree output for a module with all if\-feature\*(Aqd nodes removed, do:
 .sp
 .if n \{\
 .RS 4
@@ -255,7 +259,6 @@ $ pyang \-f tree \-\-deviation\-module mymod\-devs\&.yang mymod\&.yang
 .PP
 \fB\-p\fR \fB\-\-path\fR \fIpath\fR
 .RS 4
-
 \fIpath\fR
 is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
 .sp
@@ -280,7 +283,6 @@ current directory
 .sp -1
 .IP "  2." 4.2
 .\}
-
 \fB$YANG_MODPATH\fR
 .RE
 .sp
@@ -292,7 +294,6 @@ current directory
 .sp -1
 .IP "  3." 4.2
 .\}
-
 \fB$HOME\fR/yang/modules
 .RE
 .sp
@@ -304,7 +305,6 @@ current directory
 .sp -1
 .IP "  4." 4.2
 .\}
-
 \fB$YANG_INSTALL\fR/yang/modules
 OR if
 \fB$YANG_INSTALL\fR
@@ -330,7 +330,6 @@ list of directories to search for pyang plugins\&. The following directories are
 .sp -1
 .IP "  1." 4.2
 .\}
-
 pyang/plugins
 from where pyang is installed
 .RE
@@ -343,7 +342,6 @@ from where pyang is installed
 .sp -1
 .IP "  2." 4.2
 .\}
-
 \fB$PYANG_PLUGINPATH\fR
 .RE
 .RE
@@ -663,7 +661,6 @@ Orange foreground : presence container
 .PP
 The xml file references an images folder that needs to exist in the same folder as the generated file\&. This is installed as share/yang/images in the pyang installation directory\&. The easiest way is to symlink to this directory\&.
 .PP
-
 \fBpyang \-f hypertree model\&.yang \-o model\&.xml\fR
 .PP
 Prepare a HTML file that links to the generated XMI file:
@@ -828,15 +825,11 @@ manual page for more information\&.
 .PP
 This section describes XPath functions that can be used in "must", "when", or "path" expressions in YANG modules, in addition to the core XPath 1\&.0 functions\&.
 .PP
-
 \fBpyang\fR
 can be instructed to reject the usage of these functions with the parameter
 \fI\-\-strict\fR\&.
 .PP
-
-\fBFunction:\fR
-\fInode\-set\fR
-\fBderef\fR(\fInode\-set\fR)
+\fBFunction:\fR\fInode\-set\fR\fBderef\fR(\fInode\-set\fR)
 .PP
 The
 \fBderef\fR

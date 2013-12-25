@@ -391,7 +391,9 @@
         </term>
         <listitem>
           <para>
-            <replaceable>features</replaceable> is a string on the form <replaceable>modulename</replaceable>:[<replaceable>feature</replaceable>(,<replaceable>feature</replaceable>)*]
+            <replaceable>features</replaceable> is a string on the
+            form
+            <replaceable>modulename</replaceable>:[<replaceable>feature</replaceable>(,<replaceable>feature</replaceable>)*]
           </para>
           <para>
               This option is used to prune the data model by removing
@@ -400,11 +402,15 @@
               affects all output formats.
           </para>
           <para>
-              This option can be given multiple times.
+              This option can be given multiple times, and may be also
+              combined with <option>--hello</option>. If a
+              <option>--features</option> option specifies different
+              supported features for a module than the hello file, the
+              <option>--features</option> option takes precedence.
           </para>
           <para>
               For example, to view the tree output for a module with all
-              if-feature:d nodes removed, do:
+              if-feature'd nodes removed, do:
           </para>
           <informalexample>
             <screen>$ pyang -f tree --features mymod: mymod.yang</screen>
