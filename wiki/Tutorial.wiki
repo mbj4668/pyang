@@ -8,14 +8,6 @@ This is a tutorial-style guide to the development of
 corresponding data instances – configurations, state data, RPC
 requests or replies, and notifications.
 
-Several steps in the workflow involve editing files. They will be
-explained using the [http://www.gnu.org/software/emacs Emacs] text
-editor and, in particular, with its excellent
-[http://www.thaiopensource.com/nxml-mode/ nXML mode] that allow for
-schema-aware editing of XML files and on-the-fly validation. Of course, other
-editors may be used instead, although editing XML files may not be as
-convenient as it is in Emacs.
-
 = YANG Data Model =
 
 A data model is fully determined by the following information:
@@ -70,3 +62,23 @@ where the contents of `hello.xml` is as follows:
 }}}
 
 See pyang manual page for more information.
+
+= Editing YANG modules =
+
+YANG modules can be edited in any text editor capable of saving plain
+text (without formatting information). Add-ons for popular editors are
+available with varying degrees of support for YANG syntax:
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang.vim
+ yang.vim] – syntax file for Vim,
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang-mode.el
+ yang-mode.el] – Emacs mode for YANG, based on CC mode.
+
+Speaking about Emacs, the amazing
+[http://www.thaiopensource.com/nxml-mode/ nXML mode] makes a case for
+editing YANG modules in the alternative XML-based _YIN_ syntax (see
+RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11
+Section 11]). This approach is described
+[https://gitlab.labs.nic.cz/labs/yang-tools/wikis/editing_yang here].
+
+<g:plusone size="medium"></g:plusone>
+
