@@ -1,5 +1,5 @@
 #summary Working with data models and instances.
-#labels YANG,XML,configuration,data models
+#labels YANG,XML,configuration,datamodels
 
 = Introduction =
 
@@ -19,8 +19,8 @@ convenient as it is in Emacs.
 = YANG Data Model =
 
 A data model is fully determined by the following information:
-* one or more YANG modules
-* optional _features_ that are supported by the device
+ * one or more YANG modules
+ * optional _features_ that are supported by the device
 
 Features are defined in YANG modules and allow for making seleted
 parts of the data model schema conditional (see
