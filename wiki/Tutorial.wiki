@@ -64,14 +64,12 @@ YANG modules can be edited in any text editor capable of saving plain
 text (without formatting information). Add-ons for popular editors are
 available with varying degrees of support for YANG syntax:
  * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang.vim yang.vim] – syntax file for Vim,
- * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang-mode.el
- yang-mode.el] – Emacs mode for YANG, based on CC mode.
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang-mode.el yang-mode.el] – Emacs mode for YANG, based on CC mode.
 
 Speaking about Emacs, the amazing
 [http://www.thaiopensource.com/nxml-mode/ nXML mode] makes a case for
 editing YANG modules in the alternative XML-based _YIN_ syntax (see
-RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11
-Section 11]). This approach is described [https://gitlab.labs.nic.cz/labs/yang-tools/wikis/editing_yang here].
+RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11 Section 11]). This approach is described [https://gitlab.labs.nic.cz/labs/yang-tools/wikis/editing_yang here].
 
 <g:plusone size="medium"></g:plusone>
 
