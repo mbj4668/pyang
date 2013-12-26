@@ -51,6 +51,9 @@ where the contents of `hello.xml` is as follows:
     <capability>
       http://example.com/foo?module=foo&amp;features=miracle
     </capability>
+    <capability>
+      http://example.com/bar?module=bar
+    </capability>
   </capabilities>
 </hello>
 }}}
