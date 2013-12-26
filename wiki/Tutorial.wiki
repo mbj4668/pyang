@@ -1,11 +1,11 @@
+<wiki:comment>-*- mode:text ; mode:visual-line -*-</wiki:comment>
 #summary Working with data models and instances.
-#labels YANG,XML,configuration,datamodels
 
 = Introduction =
 
 This is a tutorial-style guide to the development of
 [http://tools.ietf.org/html/rfc6020 YANG] data models and
-corresponding data instances – configurations, state data, RPC
+corresponding data instances – configurations, state data, RPC
 requests or replies, and notifications.
 
 = YANG Data Model =
@@ -15,33 +15,28 @@ A data model is fully determined by the following information:
  * optional _features_ that are supported by the device
 
 Features are defined in YANG modules and allow for making seleted
-parts of the data model schema conditional (see
-[http://tools.ietf.org/html/rfc6020#section-5.6.2 Section 5.6.2] in
-RFC 6020 for details).
+parts of the data model schema conditional (see [http://tools.ietf.org/html/rfc6020#section-5.6.2 Section 5.6.2] in RFC 6020 for details).
 
 YANG modules comprising the data model are entered on the pyang
 command line, and features may be specified using the `--features`
 option. This option can be used repeatedly – each occurrence defines
 active (supported) features for one YANG module.
 
-For example, the following command line uses two YANG modules, `foo`
-and `bar`, and the only supported feature is `miracle` (defined in `foo`). 
+For example, the following command line uses two YANG modules, `foo` and `bar`, and the only supported feature is `miracle` (defined in `foo`). 
 
 {{{
 $ pyang -f tree --features foo:miracle --features bar: foo.yang bar.yang
 }}}
 
-If no `--features` option is present for a module, then all features
-defined in that module are considered active.
+If no `--features` option is present for a module, then all features defined in that module are considered active.
 
 For data models that consist of a larger number of YANG modules and/or
 features, it may be inconvenient to provide all data model information
-on the command line. Therefore, it is also possible to specify the data
-model in a configuration file. The contents of the configuration file
-are the _hello_ message that is sent by the NETCONF
-server at the start of every session – see RFC 6241,
-[http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and
-RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
+on the command line. Therefore, it is also possible to specify the
+data model in a configuration file. The contents of the configuration
+file are the _hello_ message that is sent by the NETCONF server at the
+start of every session – see RFC 6241,
+[http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
 
 This command line achieves the same effect as the previous one:
 
@@ -68,16 +63,15 @@ See pyang manual page for more information.
 YANG modules can be edited in any text editor capable of saving plain
 text (without formatting information). Add-ons for popular editors are
 available with varying degrees of support for YANG syntax:
- * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang.vim yang.vim]
- – syntax file for Vim,
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang.vim yang.vim] – syntax file for Vim,
  * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang-mode.el
  yang-mode.el] – Emacs mode for YANG, based on CC mode.
 
 Speaking about Emacs, the amazing
 [http://www.thaiopensource.com/nxml-mode/ nXML mode] makes a case for
 editing YANG modules in the alternative XML-based _YIN_ syntax (see
-RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11 Section 11]). This approach is described
-[https://gitlab.labs.nic.cz/labs/yang-tools/wikis/editing_yang here].
+RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11
+Section 11]). This approach is described [https://gitlab.labs.nic.cz/labs/yang-tools/wikis/editing_yang here].
 
 <g:plusone size="medium"></g:plusone>
 
