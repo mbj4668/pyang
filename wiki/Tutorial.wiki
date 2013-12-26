@@ -1,5 +1,4 @@
-<wiki:comment>-*- mode:text ; mode:visual-line -*-</wiki:comment>
-#summary Working with data models and instances.
+#summary Working with data models and instances. <wiki:comment>-*- mode:text ; mode:visual-line -*-</wiki:comment>
 
 = Introduction =
 
