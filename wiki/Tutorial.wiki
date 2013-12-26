@@ -76,7 +76,7 @@ available with varying degrees of support for YANG syntax:
 Speaking about Emacs, the amazing
 [http://www.thaiopensource.com/nxml-mode/ nXML mode] makes a case for
 editing YANG modules in the alternative XML-based _YIN_ syntax (see
-RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11 Section 11]). This approach is described
+RFC 6020, [http://tools.ietf.org/html/rfc6020#section-11 Section 11]). This approach is described
 [https://gitlab.labs.nic.cz/labs/yang-tools/wikis/editing_yang here].
 
 <g:plusone size="medium"></g:plusone>
