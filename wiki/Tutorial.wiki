@@ -18,17 +18,55 @@ convenient as it is in Emacs.
 
 = YANG Data Model =
 
-In YANG terms, a data model consists of one or more YANG
-modules. Pyang can parse several YANG modules at once, and some
-plugins also support multi-module data models. However, other plugins
-can only process one YANG module (or submodule) at a time. An example
-of the latter are the `yin` and `yang` plugins that translate standard
-YANG syntax to XML-based YIN syntax, and vice versa.
+A data model is fully determined by the following information:
+* one or more YANG modules
+* optional _features_ that are supported by the device
 
-In this tutorial, we will use only a single module, but let's briefly
-describe how to deal with more complex data models in pyang. The
-easiest option is to supply multiple modules on the command line:
+Features are defined in YANG modules and allow for making seleted
+parts of the data model schema conditional (see
+[http://tools.ietf.org/html/rfc6020#section-5.6.2 Section 5.6.2] in
+RFC 6020 for details).
+
+YANG modules comprising the data model are entered on the pyang
+command line, and features may be specified using the `--features`
+option. This option can be used repeatedly – each occurrence defines
+active (supported) features for one YANG module.
+
+For example, the following command line uses two YANG modules, `foo`
+and `bar`, and the only supported feature is `miracle` (defined in `foo`). 
 
 {{{
-$ pyang foo.yang bar.yang
+$ pyang -f tree --features foo:miracle --features bar: foo.yang bar.yang
 }}}
+
+If no `--features` option is present for a module, then all features
+defined in that module are considered active.
+
+For data models that consist of a larger number of YANG modules and/or
+features, it may be inconvenient to provide all data model information
+on the command line. Therefore, it is also possible to specify the data
+model in a configuration file. The contents of the configuration file
+are the _hello_ message that is sent by the NETCONF
+server at the start of every session – see RFC 6241,
+[http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and
+RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
+
+This command line achieves the same effect as the previous one:
+
+{{{
+$ pyang -f tree --hello hello.xml
+}}}
+
+where the contents of `hello.xml` is as follows:
+
+{{{
+<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <capabilities>
+    <capability>
+      http://example.com/foo?module=foo&amp;features=miracle
+    </capability>
+  </capabilities>
+</hello>
+}}}
+
+See pyang manual page for more information.
