@@ -68,8 +68,8 @@ See pyang manual page for more information.
 YANG modules can be edited in any text editor capable of saving plain
 text (without formatting information). Add-ons for popular editors are
 available with varying degrees of support for YANG syntax:
- * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang.vim
- yang.vim] – syntax file for Vim,
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang.vim yang.vim]
+ – syntax file for Vim,
  * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang-mode.el
  yang-mode.el] – Emacs mode for YANG, based on CC mode.
 
