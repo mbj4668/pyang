@@ -28,9 +28,11 @@
   </start>
 
   <define name="session-id-element">
-    <element name="session-id">
-      <data type="unsignedInt"/>
-    </element>
+    <optional>
+      <element name="session-id">
+	<data type="unsignedInt"/>
+      </element>
+    </optional>
   </define>
 
   <define name="server-hello-content">
