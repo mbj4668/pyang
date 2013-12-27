@@ -83,6 +83,7 @@ module turing-machine {
         description
           "The list of transition rules.";
         key "label";
+        unique "input/state input/symbol";
         leaf label {
           type string;
           description
