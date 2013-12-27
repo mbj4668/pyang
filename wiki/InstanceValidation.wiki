@@ -2,8 +2,49 @@
 
 = Introduction =
 
-Using the `dsdl` plugin, it is possible to generate [http://www.dsdl.org DSDL] schemas from a YANG data model, and use them for performing both syntactic and semantic validation of XML instance documents against the data model. This page explains the individual steps of the validation procedure.
+[http://tools.ietf.org/html/rfc6110 RFC 6110] defines a mapping from YANG to standard [http://www.dsdl.org DSDL] schemas. Pyang's _dsdl_ plugin, together with several XSLT stylesheet that are also part of pyang distribution, fully implements the mapping procedure. The generated DSDL schemas can be used with generic off-the-shelf XML tools for both syntactic and semantic validation of XML instance documents.
+
+This page explains the use of a shell script, _yang2dsdl_, which is also provided as a simple front end to the validation procedure. Developers that need more control should read about the hairy details in DSDLTechDetails.
 
 = DSDL Schemas =
 
-Let's apply the `dsdl` plugin to our example data model, TuringMachine. 
+Let's apply the _yang2dsdl_ script to our data model, [TuringMachine turing-machine.yang], and generate a coordinated set of DSDL schemas:
+
+{{{
+$ yang2dsdl -t config turing-machine.yang
+== Generating RELAX NG schema './turing-machine-config.rng'
+Done.
+
+== Generating Schematron schema './turing-machine-config.sch'
+Done.
+
+== Generating DSRL schema './turing-machine-config.dsrl'
+Done.
+}}}
+
+As we can see from the output, three schemas are generated:
+
+ * _RELAX NG_ schema (`turing-machine-config.rng`) describes the structure of the instance document (its grammar), and datatypes of leaf data nodes.
+
+ * _Schematron_ schema (`turing-machine-config.sch`) represents semantic rules defined in the YANG data model.
+
+ * _DSRL_ schema (`turing-machine-config.dsrl`) contains instructions that can be used for extending an instance XML document with default values.
+
+The careful reader will notice that the script also created a fourth file, `turing-machine-gdefs-config.rng`, which is a part of the RELAX NG schema. 
+
+The command-line option `-t` of _yang2dsdl_ defines the _target_ for the schemas. In this case, we instruct the script to generate schemas for the contents of a _configuration datastore_, i.e. configuration data only. Supported targets are:
+
+<dl>
+   <dt>data</dt>
+   <dd>datastore contents (configuration and state
+     data) encapsulated in `<nc:data>` document element;</dd>
+</dl>
+
+<g:plusone size="medium"></g:plusone>
+
+<wiki:comment>
+Local Variables:
+mode: fundamental
+mode: visual-line
+End:
+</wiki:comment>
