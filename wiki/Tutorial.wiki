@@ -1,4 +1,4 @@
-#summary Working with data models and instances. <wiki:comment>-*- mode:fundamental ; mode:visual-line -*-</wiki:comment>
+#summary Working with data models and instances.
 
 = Introduction =
 
@@ -101,3 +101,9 @@ The following tutorial pages describe how a data model can used, together with p
 
 <g:plusone size="medium"></g:plusone>
 
+<wiki:comment>
+Local Variables:
+mode: fundamental
+mode: visual-line
+End:
+</wiki:comment>
