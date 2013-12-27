@@ -35,9 +35,20 @@ The careful reader will notice that the script also created a fourth file, `turi
 The command-line option `-t` of _yang2dsdl_ defines the _target_ for the schemas. In this case, we instruct the script to generate schemas for the contents of a _configuration datastore_, i.e. configuration data only. Supported targets are:
 
 <dl>
-   <dt>data</dt>
-   <dd>datastore contents (configuration and state
-     data) encapsulated in `<nc:data>` document element;</dd>
+   <dt>*data*</dt>
+   <dd>datastore contents (configuration and state data) encapsulated in `<nc:data>` document element;</dd>
+   <dt>*config*</dt>
+   <dd>configuration datastore contents encapsulated in `<nc:config>` document element;</dd>
+   <dt>*get-reply*</dt>
+   <dd>a complete NETCONF message containing a reply to `<nc:get>` operation;</dd>
+   <dt>*get-config-reply*</dt>
+   <dd>a complete NETCONF message containing a reply to `<nc:get-config>` operation;</dd>
+   <dt>*rpc*</dt>
+   <dd>RPC request;</dd>
+   <dt>*rpc-reply*</dt>
+   <dd>RPC reply;</dd>
+   <dt>*notification*</dt>
+   <dd>event notification.</dd>
 </dl>
 
 <g:plusone size="medium"></g:plusone>
