@@ -1,0 +1,9 @@
+#summary Validation of XML instances.
+
+= Introduction =
+
+Using the `dsdl` plugin, it is possible to generate [http://www.dsdl.org DSDL] schemas from a YANG data model, and use them for performing both syntactic and semantic validation of XML instance documents against the data model. This page explains the individual steps of the validation procedure.
+
+= DSDL Schemas =
+
+Let's apply the `dsdl` plugin to our example data model, TuringMachine. 
