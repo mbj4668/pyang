@@ -57,7 +57,7 @@ Speaking about Emacs, the amazing [http://www.thaiopensource.com/nxml-mode/ nXML
 
 = Example Data Model =
 
-We will demonstrate pyang functions on a data model of the Turing machine, [TuringMachine turing-machine.yang]. It is relatively simple but comprehensive in that it covers all document/message types supported in YANG – configuration and state data, RPCs and notifications.
+We will demonstrate pyang functions on a data model of the Turing Machine, [TuringMachine turing-machine.yang]. It is relatively simple but comprehensive in that it covers all document/message types supported in YANG – configuration and state data, RPCs and notifications.
 
 To see an overview of the data model schemas, we can use the `tree` plugin of pyang:
 
@@ -91,7 +91,17 @@ notifications:
       +--ro state    uint16
 }}}
 
-Use `pyang --tree-help` to see the explanation of symbols used in the tree representation. 
+Use `pyang --tree-help` to see the explanation of symbols used in the tree representation.
+
+The Turing Machine is represented using operational-state (`ro`) items:
+
+ * _state_ – current state of the control unit,
+ * _head-position_ – current position of the read/write head,
+ * _tape_ – sparse list of cells with their coordinates and contained symbols (blank cells do not appear in the list).
+
+The configuration is a specification of the transition function, i.e. a program for the Turing Machine
+
+<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="root3x + x^phi + x_1" height="15"/> 
 
 = What's Next? =
 

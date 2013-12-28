@@ -51,6 +51,22 @@ The command-line option `-t` of _yang2dsdl_ defines the _target_ for the schemas
    <dd>event notification.</dd>
 </dl>
 
+We will work with other targets later on in this tutorial.
+
+= Creating an XML Instance =
+
+Quite often, sample instance documents for testing and debugging purposes have to be written manually, in a text editor. Some people are fond of writing every single character in an XML or HTML document with their fingers. The rest of us, mere mortals, will want to reduce the drudgery by using an editor that provides some support for editing XML documents. 
+
+An excellent choice is Emacs with James Clark's [http://www.thaiopensource.com/nxml-mode/ nXML mode]. With the RELAX NG schema we have just generated, we can turn it into a schema-aware editor with autocompletion and on-the-fly validation. We only need to convert the schema into the compact syntax, e.g. using [http://www.thaiopensource.com/relaxng/trang.html Trang]:
+
+{{{
+java -jar trang.jar -I rng -O rnc turing-machine-config.rng turing-machine-config.rnc
+}}}
+
+There are several way for telling nXML mode how to locate the right schema for the XML document being edited. The easiest option is to rely on file names. In our case it means that the name of the XML file should be `turing-machine-config.xml`.
+
+Now that everything is in place, let's start editing, and assume we end up with following XML document, which is intended as a configuration for the Turing Machine:
+
 <g:plusone size="medium"></g:plusone>
 
 <wiki:comment>

@@ -7,7 +7,7 @@ module turing-machine {
   prefix "tm";
 
   description
-    "Data model for the Turing machine.";
+    "Data model for the Turing Machine.";
 
   revision 2013-12-27 {
     description
@@ -30,7 +30,7 @@ module turing-machine {
 
   container turing-machine {
     description
-      "State data and configuration of a Turing machine.";
+      "State data and configuration of a Turing Machine.";
     leaf state {
       config "false";
       mandatory "true";
@@ -46,9 +46,7 @@ module turing-machine {
       mandatory "true";
       type int64;
       description
-        "Position of tape read/write head.
-
-         When the machine starts, the head is in position 0.";
+        "Position of tape read/write head.";
     }
     container tape {
       description
@@ -77,7 +75,7 @@ module turing-machine {
     }
     container transition-function {
       description
-        "The Turing machine is configured by specifying the
+        "The Turing Machine is configured by specifying the
          transition function.";
       list delta {
         description
@@ -136,8 +134,16 @@ module turing-machine {
 
   rpc initialize {
     description
-      "Initialize the tape contents and set the control unit to the
-       initial state 0.";
+      "Initialize the Turing Machine as follows:
+
+       1. Put the control unit into the initial state (0).
+
+       2. Move the read/write head to the tape cell with coordinate
+          zero.
+
+       3. Write the string from the 'tape-content' input parameter to
+          the tape, character by character, starting at cell 0. The
+          tape is othewise empty.";
     input {
       leaf tape-content {
         type string;
@@ -151,14 +157,14 @@ module turing-machine {
 
   rpc run {
     description
-      "Start the Turing machine operation.";
+      "Start the Turing Machine operation.";
   }
 
   /* Notifications */
 
   notification halted {
     description
-      "The Turing machine has halted. This means that there is no
+      "The Turing Machine has halted. This means that there is no
        transition rule for the current state and tape symbol.";
     leaf state {
       mandatory "true";
