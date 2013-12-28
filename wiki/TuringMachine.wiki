@@ -1,5 +1,6 @@
 #summary Example YANG module
 {{{
+/* file: turing-machine.yang */
 module turing-machine {
 
   namespace "http://example.net/turing-machine";
@@ -109,14 +110,17 @@ module turing-machine {
           leaf state {
             type uint16;
             description
-              "New state of the control unit.";
+              "New state of the control unit. If this leaf is not
+               present, the state doesn't change.";
           }
           leaf symbol {
             type tape-symbol;
             description
-              "Symbol to be written to the tape cell.";
+              "Symbol to be written to the tape cell. If this leaf is
+               not present, the symbol doesn't change.";
           }
           leaf head-move {
+            mandatory "true";
             type enumeration {
               enum left;
               enum right;

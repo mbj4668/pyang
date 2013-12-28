@@ -93,15 +93,23 @@ notifications:
 
 Use `pyang --tree-help` to see the explanation of symbols used in the tree representation.
 
-The Turing Machine is represented using operational-state (`ro`) items:
+The Turing Machine is represented using _operational state_ nodes (denoted with `ro`):
 
  * _state_ – current state of the control unit,
  * _head-position_ – current position of the read/write head,
  * _tape_ – sparse list of cells with their coordinates and contained symbols (blank cells do not appear in the list).
 
-The configuration is a specification of the transition function, i.e. a program for the Turing Machine
+The _configuration_ is a specification of the transition function 𝛿, i.e. a program for the Turing Machine. Each transition rule has two input parameters – the current state of the control unit and the symbol read from the current tape cell – and three output values – the new state, new symbol written to the tape cell, and new position of the head (one cell to the left or to the right from the current cell).
 
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="root3x + x^phi + x_1" height="15"/> 
+The data model also defines two RPC methods:
+
+ * _initialize_ – puts the control unit into the initial state, the read/write head to its “home” position, and initializes the contents of the tape.
+
+ * _run_ – starts Turing Machine's computation.
+
+Finally, there is an event notification, _halted_, which is triggered when the Turing Machine halts. This happens whenever no transition rule is defined for the current state and tape symbol. The notification reports the clock time when the machine halted and the current state.
+
+Further information about the data model can be found in description texts of the [TuringMachine module].
 
 = What's Next? =
 

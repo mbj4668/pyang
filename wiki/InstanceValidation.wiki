@@ -65,7 +65,168 @@ java -jar trang.jar -I rng -O rnc turing-machine-config.rng turing-machine-confi
 
 There are several way for telling nXML mode how to locate the right schema for the XML document being edited. The easiest option is to rely on file names. In our case it means that the name of the XML file should be `turing-machine-config.xml`.
 
-Now that everything is in place, let's start editing, and assume we end up with following XML document, which is intended as a configuration for the Turing Machine:
+Now that everything is in place, we can write our first configuration for the Turing Machine:
+
+{{{
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- file: turing-machine-config.xml -->
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <turing-machine xmlns="http://example.net/turing-machine">
+    <transition-function>
+      <delta>
+	<label>left summand</label>
+	<input>
+	  <state>0</state>
+	  <symbol>1</symbol>
+	</input>
+	<output>
+	  <head-move>right</head-move>
+	</output>
+      </delta>
+      <delta>
+	<label>separator</label>
+	<input>
+	  <state>0</state>
+	  <symbol>0</symbol>
+	</input>
+	<output>
+	  <state>1</state>
+	  <symbol>1</symbol>
+	  <head-move>right</head-move>
+	</output>
+      </delta>
+      <delta>
+	<label>right summand</label>
+	<input>
+	  <state>1</state>
+	  <symbol>1</symbol>
+	</input>
+	<output>
+	  <head-move>right</head-move>
+	</output>
+      </delta>
+      <delta>
+	<label>right end</label>
+	<input>
+	  <state>1</state>
+	  <symbol/>
+	</input>
+	<output>
+	  <state>2</state>
+	  <head-move>left</head-move>
+	</output>
+      </delta>
+      <delta>
+	<label>write separator</label>
+	<input>
+	  <state>2</state>
+	  <symbol>1</symbol>
+	</input>
+	<output>
+	  <state>3</state>
+	  <symbol>0</symbol>
+	  <head-move>left</head-move>
+	</output>
+      </delta>
+      <delta>
+	<label>go home</label>
+	<input>
+	  <state>3</state>
+	  <symbol>1</symbol>
+	</input>
+	<output>
+	  <head-move>left</head-move>
+	</output>
+      </delta>
+      <delta>
+	<label>final step</label>
+	<input>
+	  <state>3</state>
+	  <symbol/>
+	</input>
+	<output>
+	  <state>4</state>
+	  <head-move>right</head-move>
+	</output>
+      </delta>
+    </transition-function>
+  </turing-machine>
+</config>
+}}}
+
+By the way, this “program” adds two numbers written in the unary notation and separated by the zero symbol.
+
+The schemas for the `config` target expect `<config>` (in the NETCONF namespace) as the document element. This is because YANG allows for multiple roots of the data hierarchy, and so an extra wrapping element is needed in order to make sure that the document is well-formed XML.
+
+We can now use _yang2dsdl_ again to verify that the above configuration is a valid instance of the data model:
+
+{{{
+$ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
+== Using pre-generated schemas
+
+== Validating grammar and datatypes ...
+turing-machine-config.xml validates.
+
+== Adding default values... done.
+
+== Validating semantic constraints ...
+No errors found.
+}}}
+
+Sure enough, everything is fine. The `-s` option indicates that we want to use pre-generated schemas, and then we also have to provide the `-b` (base name) and `-t` (target) option, so then the script is able to find the schemas. The `-j` option instructs the script to use [http://www.thaiopensource.com/relaxng/jing.html Jing] as the RELAX NG validator. By default, _xmllint_ from the _Libxml2_ toolkit is used. While _xmllint_ is more common and also works, its error messages are sometimes rather incomprehensible.
+
+Now, let's smuggle some bugs into the instance document. First, we change the value of the input state element in the first transition rule (`left summand`) from `0` to `zero`. This is a type error because the data model says the `state` leaf is `uint16`. Type errors are caught by the RELAX NG validator:
+
+{{{
+$ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
+== Using pre-generated schemas
+
+== Validating grammar and datatypes ...
+/Users/lhotka/sandbox/YANG/Turing/turing-machine-config.xml:9:23: error: character
+content of element "state" invalid; must be an integer
+}}} 
+
+Next, we will return the value of `<state>` to the original correct value and introduce a new, more subtle error. We will create a new entry of the `delta` list with the following content:
+
+{{{
+<delta>
+  <label>illegal</label>
+  <input>
+    <state>0</state>
+    <symbol>0</symbol>
+  </input>
+  <output>
+    <head-move>left</head-move>
+  </output>
+</delta>
+}}}
+
+See what happens:
+
+{{{
+$ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
+== Using pre-generated schemas
+
+== Validating grammar and datatypes ...
+turing-machine-config.xml validates.
+
+== Adding default values... done.
+
+== Validating semantic constraints ...
+--- Validity error at "/nc:config/tm:turing-machine/tm:transition-function/tm:delta":
+    Violated uniqueness for "tm:input/tm:state tm:input/tm:symbol"
+}}}
+
+Right, the data model states that the input parameters `state` and `symbol` must be unique among the entries of the `delta` list:
+
+{{{
+unique "input/state input/symbol";
+}}}
+
+However, this semantic constraint is not satisfied because two entries, `separator` and `illegal`, have identical input parameters.
+
+As an exercise, try to introduce other errors to the instance document and run the same command again. 
+
 
 <g:plusone size="medium"></g:plusone>
 
