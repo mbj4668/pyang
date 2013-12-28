@@ -227,6 +227,190 @@ However, this semantic constraint is not satisfied because two entries, `separat
 
 As an exercise, try to introduce other errors to the instance document and run the same command again. 
 
+= Validating RPC requests and replies =
+
+Before starting the computation, we have to initialize the Turing Machine properly. This is easy because our data model defines a custom RPC method exactly for this purpose.
+
+So, after installing the above configuration for adding two numbers, we maight want to test it and compute, say, 2 + 3. The following RPC request does the initialization job:
+
+{{{
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- file: turing-machine-rpc.xml -->
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+     message-id="1">
+  <initialize xmlns="http://example.net/turing-machine">
+    <tape-content>110111</tape-content>
+  </initialize>
+</rpc>
+}}}
+
+The `<tape-content>` element specifies the initial contents of the tape, i.e. numbers 2 and 3 in the unary notation, separated with a zero.
+
+We can validate this RPC message, too. This time, we will generate the schemas for RPC replies and perform the validation in one step:
+
+<pre>
+$ yang2dsdl -t rpc -v turing-machine-rpc.xml turing-machine.yang
+== Generating RELAX NG schema './turing-machine-rpc.rng'
+Done.
+
+== Generating Schematron schema './turing-machine-rpc.sch'
+Done.
+
+== Generating DSRL schema './turing-machine-rpc.dsrl'
+Done.
+
+== Validating grammar and datatypes ...
+turing-machine-rpc.xml validates
+
+== Adding default values... done.
+
+== Validating semantic constraints ...
+No errors found.
+</pre>
+
+Note that this time the target is `rpc`.
+
+After starting the computation with the other custom RPC method, `run`, we can wait until we receive the `halted` notification indicating that the Turing Machine is done. We can learn the result by sending a `get` request. The Turing Machine's NETCONF server should reply with the following message:
+
+{{{
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- file: turing-machine-rpc-reply.xml -->
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+	   message-id="3">
+  <data>
+    <turing-machine xmlns="http://example.net/turing-machine">
+      <state>4</state>
+      <head-position>0</head-position>
+      <tape>
+	<cell>
+	  <coord>0</coord>
+	  <symbol>1</symbol>
+	</cell>
+	<cell>
+	  <coord>1</coord>
+	  <symbol>1</symbol>
+	</cell>
+	<cell>
+	  <coord>2</coord>
+	  <symbol>1</symbol>
+	</cell>
+	<cell>
+	  <coord>3</coord>
+	  <symbol>1</symbol>
+	</cell>
+	<cell>
+	  <coord>4</coord>
+	  <symbol>1</symbol>
+	</cell>
+	<cell>
+	  <coord>5</coord>
+	  <symbol>0</symbol>
+	</cell>
+      </tape>
+      <transition-function>
+	<delta>
+	  <label>left summand</label>
+	  <input>
+	    <state>0</state>
+	    <symbol>1</symbol>
+	  </input>
+	  <output>
+	    <head-move>right</head-move>
+	  </output>
+	</delta>
+	<delta>
+	  <label>separator</label>
+	  <input>
+	    <state>0</state>
+	    <symbol>0</symbol>
+	  </input>
+	  <output>
+	    <state>1</state>
+	    <symbol>1</symbol>
+	    <head-move>right</head-move>
+	  </output>
+	</delta>
+	<delta>
+	  <label>right summand</label>
+	  <input>
+	    <state>1</state>
+	    <symbol>1</symbol>
+	  </input>
+	  <output>
+	    <head-move>right</head-move>
+	  </output>
+	</delta>
+	<delta>
+	  <label>right end</label>
+	  <input>
+	    <state>1</state>
+	    <symbol/>
+	  </input>
+	  <output>
+	    <state>2</state>
+	    <head-move>left</head-move>
+	  </output>
+	</delta>
+	<delta>
+	  <label>write separator</label>
+	  <input>
+	    <state>2</state>
+	    <symbol>1</symbol>
+	  </input>
+	  <output>
+	    <state>3</state>
+	    <symbol>0</symbol>
+	    <head-move>left</head-move>
+	  </output>
+	</delta>
+	<delta>
+	  <label>go home</label>
+	  <input>
+	    <state>3</state>
+	    <symbol>1</symbol>
+	  </input>
+	  <output>
+	    <head-move>left</head-move>
+	  </output>
+	</delta>
+	<delta>
+	  <label>final step</label>
+	  <input>
+	    <state>3</state>
+	    <symbol/>
+	  </input>
+	  <output>
+	    <state>4</state>
+	    <head-move>right</head-move>
+	  </output>
+	</delta>
+      </transition-function>
+    </turing-machine>
+  </data>
+</rpc-reply>
+}}}
+
+We can now read the result from the tape data, and we can also validate the `<get>` reply:
+
+<pre>
+$ yang2dsdl -t get-reply -v turing-machine-get-reply.xml turing-machine.yang 
+== Generating RELAX NG schema './turing-machine-get-reply.rng'
+Done.
+
+== Generating Schematron schema './turing-machine-get-reply.sch'
+Done.
+
+== Generating DSRL schema './turing-machine-get-reply.dsrl'
+Done.
+
+== Validating grammar and datatypes ...
+turing-machine-get-reply.xml validates
+
+== Adding default values... done.
+
+== Validating semantic constraints ...
+No errors found.
+</pre>
 
 <g:plusone size="medium"></g:plusone>
 
