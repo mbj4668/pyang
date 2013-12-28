@@ -10,7 +10,7 @@ This page explains the use of a shell script, _yang2dsdl_, which is also provide
 
 Let's apply the _yang2dsdl_ script to our data model, [TuringMachine turing-machine.yang], and generate a coordinated set of DSDL schemas:
 
-<pre>
+{{{
 $ yang2dsdl -t config turing-machine.yang
 == Generating RELAX NG schema './turing-machine-config.rng'
 Done.
@@ -20,7 +20,7 @@ Done.
 
 == Generating DSRL schema './turing-machine-config.dsrl'
 Done.
-</pre>
+}}}
 
 As we can see from the output, three schemas are generated:
 
@@ -59,9 +59,9 @@ Quite often, sample instance documents for testing and debugging purposes have t
 
 An excellent choice is Emacs with James Clark's [http://www.thaiopensource.com/nxml-mode/ nXML mode]. With the RELAX NG schema we have just generated, we can turn it into a schema-aware editor with autocompletion and on-the-fly validation. We only need to convert the schema into the compact syntax, e.g. using [http://www.thaiopensource.com/relaxng/trang.html Trang]:
 
-<pre>
+{{{
 java -jar trang.jar -I rng -O rnc turing-machine-config.rng turing-machine-config.rnc
-</pre>
+}}}
 
 There are several way for telling nXML mode how to locate the right schema for the XML document being edited. The easiest option is to rely on file names. In our case it means that the name of the XML file should be `turing-machine-config.xml`.
 
@@ -160,7 +160,7 @@ The schemas for the `config` target expect `<config>` (in the NETCONF namespace)
 
 We can now use _yang2dsdl_ again to verify that the above configuration is a valid instance of the data model:
 
-<pre>
+{{{
 $ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
 == Using pre-generated schemas
 
@@ -171,20 +171,20 @@ turing-machine-config.xml validates.
 
 == Validating semantic constraints ...
 No errors found.
-</pre>
+}}}
 
 Sure enough, everything is fine. The `-s` option indicates that we want to use pre-generated schemas, and then we also have to provide the `-b` (base name) and `-t` (target) options, so that the script is able to find the schemas. The `-j` option instructs the script to use [http://www.thaiopensource.com/relaxng/jing.html Jing] as the RELAX NG validator. By default, _xmllint_ from the [http://www.xmlsoft.org/ Libxml2] toolkit is used. While _xmllint_ is more common and also works, its error messages are sometimes rather incomprehensible.
 
 Now, let's smuggle some bugs into the instance document. First, we change the value of the input state element in the first transition rule (`left summand`) from `0` to `zero`. This is a type error because the data model says the `state` leaf is `uint16`. Type errors are caught by the RELAX NG validator:
 
-<pre>
+{{{
 $ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
 == Using pre-generated schemas
 
 == Validating grammar and datatypes ...
 /Users/lhotka/sandbox/YANG/Turing/turing-machine-config.xml:9:23: error: character
 content of element "state" invalid; must be an integer
-</pre>
+}}}
 
 Next, we will return the value of `<state>` to the original correct value and introduce a new, more subtle error. We will create a new entry of the `delta` list with the following content:
 
@@ -203,7 +203,7 @@ Next, we will return the value of `<state>` to the original correct value and in
 
 See what happens:
 
-<pre>
+{{{
 $ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
 == Using pre-generated schemas
 
@@ -215,7 +215,7 @@ turing-machine-config.xml validates.
 == Validating semantic constraints ...
 --- Validity error at "/nc:config/tm:turing-machine/tm:transition-function/tm:delta":
     Violated uniqueness for "tm:input/tm:state tm:input/tm:symbol"
-</pre>
+}}}
 
 Right, the data model states that the input parameters `state` and `symbol` must be unique among the entries of the `delta` list:
 
@@ -248,7 +248,7 @@ The `<tape-content>` element specifies the initial contents of the tape, i.e. nu
 
 We can validate this RPC message, too. This time, we will generate the schemas for RPC replies and perform the validation in one step:
 
-<pre>
+{{{
 $ yang2dsdl -t rpc -v turing-machine-rpc.xml turing-machine.yang
 == Generating RELAX NG schema './turing-machine-rpc.rng'
 Done.
@@ -266,7 +266,7 @@ turing-machine-rpc.xml validates
 
 == Validating semantic constraints ...
 No errors found.
-</pre>
+}}}
 
 Note that this time the target is `rpc`.
 
@@ -392,7 +392,7 @@ After starting the computation with the other custom RPC method, `run`, we can w
 
 We can now read the result from the tape data, and we can also validate the `<get>` reply:
 
-<pre>
+{{{
 $ yang2dsdl -t get-reply -v turing-machine-get-reply.xml turing-machine.yang 
 == Generating RELAX NG schema './turing-machine-get-reply.rng'
 Done.
@@ -410,7 +410,7 @@ turing-machine-get-reply.xml validates
 
 == Validating semantic constraints ...
 No errors found.
-</pre>
+}}}
 
 <g:plusone size="medium"></g:plusone>
 
