@@ -229,9 +229,9 @@ As an exercise, try to introduce other errors to the instance document and run t
 
 = Validating RPC requests and replies =
 
-Before starting the computation, we have to initialize the Turing Machine properly. This is easy because our data model defines a custom RPC method exactly for this purpose.
+Before starting the computation, we have to initialize the Turing Machine properly. It is easy because our data model defines a custom RPC method exactly for this purpose.
 
-So, after installing the above configuration for adding two numbers, we maight want to test it and compute, say, 2 + 3. The following RPC request does the initialization job:
+So, after installing the above configuration for adding two numbers, we might want to test it and compute, say, 2 + 3. The following RPC request does the initialization job:
 
 {{{
 <?xml version="1.0" encoding="UTF-8"?>
@@ -246,7 +246,7 @@ So, after installing the above configuration for adding two numbers, we maight w
 
 The `<tape-content>` element specifies the initial contents of the tape, i.e. numbers 2 and 3 in the unary notation, separated with a zero.
 
-We can validate this RPC message, too. This time, we will generate the schemas for RPC replies and perform the validation in one step:
+We can validate the above RPC message, too. In this case, we will generate the schemas for RPC replies and perform the validation in one step:
 
 {{{
 $ yang2dsdl -t rpc -v turing-machine-rpc.xml turing-machine.yang
