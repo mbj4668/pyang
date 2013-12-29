@@ -11,7 +11,7 @@ TBD
 
 = Validation Procedure =
 
-TBD
+file:validation.png
 
 = Implementing Validation on Devices
 
