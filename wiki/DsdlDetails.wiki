@@ -11,8 +11,17 @@ TBD
 
 = Validation Procedure =
 
-file:validation.png
+https://pyang.googlecode.com/svn/trunk/doc/tutorial/validation.png
 
 = Implementing Validation on Devices
 
 TBD 
+
+<g:plusone size="medium"></g:plusone>
+
+<wiki:comment>
+Local Variables:
+mode: fundamental
+mode: visual-line
+End:
+</wiki:comment>
