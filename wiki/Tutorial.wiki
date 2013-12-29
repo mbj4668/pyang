@@ -57,7 +57,7 @@ Speaking about Emacs, the amazing [http://www.thaiopensource.com/nxml-mode/ nXML
 
 = Example Data Model =
 
-We will demonstrate pyang functions on a data model of the Turing Machine, [TuringMachine turing-machine.yang]. It is relatively simple but comprehensive in that it covers all document/message types supported in YANG – configuration and state data, RPCs and notifications.
+We will demonstrate pyang functions on a data model of the Turing Machine, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang]. It is relatively simple but comprehensive in that it covers all document/message types supported in YANG – configuration and state data, RPCs and notifications.
 
 The reader should imagine there is a Turing Machine device that runs a NETCONF server, so that we can use a NETCONF client for configuring the machine and communicating with it.
 
