@@ -4,7 +4,7 @@
 
 [http://tools.ietf.org/html/rfc6110 RFC 6110] defines a mapping from YANG to standard [http://www.dsdl.org DSDL] schemas. Pyang's _dsdl_ plugin, together with several XSLT stylesheet that are also part of pyang distribution, fully implements the mapping procedure. The generated DSDL schemas can be used with generic off-the-shelf XML tools for both syntactic and semantic validation of XML instance documents.
 
-This page explains the use of a shell script, _yang2dsdl_, which is also provided as a simple front end to the validation procedure. Developers that need more control should read about the hairy details in DsdlTechDetails.
+This page explains the use of a shell script, _yang2dsdl_, which is also provided as a simple front end to the validation procedure. Developers that need more control or better error diagnostics should read DsdlDetails.
 
 = DSDL Schemas =
 
