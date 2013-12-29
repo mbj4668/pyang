@@ -1,0 +1,179 @@
+/* file: turing-machine.yang */
+module turing-machine {
+
+  namespace "http://example.net/turing-machine";
+
+  prefix "tm";
+
+  description
+    "Data model for the Turing Machine.";
+
+  revision 2013-12-27 {
+    description
+      "Initial revision.";
+  }
+
+  /* Typedefs */
+
+  typedef tape-symbol {
+    description
+      "Type of symbols appearing in tape cells.
+
+       A blank is represented as an empty string where necessary.";
+    type string {
+      length "0..1";
+    }
+  }
+
+  /* State data */
+
+  container turing-machine {
+    description
+      "State data and configuration of a Turing Machine.";
+    leaf state {
+      config "false";
+      mandatory "true";
+      type uint16;
+      description
+        "Current state of the control unit represented as an integer
+         value.
+
+         The initial state is 0.";
+    }
+    leaf head-position {
+      config "false";
+      mandatory "true";
+      type int64;
+      description
+        "Position of tape read/write head.";
+    }
+    container tape {
+      description
+        "The tape is represented as a sparse array.";
+      config "false";
+      list cell {
+        description
+          "List of non-blank cells.";
+        key "coord";
+        leaf coord {
+          type int64;
+          description
+            "Integer coordinate of the tape cell.";
+        }
+        leaf symbol {
+          type tape-symbol {
+            length "1";
+          }
+          description
+            "Symbol appearing in the tape cell.
+
+             Blank (empty string) is not allowed here because the
+             'cell' list only contains non-blank cells.";
+        }
+      }
+    }
+    container transition-function {
+      description
+        "The Turing Machine is configured by specifying the
+         transition function.";
+      list delta {
+        description
+          "The list of transition rules.";
+        key "label";
+        unique "input/state input/symbol";
+        leaf label {
+          type string;
+          description
+            "An arbitrary label of the transition rule.";
+        }
+        container input {
+          description
+            "Input parameters (arguments) of the transition rule.";
+          leaf state {
+            mandatory "true";
+            type uint16;
+            description
+              "Current state of the control unit.";
+          }
+          leaf symbol {
+            mandatory "true";
+            type tape-symbol;
+            description
+              "Symbol read from the tape cell.";
+          }
+        }
+        container output {
+          description
+            "Output values of the transition rule.";
+          leaf state {
+            type uint16;
+            description
+              "New state of the control unit. If this leaf is not
+               present, the state doesn't change.";
+          }
+          leaf symbol {
+            type tape-symbol;
+            description
+              "Symbol to be written to the tape cell. If this leaf is
+               not present, the symbol doesn't change.";
+          }
+          leaf head-move {
+            mandatory "true";
+            type enumeration {
+              enum left;
+              enum right;
+            }
+            description
+              "Direction for moving the read/write head (one cell to
+               the left or right).";
+          }
+        }
+      }
+    }
+  }
+
+  /* RPCs */
+
+  rpc initialize {
+    description
+      "Initialize the Turing Machine as follows:
+
+       1. Put the control unit into the initial state (0).
+
+       2. Move the read/write head to the tape cell with coordinate
+          zero.
+
+       3. Write the string from the 'tape-content' input parameter to
+          the tape, character by character, starting at cell 0. The
+          tape is othewise empty.";
+    input {
+      leaf tape-content {
+        type string;
+        default "";
+        description
+          "The string with which the tape shall be initialized. The
+           leftmost symbol will be at tape coordinate 0.";
+      }
+    }
+  }
+
+  rpc run {
+    description
+      "Start the Turing Machine operation.";
+  }
+
+  /* Notifications */
+
+  notification halted {
+    description
+      "The Turing Machine has halted. This means that there is no
+       transition rule for the current state and tape symbol.";
+    leaf state {
+      mandatory "true";
+      type uint16;
+      description
+        "The state of the control unit in which the machine has
+         halted.";
+    }
+  }
+}

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- file: turing-machine-rpc.xml -->
-<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
-     message-id="101">
-  <initialize xmlns="http://example.net/turing-machine">
-    <tape-content>11101111</tape-content>
-  </initialize>
-</rpc>
