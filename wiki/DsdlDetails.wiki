@@ -1,0 +1,18 @@
+#summary DSDL mapping, schemas and validation.
+
+= Introduction =
+
+This page gives technical details about the mapping of YANG modules to DSDL schemas and instance validation. It is a recommended reading for developers who intend to perform validation in their code.
+
+
+= Mapping YANG to DSDL Schemas =
+
+TBD
+
+= Validation Procedure =
+
+TBD
+
+= Implementing Validation on Devices
+
+TBD 
