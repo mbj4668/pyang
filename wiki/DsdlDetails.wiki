@@ -61,7 +61,7 @@ The procedure for validating instance XML documents or NETCONF messages against 
 
 https://pyang.googlecode.com/svn/trunk/doc/tutorial/validation.png
 
-To demonstrate the individual steps, we will validate the contents of the configuration datastore from [InstanceValidation#Creating an XML Instance].
+To demonstrate the individual steps, we will validate the contents of the configuration datastore from [InstanceValidation#Creating_an_XML_Instance].
 
 == RELAX NG ==
 
