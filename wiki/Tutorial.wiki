@@ -108,7 +108,7 @@ The data model also defines two RPC methods:
 
 Finally, there is an event notification, _halted_, which is triggered when the Turing Machine halts. This happens whenever no transition rule is defined for the current state and tape symbol. The notification reports the clock time when the machine halted and the current state.
 
-Further information about the data model can be found in description texts of the [TuringMachine module].
+Further information about the data model can be found in description texts of the [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang module].
 
 = What's Next? =
 
