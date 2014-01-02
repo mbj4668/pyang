@@ -8,7 +8,7 @@ This page explains the use of a shell script, _yang2dsdl_, which is also provide
 
 = DSDL Schemas =
 
-Let's apply the _yang2dsdl_ script to our data model, [TuringMachine turing-machine.yang], and generate a coordinated set of DSDL schemas:
+Let's apply the _yang2dsdl_ script to our data model, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang], and generate a coordinated set of DSDL schemas:
 
 {{{
 $ yang2dsdl -t config turing-machine.yang
