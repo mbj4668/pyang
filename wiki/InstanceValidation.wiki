@@ -217,7 +217,7 @@ turing-machine-config.xml validates.
     Violated uniqueness for "tm:input/tm:state tm:input/tm:symbol"
 }}}
 
-Right, the data model states that the input parameters `state` and `symbol` must be unique among the entries of the `delta` list:
+Right, the [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang YANG module] states in line 82 that the input parameters `state` and `symbol` must be unique among the entries of the `delta` list:
 
 {{{
 unique "input/state input/symbol";
