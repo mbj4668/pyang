@@ -24,6 +24,57 @@ module turing-machine {
     }
   }
 
+  typedef cell-index {
+    description
+      "Type for indexing tape cells.";
+    type int64;
+  }
+
+  typedef state-index {
+    description
+      "Type for indexing states of the control unit.";
+    type uint16;
+  }
+
+  typedef head-dir {
+    type enumeration {
+      enum left;
+      enum right;
+    }
+    default "right";
+    description
+      "Possible directions for moving the read/write head, one cell
+       to the left or right (default).";
+  }
+
+  /* Groupings */
+
+  grouping tape-cells {
+    description
+      "The tape of the Turing Machine is represented as a sparse
+       array.";
+    list cell {
+      description
+        "List of non-blank cells.";
+      key "coord";
+      leaf coord {
+        type cell-index;
+        description
+          "Coordinate (index) of the tape cell.";
+      }
+      leaf symbol {
+        type tape-symbol {
+          length "1";
+        }
+        description
+          "Symbol appearing in the tape cell.
+
+           Blank (empty string) is not allowed here because the
+           'cell' list only contains non-blank cells.";
+      }
+    }
+  }
+
   /* State data and Configuration */
 
   container turing-machine {
@@ -32,44 +83,24 @@ module turing-machine {
     leaf state {
       config "false";
       mandatory "true";
-      type uint16;
+      type state-index;
       description
-        "Current state of the control unit represented as an integer
-         value.
+        "Current state of the control unit.
 
          The initial state is 0.";
     }
     leaf head-position {
       config "false";
       mandatory "true";
-      type int64;
+      type cell-index;
       description
         "Position of tape read/write head.";
     }
     container tape {
       description
-        "The tape is represented as a sparse array.";
+        "The contents of the tape.";
       config "false";
-      list cell {
-        description
-          "List of non-blank cells.";
-        key "coord";
-        leaf coord {
-          type int64;
-          description
-            "Integer coordinate of the tape cell.";
-        }
-        leaf symbol {
-          type tape-symbol {
-            length "1";
-          }
-          description
-            "Symbol appearing in the tape cell.
-
-             Blank (empty string) is not allowed here because the
-             'cell' list only contains non-blank cells.";
-        }
-      }
+      uses tape-cells;
     }
     container transition-function {
       description
@@ -90,7 +121,7 @@ module turing-machine {
             "Input parameters (arguments) of the transition rule.";
           leaf state {
             mandatory "true";
-            type uint16;
+            type state-index;
             description
               "Current state of the control unit.";
           }
@@ -105,7 +136,7 @@ module turing-machine {
           description
             "Output values of the transition rule.";
           leaf state {
-            type uint16;
+            type state-index;
             description
               "New state of the control unit. If this leaf is not
                present, the state doesn't change.";
@@ -117,14 +148,9 @@ module turing-machine {
                not present, the symbol doesn't change.";
           }
           leaf head-move {
-            type enumeration {
-              enum left;
-              enum right;
-            }
-            default "right";
+            type head-dir;
             description
-              "Direction for moving the read/write head, one cell to
-               the left or right (default).";
+              "Move the head one cell to the left or right";
           }
         }
       }
@@ -169,7 +195,7 @@ module turing-machine {
        transition rule for the current state and tape symbol.";
     leaf state {
       mandatory "true";
-      type uint16;
+      type state-index;
       description
         "The state of the control unit in which the machine has
          halted.";
