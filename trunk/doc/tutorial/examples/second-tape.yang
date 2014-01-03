@@ -1,0 +1,65 @@
+module second-tape {
+
+  namespace "http://example.com/turing-machine/tape2";
+
+  prefix "t2";
+
+  import turing-machine {
+    prefix "tm";
+  }
+
+  augment "/tm:turing-machine" {
+    description
+      "State data for the second tape.";
+    leaf head-position-2 {
+      config "false";
+      type tm:cell-index;
+      description
+        "Head position of the second tape.";
+    }
+    container tape-2 {
+      description
+        "Contents of the second tape.";
+      config "false";
+      uses tm:tape-cells;
+    }
+  }
+
+  augment
+    "/tm:turing-machine/tm:transition-function/tm:delta/tm:input" {
+    description
+      "A new input parameter.";
+    leaf symbol-2 {
+      type tm:tape-symbol;
+      description
+        "Symbol read from the second tape.";
+    }
+  }
+
+  augment
+    "/tm:turing-machine/tm:transition-function/tm:delta/tm:output" {
+    description
+      "New output parameters.";
+    leaf symbol-2 {
+      type tm:tape-symbol;
+      description
+        "Symbol to be written to the second tape.";
+    }
+    leaf head-move-2 {
+      type tm:head-dir;
+      description
+        "Move the head on the second tape one cell to the left or
+         right.";
+    }
+  }
+
+  augment "/tm:initialize/tm:input" {
+    description
+      "A new RPC input parameter.";
+    leaf tape-content-2 {
+      type string;
+      description
+        "Initial content of the second tape.";
+    }
+  }
+}
