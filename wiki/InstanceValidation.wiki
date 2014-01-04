@@ -4,7 +4,7 @@
 
 [http://tools.ietf.org/html/rfc6110 RFC 6110] defines a mapping from YANG to standard [http://www.dsdl.org DSDL] schemas. Pyang's _dsdl_ plugin, together with several XSLT stylesheet that are also part of pyang distribution, fully implements the mapping procedure. The generated DSDL schemas can be used with generic off-the-shelf XML tools for both syntactic and semantic validation of XML instance documents.
 
-This page explains the use of a shell script, _yang2dsdl_, which is also provided as a simple front end to the validation procedure. Developers that need more control or better error diagnostics should read DsdlDetails.
+This page explains the use of a shell script, _yang2dsdl_, which is also provided in pyang distribution as a simple front end to the validation procedure. Developers that need more control or better error diagnostics should read DsdlDetails.
 
 = DSDL Schemas =
 
@@ -55,15 +55,15 @@ We will work with other targets later on in this tutorial.
 
 = Creating an XML Instance =
 
-Quite often, sample instance documents for testing and debugging purposes have to be written manually, in a text editor. Some people are fond of writing every single character in an XML or HTML document with their fingers. The rest of us, mere mortals, will want to reduce the drudgery by using an editor that provides some support for editing XML documents. 
+Quite often, sample instance documents for testing and debugging purposes have to be written manually, in a text editor. Some people are fond of writing every single character in an XML or HTML document with their fingers. The rest of us will want to reduce the drudgery by using an editor that provides some support for editing XML documents. 
 
-An excellent choice is Emacs with James Clark's [http://www.thaiopensource.com/nxml-mode/ nXML mode]. With the RELAX NG schema we have just generated, we can turn it into a schema-aware editor with autocompletion and on-the-fly validation. We only need to convert the schema into the compact syntax, e.g. using [http://www.thaiopensource.com/relaxng/trang.html Trang]:
+An excellent choice is Emacs with James Clark's [http://www.thaiopensource.com/nxml-mode/ nXML mode]. With the RELAX NG schema we have just generated, we can turn it into a schema-aware editor with autocompletion and on-the-fly validation. We only need to convert the schema into the RELAX NG [http://www.relaxng.org/compact-20021121.html compact syntax], e.g. by using [http://www.thaiopensource.com/relaxng/trang.html Trang]:
 
 {{{
-java -jar trang.jar -I rng -O rnc turing-machine-config.rng turing-machine-config.rnc
+trang -I rng -O rnc turing-machine-config.rng turing-machine-config.rnc
 }}}
 
-There are several way for telling nXML mode how to locate the right schema for the XML document being edited. The easiest option is to rely on file names. In our case it means that the name of the XML file should be `turing-machine-config.xml`.
+There are several ways for telling nXML mode how to locate the right schema for an XML document being edited. The easiest option is to rely on file names. In our case it means that the name of the XML file should be `turing-machine-config.xml`.
 
 Now that everything is in place, we can write our first configuration for the Turing Machine:
 
@@ -79,9 +79,6 @@ Now that everything is in place, we can write our first configuration for the Tu
 	  <state>0</state>
 	  <symbol>1</symbol>
 	</input>
-	<output>
-	  <head-move>right</head-move>
-	</output>
       </delta>
       <delta>
 	<label>separator</label>
@@ -92,7 +89,6 @@ Now that everything is in place, we can write our first configuration for the Tu
 	<output>
 	  <state>1</state>
 	  <symbol>1</symbol>
-	  <head-move>right</head-move>
 	</output>
       </delta>
       <delta>
@@ -101,9 +97,6 @@ Now that everything is in place, we can write our first configuration for the Tu
 	  <state>1</state>
 	  <symbol>1</symbol>
 	</input>
-	<output>
-	  <head-move>right</head-move>
-	</output>
       </delta>
       <delta>
 	<label>right end</label>
@@ -146,7 +139,6 @@ Now that everything is in place, we can write our first configuration for the Tu
 	</input>
 	<output>
 	  <state>4</state>
-	  <head-move>right</head-move>
 	</output>
       </delta>
     </transition-function>
@@ -173,9 +165,9 @@ turing-machine-config.xml validates.
 No errors found.
 }}}
 
-Sure enough, everything is fine. The `-s` option indicates that we want to use pre-generated schemas, and then we also have to provide the `-b` (base name) and `-t` (target) options, so that the script is able to find the schemas. The `-j` option instructs the script to use [http://www.thaiopensource.com/relaxng/jing.html Jing] as the RELAX NG validator. By default, _xmllint_ from the [http://www.xmlsoft.org/ Libxml2] toolkit is used. While _xmllint_ is more common and also works, its error messages are sometimes rather incomprehensible.
+Sure enough, everything is fine. The `-s` option indicates that we want to use the schemas that we generated earlier, and then we also have to provide the `-b` (base name) and `-t` (target) options, so that the script is able to find the schemas. The `-j` option instructs the script to use [http://www.thaiopensource.com/relaxng/jing.html Jing] as the RELAX NG validator. By default, _xmllint_ from the [http://www.xmlsoft.org/ libxml2] toolkit is used. While _xmllint_ is more common and also works, its error messages are sometimes rather incomprehensible.
 
-Now, let's smuggle some bugs into the instance document. First, we change the value of the input state element in the first transition rule (`left summand`) from `0` to `zero`. This is a type error because the data model says the `state` leaf is `uint16`. Type errors are caught by the RELAX NG validator:
+Now, let's smuggle some bugs into the instance document. First, we change the value of the input state element in the first transition rule (`left summand`) from `0` to the string `zero`. This is a type error because the data model says the `state` leaf is `uint16`. Type errors are caught by the RELAX NG validator:
 
 {{{
 $ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
@@ -186,7 +178,7 @@ $ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
 content of element "state" invalid; must be an integer
 }}}
 
-Next, we will return the value of `<state>` to the original correct value and introduce a new, more subtle error. We will create a new entry of the `delta` list with the following content:
+Next, we will return the `<state>` element to the original correct value of `0`, and introduce a new, more subtle error – create a new entry of the `delta` list with the following content:
 
 {{{
 <delta>
@@ -235,7 +227,7 @@ So, after installing the above configuration for adding two numbers, we might wa
 
 {{{
 <?xml version="1.0" encoding="utf-8"?>
-<!-- file: turing-machine-rpc.xml -->
+<!-- file: initialize-rpc.xml -->
 <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
      message-id="1">
   <initialize xmlns="http://example.net/turing-machine">
@@ -249,7 +241,7 @@ The `<tape-content>` element specifies the initial contents of the tape, i.e. nu
 We can validate the above RPC message, too. In this case, we will generate the schemas for RPC replies and perform the validation in one step:
 
 {{{
-$ yang2dsdl -t rpc -v turing-machine-rpc.xml turing-machine.yang
+$ yang2dsdl -t rpc -v initialize-rpc.xml turing-machine.yang
 == Generating RELAX NG schema './turing-machine-rpc.rng'
 Done.
 
@@ -260,7 +252,7 @@ Done.
 Done.
 
 == Validating grammar and datatypes ...
-turing-machine-rpc.xml validates
+initialize-rpc.xml validates
 
 == Adding default values... done.
 
@@ -270,11 +262,11 @@ No errors found.
 
 Note that this time the target is `rpc`.
 
-After starting the computation with the other custom RPC method, `run`, we can wait until we receive the `halted` notification indicating that the Turing Machine is done. We can learn the result by sending a `get` request. The Turing Machine's NETCONF server should reply with the following message:
+After starting the computation with the other custom RPC method, `run`, we can wait until we receive the `halted` notification indicating that the Turing Machine is done. Afterwards, we can learn the result by sending a `get` request. The Turing Machine's NETCONF server should reply with the following message:
 
 {{{
 <?xml version="1.0" encoding="utf-8"?>
-<!-- file: turing-machine-rpc-reply.xml -->
+<!-- file: turing-machine-get-reply.xml -->
 <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
 	   message-id="3">
   <data>
@@ -314,9 +306,6 @@ After starting the computation with the other custom RPC method, `run`, we can w
 	    <state>0</state>
 	    <symbol>1</symbol>
 	  </input>
-	  <output>
-	    <head-move>right</head-move>
-	  </output>
 	</delta>
 	<delta>
 	  <label>separator</label>
@@ -327,7 +316,6 @@ After starting the computation with the other custom RPC method, `run`, we can w
 	  <output>
 	    <state>1</state>
 	    <symbol>1</symbol>
-	    <head-move>right</head-move>
 	  </output>
 	</delta>
 	<delta>
@@ -336,9 +324,6 @@ After starting the computation with the other custom RPC method, `run`, we can w
 	    <state>1</state>
 	    <symbol>1</symbol>
 	  </input>
-	  <output>
-	    <head-move>right</head-move>
-	  </output>
 	</delta>
 	<delta>
 	  <label>right end</label>
@@ -381,7 +366,6 @@ After starting the computation with the other custom RPC method, `run`, we can w
 	  </input>
 	  <output>
 	    <state>4</state>
-	    <head-move>right</head-move>
 	  </output>
 	</delta>
       </transition-function>

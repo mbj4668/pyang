@@ -14,7 +14,7 @@ Features are defined in YANG modules and allow for making selected parts of the 
 
 YANG modules comprising the data model are entered on the pyang command line, and features may be specified using the `--features` option. This option can be used repeatedly – each occurrence defines active (supported) features for one YANG module.
 
-For example, the following command line uses two YANG modules, _foo_ and _bar_, and the only supported feature is `miracle` (defined in `foo`). 
+For example, the following command line uses two YANG modules, _foo_ and _bar_, and the only supported feature is `miracle` (defined in _foo_). 
 
 {{{
 $ pyang -f tree --features foo:miracle --features bar: foo.yang bar.yang
