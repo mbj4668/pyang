@@ -22,7 +22,7 @@ $ pyang -f tree --features foo:miracle --features bar: foo.yang bar.yang
 
 If no `--features` option is present for a module, then all features defined in that module are considered active.
 
-For data models that consist of a larger number of YANG modules and/or features, it may be inconvenient to provide all data model information on the command line. Therefore, it is also possible to specify the data model in a configuration file. The contents of the configuration file are the same as the _hello_ message that is sent by the NETCONF server at the start of every session – see RFC 6241, [http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
+For data models that consist of a larger number of YANG modules and/or features, it may be inconvenient to provide all data model information on the command line. Therefore, it is also possible to specify the data model in a configuration file. The contents of the configuration file are the same as the *hello* message that is sent by the NETCONF server at the start of every session – see RFC 6241, [http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
 
 This command line achieves the same effect as the previous one:
 
@@ -45,7 +45,7 @@ where the contents of `hello.xml` are as follows:
 </hello>
 }}}
 
-See pyang manual page for more information.
+See [http://www.yang-central.org/twiki/pub/Main/YangTools/pyang.1.html pyang(1)] manual page for more information.
 
 = Editing YANG Modules =
 
@@ -103,10 +103,10 @@ The Turing Machine is represented by several _operational state_ nodes (denoted 
 The _configuration_ is a specification of the transition function 𝛿, i.e. a program for the Turing Machine. Each transition rule has two input parameters – the current state of the control unit and the symbol read from the current tape cell – and three output values: the new state, new symbol written to the tape cell, and new position of the head (at every step, it must move one cell to the left or to the right from the current cell).
 
 The data model also defines two RPC methods:
- * _initialize_ – puts the control unit into the initial state, the read/write head to its “home” position, and initializes the contents of the tape.
- * _run_ – starts Turing Machine's computation.
+ * *initialize* – puts the control unit into the initial state, the read/write head to its “home” position, and initializes the contents of the tape.
+ * *run* – starts Turing Machine's computation.
 
-Finally, there is an event notification, _halted_, which is triggered when the Turing Machine halts. This happens whenever no transition rule is defined for the current state and tape symbol. The notification reports the clock time when the machine halted and the current state.
+Finally, there is an event notification, *halted*, which is triggered when the Turing Machine halts. This happens whenever no transition rule is defined for the current state and tape symbol. The notification reports the clock time when the machine halted and the current state.
 
 Further information about the data model can be found in description texts of the [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang module].
 

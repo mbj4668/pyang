@@ -14,7 +14,7 @@ The [https://code.google.com/p/pyang/source/browse/trunk/bin/yang2dsdl yang2dsdl
 
 == Hybrid Schema ==
 
-The hybrid schema is an XML document which captures all aspects of the data model. It uses the RELAX NG syntax for defining grammatic and datatype constraints. However, it is _not_ a RELAX NG schema because, depending on the data model, it may contain schemas for multiple targets (document types). RELAX NG elements are annotated with additional information about semantic constraints and default values. Annotations are attributes or elements from the XML namespace with URI `urn:ietf:params:xml:ns:netmod:dsdl-annotations:1`.
+The hybrid schema is an XML document which captures all aspects of the data model. It uses the RELAX NG syntax for defining grammatical and datatype constraints. However, it is _not_ a RELAX NG schema because, depending on the data model, it may contain schemas for multiple targets (document types). RELAX NG elements are annotated with additional information about semantic constraints and default values. Annotations are attributes or elements from the XML namespace with URI `urn:ietf:params:xml:ns:netmod:dsdl-annotations:1`.
 
 In pyang, he hybrid schema is generated using the `dsdl` plugin, for example:
 
@@ -22,7 +22,7 @@ In pyang, he hybrid schema is generated using the `dsdl` plugin, for example:
 pyang -f dsdl -o turing-machine.dsdl turing-machine.yang
 }}}
 
-The output XML is unformatted, so a pretty-printer, such as `xmllint --format` might be handy for inspecting the hybrid schema.
+The output XML is unformatted, so a pretty-printer, such as “`xmllint --format`” might be useful for inspecting the hybrid schema.
 
 == DSDL Schemas ==
 
@@ -32,7 +32,7 @@ From the hybrid schema, standard-compliant DSDL Schemas can be generated. In pya
  * [https://code.google.com/p/pyang/source/browse/trunk/xslt/gen-dsrl.xsl gen-dsrl.xsl] – generates the DSRL schema,
  * [https://code.google.com/p/pyang/source/browse/trunk/xslt/gen-schematron.xsl gen-schematron.xsl] – generates the Schematron schema.
 
-The stylesheet generating RELAX NG actually has to be applied twice. The following example uses the ubiquitous _xsltproc_ tool, but other XSLT processors should work, too:
+The stylesheet generating RELAX NG actually has to be applied twice. The following example uses the ubiquitous *xsltproc* tool, but other XSLT processors should work, too:
 {{{
 $ xsltproc -o turing-machine-gdefs-config.rng --stringparam target config \
 > --stringparam gdefs-only 1 \
@@ -43,9 +43,9 @@ $ xsltproc -o turing-machine-config.rng --stringparam target config \
 
 In the first invocation, with the `gdefs-only` parameter set to the value of `1`, the XSLT processor only extracts _global definitions_ (named patterns in RELAX NG terms). This step is necessary because these global definitions have to support the so-called “chameleon” design, in which a definition adopts the XML namespace of the grammar in which the definition is referenced (for a detailed explanation, see [http://books.xmlschemata.org/relaxng/relax-CHP-11-SECT-5.html Section 11.5] in E. van der Vlist: _RELAX NG_, O'Reilly, 2003).
 
-The second invocation then generates the actual schema for the selected target (`config` in our example). In it, the sub-schema of each YANG module inhabits a second-level grammar, and each such grammar then includes the schema with global definitions that was generated in the first invocation.
+The second invocation then generates the actual schema for the selected target (`config` in our example). In it, the sub-schema of each YANG module inhabits a second-level grammar, and every such grammar then includes the schema with global definitions that was generated in the first invocation.
 
-Care has to be taken when selecting names of output files into which the schemas are written, so as to allow the main schema to locate the schema file with global definitions. The rules for naming the files is explained in the manual page _yang2dsdl (1)_.
+Care has to be taken when selecting names of output files into which the schemas are written, so as to allow the main schema to locate the schema file with global definitions. The rules for naming the files is explained in the manual page [http://www.yang-central.org/twiki/pub/Main/YangTools/yang2dsdl.1.html yang2dsdl(1)].
 
 The other two schemas, DSRL and Schematron, require only one invocation of a XSLT processor:
 {{{
@@ -61,11 +61,11 @@ The procedure for validating instance XML documents or NETCONF messages against 
 
 https://pyang.googlecode.com/svn/trunk/doc/tutorial/validation.png
 
-To demonstrate the individual steps, we will validate the contents of the configuration datastore from [InstanceValidation#Creating_an_XML_Instance].
+To demonstrate the individual steps, we will validate the configuration document from [InstanceValidation#Creating_an_XML_Instance].
 
 == RELAX NG ==
 
-First of all, we have to validate the grammar and datatypes with a RELAX NG validator, such as _xmllint_:
+First of all, we have to validate the grammar and datatypes with a RELAX NG validator, such as *xmllint*:
 {{{
 $ xmllint --noout --relaxng turing-machine-config.rng turing-machine-config.xml
 turing-machine-config.xml validates
@@ -75,9 +75,9 @@ Bear in mind that the type of the validated document must always match the targe
 
 == Document Schema Renaming Language (DSRL) ==
 
-Before validatind semantic constraints with Schematron, it is necessary to add default values to the instance document where possible. This is because YANG defines the context for evaluating _must_ expressions and other semantic constraints so that all applicable default values are “in use” (see [http://tools.ietf.org/html/rfc6020#section-7.6.1 Section 7.6.1 in RFC 6020]).
+Before validating semantic constraints with Schematron, it is necessary to add default values to the instance document where possible. This is because YANG defines the context for evaluating *must* expressions and other semantic constraints so that all applicable default values are “in use” (see [http://tools.ietf.org/html/rfc6020#section-7.6.1 Section 7.6.1] in RFC 6020).
 
-DSRL schema language has been added to the DSDL suite relatively recently, the standard was published in 2008. It is the only DSDL schema language that is allowed to change the XML information set of the validated document. On of the roles of DSRL is to define default contents for missing or empty elements, and this is exactly what we need.
+DSRL schema language has been added to the DSDL suite relatively recently, the standard was published in 2008. It is the only DSDL schema language that is allowed to change the XML information set of the validated document. One of the roles of DSRL is to define default contents for missing or empty elements, and this is exactly what we need.
 
 As of yet, no generic implementation of DSRL is available, but pyang includes a XSLT stylesheet, [https://code.google.com/p/pyang/source/browse/trunk/xslt/dsrl2xslt.xsl dsrl2xslt.xsl], which is a partial implementation – it converts the DSRL schema generated from a hybrid schema into another XSLT stylesheet, `add-defaults.xsl`, that performs the defauls-adding function.
 {{{
@@ -101,13 +101,13 @@ In the transition rules that have no output part at all, the `<output>` element 
 </output>
 }}}
 
-Not that in both cases the new contents are tagged with the processing instruction `<?dsrl?>` so that Schematron (and other tools) can recognize the default contents that have been added by DSRL validation.
+Note that in both cases the added elements are tagged with the processing instruction `<?dsrl?>` so that Schematron (and other tools) can recognize the default contents that have been added by DSRL validation.
 
 == Schematron ==
 
 Rules in a Schematron schema specify various semantic constraints. The flexibility of Schematron follows from the expressive power of [http://www.w3.org/TR/1999/REC-xpath-19991116/ XPath] and [http://www.w3.org/TR/1999/REC-xslt-19991116 XSLT].
 
-Another very useful feature is that error messages are defined as a part of Schematrol rule specification. In our case, Schematron error messages are often mapped from the corresponding _error-message_ statements in YANG modules. As a result, Schematron validation often gives quite specific and precise information about the context of a semantic validity problem.
+Another very useful feature is that error messages are defined as a part of Schematron rule specification. In our case, Schematron error messages are often mapped from the corresponding *error-message* statements in YANG modules. As a result, Schematron validation often gives quite specific and precise information about the context of a semantic validity problem.
 
 Pyang distribution includes the open source ISO Schematron [https://code.google.com/p/schematron/ implementation] by Rick Jelliffe. It is an XSLT-based Schematron validator comprising three stylesheets in the `xslt` subdirectory: `iso_abstract_expand.xsl`, `iso_schematron_skeleton_for_xslt1.xsl` and `iso_svrl_for_xslt1.xsl`.
 
@@ -146,7 +146,7 @@ Let's assume the instance configuration again has the same problem as in Instanc
 
 The `test` attribute shows the rule, and `location` contains an XPath context (albeit in a little complicated form) in which the rule was checked.
 
-For the purposes of the `yang2dsdl` script we need a simple text output, so the following simplified report is extracted from the SVRL file using the XSLT stylesheet [https://code.google.com/p/pyang/source/browse/trunk/xslt/svrl2text.xsl svrl2text.xsl]:
+For the command-line interface of the *yang2dsdl* script we need a simple text output, so the following simplified report is extracted from the SVRL file using the XSLT stylesheet [https://code.google.com/p/pyang/source/browse/trunk/xslt/svrl2text.xsl svrl2text.xsl]:
 {{{
 $ xsltproc $PYANG_XSLT_DIR/svrl2text.xsl check-semantics.svrl
 --- Validity error at "/nc:config/tm:turing-machine/tm:transition-function/tm:delta":
@@ -155,13 +155,13 @@ $ xsltproc $PYANG_XSLT_DIR/svrl2text.xsl check-semantics.svrl
 
 = Implementing Validation on Devices =
 
-The procedure described in the preceding sections looks somewhat daunting but, in fact, it can be effectively implemented even on small devices with relatively limited memory. As long as the data model supported by the device doesn't change, the only required software components are: RELAX NG validator and XSLT processor.
+The procedure described in the preceding sections looks somewhat daunting but, in fact, it can be effectively implemented even on small devices with relatively limited memory. As long as the data model supported by the device doesn't change, the only required software components are: a RELAX NG validator and an XSLT processor.
 
 Two approaches are possible, or any combination thereof:
  # Only the hybrid schema describing the current data model is stored on the device.
  # The RELAX NG schema plus the two final XSLT stylesheets, `add-defaults.xsl` and `check-semantics.xsl` are generated in advance and stored on the device.
 
-In the former case, the device only has to run more XSLT transformations. 
+In the former case, the device just has to run more XSLT transformations. 
 
 <g:plusone size="medium"></g:plusone>
 

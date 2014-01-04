@@ -2,19 +2,19 @@
 
 = Introduction =
 
-Back in 2003, when NETCONF was conceived, the choice of XML as the format for message contents seemed more or less automatic. These days, JSON is much more popular as a vehicle for encoding hierarchically structured data. Several applications in the area of network device configuration already express dat in JSON.
+Back in 2003, when NETCONF was conceived, the choice of XML as the format for message contents seemed more or less automatic. These days, JSON is much more popular as a vehicle for encoding hierarchically structured data. Several applications in the area of network device configuration already express data in JSON.
 
 IETF Internet-Draft [http://tools.ietf.org/html/draft-lhotka-netmod-yang-json draft-lhotka-netmod-yang-json] enables JSON as the alternative encoding format for data modelled with YANG. It does so indirectly because YANG uses some concepts, such as XPath, that are only defined for XML. The Internet-Draft establishes equivalence (one-to-one mapping) between JSON and the subset of XML that can be modelled by YANG. Many statements about XML-encoded data, for example about validity, then apply to the equivalent JSON-encoded data, and vice versa.
 
-Two pyang plugins, `jsonxsl` and `jtox`, implements both directions of the mapping. Their results are generally better than those obtained from a generic XML-JSON convertor because the mapping uses the YANG data model. This means, for example, that
- * numeric leaf nodes are mapped to JSON number, or
+Two pyang plugins, `jsonxsl` and `jtox`, implement both directions of the mapping. Their results are generally better than those obtained from a generic XML-JSON convertor because the mapping actively uses the YANG data model. This means, for example, that
+ * numeric leaf nodes are mapped to JSON numbers, or
  * lists or leaf-lists having only a single entry are still mapped to JSON arrays.
 
 = Translating XML into JSON =
 
-The `jsonxsl` plugin takes a YANG data model (see [Tutorial#YANG_Data_Model]) and generates an XSLT stylesheet from it. This stylesheet then can be used for translating any _valid_ XML instance of the data model into JSON.
+The `jsonxsl` plugin takes a YANG data model (see [Tutorial#YANG_Data_Model]) and generates an XSLT1 stylesheet from it. This stylesheet then can be used for translating any _valid_ XML instance of the data model into JSON.
 
-For out example YANG module, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang] the XSLT stylesheet is generated with this command:
+For our example YANG module, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang], the XSLT stylesheet is generated with this command:
 {{{
 $ pyang -f jsonxsl -o tm-json.xsl turing-machine.yang
 }}}
@@ -111,20 +111,20 @@ $ cat turing-machine-config.json
 }
 }}}
 
-Note that due to schema-awareness the translation takes into account the difference between the number 0 and the string "0" even though they look the same as values of XML leaf nodes.
+Note that due to schema-awareness the translation takes into account the difference between the number 0 and the string "0" even though they look the same as in XML.
 
 = Translating JSON into XML =
 
 The translation in the opposite direction is complicated by the fact that there is no such thing as XSLT for JSON. Therefore, one option would be to take both the data model and a JSON instance and return an XML instance.
 
-The `jtox` plugin takes a different approach: it takes only the data model and produces a JSON-encoded intermediate representation that encodes the information necessary for the JSON-to-XML translation. A relatively simple Python script, [https://code.google.com/p/pyang/source/browse/trunk/bin/json2xml json2xml] than uses this intermediate representation for translating any valid JSON instance to XML.
+The `jtox` plugin opted for a different approach: it takes only the data model and produces a JSON-encoded driver file that contains all the information necessary for the JSON-to-XML translation. A relatively simple Python script, [https://code.google.com/p/pyang/source/browse/trunk/bin/json2xml json2xml] than uses this driver file for translating any valid JSON instance to XML.
 
-For example, this command produces the intermediate representation for our Turing Machine model:
+For example, this command produces the driver file for our Turing Machine model:
 {{{
 $ pyang -f jtox -o turing-machine.jtox turing-machine.yang
 }}}
 
-Now, we can translate a JSON Instance like this:
+Now, we can translate a JSON instance into XML like this:
 {{{
 $ json2xml -t config -o tm-config.xml turing-machine.jtox turing-machine-config.json
 }}}
@@ -138,7 +138,7 @@ or
 {{{
 <nc:data xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"/>
 }}}
-respectively. Consult the _json2xml_ manual page for further details.
+respectively. Consult [http://www.yang-central.org/twiki/pub/Main/YangTools/json2xml.1.html json2xml(1)] manual page for further details.
 
 The result is a valid XML instance:
 {{{

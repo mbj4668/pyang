@@ -4,17 +4,17 @@
 
 The possibility to augment an existing data model with additional nodes and trees is one of the most powerful features of the YANG language. While standard XML schema languages, such as W3C XML Schema (XSD) or RELAX NG, also support extensible schemas, the data modeller has to arrange the base schema in a special way so as there'd be a chance for adding new elements or attributes in a certain place. In contrast, a YANG module can be augmented almost in any place with nodes defined in another module, and the receiving module needn't be prepared to it in any special way.
 
-= The _augment_ Statement =
+= The *augment* Statement =
 
 Data nodes that are intended to augment an existing module have to be defined inside the [http://tools.ietf.org/html/rfc6020#section-7.15 augment] statement. The argument of this statement is a _schema node identifier_, i.e. a path to the target node (usually a container) to which the new nodes are to be added.
 
-YANG also allows the _augment_ statement to be used in a submodule for augmenting the main module or other submodules, and also to augment the contents of a grouping when it is used. In the following text, though, we will concentrate on the most common case when one YANG module augments the data hierarchy of another module. In this case, the augmenting nodes keep the namespace of the module where they are defined, so no name conflicts are possible. However, it is a matter of good style to avoid sibling nodes with identical local names.
+YANG also allows the *augment* statement to be used in a submodule for augmenting the main module or other submodules, and also to augment the contents of a grouping when it is used. In the following text, though, we will concentrate on the most common case when one YANG module augments the data hierarchy of another module. In this case, the augmenting nodes keep the namespace of the module where they are defined, so no name conflicts are possible. However, it is a matter of good style to avoid sibling nodes with identical local names.
 
-The _augment_ statement can also have _when_ as its substatement. The augment is then applied only conditionally, depending on the contents of the receiving module.
+The *augment* statement can also have *when* as its substatement. The augment is then applied only conditionally, depending on the contents of the receiving module.
 
 = Augmenting the Turing Machine Data Model =
 
-Assume we want to extend the data model of the Turing Machine by adding a second tape. This is accomplished by four _augment_ statements contained in the module [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/second-tape.yang second-tape.yang]. The augmented data model looks schematically as follows:
+Assume we want to extend the data model of the Turing Machine by adding a second tape. This is accomplished by four *augment* statements contained in the module [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/second-tape.yang second-tape.yang]. The augmented data model looks schematically as follows:
 {{{
 $ pyang -f tree turing-machine.yang second-tape.yang
 module: turing-machine
@@ -54,7 +54,7 @@ notifications:
       +--ro state    state-index
 }}}
 
-Let's have a look at each _augment_ in turn.
+Let's have a look at each *augment* in turn.
 
 == Operational State Data ==
 
@@ -78,11 +78,11 @@ augment "/tm:turing-machine" {
 }
 }}}
 
-The target node specified in the argument of the _augment_ statement is `/tm:turing-machine`. This means that the nodes defined inside the _augment_ statement will appear directly under the `turing-machine` container.
+The target node specified in the argument of the *augment* statement is `/tm:turing-machine`. This means that the nodes defined inside the *augment* statement will appear directly under the `turing-machine` container.
 
 Node that in the definitions of new data nodes, `head-position-2` and `tape-2`, we are reusing a derived type (`cell-index`) and a grouping (`tape-cells`) from the original module [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang]. This is made possible by importing the _turing-machine_ module in the _second-tape_ module.
 
-In the case of the grouping, it is important to understand what's going on in terms of namespaces. YANG groupings behave as chameleons – the data node defined in a grouping adopt the namespace of the module in which the grouping is used (via the _uses_ statement). Hence, the `cell` list as a child of the `tape-2` container is in the namespace of the _second-tape_ module, and keeps it when it is inserted by the _augment_ statement into the data hierarchy of the _turing-machine_ module. In the tree representation above, this is indicated by the `t2` prefix that is prepended to the `cell` node and its subnodes.
+In the case of the grouping, it is important to understand what's going on in terms of namespaces. YANG groupings behave as chameleons – data nodes defined in a grouping adopt the namespace of the module in which the grouping is used (via the *uses* statement). Hence, the `cell` list as a child of the `tape-2` container is in the namespace of the _second-tape_ module, and keeps it when it is inserted by the *augment* statement into the data hierarchy of the _turing-machine_ module. In the tree representation above, this is indicated by the `t2` prefix that is prepended to the `cell` node and its subnodes.
 
 == Configuration ==
 
@@ -100,7 +100,7 @@ augment
 }
 }}}
 
-Similarly, two additional output values have to be returned, namely the symbol to be written on the second tape, and the direction in which the head of the second tape shall move:
+Similarly, two additional output values have to be returned, namely the symbol to be written to the second tape, and the direction in which the head of the second tape shall move:
 {{{
 augment
   "/tm:turing-machine/tm:transition-function/tm:delta/tm:output" {
@@ -121,7 +121,7 @@ augment
 }
 }}}
 
-In both _augment_ statements we are again using derived types defined in the _turing-machine_ module.
+In both *augment* statements we are again using derived types defined in the _turing-machine_ module.
 
 == RPC Method ==
 

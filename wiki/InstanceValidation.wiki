@@ -4,11 +4,11 @@
 
 [http://tools.ietf.org/html/rfc6110 RFC 6110] defines a mapping from YANG to standard [http://www.dsdl.org DSDL] schemas. Pyang's _dsdl_ plugin, together with several XSLT stylesheet that are also part of pyang distribution, fully implements the mapping procedure. The generated DSDL schemas can be used with generic off-the-shelf XML tools for both syntactic and semantic validation of XML instance documents.
 
-This page explains the use of a shell script, _yang2dsdl_, which is also provided in pyang distribution as a simple front end to the validation procedure. Developers that need more control or better error diagnostics should read DsdlDetails.
+This page explains the use of a shell script, [https://code.google.com/p/pyang/source/browse/trunk/bin/yang2dsdl yang2dsdl], which is also provided in pyang distribution as a simple front end to the validation procedure. Developers that need more control or better error diagnostics should read DsdlDetails.
 
 = DSDL Schemas =
 
-Let's apply the _yang2dsdl_ script to our data model, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang], and generate a coordinated set of DSDL schemas:
+Let's apply the *yang2dsdl* script to our data model, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang], and generate a coordinated set of DSDL schemas:
 
 {{{
 $ yang2dsdl -t config turing-machine.yang
@@ -32,7 +32,7 @@ As we can see from the output, three schemas are generated:
 
 The careful reader will notice that the script also created a fourth file, `turing-machine-gdefs-config.rng`, which is a part of the RELAX NG schema. 
 
-The command-line option `-t` of _yang2dsdl_ defines the _target_ for the schemas. In this case, we instruct the script to generate schemas for the contents of a _configuration datastore_, i.e. configuration data only. Supported targets are:
+The command-line option `-t` of *yang2dsdl* defines the _target_ for the schemas. In this case, we instruct the script to generate schemas for the contents of a _configuration datastore_, i.e. configuration data only. Supported targets are:
 
 <dl>
    <dt>*data*</dt>
@@ -146,11 +146,13 @@ Now that everything is in place, we can write our first configuration for the Tu
 </config>
 }}}
 
+Note that the `<head-move>` element is only present with the value `left` because the opposite alternative, `right`, is the default value of the `head-dir` type.  
+
 By the way, this “program” adds two numbers that are written on the tape in the unary notation and separated by the zero symbol.
 
 The schemas for the `config` target expect `<config>` (in the NETCONF namespace) as the document element. This is because YANG allows for multiple roots of the data hierarchy, and so an extra wrapping element is needed in order to make sure that the document is well-formed XML.
 
-We can now use _yang2dsdl_ again to verify that the above configuration is a valid instance of the data model:
+We can now use *yang2dsdl* again to verify that the above configuration is a valid instance of the data model:
 
 {{{
 $ yang2dsdl -s -j -b turing-machine -t config -v turing-machine-config.xml
@@ -165,7 +167,7 @@ turing-machine-config.xml validates.
 No errors found.
 }}}
 
-Sure enough, everything is fine. The `-s` option indicates that we want to use the schemas that we generated earlier, and then we also have to provide the `-b` (base name) and `-t` (target) options, so that the script is able to find the schemas. The `-j` option instructs the script to use [http://www.thaiopensource.com/relaxng/jing.html Jing] as the RELAX NG validator. By default, _xmllint_ from the [http://www.xmlsoft.org/ libxml2] toolkit is used. While _xmllint_ is more common and also works, its error messages are sometimes rather incomprehensible.
+Sure enough, everything is fine. The `-s` option indicates that we want to use the schemas that we generated earlier, and then we also have to provide the `-b` (base name) and `-t` (target) options, so that the script is able to find the schemas. The `-j` option instructs the script to use [http://www.thaiopensource.com/relaxng/jing.html Jing] as the RELAX NG validator. By default, *xmllint* from the [http://www.xmlsoft.org/ libxml2] toolkit is used. While *xmllint* is more common and also works, its error messages are sometimes rather incomprehensible.
 
 Now, let's smuggle some bugs into the instance document. First, we change the value of the input state element in the first transition rule (`left summand`) from `0` to the string `zero`. This is a type error because the data model says the `state` leaf is `uint16`. Type errors are caught by the RELAX NG validator:
 
