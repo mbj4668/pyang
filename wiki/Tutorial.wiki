@@ -14,7 +14,7 @@ Features are defined in YANG modules and allow for making selected parts of the 
 
 YANG modules comprising the data model are entered on the pyang command line, and features may be specified using the `--features` option. This option can be used repeatedly – each occurrence defines active (supported) features for one YANG module.
 
-For example, the following command line uses two YANG modules, `foo` and `bar`, and the only supported feature is `miracle` (defined in `foo`). 
+For example, the following command line uses two YANG modules, _foo_ and _bar_, and the only supported feature is `miracle` (defined in `foo`). 
 
 {{{
 $ pyang -f tree --features foo:miracle --features bar: foo.yang bar.yang
@@ -22,7 +22,7 @@ $ pyang -f tree --features foo:miracle --features bar: foo.yang bar.yang
 
 If no `--features` option is present for a module, then all features defined in that module are considered active.
 
-For data models that consist of a larger number of YANG modules and/or features, it may be inconvenient to provide all data model information on the command line. Therefore, it is also possible to specify the data model in a configuration file. The contents of the configuration file are the _hello_ message that is sent by the NETCONF server at the start of every session – see RFC 6241, [http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
+For data models that consist of a larger number of YANG modules and/or features, it may be inconvenient to provide all data model information on the command line. Therefore, it is also possible to specify the data model in a configuration file. The contents of the configuration file are the same as the _hello_ message that is sent by the NETCONF server at the start of every session – see RFC 6241, [http://tools.ietf.org/html/rfc6241#section-8.1 Section 8.1], and RFC 6020, [http://tools.ietf.org/html/rfc6020#section-5.6.4 Section 5.6.4].
 
 This command line achieves the same effect as the previous one:
 
@@ -30,7 +30,7 @@ This command line achieves the same effect as the previous one:
 $ pyang -f tree --hello hello.xml
 }}}
 
-where the contents of `hello.xml` is as follows:
+where the contents of `hello.xml` are as follows:
 
 {{{
 <hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
@@ -59,7 +59,7 @@ Speaking about Emacs, the amazing [http://www.thaiopensource.com/nxml-mode/ nXML
 
 We will demonstrate pyang functions on a data model of the Turing Machine, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang turing-machine.yang]. It is relatively simple but comprehensive in that it covers all document/message types supported in YANG – configuration and state data, RPCs and notifications.
 
-The reader should imagine there is a Turing Machine device that runs a NETCONF server, so that we can use a NETCONF client for configuring the machine and communicating with it.
+The reader should imagine there is a Turing Machine device that runs a NETCONF server, so that we can use a NETCONF client to configure the machine and communicate with it.
 
 To see an overview of the data model schemas, we can use the `tree` plugin of pyang:
 
@@ -67,22 +67,22 @@ To see an overview of the data model schemas, we can use the `tree` plugin of py
 $ pyang -f tree turing-machine.yang
 module: turing-machine
    +--rw turing-machine
-      +--ro state                  uint16
-      +--ro head-position          int64
+      +--ro state                  state-index
+      +--ro head-position          cell-index
       +--ro tape
       |  +--ro cell* [coord]
-      |     +--ro coord     int64
+      |     +--ro coord     cell-index
       |     +--ro symbol?   tape-symbol
       +--rw transition-function
          +--rw delta* [label]
             +--rw label     string
             +--rw input
-            |  +--rw state     uint16
+            |  +--rw state     state-index
             |  +--rw symbol    tape-symbol
             +--rw output
-               +--rw state?       uint16
+               +--rw state?       state-index
                +--rw symbol?      tape-symbol
-               +--rw head-move?   enumeration
+               +--rw head-move?   head-dir
 rpcs:
    +---x initialize    
    |  +--ro input     
@@ -90,17 +90,17 @@ rpcs:
    +---x run           
 notifications:
    +---n halted    
-      +--ro state    uint16
+      +--ro state    state-index
 }}}
 
-Use `pyang --tree-help` to see the explanation of symbols used in the tree representation.
+Use “`pyang --tree-help`” to see the explanation of symbols used in the tree representation.
 
-The Turing Machine is represented using _operational state_ nodes (denoted with `ro`):
+The Turing Machine is represented by several _operational state_ nodes (denoted with `ro`):
  * _state_ – current state of the control unit,
  * _head-position_ – current position of the read/write head,
  * _tape_ – sparse list of cells with their coordinates and contained symbols (blank cells do not appear in the list).
 
-The _configuration_ is a specification of the transition function 𝛿, i.e. a program for the Turing Machine. Each transition rule has two input parameters – the current state of the control unit and the symbol read from the current tape cell – and three output values – the new state, new symbol written to the tape cell, and new position of the head (one cell to the left or to the right from the current cell).
+The _configuration_ is a specification of the transition function 𝛿, i.e. a program for the Turing Machine. Each transition rule has two input parameters – the current state of the control unit and the symbol read from the current tape cell – and three output values: the new state, new symbol written to the tape cell, and new position of the head (at every step, it must move one cell to the left or to the right from the current cell).
 
 The data model also defines two RPC methods:
  * _initialize_ – puts the control unit into the initial state, the read/write head to its “home” position, and initializes the contents of the tape.
@@ -114,7 +114,7 @@ Further information about the data model can be found in description texts of th
 
 The following tutorial pages describe how a data model can used, together with pyang, for accomplishing various tasks. The pages are independent and can be read in any order:
  * InstanceValidation – validation of XML instances,
- * Augment – augmenting the data model,
+ * [Augment] – augmenting the data model,
  * XmlJson – schema-aware conversion of XML data to JSON and back.
 
 <g:plusone size="medium"></g:plusone>
