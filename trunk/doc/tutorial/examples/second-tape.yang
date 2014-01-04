@@ -43,7 +43,8 @@ module second-tape {
     leaf symbol-2 {
       type tm:tape-symbol;
       description
-        "Symbol to be written to the second tape.";
+        "Symbol to be written to the second tape. If this leaf is not
+         present, the symbol doesn't change.";
     }
     leaf head-move-2 {
       type tm:head-dir;
