@@ -1,6 +1,6 @@
 module second-tape {
 
-  namespace "http://example.com/turing-machine/tape2";
+  namespace "http://example.net/turing-machine/tape-2";
 
   prefix "t2";
 
