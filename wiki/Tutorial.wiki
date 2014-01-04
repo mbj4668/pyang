@@ -114,6 +114,7 @@ Further information about the data model can be found in description texts of th
 
 The following tutorial pages describe how a data model can used, together with pyang, for accomplishing various tasks. The pages are independent and can be read in any order:
  * InstanceValidation – validation of XML instances,
+ * Augment – augmenting the data model,
  * XmlJson – schema-aware conversion of XML data to JSON and back.
 
 <g:plusone size="medium"></g:plusone>

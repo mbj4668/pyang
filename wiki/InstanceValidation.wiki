@@ -68,7 +68,7 @@ There are several way for telling nXML mode how to locate the right schema for t
 Now that everything is in place, we can write our first configuration for the Turing Machine:
 
 {{{
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- file: turing-machine-config.xml -->
 <config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
   <turing-machine xmlns="http://example.net/turing-machine">
@@ -217,7 +217,7 @@ turing-machine-config.xml validates.
     Violated uniqueness for "tm:input/tm:state tm:input/tm:symbol"
 }}}
 
-Right, the [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang YANG module] states in line 82 that the input parameters `state` and `symbol` must be unique among the entries of the `delta` list:
+Right, the YANG module states in [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine.yang#113 line 113] that the input parameters `state` and `symbol` must be unique among the entries of the `delta` list:
 
 {{{
 unique "input/state input/symbol";
@@ -234,7 +234,7 @@ Before starting the computation, we have to initialize the Turing Machine proper
 So, after installing the above configuration for adding two numbers, we might want to test it and compute, say, 2 + 3. The following RPC request does the initialization job:
 
 {{{
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- file: turing-machine-rpc.xml -->
 <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
      message-id="1">
@@ -273,7 +273,7 @@ Note that this time the target is `rpc`.
 After starting the computation with the other custom RPC method, `run`, we can wait until we receive the `halted` notification indicating that the Turing Machine is done. We can learn the result by sending a `get` request. The Turing Machine's NETCONF server should reply with the following message:
 
 {{{
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- file: turing-machine-rpc-reply.xml -->
 <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
 	   message-id="3">
