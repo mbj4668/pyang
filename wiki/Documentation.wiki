@@ -1,16 +1,39 @@
 #summary Links to YANG and pyang docs
 
+= Standards =
+
+ * [http://tools.ietf.org/html/rfc6020 RFC 6020]: YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)
+ * [http://tools.ietf.org/html/rfc6087 RFC 6087]: Guidelines for Authors and Reviewers of YANG Data Model Documents
+ * [http://tools.ietf.org/html/rfc6110 RFC 6110]: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content
+ * [http://tools.ietf.org/html/rfc6110 RFC 6110]: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content
+ * [http://tools.ietf.org/html/rfc6244 RFC 6244]: An Architecture for Network Management Using NETCONF and YANG
+ * [http://tools.ietf.org/html/rfc6991 RFC 6991]: Common YANG Data Types
+
+ 
+
 = Tutorials =
 
-  * [http://www.yang-central.org/twiki/bin/view/Main/DhcpTutorial DHCP Tutorial] explains the basic concepts of YANG on a canonical example of a DHCP server configuration.
-  * [http://www.yang-central.org/twiki/bin/view/Main/DSDLMappingTutorial DSDL Mapping Tutorial] shows how to use _pyang_ for generating RELAX NG, Schematron and DSRL schemas from YANG data models and validating instance XML documents with these schemas.
-
+ * [Tutorial] explains the basic concepts of YANG and various functions of pyang on an example data model of the Turing Machine.
+ * [http://www.ietf.org/edu/technical-tutorials.html#netconfandyang Network Configuration Management with NETCONF and YANG] – Jürgen Schönwälder's tutorial presented at IETF 84
 
 = Manual pages for pyang tools =
 
-  * [http://www.yang-central.org/twiki/pub/Main/YangTools/pyang.1.html pyang]
-  * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang2dsdl.1.html yang2dsdl]
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/pyang.1.html pyang]
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/yang2dsdl.1.html yang2dsdl]
+ * [http://www.yang-central.org/twiki/pub/Main/YangTools/json2xml.1.html json2xml]
 
-Other documentation about YANG and related tools is available from
-http://www.yang-central.org.
+= Other resources =
 
+All RFCs and Internet-Drafts concerning YANG and configuration data modelling is available from the web page of the IETF [http://datatracker.ietf.org/wg/netmod/ NETMOD] Working Group.
+
+Additional documentation about YANG, existing modules, NETCONF and related tools can be found
+on http://www.yang-central.org and http://www.netconfcentral.org/.
+
+<g:plusone size="medium"></g:plusone>
+
+<wiki:comment>
+Local Variables:
+mode: fundamental
+mode: visual-line
+End:
+</wiki:comment>
