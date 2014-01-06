@@ -113,6 +113,11 @@ $ cat turing-machine-config.json
 
 Note that due to schema-awareness the translation takes into account the difference between the number 0 and the string "0" even though they look the same as in XML.
 
+Sometimes the extra whitespace of a pretty-printed JSON is not desirable, for example, if the JSON text is intended to be sent over network. To achieve this, the stylesheet can be passed the `compact` parameter with a non-zero value:
+{{{    
+$ xsltproc -o stripped.json --stringparam compact 1 tm-json.xsl turing-machine-config.xml
+}}}
+
 = Translating JSON into XML =
 
 The translation in the opposite direction is complicated by the fact that there is no such thing as XSLT for JSON. Therefore, one option would be to take both the data model and a JSON instance and return an XML instance.
