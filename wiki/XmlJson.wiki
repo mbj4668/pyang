@@ -19,7 +19,12 @@ For our example YANG module, [https://code.google.com/p/pyang/source/browse/trun
 $ pyang -f jsonxsl -o tm-json.xsl turing-machine.yang
 }}}
 
-We can then use the stylesheet, `tm-json.xsl`, with any XSLT processor and translate an XML instance document into neatly formatted JSON text:
+We can then use the stylesheet, `tm-json.xsl`, with any XSLT1 processor and translate any valid XML instance document of the following types:
+ * Configuration data, or configuration together with state data, encapsulated in either `<nc:config>` or `<nc:data>` element, where the `nc` prefix stands for the standard NETCONF namespace URI `urn:ietf:params:xml:ns:netconf:base:1.0`.
+ * RPC request for a method defined by the Turing Machine data model, encapsulated in `<nc:rpc>`. It could be a RPC reply, too, but our data model defines no specific replies.
+ * Notification, encapsulated in `<en:notification>`, where the `en` prefix stands for the standard NETCONF namespace URI `urn:ietf:params:xml:ns:netconf:notification:1.0`.
+
+For example, we can translate an instance configuration into neatly formatted JSON text:
 {{{
 $ xsltproc -o turing-machine-config.json tm-json.xsl turing-machine-config.xml
 $ cat turing-machine-config.json 
