@@ -1,7 +1,24 @@
-"""JSON XSL output plugin
+# Copyright (c) 2014 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+#
+# Pyang plugin generating a XSLT1 stylesheet for XML->JSON translation.
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-This plugin takes a YANG data model and produces an XSL stylesheet
-that translates datastore contents from XML to JSON.
+"""JSONXSL output plugin
+
+This plugin takes a YANG data model and produces an XSLT1 stylesheet
+that is able to translate any valid XML instance document or NETCONF
+message into JSON.
 """
 
 import os
