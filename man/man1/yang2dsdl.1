@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: yang2dsdl
 .\"    Author: Ladislav Lhotka <lhotka@nic.cz>
-.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2013-11-11
 .\"    Manual: pyang manual
 .\"    Source: yang2dsdl-1.4.1
@@ -185,8 +185,7 @@ may be used together with
 for validating an instance document without generating the schemas\&. This assumes that the schemas are already present in the directory selected by the
 \fB\-d\fR
 option (current directory by default)\&. In this case, the basename of the schemas must be specified using
-\fB\-b\fR
-\fIbasename\fR
+\fB\-b\fR\fIbasename\fR
 and the input YANG modules need not be given\&. Also, if the DSRL or Schematron schema is missing, the corresponding step is skipped\&.
 .PP
 The script uses programs from the libxml2 suite \-
@@ -234,8 +233,7 @@ parameter must be given\&.
 Performs just validation, without (re)generating the schemas\&. This option is only allowed together with
 \fB\-v\fR
 and
-\fB\-b\fR
-\fIbasename\fR
+\fB\-b\fR\fIbasename\fR
 must also be specified\&.
 .RE
 .PP
