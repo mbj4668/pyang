@@ -17,7 +17,7 @@
 """JTOX output plugin
 
 This plugin takes a YANG data model and produces a JSON driver file that can
-be used by the *json2xml* script for translating a valid JSON instance into
+be used by the *json2xml* script for translating a valid JSON configuration, or config into
 XML.
 """
 
@@ -71,10 +71,10 @@ def emit_jtox(modules, ctx, fd):
     json.dump({"modules": mods, "tree": tree}, fd)
 
 def process_children(node, parent):
-    """Process all children of `node`.
+    """Process all children of `node`, except "rpc" and "notification".
     """
-    chs = node.i_children
-    for ch in chs:
+    for ch in node.i_children:
+        if ch.keyword in ["rpc", "notification"]: continue
         if ch.keyword in ["choice", "case"]:
             process_children(ch, parent)
             continue
