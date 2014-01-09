@@ -2,7 +2,7 @@
 
 <!-- Program name: gen-dsrl.xsl
 
-Copyright © 2013 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+Copyright © 2014 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 
 Creates DSRL schema from the hybrid DSDL schema (see RFC 6110).
 
@@ -70,18 +70,36 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     <xsl:value-of select="$name"/>
   </xsl:template>
 
-  <xsl:template name="actual-prefix">
-    <!-- Replace first '$pref' variable with the current prefix -->
-    <xsl:param name="text" select="@nma:when"/>
+  <xsl:template name="subst-variables">
+    <!-- Replace $root and $pref with actual values in when -->
     <xsl:param name="prefix"/>
+    <xsl:variable name="temp">
+      <xsl:call-template name="subst-var">
+	<xsl:with-param name="varname">$pref</xsl:with-param>
+	<xsl:with-param name="value" select="$prefix"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:call-template name="subst-var">
+      <xsl:with-param name="text" select="$temp"/>
+      <xsl:with-param name="varname">$root</xsl:with-param>
+      <xsl:with-param name="value" select="$netconf-part"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template name="subst-var">
+    <!-- Substitute $value for all occurences of $varname in $text -->
+    <xsl:param name="text" select="@nma:when"/>
+    <xsl:param name="varname"/>
+    <xsl:param name="value"/>
     <xsl:choose>
-      <xsl:when test="contains($text,'$pref:')">
-	<xsl:value-of select="substring-before($text,'$pref:')"/>
-	<xsl:value-of select="concat($prefix,':')"/>
-	<xsl:call-template name="actual-prefix">
+      <xsl:when test="contains($text,$varname)">
+	<xsl:value-of select="substring-before($text,$varname)"/>
+	<xsl:value-of select="$value"/>
+	<xsl:call-template name="subst-var">
 	  <xsl:with-param name="text"
-			  select="substring-after($text,'$pref:')"/>
-	  <xsl:with-param name="prefix" select="$prefix"/>
+			  select="substring-after($text,$varname)"/>
+	  <xsl:with-param name="varname" select="$varname"/>
+	  <xsl:with-param name="value" select="$value"/>
 	</xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
@@ -103,7 +121,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       </xsl:call-template>
       <xsl:if test="@nma:when">
 	<xsl:text>[</xsl:text>
-	<xsl:call-template name="actual-prefix">
+	<xsl:call-template name="subst-variables">
 	  <xsl:with-param name="prefix" select="$prefix"/>
 	</xsl:call-template>
 	<xsl:text>]</xsl:text>
