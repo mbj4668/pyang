@@ -62,23 +62,21 @@ def emit_yang_xmi(fd, ctx):
 
 
 def print_xmi_header(modules, fd, path, ctx):
-    print("""<?xml version = '1.0' encoding = 'UTF-8' ?>
-<XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Tue May 15 07:06:45 CEST 2012'>
-  <XMI.header>
-    <XMI.documentation>
-      <XMI.exporter> pyang -f xmi</XMI.exporter>
-      <XMI.exporterVersion> 0.1 </XMI.exporterVersion>
-    </XMI.documentation>
-    <XMI.metamodel xmi.name="UML" xmi.version="1.4"/>
-  </XMI.header>
-  <XMI.content>
-""")
+    fd.write("<?xml version = '1.0' encoding = 'UTF-8' ?>")
+    fd.write("<XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Tue May 15 07:06:45 CEST 2012'>")
+    fd.write("<XMI.header>")
+    fd.write("<XMI.documentation>")
+    fd.write("<XMI.exporter> pyang -f xmi</XMI.exporter>")
+    fd.write("<XMI.exporterVersion> 0.1 </XMI.exporterVersion>")
+    fd.write("</XMI.documentation>")
+    fd.write("<XMI.metamodel xmi.name=\"UML\" xmi.version=\"1.4\"/>")
+    fd.write("</XMI.header>")
+    fd.write("<XMI.content>")
 
 def print_xmi_footer(modules, fd, path, ctx):
-    print("""
-  </XMI.content>
-</XMI>
-""")
+    fd.write("</XMI.content>")
+    fd.write("</XMI>")
+
 
 
 def print_module_info(module, fd, ctx):
@@ -245,11 +243,13 @@ def print_node(parent, s, module, fd, path, ctx, root='false'):
         iterate_children(parent, s, module, fd, path, ctx)
         print_aggregation(parent, s, fd, "1", "1", ctx)
 
-    elif s.keyword == ('tailf-common', 'action'):
-        print_action(s,fd, ctx)
-        close_class(s, fd, ctx)
-        iterate_children(parent, s, module, fd, path, ctx)
-        print_aggregation(parent, s, fd, "1", "1", ctx)
+        # do not clutter the diagram with action details
+        #elif s.keyword == ('tailf-common', 'action'):
+        #print_action(s,fd, ctx)
+        #close_class(s, fd, ctx)
+
+        # iterate_children(parent, s, module, fd, path, ctx)
+        # print_aggregation(parent, s, fd, "1", "1", ctx)
 
 def close_class(s, fd, ctx):
     fd.write("</UML:Class>\n")
