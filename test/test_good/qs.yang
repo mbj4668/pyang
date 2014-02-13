@@ -11,4 +11,10 @@ submodule qs {
 
   feature foo;
 
+  grouping g {
+    leaf x {
+      type string;
+    }
+  }
+
 }

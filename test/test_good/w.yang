@@ -28,4 +28,15 @@ module w {
       default 42;
     }
   }
+
+  container q {
+    uses qq:g;
+  }
+  leaf t {
+    type leafref {
+      path "/q/x";
+    }
+  }
+
+
 }

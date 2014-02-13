@@ -2222,7 +2222,7 @@ def is_submodule_included(src, tgt):
         return True
     if (tgt.i_orig_module.keyword == 'submodule' and
         src.i_orig_module != tgt.i_orig_module and
-        src.i_module.i_modulename == tgt.i_module.i_modulename):
+        src.i_orig_module.i_modulename == tgt.i_orig_module.i_modulename):
         if src.i_orig_module.search_one('include',
                                         tgt.i_orig_module.arg) is None:
             return False
