@@ -152,7 +152,6 @@ function toggleRows(elm) {
      var tier = cell.getElementsByTagName("DIV")[0];
      var folder = tier.getElementsByTagName("A")[0];
      if (folder.getAttribute("onclick") != null) {
-     // folder.style.backgroundImage = "url(images/folder-closed.gif)";
      folder.style.backgroundImage = "url(data:image/gif;base64,R0lGODlhGgAOALMLAJmZmYuLi3p6ev///+zs7MzMzGZmZqqqqrS0tLq6uuHh4f///wAAAAAAAAAAAAAAACH5BAEAAAsALAAAAAAaAA4AAASJcMlJq714qgROKUtxAABBgJkUFMQwFEhyFoFAKini7idSHwGDQXAYYAADxQdBOjiBQqGgYKx4AomCYoYAHqLRVVUCKCBdSthhCgYDKIDuTpnoGgptgxged3FHBgpgU2MTASsmdCM1gkNFGDVaHx91QQQ3KZGSZocHBCEpEgIrCYdxn6EVAnoIGREAOw==)";
      }
    }
@@ -256,7 +255,7 @@ def emit_tree(modules, fd):
 
 
         levelcnt[1] += 1
-        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a id=\"p3\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(levelcnt[1], module.arg))
+        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a id=\"p3\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(levelcnt[1], module.arg))
         fd.write("<td> module </td> <td>  </td> <td></td> <td>  </td> <td>  </td> </tr> \n")
 
 
@@ -267,7 +266,7 @@ def emit_tree(modules, fd):
         rpcs = module.search('rpc')
         levelcnt[1] += 1
         if len(rpcs) > 0:
-            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1000\"><div id=\"p2000\" class=\"tier1\"><a id=\"p3000\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>rpc:s</div></td> \n" %levelcnt[1])
+            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1000\"><div id=\"p2000\" class=\"tier1\"><a id=\"p3000\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>rpc:s</div></td> \n" %levelcnt[1])
             fd.write("<td> </td> <td>  </td> <td>  </td> <td>  </td> <td>  </td> </tr> \n")
 
             print_children(rpcs, module, fd, ' ', 2)
@@ -275,7 +274,7 @@ def emit_tree(modules, fd):
         notifs = module.search('notification')
         levelcnt[1] += 1
         if len(notifs) > 0:
-            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier1\"><a id=\"p6000\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>notifications</div></td> \n" %levelcnt[1])
+            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier1\"><a id=\"p6000\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>notifications</div></td> \n" %levelcnt[1])
             fd.write("<td> </td> <td>  </td> <td>  </td> <td>  </td> <td>  </td> </tr> \n")
             print_children(notifs, module, fd, ' ', 2)
 
@@ -353,7 +352,7 @@ def print_node(s, module, fd, prefix, level=0):
     pathstr = statements.mk_path_str(s, True)
             
     if folder:
-        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a id=\"p6000\" href=\"#\" onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(idstring, level, name))
+        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a id=\"p6000\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(idstring, level, name))
         fd.write('<td><abbr title=\"DESCRIPTION\">%s</abbr></td>   <td>%s</td>  <td>%s</td>  <td>%s</td>  <td>%s</td> <td>%s</td> </tr> \n' %(s.keyword, nodetype, flags, options, status, pathstr))
     else:
         if s.keyword == ('tailf-common', 'action'):
