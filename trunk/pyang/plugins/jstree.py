@@ -24,7 +24,12 @@ class JSTreePlugin(plugin.PyangPlugin):
                                  dest="jstree_help",
                                  action="store_true",
                                  help="Print help on JavaScript tree usage and exit"),
+            optparse.make_option("--jstree-no-path",
+                                 dest="jstree_no_path",
+                                 action="store_true",
+                                 help="Do not include paths to make page less wide"),
             ]
+
         g = optparser.add_option_group("JSTree output specific options")
         g.add_options(optlist)
 
@@ -37,12 +42,12 @@ class JSTreePlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        emit_header(modules, fd)
-        emit_css(fd)
-        emit_js(fd)
-        emit_bodystart(modules,fd)
-        emit_tree(modules, fd)
-        emit_footer(fd)
+        emit_header(modules, fd, ctx)
+        emit_css(fd, ctx)
+        emit_js(fd, ctx)
+        emit_bodystart(modules,fd, ctx)
+        emit_tree(modules, fd, ctx)
+        emit_footer(fd, ctx)
 
 def print_help():
     print """
@@ -50,7 +55,7 @@ Generates a html/javascript page that presents a tree-navigator
 to the YANG module(s).
 """
 
-def emit_css(fd):
+def emit_css(fd, ctx):
     fd.write("""
 <style type="text/css" media="all">
 
@@ -80,6 +85,7 @@ ol#root {  padding-left: 5px; margin-top: 2px; margin-bottom: 1px; list-style: n
 .doc {
 background:url(data:image/gif;base64,R0lGODlhDAAOALMJAMzMzODg4P///+np6a+vr+7u7jMzM5mZmYmJif///wAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAkALAAAAAAMAA4AAARFEEhyCAEjackPCESwBRxwCKD4BSSACCgxrKyJ3B42sK2FSINgsAa4AApI4W5yFCCTywts+txJp9TC4IrFcruwi2FMLgMiADs=)
 no-repeat; float: left; padding-right: 10px; margin-left: 3px;
+cursor: pointer;
 }
 
 .leaf {
@@ -119,7 +125,7 @@ no-repeat; float: left; height: 14px; width: 12px; padding-right: 10px; margin-l
 </style>
 """)
 
-def emit_js(fd):
+def emit_js(fd, ctx):
     fd.write("""
 <script language="javascript1.2">
 function toggleRows(elm) {
@@ -178,14 +184,14 @@ function collapseAllRows() {
 </script>
 """)
  
-def emit_header(modules, fd):
+def emit_header(modules, fd, ctx):
     fd.write("""
 <head>
  <title>YANG Navigator</title>
 </head>
 """)
 
-def emit_footer(fd):
+def emit_footer(fd, ctx):
     fd.write("""
 </table>
 </div>
@@ -196,10 +202,12 @@ def emit_footer(fd):
 
 levelcnt = [0]*100
 
-def emit_bodystart(modules, fd):
+def emit_bodystart(modules, fd, ctx):
     fd.write("""
 <body onload=\"collapseAllRows();\"> 
-
+<a href="http://www.tail-f.com">
+<img src="data:image/gif;base64,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" >
+</a>
 <div class=\"app\">
 <div style=\"background: #eee; border: dashed 1px #000;\">
 """)
@@ -214,11 +222,6 @@ def emit_bodystart(modules, fd):
         pr = module.search_one('prefix')
         if pr is not None:
             prstr = pr.arg
-        fd.write("""
-<a href="http://www.tail-f.com">
-<img src="data:image/gif;base64,R0lGODlhSQAgAOYAAAEVLwIVMQYZMwkcNgseOA4gOhEkPRQmQBUoQRosRB4wSCM0Syc4Tyg4Tyw8UzBAVjREWjpJXj5NYUBOYkNRZUVUaFVVVUhWakxabVJbbVFecVNhc1hkdlpmeGZmmVxpelttgGFtfmRvgGRxgWt2hm14iHF8i22AknSAjnaAkniAjnqEkoOMmoyMnoaQnoiTn4yUoZKapZ2dsZaeqZieqZegqZuhrJKkpJ2msKOqs6ivtqivuKmwt6mwubG2wKK5ubW7w7i9xb+/v73CycTIzsbK0MjOzsrO08zS1s/S2NLU2tXY3dja3dze493g5OPk5ePl6eXo6err7e7u8e7w8fLy9P7+/gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAAFcAIf8LSUNDUkdCRzEwMTL/AAACMEFEQkUCEAAAbW50clJHQiBYWVogB9AACAALABMAMwA7YWNzcEFQUEwAAAAAbm9uZQAAAAAAAAAAAAAAAAAAAAAAAPbWAAEAAAAA0y1BREJFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKY3BydAAAAPwAAAAyZGVzYwAAATAAAABrd3RwdAAAAZwAAAAUYmtwdAAAAbAAAAAUclRSQwAAAcQAAAAOZ1RSQwAAAdQAAAAOYlRSQwAAAeQAAAAOclhZWgAAAfQAAAAUZ1hZWgAAAggAAAAUYlhZWgAAAhwAAAAUdGV4/3QAAAAAQ29weXJpZ2h0IDIwMDAgQWRvYmUgU3lzdGVtcyBJbmNvcnBvcmF0ZWQAAABkZXNjAAAAAAAAABFBZG9iZSBSR0IgKDE5OTgpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYWVogAAAAAAAA81EAAQAAAAEWzFhZWiAAAAAAAAAAAAAAAAAAAAAAY3VydgAAAAAAAAABAjMAAGN1cnYAAAAAAAAAAQIzAABjdXJ2AAAAAAAAAAECMwAAWFlaIAAAAAAAADKcGAAAT6UAAAT8WFlaIAAAAAAAADSNAACgLAAAD5VYWVogAAAAAAAAJjEAABAvAAC+nAAsAAAAAEkAIAAAB/+AVleDhIWGh4iEVoKJjY5Xi4yPk5SDUDg4UZKVjYtSTU5TkZykgw4EAw5Lg1UbEhQRpVdUMRULCQoNI4uynAMICAMkrA4FBgOyFAQGBgcHBgtTvZwFwAUai1UPBggFG6QbBMAIzwYJTYcDBcjThQPMAzaQ2tzepNzA5rcFRIY54gYktCMEAwIEGIOs0Ov2rRILcQgMjFgSxYkPJoZeAJSwaVqVKpIW2qsUotoBBU94KUpoAuAEle1GsdrGsJKVD9UMOICZ0EqOGRK46ZxBY8ahGTVm2ODhKIaNGUbn0RxZCCpRqzRsROB2YEGMGIasREnwbtwBAmgD2LDCIgDat8v/ILxA5BZVEan1Gg4CALfvMrMFAoRVkuDAuMMICOSwAgMi4mMYDkE0cCTbVL1XCBhGzHkcgbBB1G0mV6C0gLVtS6vGF2wYQYgHKiu8XChAaQOrmTUza0BA2CEbOiww3LVDBw6GOBjvoMEBvgMJCjUGFttyXkMVsmvXfmE4uQQUKIRNWEEox46FFkXRgI9A1CvTyckWidmRFQ45HVRxRME8+rBWENEeCq9RNx9tlWyQ336N9BeRQPZ54l0BrsEH24HXJZifNA2a14gSObBgAgkjFNZNhfFVN1uGishUiIIROcBhIg4GhIgNE3SDVmnjUFigfNbVRAgEEkwwgQQSQPDi/4L8+WcIBsuM5kyPKF4YJFVXCKAbM74Rgl+MDNLoJCEXwFYadAlQ+aOK9BXiGDCfEQKjTjMiUiNHhOAAWwIj9HDEEkNMWKWBV2LGFwEFIArAkjHWecidjFgBY0SLJSSFoGtiKGQhOXR6yJc6UdHkg4IsAoFQD4R5BRSCRpKipt78d8h9G45qAASRnhojFZFealgBJUSCE3VICELYrxjIGpYG+T3C7HdDDNKErhGtwKsVULBATjciiLUCawYQEeBW+SxQ7CNWKLGAULE8MpkCFEjg3TgGPIABBQtUQx28xUhJZAKsRbQABUom8gC++BTQwSS7kcPMZqNtGRHEzORD75tuz/DWJSLvsEaADpOg8E7ExiRgDG8E3AKuMQwUQHHKEZwMZyOOHVNfIzFAEJExC2ywgxImOHAAjw+s8EQOzrH8ARBQhNCNORKwsEQVLAhdGjuIIGqMAys42kkVSQQBBBFQqCTFEUAAgQRIkEgxBBBHSMFLukAM0cQoVlCBNhBFiHrIFEWkHbeym0SibE8A8mQ4T5C4mF56sloRCAA7" >
-</a>
-""")
         fd.write("<h1> %s: <font color=blue>%s%s</font>, Namespace: <font color=blue>%s</font>, Prefix: <font color=blue>%s</font></h1> \n" % (module.keyword.capitalize(), module.arg, bstr, nsstr, prstr))
 
     fd.write("""
@@ -239,7 +242,7 @@ def emit_bodystart(modules, fd):
  
 
 
-def emit_tree(modules, fd):
+def emit_tree(modules, fd, ctx):
     global levelcnt
     for module in modules:
         bstr = ""
@@ -255,34 +258,34 @@ def emit_tree(modules, fd):
 
 
         levelcnt[1] += 1
-        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a id=\"p3\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(levelcnt[1], module.arg))
+        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a href=\"#\" id=\"p3\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(levelcnt[1], module.arg))
         fd.write("<td> module </td> <td>  </td> <td></td> <td>  </td> <td>  </td> </tr> \n")
 
 
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
-        print_children(chs, module, fd, ' ', 2)
+        print_children(chs, module, fd, ' ', ctx, 2)
 
         rpcs = module.search('rpc')
         levelcnt[1] += 1
         if len(rpcs) > 0:
-            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1000\"><div id=\"p2000\" class=\"tier1\"><a id=\"p3000\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>rpc:s</div></td> \n" %levelcnt[1])
+            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1000\"><div id=\"p2000\" class=\"tier1\"><a href=\"#\" id=\"p3000\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>rpc:s</div></td> \n" %levelcnt[1])
             fd.write("<td> </td> <td>  </td> <td>  </td> <td>  </td> <td>  </td> </tr> \n")
 
-            print_children(rpcs, module, fd, ' ', 2)
+            print_children(rpcs, module, fd, ' ', ctx, 2)
 
         notifs = module.search('notification')
         levelcnt[1] += 1
         if len(notifs) > 0:
-            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier1\"><a id=\"p6000\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>notifications</div></td> \n" %levelcnt[1])
+            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier1\"><a href=\"#\" id=\"p6000\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>notifications</div></td> \n" %levelcnt[1])
             fd.write("<td> </td> <td>  </td> <td>  </td> <td>  </td> <td>  </td> </tr> \n")
-            print_children(notifs, module, fd, ' ', 2)
+            print_children(notifs, module, fd, ' ', ctx, 2)
 
-def print_children(i_children, module, fd, prefix, level=0):
+def print_children(i_children, module, fd, prefix, ctx, level=0):
     for ch in i_children:       
-        print_node(ch, module, fd, prefix, level)
+        print_node(ch, module, fd, prefix, ctx, level)
 
-def print_node(s, module, fd, prefix, level=0):
+def print_node(s, module, fd, prefix, ctx, level=0):
     global levelcnt
     status = get_status_str(s)
     nodetype = ''
@@ -342,18 +345,20 @@ def print_node(s, module, fd, prefix, level=0):
     if descr is not None:
         descrstring = ''.join([x for x in descr.arg if ord(x) < 128])
     else:
-        descrstring = "";
+        descrstring = "No description";
     levelcnt[level] += 1
     idstring = str(levelcnt[1])
 
     for i in range(2,level+1):
         idstring += '-' + str(levelcnt[i])
 
-    pathstr = statements.mk_path_str(s, True)
+    pathstr = ""
+    if not ctx.opts.jstree_no_path:
+        pathstr = statements.mk_path_str(s, True)
             
     if folder:
-        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a id=\"p6000\"  onclick=\"toggleRows(this)\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(idstring, level, name))
-        fd.write('<td><abbr title=\"DESCRIPTION\">%s</abbr></td>   <td>%s</td>  <td>%s</td>  <td>%s</td>  <td>%s</td> <td>%s</td> </tr> \n' %(s.keyword, nodetype, flags, options, status, pathstr))
+        fd.write("<tr id=\"%s\" class=\"a\"> <td nowrap id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a href=\"#\" id=\"p6000\"  onclick=\"toggleRows(this);return false\" class=\"folder\">&nbsp;</a><abbr title=\"%s\">%s</abbr></div></td> \n" %(idstring, level, descrstring, name))
+        fd.write('<td nowrap>%s</td>   <td nowrap>%s</td>  <td>%s</td>  <td>%s</td>  <td>%s</td> <td nowrap>%s</td> </tr> \n' %(s.keyword, nodetype, flags, options, status, pathstr))
     else:
         if s.keyword == ('tailf-common', 'action'):
             classstring = "action"
@@ -367,14 +372,14 @@ def print_node(s, module, fd, prefix, level=0):
             classstring = s.keyword
             typeinfo = typestring(s)
             typename = nodetype
-        fd.write('<tr id=\"%s\" class=\"a\"><td><div id=9999 class=tier%s> <a href =\"#\" class=\"%s\">&nbsp;</a><abbr title=\"%s\">%s</abbr></div> </td>   <td>%s</td>  <td><abbr title=\"%s\">%s</abbr></td>  <td>%s</td>  <td>%s</td>  <td>%s</td><td>%s</td</tr> \n' %(idstring, level,classstring, descrstring, name,s.keyword, typeinfo, typename, flags, options, status, pathstr))
+        fd.write('<tr id=\"%s\" class=\"a\"><td nowrap><div id=9999 class=tier%s> <a  class=\"%s\">&nbsp;</a><abbr title=\"%s\">%s</abbr></div> </td>   <td>%s</td>  <td nowrap><abbr title=\"%s\">%s</abbr></td>  <td nowrap>%s</td>  <td>%s</td>  <td>%s</td><td nowrap>%s</td</tr> \n' %(idstring, level,classstring, descrstring, name,s.keyword, typeinfo, typename, flags, options, status, pathstr))
 
     if hasattr(s, 'i_children'):
         level += 1
         if s.keyword in ['choice', 'case']:
-            print_children(s.i_children, module, fd, prefix, level)
+            print_children(s.i_children, module, fd, prefix, ctx, level)
         else:
-            print_children(s.i_children, module, fd, prefix, level)
+            print_children(s.i_children, module, fd, prefix, ctx, level)
 
 def get_status_str(s):
     status = s.search_one('status')
