@@ -185,11 +185,10 @@ function collapseAllRows() {
 """)
  
 def emit_header(modules, fd, ctx):
-    fd.write("""
-<head>
- <title>YANG Navigator</title>
-</head>
-""")
+    title = "";
+    for m in modules:
+        title = title + " " + m.arg
+    fd.write("<head><title>%s \n</title>" %title)
 
 def emit_footer(fd, ctx):
     fd.write("""
@@ -258,7 +257,7 @@ def emit_tree(modules, fd, ctx):
 
 
         levelcnt[1] += 1
-        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a href=\"#\" id=\"p3\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>%s</div></td> \n" %(levelcnt[1], module.arg))
+        fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1\"><div id=\"p2\" class=\"tier1\"><a href=\"#\" id=\"p3\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a><font color=blue>%s</font></div></td> \n" %(levelcnt[1], module.arg))
         fd.write("<td> module </td> <td>  </td> <td></td> <td>  </td> <td>  </td> </tr> \n")
 
 
@@ -269,7 +268,7 @@ def emit_tree(modules, fd, ctx):
         rpcs = module.search('rpc')
         levelcnt[1] += 1
         if len(rpcs) > 0:
-            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p1000\"><div id=\"p2000\" class=\"tier1\"><a href=\"#\" id=\"p3000\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>rpc:s</div></td> \n" %levelcnt[1])
+            fd.write("<tr id=\"%s\" class=\"a\"> <td nowrap id=\"p1000\"><div id=\"p2000\" class=\"tier1\"><a href=\"#\" id=\"p3000\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>%s:rpcs</div></td> \n" %(levelcnt[1],prstr))
             fd.write("<td> </td> <td>  </td> <td>  </td> <td>  </td> <td>  </td> </tr> \n")
 
             print_children(rpcs, module, fd, ' ', ctx, 2)
@@ -277,7 +276,8 @@ def emit_tree(modules, fd, ctx):
         notifs = module.search('notification')
         levelcnt[1] += 1
         if len(notifs) > 0:
-            fd.write("<tr id=\"%s\" class=\"a\"> <td id=\"p4000\"><div id=\"p5000\" class=\"tier1\"><a href=\"#\" id=\"p6000\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>notifications</div></td> \n" %levelcnt[1])
+            sys.stdout.write("notif \n")
+            fd.write("<tr id=\"%s\" class=\"a\"> <td nowrapid=\"p4000\"><div id=\"p5000\" class=\"tier1\"><a href=\"#\" id=\"p6000\"  onclick=\"toggleRows(this);return false;\" class=\"folder\">&nbsp;</a>%s:notifs</div></td> \n" %(levelcnt[1],prstr))
             fd.write("<td> </td> <td>  </td> <td>  </td> <td>  </td> <td>  </td> </tr> \n")
             print_children(notifs, module, fd, ' ', ctx, 2)
 
@@ -287,6 +287,8 @@ def print_children(i_children, module, fd, prefix, ctx, level=0):
 
 def print_node(s, module, fd, prefix, ctx, level=0):
     global levelcnt
+    fontstarttag = ""
+    fontendtag = ""
     status = get_status_str(s)
     nodetype = ''
     options = ''
@@ -295,6 +297,10 @@ def print_node(s, module, fd, prefix, ctx, level=0):
         name = s.arg
     else:
         name = s.i_module.i_prefix + ':' + s.arg
+
+    pr = module.search_one('prefix')
+    if pr is not None:
+        prstr = pr.arg
 
     descr = s.search_one('description')
     descrstring = "No description"
@@ -355,24 +361,29 @@ def print_node(s, module, fd, prefix, ctx, level=0):
     pathstr = ""
     if not ctx.opts.jstree_no_path:
         pathstr = statements.mk_path_str(s, True)
-            
+
+    if '?' in options:
+        fontstarttag = "<em>"
+        fontendtag = "</em>"
+    keyword = s.keyword
     if folder:
         fd.write("<tr id=\"%s\" class=\"a\"> <td nowrap id=\"p4000\"><div id=\"p5000\" class=\"tier%s\"><a href=\"#\" id=\"p6000\"  onclick=\"toggleRows(this);return false\" class=\"folder\">&nbsp;</a><abbr title=\"%s\">%s</abbr></div></td> \n" %(idstring, level, descrstring, name))
-        fd.write('<td nowrap>%s</td>   <td nowrap>%s</td>  <td>%s</td>  <td>%s</td>  <td>%s</td> <td nowrap>%s</td> </tr> \n' %(s.keyword, nodetype, flags, options, status, pathstr))
+        fd.write('<td nowrap>%s</td>   <td nowrap>%s</td>  <td nowrap>%s</td>  <td>%s</td>  <td>%s</td> <td nowrap>%s</td> </tr> \n' %(s.keyword, nodetype, flags, options, status, pathstr))
     else:
         if s.keyword == ('tailf-common', 'action'):
             classstring = "action"
             typeinfo = action_params(s)
             typename = "parameters"
+            keyword = "action"
         elif s.keyword == 'rpc' or s.keyword == 'notification':
             classstring = "folder"
             typeinfo = action_params(s)
-            typename = "parameters"            
+            typename = "parameters"
         else:
             classstring = s.keyword
             typeinfo = typestring(s)
             typename = nodetype
-        fd.write('<tr id=\"%s\" class=\"a\"><td nowrap><div id=9999 class=tier%s> <a  class=\"%s\">&nbsp;</a><abbr title=\"%s\">%s</abbr></div> </td>   <td>%s</td>  <td nowrap><abbr title=\"%s\">%s</abbr></td>  <td nowrap>%s</td>  <td>%s</td>  <td>%s</td><td nowrap>%s</td</tr> \n' %(idstring, level,classstring, descrstring, name,s.keyword, typeinfo, typename, flags, options, status, pathstr))
+        fd.write('<tr id=\"%s\" class=\"a\"><td nowrap><div id=9999 class=tier%s> <a  class=\"%s\">&nbsp;</a><abbr title=\"%s\"> %s %s %s</abbr></div> </td>   <td>%s</td>  <td nowrap><abbr title=\"%s\">%s</abbr></td>  <td nowrap>%s</td>  <td>%s</td>  <td>%s</td><td nowrap>%s</td</tr> \n' %(idstring, level,classstring, descrstring, fontstarttag, name, fontendtag, keyword, typeinfo, typename, flags, options, status, pathstr))
 
     if hasattr(s, 'i_children'):
         level += 1
