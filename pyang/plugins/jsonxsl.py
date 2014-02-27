@@ -82,7 +82,7 @@ def emit_json_xsl(modules, ctx, fd):
     nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
     ET.SubElement(nsmap, "param", name="uri")
     choo = ET.SubElement(nsmap, "choose")
-    for module in modules:
+    for module in ctx.modules.values():
         ns_uri = module.search_one("namespace").arg
         ss.attrib["xmlns:" + module.i_prefix] = ns_uri
         when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
