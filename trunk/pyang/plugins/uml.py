@@ -82,6 +82,10 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="truncate",
                                  default = "",                                 
                                  help="Leafref attributes and augment elements can have long paths making the classes too wide. \nThis option will only show the tail of the path. \nExample --uml-truncate=augment,leafref"),
+            optparse.make_option("--uml-max-enums",
+                                 dest="max_enums",
+                                 default = "3",                                 
+                                 help="The maximum number of enumerated values being rendered"),
 
             optparse.make_option("--uml-filter",
                                  action="store_true",                               
@@ -122,8 +126,8 @@ class UMLPlugin(plugin.PyangPlugin):
         umldoc = uml_emitter(ctx)
         umldoc.emit(modules, fd)
 
-    def fatal(self, errstr, exitCode=1):
-        raise error.EmitError(errstr, exitCode)
+    def fatal(self, exitCode=1):
+        raise error.EmitError(self, exitCode)
 
 
 class uml_emitter:
@@ -426,6 +430,10 @@ class uml_emitter:
                  self.emit_must(parent, node, fd)
          elif node.keyword == ('tailf-common', 'hidden'):
                  self.annotate_node(parent, "<b>Hidden </b>" + node.arg, fd)
+         elif node.keyword[1] == 'servicepoint':
+                 sys.stderr.write('Found service \n')
+                 self.annotate_node(parent, "<b>FastMap SERVICE: </b>" + node.arg, fd)
+                 # self.lollipop_node(parent, node.arg, fd)
          elif node.keyword == 'presence':
                  self.annotate_node(parent, "<b>Presence: </b>" + node.arg, fd)         
          elif node.keyword == 'when':
@@ -508,7 +516,7 @@ class uml_emitter:
                 #fd.write('package %s.%s \n' %(pre, pkg))
                 pre = i.search_one('prefix').arg
                 pkg = i.arg
-                fd.write('package \"%s:%s\" as %s_%s \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
+                fd.write('package \"%s:%s\" as %s_%s { \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
 
                 # search for augments and place them in correct package
                 ## augments = module.search('augment')
@@ -520,13 +528,13 @@ class uml_emitter:
                 ##     a_pkg = ''
                 ##     if (pre == a_pre): # augments element in this module, ugly trick use _suffix here
                 ##             fd.write('class \"%s\" as %s \n' %(a.arg, self.make_plantuml_keyword(a.arg)))
-                fd.write('end package \n')
+                fd.write('} \n')
 
         bt = module.search_one('belongs-to')
         if bt is not None:
             # Wrap parent module around this sub-module
-            fd.write('package %s\n' % bt.arg)
-            self.post_strings.append('end package \n')
+            fd.write('package %s {\n' % bt.arg)
+            self.post_strings.append('} \n')
 
 
 
@@ -573,7 +581,7 @@ class uml_emitter:
             fd.write('\n')
 
         # This package    
-        fd.write('package \"%s:%s\" as %s_%s \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
 
         if self.ctx_imports:
             imports = module.search('import')
@@ -583,8 +591,8 @@ class uml_emitter:
 
         includes = module.search('include')
         for inc in includes:
-            fd.write('package \"%s\" as %s \n' %(inc.arg, self.make_plantuml_keyword(inc.arg)))
-            fd.write('end package\n')
+            fd.write('package \"%s\" as %s { \n' %(inc.arg, self.make_plantuml_keyword(inc.arg)))
+            fd.write('}\n')
 
     def emit_module_class(self, module, fd):
         fd.write('class \"%s\" as %s << (M, #33CCFF) module>> \n' %(self.full_display_path(module), self.full_path(module)))
@@ -605,6 +613,9 @@ class uml_emitter:
             fd.write('note bottom of %s\n' %(self.full_path(node)) )
             fd.write('%s\n' %note)
             fd.write('end note \n')
+
+    def lollipop_node(self, node , text, fd):
+        fd.write("%s ()-- %s \n" %(text,self.full_path(node)))
 
 
     def emit_container(self, parent, node, fd):
@@ -699,11 +710,12 @@ class uml_emitter:
             e = t.search_one('type')
             if e.arg == 'enumeration':
                     # enum_name = self.full_path(t, False)
-                    fd.write('enum \"%s\" as %s\n' %(t.arg, self.full_path(t)))
-                    for enums in e.substmts[:3]:
-                         fd.write('%s : %s \n' %(self.full_path(t), enums.arg))
-                    if (len(e.substmts) > 3):
-                         fd.write('%s : %s \n' %(self.full_path(t), "..."))
+                    fd.write('enum \"%s\" as %s {\n' %(t.arg, self.full_path(t)))
+                    for enums in e.substmts[:int(self._ctx.opts.max_enums)]:
+                         fd.write('%s\n' %enums.arg)
+                    if (len(e.substmts) > int(self._ctx.opts.max_enums)):
+                         fd.write('%s\n' %"MORE")
+                    fd.write("}\n")
             else:
                     fd.write('class \"%s\" as %s << (T, YellowGreen) typedef>>\n' %(t.arg, self.make_plantuml_keyword(t.arg)))
                     fd.write('%s : %s\n' %(self.make_plantuml_keyword(t.arg), self.typestring(t)))
@@ -1083,7 +1095,7 @@ class uml_emitter:
         self.post_strings = []
 
         if not self.ctx_no_module:
-            fd.write("end package\n\n")
+            fd.write("} \n\n")
 
 
         
