@@ -2363,18 +2363,6 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                     # type as the keyleaf
                     (xkey_list, x_key, xleaf, _x) = follow_path(stmt, pup, pdn)
                     stmt.i_derefed_leaf = xleaf
-                    if xleaf.i_leafref_ptr is None:
-                        if not accept_non_leaf_target:
-                            err_add(ctx.errors, pathpos,
-                                    'LEAFREF_BAD_PREDICATE_PTR',
-                                    (pmodule.arg, pname, stmt.arg, stmt.pos))
-                    else:
-                        (xptr, xpos) = xleaf.i_leafref_ptr
-                        if xptr != pleaf:
-                            err_add(ctx.errors, xpos,
-                                    'LEAFREF_BAD_PREDICATE_PTR',
-                                    (pmodule.arg, pname, stmt.arg, stmt.pos))
-                            raise NotFound
                     i = i + 1
                 continue
             else:
