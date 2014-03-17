@@ -911,10 +911,7 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     <title>jstree Output</title>
     <para>
       The <emphasis>jstree</emphasis> output prints an HTML/JavaScript
-      based YANG browser. It references an images folder that needs to
-      exist in the same folder as the generated file. This is installed
-      as share/yang/images in the pyang installation directory.
-      The easiest way is to symlink to this directory.
+      based YANG browser.
     </para>
     <para>
       jstree output specific option:
@@ -1136,6 +1133,15 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
         <listitem>
           <para>
             Render the diagram with augments inlined.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--uml-max-enums</option></term>
+        <listitem>
+          <para>
+            Maximum of enum items rendered.
           </para>
         </listitem>
       </varlistentry>

@@ -431,9 +431,7 @@ class uml_emitter:
          elif node.keyword == ('tailf-common', 'hidden'):
                  self.annotate_node(parent, "<b>Hidden </b>" + node.arg, fd)
          elif node.keyword[1] == 'servicepoint':
-                 sys.stderr.write('Found service \n')
                  self.annotate_node(parent, "<b>FastMap SERVICE: </b>" + node.arg, fd)
-                 # self.lollipop_node(parent, node.arg, fd)
          elif node.keyword == 'presence':
                  self.annotate_node(parent, "<b>Presence: </b>" + node.arg, fd)         
          elif node.keyword == 'when':
