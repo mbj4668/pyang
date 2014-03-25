@@ -607,10 +607,7 @@ class HybridDSDLSchema(object):
         """Add <a:documentation> with `docstring` to `p_elem`."""
         dtag = self.namespaces[self.a_uri] + ":documentation"
         elem = SchemaNode(dtag, text=docstring)
-        pos = 0
-        for ch in p_elem.children:
-            if ch.name == dtag: pos += 1
-        p_elem.children.insert(pos, elem)
+        p_elem.annots.append(elem)
 
     def install_def(self, name, dstmt, def_map, interleave=False):
         """Install definition `name` into the appropriate dictionary.
