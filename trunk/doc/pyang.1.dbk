@@ -409,6 +409,10 @@
               <option>--features</option> option takes precedence.
           </para>
           <para>
+            If this option is not given, nothing is pruned, i.e., it works
+            as if all features were explicitly listed.
+          </para>
+          <para>
               For example, to view the tree output for a module with all
               if-feature'd nodes removed, do:
           </para>
@@ -631,7 +635,9 @@
         <term><emphasis>capability</emphasis></term>
         <listitem>
           <para>Prints a capabaility URL for each given module, with
-          the features and devations given.</para>
+          the features and devations given.  If no features are given,
+          all features defined in the module are reported.
+          </para>
         </listitem>
       </varlistentry>
     </variablelist>

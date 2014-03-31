@@ -31,7 +31,15 @@ def emit_capability(ctx, m, fd):
         s = s + "&revision=" + latest_rev
 
     if m.i_modulename in ctx.features:
-        s = s + "&features=" + ",".join(ctx.features[m.i_modulename])
+        if len(ctx.features[m.i_modulename]) > 0:
+            s = s + "&features=" + ",".join(ctx.features[m.i_modulename])
+        else:
+            # do not report any features from the module
+            pass
+    else:
+        # report all features defined in the module
+        fs = [x.arg for x in m.search('feature')]
+        s = s + "&features=" + ",".join(fs)
 
     devs = []
     for d in ctx.deviation_modules:
