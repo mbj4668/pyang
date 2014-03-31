@@ -60,7 +60,6 @@ module yt5a {
       unique leaf;
 
       leaf ___ { 
-        mandatory false;
         type union {
           type int32;
           type uint32;
@@ -68,7 +67,7 @@ module yt5a {
         }
       }
 
-      leaf _x_ { type un-1; default 7; }
+      leaf _x_ { type un-1; }
  
       config true;
 
@@ -76,7 +75,6 @@ module yt5a {
 
       leaf "leaf" {
         type 'yt3:t10';
-        default 4.576;
       }
 
       key "leaf z ___  _x_";

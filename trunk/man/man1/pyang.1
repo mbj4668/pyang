@@ -224,6 +224,8 @@ option specifies different supported features for a module than the hello file, 
 \fB\-\-features\fR
 option takes precedence\&.
 .sp
+If this option is not given, nothing is pruned, i\&.e\&., it works as if all features were explicitly listed\&.
+.sp
 For example, to view the tree output for a module with all if\-feature\*(Aqd nodes removed, do:
 .sp
 .if n \{\
@@ -422,7 +424,7 @@ Generates a driver file for transforming JSON instance documents into XML\&.
 .PP
 \fIcapability\fR
 .RS 4
-Prints a capabaility URL for each given module, with the features and devations given\&.
+Prints a capabaility URL for each given module, with the features and devations given\&. If no features are given, all features defined in the module are reported\&.
 .RE
 .SH "YANG OUTPUT"
 .PP
@@ -588,7 +590,7 @@ XMI output specific option:
 .PP
 The
 \fIjstree\fR
-output prints an HTML/JavaScript based YANG browser\&. It references an images folder that needs to exist in the same folder as the generated file\&. This is installed as share/yang/images in the pyang installation directory\&. The easiest way is to symlink to this directory\&.
+output prints an HTML/JavaScript based YANG browser\&.
 .PP
 jstree output specific option:
 .PP
@@ -757,6 +759,11 @@ Render the diagram with groupings inlined\&.
 \fB\-\-uml\-inline\-augments\fR
 .RS 4
 Render the diagram with augments inlined\&.
+.RE
+.PP
+\fB\-\-uml\-max\-enums\fR
+.RS 4
+Maximum of enum items rendered\&.
 .RE
 .PP
 \fB\-\-uml\-filter\-file=FILTER_FILE\fR
