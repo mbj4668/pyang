@@ -92,7 +92,7 @@ module yt6 {
       type y:date-and-time;
       ordered-by user;
     }
-    leaf bar1 { type un-1; default 6; }
+    leaf bar1 { type un-1; }
   }
 
   notification notif1 {

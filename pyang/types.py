@@ -574,13 +574,11 @@ def validate_path_expr(errors, path):
                 # no prefix
                 return (m.group(3), s)
             else:
-                return ((m.group(2), m.group(3)), s)
-
                 prefix = m.group(2)
                 mod = util.prefix_to_module(path.i_module, prefix,
                                             path.pos, errors)
                 if mod is not None:
-                    return ((mod, m.group(3)), s)
+                    return ((m.group(2), m.group(3)), s)
                 else:
                     raise Abort
 

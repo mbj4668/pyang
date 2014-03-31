@@ -51,7 +51,7 @@ module yt5 {
             uses AAA;
           }
           grouping AAA {
-            typedef B_typ { type instance-identifier; }
+//            typedef B_typ { type instance-identifier; }
             uses AAAA {
 /*
                 extend "yt5:e/yt5:f" {

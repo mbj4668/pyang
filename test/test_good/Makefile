@@ -1,4 +1,4 @@
-PYANG = pyang -Wnone
+PYANG = pyang -Werror -WWBAD_MODULE_NAME
 
 MODULES ?= $(wildcard *.yang)
 
