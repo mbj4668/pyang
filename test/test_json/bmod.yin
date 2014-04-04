@@ -10,6 +10,9 @@
   <import module="ietf-inet-types">
     <prefix value="inet"/>
   </import>
+  <import module="iana-if-type">
+    <prefix value="ianaift"/>
+  </import>
   <typedef name="mytyp">
     <type name="inet:host"/>
   </typedef>
@@ -38,7 +41,7 @@
       </leaf>
       <leaf name="pusu">
 	<type name="identityref">
-	  <base name="a:abstract"/>
+	  <base name="ianaift:iana-interface-type"/>
 	</type>
       </leaf>
     </list>

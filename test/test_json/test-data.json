@@ -1,36 +1,36 @@
 {
-  "top": {
-    "foo": 42.99,
+  "subtop": {
+    "amod:baz": "192.168.1.10",
     "pac": [
-      "yes",
-      0,
-      true
+      {
+        "k1": 0,
+        "k2": "w/o]",
+        "pusu": "iana-if-type:coffee"
+      }
     ],
+    "bmod:baz": false
+  },
+  "top": {
     "junk": {
-      "one": "1",
       "two": [
         "deux",
         "zwei"
-      ]
+      ],
+      "one": "1"
     },
-    "amod:bar": [null],
     "baz": [
       3.1415,
       "2.71828"
     ],
     "mek": 42.99,
-    "bmod:bar": "foo.example.com",
-    "abar": "/amod:subtop/bmod:pac[bmod:k1=\"0\"][bmod:k2='w/o]']/bmod:pusu"
-  },
-  "subtop": {
-    "amod:baz": "192.168.1.10",
-    "bmod:baz": false,
+    "abar": "/amod:subtop/bmod:pac[bmod:k1=\"0\"][bmod:k2='w/o]']/bmod:pusu",
+    "amod:bar": [null],
     "pac": [
-      {
-        "k1": 0,
-        "k2": "w/o]",
-        "pusu": "amod:concrete"
-      }
-    ]
+      "yes",
+      0,
+      true
+    ],
+    "foo": 42.99,
+    "bmod:bar": "foo.example.com"
   }
 }
