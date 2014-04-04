@@ -85,7 +85,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
         nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
         ET.SubElement(nsmap, "param", name="uri")
         choo = ET.SubElement(nsmap, "choose")
-        for module in ctx.modules.values():
+        for module in self.real_prefix.keys():
             ns_uri = module.search_one("namespace").arg
             ss.attrib["xmlns:" + self.real_prefix[module]] = ns_uri
             when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
@@ -208,7 +208,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
 
         In JSON, namespace identifiers are YANG module names.
         """
-        return self.real_prefix[node.i_module] + ":" + node.arg
+        return self.real_prefix[node.main_module()] + ":" + node.arg
 
     def xsl_template(self, name):
         """Construct an XSLT 'template' element matching `name`."""

@@ -136,13 +136,6 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template name="commaq">
-    <xsl:if test="following-sibling::*[name() != name(current())
-		  and name() != name(preceding-sibling::*)]">
-      <xsl:text>,</xsl:text>
-    </xsl:if>
-  </xsl:template>
-
   <xsl:template name="escape-char">
     <xsl:param name="char"/>
     <xsl:param name="echar"/>
@@ -321,6 +314,7 @@
   <xsl:template name="container">
     <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
+    <xsl:if test="position() != 1">,</xsl:if>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
@@ -331,7 +325,6 @@
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
     <xsl:text>}</xsl:text>
-    <xsl:call-template name="commaq"/>
   </xsl:template>
 
   <xsl:template name="leaf">
@@ -339,6 +332,7 @@
     <xsl:param name="type"/>
     <xsl:param name="options"/>
     <xsl:param name="nsid"/>
+    <xsl:if test="position() != 1">,</xsl:if>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
@@ -348,7 +342,6 @@
       <xsl:with-param name="type" select="$type"/>
       <xsl:with-param name="options" select="$options"/>
     </xsl:call-template>
-    <xsl:call-template name="commaq"/>
   </xsl:template>
 
   <xsl:template name="leaf-list">
@@ -356,13 +349,18 @@
     <xsl:param name="type"/>
     <xsl:param name="options"/>
     <xsl:param name="nsid"/>
-    <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
+    <xsl:if
+	test="not(preceding-sibling::*[local-name()=local-name(current())
+	      and namespace-uri()=namespace-uri(current())])">
+      <xsl:if test="position() != 1">,</xsl:if>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:value-of
 	  select="concat('&quot;', $nsid, local-name(.), '&quot;: [')"/>
-      <xsl:for-each select="../*[name()=name(current())]">
+      <xsl:for-each
+	  select="../*[local-name()=local-name(current())
+		  and namespace-uri()=namespace-uri(current())]">
 	<xsl:call-template name="nl-indent">
 	  <xsl:with-param name="level" select="$level+1"/>
 	</xsl:call-template>
@@ -378,20 +376,24 @@
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:text>]</xsl:text>
-      <xsl:call-template name="commaq"/>
     </xsl:if>
   </xsl:template>
 
   <xsl:template name="list">
     <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
-    <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
+    <xsl:if
+	test="not(preceding-sibling::*[local-name()=local-name(current())
+	      and namespace-uri()=namespace-uri(current())])">
+      <xsl:if test="position() != 1">,</xsl:if>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:value-of
 	  select="concat('&quot;', $nsid, local-name(.), '&quot;: [')"/>
-      <xsl:for-each select="../*[name()=name(current())]">
+      <xsl:for-each
+	  select="../*[local-name()=local-name(current())
+		  and namespace-uri()=namespace-uri(current())]">
 	<xsl:call-template name="nl-indent">
 	  <xsl:with-param name="level" select="$level+1"/>
 	</xsl:call-template>
@@ -409,13 +411,13 @@
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:text>]</xsl:text>
-      <xsl:call-template name="commaq"/>
     </xsl:if>
   </xsl:template>
 
   <xsl:template name="anyxml">
     <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
+    <xsl:if test="position() != 1">,</xsl:if>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
@@ -428,17 +430,17 @@
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
     <xsl:text>}</xsl:text>
-    <xsl:call-template name="commaq"/>
   </xsl:template>
 
   <xsl:template match="*" mode="anyxml">
     <xsl:param name="level" select="0"/>
     <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
+      <xsl:if test="position() != 1">,</xsl:if>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:value-of
-	  select="concat('&quot;', local-name(.), '&quot;: ')"/>
+	  select="concat('&quot;', name(.), '&quot;: ')"/>
       <xsl:choose>
 	<xsl:when test="following-sibling::*[name()=name(current())]">
 	  <xsl:text>[</xsl:text>
@@ -484,7 +486,6 @@
 	  <xsl:call-template name="json-value"/>
 	</xsl:otherwise>
       </xsl:choose>
-      <xsl:call-template name="commaq"/>
     </xsl:if>
   </xsl:template>
 
