@@ -4,6 +4,7 @@
     <capability>urn:ietf:params:netconf:capability:startup:1.0</capability>
     <capability>http://example.com/a?module=amod&amp;features=abc</capability>
     <capability>http://example.com/b?module=bmod</capability>
+    <capability>urn:ietf:params:xml:ns:yang:iana-if-type?module=iana-if-type</capability>
   </capabilities>
   <session-id>4</session-id>
 </hello>
