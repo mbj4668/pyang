@@ -26,6 +26,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from pyang import plugin, statements, error
+from pyang.util import unique_prefixes
 
 ss = ET.Element("stylesheet",
                 {"version": "1.0",
@@ -61,178 +62,182 @@ class JsonXslPlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
-        emit_json_xsl(modules, ctx, fd)
+        """Main control function.
 
-def emit_json_xsl(modules, ctx, fd):
-    """Main control function.
+        Set up the top-level parts of the stylesheet, the process
+        recursively all nodes in all data trees, and finally emit the
+        serialized stylesheet.
+        """
+        for (epos, etag, eargs) in ctx.errors:
+            if error.is_error(error.err_level(etag)):
+                raise error.EmitError("JSONXSL plugin needs a valid module")
+        self.real_prefix = unique_prefixes(ctx)
+        self.top_names = []
+        for m in modules:
+            self.top_names.extend([c.arg for c in m.i_children if
+                                   c.keyword not in ("rpc", "notification")])
+        tree = ET.ElementTree(ss)
+        ET.SubElement(ss, "output", method="text")
+        xsltdir = os.environ.get("PYANG_XSLT_DIR",
+                                 "/usr/local/share/yang/xslt")
+        ET.SubElement(ss, "include", href=xsltdir + "/jsonxsl-templates.xsl")
+        ET.SubElement(ss, "strip-space", elements="*")
+        nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
+        ET.SubElement(nsmap, "param", name="uri")
+        choo = ET.SubElement(nsmap, "choose")
+        for module in ctx.modules.values():
+            ns_uri = module.search_one("namespace").arg
+            ss.attrib["xmlns:" + self.real_prefix[module]] = ns_uri
+            when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
+            self.xsl_text(module.i_modulename, when)
+            self.process_module(module)
+        tree.write(fd, encoding="utf-8" if sys.version < "3" else "unicode",
+                   xml_declaration=True)
 
-    Set up the top-level parts of the stylesheet, the process
-    recursively all nodes in all data trees, and finally emit the
-    serialized stylesheet.
-    """
-    for (epos, etag, eargs) in ctx.errors:
-        if error.is_error(error.err_level(etag)):
-            raise error.EmitError("JSONXSL plugin needs a valid module")
-    tree = ET.ElementTree(ss)
-    ET.SubElement(ss, "output", method="text")
-    xsltdir = os.environ.get("PYANG_XSLT_DIR",
-                             "/usr/local/share/yang/xslt")
-    ET.SubElement(ss, "include", href=xsltdir + "/jsonxsl-templates.xsl")
-    ET.SubElement(ss, "strip-space", elements="*")
-    nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
-    ET.SubElement(nsmap, "param", name="uri")
-    choo = ET.SubElement(nsmap, "choose")
-    for module in ctx.modules.values():
-        ns_uri = module.search_one("namespace").arg
-        ss.attrib["xmlns:" + module.i_prefix] = ns_uri
-        when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
-        xsl_text(module.i_modulename, when)
-        process_module(module)
-    tree.write(fd, encoding="utf-8" if sys.version < "3" else "unicode",
-               xml_declaration=True)
-
-def process_module(yam):
-    """Process data nodes, RPCs and notifications in a single module."""
-    for ch in yam.i_children[:]:
-        if ch.keyword == "rpc":
-            process_rpc(ch)
-        elif ch.keyword == "notification":
-            process_notification(ch)
-        else:
-            continue
-        yam.i_children.remove(ch)
-    process_children(yam, "//nc:*", 1)
-
-def process_rpc(rpc):
-    """Process input and output parts of `rpc`."""
-    p = "/nc:rpc/" + qname(rpc)
-    tmpl = xsl_template(p)
-    ct = xsl_calltemplate("container", tmpl)
-    xsl_withparam("level", "1", ct)
-    inp = rpc.search_one("input")
-    if inp is not None:
-        process_children(inp, p, 2)
-    outp = rpc.search_one("output")
-    if outp is not None:
-        process_children(outp, "/nc:rpc-reply", 1)
-
-def process_notification(ntf):
-    """Process event notification `ntf`."""
-    p = "/en:notification/" + qname(ntf)
-    tmpl = xsl_template(p)
-    ct = xsl_calltemplate("container", tmpl)
-    xsl_withparam("level", "1", ct)
-    if ntf.arg == "eventTime":            # local name collision
-        xsl_withparam("nsid", ntf.i_module.i_modulename + ":", ct)
-    process_children(ntf, p, 2)
-
-def process_children(node, path, level):
-    """Process all children of `node`.
-
-    `path` is the Xpath of `node` which is used in the 'select'
-    attribute of XSLT templates.
-    """
-    chs = node.i_children
-    for ch in chs:
-        if ch.keyword in ["choice", "case"]:
-            process_children(ch, path, level)
-            continue
-        p = path + "/" + qname(ch)
-        tmpl = xsl_template(p)
-        ct = xsl_calltemplate(ch.keyword, tmpl)
-        xsl_withparam("level", "%d" % level, ct)
-        if [c.arg for c in chs].count(ch.arg) > 1:
-            xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
-        if ch.keyword in ["leaf", "leaf-list"]:
-            type_param(ch, ct)
-        elif ch.keyword != "anyxml":
-            offset = 2 if ch.keyword == "list" else 1
-            process_children(ch, p, level + offset)
-
-def type_param(node, ct):
-    """Resolve the type of a leaf or leaf-list node for JSON.
-    """
-    types = get_types(node)
-    ftyp = types[0]
-    if len(types) == 1:
-        if ftyp in type_class:
-            jtyp = type_class[ftyp]
-        elif ftyp.startswith("decimal@"):
-            jtyp = "unquoted"
-        else:
-            jtyp = "other"
-        xsl_withparam("type", jtyp, ct)
-    elif ftyp in ["string", "enumeration", "bits", "binary",
-                  "identityref", "instance-identifier"]:
-        xsl_withparam("type", "string", ct)
-    else:
-        opts = []
-        for t in types:
-            if t in union_class:
-                ut = union_class[t]
-            elif t.startswith("decimal@"):
-                ut = t
+    def process_module(self, yam):
+        """Process data nodes, RPCs and notifications in a single module."""
+        for ch in yam.i_children[:]:
+            if ch.keyword == "rpc":
+                self.process_rpc(ch)
+            elif ch.keyword == "notification":
+                self.process_notification(ch)
             else:
-                ut = "other"    
-            if ut not in opts:
-                opts.append(ut)
-                if ut == "other": break
-                if ut == "decimal" and "integer" not in opts: opts.append("integer")
-        xsl_withparam("type", "union", ct)
-        xsl_withparam("options", ",".join(opts) + ",", ct)
+                continue
+            yam.i_children.remove(ch)
+        self.process_children(yam, "//nc:*", 1)
 
-def get_types(node):
-    res = []
-    def resolve(typ):
-        if typ.arg == "leafref":
-            resolve(typ.i_type_spec.i_target_node.search_one("type"))
-        elif typ.arg == "union":
-            for ut in typ.i_type_spec.types: resolve(ut)
-        elif typ.arg == "decimal64":
-            res.append("decimal@" +
-                       typ.search_one("fraction-digits").arg)
-        elif typ.i_typedef is not None:
-            resolve(typ.i_typedef.search_one("type"))
+    def process_rpc(self, rpc):
+        """Process input and output parts of `rpc`."""
+        p = "/nc:rpc/" + self.qname(rpc)
+        tmpl = self.xsl_template(p)
+        ct = self.xsl_calltemplate("container", tmpl)
+        self.xsl_withparam("level", "1", ct)
+        inp = rpc.search_one("input")
+        if inp is not None:
+            self.process_children(inp, p, 2)
+        outp = rpc.search_one("output")
+        if outp is not None:
+            self.process_children(outp, "/nc:rpc-reply", 1)
+
+    def process_notification(self, ntf):
+        """Process event notification `ntf`."""
+        p = "/en:notification/" + self.qname(ntf)
+        tmpl = self.xsl_template(p)
+        ct = self.xsl_calltemplate("container", tmpl)
+        self.xsl_withparam("level", "1", ct)
+        if ntf.arg == "eventTime":            # local name collision
+            self.xsl_withparam("nsid", ntf.i_module.i_modulename + ":", ct)
+        self.process_children(ntf, p, 2)
+
+    def process_children(self, node, path, level):
+        """Process all children of `node`.
+
+        `path` is the Xpath of `node` which is used in the 'select'
+        attribute of XSLT templates.
+        """
+        chs = node.i_children
+        for ch in chs:
+            if ch.keyword in ["choice", "case"]:
+                self.process_children(ch, path, level)
+                continue
+            p = path + "/" + self.qname(ch)
+            tmpl = self.xsl_template(p)
+            ct = self.xsl_calltemplate(ch.keyword, tmpl)
+            self.xsl_withparam("level", "%d" % level, ct)
+            siblings = self.top_names if node.keyword == "module" else [
+                c.arg for c in chs ]
+            if siblings.count(ch.arg) > 1:
+                self.xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
+            if ch.keyword in ["leaf", "leaf-list"]:
+                self.type_param(ch, ct)
+            elif ch.keyword != "anyxml":
+                offset = 2 if ch.keyword == "list" else 1
+                self.process_children(ch, p, level + offset)
+
+    def type_param(self, node, ct):
+        """Resolve the type of a leaf or leaf-list node for JSON.
+        """
+        types = self.get_types(node)
+        ftyp = types[0]
+        if len(types) == 1:
+            if ftyp in type_class:
+                jtyp = type_class[ftyp]
+            elif ftyp.startswith("decimal@"):
+                jtyp = "unquoted"
+            else:
+                jtyp = "other"
+            self.xsl_withparam("type", jtyp, ct)
+        elif ftyp in ["string", "enumeration", "bits", "binary",
+                      "identityref", "instance-identifier"]:
+            self.xsl_withparam("type", "string", ct)
         else:
-            res.append(typ.arg)
-    resolve(node.search_one("type"))
-    return res
+            opts = []
+            for t in types:
+                if t in union_class:
+                    ut = union_class[t]
+                elif t.startswith("decimal@"):
+                    ut = t
+                else:
+                    ut = "other"    
+                if ut not in opts:
+                    opts.append(ut)
+                    if ut == "other": break
+                    if ut == "decimal" and "integer" not in opts: opts.append("integer")
+            self.xsl_withparam("type", "union", ct)
+            self.xsl_withparam("options", ",".join(opts) + ",", ct)
 
-def qname(node):
-    """Return the qualified name of `node`.
+    def get_types(self, node):
+        res = []
+        def resolve(typ):
+            if typ.arg == "leafref":
+                resolve(typ.i_type_spec.i_target_node.search_one("type"))
+            elif typ.arg == "union":
+                for ut in typ.i_type_spec.types: resolve(ut)
+            elif typ.arg == "decimal64":
+                res.append("decimal@" +
+                           typ.search_one("fraction-digits").arg)
+            elif typ.i_typedef is not None:
+                resolve(typ.i_typedef.search_one("type"))
+            else:
+                res.append(typ.arg)
+        resolve(node.search_one("type"))
+        return res
 
-    In JSON, namespace identifiers are YANG module names.
-    """
-    return node.i_module.i_prefix + ":" + node.arg
+    def qname(self, node):
+        """Return the qualified name of `node`.
 
-def xsl_template(name):
-    """Construct an XSLT 'template' element matching `name`."""
-    return ET.SubElement(ss, "template" , match = name) 
+        In JSON, namespace identifiers are YANG module names.
+        """
+        return self.real_prefix[node.i_module] + ":" + node.arg
 
-def xsl_text(text, parent):
-    """Construct an XSLT 'text' element containing `text`.
+    def xsl_template(self, name):
+        """Construct an XSLT 'template' element matching `name`."""
+        return ET.SubElement(ss, "template" , match = name) 
 
-    `parent` is this element's parent.
-    """
-    res = ET.SubElement(parent, "text")
-    res.text = text
-    return res
+    def xsl_text(self, text, parent):
+        """Construct an XSLT 'text' element containing `text`.
 
-def xsl_calltemplate(name, parent):
-    """Construct an XSLT 'call-template' element.
+        `parent` is this element's parent.
+        """
+        res = ET.SubElement(parent, "text")
+        res.text = text
+        return res
 
-    `parent` is this element's parent.
-    `name` is the name of the template to be called.
-    """
-    return ET.SubElement(parent, "call-template", name=name)
+    def xsl_calltemplate(self, name, parent):
+        """Construct an XSLT 'call-template' element.
 
-def xsl_withparam(name, value, parent):
-    """Construct an XSLT 'with-param' element.
+        `parent` is this element's parent.
+        `name` is the name of the template to be called.
+        """
+        return ET.SubElement(parent, "call-template", name=name)
 
-    `parent` is this element's parent.
-    `name` is the parameter name.
-    `value` is the parameter value.
-    """
-    res = ET.SubElement(parent, "with-param", name=name)
-    res.text = value
-    return res
+    def xsl_withparam(self, name, value, parent):
+        """Construct an XSLT 'with-param' element.
+
+        `parent` is this element's parent.
+        `name` is the parameter name.
+        `value` is the parameter value.
+        """
+        res = ET.SubElement(parent, "with-param", name=name)
+        res.text = value
+        return res
