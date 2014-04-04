@@ -104,3 +104,20 @@ def prefix_to_module(module, prefix, pos, errors):
     if modulename is None:
         return None
     return module.i_ctx.get_module(modulename, revision)
+
+def unique_prefixes(context):
+    """Return a dictionary with unique prefixes for modules in `context`.
+
+    Keys are 'module' statements and values are prefixes,
+    disambiguated where necessary.
+    """
+    res = {}
+    for m in context.modules.values():
+        if m.keyword == "submodule": continue
+        prf = new = m.i_prefix
+        suff = 0
+        while new in res.values():
+            suff += 1
+            new = "%s%x" % (prf, suff)
+        res[m] = new
+    return res
