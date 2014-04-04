@@ -76,6 +76,7 @@ class Translator:
         self.jtox = jtox
         self.prefix = {}
         self.uri = {}
+        self.node_modules = set()
         for m in jtox["modules"]:
             self.prefix[m], self.uri[m] = jtox["modules"][m]
             ET.register_namespace(self.prefix[m], self.uri[m])
@@ -111,6 +112,7 @@ class Translator:
             job = json_obj[key]
             new_path = path + key
             tag, mod_name, node_spec = self.node_lookup(key, node, new_path)
+            self.node_modules.add(mod_name)
             qn = self.et_qname(mod_name, tag)
             if node_spec[0] == "container":
                 if not isinstance(job, dict):
@@ -310,6 +312,8 @@ def main():
     except Error as e:
         sys.stderr.write(parser.prog + ": " + str(e) + "\n")
         return e.return_value
+    for m in set(trans.prefix.keys()) - trans.node_modules:
+        root_el.attrib["xmlns:" + trans.prefix[m]] = trans.uri[m]
     ET.ElementTree(root_el).write(outfile, encoding="utf-8", xml_declaration=True)
     return 0
 
