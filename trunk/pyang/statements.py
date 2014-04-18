@@ -857,7 +857,6 @@ def v_type_leaf(ctx, stmt):
                                        stmt.i_default,
                                        ' for the default  value')
 
-
     if default is not None:
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
@@ -1989,7 +1988,7 @@ def v_unused_grouping(ctx, stmt):
 ### Strcit phase
 
 def v_strict_xpath(ctx, stmt):
-    if not ctx.opts.strict:
+    if not ctx.strict:
         return
     toks = xpath.tokens(stmt.arg)
     for (tokname, s) in toks:
@@ -2034,16 +2033,18 @@ def has_type(type, names):
 def is_mandatory_node(stmt):
     if stmt.keyword == 'leaf':
         m = stmt.search_one('mandatory')
-        if m is not None and m.arg == 'True':
+        if m is not None and m.arg == 'true':
             return True
     elif stmt.keyword in ('list', 'leaf-list'):
         m = stmt.search_one('min-elements')
         if m is not None and int(m.arg) > 0:
             return True
     elif stmt.keyword == 'container':
-        for c in stmt.i_children:
-            if is_mandatory_node(c):
-                return True
+        p = stmt.search_one('presence')
+        if p is None:
+            for c in stmt.i_children:
+                if is_mandatory_node(c):
+                    return True
     return False
 
 def search_child(children, modulename, identifier):

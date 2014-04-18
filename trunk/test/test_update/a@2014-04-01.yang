@@ -1,0 +1,136 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  import b {
+    prefix b2;
+  }
+
+  revision 2014-04-01;
+
+  typedef my-union1 {
+    type union {
+      type int32 {
+        range "min..24";
+      }
+      type string;
+    }
+  }
+
+  typedef my-union2 {
+    type union {
+      type int32 {
+        range "min..24";
+      }
+      type string;
+    }
+  }
+
+  feature foo {
+    status obsolete;
+  }
+
+  typedef goo1 {
+    type int32;
+    default 42;
+  }
+
+  typedef goo2 {
+    type goo1;
+  }
+
+  identity x {
+    base b2:b;
+  }
+  grouping gg {
+    status deprecated;
+    leaf gggg {
+      type string;
+    }
+    leaf-list baz {
+      type string;
+      units fo;
+      max-elements 2;
+    }
+    leaf ggg {
+      type string;
+    }
+  }
+
+  container x {
+    presence foo;
+    container qqqq {
+      leaf qqqq {
+        type string;
+//        mandatory true;
+      }
+    }
+    leaf bar {
+      if-feature foo;
+      type string;
+      must "foo and baz";
+    }
+    uses gg {
+      if-feature foo;
+    }
+    list arne {
+      key "foo a:bar";
+//      unique "x1 a:x2 x3";
+      leaf foo {
+        type string;
+      }
+      leaf bar {
+        type string;
+      }
+      leaf x1 {
+        type string;
+      }
+      leaf x2 {
+        type string;
+      }
+      leaf x3 {
+        type string;
+      }
+    }
+    leaf aaa {
+      type goo2;
+      default 42;
+    }
+    choice y {
+      case yy {
+        leaf yy {
+          type identityref {
+            base xx;
+          }
+        }
+      }
+      case zz {
+        leaf zz {
+          type string;
+        }
+      }
+    }
+  }
+
+  identity xx;
+  identity yy {
+    base xx;
+  }
+
+
+  rpc foo {
+    if-feature foo;
+    input {
+      leaf foo {
+        type string;
+      }
+    }
+  }
+
+  extension a {
+    argument foo {
+      yin-element false;
+    }
+  }
+
+}
