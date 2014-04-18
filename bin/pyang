@@ -190,10 +190,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.max_identifier_len = o.max_identifier_len
     ctx.trim_yin = o.trim_yin
     ctx.lax_xpath_checks = o.lax_xpath_checks
-    ctx.deviation_modules = []
+    ctx.strict = o.strict
 
     # make a map of features to support, per module
-    ctx.features = {}
     if o.hello:
         for (mn,rev) in hel.yang_modules():
             ctx.features[mn] = hel.get_features(mn)

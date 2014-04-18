@@ -1,0 +1,108 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  import b {
+    prefix b;
+  }
+
+  revision 2014-03-01;
+
+  typedef my-union1 {
+    type union {
+      type int32 {
+        range "1..23";
+      }
+      type string;
+    }
+  }
+
+  typedef my-union2 {
+    type union {
+      type uint32;
+      type string;
+    }
+  }
+
+
+
+  feature foo;
+
+  identity x {
+    base b:b;
+  }
+
+  grouping gg {
+    leaf gggg {
+      type string;
+    }
+  }
+
+
+  typedef goo1 {
+    type int32;
+    default 42;
+  }
+
+  typedef goo2 {
+    type goo1;
+  }
+
+  extension a {
+    argument foo {
+//      yin-element false;
+    }
+  }
+
+  container x {
+    presence foo;
+    leaf bar {
+      if-feature foo;
+      type string;
+      must "foo and baz";
+    }
+    uses gg {
+      if-feature foo;
+    }
+    leaf-list baz {
+      type string;
+      max-elements 2;
+    }
+    list arne {
+      key "foo bar";
+      unique "x1 x2";
+      leaf foo {
+        type string;
+      }
+      leaf bar {
+        type string;
+      }
+      leaf x1 {
+        type string;
+      }
+      leaf x2 {
+        type string;
+      }
+      leaf x3 {
+        type string;
+      }
+    }
+    leaf aaa {
+      type goo2;
+    }
+    choice y {
+      leaf yy {
+        type identityref {
+          base xx;
+        }
+      }
+    }
+  }
+
+  identity xx;
+
+  rpc foo {
+    if-feature foo;
+  }
+
+}

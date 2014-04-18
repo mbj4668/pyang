@@ -1,0 +1,7 @@
+module b {
+  namespace "urn:b";
+  prefix b;
+
+  identity b;
+  identity b2;
+}

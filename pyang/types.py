@@ -8,8 +8,9 @@ class Abort(Exception):
     pass
 
 class TypeSpec(object):
-    def __init__(self):
+    def __init__(self, name):
         self.definition = ""
+        self.name = name
         pass
     def str_to_val(self, errors, pos, str):
         return str;
@@ -17,10 +18,10 @@ class TypeSpec(object):
         return True;
     def restrictions(self):
         return []
-    
+
 class IntTypeSpec(TypeSpec):
-    def __init__(self, min, max):
-        TypeSpec.__init__(self)
+    def __init__(self, name, min, max):
+        TypeSpec.__init__(self, name)
         self.min = min
         self.max = max
 
@@ -41,10 +42,10 @@ class IntTypeSpec(TypeSpec):
             return False
         else:
             return True
-    
+
     def restrictions(self):
         return ['range']
-    
+
 class Decimal64Value(object):
     def __init__(self, value, s=None):
         self.value = value
@@ -92,7 +93,7 @@ class Decimal64Value(object):
 
 class Decimal64TypeSpec(TypeSpec):
     def __init__(self, fraction_digits):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'decimal64')
         self.fraction_digits = int(fraction_digits.arg)
         self.min = Decimal64Value(-9223372036854775808)
         self.max = Decimal64Value(9223372036854775807)
@@ -146,13 +147,13 @@ class Decimal64TypeSpec(TypeSpec):
             return False
         else:
             return True
-    
+
     def restrictions(self):
         return ['range']
-    
+
 class BooleanTypeSpec(TypeSpec):
     def __init__(self):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'boolean')
 
     def str_to_val(self, errors, pos, str):
         if str == 'true': return True;
@@ -164,23 +165,23 @@ class BooleanTypeSpec(TypeSpec):
 
 class StringTypeSpec(TypeSpec):
     def __init__(self):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'string')
 
     def restrictions(self):
         return ['pattern', 'length']
-    
+
 class BinaryTypeSpec(TypeSpec):
     def __init__(self):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'binary')
 
     # FIXME: validate base64 encoding
 
     def restrictions(self):
         return ['length']
-    
+
 class EmptyTypeSpec(TypeSpec):
     def __init__(self):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'empty')
 
     def str_to_val(self, errors, pos, str):
         err_add(errors, pos, 'BAD_DEFAULT_VALUE', 'empty')
@@ -188,7 +189,7 @@ class EmptyTypeSpec(TypeSpec):
 
 class IdentityrefTypeSpec(TypeSpec):
     def __init__(self, base):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'identityref')
         self.base = base
 
     def str_to_val(self, errors, pos, s):
@@ -268,7 +269,7 @@ def validate_range_expr(errors, stmt, type_):
 
 class RangeTypeSpec(TypeSpec):
     def __init__(self, base, range_spec):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, base.name)
         self.base = base
         (ranges, ranges_pos) = range_spec
         self.ranges = ranges
@@ -345,7 +346,7 @@ def validate_length_expr(errors, stmt):
 
 class LengthTypeSpec(TypeSpec):
     def __init__(self, base, length_spec):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, base.name)
         self.base = base
         (lengths, length_pos) = length_spec
         self.lengths = lengths
@@ -360,11 +361,11 @@ class LengthTypeSpec(TypeSpec):
         vallen = len(val)
         for (lo, hi) in self.lengths:
             if ((lo == 'min' or vallen >= lo) and
-                ((hi is None and vallen == lo) or hi == 'max' or 
+                ((hi is None and vallen == lo) or hi == 'max' or
                  (hi is not None and vallen <= hi))):
                 return True
         err_add(errors, pos, 'TYPE_VALUE',
-                (val, self.definition, 'length error' + errstr + 
+                (val, self.definition, 'length error' + errstr +
                  ' for length defined at ' + str(self.length_pos)))
         return False
 
@@ -392,7 +393,7 @@ def validate_pattern_expr(errors, stmt):
 
 class PatternTypeSpec(TypeSpec):
     def __init__(self, base, pattern_specs):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, base.name)
         self.base = base
         self.res = pattern_specs
 
@@ -409,7 +410,7 @@ class PatternTypeSpec(TypeSpec):
                          ' for pattern defined at ' + str(re_pos)))
                 return False
         return True
-    
+
     def restrictions(self):
         return self.base.restrictions()
 
@@ -434,11 +435,11 @@ def validate_enums(errors, enums, stmt):
                 if x >= next:
                     next = x + 1
                 if x in values:
-                    err_add(errors, value.pos, 'DUPLICATE_ENUM_VALUE', 
+                    err_add(errors, value.pos, 'DUPLICATE_ENUM_VALUE',
                             (x, values[x]))
                 else:
                     values[x] = value.pos
-                    
+
             except ValueError:
                 err_add(errors, value.pos, 'ENUM_VALUE', value.arg)
         else:
@@ -458,7 +459,7 @@ def validate_enums(errors, enums, stmt):
 
 class EnumerationTypeSpec(TypeSpec):
     def __init__(self, enums):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'enumeration')
         # no base - no restrictions allowed
         self.enums = [(e.arg, e.i_value) for e in enums]
 
@@ -511,7 +512,7 @@ def validate_bits(errors, bits, stmt):
 
 class BitsTypeSpec(TypeSpec):
     def __init__(self, bits):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'bits')
         # no base - no restrictions allowed
         self.bits = [(b.arg, b.i_position) for b in bits]
 
@@ -564,7 +565,7 @@ def validate_path_expr(errors, path):
             while s[i].isspace():
                 i = i + 1
             return s[i:]
-    
+
         def parse_identifier(s):
             m = syntax.re_keyword_start.match(s)
             if m is None:
@@ -663,31 +664,32 @@ def validate_path_expr(errors, path):
 
 class PathTypeSpec(TypeSpec):
     def __init__(self, path_spec, path, pos):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'leafref')
         # no base - no restrictions allowed
         self.path_spec = path_spec
         self.path_ = path
         self.pos = pos
 
 
-    def str_to_val(self, errors, pos, str):
+    def str_to_val(self, errors, pos, str_):
         if hasattr(self, 'i_target_node'):
             return self.i_target_node.type.i_type_spec.str_to_val(errors, pos,
-                                                                  str)
+                                                                  str_)
         else:
             # if a default value is verified
             return str
 
     def validate(self, errors, pos, val, errstr = ''):
         if hasattr(self, 'i_target_node'):
-            return self.i_target_node.type.i_type_spec.validate(errors, pos, str)
+            return self.i_target_node.type.i_type_spec.validate(errors, pos,
+                                                                val)
         else:
             # if a default value is verified
             return True
 
 class UnionTypeSpec(TypeSpec):
     def __init__(self, types):
-        TypeSpec.__init__(self)
+        TypeSpec.__init__(self, 'union')
         # no base - no restrictions allowed
         self.types = types
 
@@ -707,25 +709,25 @@ class UnionTypeSpec(TypeSpec):
         return False
 
 yang_type_specs = \
-  {'int8':IntTypeSpec(-128, 127),
-   'int16':IntTypeSpec(-32768, 32767),
-   'int32':IntTypeSpec(-2147483648, 2147483647),
-   'int64':IntTypeSpec(-9223372036854775808, 9223372036854775807),
-   'uint8':IntTypeSpec(0, 255),
-   'uint16':IntTypeSpec(0, 65535),
-   'uint32':IntTypeSpec(0, 4294967295),
-   'uint64':IntTypeSpec(0, 18446744073709551615),
-   'decimal64':TypeSpec(),
+  {'int8':IntTypeSpec('int8', -128, 127),
+   'int16':IntTypeSpec('int16', -32768, 32767),
+   'int32':IntTypeSpec('int32', -2147483648, 2147483647),
+   'int64':IntTypeSpec('int64', -9223372036854775808, 9223372036854775807),
+   'uint8':IntTypeSpec('uint8', 0, 255),
+   'uint16':IntTypeSpec('uint16', 0, 65535),
+   'uint32':IntTypeSpec('uint32', 0, 4294967295),
+   'uint64':IntTypeSpec('uint64', 0, 18446744073709551615),
+   'decimal64':TypeSpec('decimal64'),
    'string':StringTypeSpec(),
    'boolean':BooleanTypeSpec(),
-   'enumeration':TypeSpec(),
-   'bits':TypeSpec(),
+   'enumeration':TypeSpec('enumeration'),
+   'bits':TypeSpec('bits'),
    'binary':BinaryTypeSpec(),
-   'leafref':TypeSpec(),
-   'identityref':TypeSpec(),
-   'instance-identifier':TypeSpec(),
+   'leafref':TypeSpec('leafref'),
+   'identityref':TypeSpec('identityref'),
+   'instance-identifier':TypeSpec('instance-identifier'),
    'empty':EmptyTypeSpec(),
-   'union':TypeSpec(),
+   'union':TypeSpec('union'),
    }
 
 def is_base_type(typename):

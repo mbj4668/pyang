@@ -30,6 +30,7 @@ class Context(object):
         """dict of modulename:(revision,handle)
         contains all modulenames and revisions found in the repository"""
 
+        self.strict = False
         self.repository = repository
         self.errors = []
         self.canonical = False
@@ -37,6 +38,8 @@ class Context(object):
         self.max_identifier_len = None
         self.implicit_errors = True
         self.lax_xpath_checks = False
+        self.deviation_modules = []
+        self.features = {}
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:
