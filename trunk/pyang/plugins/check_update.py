@@ -1,4 +1,6 @@
 """YANG module update check tool
+This plugin checks if an updated version of a module follows
+the rules defined in Section 10 of RFC 6020.
 """
 
 import optparse
@@ -343,7 +345,7 @@ def chk_when(old, new, ctx):
     newwhen = new.search('when')
     # remove all common whens
     for oldw in old.search('when'):
-        newnew = newch.search_one('when', arg = oldw.arg)
+        neww = new.search_one('when', arg = oldw.arg)
         if new is not None:
             newwhen.remove(neww)
             oldwhen.remove(oldw)
@@ -490,17 +492,26 @@ def chk_type(old, new, ctx):
         return
 
     # check the allowed restriction changes
-    chk_func[oldts.name](old, new, oldts, newts, ctx)
+    chk_type_func[oldts.name](old, new, oldts, newts, ctx)
 
 def chk_integer(old, new, oldts, newts, ctx):
     # FIXME:
     return
 
 def chk_decimal64(old, new, oldts, newts, ctx):
-    if newts.fraction_digits != oldts.fraction_digits:
+    # a decimal64 can olny be restricted with range
+    oldbasets = get_base_type(oldts)
+    newbasets = get_base_type(newts)
+    if newbasets.fraction_digits != oldbasets.fraction_digits:
         err_add(ctx.errors, new.pos, 'CHK_DEF_CHANGED',
                 ('fraction-digits', newts.fraction_digits,
                  oldts.fraction_digits))
+
+def get_base_type(ts):
+    if ts.base is None:
+        return ts
+    else:
+        return get_base_type(ts.base)
 
 def chk_string(old, new, oldts, newts, ctx):
     # FIXME:
@@ -555,9 +566,9 @@ def chk_union(old, new, oldts, newts, ctx):
             chk_type(o, n, ctx)
 
 def chk_dummy(old, new, oldts, newts, ctx):
-    ok
+    return
 
-chk_func = \
+chk_type_func = \
   {'int8': chk_integer,
    'int16': chk_integer,
    'int32': chk_integer,

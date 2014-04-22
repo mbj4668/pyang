@@ -11,11 +11,14 @@ class TypeSpec(object):
     def __init__(self, name):
         self.definition = ""
         self.name = name
-        pass
+        self.base = None
+
     def str_to_val(self, errors, pos, str):
         return str;
+
     def validate(self, errors, pos, val, errstr=''):
         return True;
+
     def restrictions(self):
         return []
 
