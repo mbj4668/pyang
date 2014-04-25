@@ -64,7 +64,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
     def emit(self, ctx, modules, fd):
         """Main control function.
 
-        Set up the top-level parts of the stylesheet, the process
+        Set up the top-level parts of the stylesheet, then process
         recursively all nodes in all data trees, and finally emit the
         serialized stylesheet.
         """
