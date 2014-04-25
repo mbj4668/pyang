@@ -634,9 +634,17 @@
       <varlistentry>
         <term><emphasis>capability</emphasis></term>
         <listitem>
-          <para>Prints a capabaility URL for each given module, with
+          <para>Prints a capability URL for each given module, with
           the features and devations given.  If no features are given,
           all features defined in the module are reported.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>sample</emphasis></term>
+        <listitem>
+          <para>Generates an XML instance document containing sample
+          elements for all nodes of the data model.
           </para>
         </listitem>
       </varlistentry>
@@ -1042,7 +1050,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-split-pages=PAGES_LAYOUT</option></term>
+        <term>
+	  <option>--uml-split-pages=<replaceable>layout</replaceable></option>
+	</term>
         <listitem>
           <para>
             Generate UML output split into pages, NxN, example 2x2.
@@ -1052,7 +1062,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-output-director=OUTPUT_DIRECTORY</option></term>
+        <term>
+	  <option>--uml-output-directory=<replaceable>directory</replaceable></option>
+	</term>
         <listitem>
           <para>
             Put the generated .png files(s) in the specified output directory.
@@ -1062,7 +1074,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-title=TITLE</option></term>
+        <term>
+	  <option>--uml-title=<replaceable>title</replaceable></option>
+	</term>
         <listitem>
           <para>
             Set the title of the generated UML diagram, (default is
@@ -1071,7 +1085,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--uml-header=HEADER</option></term>
+        <term>
+	  <option>--uml-header=<replaceable>header</replaceable></option>
+	</term>
         <listitem>
           <para>
             Set the header of the generated UML diagram.
@@ -1080,7 +1096,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-footer=FOOTER</option></term>
+        <term>
+	  <option>--uml-footer=<replaceable>footer</replaceable></option>
+	</term>
         <listitem>
           <para>
             Set the footer of the generated UML diagram.
@@ -1098,7 +1116,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-no</option></term>
+        <term>
+	  <option>--uml-no=<replaceable>arglist</replaceable></option>
+	</term>
         <listitem>
           <para>
             This option suppresses specified arguments in the
@@ -1114,7 +1134,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 
 
       <varlistentry>
-        <term><option>--uml-truncate</option></term>
+        <term>
+	  <option>--uml-truncate=<replaceable>elemlist</replaceable></option>
+	</term>
         <listitem>
           <para>
             Leafref attributes and augment elements can have long
@@ -1144,7 +1166,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-max-enums</option></term>
+        <term>
+	  <option>--uml-max-enums=<replaceable>number</replaceable></option>
+	</term>
         <listitem>
           <para>
             Maximum of enum items rendered.
@@ -1153,7 +1177,9 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--uml-filter-file=FILTER_FILE</option></term>
+        <term>
+	  <option>--uml-filter-file=<replaceable>file</replaceable></option>
+	</term>
         <listitem>
           <para>
             NOT IMPLEMENTED: Only paths in the filter file will be
@@ -1230,6 +1256,77 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     <para>
       See <command>json2xml</command> manual page for more information.
     </para>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.sample_output">
+    <title>SAMPLE Output</title>
+    <para>
+      The <emphasis>sample</emphasis> output generates an XML instance
+      document with sample elements for all nodes in the data model,
+      according to the following rules:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>An element is present for every leaf, container or anyxml.</para>
+      </listitem>
+      <listitem>
+	<para>At least one element is present for every leaf-list or
+	list. The number of entries in the sample is min(1,
+	min-elements).</para>
+      </listitem>
+      <listitem>
+	<para>For a choice node, sample element(s) are present for each case.</para>
+      </listitem>
+      <listitem>
+	<para>Leaf, leaf-list and anyxml elements are empty (but see
+	the <option>--sample-defaults</option> option below).</para>
+      </listitem>
+    </itemizedlist>
+    <para>Note that the output document will most likely be invalid
+    and needs manual editing.</para>
+    <para>
+      Options specific to the <emphasis>sample</emphasis> output
+      format:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+	  <option>--sample-doctype=<replaceable>type</replaceable></option>
+	</term>
+        <listitem>
+          <para>
+            Type of the sample XML document. Supported values for
+	    <replaceable>type</replaceable> are
+	    <literal>data</literal> (default) and
+	    <literal>config</literal>. This option determines the
+	    document element of the output XML document (&lt;data&gt;
+	    or &lt;config&gt;) and also affects the contents: for
+	    <literal>config</literal>, only data nodes representing
+	    configuration are included.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sample-defaults</option></term>
+        <listitem>
+          <para>
+            Add leaf elements with defined defaults to the output with
+            their default value. Without this option, the default
+            elements are omitted.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sample-annots</option></term>
+        <listitem>
+          <para>
+            Add XML comments to the sample documents with hints about
+	    expected contents, for example types of leaf nodes,
+	    permitted number of list entries etc. 
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.yang_extensions.xpath_functions">
