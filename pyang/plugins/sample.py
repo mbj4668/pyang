@@ -80,9 +80,10 @@ class SamplePlugin(plugin.PyangPlugin):
         for (epos, etag, eargs) in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError("Sample plugin needs a valid module")
-        if ctx.opts.doctype not in ("config", "data"):
+        self.doctype = ctx.opts.doctype
+        if self.doctype not in ("config", "data"):
             raise error.EmitError("Unsupported document type: %s" %
-                                  ctx.opts.doctype)
+                                  self.doctype)
         self.annots = ctx.opts.sample_annots
         self.defaults = ctx.opts.sample_defaults
         self.node_handler = {
@@ -97,7 +98,7 @@ class SamplePlugin(plugin.PyangPlugin):
             "notification": self.ignore
             }
         self.ns_uri = { yam : yam.search_one("namespace").arg for yam in modules }
-        self.top = ET.Element(ctx.opts.doctype,
+        self.top = ET.Element(self.doctype,
                          {"xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = ET.ElementTree(self.top)
         for yam in modules:
@@ -113,7 +114,8 @@ class SamplePlugin(plugin.PyangPlugin):
     def process_children(self, node, elem):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
-            self.node_handler[ch.keyword](ch, elem)
+            if ch.i_config or self.doctype == "data":
+                self.node_handler[ch.keyword](ch, elem)
 
     def container(self, node, elem):
         """Create a sample container element and proceed with its children."""
