@@ -102,72 +102,71 @@ class SamplePlugin(plugin.PyangPlugin):
                          {"xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = ET.ElementTree(self.top)
         for yam in modules:
-            self.currmod = None
-            self.process_children(yam, self.top)
+            self.process_children(yam, self.top, None)
         tree.write(fd, encoding="utf-8" if sys.version < "3" else "unicode",
                    xml_declaration=True)
 
-    def ignore(self, node, elem):
+    def ignore(self, node, elem, module):
         """Do nothing for `node`."""
         pass
 
-    def process_children(self, node, elem):
+    def process_children(self, node, elem, module):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch.i_config or self.doctype == "data":
-                self.node_handler[ch.keyword](ch, elem)
+                self.node_handler[ch.keyword](ch, elem, module)
 
-    def container(self, node, elem):
+    def container(self, node, elem, module):
         """Create a sample container element and proceed with its children."""
-        nel = self.sample_element(node, elem)
+        nel, newm = self.sample_element(node, elem, module)
         if self.annots:
             pres = node.search_one("presence")
             if pres is not None:
                 nel.append(ET.Comment(" presence: %s " % pres.arg))
-        self.process_children(node, nel)
+        self.process_children(node, nel, newm)
 
-    def leaf(self, node, elem):
+    def leaf(self, node, elem, module):
         """Create a sample leaf element."""
         if node.i_default is None:
-            nel = self.sample_element(node, elem)
+            nel, newm = self.sample_element(node, elem, module)
             if self.annots:
                 nel.append(ET.Comment(" type: %s " % node.search_one("type").arg))
         elif self.defaults:
-            nel = self.sample_element(node, elem)
+            nel, newm = self.sample_element(node, elem, module)
             nel.text = str(node.i_default)
 
-    def anyxml(self, node, elem):
+    def anyxml(self, node, elem, module):
         """Create a sample anyxml element."""
-        nel = self.sample_element(node, elem)
+        nel, newm = self.sample_element(node, elem, newm)
         if self.annots:
             nel.append(ET.Comment(" anyxml "))
 
-    def list(self, node, elem):
+    def list(self, node, elem, module):
         """Create sample entries of a list."""
-        nel = self.sample_element(node, elem)
-        self.process_children(node, nel)
+        nel, newm = self.sample_element(node, elem, module)
+        self.process_children(node, nel, newm)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
         self.list_comment(node, nel, minel)
 
-    def leaf_list(self, node, elem):
+    def leaf_list(self, node, elem, module):
         """Create sample entries of a leaf-list."""
-        nel = self.sample_element(node, elem)
+        nel, newm = self.sample_element(node, elem, module)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
         self.list_comment(node, nel, minel)
 
-    def sample_element(self, node, parent):
+    def sample_element(self, node, parent, module):
         """Create element under `parent`.
 
         Declare new namespace if necessary.
         """
         res = ET.SubElement(parent, node.arg)
         mm = node.main_module()
-        if mm != self.currmod:
+        if mm != module:
             res.attrib["xmlns"] = self.ns_uri[mm]
-            self.currmod = mm
-        return res
+            module = mm
+        return res, module
 
     def add_copies(self, node, parent, elem, minel):
         """Add appropriate number of `elem` copies to `parent`."""
