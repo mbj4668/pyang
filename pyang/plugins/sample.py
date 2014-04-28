@@ -99,7 +99,7 @@ class SamplePlugin(plugin.PyangPlugin):
             }
         self.ns_uri = { yam : yam.search_one("namespace").arg for yam in modules }
         self.top = ET.Element(self.doctype,
-                         {"xmlns:nc": "urn:ietf:params:xml:ns:netconf:base:1.0"})
+                         {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = ET.ElementTree(self.top)
         for yam in modules:
             self.process_children(yam, self.top, None)
