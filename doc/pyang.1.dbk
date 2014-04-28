@@ -396,25 +396,25 @@
             <replaceable>modulename</replaceable>:[<replaceable>feature</replaceable>(,<replaceable>feature</replaceable>)*]
           </para>
           <para>
-              This option is used to prune the data model by removing
-              all nodes that are defined with a "if-feature" that is
-              not listed as <replaceable>feature</replaceable>.  This option
-              affects all output formats.
+            This option is used to prune the data model by removing
+            all nodes that are defined with a "if-feature" that is
+            not listed as <replaceable>feature</replaceable>.  This option
+            affects all output formats.
           </para>
           <para>
-              This option can be given multiple times, and may be also
-              combined with <option>--hello</option>. If a
-              <option>--features</option> option specifies different
-              supported features for a module than the hello file, the
-              <option>--features</option> option takes precedence.
+            This option can be given multiple times, and may be also
+            combined with <option>--hello</option>. If a
+            <option>--features</option> option specifies different
+            supported features for a module than the hello file, the
+            <option>--features</option> option takes precedence.
           </para>
           <para>
             If this option is not given, nothing is pruned, i.e., it works
             as if all features were explicitly listed.
           </para>
           <para>
-              For example, to view the tree output for a module with all
-              if-feature'd nodes removed, do:
+            For example, to view the tree output for a module with all
+            if-feature'd nodes removed, do:
           </para>
           <informalexample>
             <screen>$ pyang -f tree --features mymod: mymod.yang</screen>
@@ -429,16 +429,16 @@
         </term>
         <listitem>
           <para>
-              This option is used to apply the deviations defined in
-              <replaceable>file</replaceable>.  This option
-              affects all output formats.
+            This option is used to apply the deviations defined in
+            <replaceable>file</replaceable>.  This option
+            affects all output formats.
           </para>
           <para>
-              This option can be given multiple times.
+            This option can be given multiple times.
           </para>
           <para>
-              For example, to view the tree output for a module with some
-              deviations applied, do:
+            For example, to view the tree output for a module with some
+            deviations applied, do:
           </para>
           <informalexample>
             <screen>$ pyang -f tree --deviation-module mymod-devs.yang mymod.yang</screen>
@@ -641,7 +641,7 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>sample</emphasis></term>
+        <term><emphasis>sample-skeleton</emphasis></term>
         <listitem>
           <para>Generates an XML instance document containing sample
           elements for all nodes of the data model.
@@ -803,8 +803,8 @@
 
     <informalexample>
       <screen>$ pyang -f depend --depend-target mymod.c \
-    --depend-extension .yang mymod.yang
-mymod.c : ietf-yang-types.yang my-types.yang</screen>
+      --depend-extension .yang mymod.yang
+      mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </informalexample>
 
     <para>
@@ -952,23 +952,23 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
     <para>
       Color coding in the tree:
-    <itemizedlist>
-      <listitem>
-        <para>Light green node background : config = True</para>
-      </listitem>
-      <listitem>
-        <para>Light yellow node background : config = False</para>
-      </listitem>
-      <listitem>
-        <para>Red node foreground : mandatory = True</para>
-      </listitem>
-      <listitem>
-        <para>White leaf node background : index</para>
-      </listitem>
-      <listitem>
-        <para>Orange foreground : presence container</para>
-      </listitem>
-    </itemizedlist>
+      <itemizedlist>
+	<listitem>
+          <para>Light green node background : config = True</para>
+	</listitem>
+	<listitem>
+          <para>Light yellow node background : config = False</para>
+	</listitem>
+	<listitem>
+          <para>Red node foreground : mandatory = True</para>
+	</listitem>
+	<listitem>
+          <para>White leaf node background : index</para>
+	</listitem>
+	<listitem>
+          <para>Orange foreground : presence container</para>
+	</listitem>
+      </itemizedlist>
     </para>
 
     <para>
@@ -985,11 +985,11 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
     <informalexample>
       <programlisting>
-&lt;applet code="treebolic.applet.Treebolic.class"
+	&lt;applet code="treebolic.applet.Treebolic.class"
         archive="TreebolicAppletDom.jar"
         id="Treebolic" width="100%" height="100%"&gt;
-  &lt;param name="doc" value="model.xml"&gt;
-&lt;/applet&gt;
+	&lt;param name="doc" value="model.xml"&gt;
+	&lt;/applet&gt;
       </programlisting>
     </informalexample>
     <para>
@@ -1258,10 +1258,10 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.sample_output">
-    <title>SAMPLE Output</title>
+  <refsect1 xml:id="man.1.pyang.sample-skeleton_output">
+    <title>SAMPLE-SKELETON Output</title>
     <para>
-      The <emphasis>sample</emphasis> output generates an XML instance
+      The <emphasis>sample-skeleton</emphasis> output generates an XML instance
       document with sample elements for all nodes in the data model,
       according to the following rules:
     </para>
@@ -1279,19 +1279,19 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
       </listitem>
       <listitem>
 	<para>Leaf, leaf-list and anyxml elements are empty (but see
-	the <option>--sample-defaults</option> option below).</para>
+	the <option>--sample-skeleton-defaults</option> option below).</para>
       </listitem>
     </itemizedlist>
     <para>Note that the output document will most likely be invalid
     and needs manual editing.</para>
     <para>
-      Options specific to the <emphasis>sample</emphasis> output
+      Options specific to the <emphasis>sample-skeleton</emphasis> output
       format:
     </para>
     <variablelist>
       <varlistentry>
         <term>
-	  <option>--sample-doctype=<replaceable>type</replaceable></option>
+	  <option>--sample-skeleton-doctype=<replaceable>type</replaceable></option>
 	</term>
         <listitem>
           <para>
@@ -1300,14 +1300,14 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
 	    <literal>data</literal> (default) and
 	    <literal>config</literal>. This option determines the
 	    document element of the output XML document (&lt;data&gt;
-	    or &lt;config&gt;) and also affects the contents: for
+	    or &lt;config&gt; in the NETCONF namespace) and also affects the contents: for
 	    <literal>config</literal>, only data nodes representing
 	    configuration are included.
           </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-defaults</option></term>
+        <term><option>--sample-skeleton-defaults</option></term>
         <listitem>
           <para>
             Add leaf elements with defined defaults to the output with
@@ -1317,7 +1317,7 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-annots</option></term>
+        <term><option>--sample-skeleton-annotations</option></term>
         <listitem>
           <para>
             Add XML comments to the sample documents with hints about
@@ -1373,31 +1373,31 @@ mymod.c : ietf-yang-types.yang my-types.yang</screen>
     </para>
     <informalexample>
       <programlisting>
-/* without deref */
+	/* without deref */
 
-leaf my-ip {
-  type leafref {
-    path "/server/ip";
-  }
-}
-leaf my-port {
-  type leafref {
-    path "/server[ip = current()/../my-ip]/port";
-  }
-}
+	leaf my-ip {
+	type leafref {
+	path "/server/ip";
+	}
+	}
+	leaf my-port {
+	type leafref {
+	path "/server[ip = current()/../my-ip]/port";
+	}
+	}
 
-/* with deref */
+	/* with deref */
 
-leaf my-ip {
-  type leafref {
-    path "/server/ip";
-  }
-}
-leaf my-port {
-  type leafref {
-    path "deref(../my-ip)/../port";
-  }
-}
+	leaf my-ip {
+	type leafref {
+	path "/server/ip";
+	}
+	}
+	leaf my-port {
+	type leafref {
+	path "deref(../my-ip)/../port";
+	}
+	}
       </programlisting>
     </informalexample>
   </refsect1>
@@ -1430,10 +1430,10 @@ leaf my-port {
 
     <informalexample>
       <screen>
-$ pyang -f uml ietf-netconf-monitoring.yang > \
-    ietf-netconf-monitoring.uml
-$ java -jar plantuml.jar ietf-netconf-monitoring.uml
-$ open img/ietf-netconf-monitoring.png
+	$ pyang -f uml ietf-netconf-monitoring.yang > \
+	ietf-netconf-monitoring.uml
+	$ java -jar plantuml.jar ietf-netconf-monitoring.uml
+	$ open img/ietf-netconf-monitoring.png
       </screen>
     </informalexample>
   </refsect1>

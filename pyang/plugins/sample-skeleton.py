@@ -1,6 +1,6 @@
 # Copyright (c) 2014 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 #
-# Pyang plugin generating a XSLT1 stylesheet for XML->JSON translation.
+# Pyang plugin generating a sample XML instance document..
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""sample output plugin
+"""sample-skeleton output plugin
 
 This plugin takes a YANG data model and generates an XML instance
 document containing sample elements for all data nodes.
@@ -27,7 +27,7 @@ document containing sample elements for all data nodes.
 * For a choice node, sample element(s) are present for each case.
 
 * Leaf, leaf-list and anyxml elements are empty (exception:
-  --sample-defaults option).
+  --sample-skeleton-defaults option).
 """
 
 import os
@@ -40,32 +40,32 @@ from pyang import plugin, statements, error
 from pyang.util import unique_prefixes
 
 def pyang_plugin_init():
-    plugin.register_plugin(SamplePlugin())
+    plugin.register_plugin(SampleSkeletonPlugin())
 
-class SamplePlugin(plugin.PyangPlugin):
+class SampleSkeletonPlugin(plugin.PyangPlugin):
 
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--sample-doctype",
+            optparse.make_option("--sample-skeleton-doctype",
                                  dest="doctype",
                                  default="data",
                                  help="Type of sample XML document (data or config)."),
-            optparse.make_option("--sample-defaults",
+            optparse.make_option("--sample-skeleton-defaults",
                                  action="store_true",
                                  dest="sample_defaults",
                                  default=False,
                                  help="Insert leafs with defaults values."),
-            optparse.make_option("--sample-annots",
+            optparse.make_option("--sample-skeleton-annotations",
                                  action="store_true",
                                  dest="sample_annots",
                                  default=False,
                                  help="Add annotations as XML comments."),
             ]
-        g = optparser.add_option_group("Sample output specific options")
+        g = optparser.add_option_group("Sample-skeleton output specific options")
         g.add_options(optlist)
     def add_output_format(self, fmts):
         self.multiple_modules = True
-        fmts['sample'] = self
+        fmts['sample-skeleton'] = self
 
     def setup_fmt(self, ctx):
         ctx.implicit_errors = False
@@ -73,13 +73,13 @@ class SamplePlugin(plugin.PyangPlugin):
     def emit(self, ctx, modules, fd):
         """Main control function.
 
-        Set up the top-level parts of the sample doument, then process
+        Set up the top-level parts of the sample document, then process
         recursively all nodes in all data trees, and finally emit the
         sample XML document.
         """
         for (epos, etag, eargs) in ctx.errors:
             if error.is_error(error.err_level(etag)):
-                raise error.EmitError("Sample plugin needs a valid module")
+                raise error.EmitError("sample-skeleton plugin needs a valid module")
         self.doctype = ctx.opts.doctype
         if self.doctype not in ("config", "data"):
             raise error.EmitError("Unsupported document type: %s" %
@@ -137,7 +137,7 @@ class SamplePlugin(plugin.PyangPlugin):
 
     def anyxml(self, node, elem, module):
         """Create a sample anyxml element."""
-        nel, newm = self.sample_element(node, elem, newm)
+        nel, newm = self.sample_element(node, elem, module)
         if self.annots:
             nel.append(ET.Comment(" anyxml "))
 
