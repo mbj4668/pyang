@@ -427,7 +427,7 @@ Generates a driver file for transforming JSON instance documents into XML\&.
 Prints a capability URL for each given module, with the features and devations given\&. If no features are given, all features defined in the module are reported\&.
 .RE
 .PP
-\fIsample\fR
+\fIsample\-skeleton\fR
 .RS 4
 Generates an XML instance document containing sample elements for all nodes of the data model\&.
 .RE
@@ -519,8 +519,8 @@ output generates a Makefile dependency rule for files based on a YANG module\&. 
 .\}
 .nf
 $ pyang \-f depend \-\-depend\-target mymod\&.c \e
-    \-\-depend\-extension \&.yang mymod\&.yang
-mymod\&.c : ietf\-yang\-types\&.yang my\-types\&.yang
+      \-\-depend\-extension \&.yang mymod\&.yang
+      mymod\&.c : ietf\-yang\-types\&.yang my\-types\&.yang
 .fi
 .if n \{\
 .RE
@@ -676,11 +676,11 @@ Prepare a HTML file that links to the generated XMI file:
 .RS 4
 .\}
 .nf
-<applet code="treebolic\&.applet\&.Treebolic\&.class"
+	<applet code="treebolic\&.applet\&.Treebolic\&.class"
         archive="TreebolicAppletDom\&.jar"
         id="Treebolic" width="100%" height="100%">
-  <param name="doc" value="model\&.xml">
-</applet>
+	<param name="doc" value="model\&.xml">
+	</applet>
       
 .fi
 .if n \{\
@@ -833,10 +833,10 @@ option)\&.
 See
 \fBjson2xml\fR
 manual page for more information\&.
-.SH "SAMPLE OUTPUT"
+.SH "SAMPLE-SKELETON OUTPUT"
 .PP
 The
-\fIsample\fR
+\fIsample\-skeleton\fR
 output generates an XML instance document with sample elements for all nodes in the data model, according to the following rules:
 .sp
 .RS 4
@@ -881,33 +881,33 @@ For a choice node, sample element(s) are present for each case\&.
 .IP \(bu 2.3
 .\}
 Leaf, leaf\-list and anyxml elements are empty (but see the
-\fB\-\-sample\-defaults\fR
+\fB\-\-sample\-skeleton\-defaults\fR
 option below)\&.
 .RE
 .PP
 Note that the output document will most likely be invalid and needs manual editing\&.
 .PP
 Options specific to the
-\fIsample\fR
+\fIsample\-skeleton\fR
 output format:
 .PP
-\fB\-\-sample\-doctype=\fR\fB\fItype\fR\fR
+\fB\-\-sample\-skeleton\-doctype=\fR\fB\fItype\fR\fR
 .RS 4
 Type of the sample XML document\&. Supported values for
 \fItype\fR
 are
 data
 (default) and
-config\&. This option determines the document element of the output XML document (<data> or <config>) and also affects the contents: for
+config\&. This option determines the document element of the output XML document (<data> or <config> in the NETCONF namespace) and also affects the contents: for
 config, only data nodes representing configuration are included\&.
 .RE
 .PP
-\fB\-\-sample\-defaults\fR
+\fB\-\-sample\-skeleton\-defaults\fR
 .RS 4
 Add leaf elements with defined defaults to the output with their default value\&. Without this option, the default elements are omitted\&.
 .RE
 .PP
-\fB\-\-sample\-annots\fR
+\fB\-\-sample\-skeleton\-annotations\fR
 .RS 4
 Add XML comments to the sample documents with hints about expected contents, for example types of leaf nodes, permitted number of list entries etc\&.
 .RE
@@ -941,31 +941,31 @@ function:
 .RS 4
 .\}
 .nf
-/* without deref */
+	/* without deref */
 
-leaf my\-ip {
-  type leafref {
-    path "/server/ip";
-  }
-}
-leaf my\-port {
-  type leafref {
-    path "/server[ip = current()/\&.\&./my\-ip]/port";
-  }
-}
+	leaf my\-ip {
+	type leafref {
+	path "/server/ip";
+	}
+	}
+	leaf my\-port {
+	type leafref {
+	path "/server[ip = current()/\&.\&./my\-ip]/port";
+	}
+	}
 
-/* with deref */
+	/* with deref */
 
-leaf my\-ip {
-  type leafref {
-    path "/server/ip";
-  }
-}
-leaf my\-port {
-  type leafref {
-    path "deref(\&.\&./my\-ip)/\&.\&./port";
-  }
-}
+	leaf my\-ip {
+	type leafref {
+	path "/server/ip";
+	}
+	}
+	leaf my\-port {
+	type leafref {
+	path "deref(\&.\&./my\-ip)/\&.\&./port";
+	}
+	}
       
 .fi
 .if n \{\
@@ -1003,10 +1003,10 @@ The following example converts the ietf\-netconf\-monitoring module into a UML d
 .RS 4
 .\}
 .nf
-$ pyang \-f uml ietf\-netconf\-monitoring\&.yang > \e
-    ietf\-netconf\-monitoring\&.uml
-$ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
-$ open img/ietf\-netconf\-monitoring\&.png
+	$ pyang \-f uml ietf\-netconf\-monitoring\&.yang > \e
+	ietf\-netconf\-monitoring\&.uml
+	$ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
+	$ open img/ietf\-netconf\-monitoring\&.png
       
 .fi
 .if n \{\
