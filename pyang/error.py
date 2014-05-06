@@ -123,7 +123,7 @@ error_codes = \
        'unexpected latest revision "%s" in %s, should be %s'),
     'BAD_SUB_BELONGS_TO':
       (1,
-       'module %s includes %s, but %s does not specifiy a correct belongs-to'),
+       'module %s includes %s, but %s does not specify a correct belongs-to'),
     'MISSING_INCLUDE':
       (1,
        'submodule %s is included by %s, but not by the module %s'),
