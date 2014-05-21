@@ -26,7 +26,7 @@ class YangTokenizer(object):
         self.pos.line += 1
         self.offset = 0
         if (self.max_line_len is not None and
-            len(self.buf) > self.max_line_len):
+            len(unicode(self.buf, encoding="utf-8")) > self.max_line_len):
             error.err_add(self.errors, self.pos, 'LONG_LINE',
                           (len(self.buf), self.max_line_len))
 
