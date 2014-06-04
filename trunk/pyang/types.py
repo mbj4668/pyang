@@ -277,6 +277,18 @@ class RangeTypeSpec(TypeSpec):
         (ranges, ranges_pos) = range_spec
         self.ranges = ranges
         self.ranges_pos = ranges_pos
+        if ranges != []:
+            self.min = ranges[0][0]
+            if self.min == 'min':
+                self.min = base.min
+            self.max = ranges[-1][1]
+            if self.max == None: # single range
+                self.max = ranges[-1][0]
+            if self.max == 'max':
+                self.max = base.max
+        else:
+            self.min = base.min
+            self.max = base.max
 
     def str_to_val(self, errors, pos, str):
         return self.base.str_to_val(errors, pos, str)
