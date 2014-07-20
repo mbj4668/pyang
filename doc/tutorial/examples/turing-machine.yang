@@ -15,25 +15,25 @@ module turing-machine {
   /* Typedefs */
 
   typedef tape-symbol {
+    type string {
+      length "0..1";
+    }
     description
       "Type of symbols appearing in tape cells.
 
        A blank is represented as an empty string where necessary.";
-    type string {
-      length "0..1";
-    }
   }
 
   typedef cell-index {
+    type int64;
     description
       "Type for indexing tape cells.";
-    type int64;
   }
 
   typedef state-index {
+    type uint16;
     description
       "Type for indexing states of the control unit.";
-    type uint16;
   }
 
   typedef head-dir {
@@ -54,9 +54,9 @@ module turing-machine {
       "The tape of the Turing Machine is represented as a sparse
        array.";
     list cell {
+      key "coord";
       description
         "List of non-blank cells.";
-      key "coord";
       leaf coord {
         type cell-index;
         description
@@ -81,25 +81,25 @@ module turing-machine {
     description
       "State data and configuration of a Turing Machine.";
     leaf state {
+      type state-index;
       config "false";
       mandatory "true";
-      type state-index;
       description
         "Current state of the control unit.
 
          The initial state is 0.";
     }
     leaf head-position {
+      type cell-index;
       config "false";
       mandatory "true";
-      type cell-index;
       description
         "Position of tape read/write head.";
     }
     container tape {
+      config "false";
       description
         "The contents of the tape.";
-      config "false";
       uses tape-cells;
     }
     container transition-function {
@@ -107,10 +107,10 @@ module turing-machine {
         "The Turing Machine is configured by specifying the
          transition function.";
       list delta {
-        description
-          "The list of transition rules.";
         key "label";
         unique "input/state input/symbol";
+        description
+          "The list of transition rules.";
         leaf label {
           type string;
           description
@@ -120,14 +120,14 @@ module turing-machine {
           description
             "Input parameters (arguments) of the transition rule.";
           leaf state {
-            mandatory "true";
             type state-index;
+            mandatory "true";
             description
               "Current state of the control unit.";
           }
           leaf symbol {
-            mandatory "true";
             type tape-symbol;
+            mandatory "true";
             description
               "Symbol read from the tape cell.";
           }
@@ -194,8 +194,8 @@ module turing-machine {
       "The Turing Machine has halted. This means that there is no
        transition rule for the current state and tape symbol.";
     leaf state {
-      mandatory "true";
       type state-index;
+      mandatory "true";
       description
         "The state of the control unit in which the machine has
          halted.";
