@@ -43,11 +43,13 @@
   <refsynopsisdiv xml:id="man.1.pyang.synopsis">
     <cmdsynopsis>
       <command>pyang</command>
+      <arg choice="opt">--verbose</arg>
       <arg choice="opt">--canonical</arg>
       <arg choice="opt">--strict</arg>
       <arg choice="opt">--ietf</arg>
       <arg choice="opt">--lax-xpath-checks</arg>
       <arg choice="opt">--hello</arg>
+      <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
       <arg choice="opt">-p <replaceable>path</replaceable></arg>
@@ -524,6 +526,48 @@
 
       <varlistentry>
         <term>
+          <option>--check-update-from</option>
+          <replaceable>oldfile</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Check that a new revision of a module follows the update
+            rules given in <link
+            xlink:href="http://tools.ietf.org/html/rfc6020">RFC
+            6020</link>.  <emphasis>oldfile</emphasis> is the old
+            module and <emphasis>file</emphasis> is the new version of
+            the module.
+          </para>
+          <para>
+            If the old module imports or includes any modules or
+            submodules, it is important that the the old versions of
+            these modules and submodules are found.  By default, the
+            directory where <emphasis>oldfile</emphasis> is found is
+            used as the only directory in the search path for old
+            modules.  Use the option
+            <option>--check-update-from-path</option> to control this
+            path.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-P</option>
+          <option>--check-update-from-path</option>
+          <replaceable>oldpath</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <replaceable>oldpath</replaceable> is a colon (:) separated
+            list of directories to search for imported modules.  This
+            option may be given multiple times.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <replaceable>file...</replaceable>
         </term>
         <listitem>
@@ -953,21 +997,21 @@
     <para>
       Color coding in the tree:
       <itemizedlist>
-	<listitem>
+        <listitem>
           <para>Light green node background : config = True</para>
-	</listitem>
-	<listitem>
+        </listitem>
+        <listitem>
           <para>Light yellow node background : config = False</para>
-	</listitem>
-	<listitem>
+        </listitem>
+        <listitem>
           <para>Red node foreground : mandatory = True</para>
-	</listitem>
-	<listitem>
+        </listitem>
+        <listitem>
           <para>White leaf node background : index</para>
-	</listitem>
-	<listitem>
+        </listitem>
+        <listitem>
           <para>Orange foreground : presence container</para>
-	</listitem>
+        </listitem>
       </itemizedlist>
     </para>
 
@@ -985,11 +1029,11 @@
     </para>
     <informalexample>
       <programlisting>
-	&lt;applet code="treebolic.applet.Treebolic.class"
+        &lt;applet code="treebolic.applet.Treebolic.class"
         archive="TreebolicAppletDom.jar"
         id="Treebolic" width="100%" height="100%"&gt;
-	&lt;param name="doc" value="model.xml"&gt;
-	&lt;/applet&gt;
+        &lt;param name="doc" value="model.xml"&gt;
+        &lt;/applet&gt;
       </programlisting>
     </informalexample>
     <para>
@@ -1024,7 +1068,7 @@
   <refsect1 xml:id="man.1.pyang.uml_output">
     <title>UML Output</title>
     <para>
-      The <emphasis>uml</emphasis> output prints an output that can 
+      The <emphasis>uml</emphasis> output prints an output that can
       be used as input-file to plantuml in order to generate a UML diagram.
       Download the plantuml jar-file from http://plantuml.sourceforge.net. Note
       that it requires graphviz, http://www.graphviz.org/.
@@ -1051,8 +1095,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-split-pages=<replaceable>layout</replaceable></option>
-	</term>
+          <option>--uml-split-pages=<replaceable>layout</replaceable></option>
+        </term>
         <listitem>
           <para>
             Generate UML output split into pages, NxN, example 2x2.
@@ -1063,8 +1107,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-output-directory=<replaceable>directory</replaceable></option>
-	</term>
+          <option>--uml-output-directory=<replaceable>directory</replaceable></option>
+        </term>
         <listitem>
           <para>
             Put the generated .png files(s) in the specified output directory.
@@ -1075,8 +1119,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-title=<replaceable>title</replaceable></option>
-	</term>
+          <option>--uml-title=<replaceable>title</replaceable></option>
+        </term>
         <listitem>
           <para>
             Set the title of the generated UML diagram, (default is
@@ -1086,8 +1130,8 @@
       </varlistentry>
       <varlistentry>
         <term>
-	  <option>--uml-header=<replaceable>header</replaceable></option>
-	</term>
+          <option>--uml-header=<replaceable>header</replaceable></option>
+        </term>
         <listitem>
           <para>
             Set the header of the generated UML diagram.
@@ -1097,8 +1141,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-footer=<replaceable>footer</replaceable></option>
-	</term>
+          <option>--uml-footer=<replaceable>footer</replaceable></option>
+        </term>
         <listitem>
           <para>
             Set the footer of the generated UML diagram.
@@ -1117,8 +1161,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-no=<replaceable>arglist</replaceable></option>
-	</term>
+          <option>--uml-no=<replaceable>arglist</replaceable></option>
+        </term>
         <listitem>
           <para>
             This option suppresses specified arguments in the
@@ -1135,8 +1179,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-truncate=<replaceable>elemlist</replaceable></option>
-	</term>
+          <option>--uml-truncate=<replaceable>elemlist</replaceable></option>
+        </term>
         <listitem>
           <para>
             Leafref attributes and augment elements can have long
@@ -1167,8 +1211,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-max-enums=<replaceable>number</replaceable></option>
-	</term>
+          <option>--uml-max-enums=<replaceable>number</replaceable></option>
+        </term>
         <listitem>
           <para>
             Maximum of enum items rendered.
@@ -1178,8 +1222,8 @@
 
       <varlistentry>
         <term>
-	  <option>--uml-filter-file=<replaceable>file</replaceable></option>
-	</term>
+          <option>--uml-filter-file=<replaceable>file</replaceable></option>
+        </term>
         <listitem>
           <para>
             NOT IMPLEMENTED: Only paths in the filter file will be
@@ -1267,19 +1311,19 @@
     </para>
     <itemizedlist>
       <listitem>
-	<para>An element is present for every leaf, container or anyxml.</para>
+        <para>An element is present for every leaf, container or anyxml.</para>
       </listitem>
       <listitem>
-	<para>At least one element is present for every leaf-list or
-	list. The number of entries in the sample is min(1,
-	min-elements).</para>
+        <para>At least one element is present for every leaf-list or
+        list. The number of entries in the sample is min(1,
+        min-elements).</para>
       </listitem>
       <listitem>
-	<para>For a choice node, sample element(s) are present for each case.</para>
+        <para>For a choice node, sample element(s) are present for each case.</para>
       </listitem>
       <listitem>
-	<para>Leaf, leaf-list and anyxml elements are empty (but see
-	the <option>--sample-skeleton-defaults</option> option below).</para>
+        <para>Leaf, leaf-list and anyxml elements are empty (but see
+        the <option>--sample-skeleton-defaults</option> option below).</para>
       </listitem>
     </itemizedlist>
     <para>Note that the output document will most likely be invalid
@@ -1291,18 +1335,18 @@
     <variablelist>
       <varlistentry>
         <term>
-	  <option>--sample-skeleton-doctype=<replaceable>type</replaceable></option>
-	</term>
+          <option>--sample-skeleton-doctype=<replaceable>type</replaceable></option>
+        </term>
         <listitem>
           <para>
             Type of the sample XML document. Supported values for
-	    <replaceable>type</replaceable> are
-	    <literal>data</literal> (default) and
-	    <literal>config</literal>. This option determines the
-	    document element of the output XML document (&lt;data&gt;
-	    or &lt;config&gt; in the NETCONF namespace) and also affects the contents: for
-	    <literal>config</literal>, only data nodes representing
-	    configuration are included.
+            <replaceable>type</replaceable> are
+            <literal>data</literal> (default) and
+            <literal>config</literal>. This option determines the
+            document element of the output XML document (&lt;data&gt;
+            or &lt;config&gt; in the NETCONF namespace) and also affects the contents: for
+            <literal>config</literal>, only data nodes representing
+            configuration are included.
           </para>
         </listitem>
       </varlistentry>
@@ -1321,8 +1365,8 @@
         <listitem>
           <para>
             Add XML comments to the sample documents with hints about
-	    expected contents, for example types of leaf nodes,
-	    permitted number of list entries etc. 
+            expected contents, for example types of leaf nodes,
+            permitted number of list entries etc.
           </para>
         </listitem>
       </varlistentry>
@@ -1373,31 +1417,31 @@
     </para>
     <informalexample>
       <programlisting>
-	/* without deref */
+/* without deref */
 
-	leaf my-ip {
-	type leafref {
-	path "/server/ip";
-	}
-	}
-	leaf my-port {
-	type leafref {
-	path "/server[ip = current()/../my-ip]/port";
-	}
-	}
+leaf my-ip {
+  type leafref {
+    path "/server/ip";
+  }
+}
+leaf my-port {
+  type leafref {
+    path "/server[ip = current()/../my-ip]/port";
+  }
+}
 
-	/* with deref */
+/* with deref */
 
-	leaf my-ip {
-	type leafref {
-	path "/server/ip";
-	}
-	}
-	leaf my-port {
-	type leafref {
-	path "deref(../my-ip)/../port";
-	}
-	}
+leaf my-ip {
+  type leafref {
+    path "/server/ip";
+  }
+}
+leaf my-port {
+  type leafref {
+    path "deref(../my-ip)/../port";
+  }
+}
       </programlisting>
     </informalexample>
   </refsect1>
@@ -1430,10 +1474,10 @@
 
     <informalexample>
       <screen>
-	$ pyang -f uml ietf-netconf-monitoring.yang > \
-	ietf-netconf-monitoring.uml
-	$ java -jar plantuml.jar ietf-netconf-monitoring.uml
-	$ open img/ietf-netconf-monitoring.png
+        $ pyang -f uml ietf-netconf-monitoring.yang > \
+        ietf-netconf-monitoring.uml
+        $ java -jar plantuml.jar ietf-netconf-monitoring.uml
+        $ open img/ietf-netconf-monitoring.png
       </screen>
     </informalexample>
   </refsect1>

@@ -39,6 +39,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("-v", "--version",
                              action="version",
                              help="Show version number and exit"),
+        optparse.make_option("-V", "--verbose",
+                             action="store_true"),
         optparse.make_option("-e", "--list-errors",
                              dest="list_errors",
                              action="store_true",
@@ -178,7 +180,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             fd = sys.stdin.buffer
         hel = hello.HelloParser().parse(fd)
 
-    path = ":".join(o.path)
+    path = os.pathsep.join(o.path)
+
+    # add standard search path
+    if len(o.path) == 0:
+        path = "."
+    else:
+        path += os.pathsep + "."
 
     repos = pyang.FileRepository(path)
 

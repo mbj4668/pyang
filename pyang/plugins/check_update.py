@@ -5,12 +5,14 @@ the rules defined in Section 10 of RFC 6020.
 
 import optparse
 import sys
+import os
 
 import pyang
 from pyang import plugin
 from pyang import statements
 from pyang import error
 from pyang import util
+from pyang import types
 from pyang.error import err_add
 
 def pyang_plugin_init():
@@ -24,6 +26,13 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  dest="check_update_from",
                                  help="Verify that upgrade from OLDMODULE" \
                                       " follows RFC 6020 rules."),
+            optparse.make_option("-P", "--check-update-from-path",
+                                 dest="old_path",
+                                 default=[],
+                                 action="append",
+                                 help=os.pathsep + "-separated search path" \
+                                     " for yin and yang modules used by" \
+                                     " OLDMODULE"),
             ]
         optparser.add_options(optlist)
 
@@ -46,7 +55,7 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
             + " (RFC 6020: 10, p2)")
         error.add_error_code(
             'CHK_DEF_REMOVED', 1,
-            "the %s '%s', defined at %s is not found")
+            "the %s '%s', defined at %s is illegally removed")
         error.add_error_code(
             'CHK_DEF_ADDED', 1,
             "the %s '%s' is illegally added")
@@ -58,7 +67,7 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
             "new status %s is not valid since the old status was %s")
         error.add_error_code(
             'CHK_CHILD_KEYWORD_CHANGED', 1,
-            "the %s '%s' is illegally changed from a %s")
+            "the %s '%s' is illegally changed to a %s")
         error.add_error_code(
             'CHK_MANDATORY_CONFIG', 1,
             "the node %s is changed to config true, but it is mandatory")
@@ -88,13 +97,22 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
             "the leaf had an implicit default")
         error.add_error_code(
             'CHK_BASE_TYPE_CHANGED', 1,
-            "the base type has illegaly changed from %s to %s")
+            "the base type has illegally changed from %s to %s")
+        error.add_error_code(
+            'CHK_LEAFREF_PATH_CHANGED', 1,
+            "the leafref's path has illegally changed")
         error.add_error_code(
             'CHK_ENUM_VALUE_CHANGED', 1,
-            "the value for enum '%s', has changed from %s to %s")
+            "the value for enum '%s', has changed from %s to %s"
+            + " (RFC 6020: 10, p5, bullet 1)")
         error.add_error_code(
             'CHK_BIT_POSITION_CHANGED', 1,
-            "the position for bit '%s', has changed from %s to %s")
+            "the position for bit '%s', has changed from %s to %s"
+            + " (RFC 6020: 10, p5, bullet 2)")
+        error.add_error_code(
+            'CHK_RESTRICTION_CHANGED', 1,
+            "the %s has been illegally restricted"
+            + " (RFC 6020: 10, p5, bullet 3)")
         error.add_error_code(
             'CHK_UNION_TYPES', 1,
             "the member types in the union have changed")
@@ -106,9 +124,24 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         check_update(ctx, ctx.opts.check_update_from, modules[0])
 
 def check_update(ctx, oldfilename, newmod):
-    path = ":".join(ctx.opts.path)
-    repos = pyang.FileRepository(path)
-    oldctx = pyang.Context(repos)
+    oldpath = os.pathsep.join(ctx.opts.old_path)
+    olddir = os.path.dirname(oldfilename)
+    if olddir == '':
+        olddir = '.'
+    oldpath += os.pathsep + olddir
+    oldrepo = pyang.FileRepository(oldpath, use_env=False)
+    oldctx = pyang.Context(oldrepo)
+    oldctx.opts = ctx.opts
+
+    if ctx.opts.verbose:
+        print("Loading old modules from:")
+        for d in oldrepo.dirs:
+            print("  %s" % d)
+        print("")
+
+    for p in plugin.plugins:
+        p.setup_ctx(oldctx)
+
     oldfilename = ctx.opts.check_update_from
     try:
         fd = open(oldfilename)
@@ -117,10 +150,22 @@ def check_update(ctx, oldfilename, newmod):
         sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
         sys.exit(1)
     oldmod = oldctx.add_module(oldfilename, text)
+    ctx.errors.extend(oldctx.errors)
 
     if oldmod is None:
-        ctx.errors.extend(oldctx.errors)
         return
+
+    for (epos, etag, eargs) in ctx.errors:
+        if (epos.ref in (newmod.pos.ref, oldmod.pos.ref) and
+            error.is_error(error.err_level(etag))):
+            return
+
+    if ctx.opts.verbose:
+        print("Loaded old modules:")
+        for x in oldrepo.get_modules_and_revisions(oldctx):
+            (m, r, (fmt, filename)) = x
+            print("  %s" % filename)
+        print("")
 
     chk_modulename(oldmod, newmod, ctx)
 
@@ -270,7 +315,7 @@ def chk_child(oldch, newp, ctx):
     newp.i_children.remove(newch)
     if newch.keyword != oldch.keyword:
         err_add(ctx.errors, newch.pos, 'CHK_CHILD_KEYWORD_CHANGED',
-                (newch.keyword, newch.arg, oldch.keyword))
+                (oldch.keyword, newch.arg, newch.keyword))
         return
     chk_status(oldch, newch, ctx)
     chk_if_feature(oldch, newch, ctx)
@@ -432,12 +477,29 @@ def chk_key(old, new, ctx):
         err_def_added(newkey, ctx)
     elif oldkey is not None and newkey is None:
         err_def_removed(oldkey, new, ctx)
-    # do not check the key argument string; check the parsed key instead
-    elif [s.arg for s in old.i_key] != [s.arg for s in new.i_key]:
-        err_def_changed(oldkey, newkey, ctx)
+    else:
+        # check the key argument string; i_key is not set in groupings
+        oldks = [k for k in oldkey.arg.split() if k != '']
+        newks = [k for k in newkey.arg.split() if k != '']
+        if len(oldks) != len(newks):
+            err_def_changed(oldkey, newkey, ctx)
+        else:
+            def name(x):
+                if x.find(":") == -1:
+                    return x
+                else:
+                    [prefix, name] = x.split(':', 1)
+                    return name
+            for (ok, nk) in zip(oldks, newks):
+                if name(ok) != name(nk):
+                    err_def_changed(oldkey, newkey, ctx)
+                    return
 
 def chk_unique(old, new, ctx):
     # do not check the unique argument string; check the parsed unique instead
+    # i_unique is not set in groupings; ignore
+    if not hasattr(old, 'i_unique') or not hasattr(new, 'i_unique'):
+        return
     oldunique = []
     for (u, l) in old.i_unique:
         oldunique.append((u, [s.arg for s in l]))
@@ -492,20 +554,32 @@ def chk_type(old, new, ctx):
         return
 
     # check the allowed restriction changes
-    chk_type_func[oldts.name](old, new, oldts, newts, ctx)
+    if oldts.name in chk_type_func:
+        chk_type_func[oldts.name](old, new, oldts, newts, ctx)
 
 def chk_integer(old, new, oldts, newts, ctx):
-    # FIXME:
-    return
+    chk_range(old, new, oldts, newts, ctx)
+
+def chk_range(old, new, oldts, newts, ctx):
+    ots = old.i_type_spec
+    nts = new.i_type_spec
+    if (type(ots) == types.RangeTypeSpec and
+        type(nts) == types.RangeTypeSpec):
+        tmperrors = []
+        types.validate_ranges(tmperrors, new.pos, ots.ranges, new)
+        if tmperrors != []:
+            err_add(ctx.errors, new.pos, 'CHK_RESTRICTION_CHANGED',
+                    'range')
 
 def chk_decimal64(old, new, oldts, newts, ctx):
-    # a decimal64 can olny be restricted with range
     oldbasets = get_base_type(oldts)
     newbasets = get_base_type(newts)
     if newbasets.fraction_digits != oldbasets.fraction_digits:
         err_add(ctx.errors, new.pos, 'CHK_DEF_CHANGED',
                 ('fraction-digits', newts.fraction_digits,
                  oldts.fraction_digits))
+    # a decimal64 can only be restricted with range
+    chk_range(old, new, oldts, newts, ctx)
 
 def get_base_type(ts):
     if ts.base is None:
@@ -514,7 +588,7 @@ def get_base_type(ts):
         return get_base_type(ts.base)
 
 def chk_string(old, new, oldts, newts, ctx):
-    # FIXME:
+    # FIXME: see types.py; we can't check the length
     return
 
 def chk_enumeration(old, new, oldts, newts, ctx):
@@ -540,13 +614,23 @@ def chk_bits(old, new, oldts, newts, ctx):
                     (name, pos, n[1]))
 
 def chk_binary(old, new, oldts, newts, ctx):
-    # FIXME:
+    # FIXME: see types.py; we can't check the length
     return
 
 def chk_leafref(old, new, oldts, newts, ctx):
-    # FIXME:
     # verify that the path refers to the same leaf
-    return
+    if (not hasattr(old.parent, 'i_leafref_ptr') or
+        not hasattr(new.parent, 'i_leafref_ptr')):
+        return
+    def cmp_node(optr, nptr):
+        if optr.parent is None:
+            return
+        if (optr.i_module.i_modulename == nptr.i_module.i_modulename and
+            optr.arg == nptr.arg):
+            return cmp_node(optr.parent, nptr.parent)
+        else:
+            err_add(ctx.errors, new.pos, 'CHK_LEAFREF_PATH_CHANGED', ())
+    cmp_node(old.parent.i_leafref_ptr[0], new.parent.i_leafref_ptr[0])
 
 def chk_identityref(old, new, oldts, newts, ctx):
     # verify that the base is the same

@@ -50,11 +50,14 @@ class IntTypeSpec(TypeSpec):
         return ['range']
 
 class Decimal64Value(object):
-    def __init__(self, value, s=None):
+    def __init__(self, value, s=None, fd=None):
+        # must set s (string repr) OR fd (fraction-digits)
         self.value = value
         self.s = s
-        if s == None:
-            self.s = str(value)
+        if s == None and fd is not None:
+            s = str(value)
+            self.s = s[:-fd] + "." + s[-fd:]
+
     def __str__(self):
         return self.s
 
@@ -98,8 +101,8 @@ class Decimal64TypeSpec(TypeSpec):
     def __init__(self, fraction_digits):
         TypeSpec.__init__(self, 'decimal64')
         self.fraction_digits = int(fraction_digits.arg)
-        self.min = Decimal64Value(-9223372036854775808)
-        self.max = Decimal64Value(9223372036854775807)
+        self.min = Decimal64Value(-9223372036854775808, fd=self.fraction_digits)
+        self.max = Decimal64Value(9223372036854775807, fd=self.fraction_digits)
 
     def str_to_val(self, errors, pos, s0):
         if s0 in ('min', 'max'):
@@ -141,7 +144,7 @@ class Decimal64TypeSpec(TypeSpec):
                 return None
         if is_negative:
             v = -v
-        return Decimal64Value(v, s0)
+        return Decimal64Value(v, s=s0)
 
     def validate(self, errors, pos, val, errstr = ''):
         if val < self.min or val > self.max:
@@ -249,8 +252,10 @@ def validate_range_expr(errors, stmt, type_):
         return (type_.i_type_spec.str_to_val(errors, stmt.pos, lostr),
                 type_.i_type_spec.str_to_val(errors, stmt.pos, histr))
     ranges = [f(m[1], m[6]) for m in syntax.re_range_part.findall(stmt.arg)]
+    return validate_ranges(errors, stmt.pos, ranges, type_)
+
+def validate_ranges(errors, pos, ranges, type_):
     # make sure the range values are of correct type and increasing
-    pos = stmt.pos
     cur_lo = None
     for (lo, hi) in ranges:
         if lo != 'min' and lo != 'max':
@@ -268,7 +273,7 @@ def validate_range_expr(errors, stmt, type_):
             cur_lo = lo
         else:
             cur_lo = hi
-    return (ranges, stmt.pos)
+    return (ranges, pos)
 
 class RangeTypeSpec(TypeSpec):
     def __init__(self, base, range_spec):
@@ -289,22 +294,24 @@ class RangeTypeSpec(TypeSpec):
         else:
             self.min = base.min
             self.max = base.max
+        if hasattr(base, 'fraction_digits'):
+            self.fraction_digits = base.fraction_digits
 
     def str_to_val(self, errors, pos, str):
         return self.base.str_to_val(errors, pos, str)
 
     def validate(self, errors, pos, val, errstr=''):
-            if self.base.validate(errors, pos, val, errstr) == False:
-                return False
-            for (lo, hi) in self.ranges:
-                if ((lo == 'min' or lo == 'max' or val >= lo) and
-                    ((hi is None and val == lo) or hi == 'max' or \
-                         (hi is not None and val <= hi))):
-                    return True
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (str(val), self.definition, 'range error' + errstr +
-                     ' for range defined at ' + str(self.ranges_pos)))
+        if self.base.validate(errors, pos, val, errstr) == False:
             return False
+        for (lo, hi) in self.ranges:
+            if ((lo == 'min' or lo == 'max' or val >= lo) and
+                ((hi is None and val == lo) or hi == 'max' or \
+                     (hi is not None and val <= hi))):
+                return True
+        err_add(errors, pos, 'TYPE_VALUE',
+                (str(val), self.definition, 'range error' + errstr +
+                 ' for range defined at ' + str(self.ranges_pos)))
+        return False
 
     def restrictions(self):
         return self.base.restrictions()
@@ -485,6 +492,13 @@ class EnumerationTypeSpec(TypeSpec):
             return False
         else:
             return True
+
+    def get_value(self, val):
+        r  = util.keysearch(val, 0, self.enums)
+        if r is not None:
+            return r[1]
+        else:
+            return None
 
 def validate_bits(errors, bits, stmt):
     if bits == []:
@@ -688,16 +702,16 @@ class PathTypeSpec(TypeSpec):
 
     def str_to_val(self, errors, pos, str_):
         if hasattr(self, 'i_target_node'):
-            return self.i_target_node.type.i_type_spec.str_to_val(errors, pos,
-                                                                  str_)
+            return self.i_target_node.search_one('type').\
+                i_type_spec.str_to_val(errors, pos, str_)
         else:
             # if a default value is verified
-            return str
+            return str_
 
     def validate(self, errors, pos, val, errstr = ''):
         if hasattr(self, 'i_target_node'):
-            return self.i_target_node.type.i_type_spec.validate(errors, pos,
-                                                                val)
+            return self.i_target_node.search_one('type').\
+                i_type_spec.validate(errors, pos, val)
         else:
             # if a default value is verified
             return True
