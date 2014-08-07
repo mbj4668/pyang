@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-lax\-xpath\-checks] [\-\-hello] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -346,6 +346,28 @@ from where pyang is installed
 .\}
 \fB$PYANG_PLUGINPATH\fR
 .RE
+.RE
+.PP
+\fB\-\-check\-update\-from\fR \fIoldfile\fR
+.RS 4
+Check that a new revision of a module follows the update rules given in
+\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2\&.
+\fIoldfile\fR
+is the old module and
+\fIfile\fR
+is the new version of the module\&.
+.sp
+If the old module imports or includes any modules or submodules, it is important that the the old versions of these modules and submodules are found\&. By default, the directory where
+\fIoldfile\fR
+is found is used as the only directory in the search path for old modules\&. Use the option
+\fB\-\-check\-update\-from\-path\fR
+to control this path\&.
+.RE
+.PP
+\fB\-P\fR \fB\-\-check\-update\-from\-path\fR \fIoldpath\fR
+.RS 4
+\fIoldpath\fR
+is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
 .RE
 .PP
 \fIfile\&.\&.\&.\fR
@@ -676,11 +698,11 @@ Prepare a HTML file that links to the generated XMI file:
 .RS 4
 .\}
 .nf
-	<applet code="treebolic\&.applet\&.Treebolic\&.class"
+        <applet code="treebolic\&.applet\&.Treebolic\&.class"
         archive="TreebolicAppletDom\&.jar"
         id="Treebolic" width="100%" height="100%">
-	<param name="doc" value="model\&.xml">
-	</applet>
+        <param name="doc" value="model\&.xml">
+        </applet>
       
 .fi
 .if n \{\
@@ -941,31 +963,31 @@ function:
 .RS 4
 .\}
 .nf
-	/* without deref */
+/* without deref */
 
-	leaf my\-ip {
-	type leafref {
-	path "/server/ip";
-	}
-	}
-	leaf my\-port {
-	type leafref {
-	path "/server[ip = current()/\&.\&./my\-ip]/port";
-	}
-	}
+leaf my\-ip {
+  type leafref {
+    path "/server/ip";
+  }
+}
+leaf my\-port {
+  type leafref {
+    path "/server[ip = current()/\&.\&./my\-ip]/port";
+  }
+}
 
-	/* with deref */
+/* with deref */
 
-	leaf my\-ip {
-	type leafref {
-	path "/server/ip";
-	}
-	}
-	leaf my\-port {
-	type leafref {
-	path "deref(\&.\&./my\-ip)/\&.\&./port";
-	}
-	}
+leaf my\-ip {
+  type leafref {
+    path "/server/ip";
+  }
+}
+leaf my\-port {
+  type leafref {
+    path "deref(\&.\&./my\-ip)/\&.\&./port";
+  }
+}
       
 .fi
 .if n \{\
@@ -1003,10 +1025,10 @@ The following example converts the ietf\-netconf\-monitoring module into a UML d
 .RS 4
 .\}
 .nf
-	$ pyang \-f uml ietf\-netconf\-monitoring\&.yang > \e
-	ietf\-netconf\-monitoring\&.uml
-	$ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
-	$ open img/ietf\-netconf\-monitoring\&.png
+        $ pyang \-f uml ietf\-netconf\-monitoring\&.yang > \e
+        ietf\-netconf\-monitoring\&.uml
+        $ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
+        $ open img/ietf\-netconf\-monitoring\&.png
       
 .fi
 .if n \{\

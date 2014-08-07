@@ -24,7 +24,11 @@ module a {
     }
   }
 
-
+  leaf gegga {
+    type leafref {
+      path "/b:b/b:q";
+    }
+  }
 
   feature foo;
 

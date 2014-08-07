@@ -17,6 +17,11 @@ module a {
     }
   }
 
+  leaf gegga {
+    type leafref {
+      path "/b2:b/b2:q3";
+    }
+  }
   typedef my-union2 {
     type union {
       type int32 {
@@ -62,7 +67,7 @@ module a {
     container qqqq {
       leaf qqqq {
         type string;
-//        mandatory true;
+        mandatory true;
       }
     }
     leaf bar {
@@ -75,7 +80,7 @@ module a {
     }
     list arne {
       key "foo a:bar";
-//      unique "x1 a:x2 x3";
+      unique "x1 a:x2 x3";
       leaf foo {
         type string;
       }

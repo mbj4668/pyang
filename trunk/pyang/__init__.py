@@ -364,7 +364,7 @@ class Repository(object):
             Exception.__init__(self, str)
 
 class FileRepository(Repository):
-    def __init__(self, path=""):
+    def __init__(self, path="", use_env=True):
         """Create a Repository which searches the filesystem for modules
 
         `path` is a `os.pathsep`-separated string of directories
@@ -373,22 +373,21 @@ class FileRepository(Repository):
         Repository.__init__(self)
         self.dirs = path.split(os.pathsep)
 
-        # add standard search path
-        self.dirs.append('.')
+        if use_env:
+            modpath = os.getenv('YANG_MODPATH')
+            if modpath is not None:
+                self.dirs.extend(modpath.split(os.pathsep))
 
-        modpath = os.getenv('YANG_MODPATH')
-        if modpath is not None:
-            self.dirs.extend(modpath.split(os.pathsep))
+            home = os.getenv('HOME')
+            if home is not None:
+                self.dirs.append(os.path.join(home, 'yang', 'modules'))
 
-        home = os.getenv('HOME')
-        if home is not None:
-            self.dirs.append(os.path.join(home, 'yang', 'modules'))
-
-        inst = os.getenv('YANG_INSTALL')
-        if inst is not None:
-            self.dirs.append(os.path.join(inst, 'yang', 'modules'))
-        else:
-            self.dirs.append(os.path.join(sys.prefix,'share','yang','modules'))
+            inst = os.getenv('YANG_INSTALL')
+            if inst is not None:
+                self.dirs.append(os.path.join(inst, 'yang', 'modules'))
+            else:
+                self.dirs.append(os.path.join(sys.prefix,
+                                              'share','yang','modules'))
 
         self.modules = None
 
