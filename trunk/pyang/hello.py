@@ -82,7 +82,7 @@ class HelloParser:
         """Return list of features declared for module `yam`."""
         mcap = [ c for c in self.capabilities
                  if c.parameters.get("module", None) == yam ][0]
-        if "features" not in mcap.parameters: return []
+        if not mcap.parameters.get("features"): return []
         return mcap.parameters["features"].split(",")
 
     def registered_capabilities(self):
