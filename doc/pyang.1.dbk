@@ -696,6 +696,24 @@
 
   </refsect1>
 
+  <refsect1 xml:id="man.1.pyang.capability_output">
+    <title>Capability Output</title>
+    <para>
+      Options for the <emphasis>capability</emphasis> output format:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>--capability-entity</option></term>
+        <listitem>
+          <para>
+            Write ampersands in the output as XML entities ("&amp;amp;").
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
   <refsect1 xml:id="man.1.pyang.yang_output">
     <title>YANG Output</title>
     <para>
