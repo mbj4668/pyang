@@ -16,11 +16,22 @@ class CapabilityPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         self.multiple_modules = True
         fmts['capability'] = self
+    def add_opts(self, optparser):
+        optlist = [
+            optparse.make_option("--capability-entity",
+                                 dest="capa_entity",
+                                 action="store_true",
+                                 default=False,
+                                 help="Write ampersands as XML entity")
+            ]
+        g = optparser.add_option_group("Capability output specific options")
+        g.add_options(optlist)
     def emit(self, ctx, modules, fd):
         for m in modules:
             emit_capability(ctx, m, fd)
 
 def emit_capability(ctx, m, fd):
+    amp = "&amp;" if ctx.opts.capa_entity else "&"
     ns = m.search_one('namespace')
     if ns is None:
         return
@@ -28,18 +39,18 @@ def emit_capability(ctx, m, fd):
 
     latest_rev = util.get_latest_revision(m)
     if latest_rev != "unknown":
-        s = s + "&revision=" + latest_rev
+        s = s + amp + "revision=" + latest_rev
 
     if m.i_modulename in ctx.features:
         if len(ctx.features[m.i_modulename]) > 0:
-            s = s + "&features=" + ",".join(ctx.features[m.i_modulename])
+            s = s + amp + "features=" + ",".join(ctx.features[m.i_modulename])
         else:
             # do not report any features from the module
             pass
     else:
         # report all features defined in the module
         fs = [x.arg for x in m.search('feature')]
-        s = s + "&features=" + ",".join(fs)
+        s = s + amp + "features=" + ",".join(fs)
 
     devs = []
     for d in ctx.deviation_modules:
@@ -51,6 +62,6 @@ def emit_capability(ctx, m, fd):
                 break
 
     if len(devs) > 0:
-        s = s + "&deviations=" +  ",".join(devs)
+        s = s + amp + "deviations=" +  ",".join(devs)
 
     fd.write(s + '\n')
