@@ -156,6 +156,7 @@ def emit_tree(modules, fd, depth, path):
 
 def print_children(i_children, module, fd, prefix, path, depth, width=0):
     if depth == 0:
+        if i_children: fd.write(prefix + '     ...\n')
         return
     def get_width(w, chs):
         for ch in chs:
