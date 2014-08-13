@@ -596,15 +596,18 @@
 
     <variablelist>
       <varlistentry>
-        <term><emphasis>yin</emphasis></term>
+        <term><emphasis>capability</emphasis></term>
         <listitem>
-          <para>The XML syntax of YANG.</para>
+          <para>Prints a capability URL for each given module, with
+          the features and devations given.  If no features are given,
+          all features defined in the module are reported.
+          </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>yang</emphasis></term>
+        <term><emphasis>depend</emphasis></term>
         <listitem>
-          <para>Normal YANG syntax.</para>
+          <para>Prints a Makefile dependency rule for the module.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -618,15 +621,38 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>xsd</emphasis></term>
+        <term><emphasis>hypertree</emphasis></term>
         <listitem>
-          <para>DEPRECATED: W3C XML Schema.</para>
+          <para>A hyperbolic tree navigator that can be displayed
+          by treebolic.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>depend</emphasis></term>
+        <term><emphasis>jsonxsl</emphasis></term>
         <listitem>
-          <para>Prints a Makefile dependency rule for the module.</para>
+          <para>Generates XSLT stylesheet for transforming XML
+          instance documents into JSON.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>jstree</emphasis></term>
+        <listitem>
+          <para>HTML/JavaScript tree navigator.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>jtox</emphasis></term>
+        <listitem>
+          <para>Generates a driver file for transforming JSON
+          instance documents into XML.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>sample-skeleton</emphasis></term>
+        <listitem>
+          <para>Generates an XML instance document containing sample
+          elements for all nodes of the data model.
+          </para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -649,47 +675,21 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>jstree</emphasis></term>
+        <term><emphasis>xsd</emphasis></term>
         <listitem>
-          <para>HTML/JavaScript tree navigator.</para>
+          <para>DEPRECATED: W3C XML Schema.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>hypertree</emphasis></term>
+        <term><emphasis>yang</emphasis></term>
         <listitem>
-          <para>A hyperbolic tree navigator that can be displayed
-          by treebolic.</para>
+          <para>Normal YANG syntax.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>jsonxsl</emphasis></term>
+        <term><emphasis>yin</emphasis></term>
         <listitem>
-          <para>Generates XSLT stylesheet for transforming XML
-          instance documents into JSON.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><emphasis>jtox</emphasis></term>
-        <listitem>
-          <para>Generates a driver file for transforming JSON
-          instance documents into XML.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><emphasis>capability</emphasis></term>
-        <listitem>
-          <para>Prints a capability URL for each given module, with
-          the features and devations given.  If no features are given,
-          all features defined in the module are reported.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><emphasis>sample-skeleton</emphasis></term>
-        <listitem>
-          <para>Generates an XML instance document containing sample
-          elements for all nodes of the data model.
-          </para>
+          <para>The XML syntax of YANG.</para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -708,142 +708,6 @@
         <listitem>
           <para>
             Write ampersands in the output as XML entities ("&amp;amp;").
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.yang_output">
-    <title>YANG Output</title>
-    <para>
-      Options for the <emphasis>yang</emphasis> output format:
-    </para>
-
-    <variablelist>
-      <varlistentry>
-        <term><option>--yang-canonical</option></term>
-        <listitem>
-          <para>
-            Generate all statements in the canonical order.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--yang-remove-unused-imports</option></term>
-        <listitem>
-          <para>
-            Remove unused import statements from the output.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.yin_output">
-    <title>YIN Output</title>
-    <para>
-      Options for the <emphasis>yin</emphasis> output format:
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--yin-canonical</option></term>
-        <listitem>
-          <para>
-            Generate all statements in the canonical order.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--yin-pretty-strings</option></term>
-        <listitem>
-          <para>
-            Pretty print strings, i.e. print with extra whitespace in
-            the string.  This is not strictly correct, since the
-            whitespace is significant within the strings in XML, but
-            the output is more readable.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.dsdl_output">
-    <title>DSDL Output</title>
-    <para>
-      Options for the <emphasis>dsdl</emphasis> output format:
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--dsdl-no-documentation</option></term>
-        <listitem>
-          <para>
-            Do not print documentation annotations
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--dsdl-no-dublin-core</option></term>
-        <listitem>
-          <para>
-            Do not print Dublin Core metadata terms
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--dsdl-record-defs</option></term>
-        <listitem>
-          <para>
-            Record translations of all top-level typedefs and
-            groupings in the output schema, even if they are not
-            used. This is useful for translating library modules.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.xsd_output">
-    <title>XSD Output</title>
-    <para>
-      NOTE: The XSD ouput plugin is deprecated.  Use the dsdl plugin
-      instead.
-    </para>
-    <para>
-      Options for the <emphasis>xsd</emphasis> output format:
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--xsd-no-appinfo</option></term>
-        <listitem>
-          <para>
-            Do not print YANG specific appinfo.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--xsd-no-lecture</option></term>
-        <listitem>
-          <para>
-            Do not print the lecture about how the XSD can be used.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--xsd-no-imports</option></term>
-        <listitem>
-          <para>
-            Do not generate any xs:imports.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--xsd-break-pattern</option></term>
-        <listitem>
-          <para>
-            Break long patterns so that they fit into RFCs. The
-            resulting patterns might not always be valid XSD, so use
-            with care.
           </para>
         </listitem>
       </varlistentry>
@@ -920,89 +784,39 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.tree_output">
-    <title>Tree Output</title>
+  <refsect1 xml:id="man.1.pyang.dsdl_output">
+    <title>DSDL Output</title>
     <para>
-      The <emphasis>tree</emphasis> output prints the resulting schema
-      tree from one or more modules.  Use <userinput>pyang
-      --tree-help</userinput> to print a description on the symbols
-      used by this format.
-    </para>
-    <para>
-      Tree output specific options:
+      Options for the <emphasis>dsdl</emphasis> output format:
     </para>
     <variablelist>
       <varlistentry>
-        <term><option>--tree-help</option></term>
+        <term><option>--dsdl-no-documentation</option></term>
         <listitem>
           <para>
-            Print help on symbols used in the tree output and exit.
+            Do not print documentation annotations
           </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term>
-          <option>--tree-depth</option>
-          <replaceable>depth</replaceable>
-        </term>
+        <term><option>--dsdl-no-dublin-core</option></term>
         <listitem>
           <para>
-            Levels of the tree to print.
+            Do not print Dublin Core metadata terms
           </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term>
-          <option>--tree-path</option>
-          <replaceable>path</replaceable>
-        </term>
+        <term><option>--dsdl-record-defs</option></term>
         <listitem>
           <para>
-            Subtree to print.  The <replaceable>path</replaceable> is
-            a slash ("/") separated path to a subtree to print.  For
-            example "/nacm/groups".
+            Record translations of all top-level typedefs and
+            groupings in the output schema, even if they are not
+            used. This is useful for translating library modules.
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
-  </refsect1>
-
-
-  <refsect1 xml:id="man.1.pyang.xmioutput">
-    <title>XMI Output</title>
-    <para>
-      The <emphasis>xmi</emphasis> output prints an XMI file
-      that can be imported by ArgUML http://argouml.tigris.org/.
-    </para>
-    <para>
-      Drag all classes to the diagram area in ArgoUML and use
-      the Arrange-Layout menu.
-    </para>
-    <para>
-      XMI output specific option:
-    </para>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.jstree">
-    <title>jstree Output</title>
-    <para>
-      The <emphasis>jstree</emphasis> output prints an HTML/JavaScript
-      based YANG browser.
-    </para>
-    <para>
-      jstree output specific option:
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--jstree-help</option></term>
-        <listitem>
-          <para>
-            Print help on jstree usage and exit.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.hypertree">
@@ -1082,6 +896,211 @@
 
   </refsect1>
 
+  <refsect1 xml:id="man.1.pyang.jsonxsl_output">
+    <title>JSONXSL Output</title>
+    <para>
+      The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
+      stylesheet that can be used for transforming an XML instance
+      document into JSON text as specified in <link
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>. The
+      XML document must be a valid instance of the data model which is
+      specified as one or more input YANG modules on the command line
+      (or via a &lt;hello&gt; message, see the
+      <option>--hello</option> option).
+    </para>
+    <para>
+      The data tree(s) must be wrapped at least in either
+      &lt;nc:data&gt; or &lt;nc:config&gt; element, where "nc" is the
+      namespace prefix for the standard NETCONF URI
+      "urn:ietf:params:xml:ns:netconf:base:1.0", or the XML instance
+      document has to be a complete NETCONF RPC request/reply or
+      notification. Translation of RPCs and notifications defined by
+      the data model is also supported.
+    </para>
+    <para>
+      The generated stylesheet accepts the following parameters that
+      modify its behaviour:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>compact</emphasis>: setting this parameter to
+        1 results in a compact representation of the JSON text,
+        i.e. without any whitespace. The default is 0 which means that
+        the JSON output is pretty-printed.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>ind-step</emphasis>: indentation step,
+        i.e. the number of spaces to use for each level. The default
+        value is 2 spaces. Note that this setting is only useful for
+        pretty-printed output (compact=0).</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      The stylesheet also includes the file
+      <filename>jsonxsl-templates.xsl</filename> which is a part of
+      <command>pyang</command> distribution.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.jstree">
+    <title>jstree Output</title>
+    <para>
+      The <emphasis>jstree</emphasis> output prints an HTML/JavaScript
+      based YANG browser.
+    </para>
+    <para>
+      jstree output specific option:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--jstree-help</option></term>
+        <listitem>
+          <para>
+            Print help on jstree usage and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.jtox_output">
+    <title>JTOX Output</title>
+    <para>
+      The <emphasis>jtox</emphasis> output generates a driver file
+      which can be used as one of the inputs to
+      <command>json2xml</command> for transforming a JSON document
+      to XML as specified in <link
+      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>.
+    </para>
+    <para>
+      The <emphasis>jtox</emphasis> output itself is a JSON document
+      containing a concise representation of the data model which is
+      specified as one or more input YANG modules on the command line
+      (or via a &lt;hello&gt; message, see the
+      <option>--hello</option> option).
+    </para>
+    <para>
+      See <command>json2xml</command> manual page for more information.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.sample-skeleton_output">
+    <title>SAMPLE-SKELETON Output</title>
+    <para>
+      The <emphasis>sample-skeleton</emphasis> output generates an XML instance
+      document with sample elements for all nodes in the data model,
+      according to the following rules:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>An element is present for every leaf, container or anyxml.</para>
+      </listitem>
+      <listitem>
+        <para>At least one element is present for every leaf-list or
+        list. The number of entries in the sample is min(1,
+        min-elements).</para>
+      </listitem>
+      <listitem>
+        <para>For a choice node, sample element(s) are present for each case.</para>
+      </listitem>
+      <listitem>
+        <para>Leaf, leaf-list and anyxml elements are empty (but see
+        the <option>--sample-skeleton-defaults</option> option below).</para>
+      </listitem>
+    </itemizedlist>
+    <para>Note that the output document will most likely be invalid
+    and needs manual editing.</para>
+    <para>
+      Options specific to the <emphasis>sample-skeleton</emphasis> output
+      format:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--sample-skeleton-doctype=<replaceable>type</replaceable></option>
+        </term>
+        <listitem>
+          <para>
+            Type of the sample XML document. Supported values for
+            <replaceable>type</replaceable> are
+            <literal>data</literal> (default) and
+            <literal>config</literal>. This option determines the
+            document element of the output XML document (&lt;data&gt;
+            or &lt;config&gt; in the NETCONF namespace) and also affects the contents: for
+            <literal>config</literal>, only data nodes representing
+            configuration are included.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sample-skeleton-defaults</option></term>
+        <listitem>
+          <para>
+            Add leaf elements with defined defaults to the output with
+            their default value. Without this option, the default
+            elements are omitted.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sample-skeleton-annotations</option></term>
+        <listitem>
+          <para>
+            Add XML comments to the sample documents with hints about
+            expected contents, for example types of leaf nodes,
+            permitted number of list entries etc.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.tree_output">
+    <title>Tree Output</title>
+    <para>
+      The <emphasis>tree</emphasis> output prints the resulting schema
+      tree from one or more modules.  Use <userinput>pyang
+      --tree-help</userinput> to print a description on the symbols
+      used by this format.
+    </para>
+    <para>
+      Tree output specific options:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--tree-help</option></term>
+        <listitem>
+          <para>
+            Print help on symbols used in the tree output and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-depth</option>
+          <replaceable>depth</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Levels of the tree to print.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-path</option>
+          <replaceable>path</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Subtree to print.  The <replaceable>path</replaceable> is
+            a slash ("/") separated path to a subtree to print.  For
+            example "/nacm/groups".
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
 
   <refsect1 xml:id="man.1.pyang.uml_output">
     <title>UML Output</title>
@@ -1253,138 +1272,116 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.jsonxsl_output">
-    <title>JSONXSL Output</title>
+  <refsect1 xml:id="man.1.pyang.xmioutput">
+    <title>XMI Output</title>
     <para>
-      The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
-      stylesheet that can be used for transforming an XML instance
-      document into JSON text as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>. The
-      XML document must be a valid instance of the data model which is
-      specified as one or more input YANG modules on the command line
-      (or via a &lt;hello&gt; message, see the
-      <option>--hello</option> option).
+      The <emphasis>xmi</emphasis> output prints an XMI file
+      that can be imported by ArgUML http://argouml.tigris.org/.
     </para>
     <para>
-      The data tree(s) must be wrapped at least in either
-      &lt;nc:data&gt; or &lt;nc:config&gt; element, where "nc" is the
-      namespace prefix for the standard NETCONF URI
-      "urn:ietf:params:xml:ns:netconf:base:1.0", or the XML instance
-      document has to be a complete NETCONF RPC request/reply or
-      notification. Translation of RPCs and notifications defined by
-      the data model is also supported.
+      Drag all classes to the diagram area in ArgoUML and use
+      the Arrange-Layout menu.
     </para>
     <para>
-      The generated stylesheet accepts the following parameters that
-      modify its behaviour:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para><emphasis>compact</emphasis>: setting this parameter to
-        1 results in a compact representation of the JSON text,
-        i.e. without any whitespace. The default is 0 which means that
-        the JSON output is pretty-printed.</para>
-      </listitem>
-      <listitem>
-        <para><emphasis>ind-step</emphasis>: indentation step,
-        i.e. the number of spaces to use for each level. The default
-        value is 2 spaces. Note that this setting is only useful for
-        pretty-printed output (compact=0).</para>
-      </listitem>
-    </itemizedlist>
-    <para>
-      The stylesheet also includes the file
-      <filename>jsonxsl-templates.xsl</filename> which is a part of
-      <command>pyang</command> distribution.
+      XMI output specific option:
     </para>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.jtox_output">
-    <title>JTOX Output</title>
+  <refsect1 xml:id="man.1.pyang.xsd_output">
+    <title>XSD Output</title>
     <para>
-      The <emphasis>jtox</emphasis> output generates a driver file
-      which can be used as one of the inputs to
-      <command>json2xml</command> for transforming a JSON document
-      to XML as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>.
+      NOTE: The XSD ouput plugin is deprecated.  Use the dsdl plugin
+      instead.
     </para>
     <para>
-      The <emphasis>jtox</emphasis> output itself is a JSON document
-      containing a concise representation of the data model which is
-      specified as one or more input YANG modules on the command line
-      (or via a &lt;hello&gt; message, see the
-      <option>--hello</option> option).
-    </para>
-    <para>
-      See <command>json2xml</command> manual page for more information.
-    </para>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.sample-skeleton_output">
-    <title>SAMPLE-SKELETON Output</title>
-    <para>
-      The <emphasis>sample-skeleton</emphasis> output generates an XML instance
-      document with sample elements for all nodes in the data model,
-      according to the following rules:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para>An element is present for every leaf, container or anyxml.</para>
-      </listitem>
-      <listitem>
-        <para>At least one element is present for every leaf-list or
-        list. The number of entries in the sample is min(1,
-        min-elements).</para>
-      </listitem>
-      <listitem>
-        <para>For a choice node, sample element(s) are present for each case.</para>
-      </listitem>
-      <listitem>
-        <para>Leaf, leaf-list and anyxml elements are empty (but see
-        the <option>--sample-skeleton-defaults</option> option below).</para>
-      </listitem>
-    </itemizedlist>
-    <para>Note that the output document will most likely be invalid
-    and needs manual editing.</para>
-    <para>
-      Options specific to the <emphasis>sample-skeleton</emphasis> output
-      format:
+      Options for the <emphasis>xsd</emphasis> output format:
     </para>
     <variablelist>
       <varlistentry>
-        <term>
-          <option>--sample-skeleton-doctype=<replaceable>type</replaceable></option>
-        </term>
+        <term><option>--xsd-no-appinfo</option></term>
         <listitem>
           <para>
-            Type of the sample XML document. Supported values for
-            <replaceable>type</replaceable> are
-            <literal>data</literal> (default) and
-            <literal>config</literal>. This option determines the
-            document element of the output XML document (&lt;data&gt;
-            or &lt;config&gt; in the NETCONF namespace) and also affects the contents: for
-            <literal>config</literal>, only data nodes representing
-            configuration are included.
+            Do not print YANG specific appinfo.
           </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-skeleton-defaults</option></term>
+        <term><option>--xsd-no-lecture</option></term>
         <listitem>
           <para>
-            Add leaf elements with defined defaults to the output with
-            their default value. Without this option, the default
-            elements are omitted.
+            Do not print the lecture about how the XSD can be used.
           </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-skeleton-annotations</option></term>
+        <term><option>--xsd-no-imports</option></term>
         <listitem>
           <para>
-            Add XML comments to the sample documents with hints about
-            expected contents, for example types of leaf nodes,
-            permitted number of list entries etc.
+            Do not generate any xs:imports.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--xsd-break-pattern</option></term>
+        <listitem>
+          <para>
+            Break long patterns so that they fit into RFCs. The
+            resulting patterns might not always be valid XSD, so use
+            with care.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.yang_output">
+    <title>YANG Output</title>
+    <para>
+      Options for the <emphasis>yang</emphasis> output format:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>--yang-canonical</option></term>
+        <listitem>
+          <para>
+            Generate all statements in the canonical order.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--yang-remove-unused-imports</option></term>
+        <listitem>
+          <para>
+            Remove unused import statements from the output.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.yin_output">
+    <title>YIN Output</title>
+    <para>
+      Options for the <emphasis>yin</emphasis> output format:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--yin-canonical</option></term>
+        <listitem>
+          <para>
+            Generate all statements in the canonical order.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--yin-pretty-strings</option></term>
+        <listitem>
+          <para>
+            Pretty print strings, i.e. print with extra whitespace in
+            the string.  This is not strictly correct, since the
+            whitespace is significant within the strings in XML, but
+            the output is more readable.
           </para>
         </listitem>
       </varlistentry>

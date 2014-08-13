@@ -381,14 +381,14 @@ If pyang plugins are installed, these plugins may define their own options, or a
 option\&. These options and formats are listed in
 \fBpyang \-h\fR\&.
 .PP
-\fIyin\fR
+\fIcapability\fR
 .RS 4
-The XML syntax of YANG\&.
+Prints a capability URL for each given module, with the features and devations given\&. If no features are given, all features defined in the module are reported\&.
 .RE
 .PP
-\fIyang\fR
+\fIdepend\fR
 .RS 4
-Normal YANG syntax\&.
+Prints a Makefile dependency rule for the module\&.
 .RE
 .PP
 \fIdsdl\fR
@@ -399,14 +399,29 @@ Hybrid DSDL schema (RELAX NG with annotations) which is primarily intended as an
 for details\&.
 .RE
 .PP
-\fIxsd\fR
+\fIhypertree\fR
 .RS 4
-DEPRECATED: W3C XML Schema\&.
+A hyperbolic tree navigator that can be displayed by treebolic\&.
 .RE
 .PP
-\fIdepend\fR
+\fIjsonxsl\fR
 .RS 4
-Prints a Makefile dependency rule for the module\&.
+Generates XSLT stylesheet for transforming XML instance documents into JSON\&.
+.RE
+.PP
+\fIjstree\fR
+.RS 4
+HTML/JavaScript tree navigator\&.
+.RE
+.PP
+\fIjtox\fR
+.RS 4
+Generates a driver file for transforming JSON instance documents into XML\&.
+.RE
+.PP
+\fIsample\-skeleton\fR
+.RS 4
+Generates an XML instance document containing sample elements for all nodes of the data model\&.
 .RE
 .PP
 \fItree\fR
@@ -424,34 +439,19 @@ Prints a file that can be read by plantuml to generate UML diagrams\&.
 Prints a file that can be imported to ArgoUML\&.
 .RE
 .PP
-\fIjstree\fR
+\fIxsd\fR
 .RS 4
-HTML/JavaScript tree navigator\&.
+DEPRECATED: W3C XML Schema\&.
 .RE
 .PP
-\fIhypertree\fR
+\fIyang\fR
 .RS 4
-A hyperbolic tree navigator that can be displayed by treebolic\&.
+Normal YANG syntax\&.
 .RE
 .PP
-\fIjsonxsl\fR
+\fIyin\fR
 .RS 4
-Generates XSLT stylesheet for transforming XML instance documents into JSON\&.
-.RE
-.PP
-\fIjtox\fR
-.RS 4
-Generates a driver file for transforming JSON instance documents into XML\&.
-.RE
-.PP
-\fIcapability\fR
-.RS 4
-Prints a capability URL for each given module, with the features and devations given\&. If no features are given, all features defined in the module are reported\&.
-.RE
-.PP
-\fIsample\-skeleton\fR
-.RS 4
-Generates an XML instance document containing sample elements for all nodes of the data model\&.
+The XML syntax of YANG\&.
 .RE
 .SH "CAPABILITY OUTPUT"
 .PP
@@ -462,83 +462,6 @@ output format:
 \fB\-\-capability\-entity\fR
 .RS 4
 Write ampersands in the output as XML entities ("&amp;")\&.
-.RE
-.SH "YANG OUTPUT"
-.PP
-Options for the
-\fIyang\fR
-output format:
-.PP
-\fB\-\-yang\-canonical\fR
-.RS 4
-Generate all statements in the canonical order\&.
-.RE
-.PP
-\fB\-\-yang\-remove\-unused\-imports\fR
-.RS 4
-Remove unused import statements from the output\&.
-.RE
-.SH "YIN OUTPUT"
-.PP
-Options for the
-\fIyin\fR
-output format:
-.PP
-\fB\-\-yin\-canonical\fR
-.RS 4
-Generate all statements in the canonical order\&.
-.RE
-.PP
-\fB\-\-yin\-pretty\-strings\fR
-.RS 4
-Pretty print strings, i\&.e\&. print with extra whitespace in the string\&. This is not strictly correct, since the whitespace is significant within the strings in XML, but the output is more readable\&.
-.RE
-.SH "DSDL OUTPUT"
-.PP
-Options for the
-\fIdsdl\fR
-output format:
-.PP
-\fB\-\-dsdl\-no\-documentation\fR
-.RS 4
-Do not print documentation annotations
-.RE
-.PP
-\fB\-\-dsdl\-no\-dublin\-core\fR
-.RS 4
-Do not print Dublin Core metadata terms
-.RE
-.PP
-\fB\-\-dsdl\-record\-defs\fR
-.RS 4
-Record translations of all top\-level typedefs and groupings in the output schema, even if they are not used\&. This is useful for translating library modules\&.
-.RE
-.SH "XSD OUTPUT"
-.PP
-NOTE: The XSD ouput plugin is deprecated\&. Use the dsdl plugin instead\&.
-.PP
-Options for the
-\fIxsd\fR
-output format:
-.PP
-\fB\-\-xsd\-no\-appinfo\fR
-.RS 4
-Do not print YANG specific appinfo\&.
-.RE
-.PP
-\fB\-\-xsd\-no\-lecture\fR
-.RS 4
-Do not print the lecture about how the XSD can be used\&.
-.RE
-.PP
-\fB\-\-xsd\-no\-imports\fR
-.RS 4
-Do not generate any xs:imports\&.
-.RE
-.PP
-\fB\-\-xsd\-break\-pattern\fR
-.RS 4
-Break long patterns so that they fit into RFCs\&. The resulting patterns might not always be valid XSD, so use with care\&.
 .RE
 .SH "DEPEND OUTPUT"
 .PP
@@ -588,52 +511,25 @@ has been given, the prerequisite is the filename as found, i\&.e\&., ending in "
 .RS 4
 Name of YANG module or submodule to ignore in the prerequisites\&. This option can be given multiple times\&.
 .RE
-.SH "TREE OUTPUT"
+.SH "DSDL OUTPUT"
 .PP
-The
-\fItree\fR
-output prints the resulting schema tree from one or more modules\&. Use
-\fBpyang \-\-tree\-help\fR
-to print a description on the symbols used by this format\&.
+Options for the
+\fIdsdl\fR
+output format:
 .PP
-Tree output specific options:
-.PP
-\fB\-\-tree\-help\fR
+\fB\-\-dsdl\-no\-documentation\fR
 .RS 4
-Print help on symbols used in the tree output and exit\&.
+Do not print documentation annotations
 .RE
 .PP
-\fB\-\-tree\-depth\fR \fIdepth\fR
+\fB\-\-dsdl\-no\-dublin\-core\fR
 .RS 4
-Levels of the tree to print\&.
+Do not print Dublin Core metadata terms
 .RE
 .PP
-\fB\-\-tree\-path\fR \fIpath\fR
+\fB\-\-dsdl\-record\-defs\fR
 .RS 4
-Subtree to print\&. The
-\fIpath\fR
-is a slash ("/") separated path to a subtree to print\&. For example "/nacm/groups"\&.
-.RE
-.SH "XMI OUTPUT"
-.PP
-The
-\fIxmi\fR
-output prints an XMI file that can be imported by ArgUML http://argouml\&.tigris\&.org/\&.
-.PP
-Drag all classes to the diagram area in ArgoUML and use the Arrange\-Layout menu\&.
-.PP
-XMI output specific option:
-.SH "JSTREE OUTPUT"
-.PP
-The
-\fIjstree\fR
-output prints an HTML/JavaScript based YANG browser\&.
-.PP
-jstree output specific option:
-.PP
-\fB\-\-jstree\-help\fR
-.RS 4
-Print help on jstree usage and exit\&.
+Record translations of all top\-level typedefs and groupings in the output schema, even if they are not used\&. This is useful for translating library modules\&.
 .RE
 .SH "HYPERTREE OUTPUT"
 .PP
@@ -730,83 +626,6 @@ Print help on hypertree usage and exit\&.
 .RS 4
 Do not print association names\&. ArgoUML has no way of hiding the association name and the diagram gets cluttered\&.
 .RE
-.SH "UML OUTPUT"
-.PP
-The
-\fIuml\fR
-output prints an output that can be used as input\-file to plantuml in order to generate a UML diagram\&. Download the plantuml jar\-file from http://plantuml\&.sourceforge\&.net\&. Note that it requires graphviz, http://www\&.graphviz\&.org/\&.
-.PP
-For large diagrams you may need to increase the Java heap\-size by the \-XmxSIZEm option, to java\&. For example:
-\fBjava \-Xmx1024m \-jar plantuml\&.jar \&.\&.\&.\&.\fR
-.PP
-Options for the
-\fIUML\fR
-output format:
-.PP
-\fB\-\-uml\-classes\-only\fR
-.RS 4
-Generate UML with classes only, no attributes
-.RE
-.PP
-\fB\-\-uml\-split\-pages=\fR\fB\fIlayout\fR\fR
-.RS 4
-Generate UML output split into pages, NxN, example 2x2\&. One \&.png file per page will be rendered\&.
-.RE
-.PP
-\fB\-\-uml\-output\-directory=\fR\fB\fIdirectory\fR\fR
-.RS 4
-Put the generated \&.png files(s) in the specified output directory\&. Default is "img/"
-.RE
-.PP
-\fB\-\-uml\-title=\fR\fB\fItitle\fR\fR
-.RS 4
-Set the title of the generated UML diagram, (default is YANG module name)\&.
-.RE
-.PP
-\fB\-\-uml\-header=\fR\fB\fIheader\fR\fR
-.RS 4
-Set the header of the generated UML diagram\&.
-.RE
-.PP
-\fB\-\-uml\-footer=\fR\fB\fIfooter\fR\fR
-.RS 4
-Set the footer of the generated UML diagram\&.
-.RE
-.PP
-\fB\-\-uml\-long\-identifers\fR
-.RS 4
-Use complete YANG schema identifiers for UML class names\&.
-.RE
-.PP
-\fB\-\-uml\-no=\fR\fB\fIarglist\fR\fR
-.RS 4
-This option suppresses specified arguments in the generated UML diagram\&. Valid arguments are: uses, leafref, identity, identityref, typedef, annotation, import, circles, stereotypes\&. Annotation suppresses YANG constructs rendered as annotations, examples module info, config statements for containers\&. Example \-\-uml\-no=circles,stereotypes,typedef,import
-.RE
-.PP
-\fB\-\-uml\-truncate=\fR\fB\fIelemlist\fR\fR
-.RS 4
-Leafref attributes and augment elements can have long paths making the classes too wide\&. This option will only show the tail of the path\&. Example \-\-uml\-truncate=augment,leafref\&.
-.RE
-.PP
-\fB\-\-uml\-inline\-groupings\fR
-.RS 4
-Render the diagram with groupings inlined\&.
-.RE
-.PP
-\fB\-\-uml\-inline\-augments\fR
-.RS 4
-Render the diagram with augments inlined\&.
-.RE
-.PP
-\fB\-\-uml\-max\-enums=\fR\fB\fInumber\fR\fR
-.RS 4
-Maximum of enum items rendered\&.
-.RE
-.PP
-\fB\-\-uml\-filter\-file=\fR\fB\fIfile\fR\fR
-.RS 4
-NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram\&. A default filter file is generated by option \-\-filter\&.
-.RE
 .SH "JSONXSL OUTPUT"
 .PP
 The
@@ -847,6 +666,18 @@ jsonxsl\-templates\&.xsl
 which is a part of
 \fBpyang\fR
 distribution\&.
+.SH "JSTREE OUTPUT"
+.PP
+The
+\fIjstree\fR
+output prints an HTML/JavaScript based YANG browser\&.
+.PP
+jstree output specific option:
+.PP
+\fB\-\-jstree\-help\fR
+.RS 4
+Print help on jstree usage and exit\&.
+.RE
 .SH "JTOX OUTPUT"
 .PP
 The
@@ -942,6 +773,175 @@ Add leaf elements with defined defaults to the output with their default value\&
 \fB\-\-sample\-skeleton\-annotations\fR
 .RS 4
 Add XML comments to the sample documents with hints about expected contents, for example types of leaf nodes, permitted number of list entries etc\&.
+.RE
+.SH "TREE OUTPUT"
+.PP
+The
+\fItree\fR
+output prints the resulting schema tree from one or more modules\&. Use
+\fBpyang \-\-tree\-help\fR
+to print a description on the symbols used by this format\&.
+.PP
+Tree output specific options:
+.PP
+\fB\-\-tree\-help\fR
+.RS 4
+Print help on symbols used in the tree output and exit\&.
+.RE
+.PP
+\fB\-\-tree\-depth\fR \fIdepth\fR
+.RS 4
+Levels of the tree to print\&.
+.RE
+.PP
+\fB\-\-tree\-path\fR \fIpath\fR
+.RS 4
+Subtree to print\&. The
+\fIpath\fR
+is a slash ("/") separated path to a subtree to print\&. For example "/nacm/groups"\&.
+.RE
+.SH "UML OUTPUT"
+.PP
+The
+\fIuml\fR
+output prints an output that can be used as input\-file to plantuml in order to generate a UML diagram\&. Download the plantuml jar\-file from http://plantuml\&.sourceforge\&.net\&. Note that it requires graphviz, http://www\&.graphviz\&.org/\&.
+.PP
+For large diagrams you may need to increase the Java heap\-size by the \-XmxSIZEm option, to java\&. For example:
+\fBjava \-Xmx1024m \-jar plantuml\&.jar \&.\&.\&.\&.\fR
+.PP
+Options for the
+\fIUML\fR
+output format:
+.PP
+\fB\-\-uml\-classes\-only\fR
+.RS 4
+Generate UML with classes only, no attributes
+.RE
+.PP
+\fB\-\-uml\-split\-pages=\fR\fB\fIlayout\fR\fR
+.RS 4
+Generate UML output split into pages, NxN, example 2x2\&. One \&.png file per page will be rendered\&.
+.RE
+.PP
+\fB\-\-uml\-output\-directory=\fR\fB\fIdirectory\fR\fR
+.RS 4
+Put the generated \&.png files(s) in the specified output directory\&. Default is "img/"
+.RE
+.PP
+\fB\-\-uml\-title=\fR\fB\fItitle\fR\fR
+.RS 4
+Set the title of the generated UML diagram, (default is YANG module name)\&.
+.RE
+.PP
+\fB\-\-uml\-header=\fR\fB\fIheader\fR\fR
+.RS 4
+Set the header of the generated UML diagram\&.
+.RE
+.PP
+\fB\-\-uml\-footer=\fR\fB\fIfooter\fR\fR
+.RS 4
+Set the footer of the generated UML diagram\&.
+.RE
+.PP
+\fB\-\-uml\-long\-identifers\fR
+.RS 4
+Use complete YANG schema identifiers for UML class names\&.
+.RE
+.PP
+\fB\-\-uml\-no=\fR\fB\fIarglist\fR\fR
+.RS 4
+This option suppresses specified arguments in the generated UML diagram\&. Valid arguments are: uses, leafref, identity, identityref, typedef, annotation, import, circles, stereotypes\&. Annotation suppresses YANG constructs rendered as annotations, examples module info, config statements for containers\&. Example \-\-uml\-no=circles,stereotypes,typedef,import
+.RE
+.PP
+\fB\-\-uml\-truncate=\fR\fB\fIelemlist\fR\fR
+.RS 4
+Leafref attributes and augment elements can have long paths making the classes too wide\&. This option will only show the tail of the path\&. Example \-\-uml\-truncate=augment,leafref\&.
+.RE
+.PP
+\fB\-\-uml\-inline\-groupings\fR
+.RS 4
+Render the diagram with groupings inlined\&.
+.RE
+.PP
+\fB\-\-uml\-inline\-augments\fR
+.RS 4
+Render the diagram with augments inlined\&.
+.RE
+.PP
+\fB\-\-uml\-max\-enums=\fR\fB\fInumber\fR\fR
+.RS 4
+Maximum of enum items rendered\&.
+.RE
+.PP
+\fB\-\-uml\-filter\-file=\fR\fB\fIfile\fR\fR
+.RS 4
+NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram\&. A default filter file is generated by option \-\-filter\&.
+.RE
+.SH "XMI OUTPUT"
+.PP
+The
+\fIxmi\fR
+output prints an XMI file that can be imported by ArgUML http://argouml\&.tigris\&.org/\&.
+.PP
+Drag all classes to the diagram area in ArgoUML and use the Arrange\-Layout menu\&.
+.PP
+XMI output specific option:
+.SH "XSD OUTPUT"
+.PP
+NOTE: The XSD ouput plugin is deprecated\&. Use the dsdl plugin instead\&.
+.PP
+Options for the
+\fIxsd\fR
+output format:
+.PP
+\fB\-\-xsd\-no\-appinfo\fR
+.RS 4
+Do not print YANG specific appinfo\&.
+.RE
+.PP
+\fB\-\-xsd\-no\-lecture\fR
+.RS 4
+Do not print the lecture about how the XSD can be used\&.
+.RE
+.PP
+\fB\-\-xsd\-no\-imports\fR
+.RS 4
+Do not generate any xs:imports\&.
+.RE
+.PP
+\fB\-\-xsd\-break\-pattern\fR
+.RS 4
+Break long patterns so that they fit into RFCs\&. The resulting patterns might not always be valid XSD, so use with care\&.
+.RE
+.SH "YANG OUTPUT"
+.PP
+Options for the
+\fIyang\fR
+output format:
+.PP
+\fB\-\-yang\-canonical\fR
+.RS 4
+Generate all statements in the canonical order\&.
+.RE
+.PP
+\fB\-\-yang\-remove\-unused\-imports\fR
+.RS 4
+Remove unused import statements from the output\&.
+.RE
+.SH "YIN OUTPUT"
+.PP
+Options for the
+\fIyin\fR
+output format:
+.PP
+\fB\-\-yin\-canonical\fR
+.RS 4
+Generate all statements in the canonical order\&.
+.RE
+.PP
+\fB\-\-yin\-pretty\-strings\fR
+.RS 4
+Pretty print strings, i\&.e\&. print with extra whitespace in the string\&. This is not strictly correct, since the whitespace is significant within the strings in XML, but the output is more readable\&.
 .RE
 .SH "YANG EXTENSIONS"
 .PP
