@@ -902,7 +902,7 @@
       The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
       stylesheet that can be used for transforming an XML instance
       document into JSON text as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>. The
+      xlink:href="http://tools.ietf.org/html/draft-ietf-netmod-yang-json">draft-ietf-netmod-yang-json</link>. The
       XML document must be a valid instance of the data model which is
       specified as one or more input YANG modules on the command line
       (or via a &lt;hello&gt; message, see the
@@ -970,7 +970,7 @@
       which can be used as one of the inputs to
       <command>json2xml</command> for transforming a JSON document
       to XML as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-lhotka-netmod-yang-json">draft-lhotka-netmod-yang-json</link>.
+      xlink:href="http://tools.ietf.org/html/draft-ietf-netmod-yang-json">draft-ietf-netmod-yang-json</link>.
     </para>
     <para>
       The <emphasis>jtox</emphasis> output itself is a JSON document
@@ -985,7 +985,7 @@
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.sample-skeleton_output">
-    <title>SAMPLE-SKELETON Output</title>
+    <title>Sample-skeleton Output</title>
     <para>
       The <emphasis>sample-skeleton</emphasis> output generates an XML instance
       document with sample elements for all nodes in the data model,
