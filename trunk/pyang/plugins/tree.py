@@ -85,6 +85,9 @@ Each node is printed as:
 
   <type> is the name of the type for leafs and leaf-lists
 
+    If the type is a leafref, the type is printed as "-> TARGET", where
+    TARGET is either the leafref path, with prefixed removed if possible.
+
   <if-features> is the list of features this node depends on, printed
     within curly brackets and a question mark "{...}?"
 """)
@@ -263,6 +266,28 @@ def get_flags_str(s):
 def get_typename(s):
     t = s.search_one('type')
     if t is not None:
-        return t.arg
+        if t.arg == 'leafref':
+            p = t.search_one('path')
+            if p is not None:
+                # Try to make the path as compact as possible.
+                # Remove local prefixes, and only use prefix when
+                # there is a module change in the path.
+                target = []
+                curprefix = s.i_module.i_prefix
+                for name in p.arg.split('/'):
+                    if name.find(":") == -1:
+                        prefix = curprefix
+                    else:
+                        [prefix, name] = name.split(':', 1)
+                    if prefix == curprefix:
+                        target.append(name)
+                    else:
+                        target.append(prefix + ':' + name)
+                        curprefix = prefix
+                return "-> %s" % "/".join(target)
+            else:
+                return t.arg
+        else:
+            return t.arg
     else:
         return ''
