@@ -282,6 +282,11 @@ class HybridDSDLSchema(object):
             "when" : self.when_stmt,
             "yang-version": self.yang_version_stmt,
         }
+        self.ext_handler = {
+            "ietf-yang-metadata": {
+                "annotation": self.noop
+            }
+        }
         self.type_handler = {
             "boolean": self.boolean_type,
             "binary": self.binary_type,
@@ -335,7 +340,25 @@ class HybridDSDLSchema(object):
         self.module_prefixes = {}
         gpset = {}
         self.gg_level = 0
-        for module in modules: self.add_namespace(module)
+        metadata = []
+        self.has_meta = False
+        for module in modules:
+            self.add_namespace(module)
+            self.module = module
+            annots = module.search(("ietf-yang-metadata", "annotation"))
+            for ann in annots:
+                aname = (self.module_prefixes[ann.main_module().arg] + ":" +
+                         ann.arg)
+                optel = SchemaNode("optional")
+                atel = SchemaNode("attribute", optel).set_attr("name", aname)
+                self.handle_substmts(ann, atel)
+                metadata.append(optel)
+        if metadata:
+            self.has_meta = True
+            metel = SchemaNode.define("__yang_metadata__")
+            self.global_defs["__yang_metadata__"] = metel
+            for mattr in metadata:
+                metel.subnode(mattr)
         for module in modules[0].i_ctx.modules.values():
             if module.keyword == "module":
                 for idn in module.i_identities.values():
@@ -622,7 +645,7 @@ class HybridDSDLSchema(object):
         self.handle_substmts(dstmt, delem)
         if def_map is self.global_defs: self.gg_level -= 1
 
-    def handle_extension(self, stmt, p_elem):
+    def rng_annotation(self, stmt, p_elem):
         """Append YIN representation of extension statement `stmt`."""
         ext = stmt.i_extension
         prf, extkw = stmt.raw_keyword
@@ -843,14 +866,17 @@ class HybridDSDLSchema(object):
         try:
             method = self.stmt_handler[stmt.keyword]
         except KeyError:
-            if isinstance(stmt.keyword, tuple): # extension
-                self.handle_extension(stmt, p_elem)
+            if isinstance(stmt.keyword, tuple):
+                try:
+                    method = self.ext_handler[stmt.keyword[0]][stmt.keyword[1]]
+                except KeyError:
+                    method = self.rng_annotation
+                method(stmt, p_elem)
                 return
             else:
                 raise error.EmitError(
                     "Unknown keyword %s - this should not happen.\n"
                     % stmt.keyword)
-
         method(stmt, p_elem, pset)
 
     def handle_substmts(self, stmt, p_elem, pset={}):
@@ -917,6 +943,9 @@ class HybridDSDLSchema(object):
         
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.qname(stmt), p_elem)
+        if self.has_meta:
+            celem.annot(
+                SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
         left = self.lookup_expand(stmt, list(new_pset.keys()))
         for a in augs:
@@ -950,6 +979,9 @@ class HybridDSDLSchema(object):
     def leaf_stmt(self, stmt, p_elem, pset):
         qname = self.qname(stmt)
         elem = SchemaNode.element(qname)
+        if self.has_meta:
+            elem.annot(
+                SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         if p_elem.name == "_list_" and qname in p_elem.keys:
             p_elem.keymap[qname] = elem
             elem.occur = 2
@@ -973,6 +1005,9 @@ class HybridDSDLSchema(object):
     def leaf_list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.leaf_list(self.qname(stmt), p_elem)
         lelem.attr["nma:leaf-list"] = "true"
+        if self.has_meta:
+            lelem.annot(
+                SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         refd = self.process_patches(pset, stmt, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
@@ -980,6 +1015,9 @@ class HybridDSDLSchema(object):
 
     def list_stmt(self, stmt, p_elem, pset):
         lelem = SchemaNode.list(self.qname(stmt), p_elem)
+        if self.has_meta:
+            lelem.annot(
+                SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         keyst = stmt.search_one("key")
         if keyst: lelem.keys = [self.add_prefix(k, stmt)
                                 for k in keyst.arg.split()]
