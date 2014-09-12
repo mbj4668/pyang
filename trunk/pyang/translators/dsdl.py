@@ -364,9 +364,6 @@ class HybridDSDLSchema(object):
             self.all_defs.update(self.local_defs)
         self.all_defs.update(self.global_defs)
         self.dc_element(self.top_grammar, "date", time.strftime("%Y-%m-%d"))
-## FIXME: how do I import pyang?
-#        self.dc_element(self.top_grammar, "creator",
-#                        "Pyang %s, DSDL plugin" % pyang.__version__)
         return self
 
     def setup_top(self):
