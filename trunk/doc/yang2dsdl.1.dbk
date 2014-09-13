@@ -87,6 +87,9 @@
     <replaceable>dir</replaceable> (current directory by
     default). Unless the option <option>-s</option> is used, this
     directory must be writable.</para>
+    <para>Metadata annotations are also supported, if they are defined
+    and used as described in <link
+    xlink:href="https://tools.ietf.org/html/draft-lhotka-netmod-yang-metadata">draft-lhotka-netmod-yang-metadata</link>.</para>
 
     <para>The script can be executed by any shell interpreter
     compatible with POSIX.2, such as

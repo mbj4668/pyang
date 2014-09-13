@@ -5,7 +5,7 @@
 
   <info>
     <author>
-      <personname>Martin Bjorklund</personname>
+      <personname>Martin Björklund</personname>
       <affiliation><orgname>Tail-f Systems</orgname></affiliation>
       <email>mbj@tail-f.com</email>
       <contrib/>
@@ -588,50 +588,44 @@
     </title>
 
     <para>
-      If pyang plugins are installed, these plugins may define
-      their own options, or add new formats to the <option>-f</option>
-      option.  These options and formats are listed in <userinput>pyang
-      -h</userinput>.
+      Installed <command>pyang</command> plugins may define their own
+      options, or add new formats to the <option>-f</option> option.
+      These options and formats are listed in <userinput>pyang -h</userinput>.
     </para>
 
     <variablelist>
       <varlistentry>
         <term><emphasis>capability</emphasis></term>
         <listitem>
-          <para>Prints a capability URL for each given module, with
-          the features and devations given.  If no features are given,
-          all features defined in the module are reported.
-          </para>
+          <para>Capability URIs for each module of the data model.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>depend</emphasis></term>
         <listitem>
-          <para>Prints a Makefile dependency rule for the module.</para>
+          <para>Makefile dependency rule for the module.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>dsdl</emphasis></term>
         <listitem>
-          <para>Hybrid DSDL schema (RELAX NG with annotations) which
-          is primarily intended as an interim product used by
-          <command>yang2dsdl</command>(1). See <link
-          xlink:href="http://tools.ietf.org/html/rfc6110">RFC
-          6110</link> for details.</para>
+	  <para>Hybrid DSDL schema, see <link
+	  xlink:href="http://tools.ietf.org/html/rfc6110">RFC
+	  6110</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>hypertree</emphasis></term>
         <listitem>
-          <para>A hyperbolic tree navigator that can be displayed
-          by treebolic.</para>
+          <para>Hyperbolic tree navigator that can be displayed by
+          <command>treebolic</command>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>jsonxsl</emphasis></term>
         <listitem>
-          <para>Generates XSLT stylesheet for transforming XML
-          instance documents into JSON.</para>
+          <para>XSLT stylesheet for transforming XML instance
+          documents to JSON.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -643,35 +637,34 @@
       <varlistentry>
         <term><emphasis>jtox</emphasis></term>
         <listitem>
-          <para>Generates a driver file for transforming JSON
-          instance documents into XML.</para>
+          <para>Driver file for transforming JSON
+          instance documents to XML.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>sample-skeleton</emphasis></term>
         <listitem>
-          <para>Generates an XML instance document containing sample
-          elements for all nodes of the data model.
-          </para>
+          <para>Skeleton of a sample XML instance document.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>tree</emphasis></term>
         <listitem>
-          <para>Prints a tree structure of the module.</para>
+          <para>Tree structure of the module.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>uml</emphasis></term>
         <listitem>
-          <para>Prints a file that can be read by plantuml to
-          generate UML diagrams.</para>
+          <para>UML file that can be read by
+          <command>plantuml</command> to generate UML diagrams.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term><emphasis>xmi</emphasis></term>
         <listitem>
-          <para>Prints a file that can be imported to ArgoUML.</para>
+          <para>XMI file that can be imported by
+          <command>ArgoUML</command>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -698,6 +691,10 @@
 
   <refsect1 xml:id="man.1.pyang.capability_output">
     <title>Capability Output</title>
+    <para>The <emphasis>capability</emphasis> prints a capability URL
+    for each module of the input data model, taking into account
+    features and deviations, as described in section 5.6.4 of <link
+    xlink:href="http://tools.ietf.org/html/rfc6020">RFC 6020</link>.</para>
     <para>
       Options for the <emphasis>capability</emphasis> output format:
     </para>
@@ -741,7 +738,7 @@
         <term><option>--depend-target</option></term>
         <listitem>
           <para>
-            Makefile rule target.  Default is the modulename.
+            Makefile rule target.  Default is the module name.
           </para>
         </listitem>
       </varlistentry>
@@ -786,6 +783,15 @@
 
   <refsect1 xml:id="man.1.pyang.dsdl_output">
     <title>DSDL Output</title>
+     <para>The <emphasis>dsdl</emphasis> output takes a data model
+     consisting of one or more YANG modules and generates a hybrid
+     DSDL schema as described in <link
+     xlink:href="http://tools.ietf.org/html/rfc6110">RFC
+     6110</link>. The hybrid schema is primarily intended as an
+     interim product used by <command>yang2dsdl</command>(1).</para>
+     <para>The <emphasis>dsdl</emphasis> plugin also supports metadata
+     annotations, if they are defined and used as described in <link
+     xlink:href="https://tools.ietf.org/html/draft-lhotka-netmod-yang-metadata">draft-lhotka-netmod-yang-metadata</link>.</para>
     <para>
       Options for the <emphasis>dsdl</emphasis> output format:
     </para>
@@ -823,8 +829,8 @@
     <title>hypertree output</title>
     <para>
       The <emphasis>hypertree</emphasis> output generates a hyperbolic YANG
-      browser. The generated xml file can be imported to treebolic.
-      Download treebolic from http://treebolic.sourceforge.net/en/index.html.
+      browser. The generated xml file can be imported to <command>treebolic</command>
+      (<uri>http://treebolic.sourceforge.net/en/</uri>).
     </para>
     <para>
       Color coding in the tree:
@@ -1105,10 +1111,12 @@
   <refsect1 xml:id="man.1.pyang.uml_output">
     <title>UML Output</title>
     <para>
-      The <emphasis>uml</emphasis> output prints an output that can
-      be used as input-file to plantuml in order to generate a UML diagram.
-      Download the plantuml jar-file from http://plantuml.sourceforge.net. Note
-      that it requires graphviz, http://www.graphviz.org/.
+      The <emphasis>uml</emphasis> output prints an output that can be
+      used as input-file to <command>plantuml</command>
+      (<uri>http://plantuml.sourceforge.net</uri>) in order to
+      generate a UML diagram.  Note that it requires
+      <command>graphviz</command>
+      (<uri>http://www.graphviz.org/</uri>).
     </para>
     <para>
       For large diagrams you may need to increase the Java heap-size
@@ -1290,7 +1298,7 @@
   <refsect1 xml:id="man.1.pyang.xsd_output">
     <title>XSD Output</title>
     <para>
-      NOTE: The XSD ouput plugin is deprecated.  Use the dsdl plugin
+      NOTE: The XSD output plugin is deprecated.  Use the dsdl plugin
       instead.
     </para>
     <para>
