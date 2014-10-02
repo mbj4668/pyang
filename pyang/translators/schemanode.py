@@ -199,7 +199,7 @@ class SchemaNode(object):
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
         middle = self._chorder() if self.children else "<empty/>%s"
-        return (self.start_tag() + self.serialize_annots()
+        return (self.start_tag() + self.serialize_annots().replace("%", "%%")
                 + middle + self.end_tag())
 
     def _element_format(self, occur):
@@ -214,7 +214,8 @@ class SchemaNode(object):
             else:
                 self.attr["nma:implicit"] = "true"
         middle = self._chorder() if self.children else "<empty/>%s"
-        fmt = self.start_tag() + self.serialize_annots() + middle + self.end_tag()
+        fmt = (self.start_tag() + self.serialize_annots().replace("%", "%%") +
+               middle + self.end_tag())
         if (occ == 2 or self.parent.name == "choice"
             or self.parent.name == "case" and len(self.parent.children) == 1):
             return fmt
@@ -245,7 +246,7 @@ class SchemaNode(object):
                 self.attr["nma:min-elements"] = self.minEl
         middle = self._chorder() if self.children else "<empty/>%s"
         return ("<" + ord_ + ">" + self.start_tag("element") +
-                self.serialize_annots() + keys +
+                (self.serialize_annots() + keys).replace("%", "%%")  +
                 middle + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self, occur):
