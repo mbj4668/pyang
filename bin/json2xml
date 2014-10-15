@@ -137,7 +137,8 @@ class Translator:
                         el.insert(0,knode)
                     i += 1
             elif node_spec[0] == "leaf":
-                self.handle_leaf(job, node_spec[1], mod_name, qn, xml_parent, new_path)
+                self.handle_leaf(node_spec, job, node_spec[1], mod_name,
+                                 qn, xml_parent, new_path)
             elif node_spec[0] == "leaf-list":
                 i = 0
                 for child in job:
@@ -151,7 +152,7 @@ class Translator:
                 else:
                     el.text = str(job)
 
-    def handle_leaf(self, value, ytyp, mod_name, leaf_name, xml_parent, path):
+    def handle_leaf(self, node_spec, value, ytyp, mod_name, leaf_name, xml_parent, path):
         """Install the transformed leaf with `value` under `xml_parent`."""
         tval = self.text_value(value, ytyp, mod_name, path)
         if tval is None :
