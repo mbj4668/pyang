@@ -36,16 +36,16 @@ ss = ET.Element("stylesheet",
 """Root element of the output XSLT stylesheet."""
 
 type_class = dict((t,"unquoted") for t in
-                  ("boolean", "int8", "int16", "int32", "int64",
-                   "uint8", "uint16", "uint32", "uint64"))
+                  ("boolean", "int8", "int16", "int32",
+                   "uint8", "uint16", "uint32"))
 """Classification of types suited for JSON translation."""
 
 type_class.update((t,t) for t in
                   ("empty", "instance-identifier", "identityref", "string"))
 
 union_class = dict((t,"integer") for t in
-                   ("int8", "int16", "int32", "int64",
-                   "uint8", "uint16", "uint32", "uint64"))
+                   ("int8", "int16", "int32",
+                   "uint8", "uint16", "uint32"))
 """Classification of types needed for resolving union-typed values."""
 
 union_class.update({"boolean": "boolean"})
@@ -162,8 +162,6 @@ class JsonXslPlugin(plugin.PyangPlugin):
         if len(types) == 1:
             if ftyp in type_class:
                 jtyp = type_class[ftyp]
-            elif ftyp.startswith("decimal@"):
-                jtyp = "unquoted"
             else:
                 jtyp = "other"
             self.xsl_withparam("type", jtyp, ct)
@@ -175,7 +173,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
             for t in types:
                 if t in union_class:
                     ut = union_class[t]
-                elif t.startswith("decimal@"):
+                elif t in ["int64", "uint64"] or t.startswith("decimal@"):
                     ut = t
                 else:
                     ut = "other"    
