@@ -144,9 +144,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
             tmpl = self.xsl_template(p)
             ct = self.xsl_calltemplate(ch.keyword, tmpl)
             self.xsl_withparam("level", "%d" % level, ct)
-            siblings = self.top_names if node.keyword == "module" else [
-                c.arg for c in chs ]
-            if siblings.count(ch.arg) > 1:
+            if ch.i_module is not ch.parent.i_module:
                 self.xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
             if ch.keyword in ["leaf", "leaf-list"]:
                 self.type_param(ch, ct)
