@@ -116,11 +116,15 @@
       <xsl:when test="string-length($options) &gt; 0">
 	<xsl:variable name="fst" select="substring-before($options,',')"/>
 	<xsl:choose>
-	  <xsl:when test="$type=$fst or starts-with($fst,'decimal@')
+	  <xsl:when test="($fst='int64' or $fst='uint64') and $type='integer'
+			  or (starts-with($fst,'decimal@')
 			  and ($type='integer' or
 			  starts-with($type,'decimal@') and
 			  substring-after($type,'@') &lt;=
-			  substring-after($fst,'@'))">
+			  substring-after($fst,'@')))">
+	    <xsl:text>other</xsl:text>
+	  </xsl:when>
+	  <xsl:when test="$type=$fst">
 	    <xsl:value-of select="$fst"/>
 	  </xsl:when>
 	  <xsl:otherwise>
@@ -132,7 +136,12 @@
 	  </xsl:otherwise>
 	</xsl:choose>
       </xsl:when>
-      <xsl:otherwise>other</xsl:otherwise>
+      <xsl:otherwise>
+	<xsl:message terminate="no">
+	  <xsl:text>*** Warning: invalid XML document</xsl:text>
+	</xsl:message>
+	<xsl:text>other</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
