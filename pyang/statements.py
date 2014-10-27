@@ -2453,6 +2453,10 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             ptr.i_config == False and not accept_non_config_target):
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, ptr.arg, ptr.pos))
+        if ptr == stmt:
+            err_add(ctx.errors, pathpos, 'CIRCULAR_DEPENDENCY',
+                    ('leafref', path.arg))
+            return None
         return ptr, expanded_path, path_list
     except NotFound:
         return None

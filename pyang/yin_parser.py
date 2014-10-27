@@ -126,7 +126,8 @@ class YinParser(object):
                 arg = e.find_attribute(argname)
                 # create and save the top-level statement here, so
                 # we get a correct Statement in pos.
-                stmt = statements.Statement(None, None, e.pos, e.local_name, arg)
+                stmt = statements.Statement(None, None,
+                                            e.pos, e.local_name, arg)
                 self.top = stmt
                 self.pos.top = stmt
             except:
@@ -206,7 +207,7 @@ class YinParser(object):
             arg = None
 
         self.check_attr(e.pos, e.attrs)
-            
+
         if parent is not None:
             stmt = statements.Statement(self.top, parent, e.pos, keywd, arg)
             parent.substmts.append(stmt)
@@ -215,7 +216,7 @@ class YinParser(object):
 
         for ch in e.children:
             self.create_statement(ch, stmt)
-            
+
     def check_attr(self, pos, attrs):
         """Check for unknown attributes."""
 
@@ -238,7 +239,7 @@ class YinParser(object):
         # imported modules, but for extensions defined in the local
         # module we have to check if the extension's URI is
         # the local URI.
-        # 
+        #
         # If we're a submodule, we need to find our module's
         # namespace, so we need to parse the module :(
 
@@ -308,7 +309,7 @@ class YinParser(object):
                                     prefix = p.find_attribute('value')
                                     if prefix is not None:
                                         self.prefixmap[ns.arg] = prefix
-                            
+
             elif (ch.ns == yin_namespace and ch.local_name == 'include' and
                   'no_include' not in self.extra):
                 modname = ch.find_attribute('module')
