@@ -260,6 +260,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
                 sys.exit(1)
             m = r.search(filename)
+            ctx.yin_module_map = {}
             if m is not None:
                 (name, _dummy, rev, format) = m.groups()
                 name = os.path.basename(name)

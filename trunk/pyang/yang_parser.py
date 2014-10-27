@@ -48,7 +48,7 @@ class YangTokenizer(object):
             else:
                 self.offset += (buflen - len(self.buf))
                 break
-            
+
         # skip line comment
         if self.buf[0] == '/':
             if self.buf[1] == '/':
@@ -84,7 +84,7 @@ class YangTokenizer(object):
                               'SYNTAX_ERROR', 'expected separator, got: "' +
                               self.buf[:6] + '..."')
                 raise error.Abort
-            
+
 
             if m.group(2) == None: # no prefix
                 return m.group(3)
@@ -106,11 +106,11 @@ class YangTokenizer(object):
     def skip_tok(self):
         self.skip()
         self.set_buf(1)
-    
+
     def get_string(self, need_quote=False):
         """ret: string"""
         self.skip()
-        
+
         if self.buf[0] == ';' or self.buf[0] == '{' or self.buf[0] == '}':
             error.err_add(self.errors, self.pos,
                           'EXPECTED_ARGUMENT', self.buf[0])
@@ -122,7 +122,7 @@ class YangTokenizer(object):
             # for single-quoted string, keep going until end quote is found.
             quote_char = self.buf[0]
             # collect output in strs (list of strings)
-            strs = [] 
+            strs = []
             # remember position of " character
             indentpos = self.offset
             i = 1
@@ -241,7 +241,7 @@ class YangParser(object):
         if self.top is None:
             self.pos.top = stmt
             self.top = stmt
- 
+
         # check for substatements
         tok = self.tokenizer.peek()
         if tok == '{':
@@ -278,4 +278,4 @@ def pp(s, indent=0):
         for ss in s.substmts:
             pp(ss, indent+4)
         sys.stdout.write(" " * indent + "}\n")
-        
+
