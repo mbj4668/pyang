@@ -142,7 +142,7 @@ class Translator:
             elif node_spec[0] == "leaf-list":
                 i = 0
                 for child in job:
-                    self.handle_leaf(child, node_spec[1], mod_name, qn,
+                    self.handle_leaf(node_spec, child, node_spec[1], mod_name, qn,
                                      xml_parent, new_path + "/%d" % i)
                     i += 1
             elif node_spec[0] == "anyxml":
