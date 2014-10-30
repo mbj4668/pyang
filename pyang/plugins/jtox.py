@@ -16,9 +16,9 @@
 
 """JTOX output plugin
 
-This plugin takes a YANG data model and produces a JSON driver file that can
-be used by the *json2xml* script for translating a valid JSON configuration, or config into
-XML.
+This plugin takes a YANG data model and produces a JSON driver file
+that can be used by the *json2xml* script for translating a valid JSON
+configuration or state data to XML.
 """
 
 import os
