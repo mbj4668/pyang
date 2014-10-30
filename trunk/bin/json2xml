@@ -58,7 +58,7 @@ class JSONError(Error):
     """Exception raised for broken JSON input."""
     
     def __str__(self):
-        return (Error.__str__(self) + " - broken JSON data")
+        return (self.path.__str__())
 
 class Translator:
     """Translate JSON to XML according to a YANG data model.
@@ -92,7 +92,10 @@ class Translator:
 
     def translate(self, json_doc, xml_root):
         """Translate `json_doc` and attach the result under `xml_root`."""
-        d = json.load(json_doc) if isinstance(json_doc, file) else json.loads(json_doc)
+        try:
+            d = json.load(json_doc) if isinstance(json_doc, file) else json.loads(json_doc)
+        except ValueError, e:
+            raise JSONError(e)
         return self.translate_obj(d, None, self.jtox["tree"], xml_root, "/")
         
     def translate_obj(self, json_obj, ns, node, xml_parent, path):
