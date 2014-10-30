@@ -202,14 +202,17 @@
   <xsl:template name="eat-quoted">
     <xsl:param name="text"/>
     <xsl:param name="qch">'</xsl:param>
+    <xsl:param name="oldprf"/>
     <xsl:value-of select="concat(substring-before($text,$qch),$qch)"/>
     <xsl:call-template name="eat-unquoted">
       <xsl:with-param name="text" select="substring-after($text,$qch)"/>
+      <xsl:with-param name="oldprf" select="$oldprf"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template name="eat-unquoted">
     <xsl:param name="text"/>
+    <xsl:param name="oldprf"/>
     <xsl:if test="string-length($text) &gt; 0">
       <xsl:variable name="first" select="substring($text,1,1)"/>
       <xsl:variable name="quotes">'"</xsl:variable>
@@ -217,23 +220,41 @@
       <xsl:choose>
 	<xsl:when test="$first='/' or $first='[' and
 			string-length(substring-before($text,':'))
-			&lt; string-length(substring-before($text,']'))">
-	  <xsl:call-template name="translate-prefix">
-	    <xsl:with-param name="prf" select="substring-before(substring($text,2),':')"/>
-	  </xsl:call-template>
-	  <xsl:call-template name="eat-unquoted">
-	    <xsl:with-param name="text" select="substring-after($text,':')"/>
-	  </xsl:call-template>
+			&lt;
+			string-length(substring-before($text,']'))">
+	  <xsl:variable name="prf"
+			select="substring-before(substring($text,2),':')"/>
+	  <xsl:choose>
+	    <xsl:when test="$prf=$oldprf">
+	      <xsl:call-template name="eat-unquoted">
+		<xsl:with-param name="text"
+				select="substring-after($text,':')"/>
+		<xsl:with-param name="oldprf" select="$oldprf"/>
+	      </xsl:call-template>
+	    </xsl:when>
+	    <xsl:otherwise>
+	      <xsl:call-template name="translate-prefix">
+		<xsl:with-param name="prf" select="$prf"/>
+	      </xsl:call-template>
+	      <xsl:call-template name="eat-unquoted">
+		<xsl:with-param name="text"
+				select="substring-after($text,':')"/>
+		<xsl:with-param name="oldprf" select="$prf"/>
+	      </xsl:call-template>
+	    </xsl:otherwise>
+	  </xsl:choose>
 	</xsl:when>
 	<xsl:when test="contains($quotes,$first)">
 	  <xsl:call-template name="eat-quoted">
 	    <xsl:with-param name="text" select="substring($text,2)"/>
 	    <xsl:with-param name="qch" select="$first"/>
+	    <xsl:with-param name="oldprf" select="$oldprf"/>
 	  </xsl:call-template>
 	</xsl:when>
 	<xsl:otherwise>
 	  <xsl:call-template name="eat-unquoted">
 	    <xsl:with-param name="text" select="substring($text,2)"/>
+	    <xsl:with-param name="oldprf" select="$oldprf"/>
 	  </xsl:call-template>
 	</xsl:otherwise>
       </xsl:choose>
