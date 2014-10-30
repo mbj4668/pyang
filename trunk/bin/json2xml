@@ -3,6 +3,7 @@
 import sys
 import os
 import numbers
+from decimal import Decimal
 import re
 import argparse
 import json
@@ -29,7 +30,7 @@ class DataTypeError(Error):
 
     def __str__(self):
         return (Error.__str__(self) +
-                ': "%s" is not a valid value of "%s" type' % (str(self.value), self.type))
+                ' - "%s" is not a valid value of "%s" type' % (str(self.value), self.type))
 
 class NodeTypeError(Error):
     """Exception raised if the JSON object type doesn't fit the data model."""
@@ -39,25 +40,25 @@ class NodeTypeError(Error):
         self.node_type = node_type
 
     def __str__(self):
-        return (Error.__str__(self) + ":  must be a " + self.node_type)
+        return (Error.__str__(self) + " -  must be a " + self.node_type)
 
 class InvalidNodeError(Error):
     """Exception raised for nodes that are not found in the data model."""
 
     def __str__(self):
-        return (Error.__str__(self) + ": invalid node")
+        return (Error.__str__(self) + " - invalid node")
 
-class AmbiguousNameError(Error):
-    """Exception raised for nodes whose unqualified name is ambiguous."""
+class InvalidNSError(Error):
+    """Exception raised when the namespace encoding in JSON is invalid."""
 
     def __str__(self):
-        return (Error.__str__(self) + ": ambiguous name (needs module prefix)")
+        return (Error.__str__(self) + " - invalid namespace encoding")
 
 class JSONError(Error):
     """Exception raised for broken JSON input."""
     
     def __str__(self):
-        return (Error.__str__(self) + ": broken JSON data")
+        return (Error.__str__(self) + " - broken JSON data")
 
 class Translator:
     """Translate JSON to XML according to a YANG data model.
@@ -69,7 +70,7 @@ class Translator:
     - `self.uri`: dictionary mapping module names to namespace URI
 
     - `self.qn_re`, self.num_re`, `self.bra_re`: compiled regular
-      expressions used for matching parts of instance identifiers.
+      expressions.
     """
 
     def __init__(self, jtox):
@@ -92,14 +93,16 @@ class Translator:
     def translate(self, json_doc, xml_root):
         """Translate `json_doc` and attach the result under `xml_root`."""
         d = json.load(json_doc) if isinstance(json_doc, file) else json.loads(json_doc)
-        return self.translate_obj(d, self.jtox["tree"], xml_root, "/")
+        return self.translate_obj(d, None, self.jtox["tree"], xml_root, "/")
         
-    def translate_obj(self, json_obj, node, xml_parent, path):
+    def translate_obj(self, json_obj, ns, node, xml_parent, path):
         """Translate object and attach it to the output XML tree.
 
         Arguments:
 
         - `json_obj`: JSON object to translate,
+
+        - `ns`: current namespace (module name)
 
         - `node`: corresponding schema node in the jtox driver structure,
 
@@ -111,14 +114,14 @@ class Translator:
         for key in json_obj:
             job = json_obj[key]
             new_path = path + key
-            tag, mod_name, node_spec = self.node_lookup(key, node, new_path)
+            tag, mod_name, node_spec = self.node_lookup(key, ns, node, new_path)
             self.node_modules.add(mod_name)
             qn = self.et_qname(mod_name, tag)
             if node_spec[0] == "container":
                 if not isinstance(job, dict):
                     raise NodeTypeError(new_path, "container")
                 el = ET.SubElement(xml_parent, qn)
-                self.translate_obj(job, node_spec[1], el, new_path + "/")
+                self.translate_obj(job, mod_name, node_spec[1], el, new_path + "/")
             elif node_spec[0] == "list":
                 if not isinstance(job, list) or job == [None]:
                     raise NodeTypeError(new_path, "list")
@@ -127,7 +130,8 @@ class Translator:
                     if not isinstance(child, dict):
                         raise NodeTypeError(new_path, "list")
                     el = ET.SubElement(xml_parent, qn)
-                    self.translate_obj(child, node_spec[1], el, new_path + "/%d" % i)
+                    self.translate_obj(child, mod_name, node_spec[1],
+                                       el, new_path + "/%d/" % i)
                     # Rearrange the subtree so that keys come first and in order
                     keys = node_spec[2]
                     keys.reverse()
@@ -137,12 +141,12 @@ class Translator:
                         el.insert(0,knode)
                     i += 1
             elif node_spec[0] == "leaf":
-                self.handle_leaf(node_spec, job, node_spec[1], mod_name,
+                self.handle_leaf(node_spec, job, ns, node_spec[1], mod_name,
                                  qn, xml_parent, new_path)
             elif node_spec[0] == "leaf-list":
                 i = 0
                 for child in job:
-                    self.handle_leaf(node_spec, child, node_spec[1], mod_name, qn,
+                    self.handle_leaf(node_spec, child, ns, node_spec[1], mod_name, qn,
                                      xml_parent, new_path + "/%d" % i)
                     i += 1
             elif node_spec[0] == "anyxml":
@@ -152,9 +156,9 @@ class Translator:
                 else:
                     el.text = str(job)
 
-    def handle_leaf(self, node_spec, value, ytyp, mod_name, leaf_name, xml_parent, path):
+    def handle_leaf(self, node_spec, value, ns, ytyp, mod_name, leaf_name, xml_parent, path):
         """Install the transformed leaf with `value` under `xml_parent`."""
-        tval = self.text_value(value, ytyp, mod_name, path)
+        tval = self.text_value(value, ns, ytyp, mod_name, path)
         if tval is None :
             tsp = ytyp[0] if isinstance(node_spec[1], list) else ytyp
             raise DataTypeError(path, tsp, value)
@@ -179,21 +183,23 @@ class Translator:
                 el = ET.SubElement(parent, ch)
                 el.text = str(cobj)
 
-    def node_lookup(self, name, parent, path):
+    def node_lookup(self, name, ns, parent, path):
         """Return tag, module name and node specification for `name`."""
+        fst, sep, snd = name.partition(":")
+        if sep:
+            if fst == ns:
+                raise InvalidNSError(path)
+            m = fst
+            t = snd
+        else:
+            m = ns
+            t = fst
         try:
-            if ":" in name:
-                m, t = name.split(":")
-                return (t, m, parent[t][m])
-            else:
-                alts = parent[name]
-                if len(alts) > 1:
-                    raise AmbiguousNameError(path)
-                return (name,) + alts.items()[0]
+            return (t, m, parent[t][m])
         except KeyError:
             raise InvalidNodeError(path)
 
-    def text_value(self, value, type_spec, mod_name, path):
+    def text_value(self, value, ns, type_spec, mod_name, path):
         """Return `value` translated to its XML form.
 
         Return `None` if `value` cannot be represented as an instance
@@ -209,22 +215,46 @@ class Translator:
 
         - `path`: path of the node containing `value` (for error reporting)
         """
+        def handle_int(value, bits, unsigned):
+            try:
+                if (bits == 64 and isinstance(value, basestring)
+                    or isinstance(value, numbers.Integral)
+                    or isinstance(value, numbers.Real) and value.is_integer()):
+                    val = int(value)
+                else:
+                    return None
+            except:
+                return None
+            if unsigned:
+                lo = 0
+                hi = 2 ** bits
+            else:
+                hi = 2 ** (bits-1)
+                lo = -hi
+            return "%d" % val if lo <= val < hi else None  
         t = type_spec[0] if isinstance(type_spec, list) else type_spec 
         if t == 'empty':
             return "" if value == [None] else None
         if t[0:3] == "int":
-            bits = int(t[3:])
-            return "%d" % value if ((isinstance(value, numbers.Integral) or
-                 isinstance(value, numbers.Real) and value.is_integer())
-                 and -2**(bits-1) <= value < 2**(bits-1)) else None
+            return handle_int(value, int(t[3:]), False) 
         if t[0:4] == "uint":
-            bits = int(t[4:])
-            return "%d" % value if ((isinstance(value, numbers.Integral) or
-                 isinstance(value, numbers.Real) and value.is_integer())
-                 and 0 <= value < 2**bits) else None
+            return handle_int(value, int(t[4:]), True) 
         if t == "decimal64":
-            fmt = "%%.%df" % type_spec[1]
-            return fmt % value if isinstance(value, numbers.Real) else None
+            if not isinstance(value, basestring): return None
+            ip, dp, fp = value.partition('.')
+            try:
+                if dp:
+                    fp = fp.rstrip("0")
+                    if len(fp) > type_spec[1]:
+                        return None
+                    ival = int(ip + fp)
+                else:
+                    ival = int(ip)
+            except ValueError:
+                return None
+            hi = 2 ** 63
+            lo = -hi
+            return ip + dp + fp if lo <= ival < hi else None
         if t == "boolean":
             if value is True:
                 return "true"
@@ -234,7 +264,7 @@ class Translator:
                 return None
         if t == "union":
             for memb in type_spec[1]:
-                tval = self.text_value(value, memb, mod_name, path)
+                tval = self.text_value(value, ns, memb, mod_name, path)
                 if tval is not None: return tval
             return None
         if t == "identityref":
@@ -249,12 +279,13 @@ class Translator:
             node = self.jtox["tree"]
             try:
                 rest = value.strip()
+                m = None
                 while len(rest) > 0:
                     result += rest[0]
                     zb = rest[1:]
                     if rest[0] == "/":
                         mo = self.qn_re.search(zb)
-                        t, m, spec = self.node_lookup(mo.group(1), node, path)
+                        t, m, spec = self.node_lookup(mo.group(1), m, node, path)
                         result += self.prefix[m] + ":" + t
                         rest = mo.group(2)
                         if spec[0] in ("container", "list"):
@@ -263,7 +294,7 @@ class Translator:
                         mo = self.num_re.search(zb)
                         if mo is None:
                             mo = self.qn_re.search(zb)
-                            t, m, spec = self.node_lookup(mo.group(1), node, path)
+                            t, m, spec = self.node_lookup(mo.group(1), m, node, path)
                             result +=  self.prefix[m] + ":" + t + "="
                             mo = self.bra_re.search(mo.group(2))
                         result += mo.group(1).strip() + "]"

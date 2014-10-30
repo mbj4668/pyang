@@ -1,7 +1,7 @@
 {
-  "subtop": {
-    "amod:baz": "192.168.1.10",
-    "pac": [
+  "amod:subtop": {
+    "baz": "192.168.1.10",
+    "bmod:pac": [
       {
         "k1": 0,
         "k2": "w/o]",
@@ -10,7 +10,7 @@
     ],
     "bmod:baz": false
   },
-  "top": {
+  "amod:top": {
     "junk": {
       "two": [
         "deux",
@@ -19,18 +19,19 @@
       "one": "1"
     },
     "baz": [
-      3.1415,
-      "2.71828"
+      "3.141592653589793238",
+      "2.718281828459045235"
     ],
-    "mek": 42.99,
-    "abar": "/amod:subtop/bmod:pac[bmod:k1=\"0\"][bmod:k2='w/o]']/bmod:pusu",
-    "amod:bar": [null],
+    "mek": "4142135623730950488",
+    "bmod:abar": "/amod:subtop/bmod:pac[k1=\"0\"][k2='w/o]']/pusu",
+    "bar": [null],
     "pac": [
       "yes",
       0,
       true
     ],
-    "foo": 42.99,
+      "foo": "4142135623730950488",
+      
     "bmod:bar": "foo.example.com"
   }
 }

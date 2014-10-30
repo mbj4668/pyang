@@ -20,9 +20,7 @@
       </type>
     </typedef>
     <leaf name="foo">
-      <type name="decimal64">
-	<fraction-digits value="2"/>
-      </type>
+      <type name="int64"/>
       <default value="-1"/>
     </leaf>
     <leaf-list name="pac">
@@ -32,11 +30,8 @@
       <type name="empty"/>
     </leaf>
     <leaf-list name="baz">
-      <type name="union">
-	<type name="decimal64">
-	  <fraction-digits value="4"/>
-	</type>
-	<type name="string"/>
+      <type name="decimal64">
+	<fraction-digits value="18"/>
       </type>
     </leaf-list>
     <leaf name="mek">
