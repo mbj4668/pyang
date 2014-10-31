@@ -7,19 +7,18 @@
   <import module="amod">
     <prefix value="a"/>
   </import>
-  <import module="ietf-inet-types">
-    <prefix value="inet"/>
-  </import>
-  <import module="iana-if-type">
-    <prefix value="ianaift"/>
-  </import>
-  <typedef name="mytyp">
-    <type name="inet:host"/>
+  <typedef name="octet">
+    <type name="union">
+      <type name="uint8"/>
+      <type name="string">
+	<pattern value="0x[0-9a-fA-F]{1,2}"/>
+      </type>
+    </type>
   </typedef>
   <augment target-node="/a:top">
     <leaf name="bar">
       <if-feature name="a:abc"/>
-      <type name="mytyp"/>
+      <type name="octet"/>
     </leaf>
     <leaf name="abar">
       <type name="instance-identifier">
@@ -29,7 +28,7 @@
   </augment>
   <augment target-node="/a:subtop">
     <leaf name="baz">
-      <type name="boolean"/>
+      <type name="octet"/>
     </leaf>
     <list name="pac">
       <key value="k1 k2"/>
@@ -41,7 +40,7 @@
       </leaf>
       <leaf name="pusu">
 	<type name="identityref">
-	  <base name="ianaift:iana-interface-type"/>
+	  <base name="a:bogus"/>
 	</type>
       </leaf>
     </list>

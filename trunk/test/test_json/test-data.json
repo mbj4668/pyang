@@ -1,20 +1,20 @@
 {
   "amod:subtop": {
-    "baz": "192.168.1.10",
+    "baz": false,
     "bmod:pac": [
       {
-        "k1": 0,
-        "k2": "w/o]",
-        "pusu": "iana-if-type:coffee"
+	"k1": 0,
+	"k2": "w/o]",
+	"pusu": "amod:foo"
       }
     ],
-    "bmod:baz": false
+    "bmod:baz": 42
   },
   "amod:top": {
     "junk": {
       "two": [
-        "deux",
-        "zwei"
+	"deux",
+	"zwei"
       ],
       "one": "1"
     },
@@ -30,8 +30,8 @@
       0,
       true
     ],
-      "foo": "4142135623730950488",
-      
-    "bmod:bar": "foo.example.com"
+    "foo": "4142135623730950488",
+    
+    "bmod:bar": "0xFE"
   }
 }
