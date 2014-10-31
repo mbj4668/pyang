@@ -6,6 +6,13 @@
   <prefix value="a"/>
   <include module="asub"/>
   <feature name="abc"/>
+  <identity name="bogus"/>
+  <identity name="foo">
+    <base name="bogus"/>
+  </identity>
+  <identity name="bar">
+    <base name="bogus"/>
+  </identity>
   <container name="top">
     <typedef name="bool">
       <type name="union">
