@@ -221,7 +221,7 @@ class Translator:
         def handle_int(value, bits, unsigned):
             try:
                 if (bits == 64 and isinstance(value, basestring)
-                    or isinstance(value, numbers.Integral)
+                    or isinstance(value, int) and not isinstance(value, bool)
                     or isinstance(value, numbers.Real) and value.is_integer()):
                     val = int(value)
                 else:
