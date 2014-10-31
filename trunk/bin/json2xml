@@ -52,7 +52,7 @@ class InvalidNSError(Error):
     """Exception raised when the namespace encoding in JSON is invalid."""
 
     def __str__(self):
-        return (Error.__str__(self) + " - invalid namespace encoding")
+        return (Error.__str__(self) + " - invalid namespace identifier")
 
 class JSONError(Error):
     """Exception raised for broken JSON input."""
@@ -275,8 +275,11 @@ class Translator:
                 comp = value.split(":")
             except TypeError:
                 return None
-            return (value if len(comp) == 1
-                    else self.prefix[comp[0]] + ":" + comp[1])
+            try:
+                return (value if len(comp) == 1
+                        else self.prefix[comp[0]] + ":" + comp[1])
+            except KeyError:
+                raise InvalidNSError(path)
         if t == "instance-identifier":
             result = ""
             node = self.jtox["tree"]
