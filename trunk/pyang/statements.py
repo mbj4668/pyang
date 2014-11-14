@@ -1800,6 +1800,15 @@ def v_xpath(ctx, stmt):
                     prefix = s[:i]
                     prefix_to_module(stmt.i_module, prefix, stmt.pos,
                                      ctx.errors)
+            elif tokname == 'literal':
+                # kind of hack to detect qnames
+                if s[0] == s[-1] and s[0] in ("'", '"'):
+                    s = s[1:-1]
+                    i = s.find(':')
+                    if i != -1:
+                        prefix = s[:i]
+                        prefix_to_module(stmt.i_module, prefix, stmt.pos,
+                                        ctx.errors)
             elif ctx.lax_xpath_checks == True:
                 pass
             elif tokname == 'variable':
