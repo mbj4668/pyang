@@ -1,0 +1,10 @@
+module testref {
+  namespace "http://example.com/testref";
+  prefix tr;
+
+  leaf foo {
+    type leafref {
+      path "/foo";
+    }
+  }
+}
