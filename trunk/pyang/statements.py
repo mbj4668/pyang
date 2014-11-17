@@ -771,6 +771,7 @@ def v_type_type(ctx, stmt):
             path_spec = types.validate_path_expr(ctx.errors, path)
             if path_spec is not None:
                 stmt.i_type_spec = types.PathTypeSpec(path_spec, path, path.pos)
+                stmt.i_type_spec.i_source_stmt = stmt
 
     # check the base restriction
     base = stmt.search_one('base')
@@ -1428,8 +1429,13 @@ def v_inherit_properties(ctx, stmt, child=None):
         iter(child, stmt.i_config, True)
         return
 
-    for s in stmt.search('grouping') + stmt.search('augment'):
+    for s in stmt.search('grouping'):
         iter(s, None, True)
+    for s in stmt.search('augment'):
+        if hasattr(stmt,'i_config'):
+           iter(s, stmt.i_config, True)
+        else:
+           iter(s, True, True)
     for s in stmt.i_children:
         if s.keyword in _keywords_with_no_explicit_config:
             iter(s, None, False)
@@ -1819,7 +1825,7 @@ def v_xpath(ctx, stmt):
                 err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
 
     except SyntaxError as e:
-          err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
+        err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
 def v_reference_when(ctx, stmt):
     v_xpath(ctx, stmt)
@@ -2065,9 +2071,12 @@ def search_child(children, modulename, identifier):
                 return child
     return None
 
-def search_data_node(children, modulename, identifier):
+def search_data_node(children, modulename, identifier, last_skipped = None):
+    skip = ['choice', 'case']
+    if last_skipped is not None:
+        skip.append(last_skipped)
     for child in children:
-        if child.keyword in ['choice', 'case']:
+        if child.keyword in skip:
             r = search_data_node(child.i_children,
                                  modulename, identifier)
             if r is not None:
@@ -2283,6 +2292,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 
     def follow_path(ptr, up, dn):
         path_list = []
+        last_skipped = None
         if up == -1: # absolute path
             (pmodule, name) = find_identifier(dn[0])
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
@@ -2313,22 +2323,19 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                     # don't check the path here - check in the expanded tree
                     raise Abort
                 ptr = ptr.parent
+                while ptr.keyword in ['case', 'choice', 'input', 'output']:
+                    if ptr.keyword in ['input', 'output']:
+                        last_skipped = ptr.keyword
+                    ptr = ptr.parent
+                    if ptr is None: # or ptr.keyword == 'grouping':
+                        err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                                (stmt.arg, stmt.pos))
+                        raise NotFound
+                    # continue after the case, maybe also skip the choice
                 if ptr is None:
                     err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
-                if ptr.keyword == 'case':
-                    ptr = ptr.parent
-                    if ptr is None: # or ptr.keyword == 'grouping':
-                        err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
-                                (stmt.arg, stmt.pos))
-                        raise NotFound
-                if ptr.keyword == 'choice':
-                    ptr = ptr.parent
-                    if ptr is None: # or ptr.keyword == 'grouping':
-                        err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
-                                (stmt.arg, stmt.pos))
-                        raise NotFound
                 path_list.append(('up', ptr))
                 up = up - 1
             if ptr is None: # or ptr.keyword == 'grouping':
@@ -2379,10 +2386,12 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                 err_add(ctx.errors, pathpos, 'LEAFREF_BAD_PREDICATE',
                         (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
                 raise NotFound
-            if ptr.keyword in ['list', 'container', 'case', 'grouping',
-                               'module', 'submodule', 'input', 'output',
-                               'notification']:
-                ptr = search_data_node(ptr.i_children, module_name, name)
+            if ptr.keyword in _keyword_with_children:
+#['list', 'container', 'case', 'grouping',
+#                               'module', 'submodule', 'input', 'output',
+#                               'notification']:
+                ptr = search_data_node(ptr.i_children, module_name, name,
+                                       last_skipped)
                 if not is_submodule_included(path, ptr):
                     ptr = None
                 if ptr is None:
@@ -2523,7 +2532,8 @@ class Statement(object):
                 return ch
         return None
 
-    def copy(self, parent=None, uses=None, nocopy=[], ignore=[], copyf=None):
+    def copy(self, parent=None, uses=None, uses_top=True,
+             nocopy=[], ignore=[], copyf=None):
         new = copy.copy(self)
         new.pos = copy.copy(new.pos)
         if uses is not None:
@@ -2532,6 +2542,7 @@ class Statement(object):
             else:
                 new.i_uses = [uses]
             new.i_uses_pos = uses.pos
+            new.i_uses_top = uses_top
         if parent == None:
             new.parent = self.parent
         else:
@@ -2543,7 +2554,8 @@ class Statement(object):
             elif s.keyword in nocopy:
                 new.substmts.append(s)
             else:
-                new.substmts.append(s.copy(new, uses, nocopy, ignore, copyf))
+                new.substmts.append(s.copy(new, uses, False,
+                                           nocopy, ignore, copyf))
         if copyf is not None:
             copyf(self, new)
         return new

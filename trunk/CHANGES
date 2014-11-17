@@ -1,10 +1,29 @@
    1.5 -
-         added --features to prune the data model by removing unsupported
-           features
-         added --deviation-module to prune the data module by applying
-           devaitions from a separate module
-         added outpur plugin 'capability' to print the capability string for
+         added new plugin: 'capability' to print the capability string for
            a module
+         added new plugin: 'check-update' which can be used to compare
+           two revisions of a module and check if the update rules defined
+           in RFC 6020 are followed
+         added new plugin: 'omni' to generate OmniGraffle output
+         added new plugin: 'sample-skeleton' to generate a sample xml instance
+           skeleton document adhering to a YANG model
+         added command line flag --features to prune the data model
+           by removing unsupported features
+         added command line flag --deviation-module to prune the data model
+           by applying devaitions from a separate module
+         added command line flag --verbose (-V)
+         added doc/tutorial
+         added support for YANG meta data as defined in
+           draft-lhotka-netmod-yang-metadata
+         jstree: added command line flag --jstree-no-path
+         tree: when --depth is used, indicate pruned subtrees with '...'
+         tree: print leafref targets
+
+         #97 - check for circular leafref paths
+         #99 - missing version attribute in 'xmi' output
+         #100 - check for prefixes in qname literals in XPath expressions
+         #101 - enum fixes in 'uml' output
+         #103 - type empty now handled in 'dsdl' output
 
    1.4.1 - 2013-11-11
          #96 - 1.4 doesn't work with Pyhton 3

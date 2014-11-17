@@ -174,11 +174,12 @@ class JsonXslPlugin(plugin.PyangPlugin):
                 elif t in ["int64", "uint64"] or t.startswith("decimal@"):
                     ut = t
                 else:
-                    ut = "other"    
+                    ut = "other"
                 if ut not in opts:
                     opts.append(ut)
                     if ut == "other": break
-                    if ut == "decimal" and "integer" not in opts: opts.append("integer")
+                    if ut == "decimal" and "integer" not in opts:
+                        opts.append("integer")
             self.xsl_withparam("type", "union", ct)
             self.xsl_withparam("options", ",".join(opts) + ",", ct)
 
@@ -208,7 +209,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
 
     def xsl_template(self, name):
         """Construct an XSLT 'template' element matching `name`."""
-        return ET.SubElement(ss, "template" , match = name) 
+        return ET.SubElement(ss, "template" , match = name)
 
     def xsl_text(self, text, parent):
         """Construct an XSLT 'text' element containing `text`.

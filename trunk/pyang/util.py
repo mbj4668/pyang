@@ -25,14 +25,24 @@ def keysearch(tag, n, list):
     return None
 
 def dictsearch(val, dict):
-    n = iter(dict.items())
-    try:
-        while True:
-            (k,v) = next(n)
-            if v == val:
-                return k
-    except StopIteration:
-        return None
+    if sys.version < '3':
+        n = dict.iteritems()
+        try:
+            while True:
+                (k,v) = n.next()
+                if v == val:
+                    return k
+        except StopIteration:
+            return None
+    else:
+        n = iter(dict.items())
+        try:
+            while True:
+                (k,v) = next(n)
+                if v == val:
+                    return k
+        except StopIteration:
+            return None
 
 def is_prefixed(identifier):
     return type(identifier) == type(()) and len(identifier) == 2
@@ -49,7 +59,7 @@ def keyword_to_str(keyword):
 
 def guess_format(text):
     """Guess YANG/YIN format
-    
+
     If the first non-whitespace character is '<' then it is XML.
     Return 'yang' or 'yin'"""
     format = 'yang'

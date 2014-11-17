@@ -25,7 +25,7 @@ module e {
     }
 
   container y {
-    must "/f:gg[a='a:s']";
+    must "/f:gg[a='f:s']";
 
     leaf x {
       type int32;
