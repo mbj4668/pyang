@@ -67,9 +67,6 @@ error_codes = \
     'UNEXPECTED_KEYWORD':
       (1,
        'unexpected keyword "%s"'),
-    'UNKNOWN_KEYWORD':
-      (1,
-       'unknown keyword "%s"'),
     'UNEXPECTED_KEYWORD_1':
       (1,
        'unexpected keyword "%s", expected "%s"'),

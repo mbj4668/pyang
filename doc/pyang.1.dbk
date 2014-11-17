@@ -92,10 +92,6 @@
       If no files are given, <command>pyang</command> reads input
       from stdin, which must be one module or a server &lt;hello&gt; message.
     </para>
-    <para>
-      Only the most common options are listed here.  See below for a
-      complete list of options.
-    </para>
   </refsynopsisdiv>
 
   <refsect1 xml:id="man.1.pyang.description">
@@ -531,7 +527,7 @@
         </term>
         <listitem>
           <para>
-            Check that a new revision of a module follows the update
+            Checks that a new revision of a module follows the update
             rules given in <link
             xlink:href="http://tools.ietf.org/html/rfc6020">RFC
             6020</link>.  <emphasis>oldfile</emphasis> is the old
@@ -590,7 +586,7 @@
     <para>
       Installed <command>pyang</command> plugins may define their own
       options, or add new formats to the <option>-f</option> option.
-      These options and formats are listed in <userinput>pyang -h</userinput>.
+      These options and formats are listed in <userinput>pyang -h</userinput>.
     </para>
 
     <variablelist>
@@ -639,6 +635,13 @@
         <listitem>
           <para>Driver file for transforming JSON
           instance documents to XML.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>omni</emphasis></term>
+        <listitem>
+          <para>An applescript file that draws a diagram in
+          <command>OmniGraffle</command>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -951,18 +954,20 @@
   <refsect1 xml:id="man.1.pyang.jstree">
     <title>jstree Output</title>
     <para>
-      The <emphasis>jstree</emphasis> output prints an HTML/JavaScript
-      based YANG browser.
+      The <emphasis>jstree</emphasis> output grenerates an
+      HTML/JavaScript page that presents a tree-navigator to the given
+      YANG module(s).
     </para>
     <para>
       jstree output specific option:
     </para>
     <variablelist>
       <varlistentry>
-        <term><option>--jstree-help</option></term>
+        <term><option>--jstree-no-path</option></term>
         <listitem>
           <para>
-            Print help on jstree usage and exit.
+            Do not include paths in the output.  This option makes the
+            page less wide.
           </para>
         </listitem>
       </varlistentry>
@@ -988,6 +993,37 @@
     <para>
       See <command>json2xml</command> manual page for more information.
     </para>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.omni_output">
+    <title>Omni Output</title>
+    <para>
+      The plugin generates an
+      applescript file that draws a diagram in OmniGraffle.  Requires
+      OmniGraffle 6.  Usage:
+      <informalexample>
+        <screen>$ pyang -f omni foo.yang -o foo.scpt
+$ osascript foo.scpt</screen>
+      </informalexample>
+    </para>
+    <para>
+      omni output specific option:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--omni-path</option>
+          <replaceable>path</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Subtree to print.  The <replaceable>path</replaceable> is
+            a slash ("/") separated path to a subtree to print.  For
+            example "/nacm/groups".
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.sample-skeleton_output">

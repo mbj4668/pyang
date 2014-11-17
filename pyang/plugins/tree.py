@@ -114,7 +114,7 @@ def emit_tree(modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, ' ', path, depth)
+            print_children(chs, module, fd, ' ', path, 'data', depth)
 
         for augment in module.search('augment'):
             if (hasattr(augment.i_target_node, 'i_module') and
@@ -125,7 +125,7 @@ def emit_tree(modules, fd, depth, path):
                     printed_header = True
                 fd.write("augment %s:\n" % augment.arg)
                 print_children(augment.i_children, module, fd,
-                               ' ', path, depth)
+                               ' ', path, 'augment', depth)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -140,7 +140,7 @@ def emit_tree(modules, fd, depth, path):
                 print_header()
                 printed_header = True
             fd.write("rpcs:\n")
-            print_children(rpcs, module, fd, ' ', path, depth)
+            print_children(rpcs, module, fd, ' ', path, 'rpc', depth)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -155,9 +155,9 @@ def emit_tree(modules, fd, depth, path):
                 print_header()
                 printed_header = True
             fd.write("notifications:\n")
-            print_children(notifs, module, fd, ' ', path, depth)
+            print_children(notifs, module, fd, ' ', path, 'notification', depth)
 
-def print_children(i_children, module, fd, prefix, path, depth, width=0):
+def print_children(i_children, module, fd, prefix, path, mode, depth, width=0):
     if depth == 0:
         if i_children: fd.write(prefix + '     ...\n')
         return
@@ -178,26 +178,32 @@ def print_children(i_children, module, fd, prefix, path, depth, width=0):
         width = get_width(0, i_children)
 
     for ch in i_children:
-        if ch == i_children[-1]:
-            newprefix = prefix + '   '
-        else:
-            newprefix = prefix + '  |'
-        if ((ch.arg == 'input' or ch.arg == 'output') and
-            ch.parent.keyword == 'rpc' and
-            len(ch.i_children) == 0 and
-            ch.parent.search_one(ch.arg) is None):
+        if ((ch.keyword == 'input' or ch.keyword == 'output') and
+            len(ch.i_children) == 0):
             pass
         else:
-            print_node(ch, module, fd, newprefix, path, depth, width)
+            if (ch == i_children[-1] or
+                (i_children[-1].keyword == 'output' and
+                 len(i_children[-1].i_children) == 0)):
+                # the last test is to detect if we print input, and the
+                # next node is an empty output node; then don't add the |
+                newprefix = prefix + '   '
+            else:
+                newprefix = prefix + '  |'
+            if ch.keyword == 'input':
+                mode = 'input'
+            elif ch.keyword == 'output':
+                mode = 'output'
+            print_node(ch, module, fd, newprefix, path, mode, depth, width)
 
-def print_node(s, module, fd, prefix, path, depth, width):
+def print_node(s, module, fd, prefix, path, mode, depth, width):
     fd.write("%s%s--" % (prefix[0:-1], get_status_str(s)))
 
     if s.i_module.i_modulename == module.i_modulename:
         name = s.arg
     else:
         name = s.i_module.i_prefix + ':' + s.arg
-    flags = get_flags_str(s)
+    flags = get_flags_str(s, mode)
     if s.keyword == 'list':
         name += '*'
         fd.write(flags + " " + name)
@@ -240,9 +246,9 @@ def print_node(s, module, fd, prefix, path, depth, width):
                    if ch.arg == path[0]]
             path = path[1:]
         if s.keyword in ['choice', 'case']:
-            print_children(chs, module, fd, prefix, path, depth, width)
+            print_children(chs, module, fd, prefix, path, mode, depth, width)
         else:
-            print_children(chs, module, fd, prefix, path, depth)
+            print_children(chs, module, fd, prefix, path, mode, depth)
 
 def get_status_str(s):
     status = s.search_one('status')
@@ -253,15 +259,19 @@ def get_status_str(s):
     elif status.arg == 'obsolete':
         return 'o'
 
-def get_flags_str(s):
-    if s.keyword == 'rpc':
+def get_flags_str(s, mode):
+    if mode == 'input':
+        return "-w"
+    elif (s.keyword == 'rpc' or s.keyword == ('tailf-common', 'action')):
         return '-x'
     elif s.keyword == 'notification':
         return '-n'
     elif s.i_config == True:
         return 'rw'
-    else:
+    elif s.i_config == False or mode == 'output' or mode == 'notification':
         return 'ro'
+    else:
+        return '--'
 
 def get_typename(s):
     t = s.search_one('type')

@@ -201,7 +201,9 @@ def chk_modulename(oldmod, newmod, ctx):
         err_add(ctx.errors, newmod.pos, 'CHK_INVALID_MODULENAME', ())
 
 def chk_namespace(oldmod, newmod, ctx):
-    if oldmod.search_one('namespace').arg != newmod.search_one('namespace').arg:
+    oldns = oldmod.search_one('namespace')
+    newns = newmod.search_one('namespace')
+    if oldns is not None and newns is not None and oldns.arg != newns.arg:
         err_add(ctx.errors, newmod.pos, 'CHK_INVALID_NAMESPACE', ())
 
 def chk_revision(oldmod, newmod, ctx):
@@ -621,6 +623,9 @@ def chk_leafref(old, new, oldts, newts, ctx):
     # verify that the path refers to the same leaf
     if (not hasattr(old.parent, 'i_leafref_ptr') or
         not hasattr(new.parent, 'i_leafref_ptr')):
+        return
+    if (old.parent.i_leafref_ptr is None or
+        new.parent.i_leafref_ptr is None):
         return
     def cmp_node(optr, nptr):
         if optr.parent is None:

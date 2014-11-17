@@ -51,8 +51,6 @@ parameter may be present\&.
 If no files are given,
 \fBpyang\fR
 reads input from stdin, which must be one module or a server <hello> message\&.
-.PP
-Only the most common options are listed here\&. See below for a complete list of options\&.
 .SH "DESCRIPTION"
 .PP
 The
@@ -350,7 +348,7 @@ from where pyang is installed
 .PP
 \fB\-\-check\-update\-from\fR \fIoldfile\fR
 .RS 4
-Check that a new revision of a module follows the update rules given in
+Checks that a new revision of a module follows the update rules given in
 \m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2\&.
 \fIoldfile\fR
 is the old module and
@@ -381,7 +379,7 @@ Installed
 plugins may define their own options, or add new formats to the
 \fB\-f\fR
 option\&. These options and formats are listed in
-\fBpyang\ \&\-h\fR\&.
+\fBpyang \-h\fR\&.
 .PP
 \fIcapability\fR
 .RS 4
@@ -418,6 +416,12 @@ HTML/JavaScript tree navigator\&.
 \fIjtox\fR
 .RS 4
 Driver file for transforming JSON instance documents to XML\&.
+.RE
+.PP
+\fIomni\fR
+.RS 4
+An applescript file that draws a diagram in
+\fBOmniGraffle\fR\&.
 .RE
 .PP
 \fIsample\-skeleton\fR
@@ -692,13 +696,13 @@ distribution\&.
 .PP
 The
 \fIjstree\fR
-output prints an HTML/JavaScript based YANG browser\&.
+output grenerates an HTML/JavaScript page that presents a tree\-navigator to the given YANG module(s)\&.
 .PP
 jstree output specific option:
 .PP
-\fB\-\-jstree\-help\fR
+\fB\-\-jstree\-no\-path\fR
 .RS 4
-Print help on jstree usage and exit\&.
+Do not include paths in the output\&. This option makes the page less wide\&.
 .RE
 .SH "JTOX OUTPUT"
 .PP
@@ -718,6 +722,19 @@ option)\&.
 See
 \fBjson2xml\fR
 manual page for more information\&.
+.SH "OMNI OUTPUT"
+.PP
+The plugin generates an applescript file that draws a diagram in OmniGraffle\&. Requires OmniGraffle 6\&. Usage:
+.sp .if n \{\ .RS 4 .\} .nf $ pyang \-f omni foo\&.yang \-o foo\&.scpt $ osascript foo\&.scpt .fi .if n \{\ .RE .\}
+.PP
+omni output specific option:
+.PP
+\fB\-\-omni\-path\fR \fIpath\fR
+.RS 4
+Subtree to print\&. The
+\fIpath\fR
+is a slash ("/") separated path to a subtree to print\&. For example "/nacm/groups"\&.
+.RE
 .SH "SAMPLE-SKELETON OUTPUT"
 .PP
 The

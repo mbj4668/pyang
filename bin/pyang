@@ -10,7 +10,6 @@ from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
-from pyang import statements
 
 def run():
 
@@ -86,7 +85,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
                              "of stdout."),
-        optparse.make_option("", "--features",
+        optparse.make_option("-F", "--features",
                              metavar="FEATURES",
                              dest="features",
                              default=[],
