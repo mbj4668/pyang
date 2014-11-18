@@ -1,2 +1,4 @@
 #summary Downloads for pyang
 
+  * [https://drive.google.com/open?id=0B7sFxp9f2Ez2allHaHZCekF3TVE&authuser=0 pyang-1.5.tar.gz]
+  * [https://drive.google.com/open?id=0B7sFxp9f2Ez2TGZDMkRjdENKODA&authuser=0 pyang_src-1.5.tar.gz]
