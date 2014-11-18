@@ -1,23 +1,26 @@
-   1.5 -
+   1.5 - 2014-11-18
          added new plugin: 'capability' to print the capability string for
            a module
          added new plugin: 'check-update' which can be used to compare
            two revisions of a module and check if the update rules defined
            in RFC 6020 are followed
          added new plugin: 'omni' to generate OmniGraffle output
-         added new plugin: 'sample-skeleton' to generate a sample xml instance
-           skeleton document adhering to a YANG model
+         added new plugin: 'sample-xml-skeleton' to generate a sample xml
+           instance skeleton document adhering to a YANG model
          added command line flag --features to prune the data model
            by removing unsupported features
-         added command line flag --deviation-module to prune the data model
+         added command line flag --deviation-module to modify the data model
            by applying devaitions from a separate module
          added command line flag --verbose (-V)
+         added command line flag --ignore-errors
+         added command line flag --keep-comments (can be used by plugins)
          added doc/tutorial
          added support for YANG meta data as defined in
            draft-lhotka-netmod-yang-metadata
          jstree: added command line flag --jstree-no-path
          tree: when --depth is used, indicate pruned subtrees with '...'
          tree: print leafref targets
+         yang: print comments if --keep-comments are given
 
          #97 - check for circular leafref paths
          #99 - missing version attribute in 'xmi' output

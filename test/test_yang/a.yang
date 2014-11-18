@@ -1,0 +1,26 @@
+module a {
+  namespace "urn:a";
+  // the prefix is a
+  prefix a;
+
+  /*
+   * Typedefs
+   *   with indented line
+   */
+  typedef foo {
+    type string;
+  }
+
+  // bar
+
+  typedef bar {
+    type int32;
+  }
+
+  /* single line */
+
+
+  container x {
+  }
+
+}

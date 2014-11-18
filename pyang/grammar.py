@@ -546,7 +546,9 @@ def chk_statement(ctx, stmt, grammar, canonical=False):
 def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
     for stmt in stmts:
         stmt.is_grammatically_valid = False
-        if not util.is_prefixed(stmt.keyword):
+        if stmt.keyword == '_comment':
+            chk_grammar = False
+        elif not util.is_prefixed(stmt.keyword):
             chk_grammar = True
         else:
             (modname, _identifier) = stmt.keyword

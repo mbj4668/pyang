@@ -62,6 +62,7 @@ class PyangPlugin(object):
 
     def __init__(self):
         self.multiple_modules = False
+        self.handle_comments = False
 
     ## pyang front-end program methods
 

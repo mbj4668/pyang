@@ -8,12 +8,14 @@ import re
 identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
 prefix = identifier
 keyword = '((' + prefix + '):)?(' + identifier + ')'
+comment = '(/\*([^*]|[\r\n\s]|(\*+([^*/]|[\r\n\s])))*\*+/)|(//.*)|(/\*.*)'
 
 # no group version of keyword
 keyword_ng = '(?:(' + prefix + '):)?(?:' + identifier + ')'
 
 re_keyword = re.compile(keyword)
 re_keyword_start = re.compile('^' + keyword)
+re_comment = re.compile(comment)
 
 pos_integer = r"[1-9][0-9]*"
 nonneg_integer = r"(0|[1-9])[0-9]*"
@@ -148,6 +150,7 @@ arg_type_map = {
     "enum-arg": lambda s: chk_enum_arg(s),
     "fraction-digits-arg": lambda s: chk_fraction_digits_arg(s),
     "deviate-arg": lambda s: re_deviate.search(s) is not None,
+    "_comment": lambda s: re_comment.search(s) is not None,
     }
 """Argument type definitions.
 

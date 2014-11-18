@@ -66,6 +66,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              metavar="WARNING",
                              help="Treat each WARNING as an error.  For a " \
                                  "list of warnings, use --list-errors."),
+        optparse.make_option("--ignore-errors",
+                             dest="ignore_errors",
+                             action="store_true",
+                             help="Ignore all errors.  Use with care."),
         optparse.make_option("--canonical",
                              dest="canonical",
                              action="store_true",
@@ -125,6 +129,12 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Filename of a server's hello message is "
                              "given instead of module filename(s)."),
+        optparse.make_option("--keep-comments",
+                             dest="keep_comments",
+                             action="store_true",
+                             help="Pyang will not discard comments; \
+                                   has effect if the output plugin can \
+                                   handle comments."),
         ]
 
     optparser = optparse.OptionParser(usage, add_help_option = False)
@@ -215,6 +225,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             sys.stderr.write("unsupported format '%s'\n" % o.format)
             sys.exit(1)
         emit_obj = fmts[o.format]
+        if o.keep_comments and emit_obj.handle_comments:
+            ctx.keep_comments = True
         emit_obj.setup_fmt(ctx)
     else:
         emit_obj = None
@@ -324,6 +336,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if len(filenames) > 0:
         # first print error for the first filename given
         ctx.errors.sort(key=keyfun)
+
+    if o.ignore_errors:
+        ctx.errors = []
 
     for (epos, etag, eargs) in ctx.errors:
         if (ctx.implicit_errors == False and
