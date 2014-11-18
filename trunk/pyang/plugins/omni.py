@@ -27,12 +27,22 @@ class OmniPlugin(plugin.PyangPlugin):
 
     def add_opts(self, optparser):
         optlist = [
+            optparse.make_option("--omni-help",
+                                 dest="omni_help",
+                                 action="store_true",
+                                 help="Print help on omni usage and exit"),
+
             optparse.make_option("--omni-path",
                                  dest="omni_tree_path",
                                  help="Subtree to print"),
             ]
         g = optparser.add_option_group("OmniGraffle output specific options")
         g.add_options(optlist)
+
+    def setup_ctx(self, ctx):
+        if ctx.opts.omni_help:
+            print_help()
+            sys.exit(0)
 
     def setup_fmt(self, ctx):
         ctx.implicit_errors = False
@@ -50,6 +60,13 @@ class OmniPlugin(plugin.PyangPlugin):
         post_process(fd, ctx)
         print_omni_footer(modules, fd, path, ctx)
 
+def print_help():
+    print("""Requires OmniGraffle 6 to be installed.
+The plugin generates an applescript file that draws a diagram in OmniGraffle.
+Usage:
+$pyang -f omni foo.yang -o foo.scpt
+$osascript foo.scpt
+""")
 def print_omni_header(modules, fd, path, ctx):
     # Build doc name from module names
     name = ''
