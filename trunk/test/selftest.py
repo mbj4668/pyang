@@ -47,7 +47,7 @@ def chk_stmts():
     for (map, name) in stmtmaps:
         for stmt in map:
             targets = util.listsdelete((map,name), stmtmaps)
-            for (tmap, tname) in targets: 
+            for (tmap, tname) in targets:
                 if stmt not in tmap:
                     sys.stderr.write("Stmt %s in %s not found in %s" % \
                                          (stmt, name, tname))
@@ -65,7 +65,6 @@ def chk_stmts():
             sys.stderr.write("Stmt %s yinelem mismatch in syntax.yin_map " \
                                  "and xsd.yang_keywords" % s)
             found_error = True
-            
 
 chk_error_codes()
 chk_stmts()

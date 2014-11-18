@@ -240,6 +240,31 @@
 
       <varlistentry>
         <term>
+          <option>--ignore-errors</option>
+        </term>
+        <listitem>
+          <para>
+            Ignore errors.  Use with care.  Plugins that don't expect
+            to be invoked if there are errors present may crash.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--keep-comments</option>
+        </term>
+        <listitem>
+          <para>
+            This parameter has effect only if a plugin can handle
+            comments.  One example of such a plugin is the 'yang'
+            output format plugin.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>--canonical</option>
         </term>
         <listitem>
@@ -645,7 +670,7 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>sample-skeleton</emphasis></term>
+        <term><emphasis>sample-xml-skeleton</emphasis></term>
         <listitem>
           <para>Skeleton of a sample XML instance document.</para>
         </listitem>
@@ -1026,12 +1051,12 @@ $ osascript foo.scpt</screen>
     </variablelist>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.sample-skeleton_output">
-    <title>Sample-skeleton Output</title>
+  <refsect1 xml:id="man.1.pyang.sample-xml-skeleton_output">
+    <title>Sample-xml-skeleton Output</title>
     <para>
-      The <emphasis>sample-skeleton</emphasis> output generates an XML instance
-      document with sample elements for all nodes in the data model,
-      according to the following rules:
+      The <emphasis>sample-xml-skeleton</emphasis> output generates an
+      XML instance document with sample elements for all nodes in the
+      data model, according to the following rules:
     </para>
     <itemizedlist>
       <listitem>
@@ -1043,23 +1068,25 @@ $ osascript foo.scpt</screen>
         min-elements).</para>
       </listitem>
       <listitem>
-        <para>For a choice node, sample element(s) are present for each case.</para>
+        <para>For a choice node, sample element(s) are present for
+        each case.</para>
       </listitem>
       <listitem>
         <para>Leaf, leaf-list and anyxml elements are empty (but see
-        the <option>--sample-skeleton-defaults</option> option below).</para>
+        the <option>--sample-xml-skeleton-defaults</option> option
+        below).</para>
       </listitem>
     </itemizedlist>
     <para>Note that the output document will most likely be invalid
     and needs manual editing.</para>
     <para>
-      Options specific to the <emphasis>sample-skeleton</emphasis> output
+      Options specific to the <emphasis>sample-xml-skeleton</emphasis> output
       format:
     </para>
     <variablelist>
       <varlistentry>
         <term>
-          <option>--sample-skeleton-doctype=<replaceable>type</replaceable></option>
+          <option>--sample-xml-skeleton-doctype=<replaceable>type</replaceable></option>
         </term>
         <listitem>
           <para>
@@ -1075,7 +1102,7 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-skeleton-defaults</option></term>
+        <term><option>--sample-xml-skeleton-defaults</option></term>
         <listitem>
           <para>
             Add leaf elements with defined defaults to the output with
@@ -1085,7 +1112,7 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-skeleton-annotations</option></term>
+        <term><option>--sample-xml-skeleton-annotations</option></term>
         <listitem>
           <para>
             Add XML comments to the sample documents with hints about

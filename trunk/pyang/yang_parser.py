@@ -7,9 +7,11 @@ from . import util
 from . import statements
 from . import syntax
 import collections
+import sys
 
 class YangTokenizer(object):
-    def __init__(self, text, pos, errors, max_line_len=None):
+    def __init__(self, text, pos, errors,
+                 max_line_len=None, keep_comments=False):
         self.lines = collections.deque(text.splitlines(True))
         self.pos = pos
         self.buf = ''
@@ -17,6 +19,7 @@ class YangTokenizer(object):
         """Position on line.  Used to remove leading whitespace from strings."""
 
         self.max_line_len = max_line_len
+        self.keep_comments = keep_comments
         self.errors = errors
 
     def readline(self):
@@ -49,19 +52,42 @@ class YangTokenizer(object):
                 self.offset += (buflen - len(self.buf))
                 break
 
-        # skip line comment
-        if self.buf[0] == '/':
-            if self.buf[1] == '/':
-                self.readline()
-                return self.skip()
-        # skip block comment
-            elif self.buf[1] == '*':
+        # do not keep comments in the syntax tree
+        if not self.keep_comments:
+            # skip line comment
+            if self.buf[0] == '/':
+                if self.buf[1] == '/':
+                    self.readline()
+                    return self.skip()
+            # skip block comment
+                elif self.buf[1] == '*':
+                    i = self.buf.find('*/')
+                    while i == -1:
+                        self.readline()
+                        i = self.buf.find('*/')
+                    self.set_buf(i+2)
+                    return self.skip()
+
+    def get_comment(self):
+        """ret: string()"""
+        self.skip()
+        m = syntax.re_comment.match(self.buf)
+        if m == None:
+            return None
+        else:
+            cmt = m.group(0)
+            self.set_buf(m.end())
+            # look for a multiline comment
+            if cmt[:2] == '/*' and cmt[-2:] != '*/':
                 i = self.buf.find('*/')
                 while i == -1:
                     self.readline()
+                    self.skip()
+                    cmt += '\n'+self.buf.replace('\n','')
                     i = self.buf.find('*/')
                 self.set_buf(i+2)
-                return self.skip()
+            self.skip()
+            return cmt
 
     def get_keyword(self):
         """ret: identifier | (prefix, identifier)"""
@@ -84,7 +110,6 @@ class YangTokenizer(object):
                               'SYNTAX_ERROR', 'expected separator, got: "' +
                               self.buf[:6] + '..."')
                 raise error.Abort
-
 
             if m.group(2) == None: # no prefix
                 return m.group(3)
@@ -211,7 +236,7 @@ class YangParser(object):
 
         try:
             self.tokenizer = YangTokenizer(text, self.pos, ctx.errors,
-                                           ctx.max_line_len)
+                                           ctx.max_line_len, ctx.keep_comments)
             stmt = self._parse_statement(None)
         except error.Abort:
             return None
@@ -229,6 +254,19 @@ class YangParser(object):
         return None
 
     def _parse_statement(self, parent):
+        # modification: when the --keep-comments flag is provided,
+        # we would like to see if a statement is a comment, and if so
+        # treat it differently than we treat keywords further down
+        if self.ctx.keep_comments:
+           cmt = self.tokenizer.get_comment()
+           if cmt != None:
+              stmt = statements.Statement(self.top,
+                                          parent,
+                                          self.pos,
+                                          '_comment',
+                                          cmt)
+              return stmt
+
         keywd = self.tokenizer.get_keyword()
         # check for argument
         tok = self.tokenizer.peek()
@@ -278,4 +316,3 @@ def pp(s, indent=0):
         for ss in s.substmts:
             pp(ss, indent+4)
         sys.stdout.write(" " * indent + "}\n")
-

@@ -13,8 +13,8 @@ from . import grammar
 from . import util
 from . import statements
 
-__version__ = '1.4.1'
-__date__ = '2013-11-11'
+__version__ = '1.5'
+__date__ = '2014-11-18'
 
 class Context(object):
     """Class which encapsulates a parse session"""
@@ -40,6 +40,7 @@ class Context(object):
         self.lax_xpath_checks = False
         self.deviation_modules = []
         self.features = {}
+        self.keep_comments = False
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:

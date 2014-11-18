@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2013-11-11
+.\"      Date: 2014-11-18
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.4.1
+.\"    Source: pyang-1.5
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2013\-11\-11" "pyang\-1\&.4\&.1" "pyang manual"
+.TH "PYANG" "1" "2014\-11\-18" "pyang\-1\&.5" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -140,6 +140,16 @@ $ pyang \-\-Werror \-W UNUSED_IMPORT
 .if n \{\
 .RE
 .\}
+.RE
+.PP
+\fB\-\-ignore\-errors\fR
+.RS 4
+Ignore errors\&. Use with care\&. Plugins that don\*(Aqt expect to be invoked if there are errors present may crash\&.
+.RE
+.PP
+\fB\-\-keep\-comments\fR
+.RS 4
+This parameter has effect only if a plugin can handle comments\&. One example of such a plugin is the \*(Aqyang\*(Aq output format plugin\&.
 .RE
 .PP
 \fB\-\-canonical\fR
@@ -424,7 +434,7 @@ An applescript file that draws a diagram in
 \fBOmniGraffle\fR\&.
 .RE
 .PP
-\fIsample\-skeleton\fR
+\fIsample\-xml\-skeleton\fR
 .RS 4
 Skeleton of a sample XML instance document\&.
 .RE
@@ -735,10 +745,10 @@ Subtree to print\&. The
 \fIpath\fR
 is a slash ("/") separated path to a subtree to print\&. For example "/nacm/groups"\&.
 .RE
-.SH "SAMPLE-SKELETON OUTPUT"
+.SH "SAMPLE-XML-SKELETON OUTPUT"
 .PP
 The
-\fIsample\-skeleton\fR
+\fIsample\-xml\-skeleton\fR
 output generates an XML instance document with sample elements for all nodes in the data model, according to the following rules:
 .sp
 .RS 4
@@ -783,17 +793,17 @@ For a choice node, sample element(s) are present for each case\&.
 .IP \(bu 2.3
 .\}
 Leaf, leaf\-list and anyxml elements are empty (but see the
-\fB\-\-sample\-skeleton\-defaults\fR
+\fB\-\-sample\-xml\-skeleton\-defaults\fR
 option below)\&.
 .RE
 .PP
 Note that the output document will most likely be invalid and needs manual editing\&.
 .PP
 Options specific to the
-\fIsample\-skeleton\fR
+\fIsample\-xml\-skeleton\fR
 output format:
 .PP
-\fB\-\-sample\-skeleton\-doctype=\fR\fB\fItype\fR\fR
+\fB\-\-sample\-xml\-skeleton\-doctype=\fR\fB\fItype\fR\fR
 .RS 4
 Type of the sample XML document\&. Supported values for
 \fItype\fR
@@ -804,12 +814,12 @@ config\&. This option determines the document element of the output XML document
 config, only data nodes representing configuration are included\&.
 .RE
 .PP
-\fB\-\-sample\-skeleton\-defaults\fR
+\fB\-\-sample\-xml\-skeleton\-defaults\fR
 .RS 4
 Add leaf elements with defined defaults to the output with their default value\&. Without this option, the default elements are omitted\&.
 .RE
 .PP
-\fB\-\-sample\-skeleton\-annotations\fR
+\fB\-\-sample\-xml\-skeleton\-annotations\fR
 .RS 4
 Add XML comments to the sample documents with hints about expected contents, for example types of leaf nodes, permitted number of list entries etc\&.
 .RE

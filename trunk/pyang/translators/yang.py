@@ -13,6 +13,8 @@ def pyang_plugin_init():
 class YANGPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         fmts['yang'] = self
+        self.handle_comments = True
+
     def add_opts(self, optparser):
         optlist = [
             optparse.make_option("--yang-canonical",
@@ -25,13 +27,13 @@ class YANGPlugin(plugin.PyangPlugin):
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
+
     def emit(self, ctx, modules, fd):
         module = modules[0]
         emit_yang(ctx, module, fd)
-        
+
 def emit_yang(ctx, module, fd):
     emit_stmt(ctx, module, fd, 0, None, '', '  ')
-    
 
 _force_newline_arg = ('description', 'contact')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
@@ -56,6 +58,7 @@ _kwd_class = {
     'identity': 'defs',
     'feature': 'defs',
     'extension': 'defs',
+    '_comment': 'comment',
     'module': None,
     'submodule': None,
 }
@@ -81,17 +84,23 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
                 return
-        
+
     if util.is_prefixed(stmt.raw_keyword):
         (prefix, identifier) = stmt.raw_keyword
         keyword = prefix + ':' + identifier
     else:
         keyword = stmt.keyword
+
     kwd_class = get_kwd_class(stmt.keyword)
-    if ((level == 1 and 
+    if ((level == 1 and
          kwd_class != prev_kwd_class and kwd_class != 'extension') or
         stmt.keyword in _keyword_with_trailing_newline):
         fd.write('\n')
+
+    if keyword == '_comment':
+        emit_comment(stmt.arg, fd, indent)
+        return
+
     fd.write(indent + keyword)
     if stmt.arg != None:
         if keyword in grammar.stmt_map:
@@ -146,3 +155,13 @@ def emit_arg(stmt, fd, indent, indentstep):
         else:
             fd.write('"')
 
+def emit_comment(arg, fd, indent):
+    lines = arg.splitlines(True)
+    for x in lines:
+        if x[0] == '*':
+            fd.write(indent + ' ' + x)
+        else:
+            fd.write(indent + x)
+    # add additional newline after multi-line comments
+    if lines[0][0] == '/' and lines[0][1] == '*':
+        fd.write('\n')
