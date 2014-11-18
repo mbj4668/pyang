@@ -19,11 +19,6 @@ class JSTreePlugin(plugin.PyangPlugin):
 
     def add_opts(self, optparser):
         optlist = [
-            optparse.make_option("--jstree-help",
-                                 dest="jstree_help",
-                                 action="store_true",
-                                 help="""Print help on JavaScript
-                                       tree usage and exit"""),
             optparse.make_option("--jstree-no-path",
                                  dest="jstree_no_path",
                                  action="store_true",
@@ -33,11 +28,6 @@ class JSTreePlugin(plugin.PyangPlugin):
 
         g = optparser.add_option_group("JSTree output specific options")
         g.add_options(optlist)
-
-    def setup_ctx(self, ctx):
-        if ctx.opts.jstree_help:
-            print_help()
-            sys.exit(0)
 
     def setup_fmt(self, ctx):
         ctx.implicit_errors = False
@@ -50,19 +40,13 @@ class JSTreePlugin(plugin.PyangPlugin):
         emit_tree(modules, fd, ctx)
         emit_footer(fd, ctx)
 
-def print_help():
-    print """
-Generates a html/javascript page that presents a tree-navigator
-to the YANG module(s).
-"""
-
 def emit_css(fd, ctx):
     fd.write("""
 <style type="text/css" media="all">
 
 body, h1, h2, h3, h4, h5, h6, p, td, table td, input, select {
-	font-family: Verdana, Helvetica, Arial, sans-serif;
-	font-size: 10pt;
+        font-family: Verdana, Helvetica, Arial, sans-serif;
+        font-size: 10pt;
 }
 
 body, ol, li, h2 {padding:0; margin: 0;}
