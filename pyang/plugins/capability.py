@@ -58,7 +58,7 @@ def emit_capability(ctx, m, fd):
         for dev in d.search('deviation'):
             if (dev.i_target_node is not None and
                 dev.i_target_node.i_module.i_modulename == m.i_modulename):
-                devs.append(m.i_modulename)
+                devs.append(d.i_modulename)
                 break
 
     if len(devs) > 0:
