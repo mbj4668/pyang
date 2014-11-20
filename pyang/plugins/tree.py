@@ -51,7 +51,7 @@ class TreePlugin(plugin.PyangPlugin):
                 path = path[1:]
         else:
             path = None
-        emit_tree(modules, fd, ctx.opts.tree_depth, path)
+        emit_tree(ctx, modules, fd, ctx.opts.tree_depth, path)
 
 def print_help():
     print("""
@@ -92,7 +92,7 @@ Each node is printed as:
     within curly brackets and a question mark "{...}?"
 """)
 
-def emit_tree(modules, fd, depth, path):
+def emit_tree(ctx, modules, fd, depth, path):
     for module in modules:
         printed_header = False
 
@@ -116,16 +116,22 @@ def emit_tree(modules, fd, depth, path):
                 printed_header = True
             print_children(chs, module, fd, ' ', path, 'data', depth)
 
-        for augment in module.search('augment'):
-            if (hasattr(augment.i_target_node, 'i_module') and
-                augment.i_target_node.i_module not in modules):
-                # this augment has not been printed; print it
-                if not printed_header:
-                    print_header()
-                    printed_header = True
-                fd.write("augment %s:\n" % augment.arg)
-                print_children(augment.i_children, module, fd,
-                               ' ', path, 'augment', depth)
+        mods = [module]
+        for i in module.search('include'):
+            subm = ctx.get_module(i.arg)
+            if subm is not None:
+                mods.append(subm)
+        for m in mods:
+            for augment in m.search('augment'):
+                if (hasattr(augment.i_target_node, 'i_module') and
+                    augment.i_target_node.i_module not in modules + mods):
+                    # this augment has not been printed; print it
+                    if not printed_header:
+                        print_header()
+                        printed_header = True
+                    fd.write("augment %s:\n" % augment.arg)
+                    print_children(augment.i_children, m, fd,
+                                   ' ', path, 'augment', depth)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
