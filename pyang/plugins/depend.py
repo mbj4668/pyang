@@ -23,6 +23,11 @@ class DependPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  help="Do not generate dependencies for " \
                                  "included submodules"),
+            optparse.make_option("--depend-from-submodules",
+                                 dest="depend_from_submodules",
+                                 action="store_true",
+                                 help="Generate dependencies from " \
+                                 "included submodules"),
             optparse.make_option("--depend-extension",
                                  dest="depend_extension",
                                  help="YANG module file name extension"),
@@ -51,21 +56,28 @@ class DependPlugin(plugin.PyangPlugin):
                 error.is_error(error.err_level(etag))):
                 raise error.EmitError("%s contains errors" % epos.top.arg)
         emit_depend(ctx, modules, fd)
-        
+
 def emit_depend(ctx, modules, fd):
     for module in modules:
         if ctx.opts.depend_target is None:
             fd.write('%s :' % module.pos.ref)
         else:
             fd.write('%s :' % ctx.opts.depend_target)
-        prereqs = module.search("import")
+        prereqs = [i.arg for i in module.search("import")]
         if not ctx.opts.depend_no_submodules:
-            prereqs += module.search("include")
+            prereqs += [i.arg for i in module.search("include")]
+        if ctx.opts.depend_from_submodules:
+            for i in module.search("include"):
+                subm = ctx.get_module(i.arg)
+                if subm is not None:
+                    for prereq in [i.arg for i in subm.search("import")]:
+                        if prereq not in prereqs:
+                            prereqs.append(prereq)
         for i in prereqs:
-            if i.arg in ctx.opts.depend_ignore:
+            if i in ctx.opts.depend_ignore:
                 continue
             if ctx.opts.depend_include_path:
-                m = ctx.get_module(i.arg)
+                m = ctx.get_module(i)
                 if ctx.opts.depend_extension is None:
                     filename = m.pos.ref
                 else:
@@ -77,5 +89,5 @@ def emit_depend(ctx, modules, fd):
                     ext = ""
                 else:
                     ext = ctx.opts.depend_extension
-                fd.write(' %s%s' % (i.arg, ext))
+                fd.write(' %s%s' % (i, ext))
         fd.write('\n')

@@ -787,6 +787,14 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--depend-from-submodules</option></term>
+        <listitem>
+          <para>
+            Generate dependencies taken from all included submodules.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--depend-include-path</option></term>
         <listitem>
           <para>
