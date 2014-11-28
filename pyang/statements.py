@@ -1881,10 +1881,15 @@ def v_reference_deviate(ctx, stmt):
         if not hasattr(t.parent, 'i_not_supported'):
             t.parent.i_not_supported = []
         t.parent.i_not_supported.append(t)
+        # delete the node from i_children
         idx = t.parent.i_children.index(t)
         del t.parent.i_children[idx]
-        idx = t.parent.substmts.index(t)
-        del t.parent.substmts[idx]
+        # find and delete the node from substmts
+        # it may not be there if it is a shorthand case
+        t1 = t.parent.search_one(t.keyword, t.arg, t.parent.substmts)
+        if t1 is not None:
+            idx = t.parent.substmts.index(t1)
+            del t.parent.substmts[idx]
     elif stmt.arg == 'add':
         for c in stmt.substmts:
             if c.keyword in _singleton_keywords:
