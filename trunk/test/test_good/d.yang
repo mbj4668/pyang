@@ -1,0 +1,16 @@
+module d {
+  namespace urn:d;
+  prefix d;
+
+  container x {
+    choice c {
+      leaf d {
+        type string;
+      }
+    }
+  }
+
+  deviation /x/c/d {
+    deviate not-supported;
+  }
+}
