@@ -10,8 +10,25 @@
   <define name="__anyxml__">
     <zeroOrMore>
       <choice>
-	<attribute><anyName/></attribute>
-	<element><anyName/><ref name="__anyxml__"/></element>
+	<element>
+	  <anyName/>
+	  <ref name="__anything__"/>
+	</element>
+	<text/>
+      </choice>
+    </zeroOrMore>
+  </define>
+
+  <define name="__anything__">
+    <zeroOrMore>
+      <choice>
+	<attribute>
+          <anyName/>
+	</attribute>
+	<element>
+          <anyName/>
+          <ref name="__anything__"/>
+	</element>
 	<text/>
       </choice>
     </zeroOrMore>

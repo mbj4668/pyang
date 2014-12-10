@@ -892,6 +892,9 @@ class HybridDSDLSchema(object):
 
     def anyxml_stmt(self, stmt, p_elem, pset):
         elem = SchemaNode.element(self.qname(stmt), p_elem)
+        if self.has_meta:
+            elem.annot(
+                SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         SchemaNode("parentRef", elem).set_attr("name", "__anyxml__")
         refd = self.process_patches(pset, stmt, elem)[0]
         if p_elem.name == "choice":
