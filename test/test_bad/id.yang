@@ -118,6 +118,9 @@ module id {
     type identityref {
       base crypto:crypto-alg;
     }
+    must ". != 'hej:hopp:hepp'";
+    must ". != 'foo:bar'"; // warning; prefix not defined
+    must ". != 'fox'";
     default id:des3;
   }
 
