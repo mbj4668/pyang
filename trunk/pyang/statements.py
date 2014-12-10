@@ -1812,13 +1812,18 @@ def v_xpath(ctx, stmt):
                 if s[0] == s[-1] and s[0] in ("'", '"'):
                     s = s[1:-1]
                     i = s.find(':')
-                    if i != -1:
+                    # make sure there is just one : present
+                    if i != -1 and s[i+1:].find(':') == -1:
                         prefix = s[:i]
                         # we don't want to report an error; just mark the
                         # prefix as being used.
                         my_errors = []
                         prefix_to_module(stmt.i_module, prefix, stmt.pos,
                                          my_errors)
+                        for (pos, code, arg) in my_errors:
+                            if code == 'PREFIX_NOT_DEFINED':
+                                err_add(ctx.errors, pos,
+                                        'WPREFIX_NOT_DEFINED', arg)
             elif ctx.lax_xpath_checks == True:
                 pass
             elif tokname == 'variable':
