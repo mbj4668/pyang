@@ -262,6 +262,10 @@ error_codes = \
       (1,
        '%s:%s in the path for %s at %s has a predicate, '
        'but is not a list'),
+    'LEAFREF_BAD_PREDICATE_PTR':
+      (1,
+       '%s:%s in the path\'s predicate for %s at %s is compared '
+       'with a node that is not a leaf'),
     'LEAFREF_NOT_LEAF':
       (1,
        'the path for %s at %s does not refer to a leaf'),

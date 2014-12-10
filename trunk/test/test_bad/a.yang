@@ -124,6 +124,11 @@ module a {
                 path "../h/b[a:foo = current()/../a]";
             }
         }
+        leaf bax {
+            type leafref {
+                path "../h[a = current()/../../f]/a";
+            }
+        }
         list h {
             key a;
             leaf a {
