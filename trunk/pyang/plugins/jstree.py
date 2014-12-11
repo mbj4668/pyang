@@ -266,6 +266,8 @@ def emit_tree(modules, fd, ctx):
         pr = module.search_one('prefix')
         if pr is not None:
             prstr = pr.arg
+        else:
+            prstr = ""
 
         temp_mod_arg = module.arg
         # html plugin specific changes
@@ -311,7 +313,6 @@ def emit_tree(modules, fd, ctx):
         notifs = module.search('notification')
         levelcnt[1] += 1
         if len(notifs) > 0:
-            sys.stdout.write("notif \n")
             fd.write("""<tr id="%s" class="a">
                         <td nowrapid="p4000">
                            <div id="p5000" class="tier1">
@@ -345,6 +346,8 @@ def print_node(s, module, fd, prefix, ctx, level=0):
     pr = module.search_one('prefix')
     if pr is not None:
         prstr = pr.arg
+    else:
+        prstr = ""
 
     descr = s.search_one('description')
     descrstring = "No description"
