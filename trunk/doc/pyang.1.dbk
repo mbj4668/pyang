@@ -950,6 +950,10 @@
       (or via a &lt;hello&gt; message, see the
       <option>--hello</option> option).
     </para>
+     <para>The <emphasis>jsonxsl</emphasis> plugin also converts
+     metadata annotations, if they are defined and used as described
+     in <link
+     xlink:href="https://tools.ietf.org/html/draft-lhotka-netmod-yang-metadata">draft-lhotka-netmod-yang-metadata</link>.</para>
     <para>
       The data tree(s) must be wrapped at least in either
       &lt;nc:data&gt; or &lt;nc:config&gt; element, where "nc" is the

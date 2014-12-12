@@ -292,9 +292,7 @@
       <xsl:when test="$type='unquoted'">
 	<xsl:value-of select="normalize-space(.)"/>
       </xsl:when>
-      <xsl:when test="$type='empty'">
-	<xsl:text>[null]</xsl:text>
-      </xsl:when>
+      <xsl:when test="$type='empty'">[null]</xsl:when>
       <xsl:when test="$type='instance-identifier'">
 	<xsl:variable name="cont" select="normalize-space(.)"/>
 	<xsl:if test="not(starts-with($cont,'/'))">
@@ -341,15 +339,41 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="metadata-object">
+    <xsl:param name="name"/>
+    <xsl:param name="level"/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
+    <xsl:value-of select="concat($name,'{')"/>
+    <xsl:for-each select="@*">
+      <xsl:apply-templates select=".">
+	<xsl:with-param name="level" select="$level+1"/>
+      </xsl:apply-templates>
+      <xsl:if test="position() != last()">,</xsl:if>
+    </xsl:for-each>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="$level"/>
+    </xsl:call-template>
+    <xsl:text>}</xsl:text>
+  </xsl:template>
+
   <xsl:template name="container">
     <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
-    <xsl:if test="position() != 1">,</xsl:if>
+    <xsl:if test="preceding-sibling::*">,</xsl:if>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
     <xsl:value-of
 	select="concat('&quot;', $nsid, local-name(.), '&quot;: {')"/>
+    <xsl:if test="@*">
+      <xsl:call-template name="metadata-object">
+	<xsl:with-param name="name">"@": </xsl:with-param>
+	<xsl:with-param name="level" select="$level+1"/>
+      </xsl:call-template>
+      <xsl:if test="*">,</xsl:if>
+    </xsl:if>
     <xsl:apply-templates/>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
@@ -362,7 +386,7 @@
     <xsl:param name="type"/>
     <xsl:param name="options"/>
     <xsl:param name="nsid"/>
-    <xsl:if test="position() != 1">,</xsl:if>
+    <xsl:if test="preceding-sibling::*">,</xsl:if>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
@@ -372,6 +396,15 @@
       <xsl:with-param name="type" select="$type"/>
       <xsl:with-param name="options" select="$options"/>
     </xsl:call-template>
+    <xsl:if test="@*">
+      <xsl:text>,</xsl:text>
+      <xsl:call-template name="metadata-object">
+	<xsl:with-param
+	    name="name"
+	    select="concat('&quot;@', $nsid, local-name(.), '&quot;: ')"/>
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template name="leaf-list">
@@ -379,18 +412,20 @@
     <xsl:param name="type"/>
     <xsl:param name="options"/>
     <xsl:param name="nsid"/>
-    <xsl:if
-	test="not(preceding-sibling::*[local-name()=local-name(current())
-	      and namespace-uri()=namespace-uri(current())])">
-      <xsl:if test="position() != 1">,</xsl:if>
+    <xsl:variable name="curname" select="local-name()"/>
+    <xsl:variable name="cururi" select="namespace-uri()"/>
+    <xsl:if test="not(preceding-sibling::*[local-name()=$curname
+		  and namespace-uri()=$cururi])">
+      <xsl:variable
+	  name="entries"
+	  select="../*[local-name()=$curname and namespace-uri()=$cururi]"/>
+      <xsl:if test="preceding-sibling::*">,</xsl:if>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:value-of
 	  select="concat('&quot;', $nsid, local-name(.), '&quot;: [')"/>
-      <xsl:for-each
-	  select="../*[local-name()=local-name(current())
-		  and namespace-uri()=namespace-uri(current())]">
+      <xsl:for-each select="$entries">
 	<xsl:call-template name="nl-indent">
 	  <xsl:with-param name="level" select="$level+1"/>
 	</xsl:call-template>
@@ -398,14 +433,44 @@
 	  <xsl:with-param name="type" select="$type"/>
 	  <xsl:with-param name="options" select="$options"/>
 	</xsl:call-template>
-	<xsl:if test="position() != last()">
-	  <xsl:text>,</xsl:text>
-	</xsl:if>
+	<xsl:if test="position() != last()">,</xsl:if>
       </xsl:for-each>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
       <xsl:text>]</xsl:text>
+      <xsl:variable
+	  name="att-entries"
+	  select="$entries[@* or following-sibling::*[@* and
+		  local-name()=$curname and namespace-uri()=$cururi]]"/>
+      <xsl:if test="$att-entries">
+	<xsl:text>,</xsl:text>
+	<xsl:call-template name="nl-indent">
+	  <xsl:with-param name="level" select="$level"/>
+	</xsl:call-template>
+	<xsl:value-of
+	    select="concat('&quot;@', $nsid, local-name(.), '&quot;: [')"/>
+	<xsl:for-each select="$att-entries">
+	  <xsl:choose>
+	    <xsl:when test="@*">
+	      <xsl:call-template name="metadata-object">
+		<xsl:with-param name="level" select="$level+1"/>
+	      </xsl:call-template>
+	    </xsl:when>
+	    <xsl:otherwise>
+	      <xsl:call-template name="nl-indent">
+		<xsl:with-param name="level" select="$level+1"/>
+	      </xsl:call-template>
+	      <xsl:text>null</xsl:text>
+	    </xsl:otherwise>
+	  </xsl:choose>
+	  <xsl:if test="position() != last()">,</xsl:if>
+	</xsl:for-each>
+	<xsl:call-template name="nl-indent">
+	  <xsl:with-param name="level" select="$level"/>
+	</xsl:call-template>
+	<xsl:text>]</xsl:text>
+      </xsl:if>
     </xsl:if>
   </xsl:template>
 
@@ -415,7 +480,7 @@
     <xsl:if
 	test="not(preceding-sibling::*[local-name()=local-name(current())
 	      and namespace-uri()=namespace-uri(current())])">
-      <xsl:if test="position() != 1">,</xsl:if>
+      <xsl:if test="preceding-sibling::*">,</xsl:if>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
@@ -428,14 +493,19 @@
 	  <xsl:with-param name="level" select="$level+1"/>
 	</xsl:call-template>
 	<xsl:text>{</xsl:text>
+	<xsl:if test="@*">
+	  <xsl:call-template name="metadata-object">
+	    <xsl:with-param name="name">"@": </xsl:with-param>
+	    <xsl:with-param name="level" select="$level+2"/>
+	  </xsl:call-template>
+	  <xsl:if test="*">,</xsl:if>
+	</xsl:if>
 	<xsl:apply-templates/>
 	<xsl:call-template name="nl-indent">
 	  <xsl:with-param name="level" select="$level+1"/>
 	</xsl:call-template>
 	<xsl:text>}</xsl:text>
-	<xsl:if test="position() != last()">
-	  <xsl:text>,</xsl:text>
-	</xsl:if>
+	<xsl:if test="position() != last()">,</xsl:if>
       </xsl:for-each>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
@@ -447,12 +517,19 @@
   <xsl:template name="anyxml">
     <xsl:param name="level" select="0"/>
     <xsl:param name="nsid"/>
-    <xsl:if test="position() != 1">,</xsl:if>
+    <xsl:if test="preceding-sibling::*">,</xsl:if>
     <xsl:call-template name="nl-indent">
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
     <xsl:value-of
 	select="concat('&quot;', $nsid, local-name(.), '&quot;: {')"/>
+    <xsl:if test="@*">
+      <xsl:call-template name="metadata-object">
+	<xsl:with-param name="name">"@": </xsl:with-param>
+	<xsl:with-param name="level" select="$level+1"/>
+      </xsl:call-template>
+      <xsl:if test="*">,</xsl:if>
+    </xsl:if>
     <xsl:apply-templates mode="anyxml">
       <xsl:with-param name="level" select="$level+1"/>
     </xsl:apply-templates>
@@ -465,7 +542,7 @@
   <xsl:template match="*" mode="anyxml">
     <xsl:param name="level" select="0"/>
     <xsl:if test="not(preceding-sibling::*[name()=name(current())])">
-      <xsl:if test="position() != 1">,</xsl:if>
+      <xsl:if test="preceding-sibling::*">,</xsl:if>
       <xsl:call-template name="nl-indent">
 	<xsl:with-param name="level" select="$level"/>
       </xsl:call-template>
@@ -493,9 +570,7 @@
 		<xsl:call-template name="json-value"/>
 	      </xsl:otherwise>
 	    </xsl:choose>
-	    <xsl:if test="position() != last()">
-	      <xsl:text>,</xsl:text>
-	    </xsl:if>
+	    <xsl:if test="position() != last()">,</xsl:if>
 	  </xsl:for-each>
 	  <xsl:call-template name="nl-indent">
 	    <xsl:with-param name="level" select="$level"/>

@@ -96,6 +96,8 @@ class JsonXslPlugin(plugin.PyangPlugin):
 
     def process_module(self, yam):
         """Process data nodes, RPCs and notifications in a single module."""
+        for ann in yam.search(("ietf-yang-metadata", "annotation")):
+            self.process_annotation(ann)
         for ch in yam.i_children[:]:
             if ch.keyword == "rpc":
                 self.process_rpc(ch)
@@ -105,6 +107,15 @@ class JsonXslPlugin(plugin.PyangPlugin):
                 continue
             yam.i_children.remove(ch)
         self.process_children(yam, "//nc:*", 1)
+
+    def process_annotation(self, ann):
+        """Process metadata annotation."""
+        tmpl = self.xsl_template("@" + self.qname(ann))
+        ET.SubElement(tmpl, "param", name="level", select="0")
+        ct = self.xsl_calltemplate("leaf", tmpl)
+        ET.SubElement(ct, "with-param", name="level", select="$level")
+        self.xsl_withparam("nsid", ann.i_module.i_modulename + ":", ct)
+        self.type_param(ann, ct)
 
     def process_rpc(self, rpc):
         """Process input and output parts of `rpc`."""
@@ -186,7 +197,9 @@ class JsonXslPlugin(plugin.PyangPlugin):
     def get_types(self, node):
         res = []
         def resolve(typ):
-            if typ.arg == "leafref":
+            if typ is None:
+                res.append("string") # default for annotations
+            elif typ.arg == "leafref":
                 resolve(typ.i_type_spec.i_target_node.search_one("type"))
             elif typ.arg == "union":
                 for ut in typ.i_type_spec.types: resolve(ut)
