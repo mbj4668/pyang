@@ -523,7 +523,7 @@ YANG module file name extension\&. Default is no extension\&.
 Do not generate dependencies for included submodules\&.
 .RE
 .PP
-\fB\-\-depend\-include\-submodules\fR
+\fB\-\-depend\-from\-submodules\fR
 .RS 4
 Generate dependencies taken from all included submodules\&.
 .RE
@@ -675,6 +675,11 @@ output generates an XSLT 1\&.0 stylesheet that can be used for transforming an X
 \m[blue]\fBdraft\-ietf\-netmod\-yang\-json\fR\m[]\&\s-2\u[6]\d\s+2\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules on the command line (or via a <hello> message, see the
 \fB\-\-hello\fR
 option)\&.
+.PP
+The
+\fIjsonxsl\fR
+plugin also converts metadata annotations, if they are defined and used as described in
+\m[blue]\fBdraft\-lhotka\-netmod\-yang\-metadata\fR\m[]\&\s-2\u[5]\d\s+2\&.
 .PP
 The data tree(s) must be wrapped at least in either <nc:data> or <nc:config> element, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0", or the XML instance document has to be a complete NETCONF RPC request/reply or notification\&. Translation of RPCs and notifications defined by the data model is also supported\&.
 .PP
