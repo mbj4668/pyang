@@ -12,15 +12,15 @@ module second-tape {
     description
       "State data for the second tape.";
     leaf head-position-2 {
-      config "false";
       type tm:cell-index;
+      config "false";
       description
         "Head position of the second tape.";
     }
     container tape-2 {
+      config "false";
       description
         "Contents of the second tape.";
-      config "false";
       uses tm:tape-cells;
     }
   }
