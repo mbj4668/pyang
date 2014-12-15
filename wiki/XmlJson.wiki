@@ -4,7 +4,7 @@
 
 Back in 2003, when NETCONF was conceived, the choice of XML as the format for message contents seemed more or less automatic. These days, JSON is much more popular as a vehicle for encoding hierarchically structured data. Several applications in the area of network device configuration already express data in JSON.
 
-IETF Internet-Draft [http://tools.ietf.org/html/draft-lhotka-netmod-yang-json draft-lhotka-netmod-yang-json] enables JSON as the alternative encoding format for data modelled with YANG. It does so indirectly because YANG uses some concepts, such as XPath, that are only defined for XML. The Internet-Draft establishes equivalence (one-to-one mapping) between JSON and the subset of XML that can be modelled by YANG. Many statements about XML-encoded data, for example about validity, then apply to the equivalent JSON-encoded data, and vice versa.
+IETF Internet-Draft [http://tools.ietf.org/html/draft-ietf-netmod-yang-json draft-ietf-netmod-yang-json] enables JSON as the alternative encoding format for data modelled with YANG. It does so indirectly because YANG uses some concepts, such as XPath, that are only defined for XML. The Internet-Draft establishes equivalence (one-to-one mapping) between JSON and the subset of XML that can be modelled by YANG. Many statements about XML-encoded data, for example about validity, then apply to the equivalent JSON-encoded data, and vice versa.
 
 Two pyang plugins, `jsonxsl` and `jtox`, implement both directions of the mapping. Their results are generally better than those obtained from a generic XML-JSON convertor because the mapping actively uses the YANG data model. This means, for example, that
  * numeric leaf nodes are mapped to JSON numbers, or
@@ -29,7 +29,7 @@ For example, we can translate an instance configuration into neatly formatted JS
 $ xsltproc -o turing-machine-config.json tm-json.xsl turing-machine-config.xml
 $ cat turing-machine-config.json 
 {
-  "turing-machine": {
+  "turing-machine:turing-machine": {
     "transition-function": {
       "delta": [
         {
@@ -98,16 +98,6 @@ $ cat turing-machine-config.json
           },
           "output": {
             "state": 4
-          }
-        },
-        {
-          "label": "illegal",
-          "input": {
-            "state": 0,
-            "symbol": "0"
-          },
-          "output": {
-            "head-move": "left"
           }
         }
       ]

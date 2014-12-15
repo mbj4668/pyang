@@ -65,7 +65,7 @@ trang -I rng -O rnc turing-machine-config.rng turing-machine-config.rnc
 
 There are several ways for telling nXML mode how to locate the right schema for an XML document being edited. The easiest option is to rely on file names. In our case it means that the name of the XML file should be `turing-machine-config.xml`.
 
-Now that everything is in place, we can write our first configuration for the Turing Machine:
+Now that everything is in place, we can write our first configuration for the Turing Machine, [https://code.google.com/p/pyang/source/browse/trunk/doc/tutorial/examples/turing-machine-config.xml turing-machine-config.xml]:
 
 {{{
 <?xml version="1.0" encoding="utf-8"?>
