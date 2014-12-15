@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- file: turing-machine-config.xml -->
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <turing-machine xmlns="http://example.net/turing-machine">
+    <transition-function>
+      <delta>
+        <label>left summand</label>
+        <input>
+          <state>0</state>
+          <symbol>1</symbol>
+        </input>
+      </delta>
+      <delta>
+        <label>separator</label>
+        <input>
+          <state>0</state>
+          <symbol>0</symbol>
+        </input>
+        <output>
+          <state>1</state>
+          <symbol>1</symbol>
+        </output>
+      </delta>
+      <delta>
+        <label>right summand</label>
+        <input>
+          <state>1</state>
+          <symbol>1</symbol>
+        </input>
+      </delta>
+      <delta>
+        <label>right end</label>
+        <input>
+          <state>1</state>
+          <symbol/>
+        </input>
+        <output>
+          <state>2</state>
+          <head-move>left</head-move>
+        </output>
+      </delta>
+      <delta>
+        <label>write separator</label>
+        <input>
+          <state>2</state>
+          <symbol>1</symbol>
+        </input>
+        <output>
+          <state>3</state>
+          <symbol>0</symbol>
+          <head-move>left</head-move>
+        </output>
+      </delta>
+      <delta>
+        <label>go home</label>
+        <input>
+          <state>3</state>
+          <symbol>1</symbol>
+        </input>
+        <output>
+          <head-move>left</head-move>
+        </output>
+      </delta>
+      <delta>
+        <label>final step</label>
+        <input>
+          <state>3</state>
+          <symbol/>
+        </input>
+        <output>
+          <state>4</state>
+        </output>
+      </delta>
+    </transition-function>
+  </turing-machine>
+</config>
