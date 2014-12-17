@@ -100,14 +100,20 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             "rpc": self.ignore,
             "notification": self.ignore
             }
-        self.ns_uri = { yam : yam.search_one("namespace").arg for yam in modules }
+        self.ns_uri = {}
+        for yam in modules:
+            self.ns_uri[yam] = yam.search_one("namespace").arg
         self.top = ET.Element(self.doctype,
                          {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = ET.ElementTree(self.top)
         for yam in modules:
             self.process_children(yam, self.top, None)
-        tree.write(fd, encoding="utf-8" if sys.version < "3" else "unicode",
-                   xml_declaration=True)
+        if sys.version > "3":
+            tree.write(fd, encoding="unicode", xml_declaration=True)
+        elif sys.version > "2.7":
+            tree.write(fd, encoding="UTF-8", xml_declaration=True)
+        else:
+            tree.write(fd, encoding="UTF-8")
 
     def ignore(self, node, elem, module):
         """Do nothing for `node`."""
