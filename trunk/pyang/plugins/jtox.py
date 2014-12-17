@@ -45,8 +45,9 @@ class JtoXPlugin(plugin.PyangPlugin):
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError("JTOX plugin needs a valid module")
         tree = {}
-        mods = { m.i_modulename : [p, m.search_one("namespace").arg]
-                 for m,p in unique_prefixes(ctx).items() }
+        mods = {}
+        for m,p in unique_prefixes(ctx).items():
+            mods[m.i_modulename] = [p, m.search_one("namespace").arg]
         for module in modules:
             self.process_children(module, tree)
         json.dump({"modules": mods, "tree": tree}, fd)
