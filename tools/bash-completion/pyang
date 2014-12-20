@@ -2,7 +2,7 @@
 
 _pyang()
 {
-    local cur prev words plugin pl_opts wind=1
+    local cur prev words plugin hello pl_opts wind=1
 
     local formats="hypertree dsdl depend sample-xml-skeleton omni yin
         tree jstree capability yang xsd uml jtox jsonxsl xmi"
@@ -96,10 +96,56 @@ _pyang()
     COMPREPLY=()
     _get_comp_words_by_ref cur prev cword words
 
+    while [[ $wind -lt $cword ]]; do
+        case ${words[$wind]} in
+	    -f|--format)
+                plugin=${words[$wind+1]}
+                ;;
+	    -L|--hello)
+		hello=yes
+		;;
+	esac
+	((wind++))
+    done
+
     case $prev in
         -o)
-            _filedir
-            return 0
+	    case $plugin in
+		dsdl)
+		    _filedir 'dsdl'
+		    ;;
+		jsonxsl)
+		    _filedir '@(xsl|xslt)'
+		    ;;
+		jstree)
+		    _filedir 'js'
+		    ;;
+		jtox)
+		    _filedir 'jtox'
+		    ;;
+		sample-xml-skeleton|hypertree)
+		    _filedir 'xml'
+		    ;;
+		omni)
+		    _filedir 'graffle'
+		    ;;
+		uml)
+		    _filedir 'uml'
+		    ;;
+		xmi)
+		    _filedir 'xmi'
+		    ;;
+		yang)
+		    _filedir 'yang'
+		    ;;
+		yin)
+		    _filedir 'yin'
+		    ;;
+		*)
+		    _filedir
+		    ;;
+	    esac
+	    return 0
             ;;
         -W)
             COMPREPLY=($(compgen -W 'error none' -- "$cur"))
@@ -118,19 +164,16 @@ _pyang()
     esac
 
     if [[ $cur == -* ]]; then
-        while [[ $wind -lt $cword ]]; do
-            if [[ ${words[$wind]} == "-f" || ${words[$wind]} == "--format" ]]
-            then
-                plugin=${words[$wind+1]}
-                pl_opts="opts_${plugin//-/_}"
-                break
-            fi
-        done
+        pl_opts="opts_${plugin//-/_}"
         COMPREPLY=($(compgen -W '$opts_global ${!pl_opts}' -- "$cur"))
         return 0
     fi
-    
-    _filedir '@(yang|yin)'
+
+    if [[ -z $hello ]]; then
+	_filedir '@(yang|yin)'
+    else
+	_filedir 'xml'
+    fi
 }
 
 have pyang && complete -F _pyang pyang
