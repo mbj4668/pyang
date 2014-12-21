@@ -23,7 +23,8 @@
 
   <refnamediv xml:id="man.1.json2xml.name">
     <refname>json2xml</refname>
-    <refpurpose>translates JSON documents conforming to a YANG data model into XML.</refpurpose>
+    <refpurpose>translates JSON documents conforming to a YANG data
+    model into XML.</refpurpose>
   </refnamediv>
 
   <refsynopsisdiv xml:id="man.1.json2xml.synopsis">
@@ -40,7 +41,10 @@
     </cmdsynopsis>
     <cmdsynopsis>
       <command>json2xml</command>
-      <arg choice="plain">-h</arg>
+      <group choice="plain">
+	<arg choice="plain">-h</arg>
+	<arg choice="plain">--help</arg>
+      </group>
     </cmdsynopsis>
   </refsynopsisdiv>
 
@@ -85,8 +89,10 @@
     <title>Options</title>
     <variablelist remap="TP">
       <varlistentry>
-        <term><option>-t</option>
-        <replaceable>target</replaceable></term>
+        <term>
+	  <option>-t</option> <replaceable>target</replaceable>,
+	  <option>--target</option> <replaceable>target</replaceable>
+	</term>
         <listitem>
           <para>Specifies the target type of the output XML document,
 	  i.e. its document element. The default is
@@ -94,15 +100,20 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>-o</option>
-        <replaceable>output_file</replaceable></term>
+        <term>
+	  <option>-o</option> <replaceable>output_file</replaceable>,
+	  <option>--output</option> <replaceable>output_file</replaceable>
+	</term>
         <listitem>
           <para>Write output to <replaceable>output_file</replaceable>
 	  instead of the standard output.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>-h</option></term>
+        <term>
+	  <option>-h</option>,
+	  <option>--help</option>
+	</term>
         <listitem>
           <para>Displays help screen and exits.</para>
         </listitem>

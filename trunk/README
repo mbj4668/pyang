@@ -38,8 +38,9 @@ man pyang
 
 Code structure
 --------------
-bin/pyang
-  The executable script documented in pyang(1).
+
+bin/
+  Executable scripts.
 
 pyang/
   Contains the pyang library code.
@@ -82,14 +83,12 @@ pyang/plugins/
 pyang/translators/
   Contains output plugins for YANG, YIN, XSD, and DSDL translation.
 
-pyang/xslt
+xslt
   Contains XSLT style sheets for generating RELAX NG, Schematron and
   DSRL schemas and validating instance documents. Also included is the
   free implementation of ISO Schematron by Rick Jelliffe from
   http://www.schematron.com/ (files iso_schematron_skeleton_for_xslt1.xsl,
   iso_abstract_expand.xsl and iso_svrl_for_xslt1.xsl).
 
-pyang/schema
-  Contains RELAX NG schema for YIN and RELAX NG library of common
-  NETCONF elements which is included by the generated RELAX NG
-  schemas.
+schema
+  Contains RELAX NG schemas and pattern libraries.
