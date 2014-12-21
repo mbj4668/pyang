@@ -33,7 +33,7 @@ json2xml \- translates JSON documents conforming to a YANG data model into XML\&
 .HP \w'\fBjson2xml\fR\ 'u
 \fBjson2xml\fR [\-t\ \fItarget\fR] [\-o\ \fIoutput_file\fR] \fIdriver_file\fR \fIjson_file\fR
 .HP \w'\fBjson2xml\fR\ 'u
-\fBjson2xml\fR \-h
+\fBjson2xml\fR \-h | \-\-help 
 .SH "DESCRIPTION"
 .PP
 This program translates
@@ -74,20 +74,20 @@ The document element will be <nc:data>\&.
 The XML prefix "nc" represents the standard NETCONF namespace with URI "urn:ietf:params:xml:ns:netconf:base:1\&.0"\&.
 .SH "OPTIONS"
 .PP
-\fB\-t\fR \fItarget\fR
+\fB\-t\fR \fItarget\fR, \fB\-\-target\fR \fItarget\fR
 .RS 4
 Specifies the target type of the output XML document, i\&.e\&. its document element\&. The default is
 \fBdata\fR\&.
 .RE
 .PP
-\fB\-o\fR \fIoutput_file\fR
+\fB\-o\fR \fIoutput_file\fR, \fB\-\-output\fR \fIoutput_file\fR
 .RS 4
 Write output to
 \fIoutput_file\fR
 instead of the standard output\&.
 .RE
 .PP
-\fB\-h\fR
+\fB\-h\fR, \fB\-\-help\fR
 .RS 4
 Displays help screen and exits\&.
 .RE
