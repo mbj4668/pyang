@@ -61,5 +61,6 @@ setup(name='pyang',
                   ('share/yang/modules', modules),
                   ('share/yang/xslt', xslt),
                   ('share/yang/images', images),
-                  ('share/yang/schema', schema)]
+                  ('share/yang/schema', schema),
+                  ('etc/bash_completion.d', ['etc/bash_completion.d/pyang'])
       )

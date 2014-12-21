@@ -1,0 +1,3 @@
+To get completion of options and arguments, put the 'pyang' script to
+the directory where bash completion scripts reside, typically
+/etc/bash_completion.d or /usr/local/etc/bash_completion.d.
