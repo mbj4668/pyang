@@ -153,7 +153,7 @@ class Context(object):
         latest = None
         lhandle = None
         for (rev, handle) in revs:
-            if latest is None or rev > latest:
+            if rev is not None and (latest is None or rev > latest):
                 latest = rev
                 lhandle = handle
         return (latest, lhandle)
@@ -406,6 +406,7 @@ class FileRepository(Repository):
                 if m is not None:
                     (name, _dummy, rev, format) = m.groups()
                     absfilename = os.path.join(d, fname)
+                    if not os.access(absfilename, os.R_OK): continue
                     if absfilename.startswith("./"):
                         absfilename = absfilename[2:]
                     handle = (format, absfilename)

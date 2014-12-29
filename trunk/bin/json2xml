@@ -1,13 +1,17 @@
 #! /usr/bin/env python
-
+from __future__ import unicode_literals
 import sys
 import os
 import numbers
-from decimal import Decimal
 import re
 import argparse
 import json
 import xml.etree.ElementTree as ET
+
+try:
+    basestring
+except NameError:
+    basestring = str                                        # pylint: disable=W0622
 
 class Error(Exception):
     """Abstract base class for exceptions in this program."""
@@ -60,7 +64,7 @@ class JSONError(Error):
     def __str__(self):
         return (self.path.__str__())
 
-class Translator:
+class Translator (object):
     """Translate JSON to XML according to a YANG data model.
 
     Instance variables:
@@ -93,8 +97,13 @@ class Translator:
     def translate(self, json_doc, xml_root):
         """Translate `json_doc` and attach the result under `xml_root`."""
         try:
-            d = json.load(json_doc) if isinstance(json_doc, file) else json.loads(json_doc)
-        except ValueError, e:
+            try:
+                json_doc.fileno                               # Is it a file?
+            except AttributeError:
+                d = json.loads(json_doc)
+            else:
+                d = json.load(json_doc)
+        except ValueError as e:
             raise JSONError(e)
         return self.translate_obj(d, None, self.jtox["tree"], xml_root, "/")
         
@@ -331,7 +340,10 @@ def main():
     try:
         dfile = open(args.jtox)
         jfile = sys.stdin if args.json == "-" else open(args.json)
-        outfile = sys.stdout if args.output is None else open(args.output, "w")
+        if args.output is None:
+            outfile = os.fdopen(sys.stdout.fileno(), "wb")
+        else:
+            outfile = open(args.output, "wb")
         jtox = json.load(dfile)
     except IOError as e:
         sys.stderr.write("%s: error: %s: '%s'\n" %
