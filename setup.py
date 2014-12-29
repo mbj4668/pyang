@@ -56,11 +56,13 @@ setup(name='pyang',
       distclass=PyangDist,
       scripts=['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml'],
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],
-      data_files=[('.', []),
-                  ('share/man/man1', man1),
-                  ('share/yang/modules', modules),
-                  ('share/yang/xslt', xslt),
-                  ('share/yang/images', images),
-                  ('share/yang/schema', schema),
-                  ('etc/bash_completion.d', ['etc/bash_completion.d/pyang'])
+      data_files=[
+            ('.', []),
+            ('share/man/man1', man1),
+            ('share/yang/modules', modules),
+            ('share/yang/xslt', xslt),
+            ('share/yang/images', images),
+            ('share/yang/schema', schema),
+            ('etc/bash_completion.d', ['etc/bash_completion.d/pyang']),
+            ]
       )
