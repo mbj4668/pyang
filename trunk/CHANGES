@@ -1,3 +1,7 @@
+   1.5.1 - ???
+         fix bug with adding a unique statement via a deviation, thanks
+           to Denys Knertser.
+
    1.5 - 2014-11-18
          added new plugin: 'capability' to print the capability string for
            a module
