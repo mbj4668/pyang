@@ -1622,7 +1622,7 @@ def v_unique_name_children(ctx, stmt):
 ### Reference phase
 
 def v_reference_list(ctx, stmt):
-    if hasattr(stmt, 'i_is_validated'):
+    if hasattr(stmt, 'i_is_validated') and stmt.i_is_validated == True:
         return
     stmt.i_is_validated = True
 
@@ -1989,6 +1989,7 @@ def v_reference_deviation_4(ctx, stmt):
         v_type_leaf_list(ctx, t)
         v_reference_leaf_leafref(ctx, t)
     elif t.keyword == 'list':
+        t.i_is_validated = False
         v_reference_list(ctx, t)
 
 
