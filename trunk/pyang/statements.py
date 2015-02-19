@@ -1757,7 +1757,7 @@ def v_reference_choice(ctx, stmt):
             # make sure there are no mandatory nodes in the default case
             def chk_no_defaults(s):
                 for c in s.i_children:
-                    if c.keyword == 'leaf':
+                    if c.keyword in ('leaf', 'choice'):
                         m = c.search_one('mandatory')
                         if m is not None and m.arg == 'true':
                             err_add(ctx.errors, c.pos,
