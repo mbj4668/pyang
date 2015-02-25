@@ -740,6 +740,7 @@ class HybridDSDLSchema(object):
             maxst = stmt.search_one("max-elements")
             if maxst:
                 maxel = maxst.arg
+        if maxel == "unbounded": maxel = None
         return (minel, maxel)
 
     def lookup_expand(self, stmt, names):
