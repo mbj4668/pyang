@@ -342,6 +342,10 @@ class HybridDSDLSchema(object):
         self.gg_level = 0
         metadata = []
         self.has_meta = False
+        for module in modules[0].i_ctx.modules.values():
+            if module.keyword == "module":
+                for idn in module.i_identities.values():
+                    self.register_identity(idn)
         for module in modules:
             self.add_namespace(module)
             self.module = module
@@ -359,10 +363,6 @@ class HybridDSDLSchema(object):
             self.global_defs["__yang_metadata__"] = metel
             for mattr in metadata:
                 metel.subnode(mattr)
-        for module in modules[0].i_ctx.modules.values():
-            if module.keyword == "module":
-                for idn in module.i_identities.values():
-                    self.register_identity(idn)
         for module in modules:
             self.module = module
             self.prefix_stack = [self.module_prefixes[module.arg]]
