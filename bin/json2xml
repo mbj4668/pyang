@@ -34,7 +34,7 @@ class DataTypeError(Error):
 
     def __str__(self):
         return (Error.__str__(self) +
-                ' - "%s" is not a valid value of "%s" type' % (str(self.value), self.type))
+                ' - %s is not a valid value of "%s" type' % (repr(self.value), self.type))
 
 class NodeTypeError(Error):
     """Exception raised if the JSON object type doesn't fit the data model."""
@@ -51,12 +51,6 @@ class InvalidNodeError(Error):
 
     def __str__(self):
         return (Error.__str__(self) + " - invalid node")
-
-class InvalidNSError(Error):
-    """Exception raised when the namespace encoding in JSON is invalid."""
-
-    def __str__(self):
-        return (Error.__str__(self) + " - invalid namespace identifier")
 
 class JSONError(Error):
     """Exception raised for broken JSON input."""
@@ -198,18 +192,16 @@ class Translator (object):
     def node_lookup(self, name, ns, parent, path):
         """Return tag, module name and node specification for `name`."""
         fst, sep, snd = name.partition(":")
-        if sep:
-            if fst == ns:
-                raise InvalidNSError(path)
-            m = fst
-            t = snd
-        else:
-            m = ns
-            t = fst
         try:
-            return (t, m, parent[t][m])
+            spec = parent[name]
         except KeyError:
-            raise InvalidNodeError(path)
+            if sep:
+                try:
+                    spec = parent[snd]
+                except KeyError:
+                    raise InvalidNodeError(path)
+        if sep: return (snd, fst, spec)
+        return (fst, ns, spec)
 
     def text_value(self, value, ns, type_spec, mod_name, path):
         """Return `value` translated to its XML form.
@@ -281,14 +273,10 @@ class Translator (object):
             return None
         if t == "identityref":
             try:
-                comp = value.split(":")
-            except TypeError:
+                fst, sep, snd = value.partition(":")
+                return "%s:%s" % (self.prefix[fst], snd) if sep else value
+            except:
                 return None
-            try:
-                return (value if len(comp) == 1
-                        else self.prefix[comp[0]] + ":" + comp[1])
-            except KeyError:
-                raise InvalidNSError(path)
         if t == "instance-identifier":
             result = ""
             node = self.jtox["tree"]
