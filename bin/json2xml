@@ -274,7 +274,13 @@ class Translator (object):
         if t == "identityref":
             try:
                 fst, sep, snd = value.partition(":")
-                return "%s:%s" % (self.prefix[fst], snd) if sep else value
+                if sep:
+                    m = fst
+                    idv = snd
+                else:
+                    m = mod_name
+                    idv = value
+                return "%s:%s" % (self.prefix[m], idv)
             except:
                 return None
         if t == "instance-identifier":
