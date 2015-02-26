@@ -49,10 +49,10 @@ class JtoXPlugin(plugin.PyangPlugin):
         for m,p in unique_prefixes(ctx).items():
             mods[m.i_modulename] = [p, m.search_one("namespace").arg]
         for module in modules:
-            self.process_children(module, tree)
+            self.process_children(module, tree, None)
         json.dump({"modules": mods, "tree": tree}, fd)
 
-    def process_children(self, node, parent):
+    def process_children(self, node, parent, pmod):
         """Process all children of `node`, except "rpc" and "notification".
         """
         for ch in node.i_children:
@@ -60,22 +60,24 @@ class JtoXPlugin(plugin.PyangPlugin):
             if ch.keyword in ["choice", "case"]:
                 self.process_children(ch, parent)
                 continue
+            if ch.i_module.i_modulename == pmod:
+                nodename = ch.arg
+            else:
+                pmod = ch.i_module.i_modulename
+                nodename = "%s:%s" % (pmod, ch.arg)
             ndata = [ch.keyword]
             if ch.keyword == "container":
                 ndata.append({})
-                self.process_children(ch, ndata[1])
+                self.process_children(ch, ndata[1], pmod)
             elif ch.keyword == "list":
                 ndata.append({})
-                self.process_children(ch, ndata[1])
+                self.process_children(ch, ndata[1], pmod)
                 ndata.append([(k.i_module.i_modulename, k.arg)
                               for k in ch.i_key])
             elif ch.keyword in ["leaf", "leaf-list"]:
                 ndata.append(self.base_type(ch.search_one("type")))
             modname = ch.i_module.i_modulename
-            if ch.arg in parent:
-                parent[ch.arg][modname] = ndata
-            else:
-                parent[ch.arg] = {modname: ndata}
+            parent[nodename] = ndata
 
     def base_type(self, type):
         """Return the base type of `type`."""
