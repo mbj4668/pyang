@@ -61,17 +61,18 @@ class JtoXPlugin(plugin.PyangPlugin):
                 self.process_children(ch, parent)
                 continue
             if ch.i_module.i_modulename == pmod:
+                nmod = pmod
                 nodename = ch.arg
             else:
-                pmod = ch.i_module.i_modulename
-                nodename = "%s:%s" % (pmod, ch.arg)
+                nmod = ch.i_module.i_modulename
+                nodename = "%s:%s" % (nmod, ch.arg)
             ndata = [ch.keyword]
             if ch.keyword == "container":
                 ndata.append({})
-                self.process_children(ch, ndata[1], pmod)
+                self.process_children(ch, ndata[1], nmod)
             elif ch.keyword == "list":
                 ndata.append({})
-                self.process_children(ch, ndata[1], pmod)
+                self.process_children(ch, ndata[1], nmod)
                 ndata.append([(k.i_module.i_modulename, k.arg)
                               for k in ch.i_key])
             elif ch.keyword in ["leaf", "leaf-list"]:
