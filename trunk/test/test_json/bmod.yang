@@ -1,0 +1,51 @@
+module bmod {
+  namespace "http://example.com/b";
+  prefix b;
+
+  import amod {
+    prefix a;
+  }
+  import ietf-yang-metadata {
+    prefix md;
+  }
+
+  typedef octet {
+    type union {
+      type uint8;
+      type string {
+        pattern "0x[0-9a-fA-F]{1,2}";
+      }
+    }
+  }
+  
+  augment "/a:top" {
+    leaf bar {
+      if-feature a:abc;
+      type octet;
+    }
+    leaf abar {
+      type instance-identifier {
+        require-instance true;
+      }
+    }
+  }
+  augment "/a:subtop" {
+    leaf baz {
+      type octet;
+    }
+    list pac {
+      key "k1 k2";
+      leaf k1 {
+        type uint8;
+      }
+      leaf k2 {
+        type string;
+      }
+      leaf pusu {
+        type identityref {
+          base a:bogus;
+        }
+      }
+    }
+  }
+}

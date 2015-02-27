@@ -1,5 +1,5 @@
-MODULES = amod.yin bmod.yin
-SUBMODULES = asub.yin
+MODULES = amod.yang bmod.yang
+SUBMODULES = asub.yang
 TARGET ?= data
 BASE ?= test
 SCHEMAS = $(BASE)-$(TARGET).rng $(BASE)-$(TARGET).sch $(BASE)-$(TARGET).dsrl

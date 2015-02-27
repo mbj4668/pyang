@@ -1,0 +1,55 @@
+module amod {
+  namespace "http://example.com/a";
+  prefix a;
+
+  include asub;
+
+  feature abc;
+
+  identity bogus;
+
+  identity foo {
+    base bogus;
+  }
+
+  identity bar {
+    base bogus;
+  }
+
+  container top {
+
+    typedef bool {
+      type union {
+        type boolean;
+        type uint8 {
+          range "0|1";
+        }
+        type enumeration {
+          enum "yes";
+          enum "no";
+        }
+      }
+    }
+    leaf foo {
+      type int64;
+      default "-1";
+    }
+    leaf-list pac {
+      type bool;
+    }
+    leaf bar {
+      type empty;
+    }
+    leaf-list baz {
+      type decimal64 {
+        fraction-digits 18;
+      }
+    }
+    leaf mek {
+      type leafref {
+        path "/a:top/a:foo";
+      }
+    }
+    anyxml junk;
+  }
+}
