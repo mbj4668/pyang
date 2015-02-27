@@ -1,0 +1,11 @@
+submodule asub {
+  belongs-to amod {
+    prefix a;
+  }
+
+  container subtop {
+    leaf baz {
+      type boolean;
+    }
+  }
+}
