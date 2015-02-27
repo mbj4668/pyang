@@ -1,36 +1,40 @@
 {
-  "amod:subtop": {
-    "baz": false,
-    "bmod:pac": [
-      {
-	"k1": 0,
-	"k2": "w/o]",
-	"pusu": "amod:foo"
-      }
-    ],
-    "bmod:baz": 42
-  },
-  "amod:top": {
-    "junk": {
-      "two": [
-	"deux",
-	"zwei"
-      ],
-      "one": "1"
+    "amod:subtop": {
+	"baz": false,
+	"bmod:pac": [
+	    {
+		"k1": 0,
+		"k2": "w/o]",
+		"pusu": "amod:foo"
+	    },
+	    {
+		"k1": 0,
+		"k2": "foo:n"
+	    }
+	],
+	"bmod:baz": 42
     },
-    "baz": [
-      "3.141592653589793238",
-      "2.718281828459045235"
-    ],
-    "mek": "4142135623730950488",
-    "bmod:abar": "/amod:subtop/bmod:pac[k1=\"0\"][k2='w/o]']/pusu",
-    "bar": [null],
-    "pac": [
-      "yes",
-      0,
-      true
-    ],
-    "foo": "4142135623730950488",
-    "bmod:bar": "0xFE"
-  }
+    "amod:top": {
+	"junk": {
+	    "two": [
+		"deux",
+		"zwei"
+	    ],
+	    "one": "1"
+	},
+	"baz": [
+	    "3.141592653589793238",
+	    "2.718281828459045235"
+	],
+	"mek": "4142135623730950488",
+	"bmod:abar": "/amod:subtop/bmod:pac[k1=\"0\"][k2='w/o]']/pusu",
+	"bar": [null],
+	"pac": [
+	    "yes",
+	    0,
+	    true
+	],
+	"foo": "4142135623730950488",
+	"bmod:bar": "0xFE"
+    }
 }
