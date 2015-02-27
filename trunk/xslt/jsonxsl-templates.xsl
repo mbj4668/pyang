@@ -523,13 +523,6 @@
     </xsl:call-template>
     <xsl:value-of
 	select="concat('&quot;', $nsid, local-name(.), '&quot;: {')"/>
-    <xsl:if test="@*">
-      <xsl:call-template name="metadata-object">
-	<xsl:with-param name="name">"@": </xsl:with-param>
-	<xsl:with-param name="level" select="$level+1"/>
-      </xsl:call-template>
-      <xsl:if test="*">,</xsl:if>
-    </xsl:if>
     <xsl:apply-templates mode="anyxml">
       <xsl:with-param name="level" select="$level+1"/>
     </xsl:apply-templates>
@@ -537,6 +530,15 @@
       <xsl:with-param name="level" select="$level"/>
     </xsl:call-template>
     <xsl:text>}</xsl:text>
+    <xsl:if test="@*">
+      <xsl:text>,</xsl:text>
+      <xsl:call-template name="metadata-object">
+	<xsl:with-param
+	    name="name"
+	    select="concat('&quot;@', $nsid, local-name(.), '&quot;: ')"/>
+	<xsl:with-param name="level" select="$level"/>
+      </xsl:call-template>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="*" mode="anyxml">
