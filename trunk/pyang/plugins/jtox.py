@@ -54,6 +54,7 @@ class JtoXPlugin(plugin.PyangPlugin):
                 typ = ann.search_one("type")
                 annots[module.arg + ":" + ann.arg] = (
                     "string" if typ is None else self.base_type(typ))
+        for module in modules:
             self.process_children(module, tree, None)
         json.dump({"modules": mods, "tree": tree, "annotations": annots}, fd)
 
