@@ -132,6 +132,8 @@ class Translator (object):
                 if not isinstance(job, list) or job == [None]:
                     raise NodeTypeError(new_path, "list")
                 i = 0
+                keys = node_spec[2][:]
+                keys.reverse()
                 for child in job:
                     if not isinstance(child, dict):
                         raise NodeTypeError(new_path, "list")
@@ -139,8 +141,6 @@ class Translator (object):
                     self.translate_obj(child, mod_name, node_spec[1],
                                        el, new_path + "/%d/" % i)
                     # Rearrange the subtree so that keys come first and in order
-                    keys = node_spec[2]
-                    keys.reverse()
                     for k in keys:
                         knode = el.find(self.et_qname(*k))
                         el.remove(knode)
