@@ -46,11 +46,16 @@ class JtoXPlugin(plugin.PyangPlugin):
                 raise error.EmitError("JTOX plugin needs a valid module")
         tree = {}
         mods = {}
+        annots = {}
         for m,p in unique_prefixes(ctx).items():
             mods[m.i_modulename] = [p, m.search_one("namespace").arg]
         for module in modules:
+            for ann in module.search(("ietf-yang-metadata", "annotation")):
+                typ = ann.search_one("type")
+                annots[module.arg + ":" + ann.arg] = (
+                    "string" if typ is None else self.base_type(typ))
             self.process_children(module, tree, None)
-        json.dump({"modules": mods, "tree": tree}, fd)
+        json.dump({"modules": mods, "tree": tree, "annotations": annots}, fd)
 
     def process_children(self, node, parent, pmod):
         """Process all children of `node`, except "rpc" and "notification".
