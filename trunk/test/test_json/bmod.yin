@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="bmod"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:b="http://example.com/b">
+  <namespace uri="http://example.com/b"/>
+  <prefix value="b"/>
+  <import module="amod">
+    <prefix value="a"/>
+  </import>
+  <import module="ietf-yang-metadata">
+    <prefix value="md"/>
+  </import>
+  <typedef name="octet">
+    <type name="union">
+      <type name="uint8"/>
+      <type name="string">
+	<pattern value="0x[0-9a-fA-F]{1,2}"/>
+      </type>
+    </type>
+  </typedef>
+  <md:annotation
+      xmlns:md="urn:ietf:params:xml:ns:yang:ietf-yang-metadata"
+      name="foo"/>
+  <augment target-node="/a:top">
+    <leaf name="bar">
+      <if-feature name="a:abc"/>
+      <type name="octet"/>
+    </leaf>
+    <leaf name="abar">
+      <type name="instance-identifier">
+	<require-instance value="true"/>
+      </type>
+    </leaf>
+  </augment>
+  <augment target-node="/a:subtop">
+    <leaf name="baz">
+      <type name="octet"/>
+    </leaf>
+    <list name="pac">
+      <key value="k1 k2"/>
+      <leaf name="k1">
+	<type name="uint8"/>
+      </leaf>
+      <leaf name="k2">
+	<type name="string"/>
+      </leaf>
+      <leaf name="pusu">
+	<type name="identityref">
+	  <base name="a:bogus"/>
+	</type>
+      </leaf>
+    </list>
+  </augment>
+</module>
