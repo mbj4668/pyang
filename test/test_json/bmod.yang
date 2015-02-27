@@ -18,6 +18,10 @@ module bmod {
     }
   }
   
+  md:annotation "quux" {
+    type uint8;
+  }
+
   augment "/a:top" {
     leaf bar {
       if-feature a:abc;

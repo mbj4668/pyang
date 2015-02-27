@@ -1,6 +1,12 @@
 {
     "amod:subtop": {
+	"@": {
+	    "bmod:quux": 1
+	},
 	"baz": false,
+	"@baz": {
+	    "bmod:quux": 2
+	},
 	"bmod:pac": [
 	    {
 		"k1": 0,
@@ -9,9 +15,15 @@
 	    },
 	    {
 		"k1": 0,
-		"k2": "foo:n"
+		"k2": "foo:n",
+		"@": {
+		    "bmod:quux": 3
+		}
 	    }
 	],
+	"@bmod:baz": {
+	    "bmod:quux": 4
+	},
 	"bmod:baz": 42
     },
     "amod:top": {
@@ -22,6 +34,13 @@
 	    ],
 	    "one": "1"
 	},
+	"@junk": {
+	    "bmod:quux": 6
+	},
+	"@baz": [
+	    null,
+	    { "bmod:quux": 5 }
+	],
 	"baz": [
 	    "3.141592653589793238",
 	    "2.718281828459045235"
