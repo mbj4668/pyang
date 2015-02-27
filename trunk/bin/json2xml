@@ -195,11 +195,13 @@ class Translator (object):
         try:
             spec = parent[name]
         except KeyError:
-            if sep:
+            if sep and fst == ns:
                 try:
                     spec = parent[snd]
                 except KeyError:
                     raise InvalidNodeError(path)
+            else:
+                raise InvalidNodeError(path)
         if sep: return (snd, fst, spec)
         return (fst, ns, spec)
 
