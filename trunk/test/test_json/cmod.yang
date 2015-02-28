@@ -1,0 +1,30 @@
+module cmod {
+  namespace "http://example.com/c";
+  prefix c;
+
+  import ietf-yang-metadata {
+    prefix md;
+  }
+
+  identity "base-id";
+
+  identity "derived-id" {
+    base "base-id";
+  }
+  
+  md:annotation "idann" {
+    type identityref {
+      base "base-id";
+    }
+  }
+
+  md:annotation "iiann" {
+    type instance-identifier;
+  }
+
+  md:annotation "strann";
+
+  md:annotation "u64ann" {
+    type uint64;
+  }
+}
