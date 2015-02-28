@@ -144,7 +144,6 @@ class Translator (object):
             job = json_obj[key]
             new_path = path + key
             tag, mod_name, node_spec = self.node_lookup(key, ns, node, new_path)
-            self.node_modules.add(mod_name)
             qn = self.et_qname(mod_name, tag)
             if node_spec[0] == "container":
                 if not isinstance(job, dict):
@@ -205,8 +204,9 @@ class Translator (object):
             if aval is None :
                 tsp = atyp[0] if isinstance(atyp, list) else atyp
                 raise DataTypeError(path + "/@" + ann, tsp, annot_obj[ann])
-            qn = self.et_qname(*ann.split(":"))
-            elem.attrib[qn] = aval
+            m, a = ann.split(":")
+            self.node_modules.add(m)
+            elem.attrib[self.et_qname(m, a)] = aval
                     
     def handle_leaf(self, value, ytyp, mod_name, leaf_name,
                     xml_parent, path, annot_obj):
@@ -253,7 +253,9 @@ class Translator (object):
                     raise InvalidNodeError(path)
             else:
                 raise InvalidNodeError(path)
-        if sep: return (snd, fst, spec)
+        if sep:
+            self.node_modules.add(fst)
+            return (snd, fst, spec)
         return (fst, ns, spec)
 
     def text_value(self, value, type_spec, mod_name, path):
