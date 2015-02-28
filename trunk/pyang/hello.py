@@ -73,10 +73,17 @@ class HelloParser:
         return self
 
     def yang_modules(self):
-        """Return a list of advertized YANG module names with revisions.
         """
-        return [ (c.parameters["module"], c.parameters.get("revision",None))
-                  for c in self.capabilities if "module" in c.parameters ]
+        Return a list of advertised YANG module names with revisions.
+
+        Avoid repeated modules.
+        """
+        res = {}
+        for c in self.capabilities:
+            m = c.parameters.get("module")
+            if m is None or m in res: continue
+            res[m] = c.parameters.get("revision")
+        return res.items()
 
     def get_features(self, yam):
         """Return list of features declared for module `yam`."""
