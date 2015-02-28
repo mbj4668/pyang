@@ -52,6 +52,12 @@ class InvalidNodeError(Error):
     def __str__(self):
         return (Error.__str__(self) + " - invalid node")
 
+class InvalidAnnotationObjectError(Error):
+    """Exception raise for an invalid annotation object."""
+
+    def __str__(self):
+        return (Error.__str__(self) + " - invalid annotation object")
+
 class InvalidAnnotationError(Error):
     """
     Exception raised for annotations that are not found in the data model.
@@ -188,6 +194,8 @@ class Translator (object):
                     el.text = str(job)
 
     def handle_annotations(self, annot_obj, elem, mod_name, path):
+        if not isinstance(annot_obj, dict):
+            raise InvalidAnnotationObjectError(path)
         for ann in annot_obj:
             try:
                 atyp = self.annots[ann]
