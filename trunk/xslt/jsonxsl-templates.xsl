@@ -265,7 +265,9 @@
     <xsl:param name="prf"/>
     <xsl:variable name="modname">
       <xsl:call-template name="nsuri-to-module">
-	<xsl:with-param name="uri" select="namespace::*[name()=normalize-space($prf)]"/>
+	<xsl:with-param
+	    name="uri"
+	    select="../namespace::*[name()=normalize-space($prf)]"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:if test="string-length($modname)=0">
