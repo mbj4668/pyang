@@ -6,6 +6,10 @@ module cmod {
     prefix md;
   }
 
+  import amod {
+    prefix a;
+  }
+  
   identity "base-id";
 
   identity "derived-id" {
@@ -22,7 +26,9 @@ module cmod {
     type instance-identifier;
   }
 
-  md:annotation "strann";
+  md:annotation "strann" {
+    if-feature a:abc;
+  }
 
   md:annotation "u64ann" {
     type uint64;
