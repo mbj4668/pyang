@@ -1,7 +1,11 @@
 {
     "amod:subtop": {
 	"@": {
-	    "bmod:quux": 1
+	    "bmod:quux": 1,
+	    "cmod:idann": "cmod:derived-id",
+	    "cmod:iiann": "/amod:subtop/bmod:pac[k1='0'][k2='w/o]']/pusu",
+	    "cmod:strann": "hi!",
+	    "cmod:u64ann": "9876543210"
 	},
 	"baz": false,
 	"@baz": {

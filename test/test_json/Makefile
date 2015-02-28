@@ -1,5 +1,4 @@
-MODULES = amod.yang bmod.yang
-SUBMODULES = asub.yang
+MODULES = amod.yang asub.yang bmod.yang cmod.yang
 TARGET ?= data
 BASE ?= test
 SCHEMAS = $(BASE)-$(TARGET).rng $(BASE)-$(TARGET).sch $(BASE)-$(TARGET).dsrl
@@ -19,12 +18,12 @@ compare: $(BASE)-$(TARGET).json $(JINSTANCE)
 	@echo == Comparing original and generated JSON
 	@./cmpjson.py $^
 
-model.xsl: hello.xml $(MODULES) $(SUBMODULES)
+model.xsl: hello.xml $(MODULES)
 	@echo
 	@echo == Generating $@
 	@pyang -o $@ -f jsonxsl --hello $<
 
-model.jtox: hello.xml $(MODULES) $(SUBMODULES)
+model.jtox: hello.xml $(MODULES)
 	@echo
 	@echo == Generating $@
 	@pyang -o $@ -f jtox --hello $<
@@ -39,7 +38,7 @@ $(JINSTANCE): model.xsl $(XINSTANCE)
 	@echo == Generating $@
 	@xsltproc -o $@ $^
 
-$(SCHEMAS): hello.xml $(MODULES) $(SUBMODULES)
+$(SCHEMAS): hello.xml $(MODULES)
 	@yang2dsdl -L $(Y2DOPTS) $<
 
 %.rnc: %.rng
@@ -49,4 +48,4 @@ clean:
 	@rm -f $(SCHEMAS) $(XINSTANCE) $(JINSTANCE) model.* *-gdefs.rng *.rnc
 
 validate: $(XINSTANCE) $(SCHEMAS)
-	@yang2dsdl -j -s $(Y2DOPTS) -v $<
+	@yang2dsdl -s -j $(Y2DOPTS) -v $<
