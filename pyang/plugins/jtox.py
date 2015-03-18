@@ -1,4 +1,4 @@
-# Copyright (c) 2014 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
+# Copyright (c) 2015 by Ladislav Lhotka, CZ.NIC <lhotka@nic.cz>
 #
 # Pyang plugin generating a driver file for JSON->XML translation.
 #
