@@ -28,7 +28,8 @@ class IETFPlugin(plugin.PyangPlugin):
         if not ctx.opts.ietf:
             return
 
-        ctx.canonical = True;
+        ctx.strict = True
+        ctx.canonical = True
         ctx.max_line_len = 70
         ctx.max_identifier_len = 64
         ctx.implicit_errors = False
