@@ -26,4 +26,12 @@ submodule qf {
       }
     }
   }
+
+  feature x;
+  feature y;
+  container yy {
+    if-feature "x or y"; // error: 1.1 synatx
+  }
+
+
 }

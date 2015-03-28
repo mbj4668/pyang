@@ -340,6 +340,11 @@ def add_xpath_function(name):
 
 def v_init_module(ctx, stmt):
     ## remember that the grammar is not validated
+    vsn = stmt.search_one('yang-version')
+    if vsn is not None:
+        stmt.i_version = vsn.arg
+    else:
+        stmt.i_version = '1'
     # create a prefix map in the module:
     #   <prefix string> -> (<modulename>, <revision-date> | None)
     stmt.i_prefixes = {}
@@ -1036,41 +1041,75 @@ def v_type_feature(ctx, stmt):
 
 def v_type_if_feature(ctx, stmt, no_error_report=False):
     """verify that the referenced feature exists."""
-    # Find the feature
-    name = stmt.arg
     stmt.i_feature = None
-    if name.find(":") == -1:
-        prefix = None
-    else:
-        [prefix, name] = name.split(':', 1)
-    stmt.i_feature = None
-    if prefix is None or stmt.i_module.i_prefix == prefix:
-        # check local features
-        pmodule = stmt.i_module
-    else:
-        # this is a prefixed name, check the imported modules
-        pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
-        if pmodule is None:
+    # Verify the argument type
+    expr = syntax.parse_if_feature_expr(stmt.arg)
+    if stmt.i_module.i_version == '1':
+        # version 1 allows only a single value as if-feature
+        if type(expr) != type(''):
+            err_add(ctx.errors, stmt.pos,
+                    'BAD_VALUE', (stmt.arg, 'identifier-ref'))
             return
-    if name in pmodule.i_features:
-        f = pmodule.i_features[name]
-        if prefix is None and not is_submodule_included(stmt, f):
-            pass
-        else:
-            stmt.i_feature = pmodule.i_features[name]
-            v_type_feature(ctx, stmt.i_feature)
-            if pmodule.i_modulename in ctx.features:
-                if name not in ctx.features[pmodule.i_modulename]:
-                    # prune this statement.
-                    # since this function can be called several times,
-                    # (from v_type_feature), we must check if the stmt
-                    # already has been scheduled for removal
-                    if stmt.parent not in stmt.i_module.i_prune:
-                        stmt.i_module.i_prune.append(stmt.parent)
 
-    if stmt.i_feature is None and no_error_report == False:
-        err_add(ctx.errors, stmt.pos,
-                'FEATURE_NOT_FOUND', (name, pmodule.arg))
+    def eval(expr):
+        if type(expr) == type(''):
+            return has_feature(expr)
+        else:
+            (op, op1, op2) = expr
+            if op == 'not':
+                return not eval(op1)
+            elif op == 'and':
+                return eval(op1) and eval(op2)
+            elif op == 'or':
+                return eval(op1) or eval(op2)
+
+    def has_feature(name):
+        # raises Abort if the feature is not defined
+        # returns True if we compile with the feature
+        # returns False if we compile without the feature
+        found = None
+        if name.find(":") == -1:
+            prefix = None
+        else:
+            [prefix, name] = name.split(':', 1)
+        if prefix is None or stmt.i_module.i_prefix == prefix:
+            # check local features
+            pmodule = stmt.i_module
+        else:
+            # this is a prefixed name, check the imported modules
+            pmodule = prefix_to_module(stmt.i_module, prefix,
+                                       stmt.pos, ctx.errors)
+            if pmodule is None:
+                raise Abort
+        if name in pmodule.i_features:
+            f = pmodule.i_features[name]
+            if prefix is None and not is_submodule_included(stmt, f):
+                pass
+            else:
+                found = pmodule.i_features[name]
+                v_type_feature(ctx, found)
+                if pmodule.i_modulename in ctx.features:
+                    if name not in ctx.features[pmodule.i_modulename]:
+                        return False
+
+        if found is None and no_error_report == False:
+            err_add(ctx.errors, stmt.pos,
+                    'FEATURE_NOT_FOUND', (name, pmodule.arg))
+            raise Abort
+        return found is not None
+
+    # Evaluate the if-feature expression, and verify that all
+    # referenced features exist.
+    try:
+        if eval(expr) == False:
+            # prune the parent.
+            # since the parent can have more than one if-feature
+            # statement, we must check if the parent
+            # already has been scheduled for removal
+            if stmt.parent not in stmt.i_module.i_prune:
+                stmt.i_module.i_prune.append(stmt.parent)
+    except Abort:
+        pass
 
 def v_type_identity(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):

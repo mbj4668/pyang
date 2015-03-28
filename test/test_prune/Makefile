@@ -1,6 +1,6 @@
-PYANG = pyang --features a:foo,fox --deviation-module d.yang
+PYANG = pyang --features a:foo,fox --features b:foo --deviation-module d.yang
 
-MODULES = a.yang
+MODULES = a.yang b.yang
 
 test:
 	@for m in $(MODULES); do					\
