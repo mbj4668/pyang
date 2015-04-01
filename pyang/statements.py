@@ -2334,7 +2334,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             dn = dn[1:]
         else:
             while up > 0:
-                if ptr is None: # or ptr.keyword == 'grouping':
+                if ptr is None:
                     err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
@@ -2342,11 +2342,15 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                     # don't check the path here - check in the expanded tree
                     raise Abort
                 ptr = ptr.parent
+                if ptr is None:
+                    err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
+                            (stmt.arg, stmt.pos))
+                    raise NotFound
                 while ptr.keyword in ['case', 'choice', 'input', 'output']:
                     if ptr.keyword in ['input', 'output']:
                         last_skipped = ptr.keyword
                     ptr = ptr.parent
-                    if ptr is None: # or ptr.keyword == 'grouping':
+                    if ptr is None:
                         err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                                 (stmt.arg, stmt.pos))
                         raise NotFound
