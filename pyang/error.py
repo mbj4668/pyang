@@ -73,6 +73,12 @@ error_codes = \
     'UNEXPECTED_KEYWORD_N':
       (1,
        'unexpected keyword "%s", expected one of %s'),
+    'UNEXPECTED_KEYWORD_CANONICAL':
+      (1,
+       'keyword "%s" not in canonical order'),
+    'UNEXPECTED_KEYWORD_CANONICAL_1':
+      (1,
+       'keyword "%s" not in canonical order, expected "%s"'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),

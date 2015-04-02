@@ -3,11 +3,7 @@ module xt8 {
   prefix "xt8";
   namespace "urn:uri:foo";   // expect namespace before prefix
 
-
-
-  import ietf-yang-types { prefix yang; }
   import ext { prefix ext; }
-  import ietf-yang-smiv2 { prefix smiv2; }
   contact "hej" { }
   description "arne" + /* hmm*/ ' ' + 'anka';
   organization "hopp";  // expected after import
@@ -21,6 +17,10 @@ module xt8 {
       range "1 | 5..6";
     }
   }
+  leaf ss {
+    type string {
+      pattern "hej";
+      length 3; // expected before pattern
+    }
+  }
 }
-  
-
