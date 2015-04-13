@@ -75,4 +75,4 @@ pyang is compatible with the following IETF RFCs:
 
 ## Documentation ##
 
-See [Documentation](Documentation).
+See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
