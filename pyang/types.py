@@ -514,11 +514,11 @@ def validate_bits(errors, bits, stmt):
         if position is not None:
             try:
                 x = int(position.arg)
-                if x < 0:
+                b.i_position = x
+                if x < 0 or x > 4294967295:
                     raise ValueError
                 if x >= next:
                     next = x + 1
-                b.i_position = x
                 if x in values:
                     err_add(errors, position.pos, 'DUPLICATE_BIT_POSITION',
                             (x, values[x]))
