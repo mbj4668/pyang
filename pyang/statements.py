@@ -793,6 +793,9 @@ def v_type_type(ctx, stmt):
     if req_inst is not None and (stmt.arg != 'instance-identifier' and
                                  stmt.arg != 'leafref'):
         err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
+    if (req_inst is not None and stmt.arg == 'leafref' and
+        stmt.i_module.i_version == '1'):
+        err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
 
     # check the enums - only applicable when the type is the builtin
     # enumeration type

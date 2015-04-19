@@ -40,7 +40,6 @@ module xt4 {
   leaf c {
     type leafref {
       path "/a";
-      require-instance true;
     }
   }
 
@@ -54,7 +53,6 @@ module xt4 {
     type instance-identifier;
   }
 
-    
   leaf e {
     type instance-identifier {
       require-instance true;
