@@ -1281,6 +1281,9 @@ _refinements = [
     ('mandatory', ['leaf', 'choice', 'anyxml'], False, None),
     ('min-elements', ['leaf-list', 'list'], False, None),
     ('max-elements', ['leaf-list', 'list'], False, None),
+    ('if-feature',
+     ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case', 'anyxml'],
+     True, None),
 ]
 
 def add_refinement_element(keyword, element, merge = False, v_fun=None):
