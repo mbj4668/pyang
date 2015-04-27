@@ -19,6 +19,8 @@ class YangTokenizer(object):
         """Position on line.  Used to remove leading whitespace from strings."""
 
         self.max_line_len = max_line_len
+        if self.max_line_len == 0:
+            self.max_line_len = None
         self.keep_comments = keep_comments
         self.errors = errors
 

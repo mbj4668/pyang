@@ -355,7 +355,8 @@
         <listitem>
           <para>
             Give a warning if any line is longer than
-            <replaceable>maxlen</replaceable>.
+            <replaceable>maxlen</replaceable>.  The value 0 means no
+            check (default).
           </para>
         </listitem>
       </varlistentry>
