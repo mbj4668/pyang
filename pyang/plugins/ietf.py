@@ -30,7 +30,8 @@ class IETFPlugin(plugin.PyangPlugin):
 
         ctx.strict = True
         ctx.canonical = True
-        ctx.max_line_len = 70
+        if ctx.max_line_len is None:
+            ctx.max_line_len = 70
         ctx.max_identifier_len = 64
         ctx.implicit_errors = False
 
