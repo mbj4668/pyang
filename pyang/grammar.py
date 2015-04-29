@@ -642,12 +642,13 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                               (util.keyword_to_str(keywd),
                                util.keyword_to_str(parent.raw_keyword)))
 
-def _match_stmt(ctx, stmt, (spec, canspec), canonical):
+def _match_stmt(ctx, stmt, specs, canonical):
     """Match stmt against the spec.
 
     Return None | spec'
     spec' is an updated spec with the matching spec consumed
     """
+    (spec, canspec) = specs
     i = 0
     while i < len(spec):
         (keywd, occurance) = spec[i]
