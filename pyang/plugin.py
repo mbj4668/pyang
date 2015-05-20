@@ -29,7 +29,10 @@ def init(plugindirs=[]):
     syspath = sys.path
     for plugindir in plugindirs:
         sys.path = [plugindir] + syspath
-        fnames = os.listdir(plugindir)
+        try:
+            fnames = os.listdir(plugindir)
+        except OSError:
+            continue
         for fname in fnames:
             if fname.endswith(".py") and fname != '__init__.py':
                 pluginmod = __import__(fname[:-3])
