@@ -64,7 +64,7 @@ class JtoXPlugin(plugin.PyangPlugin):
         for ch in node.i_children:
             if ch.keyword in ["rpc", "notification"]: continue
             if ch.keyword in ["choice", "case"]:
-                self.process_children(ch, parent)
+                self.process_children(ch, parent, pmod)
                 continue
             if ch.i_module.i_modulename == pmod:
                 nmod = pmod
