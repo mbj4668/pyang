@@ -51,5 +51,12 @@ module amod {
       }
     }
     anyxml junk;
+    choice ch {
+      case ca1 {
+        leaf e {
+          type empty;
+        }
+      }
+    }
   }
 }
