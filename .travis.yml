@@ -1,0 +1,31 @@
+language: python
+python:
+  # - "2.6" # error: no register_namespace in xml.etree.ElementTree
+  - "2.7"
+  # - "3.2" # error building libxml2
+  # - "3.3" # error building libxml2
+  # - "3.4" # error building libxml2
+# Some required packages are not yet whitelisted, this doesn't work yet:
+addons:
+  apt:
+    packages:
+      - libxml2-dev
+      - xsltproc       # https://github.com/travis-ci/travis-ci/issues/3944
+      - jing           # https://github.com/travis-ci/travis-ci/issues/3945
+# After the issues are closed, remove the code between {{{ and }}}:
+# {{{
+sudo: true
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y xsltproc jing
+# }}}
+script:
+  - source env.sh
+  - make test
+  # Test .gitignore for tests:
+  - TMP=$(tempfile)
+  - git ls-files . --exclude-standard --others | tee "$TMP"
+  - if test -s "$TMP"; then false; else true; fi
+  # Test if we .gitignore any tracked files:
+  - git ls-files -i --exclude-standard | tee "$TMP"
+  - if test -s "$TMP"; then false; else true; fi
