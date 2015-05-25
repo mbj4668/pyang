@@ -27,13 +27,19 @@ class YangTokenizer(object):
     def readline(self):
         if len(self.lines) == 0:
             raise error.Eof
-        self.buf = self.lines.popleft()
+        try:
+            self.buf = self.lines.popleft()
+            curlen = len(unicode(self.buf, encoding="utf-8"))
+        except UnicodeDecodeError as e:
+            error.err_add(self.errors, self.pos,
+                          'SYNTAX_ERROR', 'unicode error: ' + str(e))
+            raise error.Abort
         self.pos.line += 1
         self.offset = 0
-        if (self.max_line_len is not None and
-            len(unicode(self.buf, encoding="utf-8")) > self.max_line_len):
-            error.err_add(self.errors, self.pos, 'LONG_LINE',
-                          (len(self.buf), self.max_line_len))
+        if self.max_line_len is not None:
+            if curlen > self.max_line_len:
+                error.err_add(self.errors, self.pos, 'LONG_LINE',
+                              (curlen, self.max_line_len))
 
     def set_buf(self, i):
         self.offset = self.offset + i
