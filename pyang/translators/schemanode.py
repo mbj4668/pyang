@@ -143,7 +143,7 @@ class SchemaNode(object):
         """Make `node` receiver's child."""
         self.children.append(node)
         node.parent = self
-        node.adjust_interleave(None)
+        node.adjust_interleave(node.interleave)
 
     def annot(self, node):
         """Add `node` as an annotation of the receiver."""
