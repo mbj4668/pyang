@@ -395,7 +395,7 @@ error_codes = \
        'XPath function "%s" is not defined in the XPath context'),
     'AUGMENT_MANDATORY':
       (1,
-       'cannot augment mandatory node %s'),
+       'cannot augment with mandatory node %s'),
 
     'LONG_IDENTIFIER':
       (3,
