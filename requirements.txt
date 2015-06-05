@@ -1,1 +1,0 @@
-http://xmlsoft.org/sources/python/libxml2-python-2.6.21.tar.gz
