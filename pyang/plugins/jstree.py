@@ -4,7 +4,6 @@ to the YANG module(s).
 """
 
 import optparse
-import sys
 
 from pyang import plugin
 from pyang import statements
@@ -256,13 +255,6 @@ def emit_bodystart(modules, fd, ctx):
 def emit_tree(modules, fd, ctx):
     global levelcnt
     for module in modules:
-        bstr = ""
-        b = module.search_one('belongs-to')
-        if b is not None:
-            bstr = " (belongs-to %s)" % b.arg
-        ns = module.search_one('namespace')
-        if ns is not None:
-            nsstr = ns.arg
         pr = module.search_one('prefix')
         if pr is not None:
             prstr = pr.arg
@@ -342,12 +334,6 @@ def print_node(s, module, fd, prefix, ctx, level=0):
         name = s.arg
     else:
         name = s.i_module.i_prefix + ':' + s.arg
-
-    pr = module.search_one('prefix')
-    if pr is not None:
-        prstr = pr.arg
-    else:
-        prstr = ""
 
     descr = s.search_one('description')
     descrstring = "No description"
@@ -517,31 +503,26 @@ def typestring(node):
 
     def get_nontypedefstring(node):
         s = ""
-        found  = False
         t = node.search_one('type')
         if t is not None:
             s = t.arg + '\n'
             if t.arg == 'enumeration':
-                found = True
                 s = s + ' : {'
                 for enums in t.substmts:
                     s = s + enums.arg + ','
                 s = s + '}'
             elif t.arg == 'leafref':
-                found = True
                 s = s + ' : '
                 p = t.search_one('path')
                 if p is not None:
                     s = s + p.arg
 
             elif t.arg == 'identityref':
-                found = True
                 b = t.search_one('base')
                 if b is not None:
                     s = s + ' {' + b.arg + '}'
 
             elif t.arg == 'union':
-                found = True
                 uniontypes = t.search('type')
                 s = s + '{' + uniontypes[0].arg
                 for uniontype in uniontypes[1:]:
@@ -550,16 +531,13 @@ def typestring(node):
 
             typerange = t.search_one('range')
             if typerange is not None:
-                found = True
                 s = s + ' [' + typerange.arg + ']'
             length = t.search_one('length')
             if length is not None:
-                found = True
                 s = s + ' {length = ' + length.arg + '}'
 
             pattern = t.search_one('pattern')
             if pattern is not None: # truncate long patterns
-                found = True
                 s = s + ' {pattern = ' + pattern.arg + '}'
         return s
 
@@ -568,8 +546,6 @@ def typestring(node):
     if s != "":
         t = node.search_one('type')
         # chase typedef
-        type_namespace = None
-        i_type_name = None
         name = t.arg
         if name.find(":") == -1:
             prefix = None

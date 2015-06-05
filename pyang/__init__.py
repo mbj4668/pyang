@@ -1,7 +1,6 @@
 """The pyang library for parsing, validating, and converting YANG modules"""
 
 import os
-import string
 import sys
 import zlib
 import re
@@ -9,7 +8,6 @@ import re
 from . import error
 from . import yang_parser
 from . import yin_parser
-from . import grammar
 from . import util
 from . import statements
 
@@ -167,7 +165,7 @@ class Context(object):
                 # now we must read the revision from the module
                 try:
                     r = self.repository.get_module_from_handle(handle)
-                except self.repository.ReadError as ex:
+                except self.repository.ReadError:
                     i += 1
                     continue
                 (ref, format, text) = r
@@ -313,7 +311,7 @@ class Context(object):
                     p = yang_parser.YangParser(extra)
 
                 return p.parse(self, ref, text)
-            except self.repository.ReadError as ex:
+            except self.repository.ReadError:
                 return None
 
     def validate(self):
@@ -418,7 +416,7 @@ class FileRepository(Repository):
         try:
             fd = open(absfilename)
             text = fd.read()
-        except IOError as ex:
+        except IOError:
             return None
         if format == 'yin':
             p = yin_parser.YinParser()

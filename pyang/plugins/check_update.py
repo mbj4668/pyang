@@ -364,7 +364,7 @@ def chk_if_feature(old, new, ctx):
 def chk_config(old, new, ctx):
     if old.i_config == False and new.i_config == True:
         if statements.is_mandatory_node(new):
-            err_add(ctx.errors, newch.pos, 'CHK_MANDATORY_CONFIG', new.arg)
+            err_add(ctx.errors, new.pos, 'CHK_MANDATORY_CONFIG', new.arg)
     elif old.i_config == True and new.i_config == False:
         err_add(ctx.errors, new.pos, 'CHK_BAD_CONFIG', new.arg)
 
