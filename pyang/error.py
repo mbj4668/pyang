@@ -255,9 +255,6 @@ error_codes = \
     'PATTERN_ERROR':
       (2,
        'syntax error in pattern: %s'),
-    'PATTERN_FAILURE':
-      (4,
-       'could not verify pattern: %s'),
     'LEAFREF_TOO_MANY_UP':
       (1,
        'the path for %s at %s has too many ".."'),
