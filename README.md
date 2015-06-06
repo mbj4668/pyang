@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang)
-[![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
+[![Build Status](https://travis-ci.org/lpenz/pyang.svg?branch=master)](https://travis-ci.org/lpenz/pyang)
+[![Coverage Status](https://coveralls.io/repos/lpenz/pyang/badge.svg)](https://coveralls.io/r/lpenz/pyang)
 
 ## News ##
 **2014-11-18 - Version 1.5 released**
