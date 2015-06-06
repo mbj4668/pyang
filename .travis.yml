@@ -19,9 +19,18 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y xsltproc jing
 # }}}
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+  - SITEPACKAGES=$(pip --version | sed -n 's@.*from \([^ ]\+\) .*@\1@p')
+  - echo 'import coverage; coverage.process_startup()' > $SITEPACKAGES/sitecustomize.py
+  - printf '[run]\nparallel=True\n' > ~/coverage.cfg
 script:
   - source env.sh
+  - export COVERAGE_PROCESS_START=~/coverage.cfg
   - make test
+  - find . -name '.coverage*' -exec mv -t . {} +
+  - coverage combine
   # Test .gitignore for tests:
   - TMP=$(tempfile)
   - git ls-files . --exclude-standard --others | tee "$TMP"
@@ -29,3 +38,5 @@ script:
   # Test if we .gitignore any tracked files:
   - git ls-files -i --exclude-standard | tee "$TMP"
   - if test -s "$TMP"; then false; else true; fi
+after_success:
+  - coveralls
