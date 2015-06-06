@@ -6,6 +6,7 @@ dist
 *.rnc
 schemas.xml
 *.pyc
+.coverage*
 /test/test_*/*.dsrl
 /test/test_*/*.rng
 /test/test_*/*.sch
