@@ -325,7 +325,7 @@ def emit_xsd(ctx, module, fd):
 
     handled_modules = []
     for m in mods:
-        for pre in m.i_prefixes:
+        for pre in sorted(m.i_prefixes):
             (modname, revision) = m.i_prefixes[pre]
             mod = statements.modulename_to_module(m, modname, revision)
             if mod in handled_modules or mod.keyword == 'submodule':

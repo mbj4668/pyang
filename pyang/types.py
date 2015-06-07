@@ -397,20 +397,12 @@ class LengthTypeSpec(TypeSpec):
 
 def validate_pattern_expr(errors, stmt):
     # check that it's syntactically correct
+    import re
     try:
-        import libxml2
-        try:
-            re = libxml2.regexpCompile(stmt.arg)
-            return (re, stmt.pos)
-        except libxml2.treeError as v:
-            err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
-            return None
-    except ImportError:
-## Do not report a warning in this case.  Maybe we should add some
-## flag to turn on this warning...
-#        err_add(errors, stmt.pos, 'PATTERN_FAILURE',
-#                "Could not import python module libxml2 "
-#                    "(see http://xmlsoft.org for installation help)")
+        r = re.compile(stmt.arg)
+        return (r, stmt.pos)
+    except re.error as v:
+        err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
         return None
 
 class PatternTypeSpec(TypeSpec):
@@ -426,7 +418,7 @@ class PatternTypeSpec(TypeSpec):
         if self.base.validate(errors, pos, val, errstr) == False:
             return False
         for (re, re_pos) in self.res:
-            if re.regexpExec(val) != 1:
+            if re.match(val) is None:
                 err_add(errors, pos, 'TYPE_VALUE',
                         (val, self.definition, 'pattern mismatch' + errstr +
                          ' for pattern defined at ' + str(re_pos)))

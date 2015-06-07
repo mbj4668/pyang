@@ -4,6 +4,7 @@ import sys
 import os
 import optparse
 import re
+import codecs
 
 import pyang
 from pyang import plugin
@@ -265,10 +266,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
         for filename in filenames:
             try:
-                fd = open(filename)
+                fd = codecs.open(filename, encoding='utf-8')
                 text = fd.read()
-            except IOError as ex:
-                sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+            except (IOError, UnicodeDecodeError) as ex:
+                sys.stderr.write("error %s: %s\n" % (filename, str(ex).replace("'utf8'", "'utf-8'")))
+                # (python 2 and 3 have different error strings for UnicodeDecodeError)
                 sys.exit(1)
             m = r.search(filename)
             ctx.yin_module_map = {}
