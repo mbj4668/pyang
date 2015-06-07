@@ -1,5 +1,4 @@
 import re
-import sys
 
 # not 100% XPath / XML, but good enough for YANG
 namestr=r'[a-zA-Z_][a-zA-Z0-9_\-.]*'
@@ -54,7 +53,7 @@ def validate(s):
     """Validate the XPath expression in the string `s`
     Return True if the expression is correct, and throw
     SyntaxError on failure."""
-    t = tokens(s)
+    tokens(s)
     return True
 
 def tokens(s):

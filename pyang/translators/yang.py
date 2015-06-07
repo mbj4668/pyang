@@ -1,7 +1,6 @@
 """YANG output plugin"""
 
 import optparse
-import re
 
 from .. import plugin
 from .. import util

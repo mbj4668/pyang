@@ -43,7 +43,6 @@ class YangTokenizer(object):
     def skip(self):
         """Skip whitespace and count position"""
         i = 0
-        pos = 0
         buflen = len(self.buf)
 
         while True:
@@ -239,7 +238,7 @@ class YangParser(object):
             stmt = self._parse_statement(None)
         except error.Abort:
             return None
-        except error.Eof as e:
+        except error.Eof:
             error.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
             return None
         try:
@@ -294,9 +293,6 @@ class YangParser(object):
                           (keywd, tok))
             raise error.Abort
         return stmt
-
-# FIXME: tmp debug
-import sys
 
 def ppkeywd(tok):
     if util.is_prefixed(tok):

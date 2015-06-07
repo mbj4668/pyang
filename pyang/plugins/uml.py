@@ -19,8 +19,6 @@ import datetime
 import re
 
 from pyang import plugin
-from pyang import util
-from pyang import grammar
 from pyang import error
 from pyang import syntax
 from pyang import statements
@@ -362,7 +360,6 @@ class uml_emitter:
     def emit_child_stmt(self, parent, node, fd, cont = True):
          keysign = ''
          keyprefix = ''
-         uniquesign = ''
 
          # manage shorthand omitting case in choice
          if (parent.keyword == 'choice') and ((node.keyword == 'container') or (node.keyword == 'leaf') or (node.keyword == 'leaf-list') or (node.keyword == 'list')):

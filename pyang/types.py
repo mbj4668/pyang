@@ -61,20 +61,15 @@ class Decimal64Value(object):
     def __str__(self):
         return self.s
 
-    def __cmp__(self, other):
-        if not isinstance(other, Decimal64Value):
-            return -1
-        return cmp(self.value, other.value)
-
     def __eq__(self, other):
         if not isinstance(other, Decimal64Value):
             return False
-        return self.__cmp__(other) == 0
+        return self.value == other.value
 
     def __ne__(self, other):
         if not isinstance(other, Decimal64Value):
             return True
-        return self.__cmp__(other) != 0
+        return not self == other
 
     def __lt__(self, other):
         if not isinstance(other, Decimal64Value):

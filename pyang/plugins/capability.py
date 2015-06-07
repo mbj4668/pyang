@@ -3,8 +3,6 @@
 """
 
 import optparse
-import sys
-import os.path
 
 from pyang import plugin
 from pyang import util

@@ -1,7 +1,6 @@
 
 import optparse
 import sys
-import re
 import string
 
 from pyang import plugin

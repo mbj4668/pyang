@@ -1,11 +1,8 @@
 
 import optparse
-import sys
-import re
 import string
 
 from pyang import plugin
-from pyang import statements
 
 paths_in_module = []
 leafrefs = []

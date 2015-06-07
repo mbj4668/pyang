@@ -3,7 +3,6 @@ See RFC 6087
 """
 
 import optparse
-import sys
 
 from pyang import plugin
 from pyang import statements
