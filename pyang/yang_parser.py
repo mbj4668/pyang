@@ -27,13 +27,8 @@ class YangTokenizer(object):
     def readline(self):
         if len(self.lines) == 0:
             raise error.Eof
-        try:
-            self.buf = self.lines.popleft()
-            curlen = len(unicode(self.buf, encoding="utf-8"))
-        except UnicodeDecodeError as e:
-            error.err_add(self.errors, self.pos,
-                          'SYNTAX_ERROR', 'unicode error: ' + str(e))
-            raise error.Abort
+        self.buf = self.lines.popleft()
+        curlen = len(self.buf)
         self.pos.line += 1
         self.offset = 0
         if self.max_line_len is not None:
@@ -48,7 +43,6 @@ class YangTokenizer(object):
     def skip(self):
         """Skip whitespace and count position"""
         i = 0
-        pos = 0
         buflen = len(self.buf)
 
         while True:
@@ -174,10 +168,6 @@ class YangTokenizer(object):
                             self.set_buf(1)
                             self.skip()
                             nstr = self.get_string(need_quote=True)
-                            if (type(nstr) != type('')):
-                                error.err_add(self.errors, self.pos,
-                                              'EXPECTED_QUOTED_STRING', ())
-                                raise error.Abort
                             strs.append(nstr)
                         return ''.join(strs)
                     elif (quote_char == '"' and
@@ -248,7 +238,7 @@ class YangParser(object):
             stmt = self._parse_statement(None)
         except error.Abort:
             return None
-        except error.Eof as e:
+        except error.Eof:
             error.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
             return None
         try:
@@ -303,9 +293,6 @@ class YangParser(object):
                           (keywd, tok))
             raise error.Abort
         return stmt
-
-# FIXME: tmp debug
-import sys
 
 def ppkeywd(tok):
     if util.is_prefixed(tok):

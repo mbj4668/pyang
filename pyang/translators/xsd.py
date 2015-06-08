@@ -285,7 +285,7 @@ def emit_xsd(ctx, module, fd):
     for m in mods:
         expand_locally_defined_typedefs(ctx, module, m)
 
-    prefixes = [module.i_xsd_prefix] + [p for p in module.i_prefixes]
+    prefixes = [module.i_xsd_prefix] + [pr for pr in module.i_prefixes]
     if module.i_xsd_prefix in ['xs', 'yin', 'nc', 'ncn']:
         i = 0
         pre = "p" + str(i)
@@ -325,7 +325,7 @@ def emit_xsd(ctx, module, fd):
 
     handled_modules = []
     for m in mods:
-        for pre in m.i_prefixes:
+        for pre in sorted(m.i_prefixes):
             (modname, revision) = m.i_prefixes[pre]
             mod = statements.modulename_to_module(m, modname, revision)
             if mod in handled_modules or mod.keyword == 'submodule':

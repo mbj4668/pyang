@@ -1,1 +1,1 @@
-enc.yang:5: error: SYNTAX_ERROR
+error enc.yang: 'utf-8' codec can't decode byte 0x92 in position 78: invalid start byte

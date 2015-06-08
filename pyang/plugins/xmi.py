@@ -1,11 +1,8 @@
 
 import optparse
-import sys
-import re
 import string
 
 from pyang import plugin
-from pyang import statements
 
 def pyang_plugin_init():
     plugin.register_plugin(XMIPlugin())

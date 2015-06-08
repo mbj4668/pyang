@@ -13,7 +13,6 @@ i_smi_oid built from the smiv2:oid and smiv2:subid statements.
 
 import re
 
-import pyang
 from pyang import plugin
 from pyang import syntax
 from pyang import grammar

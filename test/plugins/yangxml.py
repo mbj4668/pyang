@@ -94,7 +94,6 @@ def emit_leaf_list(stmt, n, fd, ind, attrs):
 def emit_list(stmt, n, fd, ind, attrs):
     while (n > 0):
         fd.write(ind + '<%s%s>\n' % (stmt.arg, attrs))
-        cs = stmt.i_children
         for k in stmt.i_key:
             fd.write(ind + '  <%s>' % k.arg)
             emit_type_val(k.search_one('type'), fd)
@@ -141,17 +140,6 @@ def emit_type_val(t, fd):
     elif statements.has_type(t, ['ipv4-address']) != None:
         fd.write('10.0.0.1')
     else:
-        length = t.search_one('length')
-        pattern = t.search('pattern')
-        if length != None:
-            # pick a length
-            (lo,hi) = pick(t.i_lengths)
-            if hi == None:
-                hi = lo
-            lentgh = randint(lo,hi)
-        if pattern != []:
-            # oh boy
-            pass
         fd.write('__foo__')
 
 def pick(xs):

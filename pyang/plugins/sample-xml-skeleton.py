@@ -30,14 +30,12 @@ document containing sample elements for all data nodes.
   --sample-xml-skeleton-defaults option).
 """
 
-import os
 import sys
 import optparse
 import xml.etree.ElementTree as ET
 import copy
 
-from pyang import plugin, statements, error
-from pyang.util import unique_prefixes
+from pyang import plugin, error
 
 def pyang_plugin_init():
     plugin.register_plugin(SampleXMLSkeletonPlugin())

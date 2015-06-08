@@ -21,10 +21,9 @@ that can be used by the *json2xml* script for translating a valid JSON
 configuration or state data to XML.
 """
 
-import os
 import json
 
-from pyang import plugin, statements, error
+from pyang import plugin, error
 from pyang.util import unique_prefixes
 
 def pyang_plugin_init():
@@ -83,7 +82,6 @@ class JtoXPlugin(plugin.PyangPlugin):
                               for k in ch.i_key])
             elif ch.keyword in ["leaf", "leaf-list"]:
                 ndata.append(self.base_type(ch.search_one("type")))
-            modname = ch.i_module.i_modulename
             parent[nodename] = ndata
 
     def base_type(self, type):

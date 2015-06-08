@@ -2,7 +2,7 @@ import copy
 import re
 
 from . import util
-from .util import attrsearch, keysearch, prefix_to_module, \
+from .util import attrsearch, prefix_to_module, \
     prefix_to_modulename_and_revision
 from .error import err_add
 from . import types
@@ -1024,8 +1024,6 @@ def v_type_feature(ctx, stmt):
 
     stmt.i_is_validated = 'in_progress'
 
-    name = stmt.arg
-
     # search for circular feature definitions
     def validate_if_feature(s):
         if s.keyword == "if-feature":
@@ -1083,8 +1081,6 @@ def v_type_identity(ctx, stmt):
             return
 
     stmt.i_is_validated = 'in_progress'
-
-    name = stmt.arg
 
     # search for circular identity definitions
     def validate_base(s):
