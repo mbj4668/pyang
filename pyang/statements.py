@@ -1252,6 +1252,7 @@ def add_refinement_element(keyword, element, merge = False, v_fun=None):
 def v_default(ctx, target, default):
     type_ = target.search_one('type')
     if (type_ is not None and
+        hasattr(type_, 'i_type_spec') and
         type_.i_type_spec is not None):
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
