@@ -233,7 +233,11 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
-        fd.write("%s %-*s   %s" % (flags, width+1, name, get_typename(s)))
+        t = get_typename(s)
+        if t == '':
+            fd.write("%s %s" % (flags, name))
+        else:
+            fd.write("%s %-*s   %s" % (flags, width+1, name, t))
 
     if s.keyword == 'list' and s.search_one('key') is not None:
         fd.write(" [%s]" % re.sub('\s+', ' ', s.search_one('key').arg))
