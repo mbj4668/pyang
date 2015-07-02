@@ -125,10 +125,10 @@ class JsonXslPlugin(plugin.PyangPlugin):
         """Process input and output parts of `rpc`."""
         p = "/nc:rpc/" + self.qname(rpc)
         tmpl = self.xsl_template(p)
-        ct = self.xsl_calltemplate("container", tmpl)
-        self.xsl_withparam("level", "1", ct)
         inp = rpc.search_one("input")
         if inp is not None:
+            ct = self.xsl_calltemplate("rpc-input", tmpl)
+            self.xsl_withparam("nsid", rpc.i_module.i_modulename + ":", ct)
             self.process_children(inp, p, 2)
         outp = rpc.search_one("output")
         if outp is not None:

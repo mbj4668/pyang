@@ -383,6 +383,20 @@
     <xsl:text>}</xsl:text>
   </xsl:template>
 
+  <xsl:template name="rpc-input">
+    <xsl:param name="nsid"/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="1"/>
+    </xsl:call-template>
+    <xsl:value-of
+	select="concat('&quot;', $nsid, 'input', '&quot;: {')"/>
+    <xsl:apply-templates/>
+    <xsl:call-template name="nl-indent">
+      <xsl:with-param name="level" select="1"/>
+    </xsl:call-template>
+    <xsl:text>}</xsl:text>
+  </xsl:template>
+
   <xsl:template name="leaf">
     <xsl:param name="level" select="0"/>
     <xsl:param name="type"/>
