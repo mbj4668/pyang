@@ -5,6 +5,7 @@ SCHEMAS = $(BASE)-$(TARGET).rng $(BASE)-$(TARGET).sch $(BASE)-$(TARGET).dsrl
 XINSTANCE = $(BASE)-$(TARGET).xml
 JINSTANCE = $(BASE)-$(TARGET)-new.json
 Y2DOPTS = -t $(TARGET) -b $(BASE)
+YANG_MODPATH = .:../../modules
 .PHONY = all test clean validate compare
 
 all: model.xsl model.jtox validate compare
