@@ -75,10 +75,10 @@ error_codes = \
        'unexpected keyword "%s", expected one of %s'),
     'UNEXPECTED_KEYWORD_CANONICAL':
       (1,
-       'keyword "%s" not in canonical order'),
+       'keyword "%s" not in canonical order, (See RFC 6020, Section 12)'),
     'UNEXPECTED_KEYWORD_CANONICAL_1':
       (1,
-       'keyword "%s" not in canonical order, expected "%s"'),
+       'keyword "%s" not in canonical order, expected "%s", (See RFC 6020, Section 12)'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),

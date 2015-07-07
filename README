@@ -13,7 +13,12 @@ To install in a different location, run:
 
 If you do this, it is recommended to set the environment variable
 YANG_INSTALL to the prefix directory.  This ensures that pyang will
-find standard YANG modules.
+find standard YANG modules. In addition, make sure that PYTHONPATH is set
+to something as follows:
+
+export PYTHONPATH=/usr/local/lib/python2.7/site-packages
+
+or whatever version of python you are running.
 
 
 Run locally without installing
