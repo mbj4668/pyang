@@ -3,6 +3,6 @@ module: a
    +--rw x
       +--rw bubba?   int32
 rpcs:
-   +---x foo-rpc     {foo}?
+   +---x foo-rpc {foo}?
 notifications:
-   +---n fox-notif     {fox}?
+   +---n fox-notif {fox}?
