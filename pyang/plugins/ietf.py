@@ -66,10 +66,6 @@ class IETFPlugin(plugin.PyangPlugin):
             'grammar', ['module', 'submodule'],
             lambda ctx, s: v_chk_module_name(ctx, s))
 
-        statements.add_validation_fun(
-            'unique_name', ['module'],
-            lambda ctx, s: v_chk_top_level_nodes(ctx, s))
-
         # register our error codes
         error.add_error_code(
             'IETF_EXPLICIT_DEFAULT', 4,
@@ -86,9 +82,6 @@ class IETFPlugin(plugin.PyangPlugin):
         error.add_error_code(
             'IETF_BAD_NAMESPACE_VALUE', 4,
             'IETF rule (RFC 6087: 4.8): namespace value should be "%s"')
-        error.add_error_code(
-            'IETF_TOO_MANY_TOP_LEVEL_NODES', 4,
-            'IETF rule (RFC 6087: 4.9): too many top-level data nodes: %s')
         error.add_error_code(
             'IETF_NO_MODULE_PREFIX', 4,
             'IETF rule (RFC 6087: 4.1): '
@@ -170,13 +163,6 @@ def v_chk_namespace(ctx, stmt):
     if not stmt.arg == _ietf_namespace_prefix + stmt.i_module.arg:
         err_add(ctx.errors, stmt.pos, 'IETF_BAD_NAMESPACE_VALUE',
                 _ietf_namespace_prefix + stmt.i_module.arg)
-
-def v_chk_top_level_nodes(ctx, stmt):
-    top = [x for x in stmt.i_children
-           if x.keyword not in ['rpc','notification']]
-    if len(top) > 1:
-        err_add(ctx.errors, stmt.pos, 'IETF_TOO_MANY_TOP_LEVEL_NODES',
-                ", ".join([x.arg for x in top]))
 
 def v_chk_module_name(ctx, stmt):
     # can't check much, but we can check that a prefix is used
