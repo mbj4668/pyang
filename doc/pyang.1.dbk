@@ -1071,6 +1071,13 @@ $ osascript foo.scpt</screen>
     </variablelist>
   </refsect1>
 
+  <refsect1 xml:id="man.1.pyang.name_output">
+    <title>Name Output</title>
+    <para>The <emphasis>name</emphasis> output prints the name of each
+    module in the input data model. For submodules, it also shows the
+    name of the main module to which the submodule belongs.</para>
+  </refsect1>
+
   <refsect1 xml:id="man.1.pyang.sample-xml-skeleton_output">
     <title>Sample-xml-skeleton Output</title>
     <para>
