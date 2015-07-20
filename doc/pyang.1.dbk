@@ -664,6 +664,12 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><emphasis>name</emphasis></term>
+        <listitem>
+          <para>Module name, and the name of the main module for a submodule.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><emphasis>omni</emphasis></term>
         <listitem>
           <para>An applescript file that draws a diagram in
@@ -720,9 +726,10 @@
 
   <refsect1 xml:id="man.1.pyang.capability_output">
     <title>Capability Output</title>
-    <para>The <emphasis>capability</emphasis> prints a capability URL
-    for each module of the input data model, taking into account
-    features and deviations, as described in section 5.6.4 of <link
+    <para>The <emphasis>capability</emphasis> output prints a
+    capability URL for each module of the input data model, taking
+    into account features and deviations, as described in section
+    5.6.4 of <link
     xlink:href="http://tools.ietf.org/html/rfc6020">RFC 6020</link>.</para>
     <para>
       Options for the <emphasis>capability</emphasis> output format:
