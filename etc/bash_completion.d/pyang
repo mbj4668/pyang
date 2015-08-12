@@ -6,7 +6,7 @@ _pyang()
     local cur prev words cword plugin hello pl_opts wind=1
 
     local formats="hypertree dsdl depend sample-xml-skeleton omni yin
-        tree jstree capability yang xsd uml jtox jsonxsl xmi"
+        tree jstree capability yang xsd uml jtox jsonxsl xmi name"
 
     local opts_global="
         -h --help
