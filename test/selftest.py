@@ -49,7 +49,6 @@ def chk_stmts():
                     sys.stderr.write("Stmt %s in %s not found in %s" % \
                                          (stmt, name, tname))
 
-
 chk_error_codes()
 chk_stmts()
 if found_error:
