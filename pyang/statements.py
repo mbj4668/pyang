@@ -29,8 +29,17 @@ yang_xpath_functions = [
     'current',
     ]
 
+yang_1_1_xpath_functions = [
+    'bit-is-set',
+    'enum-value'
+    'deref',
+    'derived-from',
+    'derived-from-or-self',
+    're-match',
+    ]
+
 extra_xpath_functions = [
-    'deref', # pyang extension
+    'deref', # pyang extension for 1.0
     ]
 
 ### Validation
@@ -1879,10 +1888,13 @@ def v_xpath(ctx, stmt):
                 pass
             elif tokname == 'variable':
                 err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
-            elif tokname == 'function' and (s not in xpath.core_functions and
-                                            s not in yang_xpath_functions and
-                                            s not in extra_xpath_functions):
-                err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
+            elif tokname == 'function':
+                if not (s in xpath.core_functions or
+                        s in yang_xpath_functions or
+                        (stmt.i_module.i_version != '1' and
+                         s in yang_1_1_xpath_functions) or
+                        s in extra_xpath_functions):
+                    err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
 
     except SyntaxError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
@@ -2074,10 +2086,13 @@ def v_unused_grouping(ctx, stmt):
             err_add(ctx.errors, stmt.pos,
                     'UNUSED_GROUPING', stmt.arg)
 
-### Strcit phase
+### Strict phase
 
 def v_strict_xpath(ctx, stmt):
     if not ctx.strict:
+        return
+    if stmt.i_module.i_version != '1':
+        # deref is valid in 1.1
         return
     try:
         toks = xpath.tokens(stmt.arg)
@@ -2087,7 +2102,6 @@ def v_strict_xpath(ctx, stmt):
     except SyntaxError as e:
         # already reported
         pass
-
 
 ### Utility functions
 

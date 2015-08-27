@@ -76,7 +76,7 @@ def tokens(s):
                     # XPath 1.0 spec, 3.7 special rule 1a
                     # interpret '*' as a wildcard
                     tok = ('wildcard', m.group(0))
-                elif (tokname == 'name' and prec is not None and 
+                elif (tokname == 'name' and prec is not None and
                       not _is_special(prec)):
                     # XPath 1.0 spec, 3.7 special rule 1b
                     # interpret the name as an operator
@@ -150,7 +150,7 @@ def _add_prefix(prefix, tok):
             return (tokname, prefix + ':' + s)
     return tok
 
-core_functions = (
+core_functions = [
     'last',
     'position',
     'count',
@@ -178,4 +178,4 @@ core_functions = (
     'floor',
     'ceiling',
     'round',
-    )
+    ]
