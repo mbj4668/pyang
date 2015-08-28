@@ -1545,6 +1545,7 @@ def v_expand_2_augment(ctx, stmt):
             # create an artifical case node for the shorthand
             new_case = create_new_case(ctx, stmt.i_target_node, c)
             new_case.parent = stmt.i_target_node
+            v_inherit_properties(ctx, stmt.i_target_node, new_case)
         else:
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node
