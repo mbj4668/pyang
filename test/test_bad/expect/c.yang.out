@@ -22,6 +22,8 @@ a.yang:147: error: GROUPING_NOT_FOUND
 a.yang:152: error: ENUM_VALUE
 a.yang:162: error: ENUM_VALUE
 a.yang:172: error: TYPE_VALUE
+a.yang:183: error: TYPE_VALUE
+a.yang:188: error: TYPE_VALUE
 b.yang:5: error: CIRCULAR_DEPENDENCY
 d.yang:31: error: DUPLICATE_CHILD_NAME
 d.yang:35: error: DUPLICATE_CHILD_NAME

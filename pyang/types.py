@@ -3,6 +3,7 @@
 from .error import err_add
 from . import util
 from . import syntax
+import base64
 
 class Abort(Exception):
     pass
@@ -180,7 +181,12 @@ class BinaryTypeSpec(TypeSpec):
     def __init__(self):
         TypeSpec.__init__(self, 'binary')
 
-    # FIXME: validate base64 encoding
+    def str_to_val(self, errors, pos, s):
+        try:
+            return base64.b64decode(s)
+        except:
+            err_add(errors, pos, 'TYPE_VALUE',
+                    (s, '', 'bad base64 value'))
 
     def restrictions(self):
         return ['length']
