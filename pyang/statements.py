@@ -1612,14 +1612,14 @@ def v_unique_name_children(ctx, stmt):
                     'DUPLICATE_CHILD_NAME', (stmt.arg, stmt.pos, c.arg, minpos))
         else:
             dict[key] = c
-
-    for c in chs:
-        check(c)
         # also check all data nodes in the cases
         if c.keyword == 'choice':
             for case in c.i_children:
                 for cc in case.i_children:
                     check(cc)
+
+    for c in chs:
+        check(c)
 
 ### Reference phase
 

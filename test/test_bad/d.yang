@@ -1,7 +1,7 @@
 module d {
     namespace "urn:d";
     prefix d;
-    
+
     import e {
         prefix e;
     }
@@ -33,12 +33,23 @@ module d {
             }
             case z {
                 leaf z3 { // error: z3 already used
-                    type int32; 
+                    type int32;
                 }
             }
             case z { // error: z already used
                 leaf z5 {
                     type int32;
+                }
+                choice a1 {
+                  case c11 {
+                    choice a2 {
+                      case c21 {
+                        leaf z4 { // error z4 alread defined
+                          type int32;
+                        }
+                      }
+                    }
+                  }
                 }
             }
         }
@@ -68,4 +79,3 @@ module d {
   }
 }
 
-   
