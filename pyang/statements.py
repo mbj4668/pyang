@@ -2599,7 +2599,10 @@ class Statement(object):
 
     def pprint(self, indent='', f=None):
         """debug function"""
-        print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)
+        if self.arg is not None:
+          print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)
+        else:
+          print(indent + util.keyword_to_str(self.keyword))
         if f is not None:
              f(self, indent)
         for x in self.substmts:
