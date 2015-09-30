@@ -763,8 +763,11 @@ def sort_canonical(keyword, stmts):
     except KeyError:
         return stmts
     res = []
+    # keep the order of data definition statements and case
+    keep = [s[0] for s in data_def_stmts] + ['case']
     for (kw, _spec) in flatten_spec(subspec):
-        res.extend([stmt for stmt in stmts if stmt.keyword == kw])
+        res.extend([stmt for stmt in stmts if (stmt.keyword == kw and
+                                               kw not in keep)])
     # then copy all other statements (extensions)
     res.extend([stmt for stmt in stmts if stmt not in res])
     return res
