@@ -483,6 +483,11 @@
             option may be given multiple times.
           </para>
           <para>
+            By default, all directories (except ".") found in the path
+            are recursively scanned for modules.  This behavior can be
+            disabled by giving the option <option>--no-path-recurse</option>.
+          </para>
+          <para>
             The following directories are always added to the search path:
           </para>
           <orderedlist numeration="arabic" spacing="compact">
@@ -511,6 +516,18 @@
               </para>
             </listitem>
           </orderedlist>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--no-path-recurse</option>
+        </term>
+        <listitem>
+          <para>
+            If this parameter is given, directories in the search path
+            are not recursively scanned for modules.
+          </para>
         </listitem>
       </varlistentry>
 

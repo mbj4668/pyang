@@ -135,6 +135,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              help="Pyang will not discard comments; \
                                    has effect if the output plugin can \
                                    handle comments."),
+        optparse.make_option("--no-path-recurse",
+                             dest="no_path_recurse",
+                             action="store_true",
+                             help="Do not recurse into directories in the \
+                                   yang path."),
         ]
 
     optparser = optparse.OptionParser(usage, add_help_option = False)
@@ -197,7 +202,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = pyang.FileRepository(path)
+    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse)
 
     ctx = pyang.Context(repos)
 

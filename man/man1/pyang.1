@@ -272,6 +272,9 @@ $ pyang \-f tree \-\-deviation\-module mymod\-devs\&.yang mymod\&.yang
 \fIpath\fR
 is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
 .sp
+By default, all directories (except "\&.") found in the path are recursively scanned for modules\&. This behavior can be disabled by giving the option
+\fB\-\-no\-recurse\-path\fR\&.
+.sp
 The following directories are always added to the search path:
 .sp
 .RS 4
@@ -323,6 +326,11 @@ is unset
 (on Unix systems:
 /usr/share/yang/modules)
 .RE
+.RE
+.PP
+\fB\-\-no\-path\-recurse\fR
+.RS 4
+This parameter has effect only if a plugin can handle comments\&. One example of such a plugin is the \*(Aqyang\*(Aq output format plugin\&.
 .RE
 .PP
 \fB\-\-plugindir\fR \fIplugindir\fR

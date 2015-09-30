@@ -365,7 +365,7 @@ class Repository(object):
             Exception.__init__(self, str)
 
 class FileRepository(Repository):
-    def __init__(self, path="", use_env=True):
+    def __init__(self, path="", use_env=True, no_path_recurse=False):
         """Create a Repository which searches the filesystem for modules
 
         `path` is a `os.pathsep`-separated string of directories
@@ -373,6 +373,7 @@ class FileRepository(Repository):
 
         Repository.__init__(self)
         self.dirs = path.split(os.pathsep)
+        self.no_path_recurse = no_path_recurse
 
         if use_env:
             modpath = os.getenv('YANG_MODPATH')
@@ -396,21 +397,27 @@ class FileRepository(Repository):
         # check all dirs for yang and yin files
         self.modules = []
         r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
-        for d in self.dirs:
+        def add_files_from_dir(d):
             try:
                 files = os.listdir(d)
             except OSError:
                 files = []
             for fname in files:
-                m = r.search(fname)
-                if m is not None:
-                    (name, _dummy, rev, format) = m.groups()
-                    absfilename = os.path.join(d, fname)
-                    if not os.access(absfilename, os.R_OK): continue
-                    if absfilename.startswith("./"):
-                        absfilename = absfilename[2:]
-                    handle = (format, absfilename)
-                    self.modules.append((name, rev, handle))
+                absfilename = os.path.join(d, fname)
+                if os.path.isfile(absfilename):
+                    m = r.search(fname)
+                    if m is not None:
+                        (name, _dummy, rev, format) = m.groups()
+                        if not os.access(absfilename, os.R_OK): continue
+                        if absfilename.startswith("./"):
+                            absfilename = absfilename[2:]
+                        handle = (format, absfilename)
+                        self.modules.append((name, rev, handle))
+                elif (not self.no_path_recurse
+                      and d != '.' and os.path.isdir(absfilename)):
+                    add_files_from_dir(absfilename)
+        for d in self.dirs:
+            add_files_from_dir(d)
 
     # FIXME: bad strategy; when revisions are not used in the filename
     # this code parses all modules :(  need to do this lazily
