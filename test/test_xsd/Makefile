@@ -26,7 +26,7 @@ test: clean ietf-inet-types.xsd
 	  echo " ok";							\
 	done
 
-ietf-inet-types.xsd: ../../modules/ietf-inet-types.yang
+ietf-inet-types.xsd: ../../modules/ietf/ietf-inet-types.yang
 	$(PYANG) -f xsd $< -o $@
 
 clean:
