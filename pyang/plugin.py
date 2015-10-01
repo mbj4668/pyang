@@ -123,7 +123,7 @@ class PyangPlugin(object):
         return
 
     def post_validate_ctx(self, ctx, modules):
-        """Called for the selected plugin, after the modules
+        """Called for all plugins, after the modules
         have been validated"""
         return
 
