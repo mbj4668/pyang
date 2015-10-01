@@ -163,6 +163,9 @@ error_codes = \
     'BAD_DEVIATE_TYPE':
       (2,
        'the %s property cannot be added'),
+    'BAD_DEVIATE_WITH_NOT_SUPPORTED':
+      (2,
+       'cannot have other deviate statement together with "not-supported"'),
     'EXTENSION_NOT_DEFINED':
       (1,
        'extension "%s" is not defined in module %s'),

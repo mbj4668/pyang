@@ -485,7 +485,7 @@ stmt_map = {
         ('absolute-schema-nodeid',
          [('description', '?'),
           ('reference', '?'),
-          ('deviate', '*')]),
+          ('deviate', '+')]),
     'deviate':
         ('deviate-arg',
          [('type', '?'),

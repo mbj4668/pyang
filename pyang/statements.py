@@ -1884,6 +1884,14 @@ def v_reference_deviate(ctx, stmt):
         return
     t = stmt.parent.i_target_node
     if stmt.arg == 'not-supported':
+        # make sure there are no sibling deviate statements
+        siblings = stmt.parent.search('deviate')
+        idx = siblings.index(stmt)
+        del siblings[idx]
+        if len(siblings) > 0:
+            err_add(ctx.errors, siblings[0].pos,
+                    'BAD_DEVIATE_WITH_NOT_SUPPORTED', ())
+            return
         if ((t.parent.keyword == 'list') and
             (t in t.parent.i_key)):
             err_add(ctx.errors, stmt.pos, 'BAD_DEVIATE_KEY',
@@ -1979,7 +1987,7 @@ def v_reference_deviate(ctx, stmt):
 # FIXME: after deviation, we need to re-run some of the tests, e.g. if
 # the deviation added a default value it needs to be checked.
 def v_reference_deviation_4(ctx, stmt):
-    if stmt.i_target_node is None:
+    if not hasattr(stmt, 'i_target_node') or stmt.i_target_node is None:
         # this is set in v_reference_deviation above.  if none
         # is found, an error has already been reported.
         return
