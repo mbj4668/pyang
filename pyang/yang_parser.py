@@ -29,7 +29,8 @@ class YangTokenizer(object):
             raise error.Eof
         try:
             self.buf = self.lines.popleft()
-            curlen = len(unicode(self.buf, encoding="utf-8"))
+            # make sure the input is proper utf-8 encoded unicode
+            ubuf = unicode(self.buf, encoding="utf-8")
         except UnicodeDecodeError as e:
             error.err_add(self.errors, self.pos,
                           'SYNTAX_ERROR', 'unicode error: ' + str(e))
@@ -37,6 +38,12 @@ class YangTokenizer(object):
         self.pos.line += 1
         self.offset = 0
         if self.max_line_len is not None:
+            curlen = len(ubuf)
+            if curlen >= 1 and ubuf[-1] == '\n':
+                if curlen >= 2 and ubuf[-2] == '\r':
+                    curlen -= 2
+                else:
+                    curlen -= 1
             if curlen > self.max_line_len:
                 error.err_add(self.errors, self.pos, 'LONG_LINE',
                               (curlen, self.max_line_len))
