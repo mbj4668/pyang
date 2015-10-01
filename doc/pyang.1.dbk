@@ -46,6 +46,7 @@
       <arg choice="opt">--verbose</arg>
       <arg choice="opt">--canonical</arg>
       <arg choice="opt">--strict</arg>
+      <arg choice="opt">--lint</arg>
       <arg choice="opt">--ietf</arg>
       <arg choice="opt">--lax-xpath-checks</arg>
       <arg choice="opt">--hello</arg>
@@ -289,17 +290,28 @@
 
       <varlistentry>
         <term>
+          <option>--lint</option>
+        </term>
+        <listitem>
+          <para>
+            Validate the module(s) according to the generic YANG guideline as
+            specified in <link
+            xlink:href="http://tools.ietf.org/html/rfc6087">RFC
+            6087</link>.  In addition, it checks that the module is in
+            canonical order.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>--ietf</option>
         </term>
         <listitem>
           <para>
-            Validate the module(s) according to IETF rules as
-            specified in <link
-            xlink:href="http://tools.ietf.org/html/rfc6087">RFC
-            6087</link>.  In addition, it checks that the module is in
-            canonical order, and that
-            <option>--max-line-length</option> is 72 so that the
-            module fits into an RFC.
+            Validate the module(s) like <option>--lint</option>, and
+            in addition verifies that the namespace and module name
+            follow the IETF conventions.
           </para>
         </listitem>
       </varlistentry>
@@ -648,9 +660,9 @@
       <varlistentry>
         <term><emphasis>dsdl</emphasis></term>
         <listitem>
-	  <para>Hybrid DSDL schema, see <link
-	  xlink:href="http://tools.ietf.org/html/rfc6110">RFC
-	  6110</link>.</para>
+          <para>Hybrid DSDL schema, see <link
+          xlink:href="http://tools.ietf.org/html/rfc6110">RFC
+          6110</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -739,6 +751,48 @@
       </varlistentry>
     </variablelist>
 
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.lint_options">
+    <title>Lint Checker</title>
+    <para>
+      The <emphasis>lint</emphasis> option validates that the module
+      follows the generic conventions and rules given in <link
+      xlink:href="http://tools.ietf.org/html/rfc6087">RFC 6087</link>.
+      In addition, it checks that the module is in canonical order.
+    </para>
+    <para>
+      Options for the <emphasis>lint</emphasis> checker:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--lint-namespace-prefix</option>
+          <replaceable>prefix</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Validate that the module's namespace is on the form:
+            "&lt;prefix&gt;&lt;modulename&gt;".
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--lint-modulename-prefix</option>
+          <replaceable>prefix</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Validate that the module's name starts with
+            <replaceable>prefix</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.capability_output">

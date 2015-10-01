@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-ietf] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -162,12 +162,16 @@ Validate the module(s) according to the canonical YANG order\&.
 Force strict YANG compliance\&. Currently this checks that the deref() function is not used in XPath expressions and leafrefs\&.
 .RE
 .PP
+\fB\-\-lint\fR
+.RS 4
+Validate the module(s) according to the generic YANG guideline as specified in
+\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[4]\d\s+2\&. In addition, it checks that the module is in canonical order\&.
+.RE
+.PP
 \fB\-\-ietf\fR
 .RS 4
-Validate the module(s) according to IETF rules as specified in
-\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[4]\d\s+2\&. In addition, it checks that the module is in canonical order, and that
-\fB\-\-max\-line\-length\fR
-is 72 so that the module fits into an RFC\&.
+Validate the module(s) like
+\fB\-\-lint\fR, and in addition verifies that the namespace and module name follow the IETF conventions\&.
 .RE
 .PP
 \fB\-\-lax\-xpath\-checks\fR
@@ -273,7 +277,7 @@ $ pyang \-f tree \-\-deviation\-module mymod\-devs\&.yang mymod\&.yang
 is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
 .sp
 By default, all directories (except "\&.") found in the path are recursively scanned for modules\&. This behavior can be disabled by giving the option
-\fB\-\-no\-recurse\-path\fR\&.
+\fB\-\-no\-path\-recurse\fR\&.
 .sp
 The following directories are always added to the search path:
 .sp
@@ -330,7 +334,7 @@ is unset
 .PP
 \fB\-\-no\-path\-recurse\fR
 .RS 4
-This parameter has effect only if a plugin can handle comments\&. One example of such a plugin is the \*(Aqyang\*(Aq output format plugin\&.
+If this parameter is given, directories in the search path are not recursively scanned for modules\&.
 .RE
 .PP
 \fB\-\-plugindir\fR \fIplugindir\fR
@@ -483,6 +487,27 @@ Normal YANG syntax\&.
 \fIyin\fR
 .RS 4
 The XML syntax of YANG\&.
+.RE
+.SH "LINT CHECKER"
+.PP
+The
+\fIlint\fR
+option validates that the module follows the generic conventions and rules given in
+\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[4]\d\s+2\&. In addition, it checks that the module is in canonical order\&.
+.PP
+Options for the
+\fIlint\fR
+checker:
+.PP
+\fB\-\-lint\-namespace\-prefix\fR \fIprefix\fR
+.RS 4
+Validate that the module\*(Aqs namespace is on the form: "<prefix><modulename>"\&.
+.RE
+.PP
+\fB\-\-lint\-modulename\-prefix\fR \fIprefix\fR
+.RS 4
+Validate that the module\*(Aqs name starts with
+\fIprefix\fR\&.
 .RE
 .SH "CAPABILITY OUTPUT"
 .PP
