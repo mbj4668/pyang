@@ -28,6 +28,11 @@ class DependPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  help="Generate dependencies from " \
                                  "included submodules"),
+            optparse.make_option("--depend-recurse",
+                                 dest="depend_recurse",
+                                 action="store_true",
+                                 help="Generate dependencies to all " \
+                                     "imports, recursively"),
             optparse.make_option("--depend-extension",
                                  dest="depend_extension",
                                  help="YANG module file name extension"),
@@ -63,16 +68,8 @@ def emit_depend(ctx, modules, fd):
             fd.write('%s :' % module.pos.ref)
         else:
             fd.write('%s :' % ctx.opts.depend_target)
-        prereqs = [i.arg for i in module.search("import")]
-        if not ctx.opts.depend_no_submodules:
-            prereqs += [i.arg for i in module.search("include")]
-        if ctx.opts.depend_from_submodules:
-            for i in module.search("include"):
-                subm = ctx.get_module(i.arg)
-                if subm is not None:
-                    for prereq in [i.arg for i in subm.search("import")]:
-                        if prereq not in prereqs:
-                            prereqs.append(prereq)
+        prereqs = []
+        add_prereqs(ctx, module, prereqs)
         for i in prereqs:
             if i in ctx.opts.depend_ignore:
                 continue
@@ -91,3 +88,20 @@ def emit_depend(ctx, modules, fd):
                     ext = ctx.opts.depend_extension
                 fd.write(' %s%s' % (i, ext))
         fd.write('\n')
+
+def add_prereqs(ctx, module, prereqs):
+    new = [i.arg for i in module.search("import") if i.arg not in prereqs]
+    if not ctx.opts.depend_no_submodules:
+        new += [i.arg for i in module.search("include")
+                if i.arg not in prereqs and i.arg not in new]
+    if ctx.opts.depend_from_submodules:
+        for i in module.search("include"):
+            subm = ctx.get_module(i.arg)
+            if subm is not None:
+                new += [i.arg for i in subm.search("import")
+                        if i.arg not in prereqs and i.arg not in new]
+    prereqs.extend(new)
+    if ctx.opts.depend_recurse:
+        for i in new:
+            m = ctx.get_module(i)
+            add_prereqs(ctx, m, prereqs)

@@ -874,6 +874,15 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--depend-recurse</option></term>
+        <listitem>
+          <para>
+            Recurse into imported modules and generate dependencies
+            for their imported modules etc.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--depend-include-path</option></term>
         <listitem>
           <para>
