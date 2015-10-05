@@ -1,9 +1,11 @@
 from setuptools import setup
 from setuptools import Distribution
+from os.path import join
 import pyang
 import glob
 import os
 import re
+import sys
 
 modules = glob.glob(os.path.join('modules', '*.yang'))
 xslt = glob.glob(os.path.join('xslt', '*.xsl'))
@@ -46,6 +48,14 @@ class PyangDist(Distribution):
                   self.preprocess_files(opts["install"].get("prefix",
                                                             ("", None))[1])
             Distribution.run_commands(self)
+
+# If the installation is on windows, place pyang.bat file in Scripts directory
+if os.sep == '\\':
+    script_dir = join(sys.prefix, 'Scripts')
+    pyang_file = join(script_dir, 'pyang')
+    path = join(script_dir, 'pyang.bat')
+    with open(path, 'w') as script:
+        script.write('@echo off\n%s %s %%*\n' % ('python', pyang_file))
 
 setup(name='pyang',
       version=pyang.__version__,
