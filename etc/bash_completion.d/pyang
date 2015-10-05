@@ -32,7 +32,8 @@ _pyang()
         --keep-comments
         --check-update-from
         -P --check-update-from-path
-        --ietf"
+        --ietf
+        --lint"
 
     local opts_capability="--capability-entity"
 
@@ -40,6 +41,7 @@ _pyang()
         --depend-target
         --depend-no-submodules
         --depend-from-submodules
+        --depend-recurse
         --depend-extension
         --depend-include-path
         --depend-ignore-module"

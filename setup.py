@@ -1,5 +1,5 @@
-from distutils.core import setup
-from distutils.dist import Distribution
+from setuptools import setup
+from setuptools import Distribution
 import pyang
 import glob
 import os
@@ -52,7 +52,16 @@ setup(name='pyang',
       author='Martin Bjorklund',
       author_email='mbj@tail-f.com',
       description="A YANG (RFC 6020) validator and converter",
-      url='http://code.google.com/p/pyang',
+      url='https://github.com/mbj4668/pyang',
+      license='BSD',
+      classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'License :: OSI Approved :: BSD License',
+            'Programming Language :: Python :: 2',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+            ],
+      keywords='YANG validator',
       distclass=PyangDist,
       scripts=['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml'],
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],

@@ -1,8 +1,45 @@
-   1.5.1 - ???
+   1.6 - 2015-10-XX
+         added new plugin: 'lint' to check if a module follow
+           the generic guidelines defined in RFC 6087.  the 'ietf' plugin
+           still exists, but is rewritten to use the new 'lint' plugin.
+         added new plugin: 'name' to print a module's name, thanks to
+           Giles Heron.
+         by default, pyang now scans the YANG module path recursively,
+           i.e., it searches for YANG modules also in subdirectories to the
+           directories in the load path.  this behavior can be disabled with
+           --no-path-recurse.
+         the directory 'modules' now has two subdirectories 'iana' and
+           'ietf', where all current IANA and IETF modules are located.
+         a bash completions file has been added etc/bash_completion.d
+
+         #76 - some grammar tests for various deviate statements
+         #114 - deviation module in capability plugin
+         #115 - deviation of shorthand case
+         #121 - added --depend-recurse
+         #122 - handle CRLF in max-line-len checks; also do not count
+                single LF
+         #123 - check that modules are encoded in utf-8
+         #130 - validate position value
+         #133 - python 3 syntax fix
+         #141 - remove call to cmp()
+         #156 - i_config unset in some shorthand cases
+         #158 - handle defaults in binary
+         #160 - pprint fails when printing a statement without an argument
+                thanks to Nick Weeds.
+         #164 - updated comment in plugin.py to reflect reality
+
          fix bug with adding a unique statement via a deviation, thanks
            to Denys Knertser.
 
-         #123 - check that modules are encoded in utf-8
+         do not reorder data definition statements in --yang-canonical
+
+         names in nested choices are now checked for uniqueness
+
+         remove warning about multiple top-level nodes in lint plugin.
+           thanks to Pravin Gohite.
+
+         implement try/except block for plugin directory listing,
+           thanks to Ebben Aries
 
    1.5 - 2014-11-18
          added new plugin: 'capability' to print the capability string for
