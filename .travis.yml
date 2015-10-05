@@ -2,13 +2,12 @@ language: python
 python:
   # - "2.6" # error: no register_namespace in xml.etree.ElementTree
   - "2.7"
-  # - "3.2" # error building libxml2
-  # - "3.3" # error building libxml2
-  # - "3.4" # error building libxml2
+  - "3.2"
+  - "3.3"
+  - "3.4"
 addons:
   apt:
     packages:
-      - libxml2-dev
       - xsltproc
       - jing
 install:
