@@ -430,22 +430,23 @@ def _validate_pattern_libxml2(errors, stmt):
         return False
 
 def _validate_pattern_lxml(errors, stmt):
-    import lxml.etree
-    doc = StringIO(
-        '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">' \
-        '  <xsd:element name="a" type="x"/>' \
-        '    <xsd:simpleType name="x">' \
-        '      <xsd:restriction base="xsd:string">' \
-        '        <xsd:pattern value="%s"/>' \
-        '      </xsd:restriction>' \
-        '     </xsd:simpleType>' \
-        '   </xsd:schema>' % stmt.arg)
     try:
-        sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
-        return ('lxml', sch, stmt.pos)
-    except lxml.etree.XMLSchemaParseError as v:
-        err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
-        return None
+        import lxml.etree
+        doc = StringIO(
+            '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">' \
+            '  <xsd:element name="a" type="x"/>' \
+            '    <xsd:simpleType name="x">' \
+            '      <xsd:restriction base="xsd:string">' \
+            '        <xsd:pattern value="%s"/>' \
+            '      </xsd:restriction>' \
+            '     </xsd:simpleType>' \
+            '   </xsd:schema>' % stmt.arg)
+        try:
+            sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
+            return ('lxml', sch, stmt.pos)
+        except lxml.etree.XMLSchemaParseError as v:
+            err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
+            return None
     except ImportError:
         return False
 
