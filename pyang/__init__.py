@@ -425,6 +425,8 @@ class FileRepository(Repository):
         try:
             fd = open(absfilename)
             text = fd.read()
+            if sys.version < "3":
+                text = unicode(text, encoding="utf-8")
         except IOError as ex:
             return None
         except UnicodeDecodeError as ex:
@@ -451,6 +453,8 @@ class FileRepository(Repository):
         try:
             fd = open(absfilename)
             text = fd.read()
+            if sys.version < "3":
+                text = unicode(text, encoding="utf-8")
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
         except UnicodeDecodeError as ex:

@@ -7,9 +7,11 @@ test:
 test_all: python2_test python3_test
 
 python2_test: python2/python
+	$(MAKE) clean
 	env PATH=`pwd`/python2:$(PATH) $(MAKE) itest
 
 python3_test: python3/python
+	$(MAKE) clean
 	env PATH=`pwd`/python3:$(PATH) $(MAKE) itest
 
 itest:

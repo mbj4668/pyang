@@ -4,6 +4,9 @@ from .error import err_add
 from . import util
 from . import syntax
 import base64
+from xml.sax.saxutils import quoteattr
+from xml.sax.saxutils import escape
+
 try:
     # python 2
     from StringIO import StringIO
@@ -437,10 +440,10 @@ def _validate_pattern_lxml(errors, stmt):
             '  <xsd:element name="a" type="x"/>' \
             '    <xsd:simpleType name="x">' \
             '      <xsd:restriction base="xsd:string">' \
-            '        <xsd:pattern value="%s"/>' \
+            '        <xsd:pattern value=%s/>' \
             '      </xsd:restriction>' \
             '     </xsd:simpleType>' \
-            '   </xsd:schema>' % stmt.arg)
+            '   </xsd:schema>' % quoteattr(stmt.arg))
         try:
             sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
             return ('lxml', sch, stmt.pos)
@@ -480,7 +483,7 @@ class PatternTypeSpec(TypeSpec):
                 is_valid = re.regexpExec(val) == 1
             elif type_ == 'lxml':
                 import lxml
-                doc = StringIO('<a>%s</a>' % val)
+                doc = StringIO('<a>%s</a>' % escape(val))
                 is_valid = re.validate(lxml.etree.parse(doc))
             if not is_valid:
                 err_add(errors, pos, 'TYPE_VALUE',
