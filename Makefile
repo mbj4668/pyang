@@ -23,7 +23,6 @@ doc:
 test:
 	(cd test; $(MAKE) test)
 
-
 clean:
 	(cd test && $(MAKE) clean)
 	(cd doc &&  $(MAKE) clean)

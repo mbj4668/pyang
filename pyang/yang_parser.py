@@ -27,20 +27,13 @@ class YangTokenizer(object):
     def readline(self):
         if len(self.lines) == 0:
             raise error.Eof
-        try:
-            self.buf = self.lines.popleft()
-            # make sure the input is proper utf-8 encoded unicode
-            ubuf = unicode(self.buf, encoding="utf-8")
-        except UnicodeDecodeError as e:
-            error.err_add(self.errors, self.pos,
-                          'SYNTAX_ERROR', 'unicode error: ' + str(e))
-            raise error.Abort
+        self.buf = self.lines.popleft()
         self.pos.line += 1
         self.offset = 0
         if self.max_line_len is not None:
-            curlen = len(ubuf)
-            if curlen >= 1 and ubuf[-1] == '\n':
-                if curlen >= 2 and ubuf[-2] == '\r':
+            curlen = len(self.buf)
+            if curlen >= 1 and self.buf[-1] == '\n':
+                if curlen >= 2 and self.buf[-2] == '\r':
                     curlen -= 2
                 else:
                     curlen -= 1
@@ -181,12 +174,12 @@ class YangTokenizer(object):
                             self.set_buf(1)
                             self.skip()
                             nstr = self.get_string(need_quote=True)
-                            if (type(nstr) != type('')):
+                            if (type(nstr) != type(u'')):
                                 error.err_add(self.errors, self.pos,
                                               'EXPECTED_QUOTED_STRING', ())
                                 raise error.Abort
                             strs.append(nstr)
-                        return ''.join(strs)
+                        return u''.join(strs)
                     elif (quote_char == '"' and
                           self.buf[i] == '\\' and i < (buflen-1)):
                         # check for special characters

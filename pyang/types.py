@@ -4,6 +4,12 @@ from .error import err_add
 from . import util
 from . import syntax
 import base64
+try:
+    # python 2
+    from StringIO import StringIO
+except ImportError:
+    # python 3
+    from io import StringIO
 
 class Abort(Exception):
     pass
@@ -406,23 +412,55 @@ class LengthTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 
-def validate_pattern_expr(errors, stmt):
-    # check that it's syntactically correct
+def _validate_pattern_libxml2(errors, stmt):
     try:
         import libxml2
         try:
             re = libxml2.regexpCompile(stmt.arg)
-            return (re, stmt.pos)
+            return ('libxml2', re, stmt.pos)
         except libxml2.treeError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
     except ImportError:
-## Do not report a warning in this case.  Maybe we should add some
-## flag to turn on this warning...
-#        err_add(errors, stmt.pos, 'PATTERN_FAILURE',
-#                "Could not import python module libxml2 "
-#                    "(see http://xmlsoft.org for installation help)")
+    ## Do not report a warning in this case.  Maybe we should add some
+    ## flag to turn on this warning...
+    #        err_add(errors, stmt.pos, 'PATTERN_FAILURE',
+    #                "Could not import python module libxml2 "
+    #                    "(see http://xmlsoft.org for installation help)")
+        return False
+
+def _validate_pattern_lxml(errors, stmt):
+    import lxml.etree
+    doc = StringIO(
+        '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">' \
+        '  <xsd:element name="a" type="x"/>' \
+        '    <xsd:simpleType name="x">' \
+        '      <xsd:restriction base="xsd:string">' \
+        '        <xsd:pattern value="%s"/>' \
+        '      </xsd:restriction>' \
+        '     </xsd:simpleType>' \
+        '   </xsd:schema>' % stmt.arg)
+    try:
+        sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
+        return ('lxml', sch, stmt.pos)
+    except lxml.etree.XMLSchemaParseError as v:
+        err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
         return None
+    except ImportError:
+        return False
+
+def validate_pattern_expr(errors, stmt):
+    ## check that it's syntactically correct
+    # First try with lxml
+    res = _validate_pattern_lxml(errors, stmt)
+    if res is not False:
+        return res
+    # Then try with libxml2
+    res = _validate_pattern_libxml2(errors, stmt)
+    if res is not False:
+        return res
+    # Otherwise we can't validate patterns :(
+    return None
 
 class PatternTypeSpec(TypeSpec):
     def __init__(self, base, pattern_specs):
@@ -436,8 +474,14 @@ class PatternTypeSpec(TypeSpec):
     def validate(self, errors, pos, val, errstr=''):
         if self.base.validate(errors, pos, val, errstr) == False:
             return False
-        for (re, re_pos) in self.res:
-            if re.regexpExec(val) != 1:
+        for (type_, re, re_pos) in self.res:
+            if type_ == 'libxml2':
+                is_valid = re.regexpExec(val) == 1
+            elif type_ == 'lxml':
+                import lxml
+                doc = StringIO('<a>%s</a>' % val)
+                is_valid = re.validate(lxml.etree.parse(doc))
+            if not is_valid:
                 err_add(errors, pos, 'TYPE_VALUE',
                         (val, self.definition, 'pattern mismatch' + errstr +
                          ' for pattern defined at ' + str(re_pos)))

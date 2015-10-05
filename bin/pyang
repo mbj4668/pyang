@@ -272,8 +272,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             try:
                 fd = open(filename)
                 text = fd.read()
+                if sys.version < "3":
+                    text = unicode(text, encoding="utf-8")
             except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+                sys.exit(1)
+            except UnicodeDecodeError as ex:
+                s = str(ex).replace('utf-8', 'utf8')
+                sys.stderr.write("%s: unicode error: %s\n" % (filename, s))
                 sys.exit(1)
             m = r.search(filename)
             ctx.yin_module_map = {}
@@ -300,8 +306,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         try:
             fd = open(filename)
             text = fd.read()
+            if sys.version < "3":
+                text = unicode(text, encoding="utf-8")
         except IOError as ex:
             sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+            sys.exit(1)
+        except UnicodeDecodeError as ex:
+            s = str(ex).replace('utf-8', 'utf8')
+            sys.stderr.write("%s: unicode error: %s\n" % (filename, s))
             sys.exit(1)
         m = ctx.add_module(filename, text)
         if m is not None:

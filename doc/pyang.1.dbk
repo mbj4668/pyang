@@ -732,12 +732,6 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>xsd</emphasis></term>
-        <listitem>
-          <para>DEPRECATED: W3C XML Schema.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
         <term><emphasis>yang</emphasis></term>
         <listitem>
           <para>Normal YANG syntax.</para>
@@ -1463,53 +1457,6 @@ $ osascript foo.scpt</screen>
     <para>
       XMI output specific option:
     </para>
-  </refsect1>
-
-  <refsect1 xml:id="man.1.pyang.xsd_output">
-    <title>XSD Output</title>
-    <para>
-      NOTE: The XSD output plugin is deprecated.  Use the dsdl plugin
-      instead.
-    </para>
-    <para>
-      Options for the <emphasis>xsd</emphasis> output format:
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--xsd-no-appinfo</option></term>
-        <listitem>
-          <para>
-            Do not print YANG specific appinfo.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--xsd-no-lecture</option></term>
-        <listitem>
-          <para>
-            Do not print the lecture about how the XSD can be used.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--xsd-no-imports</option></term>
-        <listitem>
-          <para>
-            Do not generate any xs:imports.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--xsd-break-pattern</option></term>
-        <listitem>
-          <para>
-            Break long patterns so that they fit into RFCs. The
-            resulting patterns might not always be valid XSD, so use
-            with care.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.yang_output">

@@ -1,4 +1,6 @@
    1.6 - 2015-10-XX
+         removed the deprecated, incomplete and erroneous XSD plugin - use
+           the DSDL plugin instead.
          added new plugin: 'lint' to check if a module follow
            the generic guidelines defined in RFC 6087.  the 'ietf' plugin
            still exists, but is rewritten to use the new 'lint' plugin.

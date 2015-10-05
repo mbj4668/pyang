@@ -427,6 +427,8 @@ class FileRepository(Repository):
             text = fd.read()
         except IOError as ex:
             return None
+        except UnicodeDecodeError as ex:
+            return None
         if format == 'yin':
             p = yin_parser.YinParser()
         else:
@@ -451,6 +453,9 @@ class FileRepository(Repository):
             text = fd.read()
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
+        except UnicodeDecodeError as ex:
+            s = str(ex).replace('utf-8', 'utf8')
+            raise self.ReadError(absfilename + ": unicode error: " + s)
 
         if format is None:
             format = util.guess_format(text)

@@ -11,7 +11,6 @@ from pyang import util
 from pyang import error
 from pyang import grammar
 from pyang import syntax
-import pyang.translators.xsd as xsd
 
 def oscmd(cmd):
     p = subprocess.Popen(cmd, shell=True,
@@ -40,9 +39,7 @@ def chk_error_codes():
             found_error = True
 
 def chk_stmts():
-    global found_error
     stmtmaps = [(grammar.stmt_map, "grammar.stmt_map"),
-                (xsd.yang_keywords, "xsd.yang_keywords"),
                 (syntax.yin_map, "syntax.yin_map")]
     for (map, name) in stmtmaps:
         for stmt in map:
@@ -51,20 +48,7 @@ def chk_stmts():
                 if stmt not in tmap:
                     sys.stderr.write("Stmt %s in %s not found in %s" % \
                                          (stmt, name, tname))
-                    found_error = True
-    if found_error:
-        return
-    for s in syntax.yin_map:
-        (argname, yinelem) = syntax.yin_map[s]
-        (xargname, xyinelem, xsdappinfo) = xsd.yang_keywords[s]
-        if argname != xargname:
-            sys.stderr.write("Stmt %s argname mismatch in syntax.yin_map " \
-                                 "and xsd.yang_keywords" % s)
-            found_error = True
-        if yinelem != xyinelem:
-            sys.stderr.write("Stmt %s yinelem mismatch in syntax.yin_map " \
-                                 "and xsd.yang_keywords" % s)
-            found_error = True
+
 
 chk_error_codes()
 chk_stmts()
