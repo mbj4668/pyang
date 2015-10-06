@@ -1,4 +1,4 @@
-   1.6 - 2015-10-XX
+   1.6 - 2015-10-06
          removed the deprecated, incomplete and erroneous XSD plugin - use
            the DSDL plugin instead.
          added new plugin: 'lint' to check if a module follow

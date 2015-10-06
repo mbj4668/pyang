@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## News ##
-**2015-10-XX - Version 1.6 released **
+**2015-10-06 - Version 1.6 released **
 
   * A new plugin 'lint' has been added. It checks if a module follow
     the generic guidelines defined in RFC 6087.  The 'ietf' plugin
@@ -14,6 +14,8 @@
     '--no-path-recurse'.
 
   * A bash completions file has been added.
+
+  * ... and various other enhancements and bug fixes, see CHANGES.
 
 **2014-11-18 - Version 1.5 released**
 
