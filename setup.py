@@ -7,7 +7,8 @@ import os
 import re
 import sys
 
-modules = glob.glob(os.path.join('modules', '*.yang'))
+modules_iana = glob.glob(os.path.join('modules', 'iana', '*.yang'))
+modules_ietf = glob.glob(os.path.join('modules', 'ietf', '*.yang'))
 xslt = glob.glob(os.path.join('xslt', '*.xsl'))
 schema = glob.glob(os.path.join('schema', '*.rng'))
 images = glob.glob(os.path.join('tools', 'images', '*'))
@@ -62,6 +63,7 @@ setup(name='pyang',
       author='Martin Bjorklund',
       author_email='mbj@tail-f.com',
       description="A YANG (RFC 6020) validator and converter",
+      long_description="An extensible  YANG (RFC 6020) validator.  Provides a framwork for plugins that can convert YANG modules to other formats.",
       url='https://github.com/mbj4668/pyang',
       license='BSD',
       classifiers=[
@@ -77,7 +79,8 @@ setup(name='pyang',
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],
       data_files=[
             ('share/man/man1', man1),
-            ('share/yang/modules', modules),
+            ('share/yang/modules/iana', modules_iana),
+            ('share/yang/modules/ietf', modules_ietf),
             ('share/yang/xslt', xslt),
             ('share/yang/images', images),
             ('share/yang/schema', schema),
