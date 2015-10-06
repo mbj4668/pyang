@@ -4,6 +4,8 @@
 ## News ##
 **2015-10-06 - Version 1.6 released **
 
+  * pyang can now be installed via [PyPi](https://pypi.python.org/pypi).
+
   * A new plugin 'lint' has been added. It checks if a module follow
     the generic guidelines defined in RFC 6087.  The 'ietf' plugin
     still exists, but is rewritten to use the new 'lint' plugin.
