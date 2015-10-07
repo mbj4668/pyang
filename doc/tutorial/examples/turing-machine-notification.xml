@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- file: turing-machine-notification.xml -->
+<notification
+    xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <eventTime>2015-07-08T00:01:00Z</eventTime>
+  <halted xmlns="http://example.net/turing-machine">
+    <state>4</state>
+  </halted>
+</notification>
