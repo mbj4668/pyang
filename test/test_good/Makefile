@@ -26,7 +26,8 @@ test: clean utf8-test
 utf8-test:
 	pyang -f yang q.yang || exit 1; \
 	pyang -f yang q.yang > x || exit 1; \
-	pyang -f yang q.yang -o x || exit 1
+	pyang -f yang q.yang -o x || exit 1; \
+	rm -f x
 
 clean:
 	rm -rf *.yang.yin *.gen.* *.dsdl
