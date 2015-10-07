@@ -2,7 +2,7 @@ PYANG = pyang -Werror -WWBAD_MODULE_NAME
 
 MODULES ?= $(wildcard *.yang)
 
-test: clean
+test: clean utf8-test
 	@for m in $(MODULES); do 					\
 		echo -n "checking $$m...";				\
 		$(PYANG) $$m || exit 1;					\
@@ -22,6 +22,11 @@ test: clean
 		(grep '^submodule' $$m > /dev/null || $(PYANG) -f dsdl -o $$m.dsdl $$m) || exit 0;	\
 		echo " ok";						\
 	done
+
+utf8-test:
+	pyang -f yang q.yang || exit 1; \
+	pyang -f yang q.yang > x || exit 1; \
+	pyang -f yang q.yang -o x || exit 1
 
 clean:
 	rm -rf *.yang.yin *.gen.* *.dsdl

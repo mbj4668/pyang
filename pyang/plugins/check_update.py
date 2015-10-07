@@ -6,6 +6,7 @@ the rules defined in Section 10 of RFC 6020.
 import optparse
 import sys
 import os
+import io
 
 import pyang
 from pyang import plugin
@@ -144,7 +145,7 @@ def check_update(ctx, oldfilename, newmod):
 
     oldfilename = ctx.opts.check_update_from
     try:
-        fd = open(oldfilename)
+        fd = io.open(oldfilename, "r", encoding="utf-8")
         text = fd.read()
     except IOError as ex:
         sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))

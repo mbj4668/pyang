@@ -5,6 +5,7 @@ import string
 import sys
 import zlib
 import re
+import io
 
 from . import error
 from . import yang_parser
@@ -96,10 +97,6 @@ class Context(object):
             revs = self.revs[module.arg]
             revs.append((latest_rev, None))
 
-        if sys.version < '3':
-            module.i_adler32 = zlib.adler32(text)
-        else:
-            module.i_adler32 = zlib.adler32(text.encode('UTF-8'))
         return self.add_parsed_module(module)
 
     def add_parsed_module(self, module):
@@ -119,13 +116,6 @@ class Context(object):
         rev = util.get_latest_revision(module)
         if (module.arg, rev) in self.modules:
             other = self.modules[(module.arg, rev)]
-            if (hasattr(other, 'i_adler32') and
-                hasattr(module, 'i_adler32') and
-                other.i_adler32 != module.i_adler32):
-                error.err_add(self.errors, module.pos,
-                              'DUPLICATE_MODULE', (module.arg, other.pos))
-                return None
-            # exactly same module
             return other
 
         self.modules[(module.arg, rev)] = module
@@ -423,10 +413,8 @@ class FileRepository(Repository):
     # this code parses all modules :(  need to do this lazily
     def _peek_revision(self, absfilename, format, ctx):
         try:
-            fd = open(absfilename)
+            fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
-            if sys.version < "3":
-                text = unicode(text, encoding="utf-8")
         except IOError as ex:
             return None
         except UnicodeDecodeError as ex:
@@ -451,10 +439,8 @@ class FileRepository(Repository):
     def get_module_from_handle(self, handle):
         (format, absfilename) = handle
         try:
-            fd = open(absfilename)
+            fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
-            if sys.version < "3":
-                text = unicode(text, encoding="utf-8")
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
         except UnicodeDecodeError as ex:
