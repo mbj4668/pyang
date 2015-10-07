@@ -260,6 +260,7 @@ _keyword_with_children = {
     'output':True,
     'notification':True,
     'rpc':True,
+    'action':True,
     }
 
 _validation_variables = [
@@ -268,9 +269,9 @@ _validation_variables = [
     ]
 
 _data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
-                  'anyxml', 'rpc', 'notification']
+                  'anyxml', 'action', 'rpc', 'notification']
 
-_keywords_with_no_explicit_config = ['rpc', 'notification']
+_keywords_with_no_explicit_config = ['action', 'rpc', 'notification']
 
 _copy_uses_keywords = []
 
@@ -1203,7 +1204,7 @@ def v_expand_1_children(ctx, stmt):
                 stmt.i_children.append(s)
                 v_expand_1_children(ctx, s)
         return
-    elif stmt.keyword == 'rpc':
+    elif stmt.keyword in ('action', 'rpc'):
         input_ = stmt.search_one('input')
         if input_ is None:
             # create the implicitly defined input node
