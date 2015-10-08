@@ -14,7 +14,7 @@
 	"bmod:pac": [
 	    {
 		"k1": 0,
-		"k2": "w/o]",
+		"k2": "© w/o]",
 		"pusu": "amod:foo"
 	    },
 	    {
@@ -33,9 +33,9 @@
     "amod:top": {
 	"e": [null],
 	"junk": {
-	    "two": [
-		"deux",
-		"zwei"
+	    "three": [
+		"tři",
+		"drei"
 	    ],
 	    "one": "1"
 	},
@@ -51,7 +51,7 @@
 	    "2.718281828459045235"
 	],
 	"mek": "4142135623730950488",
-	"bmod:abar": "/amod:subtop/bmod:pac[k1=\"0\"][k2='w/o]']/pusu",
+	"bmod:abar": "/amod:subtop/bmod:pac[k1=\"0\"][k2='© w/o]']/pusu",
 	"bar": [null],
 	"pac": [
 	    "yes",
