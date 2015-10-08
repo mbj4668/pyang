@@ -3,7 +3,7 @@
 	"@": {
 	    "bmod:quux": 1,
 	    "cmod:idann": "cmod:derived-id",
-	    "cmod:iiann": "/amod:subtop/bmod:pac[k1='0'][k2='w/o]']/pusu",
+	    "cmod:iiann": "/amod:subtop/bmod:pac[k1='0'][k2='© w/o]']/pusu",
 	    "cmod:strann": "hi!",
 	    "cmod:u64ann": "9876543210"
 	},
@@ -59,6 +59,7 @@
 	    true
 	],
 	"foo": "4142135623730950488",
-	"bmod:bar": "0xFE"
+	"bmod:bar": "0xFE",
+	"pac": [true, 0]
     }
 }
