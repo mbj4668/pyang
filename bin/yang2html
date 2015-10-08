@@ -42,11 +42,11 @@ optlist = [
                          dest="outfile",
                          help="Write the output to OUTFILE instead " \
                                "of stdout."),
-    optparse.make_option("-d", 
+    optparse.make_option("-d",
                          dest="scan_document",
                          action="store_true",
                          help="Add markup to an existing html document"),
-    optparse.make_option("-c", 
+    optparse.make_option("-c",
                          dest="emit_css",
                          action="store_true"),
     ]
@@ -56,9 +56,9 @@ optparser.version = '%prog ' + pyang.__version__
 optparser.add_options(optlist)
 
 (o, args) = optparser.parse_args()
-    
+
 if len(args) > 1:
-    print("too many files to convert", file=sys.stderr)
+    sys.stderr.write("too many files to convert")
     sys.exit(1)
 
 
@@ -198,7 +198,7 @@ while i < len(buf):
         i = i + 1
     else:
         i = i + 1
-        
+
 fd.write(buf)
 
 if not o.scan_document:

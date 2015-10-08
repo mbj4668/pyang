@@ -372,9 +372,6 @@ error_codes = \
     'DUPLICATE_NAMESPACE':
       (1,
        'duplicate namespace uri %s found in module %s'),
-    'DUPLICATE_MODULE':
-      (1,
-       'duplicate module %s found (conflicts with %s)'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
        'missing argument attribute "%s" for "%s"'),
