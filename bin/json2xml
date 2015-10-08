@@ -43,7 +43,7 @@ class NodeTypeError(Error):
         self.node_type = node_type
 
     def __str__(self):
-        return (Error.__str__(self) + " -  must be a " + self.node_type)
+        return Error.__str__(self) + " -  must be a " + self.node_type
 
 class InvalidNodeError(Error):
     """Exception raised for nodes that are not found in the data model."""
@@ -134,7 +134,16 @@ class Translator (object):
 
         - `path`: JSON pointer of `json_obj` (for error messages)
         
-        """ 
+        """
+        def check_val(cond, path, ytyp):
+            if not cond: raise NodeTypeError(path, ytyp)
+
+        def is_array(val):
+            return isinstance(val, list) and val != [None]
+
+        def is_scalar(val):
+            return not (is_array(val) or isinstance(val, dict))
+
         for key in json_obj:
             if key[0] == "@":
                 if key == "@":
@@ -145,20 +154,17 @@ class Translator (object):
             tag, mod_name, node_spec = self.node_lookup(key, ns, node, new_path)
             qn = self.et_qname(mod_name, tag)
             if node_spec[0] == "container":
-                if not isinstance(job, dict):
-                    raise NodeTypeError(new_path, "container")
+                check_val(isinstance(job, dict), new_path, "container")
                 el = ET.SubElement(xml_parent, qn)
                 self.translate_obj(job, mod_name, node_spec[1], el,
                                    new_path + "/")
             elif node_spec[0] == "list":
-                if not isinstance(job, list) or job == [None]:
-                    raise NodeTypeError(new_path, "list")
+                check_val(is_array(job), new_path, "list")
                 i = 0
                 keys = node_spec[2][:]
                 keys.reverse()
                 for child in job:
-                    if not isinstance(child, dict):
-                        raise NodeTypeError(new_path, "list")
+                    check_val(isinstance(child, dict), new_path, "list entry")
                     el = ET.SubElement(xml_parent, qn)
                     self.translate_obj(child, mod_name, node_spec[1],
                                        el, new_path + "/%d/" % i)
@@ -169,14 +175,17 @@ class Translator (object):
                         el.insert(0,knode)
                     i += 1
             elif node_spec[0] == "leaf":
+                check_val(is_scalar(job), new_path, "leaf")
                 aobj = json_obj.get("@" + key)
                 self.handle_leaf(job, node_spec[1], mod_name,
                                  qn, xml_parent, new_path, aobj)
             elif node_spec[0] == "leaf-list":
+                check_val(is_array(job), new_path, "leaf-list")
                 aarr = json_obj.get("@" + key, [])
                 la = len(aarr)
                 i = 0
                 for child in job:
+                    check_val(is_scalar(child), new_path, "leaf-list entry")
                     aobj = aarr[i] if i < la else None
                     self.handle_leaf(child, node_spec[1], mod_name, qn,
                                      xml_parent, new_path + "/%d" % i, aobj)
