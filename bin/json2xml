@@ -9,10 +9,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-try:
-    basestring
-except NameError:
-    basestring = str                                        # pylint: disable=W0622
+if sys.version >= "3":
+    basestring = unicode = str
 
 class Error(Exception):
     """Abstract base class for exceptions in this program."""
@@ -191,7 +189,7 @@ class Translator (object):
                 if isinstance(job, dict):
                     self.handle_anyxml(job, el)
                 else:
-                    el.text = str(job)
+                    el.text = unicode(job)
 
     def handle_annotations(self, annot_obj, elem, mod_name, path):
         if not isinstance(annot_obj, dict):
@@ -236,10 +234,10 @@ class Translator (object):
                     if isinstance(eob, dict):
                         self.handle_anyxml(eob, el)
                     else:
-                        el.text = str(eob)
+                        el.text = unicode(eob)
             else:
                 el = ET.SubElement(parent, ch)
-                el.text = str(cobj)
+                el.text = unicode(cobj)
 
     def node_lookup(self, name, ns, parent, path):
         """Return tag, module name and node specification for `name`."""
@@ -369,7 +367,7 @@ class Translator (object):
             except:
                 return None
             return result
-        return str(value)
+        return unicode(value)
 
 def main():
     """Parse arguments, open files, create and run the translator."""
@@ -390,7 +388,7 @@ def main():
     try:
         dfile = codecs.open(args.jtox, encoding="utf-8")
         jfile = sys.stdin \
-            if args.json == "-" else open(args.json, encoding="utf-8")
+            if args.json == "-" else codecs.open(args.json, encoding="utf-8")
         outfile = (sys.stdout if sys.version < "3" else sys.stdout.buffer) \
             if args.output is None else open(args.output, "wb")
         jtox = json.load(dfile)
