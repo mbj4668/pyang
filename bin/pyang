@@ -391,6 +391,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 fd = sys.stdout
         else:
             tmpfile = o.outfile + ".tmp"
+            if not os.path.exists(os.path.dirname(tmpfile)):
+                os.makedirs(os.path.dirname(tmpfile))
             if sys.version < '3':
                 fd = codecs.open(tmpfile, "w+", encoding="utf-8")
             else:
