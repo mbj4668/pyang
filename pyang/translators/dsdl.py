@@ -267,6 +267,7 @@ class HybridDSDLSchema(object):
             "mandatory": self.noop,
             "min-elements": self.noop,
             "max-elements": self.noop,
+            "modifier": self.noop,
             "module": self.noop,
             "must": self.must_stmt,
             "namespace": self.noop,
