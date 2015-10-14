@@ -406,6 +406,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             sys.exit(e.exit_code)
         if tmpfile != None:
             fd.close()
+            if os.name == 'nt':
+                try:
+                    os.unlink(o.outfile)
+                except OSError:
+                    pass
             os.rename(tmpfile, o.outfile)
 
     sys.exit(exit_code)
