@@ -2034,10 +2034,14 @@ def v_unused_grouping(ctx, stmt):
 def v_strict_xpath(ctx, stmt):
     if not ctx.strict:
         return
-    toks = xpath.tokens(stmt.arg)
-    for (tokname, s) in toks:
-        if tokname == 'function' and s == 'deref':
-            err_add(ctx.errors, stmt.pos, 'STRICT_XPATH_FUNCTION', s)
+    try:
+        toks = xpath.tokens(stmt.arg)
+        for (tokname, s) in toks:
+            if tokname == 'function' and s == 'deref':
+                err_add(ctx.errors, stmt.pos, 'STRICT_XPATH_FUNCTION', s)
+    except SyntaxError as e:
+        # already reported
+        pass
 
 
 ### Utility functions
