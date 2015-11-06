@@ -847,10 +847,12 @@ def v_type_type(ctx, stmt):
             if t.is_grammatically_valid == True:
                 v_type_type(ctx, t)
         stmt.i_type_spec = types.UnionTypeSpec(membertypes)
-        t = has_type(stmt, ['empty', 'leafref'])
-        if t is not None:
-            err_add(ctx.errors, stmt.pos, 'BAD_TYPE_IN_UNION', (t.arg, t.pos))
-            return False
+        if stmt.i_module.i_version == '1':
+            t = has_type(stmt, ['empty', 'leafref'])
+            if t is not None:
+                err_add(ctx.errors, stmt.pos, 'BAD_TYPE_IN_UNION',
+                        (t.arg, t.pos))
+                return False
 
 def v_type_leaf(ctx, stmt):
     stmt.i_default = None

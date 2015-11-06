@@ -108,4 +108,19 @@ module new {
     notification n; // error; 1.1 syntax
     anydata d; // error; 1.1 syntax
   }
+  typedef t2 {
+    type union {
+      type empty; // error; 1.1 syntax
+      type string;
+    }
+  }
+  typedef t3 {
+    type union {
+      type string;
+      type leafref { // error; 1.1 syntax
+        path /l1;
+      }
+    }
+  }
+
 }

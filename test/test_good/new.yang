@@ -134,5 +134,19 @@ module new {
     notification n; // new 1.1 syntax
     anydata d; // new 1.1 syntax
   }
+  typedef t2 {
+    type union {
+      type empty; // new 1.1 syntax
+      type string;
+    }
+  }
+  typedef t3 {
+    type union {
+      type string;
+      type leafref { // new 1.1 syntax
+        path /l1;
+      }
+    }
+  }
 }
 
