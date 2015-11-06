@@ -1,3 +1,5 @@
+old1.yang:5: error: BAD_IMPORT_YANG_VERSION
+old1.yang:5: warning: UNUSED_IMPORT
 u.yang:6: error: BAD_INCLUDE_YANG_VERSION
 u.yang:12: error: FEATURE_NOT_FOUND
 u.yang:16: error: BAD_VALUE

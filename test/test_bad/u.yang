@@ -3,6 +3,8 @@ module u {
   namespace urn:u;
   prefix u;
 
+  include usub; // error; bad version in submodule
+  revision 2015-11-06;
   feature foo;
   feature bar;
 

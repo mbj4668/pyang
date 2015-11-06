@@ -508,7 +508,13 @@ def v_import_module(ctx, stmt):
             err_add(ctx.errors, i.pos,
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
-        return ctx.search_module(i.pos, modulename, rev)
+        m = ctx.search_module(i.pos, modulename, rev)
+        if (m is not None and r is not None and
+            stmt.i_version == '1' and m.i_version == '1.1'):
+            err_add(ctx.errors, i.pos,
+                    'BAD_IMPORT_YANG_VERSION',
+                    (stmt.i_version, m.i_version))
+        return m
 
     for i in imports:
         module = add_module(i)
@@ -523,6 +529,11 @@ def v_import_module(ctx, stmt):
                     'BAD_INCLUDE', (submodule.keyword, i.arg))
             return
         if submodule is not None:
+            if submodule.i_version != stmt.i_version:
+                err_add(ctx.errors, i.pos,
+                        'BAD_INCLUDE_YANG_VERSION',
+                        (submodule.i_version, stmt.i_version))
+                return
             if stmt.keyword == 'module':
                 submodule.i_including_modulename = stmt.arg
             else:
@@ -534,7 +545,7 @@ def v_import_module(ctx, stmt):
                         (stmt.arg, submodule.arg, submodule.arg))
             else:
                 # check that each submodule included by this submodule
-                # is also included bt the module
+                # is also included by the module
                 if stmt.keyword == 'module':
                     for s in submodule.search('include'):
                         if stmt.search_one('include', s.arg) is None:

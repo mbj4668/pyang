@@ -78,7 +78,8 @@ error_codes = \
        'keyword "%s" not in canonical order, (See RFC 6020, Section 12)'),
     'UNEXPECTED_KEYWORD_CANONICAL_1':
       (1,
-       'keyword "%s" not in canonical order, expected "%s", (See RFC 6020, Section 12)'),
+       'keyword "%s" not in canonical order,'
+       'expected "%s", (See RFC 6020, Section 12)'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),
@@ -109,9 +110,15 @@ error_codes = \
     'BAD_IMPORT':
       (1,
        'cannot import %s "%s", must be a module'),
+    'BAD_IMPORT_YANG_VERSION':
+      (1,
+       'a version %s module cannot import a version %s module by revision'),
     'BAD_INCLUDE':
       (1,
        'cannot include %s "%s", must be a submodule'),
+    'BAD_INCLUDE_YANG_VERSION':
+      (1,
+       'cannot include a version %s submodule in a version %s module'),
     'BAD_MODULE_NAME':
       (2,
        'unexpected modulename "%s" in %s, should be %s'),
