@@ -122,5 +122,11 @@ module new {
       }
     }
   }
+  list l3 {
+    key e;
+    leaf e {
+      type empty; // error; 1.1. syntax
+    }
+  }
 
 }

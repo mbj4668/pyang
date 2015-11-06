@@ -890,16 +890,38 @@ def v_type_leaf(ctx, stmt):
             return False
 
 def v_type_leaf_list(ctx, stmt):
+    stmt.i_default = []
     if _v_type_common_leaf(ctx, stmt) == False:
         return
+    # check if we have default values
     type_ = stmt.search_one('type')
-    if type_ is not None:
-        t = has_type(type_, ['empty'])
-        if t is not None:
-            err_add(ctx.errors, stmt.pos, 'BAD_TYPE_IN_LEAF_LIST',
-                    (t.arg))
+    for default in stmt.search('default'):
+        if type_.i_type_spec is not None :
+            defval = type_.i_type_spec.str_to_val(ctx.errors,
+                                                  default.pos,
+                                                  default.arg)
+            if defval is not None:
+                stmt.i_default.append(defval)
+                type_.i_type_spec.validate(ctx.errors, default.pos,
+                                           defval, ' for the default value')
+
+    if stmt.i_default != []:
+        m = stmt.search_one('min-elements')
+        if m is not None and int(m.arg) > 0:
+            d = stmt.search_one('default')
+            err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
             return False
-    return True
+
+    if (stmt.i_default == [] and
+          type_.i_typedef is not None and
+          hasattr(type_.i_typedef, 'i_default') and
+          type_.i_typedef.i_default is not None):
+        stmt.i_default.append(type_.i_typedef.i_default)
+        # validate the type's default value with our new restrictions
+        if type_.i_type_spec is not None:
+            type_.i_type_spec.validate(ctx.errors, stmt.pos,
+                                       type_.i_typedef.i_default,
+                                       ' for the default  value')
 
 def _v_type_common_leaf(ctx, stmt):
     stmt.i_leafref = None # path_type_spec
@@ -1724,12 +1746,13 @@ def v_reference_list(ctx, stmt):
                     err_add(ctx.errors, key.pos, 'BAD_KEY', x)
                     return
                 type_ = ptr.search_one('type')
-                if type_ is not None:
-                    t = has_type(type_, ['empty'])
-                    if t is not None:
-                        err_add(ctx.errors, key.pos, 'BAD_TYPE_IN_KEY',
-                                (t.arg, x))
-                        return
+                if stmt.i_module.i_version == '1':
+                    if type_ is not None:
+                        t = has_type(type_, ['empty'])
+                        if t is not None:
+                            err_add(ctx.errors, key.pos, 'BAD_TYPE_IN_KEY',
+                                    (t.arg, x))
+                            return
                 default = ptr.search_one('default')
                 if default is not None:
                     err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())

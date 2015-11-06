@@ -23,3 +23,4 @@ new.yang:108: error: UNEXPECTED_KEYWORD
 new.yang:109: error: UNEXPECTED_KEYWORD
 new.yang:112: error: BAD_TYPE_IN_UNION
 new.yang:118: error: BAD_TYPE_IN_UNION
+new.yang:126: error: BAD_TYPE_IN_KEY

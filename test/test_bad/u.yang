@@ -63,4 +63,25 @@ module u {
     base idx; // error; doesn't exist
   }
 
+  leaf-list ll {
+    type uint32;
+    default 1;
+    default -2; // error; bad value
+  }
+  typedef fff {
+    type uint32;
+    default 42;
+  }
+  leaf-list lla { // error, restriction doesn't match default
+    type fff {
+      range "0..10";
+    }
+  }
+  leaf-list llb {
+    type uint32;
+    default 1; // error; default and min-elements
+    default 2;
+    min-elements 2;
+  }
+
 }

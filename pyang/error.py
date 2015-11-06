@@ -342,12 +342,13 @@ error_codes = \
     'BAD_TYPE_IN_KEY':
       (1,
        'the type %s cannot be part of a key, used by leaf %s'),
-    'BAD_TYPE_IN_LEAF_LIST':
-      (1,
-       'the type %s cannot be used for a leaf-list'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
+    'DEFAULT_AND_MIN_ELEMENTS':
+      (1,
+       'a \'default\' value cannot be given when \'min-elements\' is'
+       ' greater than 0'),
     'CURRENT_USES_DEPRECATED':
       (2,
        'the %s definiton is current, but the %s it references is deprecated'),

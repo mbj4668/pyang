@@ -148,5 +148,11 @@ module new {
       }
     }
   }
+  list l3 {
+    key e;
+    leaf e {
+      type empty; // new 1.1. syntax
+    }
+  }
 }
 
