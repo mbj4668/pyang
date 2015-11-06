@@ -272,6 +272,7 @@ def add_arg_type(arg_type, regexp):
     # keyword             argument-name  yin-element
 yin_map = \
     {'action':           ('name',        False),
+     'anydata':          ('name',        False),
      'anyxml':           ('name',        False),
      'argument':         ('name',        False),
      'augment':          ('target-node', False),
@@ -307,6 +308,7 @@ yin_map = \
      'mandatory':        ('value',       False),
      'max-elements':     ('value',       False),
      'min-elements':     ('value',       False),
+     'modifier':         ('value',       False),
      'module':           ('name',        False),
      'must':             ('condition',   False),
      'namespace':        ('uri',         False),

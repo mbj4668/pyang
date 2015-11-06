@@ -40,7 +40,7 @@ data_def_stmts = [
     ('leaf-list', '*'),
     ('list', '*'),
     ('choice', '*'),
-    ('anydata', '*'),
+    ('$1.1', ('anydata', '*')),
     ('anyxml', '*'),
     ('uses', '*'),
 ]
@@ -181,8 +181,8 @@ stmt_map = {
         ('if-feature-expr', []),
     'identity':
         ('identifier',
-         [('base', '?'),
-          ('if-feature', '*'),
+         [('base', '*'), # '?' in yang version 1; checked in statements.py
+          ('$1.1', ('if-feature', '*')),
           ('status', '?'),
           ('description', '?'),
           ('reference', '?')]),
@@ -231,7 +231,7 @@ stmt_map = {
           ]),
     'pattern':
         ('string',
-         [('modifier', '?'),
+         [('$1.1', ('modifier', '?')),
           ('error-message', '?'),
           ('error-app-tag', '?'),
           ('description', '?'),
@@ -242,7 +242,7 @@ stmt_map = {
     'enum':
         ('enum-arg',
          [('value', '?'),
-          ('if-feature', '*'),
+          ('$1.1', ('if-feature', '*')),
           ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
@@ -253,7 +253,7 @@ stmt_map = {
     'bit':
         ('identifier',
          [('position', '?'),
-          ('if-feature', '*'),
+          ('$1.1', ('if-feature', '*')),
           ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
@@ -298,8 +298,8 @@ stmt_map = {
            [('typedef', '*'),
             ('grouping', '*')] +
            data_def_stmts +
-           [('action', '*'),
-            ('notification', '*')]),
+           [('$1.1', ('action', '*')),
+            ('$1.1', ('notification', '*'))]),
           ]),
     'container':
         ('identifier',
@@ -315,8 +315,8 @@ stmt_map = {
            [('typedef', '*'),
             ('grouping', '*')] +
            data_def_stmts +
-           [('action', '*'),
-            ('notification', '*')]),
+           [('$1.1', ('action', '*')),
+            ('$1.1', ('notification', '*'))]),
           ]),
     'leaf':
         ('identifier',
@@ -339,6 +339,7 @@ stmt_map = {
           ('type', '1'),
           ('units', '?'),
           ('must', '*'),
+          ('$1.1', ('default', '*')),
           ('config', '?'),
           ('min-elements', '?'),
           ('max-elements', '?'),
@@ -365,8 +366,8 @@ stmt_map = {
            [('typedef', '*'),
             ('grouping', '*')] +
            data_def_stmts +
-           [('action', '*'),
-            ('notification', '*')]),
+           [('$1.1', ('action', '*')),
+            ('$1.1', ('notification', '*'))]),
           ]),
     'key':
         ('key-arg', []),
@@ -385,11 +386,12 @@ stmt_map = {
           ('reference', '?'),
           ('$interleave',
            [('case', '*'),
+            ('$1.1', ('choice', '*')),
             ('container', '*'),
             ('leaf', '*'),
             ('leaf-list', '*'),
             ('list', '*'),
-            ('anydata', '*'),
+            ('$1.1', ('anydata', '*')),
             ('anyxml', '*'),
             ]),
           ]),
@@ -439,7 +441,7 @@ stmt_map = {
     'refine':
         ('descendant-schema-nodeid',
          [('must', '*'),
-          ('if-feature', '*'),
+          ('$1.1', ('if-feature', '*')),
           ('presence', '?'),
           ('default', '?'),
           ('config', '?'),
@@ -459,8 +461,8 @@ stmt_map = {
           ('$interleave',
            [('case', '*')] +
            data_def_stmts +
-           [('action', '*'),
-            ('notification', '*')]),
+           [('$1.1', ('action', '*')),
+            ('$1.1', ('notification', '*'))]),
           ]),
     'when':
         ('string',
@@ -493,9 +495,7 @@ stmt_map = {
           ]),
     'input':
         (None,
-         [('status', '?'),
-          ('description', '?'),
-          ('reference', '?'),
+         [('$1.1', ('must', '*')),
           ('$interleave',
            [('typedef', '*'),
             ('grouping', '*')] +
@@ -503,9 +503,7 @@ stmt_map = {
           ]),
     'output':
         (None,
-         [('status', '?'),
-          ('description', '?'),
-          ('reference', '?'),
+         [('$1.1', ('must', '*')),
           ('$interleave',
            [('typedef', '*'),
             ('grouping', '*')] +
@@ -514,6 +512,7 @@ stmt_map = {
     'notification':
         ('identifier',
          [('if-feature', '*'),
+          ('$1.1', ('must', '*')),
           ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
@@ -695,7 +694,12 @@ def _match_stmt(ctx, stmt, specs, canonical):
         (keywd, occurance) = spec[i]
         if keywd == '$any':
             return (spec, canspec)
-        elif keywd == stmt.keyword:
+        if keywd == '$1.1':
+            (keywd, occurance) = occurance
+            if (stmt.i_module.i_version == '1' and
+                keywd == stmt.keyword):
+                return None
+        if keywd == stmt.keyword:
             if occurance == '1' or occurance == '?':
                 # consume this match
                 if canonical == True:

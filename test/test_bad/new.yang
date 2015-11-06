@@ -1,0 +1,111 @@
+module new {
+  namespace urn:new;
+  prefix n;
+
+  // make sure that 1.1 construct gives error in 1.1
+  // compare with test_good/new.yang
+
+  feature f;
+  feature g;
+
+  identity id {
+    if-feature f; // error; 1.1 syntax
+  }
+
+  leaf l1 {
+    type enumeration {
+      enum r {
+        if-feature f; // error; 1.1 syntax
+      }
+    }
+  }
+  leaf l2 {
+    type bits {
+      bit b {
+        if-feature f; // error; 1.1 syntax
+      }
+    }
+  }
+  container yy {
+    if-feature "f or g"; // error: 1.1 synatx
+  }
+  grouping g {
+    container x;
+  }
+  uses g {
+    refine x {
+      if-feature f; // error: 1.1 synatx
+    }
+  }
+  container w {
+    choice c1 {
+      choice c2; // error; 1.1 syntax
+    }
+  }
+  typedef id {
+    type string {
+      pattern '[a-zA-Z_][a-zA-Z0-9\-_.]*';
+      pattern '[xX][mM][lL].*' {
+        modifier invert-match; // error; 1.1 syntax
+      }
+    }
+  }
+  rpc r {
+    input {
+      must "g"; // error; 1.1 syntax
+      leaf g {
+        type int32;
+      }
+    }
+    output {
+      must "g"; // error; 1.1 syntax
+      leaf g {
+        type int32;
+      }
+    }
+  }
+  notification n {
+    must "g"; // error; 1.1 syntax
+    leaf g {
+      type int32;
+    }
+  }
+  container t {
+    must 're-match("hej", "dsop")'; // error; 1.1 syntax
+    must 'deref(.)'; // error; 1.1 syntax
+    must 'derived-from(., "a", "b")'; // error; 1.1 syntax
+    must 'derived-from-or-self(., "a", "b")'; // error; 1.1 syntax
+    must 'enum-value(.)'; // error; 1.1 syntax
+    must 'bit-is-set(., "hej")'; // error; 1.1 syntax
+  }
+  identity id1;
+  identity id2;
+  identity id3 {
+    base id1;
+    base id2; // error; 1.1 syntax
+  }
+
+  typedef e1 {
+    type enumeration {
+      enum a;
+      enum b;
+      enum c;
+    }
+  }
+  typedef e2 {
+    type e1 {
+      enum a; // error; 1.1 syntax
+      enum b;
+    }
+  }
+  leaf-list ll {
+    type int32;
+    default 1; // error; 1.1 syntax
+    default 2; // error; 1.1 syntax
+  }
+  container w2 {
+    action a; // error; 1.1 syntax
+    notification n; // error; 1.1 syntax
+    anydata d; // error; 1.1 syntax
+  }
+}

@@ -3,3 +3,4 @@ u.yang:14: error: BAD_VALUE
 u.yang:18: error: BAD_VALUE
 u.yang:21: error: UNEXPECTED_KEYWORD
 u.yang:34: error: TYPE_VALUE
+u.yang:63: error: IDENTITY_NOT_FOUND

@@ -38,4 +38,29 @@ module u {
     type id;
     default "xmq-foo";
   }
+
+  typedef rr {
+    type enumeration {
+      enum r {
+        if-feature foo;
+      }
+    }
+  }
+
+  list l2 {
+    key "id";
+    leaf id {
+      if-feature foo; // error: not legal in 1.1
+      when f; // error: not legal in 1.1
+      type int32;
+    }
+  }
+
+  identity id1;
+  identity id2;
+  identity id3 {
+    base id1;
+    base idx; // error; doesn't exist
+  }
+
 }

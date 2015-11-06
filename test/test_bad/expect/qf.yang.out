@@ -1,4 +1,3 @@
-qf.yang:33: error: BAD_VALUE
 qd.yang:9: error: TYPE_NOT_FOUND
 qd.yang:12: error: FEATURE_NOT_FOUND
 qd.yang:13: error: GROUPING_NOT_FOUND

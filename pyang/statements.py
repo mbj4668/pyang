@@ -31,7 +31,7 @@ yang_xpath_functions = [
 
 yang_1_1_xpath_functions = [
     'bit-is-set',
-    'enum-value'
+    'enum-value',
     'deref',
     'derived-from',
     'derived-from-or-self',
@@ -175,7 +175,6 @@ _validation_map = {
     ('grammar', 'submodule'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'typedef'):lambda ctx, s: v_grammar_typedef(ctx, s),
     ('grammar', '*'):lambda ctx, s: v_grammar_unique_defs(ctx, s),
-    ('grammar', '$1.1_keyword'):lambda ctx, s: v_grammar_1_1_keywords(ctx, s),
 
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
@@ -264,12 +263,9 @@ _keyword_with_children = {
     'action':True,
     }
 
-_1_1_keywords = ('modifier','action','anydata')
-
 _validation_variables = [
     ('$has_children', lambda keyword: keyword in _keyword_with_children),
     ('$extension', lambda keyword: util.is_prefixed(keyword)),
-    ('$1.1_keyword', lambda keyword: keyword in _1_1_keywords),
     ]
 
 _data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
@@ -484,11 +480,6 @@ def v_grammar_unique_defs(ctx, stmt):
                         errcode, (definition.arg, other.pos))
             else:
                 dict[definition.arg] = definition
-
-def v_grammar_1_1_keywords(ctx, stmt):
-    if stmt.i_module.i_version == '1':
-        err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD',
-                util.keyword_to_str(stmt.raw_keyword))
 
 ### import and include phase
 
@@ -816,26 +807,32 @@ def v_type_type(ctx, stmt):
         err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
 
     # check the enums - only applicable when the type is the builtin
-    # enumeration type
+    # enumeration type in YANG version 1, and for derived enumerations in 1.1
     enums = stmt.search('enum')
-    if enums != [] and stmt.arg != 'enumeration':
+    if (enums != [] and
+        ('enum' not in stmt.i_type_spec.restrictions() or
+         stmt.i_module.i_version == '1' and stmt.arg != 'enumeration')):
         err_add(ctx.errors, enums[0].pos, 'BAD_RESTRICTION', 'enum')
-    elif stmt.arg == 'enumeration':
+    elif enums != []:
         stmt.i_is_derived = True
         enum_spec = types.validate_enums(ctx.errors, enums, stmt)
         if enum_spec is not None:
-            stmt.i_type_spec = types.EnumerationTypeSpec(enum_spec)
+            stmt.i_type_spec = types.EnumTypeSpec(stmt.i_type_spec,
+                                                  enum_spec)
 
     # check the bits - only applicable when the type is the builtin
-    # bits type
+    # bits type in YANG version 1, and for derived bits in 1.1
     bits = stmt.search('bit')
-    if bits != [] and stmt.arg != 'bits':
+    if (bits != [] and
+        ('bit' not in stmt.i_type_spec.restrictions() or
+         stmt.i_module.i_version == '1' and stmt.arg != 'bits')):
         err_add(ctx.errors, bits[0].pos, 'BAD_RESTRICTION', 'bit')
-    elif stmt.arg == 'bits':
+    elif bits != []:
         stmt.i_is_derived = True
         bit_spec = types.validate_bits(ctx.errors, bits, stmt)
         if bit_spec is not None:
-            stmt.i_type_spec = types.BitsTypeSpec(bit_spec)
+            stmt.i_type_spec = types.BitTypeSpec(stmt.i_type_spec,
+                                                 bit_spec)
 
     # check the union types
     membertypes = stmt.search('type')
@@ -1146,6 +1143,10 @@ def v_type_identity(ctx, stmt):
 
     name = stmt.arg
 
+    if stmt.i_module.i_version == '1':
+        bases = stmt.search('base')
+        if len(bases) > 1:
+            err_add(ctx.errors, bases[1].pos, 'UNEXPECTED_KEYWORD', 'base')
     # search for circular identity definitions
     def validate_base(s):
         if s.keyword == "base":
