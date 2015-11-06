@@ -24,6 +24,7 @@ a.yang:162: error: ENUM_VALUE
 a.yang:172: error: TYPE_VALUE
 a.yang:183: error: TYPE_VALUE
 a.yang:188: error: TYPE_VALUE
+a.yang:195: error: UNEXPECTED_KEYWORD
 d.yang:31: error: DUPLICATE_CHILD_NAME
 d.yang:35: error: DUPLICATE_CHILD_NAME
 d.yang:39: error: DUPLICATE_CHILD_NAME

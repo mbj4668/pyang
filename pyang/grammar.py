@@ -40,6 +40,7 @@ data_def_stmts = [
     ('leaf-list', '*'),
     ('list', '*'),
     ('choice', '*'),
+    ('anydata', '*'),
     ('anyxml', '*'),
     ('uses', '*'),
 ]
@@ -230,7 +231,8 @@ stmt_map = {
           ]),
     'pattern':
         ('string',
-         [('error-message', '?'),
+         [('modifier', '?'),
+          ('error-message', '?'),
           ('error-app-tag', '?'),
           ('description', '?'),
           ('reference', '?'),
@@ -285,6 +287,8 @@ stmt_map = {
         ('max-value', []),
     'value':
         ('integer', []),
+    'modifier':
+        ('modifier-arg', []),
     'grouping':
         ('identifier',
          [('status', '?'),
@@ -385,6 +389,7 @@ stmt_map = {
             ('leaf', '*'),
             ('leaf-list', '*'),
             ('list', '*'),
+            ('anydata', '*'),
             ('anyxml', '*'),
             ]),
           ]),
@@ -398,6 +403,17 @@ stmt_map = {
           ('reference', '?'),
           ('$interleave',
            data_def_stmts),
+          ]),
+    'anydata':
+        ('identifier',
+         [('when', '?'),
+          ('if-feature', '*'),
+          ('must', '*'),
+          ('config', '?'),
+          ('mandatory', '?'),
+          ('status', '?'),
+          ('description', '?'),
+          ('reference', '?'),
           ]),
     'anyxml':
         ('identifier',

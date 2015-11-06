@@ -415,12 +415,12 @@ class LengthTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 
-def _validate_pattern_libxml2(errors, stmt):
+def _validate_pattern_libxml2(errors, stmt, invert_match):
     try:
         import libxml2
         try:
             re = libxml2.regexpCompile(stmt.arg)
-            return ('libxml2', re, stmt.pos)
+            return ('libxml2', re, stmt.pos, invert_match)
         except libxml2.treeError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
@@ -432,7 +432,7 @@ def _validate_pattern_libxml2(errors, stmt):
     #                    "(see http://xmlsoft.org for installation help)")
         return False
 
-def _validate_pattern_lxml(errors, stmt):
+def _validate_pattern_lxml(errors, stmt, invert_match):
     try:
         import lxml.etree
         doc = StringIO(
@@ -446,7 +446,7 @@ def _validate_pattern_lxml(errors, stmt):
             '   </xsd:schema>' % quoteattr(stmt.arg))
         try:
             sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
-            return ('lxml', sch, stmt.pos)
+            return ('lxml', sch, stmt.pos, invert_match)
         except lxml.etree.XMLSchemaParseError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
@@ -454,13 +454,16 @@ def _validate_pattern_lxml(errors, stmt):
         return False
 
 def validate_pattern_expr(errors, stmt):
+    invert_match = False
+    if stmt.search_one('modifier', arg='invert-match') is not None:
+        invert_match = True
     ## check that it's syntactically correct
     # First try with lxml
-    res = _validate_pattern_lxml(errors, stmt)
+    res = _validate_pattern_lxml(errors, stmt, invert_match)
     if res is not False:
         return res
     # Then try with libxml2
-    res = _validate_pattern_libxml2(errors, stmt)
+    res = _validate_pattern_libxml2(errors, stmt, invert_match)
     if res is not False:
         return res
     # Otherwise we can't validate patterns :(
@@ -478,14 +481,15 @@ class PatternTypeSpec(TypeSpec):
     def validate(self, errors, pos, val, errstr=''):
         if self.base.validate(errors, pos, val, errstr) == False:
             return False
-        for (type_, re, re_pos) in self.res:
+        for (type_, re, re_pos, invert_match) in self.res:
             if type_ == 'libxml2':
                 is_valid = re.regexpExec(val) == 1
             elif type_ == 'lxml':
                 import lxml
                 doc = StringIO('<a>%s</a>' % escape(val))
                 is_valid = re.validate(lxml.etree.parse(doc))
-            if not is_valid:
+            if ((not is_valid and not invert_match) or
+                (is_valid and invert_match)):
                 err_add(errors, pos, 'TYPE_VALUE',
                         (val, self.definition, 'pattern mismatch' + errstr +
                          ' for pattern defined at ' + str(re_pos)))

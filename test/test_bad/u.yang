@@ -19,4 +19,23 @@ module u {
   }
 
   action reset; // error: not allowed on top-level
+
+  typedef id {
+    type string {
+      pattern '[a-zA-Z_][a-zA-Z0-9\-_.]*';
+      pattern '[xX][mM][lL].*' {
+        modifier invert-match;
+      }
+    }
+  }
+
+  leaf foo {
+    type id;
+    default "xMlu"; // error: bad pattern
+  }
+
+  leaf bar {
+    type id;
+    default "xmq-foo";
+  }
 }

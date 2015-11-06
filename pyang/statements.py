@@ -175,6 +175,7 @@ _validation_map = {
     ('grammar', 'submodule'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'typedef'):lambda ctx, s: v_grammar_typedef(ctx, s),
     ('grammar', '*'):lambda ctx, s: v_grammar_unique_defs(ctx, s),
+    ('grammar', '$1.1_keyword'):lambda ctx, s: v_grammar_1_1_keywords(ctx, s),
 
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
@@ -263,9 +264,12 @@ _keyword_with_children = {
     'action':True,
     }
 
+_1_1_keywords = ('modifier','action','anydata')
+
 _validation_variables = [
     ('$has_children', lambda keyword: keyword in _keyword_with_children),
     ('$extension', lambda keyword: util.is_prefixed(keyword)),
+    ('$1.1_keyword', lambda keyword: keyword in _1_1_keywords),
     ]
 
 _data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
@@ -481,6 +485,10 @@ def v_grammar_unique_defs(ctx, stmt):
             else:
                 dict[definition.arg] = definition
 
+def v_grammar_1_1_keywords(ctx, stmt):
+    if stmt.i_module.i_version == '1':
+        err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD',
+                util.keyword_to_str(stmt.raw_keyword))
 
 ### import and include phase
 
