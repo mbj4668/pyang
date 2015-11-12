@@ -221,11 +221,11 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
     elif s.keyword  == 'choice':
         m = s.search_one('mandatory')
         if m is None or m.arg == 'false':
-            fd.write(flags + ' (' + s.arg + ')?')
+            fd.write(flags + ' (' + name + ')?')
         else:
-            fd.write(flags + ' (' + s.arg + ')')
+            fd.write(flags + ' (' + name + ')')
     elif s.keyword == 'case':
-        fd.write(':(' + s.arg + ')')
+        fd.write(':(' + name + ')')
     else:
         if s.keyword == 'leaf-list':
             name += '*'
