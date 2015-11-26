@@ -125,7 +125,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         else:
             tree.write(fd, encoding="UTF-8")
 
-    def ignore(self, node, elem, module):
+    def ignore(self, node, elem, module, path):
         """Do nothing for `node`."""
         pass
 
