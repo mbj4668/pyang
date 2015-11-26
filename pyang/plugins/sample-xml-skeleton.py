@@ -61,6 +61,9 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
                                  dest="sample_annots",
                                  default=False,
                                  help="Add annotations as XML comments."),
+            optparse.make_option("--sample-xml-skeleton-path",
+                                 dest="sample_path",
+                                 help="Subtree to print"),
             ]
         g = optparser.add_option_group(
             "Sample-xml-skeleton output specific options")
@@ -79,6 +82,13 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         recursively all nodes in all data trees, and finally emit the
         sample XML document.
         """
+        if ctx.opts.sample_path is not None:
+            path = ctx.opts.sample_path.split('/')
+            if path[0] == '':
+                path = path[1:]
+        else:
+            path = []
+
         for (epos, etag, eargs) in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError(
@@ -107,7 +117,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
                          {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = ET.ElementTree(self.top)
         for yam in modules:
-            self.process_children(yam, self.top, None)
+            self.process_children(yam, self.top, None, path)
         if sys.version > "3":
             tree.write(fd, encoding="unicode", xml_declaration=True)
         elif sys.version > "2.7":
@@ -119,63 +129,86 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Do nothing for `node`."""
         pass
 
-    def process_children(self, node, elem, module):
+    def process_children(self, node, elem, module, path):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch.i_config or self.doctype == "data":
-                self.node_handler[ch.keyword](ch, elem, module)
+                self.node_handler[ch.keyword](ch, elem, module, path)
 
-    def container(self, node, elem, module):
+    def container(self, node, elem, module, path):
         """Create a sample container element and proceed with its children."""
-        nel, newm = self.sample_element(node, elem, module)
+        nel, newm, path = self.sample_element(node, elem, module, path)
+        if path is None:
+            return
         if self.annots:
             pres = node.search_one("presence")
             if pres is not None:
                 nel.append(ET.Comment(" presence: %s " % pres.arg))
-        self.process_children(node, nel, newm)
+        self.process_children(node, nel, newm, path)
 
-    def leaf(self, node, elem, module):
+    def leaf(self, node, elem, module, path):
         """Create a sample leaf element."""
         if node.i_default is None:
-            nel, newm = self.sample_element(node, elem, module)
+            nel, newm, path = self.sample_element(node, elem, module, path)
+            if path is None:
+                return
             if self.annots:
                 nel.append(ET.Comment(" type: %s " % node.search_one("type").arg))
         elif self.defaults:
-            nel, newm = self.sample_element(node, elem, module)
+            nel, newm, path = self.sample_element(node, elem, module, path)
+            if path is None:
+                return
             nel.text = str(node.i_default)
 
-    def anyxml(self, node, elem, module):
+    def anyxml(self, node, elem, module, path):
         """Create a sample anyxml element."""
-        nel, newm = self.sample_element(node, elem, module)
+        nel, newm, path = self.sample_element(node, elem, module, path)
+        if path is None:
+            return
         if self.annots:
             nel.append(ET.Comment(" anyxml "))
 
-    def list(self, node, elem, module):
+    def list(self, node, elem, module, path):
         """Create sample entries of a list."""
-        nel, newm = self.sample_element(node, elem, module)
-        self.process_children(node, nel, newm)
+        nel, newm, path = self.sample_element(node, elem, module, path)
+        if path is None:
+            return
+        self.process_children(node, nel, newm, path)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
         self.list_comment(node, nel, minel)
 
-    def leaf_list(self, node, elem, module):
+    def leaf_list(self, node, elem, module, path):
         """Create sample entries of a leaf-list."""
-        nel, newm = self.sample_element(node, elem, module)
+        nel, newm, path = self.sample_element(node, elem, module, path)
+        if path is None:
+            return
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
         self.list_comment(node, nel, minel)
 
-    def sample_element(self, node, parent, module):
+    def sample_element(self, node, parent, module, path):
         """Create element under `parent`.
 
         Declare new namespace if necessary.
         """
+        if path is None:
+            return parent, module, None
+        elif path == []:
+            # GO ON
+            pass
+        else:
+            if node.arg == path[0]:
+                path = path[1:]
+            else:
+                return parent, module, None
+
         res = ET.SubElement(parent, node.arg)
         mm = node.main_module()
         if mm != module:
             res.attrib["xmlns"] = self.ns_uri[mm]
             module = mm
-        return res, module
+        return res, module, path
 
     def add_copies(self, node, parent, elem, minel):
         """Add appropriate number of `elem` copies to `parent`."""
