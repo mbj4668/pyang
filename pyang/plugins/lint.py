@@ -123,13 +123,17 @@ class LintPlugin(plugin.PyangPlugin):
             'LINT_BAD_NAMESPACE_VALUE', 4,
             'RFC 6087: 4.8: namespace value should be "%s"')
         error.add_error_code(
-            'LINT_BAD_MODULENAME_PREFIX', 4,
+            'LINT_BAD_MODULENAME_PREFIX_1', 4,
             'RFC 6087: 4.1: '
-            + 'no module name prefix used, suggest %s-%s')
+            + 'the module name should start with the string %s')
+        error.add_error_code(
+            'LINT_BAD_MODULENAME_PREFIX_N', 4,
+            'RFC 6087: 4.1: '
+            + 'the module name should start with one of the strings %s')
         error.add_error_code(
             'LINT_NO_MODULENAME_PREFIX', 4,
             'RFC 6087: 4.1: '
-            + 'no module name prefix used')
+            + 'no module name prefix string used')
 
         # override std error string
         error.add_error_code(
@@ -213,8 +217,16 @@ def v_chk_module_name(ctx, stmt, modulename_prefixes):
         for prefix in modulename_prefixes:
             if stmt.arg.find(prefix + '-') == 0:
                 return
-        err_add(ctx.errors, stmt.pos, 'LINT_BAD_MODULENAME_PREFIX',
-                (modulename_prefixes[0], stmt.arg))
+        if len(modulename_prefixes) == 1:
+            err_add(ctx.errors, stmt.pos, 'LINT_BAD_MODULENAME_PREFIX_1',
+                    '"' + modulename_prefixes[0] + '-"')
+        elif len(modulename_prefixes) == 2:
+            s = " or ".join(['"' + p + '-"' for p in modulename_prefixes])
+            err_add(ctx.errors, stmt.pos, 'LINT_BAD_MODULENAME_PREFIX_N', s)
+        else:
+            s = ", ".join(['"' + p + '-"' for p in modulename_prefixes[:-1]]) +\
+            ', or "' + modulename_prefixes[-1] + '-"'
+            err_add(ctx.errors, stmt.pos, 'LINT_BAD_MODULENAME_PREFIX_N', s)
     elif stmt.arg.find('-') == -1:
         # can't check much, but we can check that a prefix is used
         err_add(ctx.errors, stmt.pos, 'LINT_NO_MODULENAME_PREFIX', ())
