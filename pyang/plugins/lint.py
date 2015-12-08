@@ -172,8 +172,6 @@ _required_substatements = {
     }
 
 _recommended_substatements = {
-    'must':(('description',), "RFC 6087: 4.12"),
-    'when':(('description',), "RFC 6087: 4.12"),
     'enum':(('description',), "RFC 6087: 4.10,4.12"),
     'bit':(('description',), "RFC 6087: 4.10,4.12"),
     }
