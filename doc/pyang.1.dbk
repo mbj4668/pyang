@@ -1186,6 +1186,26 @@ $ osascript foo.scpt</screen>
     </para>
     <variablelist>
       <varlistentry>
+        <term><option>--sample-xml-skeleton-annotations</option></term>
+        <listitem>
+          <para>
+            Add XML comments to the sample documents with hints about
+            expected contents, for example types of leaf nodes,
+            permitted number of list entries etc.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sample-xml-skeleton-defaults</option></term>
+        <listitem>
+          <para>
+            Add leaf elements with defined defaults to the output with
+            their default value. Without this option, the default
+            elements are omitted.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term>
           <option>--sample-xml-skeleton-doctype=<replaceable>type</replaceable></option>
         </term>
@@ -1203,22 +1223,16 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--sample-xml-skeleton-defaults</option></term>
+        <term>
+          <option>--sample-xml-skeleton-path=<replaceable>path</replaceable></option>
+        </term>
         <listitem>
           <para>
-            Add leaf elements with defined defaults to the output with
-            their default value. Without this option, the default
-            elements are omitted.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--sample-xml-skeleton-annotations</option></term>
-        <listitem>
-          <para>
-            Add XML comments to the sample documents with hints about
-            expected contents, for example types of leaf nodes,
-            permitted number of list entries etc.
+            Subtree of the sample XML document to generate, including
+            all ancestor elements.  The
+            <replaceable>path</replaceable> is a slash ("/") separated
+            list of data node names that specifies the path to a subtree to
+            print. For example "/nacm/rule-list/rule/rpc-name".
           </para>
         </listitem>
       </varlistentry>
