@@ -62,7 +62,8 @@ _pyang()
     local opts_sample_xml_skeleton="
         --sample-xml-skeleton-doctype
         --sample-xml-skeleton-defaults
-        --sample-xml-skeleton-annotations"
+        --sample-xml-skeleton-annotations
+        --sample-xml-skeleton-path"
 
     local opts_tree="
         --tree-help

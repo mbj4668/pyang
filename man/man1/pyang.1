@@ -856,6 +856,16 @@ Options specific to the
 \fIsample\-xml\-skeleton\fR
 output format:
 .PP
+\fB\-\-sample\-xml\-skeleton\-annotations\fR
+.RS 4
+Add XML comments to the sample documents with hints about expected contents, for example types of leaf nodes, permitted number of list entries etc\&.
+.RE
+.PP
+\fB\-\-sample\-xml\-skeleton\-defaults\fR
+.RS 4
+Add leaf elements with defined defaults to the output with their default value\&. Without this option, the default elements are omitted\&.
+.RE
+.PP
 \fB\-\-sample\-xml\-skeleton\-doctype=\fR\fB\fItype\fR\fR
 .RS 4
 Type of the sample XML document\&. Supported values for
@@ -867,14 +877,11 @@ config\&. This option determines the document element of the output XML document
 config, only data nodes representing configuration are included\&.
 .RE
 .PP
-\fB\-\-sample\-xml\-skeleton\-defaults\fR
+\fB\-\-sample\-xml\-skeleton\-path=\fR\fB\fIpath\fR\fR
 .RS 4
-Add leaf elements with defined defaults to the output with their default value\&. Without this option, the default elements are omitted\&.
-.RE
-.PP
-\fB\-\-sample\-xml\-skeleton\-annotations\fR
-.RS 4
-Add XML comments to the sample documents with hints about expected contents, for example types of leaf nodes, permitted number of list entries etc\&.
+Subtree of the sample XML document to generate, including all ancestor elements\&. The
+\fIpath\fR
+is a slash ("/") separated list of data node names that specifies the path to a subtree to print\&. For example "/nacm/rule\-list/rule/rpc\-name"\&.
 .RE
 .SH "TREE OUTPUT"
 .PP
