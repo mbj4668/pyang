@@ -1424,7 +1424,10 @@ def v_inherit_properties(ctx, stmt, child=None):
                 if ch.keyword in _keywords_with_no_explicit_config:
                     iter(ch, None, False)
                 else:
-                    iter(ch, config_value, allow_explicit)
+                    if hasattr(ch, 'i_uses'):
+                        iter(ch, config_value, True)
+                    else:
+                        iter(ch, config_value, allow_explicit)
 
     if child is not None:
         iter(child, stmt.i_config, True)
