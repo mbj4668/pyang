@@ -1,0 +1,9 @@
+module old1 {
+  namespace urn:old1;
+  prefix o1;
+
+  import u {
+    prefix x;
+    revision-date 2015-11-06; // error, cannot import 1.1 by rev
+  }
+}

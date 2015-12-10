@@ -198,7 +198,7 @@ class HybridDSDLSchema(object):
 
     """
 
-    YANG_version = 1
+    YANG_version = 1.1
     """Checked against the yang-version statement, if present."""
 
     dc_uri = "http://purl.org/dc/terms"
@@ -267,6 +267,7 @@ class HybridDSDLSchema(object):
             "mandatory": self.noop,
             "min-elements": self.noop,
             "max-elements": self.noop,
+            "modifier": self.noop,
             "module": self.noop,
             "must": self.must_stmt,
             "namespace": self.noop,
@@ -1169,7 +1170,7 @@ class HybridDSDLSchema(object):
         p_elem.attr["nma:when"] = self.yang_to_xpath(stmt.arg)
 
     def yang_version_stmt(self, stmt, p_elem, pset):
-        if float(stmt.arg) != self.YANG_version:
+        if float(stmt.arg) > self.YANG_version:
             raise error.EmitError("Unsupported YANG version: %s" % stmt.arg)
 
     # Handlers for YANG types

@@ -67,7 +67,7 @@ Each node is printed as:
   <flags> is one of:
     rw  for configuration data
     ro  for non-configuration data
-    -x  for rpcs
+    -x  for rpcs and actions
     -n  for notifications
 
   <name> is the name of the node
@@ -272,7 +272,7 @@ def get_status_str(s):
 def get_flags_str(s, mode):
     if mode == 'input':
         return "-w"
-    elif (s.keyword == 'rpc' or s.keyword == ('tailf-common', 'action')):
+    elif s.keyword in ('rpc', 'action', ('tailf-common', 'action')):
         return '-x'
     elif s.keyword == 'notification':
         return '-n'

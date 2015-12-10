@@ -214,9 +214,9 @@ class EmptyTypeSpec(TypeSpec):
         return None
 
 class IdentityrefTypeSpec(TypeSpec):
-    def __init__(self, base):
+    def __init__(self, idbase):
         TypeSpec.__init__(self, 'identityref')
-        self.base = base
+        self.idbase = idbase
 
     def str_to_val(self, errors, pos, s):
         if s.find(":") == -1:
@@ -224,12 +224,12 @@ class IdentityrefTypeSpec(TypeSpec):
             name = s
         else:
             [prefix, name] = s.split(':', 1)
-        if prefix is None or self.base.i_module.i_prefix == prefix:
+        if prefix is None or self.idbase.i_module.i_prefix == prefix:
             # check local identities
-            pmodule = self.base.i_module
+            pmodule = self.idbase.i_module
         else:
             # this is a prefixed name, check the imported modules
-            pmodule = util.prefix_to_module(self.base.i_module, prefix,
+            pmodule = util.prefix_to_module(self.idbase.i_module, prefix,
                                             pos, errors)
             if pmodule is None:
                 return None
@@ -238,26 +238,27 @@ class IdentityrefTypeSpec(TypeSpec):
                     (s, self.definition, 'identityref not found'))
             return None
         val = pmodule.i_identities[name]
-        my_identity = self.base.i_identity
-        vals = []
-        while True:
-            if val == my_identity:
-                return pmodule.i_identities[name]
-            else:
-                p = val.search_one('base')
-                if p is None or p.i_identity is None:
-                    err_add(errors, pos, 'TYPE_VALUE',
-                            (s, self.definition,
-                             'identityref not derived from %s' % \
-                             my_identity.arg))
-                    return None
-                else:
-                    val = p.i_identity
-                    if val in vals:
-                        # circular; has been reported already
-                        return
-                    vals.append(val)
+        my_identity = self.idbase.i_identity
+        if not is_derived_from_or_self(val, self.idbase.i_identity, []):
+            err_add(errors, pos, 'TYPE_VALUE',
+                    (s, self.definition,
+                     'identityref not derived from %s' % \
+                     my_identity.arg))
+            return None
+        else:
+            return val
 
+def is_derived_from_or_self(a, b, visited):
+    # return True if a is derived from b
+    if a == b:
+        return True
+    for p in a.search('base'):
+        val = p.i_identity
+        if val not in visited:
+            visited.append(val)
+            if is_derived_from_or_self(val, b, visited):
+                return True
+    return False
 
 ## type restrictions
 
@@ -415,12 +416,12 @@ class LengthTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 
-def _validate_pattern_libxml2(errors, stmt):
+def _validate_pattern_libxml2(errors, stmt, invert_match):
     try:
         import libxml2
         try:
             re = libxml2.regexpCompile(stmt.arg)
-            return ('libxml2', re, stmt.pos)
+            return ('libxml2', re, stmt.pos, invert_match)
         except libxml2.treeError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
@@ -432,7 +433,7 @@ def _validate_pattern_libxml2(errors, stmt):
     #                    "(see http://xmlsoft.org for installation help)")
         return False
 
-def _validate_pattern_lxml(errors, stmt):
+def _validate_pattern_lxml(errors, stmt, invert_match):
     try:
         import lxml.etree
         doc = StringIO(
@@ -446,7 +447,7 @@ def _validate_pattern_lxml(errors, stmt):
             '   </xsd:schema>' % quoteattr(stmt.arg))
         try:
             sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
-            return ('lxml', sch, stmt.pos)
+            return ('lxml', sch, stmt.pos, invert_match)
         except lxml.etree.XMLSchemaParseError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
@@ -454,13 +455,16 @@ def _validate_pattern_lxml(errors, stmt):
         return False
 
 def validate_pattern_expr(errors, stmt):
+    invert_match = False
+    if stmt.search_one('modifier', arg='invert-match') is not None:
+        invert_match = True
     ## check that it's syntactically correct
     # First try with lxml
-    res = _validate_pattern_lxml(errors, stmt)
+    res = _validate_pattern_lxml(errors, stmt, invert_match)
     if res is not False:
         return res
     # Then try with libxml2
-    res = _validate_pattern_libxml2(errors, stmt)
+    res = _validate_pattern_libxml2(errors, stmt, invert_match)
     if res is not False:
         return res
     # Otherwise we can't validate patterns :(
@@ -478,14 +482,15 @@ class PatternTypeSpec(TypeSpec):
     def validate(self, errors, pos, val, errstr=''):
         if self.base.validate(errors, pos, val, errstr) == False:
             return False
-        for (type_, re, re_pos) in self.res:
+        for (type_, re, re_pos, invert_match) in self.res:
             if type_ == 'libxml2':
                 is_valid = re.regexpExec(val) == 1
             elif type_ == 'lxml':
                 import lxml
                 doc = StringIO('<a>%s</a>' % escape(val))
                 is_valid = re.validate(lxml.etree.parse(doc))
-            if not is_valid:
+            if ((not is_valid and not invert_match) or
+                (is_valid and invert_match)):
                 err_add(errors, pos, 'TYPE_VALUE',
                         (val, self.definition, 'pattern mismatch' + errstr +
                          ' for pattern defined at ' + str(re_pos)))
@@ -539,9 +544,16 @@ def validate_enums(errors, enums, stmt):
     return enums
 
 class EnumerationTypeSpec(TypeSpec):
-    def __init__(self, enums):
+    def __init__(self):
         TypeSpec.__init__(self, 'enumeration')
-        # no base - no restrictions allowed
+
+    def restrictions(self):
+        return ['enum']
+
+class EnumTypeSpec(TypeSpec):
+    def __init__(self, base, enums):
+        TypeSpec.__init__(self, base.name)
+        self.base = base
         self.enums = [(e.arg, e.i_value) for e in enums]
 
     def validate(self, errors, pos, val, errstr = ''):
@@ -558,6 +570,9 @@ class EnumerationTypeSpec(TypeSpec):
             return r[1]
         else:
             return None
+
+    def restrictions(self):
+        return self.base.restrictions()
 
 def validate_bits(errors, bits, stmt):
     if bits == []:
@@ -599,9 +614,16 @@ def validate_bits(errors, bits, stmt):
     return bits
 
 class BitsTypeSpec(TypeSpec):
-    def __init__(self, bits):
+    def __init__(self):
         TypeSpec.__init__(self, 'bits')
-        # no base - no restrictions allowed
+
+    def restrictions(self):
+        return ['bit']
+
+class BitTypeSpec(TypeSpec):
+    def __init__(self, base, bits):
+        TypeSpec.__init__(self, base.name)
+        self.base = base
         self.bits = [(b.arg, b.i_position) for b in bits]
 
     def str_to_val(self, errors, pos, str):
@@ -614,6 +636,9 @@ class BitsTypeSpec(TypeSpec):
                         (v, self.definition, 'bit not defined' + errstr))
                 return False
         return True
+
+    def restrictions(self):
+        return self.base.restrictions()
 
 def validate_path_expr(errors, path):
 
@@ -808,8 +833,8 @@ yang_type_specs = \
    'decimal64':TypeSpec('decimal64'),
    'string':StringTypeSpec(),
    'boolean':BooleanTypeSpec(),
-   'enumeration':TypeSpec('enumeration'),
-   'bits':TypeSpec('bits'),
+   'enumeration':EnumerationTypeSpec(),
+   'bits':BitsTypeSpec(),
    'binary':BinaryTypeSpec(),
    'leafref':TypeSpec('leafref'),
    'identityref':TypeSpec('identityref'),

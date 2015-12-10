@@ -1,4 +1,4 @@
-PYANG = pyang --print-error-code
+PYANG = pyang --print-error-code --strict
 
 MODULES = $(wildcard *.yang)
 

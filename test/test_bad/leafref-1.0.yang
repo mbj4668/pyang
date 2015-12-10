@@ -1,0 +1,17 @@
+module leafref-1.0 {
+  yang-version 1;
+  namespace urn:example:ll;
+  prefix ll;
+
+  container x {
+    leaf foo {
+      type string;
+    }
+    leaf bar {
+      type leafref {
+        path "../foo";
+        require-instance false; // error
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 """Description of YANG & YIN syntax."""
 
 import re
+import shlex
 
 ### Regular expressions - constraints on arguments
 
@@ -106,7 +107,7 @@ re_integer = re.compile("^" + integer_ + "$")
 re_decimal = re.compile("^" + decimal_ + "$")
 re_uri = re.compile("^" + uri + "$")
 re_boolean = re.compile("^(true|false)$")
-re_version = re.compile("^1$")
+re_version = re.compile("^(1|(1\.1))$")
 re_date = re.compile("^" + date +"$")
 re_status = re.compile("^(current|obsolete|deprecated)$")
 re_key = re.compile("^" + key_arg + "$")
@@ -114,6 +115,7 @@ re_length = re.compile("^" + length_expr + "$")
 re_range = re.compile("^" + range_expr + "$")
 re_pos_integer = re.compile(r"^(unbounded|" + pos_integer + r")$")
 re_ordered_by = re.compile(r"^(user|system)$")
+re_modifier = re.compile(r"^(invert-match)$")
 re_node_id = re.compile("^" + node_id + "$")
 re_path = re.compile("^" + path_arg + "$")
 re_absolute_path = re.compile("^" + absolute_path_arg + "$")
@@ -137,6 +139,7 @@ arg_type_map = {
     "range-arg": lambda s: re_range.search(s) is not None,
     "max-value": lambda s: re_pos_integer.search(s) is not None,
     "ordered-by-arg": lambda s: re_ordered_by.search(s) is not None,
+    "modifier-arg": lambda s: re_modifier.search(s) is not None,
     "identifier-ref": lambda s: re_node_id.search(s) is not None,
     "path-arg": lambda s: re_path.search(s) is not None,
     "absolute-path-arg": lambda s: re_absolute_path.search(s) is not None,
@@ -149,6 +152,7 @@ arg_type_map = {
         re_schema_nodeid.search(s) is not None,
     "enum-arg": lambda s: chk_enum_arg(s),
     "fraction-digits-arg": lambda s: chk_fraction_digits_arg(s),
+    "if-feature-expr": lambda s: chk_if_feature_expr(s),
     "deviate-arg": lambda s: re_deviate.search(s) is not None,
     "_comment": lambda s: re_comment.search(s) is not None,
     }
@@ -181,6 +185,85 @@ def chk_fraction_digits_arg(s):
     except ValueError:
         return False
 
+def chk_if_feature_expr(s):
+    return  parse_if_feature_expr(s) != None
+
+# if-feature-expr     = "(" if-feature-expr ")" /
+#                      if-feature-expr sep boolean-operator sep
+#                        if-feature-expr /
+#                      not-keyword sep if-feature-expr /
+#                      identifier-ref-arg
+#
+# Rewrite to:
+#  x = y ("and"/"or" y)*
+#  y = "not" x /
+#      "(" x ")"
+#      identifier
+#
+# Expr :: ('not', Expr, None)
+#         | ('and'/'or', Expr, Expr)
+#         | Identifier
+def parse_if_feature_expr(s):
+    sx = shlex.shlex(s)
+    sx.wordchars += ":-" # need to handle prefixes and '-' in the name
+    operators = [None]
+    operands = []
+
+    def x():
+        y()
+        tok = sx.get_token()
+        while tok in ('and', 'or'):
+            push_operator(tok)
+            y()
+            tok = sx.get_token()
+        sx.push_token(tok)
+        while operators[-1] != None:
+            pop_operator()
+
+    def y():
+        tok = sx.get_token()
+        if tok == 'not':
+            push_operator(tok)
+            x()
+        elif tok == '(':
+            operators.append(None)
+            x()
+            tok = sx.get_token()
+            if tok != ')':
+                raise ValueError
+            operators.pop()
+        elif is_identifier(tok):
+            operands.append(tok)
+        else:
+            raise ValueError
+
+    def push_operator(op):
+        while op_gt(operators[-1], op):
+            pop_operator()
+        operators.append(op)
+
+    def pop_operator():
+        op = operators.pop()
+        if op == 'not':
+            operands.append((op, operands.pop(), None))
+        else:
+            operands.append((op, operands.pop(), operands.pop()))
+
+    def op_gt(op1, op2):
+        precedence = {'not':3, 'and':2, 'or':1, None:0}
+        return precedence[op1] > precedence[op2]
+
+    def is_identifier(tok):
+        return re_node_id.search(tok) is not None
+
+    try:
+        x()
+        if sx.get_token() != '':
+            raise ValueError
+        return operands[-1]
+    except ValueError:
+        return None
+
 def add_arg_type(arg_type, regexp):
     """Add a new arg_type to the map.
     Used by extension plugins to register their own argument types."""
@@ -188,7 +271,9 @@ def add_arg_type(arg_type, regexp):
 
     # keyword             argument-name  yin-element
 yin_map = \
-    {'anyxml':           ('name',        False),
+    {'action':           ('name',        False),
+     'anydata':          ('name',        False),
+     'anyxml':           ('name',        False),
      'argument':         ('name',        False),
      'augment':          ('target-node', False),
      'base':             ('name',        False),
@@ -223,6 +308,7 @@ yin_map = \
      'mandatory':        ('value',       False),
      'max-elements':     ('value',       False),
      'min-elements':     ('value',       False),
+     'modifier':         ('value',       False),
      'module':           ('name',        False),
      'must':             ('condition',   False),
      'namespace':        ('uri',         False),

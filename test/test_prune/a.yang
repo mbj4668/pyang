@@ -6,6 +6,7 @@ module a {
   include asub;
 
   feature foo;
+  feature foz;
 
   grouping gg {
     leaf bar-gggg {

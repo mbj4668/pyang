@@ -1,0 +1,12 @@
+old1.yang:5: error: BAD_IMPORT_YANG_VERSION
+old1.yang:5: warning: UNUSED_IMPORT
+u.yang:6: error: BAD_INCLUDE_YANG_VERSION
+u.yang:12: error: FEATURE_NOT_FOUND
+u.yang:16: error: BAD_VALUE
+u.yang:20: error: BAD_VALUE
+u.yang:23: error: UNEXPECTED_KEYWORD
+u.yang:36: error: TYPE_VALUE
+u.yang:65: error: IDENTITY_NOT_FOUND
+u.yang:71: error: TYPE_VALUE
+u.yang:77: error: TYPE_VALUE
+u.yang:84: error: DEFAULT_AND_MIN_ELEMENTS

@@ -23,6 +23,7 @@ class YangTokenizer(object):
             self.max_line_len = None
         self.keep_comments = keep_comments
         self.errors = errors
+        self.strict_quoting = False
 
     def readline(self):
         if len(self.lines) == 0:
@@ -192,6 +193,11 @@ class YangTokenizer(object):
                             special = '\"'
                         elif self.buf[i+1] == '\\':
                             special = '\\'
+                        elif self.strict_quoting:
+                            error.err_add(self.errors, self.pos,
+                                          'ILLEGAL_ESCAPE', ())
+                            raise error.Abort
+
                         if special != None:
                             strs.append(self.buf[start:i])
                             strs.append(special)
@@ -282,7 +288,9 @@ class YangParser(object):
             arg = None
         else:
             arg = self.tokenizer.get_string()
-
+        # check for YANG 1.1
+        if keywd == 'yang-version' and arg == '1.1':
+            self.tokenizer.strict_quoting = True
         stmt = statements.Statement(self.top, parent, self.pos, keywd, arg)
         if self.top is None:
             self.pos.top = stmt
