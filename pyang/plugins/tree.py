@@ -78,7 +78,7 @@ Each node is printed as:
    name is printed as <prefix>:<name>.
 
   <opts> is one of:
-    ?  for an optional leaf or choice
+    ?  for an optional leaf, choice or anyxml
     !  for a presence container
     *  for a leaf-list or list
     [<keys>] for a list's keys
