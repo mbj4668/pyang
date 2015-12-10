@@ -229,7 +229,8 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
     else:
         if s.keyword == 'leaf-list':
             name += '*'
-        elif s.keyword == 'leaf' and not hasattr(s, 'i_is_key'):
+        elif (s.keyword == 'leaf' and not hasattr(s, 'i_is_key')
+            or s.keyword == 'anyxml'):
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
