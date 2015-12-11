@@ -1161,9 +1161,21 @@ class HybridDSDLSchema(object):
             elem = SchemaNode("ref", p_elem).set_attr("name", uname)
             occur = dic[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
-            self.handle_substmts(stmt, elem)
+            for child in stmt.parent.i_children:
+                if (child not in stmt.parent.substmts) and (child.i_module == stmt.i_module):
+                    for ori_child in grp.substmts:
+                        if child.arg == ori_child.arg and child.keyword == ori_child.keyword:
+                            self.handle_stmt(child, elem)            
             return
-        self.handle_substmts(grp, p_elem, pset)
+        #Iterate i_children instead of substmts as deviation is applied to i_children
+        for child in stmt.parent.i_children:
+            #Skip siblings of uses statement and augmented nodes
+            if (child not in stmt.parent.substmts) and (child.i_module == stmt.i_module):
+                #Only handle nodes from the target grouping in case there are multiple uses
+                #under stmt.parent
+                for ori_child in grp.substmts:
+                    if child.arg == ori_child.arg and child.keyword == ori_child.keyword:
+                        self.handle_stmt(child, p_elem, pset)
 
     def when_stmt(self, stmt, p_elem, pset=None):
         p_elem.attr["nma:when"] = self.yang_to_xpath(stmt.arg)
