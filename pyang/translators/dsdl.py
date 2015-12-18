@@ -1168,6 +1168,7 @@ class HybridDSDLSchema(object):
             if sub.keyword in ("refine", "augment"):
                 expand = True
                 self.add_patch(pset, sub)
+        expand = self.find_arg_in_grp(grp, pset)    
         if expand:
             self.lookup_expand(grp, list(pset.keys()))
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
