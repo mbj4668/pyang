@@ -1143,6 +1143,24 @@ class HybridDSDLSchema(object):
         uel.attr["tag"] = " ".join(
             [addpref(nid) for nid in stmt.arg.split()])
 
+    def find_node_in_grp(self, stmt, grp):
+        for child in grp.substmts:
+            if child.keyword == "uses":
+                if self.find_node_in_grp(stmt, child.i_grouping):
+                    return True
+            elif child.keyword == stmt.keyword and child.arg == stmt.arg:
+                return True
+        return False
+
+    def find_arg_in_grp(self, stmt, pset):
+        for sub in stmt.substmts:
+            if sub.keyword == "uses":
+                if self.find_arg_in_grp(sub.i_grouping, pset):
+                    return True
+            elif sub.keyword in ("refine", "augment"):
+                self.add_patch(pset, sub)
+                return True
+
     def uses_stmt(self, stmt, p_elem, pset):
         expand = False
         grp = stmt.i_grouping
@@ -1169,9 +1187,8 @@ class HybridDSDLSchema(object):
             if (child not in stmt.parent.substmts) and (child.i_module == stmt.i_module):
                 #Only handle nodes from the target grouping in case there are multiple uses
                 #under stmt.parent
-                for ori_child in grp.substmts:
-                    if child.arg == ori_child.arg and child.keyword == ori_child.keyword:
-                        self.handle_stmt(child, p_elem, pset)
+                if self.find_node_in_grp(child, grp):
+                     self.handle_stmt(child, p_elem, pset)
 
     def when_stmt(self, stmt, p_elem, pset=None):
         p_elem.attr["nma:when"] = self.yang_to_xpath(stmt.arg)
