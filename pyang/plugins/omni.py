@@ -15,6 +15,8 @@ classnamecolor = " {0.113725, 0.352941, 0.670588}"
 mandatoryconfig = " {0.600000, 0.152941, 0.152941}"
 optionalconfig = " {0.129412, 0.501961, 0.254902}"
 notconfig = " {0.549020, 0.486275, 0.133333}"
+#which line for containment, omnigraffles makes some bezier, override this
+connectline = " tail type: \"FilledDiamond\", head type: \"None\", line type: \"Straight\" "
 
 
 def pyang_plugin_init():
@@ -210,7 +212,7 @@ def print_associations(s, fd, ctx):
 
 
 def print_aggregation(parent, this, fd, lower, upper, ctx):
-     fd.write("connect %s to %s with properties {tail type: \"FilledDiamond\", head type: \"None\"} \n" %(fullpath(parent),fullpath(this)))
+     fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), connectline))
 
 def print_rpc(rpc, fd, ctx, root='false'):
     fd.write("<UML:Class xmi.id = \'%s\' name = \'%s\' " %(fullpath(rpc), rpc.arg))
