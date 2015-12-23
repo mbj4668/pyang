@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="deviation"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/deviation">
+  <namespace uri="http://example.com/deviation"/>
+  <prefix value="dev"/>
+  <grouping name="bar">
+    <leaf name="bar">
+      <type name="string"/>
+      <default value="ho"/>
+    </leaf>
+  </grouping>
+  <container name="top">
+    <leaf-list name="foo">
+      <type name="string"/>
+    </leaf-list>
+    <uses name="bar">
+      <refine target-node="bar">
+	<must condition=". = ../foo"/>
+      </refine>
+    </uses>
+  </container>
+  <deviation target-node="/top/bar">
+    <deviate value="replace">
+      <default value="trpaslik"/>
+    </deviate>
+  </deviation>
+</module>
