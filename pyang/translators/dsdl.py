@@ -1182,7 +1182,7 @@ class HybridDSDLSchema(object):
             elem = SchemaNode("ref", p_elem).set_attr("name", uname)
             occur = dic[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
-            self.handle_substmts(stmt, elem)            
+            self.handle_substmts(stmt, elem) 
             return
         #Iterate i_children instead of substmts as deviation is applied to i_children
         for child in stmt.parent.i_children:
