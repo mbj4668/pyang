@@ -1170,7 +1170,7 @@ class HybridDSDLSchema(object):
     def uses_stmt(self, stmt, p_elem, pset):
         expand = False
         grp = stmt.i_grouping
-        expand = self.find_aug_in_grp(grp, pset)    
+        expand = self.find_aug_in_uses(stmt, pset)    
         if expand:
             self.lookup_expand(grp, list(pset.keys()))
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
