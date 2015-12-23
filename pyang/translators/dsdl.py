@@ -1152,22 +1152,24 @@ class HybridDSDLSchema(object):
                 return True
         return False
 
-    def find_arg_in_grp(self, stmt, pset):
+    def find_uses_in_grp(self, stmt, pset):
         for sub in stmt.substmts:
             if sub.keyword == "uses":
-                if self.find_arg_in_grp(sub.i_grouping, pset):
-                    return True
-            elif sub.keyword in ("refine", "augment"):
+                return self.find_arg_in_uses(sub, pset)
+        return False
+
+    def find_arg_in_uses(self, stmt, pset):
+        expand = False
+        for sub in stmt.substmts:
+            if sub.keyword in ("refine", "augment"):
                 self.add_patch(pset, sub)
-                return True
+                expand =  True
+        expand_grp = self.find_uses_in_grp(stmt.i_grouping, pset)
+        return expand or expand_grp
 
     def uses_stmt(self, stmt, p_elem, pset):
         expand = False
         grp = stmt.i_grouping
-        for sub in stmt.substmts:
-            if sub.keyword in ("refine", "augment"):
-                expand = True
-                self.add_patch(pset, sub)
         expand = self.find_arg_in_grp(grp, pset)    
         if expand:
             self.lookup_expand(grp, list(pset.keys()))
