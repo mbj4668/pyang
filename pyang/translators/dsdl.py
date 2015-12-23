@@ -1143,13 +1143,34 @@ class HybridDSDLSchema(object):
         uel.attr["tag"] = " ".join(
             [addpref(nid) for nid in stmt.arg.split()])
 
+    def find_node_in_grp(self, stmt, grp):
+        for child in grp.substmts:
+            if child.keyword == "uses":
+                if self.find_node_in_grp(stmt, child.i_grouping):
+                    return True
+            elif child.keyword == stmt.keyword and child.arg == stmt.arg:
+                return True
+        return False
+
+    def find_uses_in_grp(self, stmt, pset):
+        for sub in stmt.substmts:
+            if sub.keyword == "uses":
+                return self.find_aug_in_uses(sub, pset)
+        return False
+
+    def find_aug_in_uses(self, stmt, pset):
+        expand = False
+        for sub in stmt.substmts:
+            if sub.keyword in ("refine", "augment"):
+                self.add_patch(pset, sub)
+                expand =  True
+        expand_grp = self.find_uses_in_grp(stmt.i_grouping, pset)
+        return expand or expand_grp
+
     def uses_stmt(self, stmt, p_elem, pset):
         expand = False
         grp = stmt.i_grouping
-        for sub in stmt.substmts:
-            if sub.keyword in ("refine", "augment"):
-                expand = True
-                self.add_patch(pset, sub)
+        expand = self.find_aug_in_uses(stmt, pset)    
         if expand:
             self.lookup_expand(grp, list(pset.keys()))
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
@@ -1161,9 +1182,16 @@ class HybridDSDLSchema(object):
             elem = SchemaNode("ref", p_elem).set_attr("name", uname)
             occur = dic[uname].occur
             if occur > 0: self.propagate_occur(p_elem, occur)
-            self.handle_substmts(stmt, elem)
+            self.handle_substmts(stmt, elem) 
             return
-        self.handle_substmts(grp, p_elem, pset)
+        #Iterate i_children instead of substmts as deviation is applied to i_children
+        for child in stmt.parent.i_children:
+            #Skip siblings of uses statement and augmented nodes
+            if (child not in stmt.parent.substmts) and (child.i_module == stmt.i_module):
+                #Only handle nodes from the target grouping in case there are multiple uses
+                #under stmt.parent
+                if self.find_node_in_grp(child, grp):
+                     self.handle_stmt(child, p_elem, pset)
 
     def when_stmt(self, stmt, p_elem, pset=None):
         p_elem.attr["nma:when"] = self.yang_to_xpath(stmt.arg)
