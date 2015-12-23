@@ -1155,10 +1155,10 @@ class HybridDSDLSchema(object):
     def find_uses_in_grp(self, stmt, pset):
         for sub in stmt.substmts:
             if sub.keyword == "uses":
-                return self.find_arg_in_uses(sub, pset)
+                return self.find_aug_in_uses(sub, pset)
         return False
 
-    def find_arg_in_uses(self, stmt, pset):
+    def find_aug_in_uses(self, stmt, pset):
         expand = False
         for sub in stmt.substmts:
             if sub.keyword in ("refine", "augment"):
@@ -1170,7 +1170,7 @@ class HybridDSDLSchema(object):
     def uses_stmt(self, stmt, p_elem, pset):
         expand = False
         grp = stmt.i_grouping
-        expand = self.find_arg_in_grp(grp, pset)    
+        expand = self.find_aug_in_grp(grp, pset)    
         if expand:
             self.lookup_expand(grp, list(pset.keys()))
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
