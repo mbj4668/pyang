@@ -666,13 +666,6 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><emphasis>hypertree</emphasis></term>
-        <listitem>
-          <para>Hyperbolic tree navigator that can be displayed by
-          <command>treebolic</command>.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
         <term><emphasis>jsonxsl</emphasis></term>
         <listitem>
           <para>XSLT stylesheet for transforming XML instance
@@ -722,13 +715,6 @@
         <listitem>
           <para>UML file that can be read by
           <command>plantuml</command> to generate UML diagrams.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><emphasis>xmi</emphasis></term>
-        <listitem>
-          <para>XMI file that can be imported by
-          <command>ArgoUML</command>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -943,82 +929,6 @@
     </variablelist>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.hypertree">
-    <title>hypertree output</title>
-    <para>
-      The <emphasis>hypertree</emphasis> output generates a hyperbolic YANG
-      browser. The generated xml file can be imported to <command>treebolic</command>
-      (<uri>http://treebolic.sourceforge.net/en/</uri>).
-    </para>
-    <para>
-      Color coding in the tree:
-      <itemizedlist>
-        <listitem>
-          <para>Light green node background : config = True</para>
-        </listitem>
-        <listitem>
-          <para>Light yellow node background : config = False</para>
-        </listitem>
-        <listitem>
-          <para>Red node foreground : mandatory = True</para>
-        </listitem>
-        <listitem>
-          <para>White leaf node background : index</para>
-        </listitem>
-        <listitem>
-          <para>Orange foreground : presence container</para>
-        </listitem>
-      </itemizedlist>
-    </para>
-
-    <para>
-      The xml file references an images folder that needs to
-      exist in the same folder as the generated file. This is installed
-      as share/yang/images in the pyang installation directory.
-      The easiest way is to symlink to this directory.
-    </para>
-    <para>
-      <userinput>pyang -f hypertree model.yang -o model.xml</userinput>
-    </para>
-    <para>
-      Prepare a HTML file that links to the generated XMI file:
-    </para>
-    <informalexample>
-      <programlisting>
-        &lt;applet code="treebolic.applet.Treebolic.class"
-        archive="TreebolicAppletDom.jar"
-        id="Treebolic" width="100%" height="100%"&gt;
-        &lt;param name="doc" value="model.xml"&gt;
-        &lt;/applet&gt;
-      </programlisting>
-    </informalexample>
-    <para>
-      hypertree output specific option:
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--hypertree-help</option></term>
-        <listitem>
-          <para>
-            Print help on hypertree usage and exit.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><option>--xmi-no-assoc-names</option></term>
-        <listitem>
-          <para>
-            Do not print association names. ArgoUML has no way of hiding the
-            association name and the diagram gets cluttered.
-          </para>
-        </listitem>
-      </varlistentry>
-
-
-    </variablelist>
-
-  </refsect1>
 
   <refsect1 xml:id="man.1.pyang.jsonxsl_output">
     <title>JSONXSL Output</title>
@@ -1458,20 +1368,6 @@ $ osascript foo.scpt</screen>
     </variablelist>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.xmioutput">
-    <title>XMI Output</title>
-    <para>
-      The <emphasis>xmi</emphasis> output prints an XMI file
-      that can be imported by ArgUML http://argouml.tigris.org/.
-    </para>
-    <para>
-      Drag all classes to the diagram area in ArgoUML and use
-      the Arrange-Layout menu.
-    </para>
-    <para>
-      XMI output specific option:
-    </para>
-  </refsect1>
 
   <refsect1 xml:id="man.1.pyang.yang_output">
     <title>YANG Output</title>

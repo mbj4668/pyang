@@ -219,7 +219,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                 |descendant::nma:rpcs[$target='rpc' or
                 $target='rpc-reply']
                 |descendant::nma:notifications[$target='notification']"/>
-    <xsl:if test="$subtree/*">
+    <xsl:if test="$subtree//rng:*">
       <xsl:element name="grammar" namespace="{$rng-uri}">
         <xsl:attribute name="ns">
           <xsl:value-of select="@ns"/>
