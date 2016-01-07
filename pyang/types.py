@@ -775,14 +775,30 @@ def validate_path_expr(errors, path):
     except Abort:
         return None
 
-class PathTypeSpec(TypeSpec):
-    def __init__(self, path_spec, path, pos):
+class LeafrefTypeSpec(TypeSpec):
+    def __init__(self):
         TypeSpec.__init__(self, 'leafref')
-        # no base - no restrictions allowed
+        self.require_instance = True
+
+    def restrictions(self):
+        return ['path', 'require-instance']
+
+class InstanceIdentifierTypeSpec(TypeSpec):
+    def __init__(self):
+        TypeSpec.__init__(self, 'instance-identifier')
+        self.require_instance = True
+
+    def restrictions(self):
+        return ['require-instance']
+
+class PathTypeSpec(TypeSpec):
+    def __init__(self, base, path_spec, path, pos):
+        TypeSpec.__init__(self, base.name)
+        self.require_instance = True
+        self.base = base
         self.path_spec = path_spec
         self.path_ = path
         self.pos = pos
-
 
     def str_to_val(self, errors, pos, str_):
         if hasattr(self, 'i_target_node'):
@@ -799,6 +815,9 @@ class PathTypeSpec(TypeSpec):
         else:
             # if a default value is verified
             return True
+
+    def restrictions(self):
+        return ['require-instance']
 
 class UnionTypeSpec(TypeSpec):
     def __init__(self, types):
@@ -836,9 +855,9 @@ yang_type_specs = \
    'enumeration':EnumerationTypeSpec(),
    'bits':BitsTypeSpec(),
    'binary':BinaryTypeSpec(),
-   'leafref':TypeSpec('leafref'),
+   'leafref':LeafrefTypeSpec(),
    'identityref':TypeSpec('identityref'),
-   'instance-identifier':TypeSpec('instance-identifier'),
+   'instance-identifier':InstanceIdentifierTypeSpec(),
    'empty':EmptyTypeSpec(),
    'union':TypeSpec('union'),
    }

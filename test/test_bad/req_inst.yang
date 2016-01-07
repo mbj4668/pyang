@@ -1,0 +1,31 @@
+module req_inst {
+  namespace urn:a;
+  prefix a;
+
+  typedef lref {
+    type leafref {
+      path "/foo";
+    }
+  }
+
+  typedef iiref {
+    type instance-identifier;
+  }
+
+  leaf foo {
+    type empty;
+    config false;
+  }
+
+  leaf bar {
+    type lref {
+      require-instance false; // error: not allowed in YANG 1
+    }
+  }
+
+  leaf baz {
+    type iiref {
+      require-instance false;
+    }
+  }
+}

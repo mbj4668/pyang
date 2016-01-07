@@ -795,7 +795,8 @@ def v_type_type(ctx, stmt):
         if path.is_grammatically_valid == True:
             path_spec = types.validate_path_expr(ctx.errors, path)
             if path_spec is not None:
-                stmt.i_type_spec = types.PathTypeSpec(path_spec, path, path.pos)
+                stmt.i_type_spec = types.PathTypeSpec(stmt.i_type_spec,
+                                                      path_spec, path, path.pos)
                 stmt.i_type_spec.i_source_stmt = stmt
 
     # check the base restriction
@@ -810,12 +811,14 @@ def v_type_type(ctx, stmt):
 
     # check the require-instance restriction
     req_inst = stmt.search_one('require-instance')
-    if req_inst is not None and (stmt.arg != 'instance-identifier' and
-                                 stmt.arg != 'leafref'):
+    if (req_inst is not None and
+        'require-instance' not in stmt.i_type_spec.restrictions()):
         err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
-    if (req_inst is not None and stmt.arg == 'leafref' and
+    if (req_inst is not None and stmt.i_type_spec.name == 'leafref' and
         stmt.i_module.i_version == '1'):
         err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
+    if (req_inst is not None):
+        stmt.i_type_spec.require_instance = req_inst.arg == 'true'
 
     # check the enums - only applicable when the type is the builtin
     # enumeration type in YANG version 1, and for derived enumerations in 1.1
@@ -1885,9 +1888,12 @@ def v_reference_leaf_leafref(ctx, stmt):
         stmt.i_leafref is not None and
         stmt.i_leafref_expanded is False):
         path_type_spec = stmt.i_leafref
+        not_req_inst = not(path_type_spec.require_instance)
         x = validate_leafref_path(ctx, stmt,
                                   path_type_spec.path_spec,
-                                  path_type_spec.path_)
+                                  path_type_spec.path_,
+                                  accept_non_config_target=not_req_inst
+        )
         if x is None:
             return
         ptr, expanded_path, path_list = x
