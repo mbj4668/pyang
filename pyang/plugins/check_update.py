@@ -394,7 +394,7 @@ def chk_when(old, new, ctx):
     # remove all common whens
     for oldw in old.search('when'):
         neww = new.search_one('when', arg = oldw.arg)
-        if new is not None:
+        if neww is not None:
             newwhen.remove(neww)
             oldwhen.remove(oldw)
     if len(oldwhen) == 0:
