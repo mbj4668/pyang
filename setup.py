@@ -67,7 +67,7 @@ data_files=[('share/man/man1', man1),
            ]
 
 if os.sep != '\\':
-    if os.getuid() == 0 and os.path.exists('/etc/bash_completion.d'):
+    if os.getuid() == 0 and os.path.exists('etc/bash_completion.d'):
         data_files.append(('etc/bash_completion.d',['etc/bash_completion.d/pyang']))
 
 setup(name='pyang',
