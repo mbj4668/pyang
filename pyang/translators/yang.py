@@ -35,7 +35,7 @@ class YANGPlugin(plugin.PyangPlugin):
 def emit_yang(ctx, module, fd):
     emit_stmt(ctx, module, fd, 0, None, '', '  ')
 
-_force_newline_arg = ('description', 'contact')
+_force_newline_arg = ('description', 'contact', 'organization')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'non-negative-integer', 'date', 'ordered-by-arg',
                        'fraction-digits-arg', 'deviate-arg', 'version',
@@ -155,13 +155,11 @@ def emit_arg(stmt, fd, indent, indentstep):
         else:
             fd.write('"')
 
-def emit_comment(arg, fd, indent):
-    lines = arg.splitlines(True)
+def emit_comment(comment, fd, indent):
+    lines = comment.splitlines(True)
     for x in lines:
         if x[0] == '*':
             fd.write(indent + ' ' + x)
         else:
             fd.write(indent + x)
-    # add additional newline after multi-line comments
-    if lines[0][0] == '/' and lines[0][1] == '*':
-        fd.write('\n')
+    fd.write('\n')

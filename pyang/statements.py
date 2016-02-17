@@ -785,8 +785,7 @@ def v_type_type(ctx, stmt):
 
     # check the require-instance restriction
     req_inst = stmt.search_one('require-instance')
-    if req_inst is not None and (stmt.arg != 'instance-identifier' and
-                                 stmt.arg != 'leafref'):
+    if req_inst is not None and stmt.arg != 'instance-identifier':
         err_add(ctx.errors, req_inst.pos, 'BAD_RESTRICTION', 'require-instance')
 
     # check the enums - only applicable when the type is the builtin

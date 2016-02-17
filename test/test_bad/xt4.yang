@@ -40,7 +40,7 @@ module xt4 {
   leaf c {
     type leafref {
       path "/a";
-      require-instance true;
+      require-instance true; // error, not allowed in YANG 1.0
     }
   }
 

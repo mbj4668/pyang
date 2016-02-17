@@ -47,8 +47,6 @@ class YangTokenizer(object):
 
     def skip(self):
         """Skip whitespace and count position"""
-        i = 0
-        pos = 0
         buflen = len(self.buf)
 
         while True:
@@ -79,6 +77,7 @@ class YangTokenizer(object):
     def get_comment(self):
         """ret: string()"""
         self.skip()
+        offset = self.offset
         m = syntax.re_comment.match(self.buf)
         if m == None:
             return None
@@ -90,7 +89,13 @@ class YangTokenizer(object):
                 i = self.buf.find('*/')
                 while i == -1:
                     self.readline()
-                    self.skip()
+                    # remove at most the same number of whitespace as
+                    # the comment start was indented
+                    j = 0
+                    while (j < offset and
+                           self.buf[j].isspace()):
+                        j = j + 1
+                    self.buf = self.buf[j:]
                     cmt += '\n'+self.buf.replace('\n','')
                     i = self.buf.find('*/')
                 self.set_buf(i+2)
