@@ -134,6 +134,27 @@ The stylesheet uses the following modes:
     <xsl:value-of select="$name"/>
   </xsl:template>
 
+  <!-- Add prefix to all components of a path. -->
+  <xsl:template name="qpath">
+    <xsl:param name="path"/>
+    <xsl:choose>
+      <xsl:when test="contains($path, '/')">
+	<xsl:call-template name="qname">
+	  <xsl:with-param name="name" select="substring-before($path, '/')"/>
+	</xsl:call-template>
+	<xsl:text>/</xsl:text>
+	<xsl:call-template name="qpath">
+	  <xsl:with-param name="path" select="substring-after($path, '/')"/>
+	</xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:call-template name="qname">
+	  <xsl:with-param name="name" select="$path"/>
+	</xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- Replace "$root" with the actual top-level NETCONF
        path. -->
   <xsl:template name="uproot">
@@ -189,8 +210,8 @@ The stylesheet uses the following modes:
   <xsl:template name="uniq-expr-comp">
     <xsl:param name="key"/>
     <xsl:variable name="qkey">
-      <xsl:call-template name="qname">
-	<xsl:with-param name="name" select="$key"/>
+      <xsl:call-template name="qpath">
+	<xsl:with-param name="path" select="$key"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:value-of select="concat($qkey,'=current()/',$qkey)"/>
