@@ -33,14 +33,22 @@ class YANGPlugin(plugin.PyangPlugin):
         g.add_options(optlist)
 
     def emit(self, ctx, modules, fd):
+        hooks = YANGEmitHooks()
         module = modules[0]
-        emit_yang(ctx, module, fd)
+        emit_yang(ctx, hooks, module, fd)
 
-def emit_yang(ctx, module, fd):
+class YANGEmitHooks:
+    """Hooks called while emitting YANG"""
+
+    def emit_stmt_hook(self, ctx, stmt, level):
+        """Called on entry to emit_stmt()"""
+        pass
+
+def emit_yang(ctx, hooks, module, fd):
     stmts = module.real_parent.substmts if module.real_parent else [module]
     for (i, stmt) in enumerate(stmts):
         next_stmt = stmts[i+1] if (i < len(stmts) - 1) else None
-        emit_stmt(ctx, stmt, fd, 0, None, next_stmt, False, '', '  ')
+        emit_stmt(ctx, hooks, stmt, fd, 0, None, next_stmt, False, '', '  ')
 
 _force_newline_arg = ('description', 'contact', 'organization', 'reference')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
@@ -86,8 +94,10 @@ _keyword_with_trailing_newline = (
     'extension',
     )
 
-def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
+def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, next_stmt,
               no_indent, indent, indentstep):
+    hooks.emit_stmt_hook(ctx, stmt, level)
+
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
@@ -154,7 +164,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
             kwd_class = 'header'
         for (i, s) in enumerate(substmts):
             n = substmts[i+1] if (i < len(substmts) - 1) else None
-            no_indent = emit_stmt(ctx, s, fd, level + 1, kwd_class, n,
+            no_indent = emit_stmt(ctx, hooks, s, fd, level + 1, kwd_class, n,
                                   no_indent, indent + indentstep, indentstep)
             kwd_class = get_kwd_class(s.keyword)
         fd.write(indent + '}' + stmt_term)
