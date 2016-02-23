@@ -2684,8 +2684,11 @@ class Statement(object):
         """pointer to the top-level Statement"""
 
         self.parent = parent
+        self.real_parent = parent
         """pointer to the parent Statement"""
 
+        self.pos_begin = copy.copy(pos)
+        self.pos_end = copy.copy(pos)
         self.pos = copy.copy(pos)
         """position in input stream, for error reporting"""
         if self.pos is not None and self.pos.top is None:

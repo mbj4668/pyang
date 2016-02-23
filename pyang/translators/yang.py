@@ -24,6 +24,10 @@ class YANGPlugin(plugin.PyangPlugin):
             optparse.make_option("--yang-remove-unused-imports",
                                  dest="yang_remove_unused_imports",
                                  action="store_true"),
+            optparse.make_option("--yang-keep-blank-lines",
+                                 dest="yang_keep_blank_lines",
+                                 action="store_true",
+                                 help="Keep blank lines and trailing comments")
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
@@ -33,7 +37,10 @@ class YANGPlugin(plugin.PyangPlugin):
         emit_yang(ctx, module, fd)
 
 def emit_yang(ctx, module, fd):
-    emit_stmt(ctx, module, fd, 0, None, '', '  ')
+    stmts = module.real_parent.substmts if module.real_parent else [module]
+    for (i, stmt) in enumerate(stmts):
+        next_stmt = stmts[i+1] if (i < len(stmts) - 1) else None
+        emit_stmt(ctx, stmt, fd, 0, None, next_stmt, False, '', '  ')
 
 _force_newline_arg = ('description', 'contact', 'organization')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
@@ -79,7 +86,8 @@ _keyword_with_trailing_newline = (
     'extension',
     )
 
-def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
+def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
+              no_indent, indent, indentstep):
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
@@ -92,13 +100,18 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
         keyword = stmt.keyword
 
     kwd_class = get_kwd_class(stmt.keyword)
-    if ((level == 1 and
+    if ((level == 1 and not ctx.opts.yang_keep_blank_lines and
          kwd_class != prev_kwd_class and kwd_class != 'extension') or
         stmt.keyword in _keyword_with_trailing_newline):
         fd.write('\n')
 
+    newlines_after = get_newlines_after(stmt, next_stmt) \
+                     if ctx.opts.yang_keep_blank_lines else 1
+    stmt_term = newlines_after * '\n' if newlines_after > 0 else ' '
+
     if keyword == '_comment':
-        emit_comment(stmt.arg, fd, indent)
+        emit_comment(stmt.arg, fd, '' if no_indent else indent)
+        fd.write(stmt_term)
         return
 
     fd.write(indent + keyword)
@@ -111,8 +124,9 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
                 emit_arg(stmt, fd, indent, indentstep)
         else:
             emit_arg(stmt, fd, indent, indentstep)
+
     if len(stmt.substmts) == 0:
-        fd.write(';\n')
+        fd.write(';' + stmt_term)
     else:
         fd.write(' {\n')
         if ctx.opts.yang_canonical:
@@ -121,11 +135,13 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
             substmts = stmt.substmts
         if level == 0:
             kwd_class = 'header'
-        for s in substmts:
-            emit_stmt(ctx, s, fd, level + 1, kwd_class,
-                      indent + indentstep, indentstep)
+        for (i, s) in enumerate(substmts):
+            n = substmts[i+1] if (i < len(substmts) - 1) else None
+            no_indent = emit_stmt(ctx, s, fd, level + 1, kwd_class, n,
+                                  no_indent, indent + indentstep, indentstep)
             kwd_class = get_kwd_class(s.keyword)
-        fd.write(indent + '}\n')
+        fd.write(indent + '}' + stmt_term)
+    return (newlines_after == 0)
 
 def emit_arg(stmt, fd, indent, indentstep):
     """Heuristically pretty print the argument string"""
@@ -162,4 +178,21 @@ def emit_comment(comment, fd, indent):
             fd.write(indent + ' ' + x)
         else:
             fd.write(indent + x)
-    fd.write('\n')
+
+def get_newlines_after(this_stmt, next_stmt):
+    newlines_after = 1
+    if this_stmt.pos_end and next_stmt and next_stmt.pos_begin:
+        this_stmt_end_line = this_stmt.pos_end.line
+        next_stmt_begin_line = next_stmt.pos_begin.line
+        newlines_after = next_stmt_begin_line - this_stmt_end_line
+    return newlines_after
+
+# FIXME: tmp debug
+def pos_range(stmt):
+    s = "[%s" % stmt.pos_begin
+    if stmt.pos.line > stmt.pos_begin.line:
+        s += "-%d" % stmt.pos.line
+    if stmt.pos_end.line > stmt.pos.line:
+        s += "->%d" % stmt.pos_end.line
+    s += "]"
+    return s
