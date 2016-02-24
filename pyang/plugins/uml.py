@@ -451,7 +451,8 @@ class uml_emitter:
                  if node.arg in self.unique: # matches previously found unique statement
                      keysign = ' {unique}'
                  # fd.write('%s : %s%s %s %s\n' %(full_path(parent), keysign, make_plantuml_keyword(node.arg), typestring(node), attribs(node) ))
-                 fd.write('%s : %s%s%s %s %s\n' %(self.full_path(parent), keyprefix, node.arg + ' : ', self.typestring(node), keysign, self.attribs(node) ))
+                 typestring = self.typestring(node).replace("\n", " ")
+                 fd.write('%s : %s%s%s %s %s\n' %(self.full_path(parent), keyprefix, node.arg + ' : ', typestring, keysign, self.attribs(node) ))
                  self.emit_must_leaf(parent, node, fd)
              elif node.keyword == 'leaf-list':
                  fd.write('%s : %s %s %s\n' %(self.full_path(parent), node.arg, '[]: ' + self.typestring(node), self.attribs(node)) )
