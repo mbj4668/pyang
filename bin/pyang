@@ -69,6 +69,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              metavar="WARNING",
                              help="Treat each WARNING as an error.  For a " \
                                  "list of warnings, use --list-errors."),
+        optparse.make_option("--ignore-error",
+                             dest="ignore_error_tags",
+                             action="append",
+                             default=[],
+                             metavar="ERROR",
+                             help="Ignore ERROR.  Use with care.  For a " \
+                                 "list of errors, use --list-errors."),
         optparse.make_option("--ignore-errors",
                              dest="ignore_errors",
                              action="store_true",
@@ -357,6 +364,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         ctx.errors = []
 
     for (epos, etag, eargs) in ctx.errors:
+        if etag in o.ignore_error_tags:
+            continue
         if (ctx.implicit_errors == False and
             hasattr(epos.top, 'i_modulename') and
             epos.top.arg not in modulenames and

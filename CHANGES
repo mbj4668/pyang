@@ -43,6 +43,8 @@
          implement try/except block for plugin directory listing,
            thanks to Ebben Aries
 
+         added command line flag --ignore-error
+
    1.5 - 2014-11-18
          added new plugin: 'capability' to print the capability string for
            a module
@@ -129,7 +131,7 @@
 
    1.2 - 2011-07-27
         added edit-config target to yang2dsls
-       
+
         if a submodule A includes submodule B, which includes
           submodule C, definitions in C are visible in A, even if A does
           not include C.  this bug has been fixed.
@@ -144,7 +146,7 @@
 
    1.1 - 2011-02-16
         DSDL output compatible with RFC 6110
-       
+
         added uml output format
 
         inherit the config property correctly with augment
@@ -257,4 +259,3 @@
 
    00.1 - 2007-11-14
         Initial version, draft-bjorklund-netconf-yang-00 compliant.
-
