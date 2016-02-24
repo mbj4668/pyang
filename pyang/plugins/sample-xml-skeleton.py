@@ -111,8 +111,10 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             "notification": self.ignore
             }
         self.ns_uri = {}
-        for yam in modules:
-            self.ns_uri[yam] = yam.search_one("namespace").arg
+        for yam in ctx.modules.values():
+            ns = yam.search_one("namespace")
+            if ns:
+                self.ns_uri[yam] = ns.arg
         self.top = ET.Element(self.doctype,
                          {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = ET.ElementTree(self.top)
