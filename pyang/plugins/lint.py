@@ -143,12 +143,12 @@ class LintPlugin(plugin.PyangPlugin):
             'RFC 6087: 4.1: '
             + 'no module name prefix string used')
         error.add_error_code(
-            'LINT_BAD_REVISION', 4,
+            'LINT_BAD_REVISION', 3,
             'RFC 6087: 4.6: '
             + 'the module\'s revision %s is older than '
             + 'submodule %s\'s revision %s')
         error.add_error_code(
-            'LINT_TOP_MANDATORY', 4,
+            'LINT_TOP_MANDATORY', 3,
             'RFC 6087: 4.9: '
             + 'top-level node %s must not be mandatory')
 
