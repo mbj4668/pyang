@@ -1502,7 +1502,7 @@ def v_expand_2_augment(ctx, stmt):
             ch = search_child(node.i_children, stmt.i_module.i_modulename,
                               tmp.arg)
             if ch is not None:
-                del stmt.i_module.i_undefined_augment_nodes[tmp]
+                del ch.i_module.i_undefined_augment_nodes[tmp]
                 if not hasattr(ch, 'i_children'):
                     err_add(ctx.errors, tmp.pos, 'BAD_NODE_IN_AUGMENT',
                             (stmt.i_module.i_modulename, ch.arg,
@@ -1526,7 +1526,7 @@ def v_expand_2_augment(ctx, stmt):
             if ch.keyword == '__tmp_augment__':
                 # replace this node with the proper one,
                 # and also do this recursively
-                del stmt.i_module.i_undefined_augment_nodes[ch]
+                del ch.i_module.i_undefined_augment_nodes[ch]
                 if not hasattr(c, 'i_children'):
                     err_add(ctx.errors, stmt.pos, 'BAD_NODE_IN_AUGMENT',
                             (stmt.i_module.i_modulename, c.arg,
