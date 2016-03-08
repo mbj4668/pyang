@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: json2xml
 .\"    Author: Ladislav Lhotka <lhotka@nic.cz>
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
 .\"      Date: 2015-10-06
 .\"    Manual: pyang manual
 .\"    Source: json2xml-1.6
@@ -27,20 +27,48 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH "NAME"
+
+
+  
+
+  
+
+  .SH "NAME"
 json2xml \- translates JSON documents conforming to a YANG data model into XML\&.
-.SH "SYNOPSIS"
-.HP \w'\fBjson2xml\fR\ 'u
-\fBjson2xml\fR [\-t\ \fItarget\fR] [\-o\ \fIoutput_file\fR] \fIdriver_file\fR \fIjson_file\fR
-.HP \w'\fBjson2xml\fR\ 'u
-\fBjson2xml\fR \-h | \-\-help 
-.SH "DESCRIPTION"
-.PP
+
+
+  .SH "SYNOPSIS"
+
+    .HP \w'\fBjson2xml\fR\ 'u
+
+      \fBjson2xml\fR
+       [\-t\ \fItarget\fR]
+       [\-o\ \fIoutput_file\fR]
+       \fIdriver_file\fR
+       \fIjson_file\fR
+    
+
+    .HP \w'\fBjson2xml\fR\ 'u
+
+      \fBjson2xml\fR
+       
+	 | \-h
+	 | \-\-help
+       
+    
+
+  
+
+  .SH "DESCRIPTION"
+
+    
+    .PP
 This program translates
 \fIjson_file\fR
 into XML using the procedure specified in
 \m[blue]\fBdraft\-lhotka\-netmod\-yang\-json\fR\m[]\&\s-2\u[1]\d\s+2\&.
-.PP
+
+    .PP
 The translation uses a second input file,
 \fIdriver_file\fR, which contains a concise JSON representation of the YANG data model to which
 \fIjson_file\fR
@@ -50,48 +78,89 @@ is obtained as the
 \fIjtox\fR
 output of
 \fBpyang\fR\&.
-.PP
+
+    .PP
 Using "\-" (hyphen) in place of
 \fIjson_file\fR
 instructs the program to read a JSON document from the standard input\&.
-.PP
+
+    .PP
 The
 \fItarget\fR
 argument specifies the document (root) element for the output XML document\&. This encapsulation is necessary because the input JSON document may contain multiple JSON objects at the top level\&. Supported values for the
 \fItarget\fR
 argument are:
-.PP
+
+    
+
+      .PP
 data
 .RS 4
-The document element will be <nc:data>\&. This is the default\&.
-.RE
-.PP
+
+        
+        The document element will be <nc:data>\&. This is the default\&.
+
+      .RE
+      .PP
 config
 .RS 4
-The document element will be <nc:data>\&.
-.RE
-.PP
+
+        
+        The document element will be <nc:data>\&.
+
+      .RE
+    
+    .PP
 The XML prefix "nc" represents the standard NETCONF namespace with URI "urn:ietf:params:xml:ns:netconf:base:1\&.0"\&.
-.SH "OPTIONS"
-.PP
+
+  
+
+  .SH "OPTIONS"
+
+    
+    
+
+      .PP
 \fB\-t\fR \fItarget\fR, \fB\-\-target\fR \fItarget\fR
 .RS 4
-Specifies the target type of the output XML document, i\&.e\&. its document element\&. The default is
+
+        
+        
+          Specifies the target type of the output XML document, i\&.e\&. its document element\&. The default is
 \fBdata\fR\&.
-.RE
-.PP
+
+        
+      .RE
+      .PP
 \fB\-o\fR \fIoutput_file\fR, \fB\-\-output\fR \fIoutput_file\fR
 .RS 4
-Write output to
+
+        
+        
+          Write output to
 \fIoutput_file\fR
 instead of the standard output\&.
-.RE
-.PP
+
+        
+      .RE
+      .PP
 \fB\-h\fR, \fB\-\-help\fR
 .RS 4
-Displays help screen and exits\&.
-.RE
-.SH "EXAMPLE"
+
+        
+        
+          Displays help screen and exits\&.
+
+        
+      .RE
+    
+  
+
+  .SH "EXAMPLE"
+
+    
+
+    
 .sp
 .if n \{\
 .RS 4
@@ -103,6 +172,9 @@ $ pyang \-f jtox \-o dhcp\&.jtox dhcp\&.yang
 .RE
 .\}
 .sp
+
+    
+.sp
 .if n \{\
 .RS 4
 .\}
@@ -112,41 +184,70 @@ $ json2xml \-o dhcp\-data\&.xml dhcp\&.jtox dhcp\-data\&.json
 .if n \{\
 .RE
 .\}
-.PP
+.sp
+
+    .PP
 The first command generates the driver file
 dhcp\&.jtox, which is then used for translating JSON file
 dhcp\-data\&.json
 to XML file
 dhcp\-data\&.xml\&.
-.SH "DIAGNOSTICS"
-.PP
+
+  
+
+  .SH "DIAGNOSTICS"
+
+    
+    .PP
 \fBjson2xml\fR
 return codes have the following meaning:
-.PP
+
+    
+
+      .PP
 0
 .RS 4
-No error (normal termination)
-.RE
-.PP
+
+        
+        No error (normal termination)
+
+      .RE
+      .PP
 1
 .RS 4
-One of the input files cannot be read
-.RE
-.PP
+
+        
+        One of the input files cannot be read
+
+      .RE
+      .PP
 2
 .RS 4
-Error in command line arguments
-.RE
-.PP
+
+        
+        Error in command line arguments
+
+      .RE
+      .PP
 3
 .RS 4
-JSON to XML translation failed
-.RE
-.SH "SEE ALSO"
-.PP
+
+        
+        JSON to XML translation failed
+
+      .RE
+    
+  
+
+  .SH "SEE ALSO"
+
+    
+    .PP
 \m[blue]\fBdraft\-lhotka\-netmod\-yang\-json\fR\m[]\&\s-2\u[1]\d\s+2,
 \fBpyang\fR(1),
 \m[blue]\fBJSON\fR\m[]\&\s-2\u[2]\d\s+2\&.
+
+  
 .SH "AUTHOR"
 .PP
 \fBLadislav Lhotka\fR <\&lhotka@nic\&.cz\&>
