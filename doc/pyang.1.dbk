@@ -1189,7 +1189,8 @@ $ osascript foo.scpt</screen>
           <para>
             Subtree to print.  The <replaceable>path</replaceable> is
             a slash ("/") separated path to a subtree to print.  For
-            example "/nacm/groups".
+            example "/nacm/groups".  All ancestors and the selected
+            subtree are printed.
           </para>
         </listitem>
       </varlistentry>
