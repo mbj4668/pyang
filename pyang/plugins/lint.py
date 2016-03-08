@@ -110,6 +110,10 @@ class LintPlugin(plugin.PyangPlugin):
             'strict', ['include'],
             lambda ctx, s: v_chk_include(ctx, s))
 
+        statements.add_validation_fun(
+            'strict', ['module'],
+            lambda ctx, s: v_chk_mandatory_top_level(ctx, s))
+
         # register our error codes
         error.add_error_code(
             'LINT_EXPLICIT_DEFAULT', 4,
@@ -143,6 +147,10 @@ class LintPlugin(plugin.PyangPlugin):
             'RFC 6087: 4.6: '
             + 'the module\'s revision %s is older than '
             + 'submodule %s\'s revision %s')
+        error.add_error_code(
+            'LINT_TOP_MANDATORY', 4,
+            'RFC 6087: 4.9: '
+            + 'top-level node %s must not be mandatory')
 
         # override std error string
         error.add_error_code(
@@ -254,3 +262,8 @@ def v_chk_include(ctx, stmt):
         subm.i_latest_revision > latest):
         err_add(ctx.errors, stmt.pos, 'LINT_BAD_REVISION',
                 (latest, submodulename, subm.i_latest_revision))
+
+def v_chk_mandatory_top_level(ctx, stmt):
+    for s in stmt.i_children:
+        if statements.is_mandatory_node(s):
+            err_add(ctx.errors, s.pos, 'LINT_TOP_MANDATORY', s.arg)

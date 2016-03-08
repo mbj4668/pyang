@@ -1,0 +1,20 @@
+module tst-m {
+  namespace "urn:m";
+  prefix m;
+
+  organization "x";
+  contact "x";
+  description
+    "Module with mandatory top-level node.";
+
+  revision 2015-12-14 {
+    reference "RFC XXXX";
+  }
+
+  leaf foo {
+    type empty;
+    mandatory true;
+    description
+      "foo";
+  }
+}
