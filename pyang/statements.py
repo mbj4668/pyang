@@ -436,7 +436,11 @@ def v_grammar_module(ctx, stmt):
     grammar.chk_module_statements(ctx, stmt, ctx.canonical)
     # check revision statements order
     prev = None
+    stmt.i_latest_revision = None
     for r in stmt.search('revision'):
+        if (stmt.i_latest_revision is None or
+            r.arg > stmt.i_latest_revision):
+            stmt.i_latest_revision = r.arg
         if prev is not None and r.arg > prev:
             err_add(ctx.errors, r.pos, 'REVISION_ORDER', ())
         prev = r.arg

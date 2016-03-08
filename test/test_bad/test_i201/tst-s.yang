@@ -1,0 +1,14 @@
+submodule tst-s {
+  belongs-to tst-m {
+    prefix m;
+  }
+
+  organization "x";
+  contact "x";
+  description "x";
+
+  revision 2016-04-01 {
+    reference "x";
+  }
+
+}

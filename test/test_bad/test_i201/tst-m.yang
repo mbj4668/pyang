@@ -1,0 +1,16 @@
+module tst-m {
+  namespace urn:m;
+  prefix m;
+
+  include tst-s {
+    revision-date 2016-04-01;
+  }
+
+  organization "x";
+  contact "x";
+  description "x";
+
+  revision 2016-02-29 {
+    reference "x";
+  }
+}
