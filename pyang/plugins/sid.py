@@ -1,6 +1,6 @@
-"""Tree output plugin
+"""sid plugin
 
-Idea copied from libsmi.
+Plugin used to generate or update .sid files.
 """
 
 import optparse
