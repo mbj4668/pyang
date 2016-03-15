@@ -262,12 +262,50 @@ $ pyang \-\-Werror \-W UNUSED_IMPORT
       .RE
 
       .PP
+\fB\-\-ignore\-error\fR \fIerrorcode\fR
+.RS 4
+
+        
+        
+          Ignore error
+\fIerrorcode\fR\&.
+.sp
+
+          Use with care\&. Plugins that don\*(Aqt expect to be invoked if there are errors present may crash\&.
+.sp
+
+          Use
+\fB\-\-list\-errors\fR
+to get a listing of all errors and warnings\&.
+.sp
+
+          The following example ignores syntax errors in patterns:
+
+          
+            
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-ignore\-error PATTERN_ERROR
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+
+          
+        
+      .RE
+
+      .PP
 \fB\-\-ignore\-errors\fR
 .RS 4
 
         
         
-          Ignore errors\&. Use with care\&. Plugins that don\*(Aqt expect to be invoked if there are errors present may crash\&.
+          Ignore all errors\&. Use with care\&. Plugins that don\*(Aqt expect to be invoked if there are errors present may crash\&.
 
         
       .RE

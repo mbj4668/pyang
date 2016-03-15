@@ -241,11 +241,37 @@
 
       <varlistentry>
         <term>
+          <option>--ignore-error</option>
+          <replaceable>errorcode</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Ignore error <replaceable>errorcode</replaceable>.
+          </para>
+          <para>
+            Use with care.  Plugins that don't expect to be invoked if
+            there are errors present may crash.
+          </para>
+          <para>
+            Use <option>--list-errors</option> to get a listing of all
+            errors and warnings.
+          </para>
+          <para>
+            The following example ignores syntax errors in patterns:
+          </para>
+          <informalexample>
+            <screen>$ pyang --ignore-error PATTERN_ERROR</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>--ignore-errors</option>
         </term>
         <listitem>
           <para>
-            Ignore errors.  Use with care.  Plugins that don't expect
+            Ignore all errors.  Use with care.  Plugins that don't expect
             to be invoked if there are errors present may crash.
           </para>
         </listitem>

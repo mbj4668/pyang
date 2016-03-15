@@ -15,6 +15,7 @@ _pyang()
         -e --list-errors
         --print-error-code
         -W -E
+        --ignore-error
         --ignore-errors
         --canonical
         --max-line-length
