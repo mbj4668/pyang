@@ -7,7 +7,10 @@
 # ifeq ($(DBSS),)
 #   $(error docbook stylesheet not found)
 # endif
-DBURI=http://docbook.sourceforge.net/release/xsl/current
+
+# NOTE: 1.79.1 generates bad man pages; they don't render properly
+#DBURI=http://docbook.sourceforge.net/release/xsl/current
+DBURI=http://docbook.sourceforge.net/release/xsl/1.78.1
 MANPAGES=../man/man1/yang2dsdl.1 ../man/man1/pyang.1 ../man/man1/json2xml.1
 
 PYANG_VERSION=$(shell grep __version__ ../pyang/__init__.py | \
