@@ -1,3 +1,8 @@
+
+
+![pyanglogo](https://cloud.githubusercontent.com/assets/13664257/13767280/d2bd9182-ea8e-11e5-8cc7-0d204e784608.png)
+
+
 [![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang)
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
