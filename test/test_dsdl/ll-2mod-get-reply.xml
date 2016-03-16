@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<nc:rpc-reply message-id="132"
+<nc:rpc-reply nc:message-id="132"
 	      xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
 <nc:data xmlns="http://example.com/ll/2mod-a"
 	 xmlns:tb="http://example.com/ll/2mod-b">
