@@ -32,7 +32,8 @@ def init(plugindirs=[]):
         except OSError:
             continue
         for fname in fnames:
-            if fname.endswith(".py") and fname != '__init__.py':
+            if not fname.startswith(".#") and fname.endswith(".py") and \
+               fname != '__init__.py':
                 pluginmod = __import__(fname[:-3])
                 try:
                     pluginmod.pyang_plugin_init()
