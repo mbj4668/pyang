@@ -42,7 +42,7 @@ def emit_yang(ctx, module, fd):
         next_stmt = stmts[i+1] if (i < len(stmts) - 1) else None
         emit_stmt(ctx, stmt, fd, 0, None, next_stmt, False, '', '  ')
 
-_force_newline_arg = ('description', 'contact', 'organization')
+_force_newline_arg = ('description', 'contact', 'organization', 'reference')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'non-negative-integer', 'date', 'ordered-by-arg',
                        'fraction-digits-arg', 'deviate-arg', 'version',
@@ -99,8 +99,18 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
     else:
         keyword = stmt.keyword
 
+    # XXX is this safe? parent is clearly manipulated by augment etc; better
+    #     to pass it in as (yet another) argument?
+    prev_stmt = stmt.parent \
+                if stmt.parent and stmt.parent.substmts[0] is stmt else None
+    newlines_before = get_newlines_before(prev_stmt, stmt) \
+                      if ctx.opts.yang_keep_blank_lines else 0
+    if newlines_before > 0:
+        fd.write(newlines_before * '\n')
+
     kwd_class = get_kwd_class(stmt.keyword)
-    if ((level == 1 and not ctx.opts.yang_keep_blank_lines and
+    if not ctx.opts.yang_keep_blank_lines and \
+       ((level == 1 and
          kwd_class != prev_kwd_class and kwd_class != 'extension') or
         stmt.keyword in _keyword_with_trailing_newline):
         fd.write('\n')
@@ -108,6 +118,8 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
     newlines_after = get_newlines_after(stmt, next_stmt) \
                      if ctx.opts.yang_keep_blank_lines else 1
     stmt_term = newlines_after * '\n' if newlines_after > 0 else ' '
+    # XXX uncomment this to debug --yang-keep-blank-lines
+    #stmt_term = ' ' + pos_range(stmt) + ' ' + str(newlines_after) + stmt_term
 
     if keyword == '_comment':
         emit_comment(stmt.arg, fd, '' if no_indent else indent)
@@ -120,6 +132,11 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
             (arg_type, _subspec) = grammar.stmt_map[keyword]
             if arg_type in _non_quote_arg_type:
                 fd.write(' ' + stmt.arg)
+            elif keyword in ['augment', 'must', 'path', 'pattern', 'when']:
+                # XXX is there a generic way of knowing which statements
+                #     need this treatment?
+                emit_arg_squote(keyword, stmt.arg, fd, indent, indentstep,
+                                ctx.max_line_len)
             else:
                 emit_arg(stmt, fd, indent, indentstep)
         else:
@@ -143,6 +160,51 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
         fd.write(indent + '}' + stmt_term)
     return (newlines_after == 0)
 
+def emit_arg_squote(keyword, arg, fd, indent, indentstep, max_line_len):
+    """Heuristically pretty print the argument with smart quotes"""
+
+    # use single quotes unless the arg contains a single quote
+    quote = "'" if arg.find("'") == -1 else '"'
+
+    # if using double quotes, replace special characters
+    if quote == '"':
+        arg = arg.replace('\\', r'\\')
+        arg = arg.replace('"', r'\"')
+        arg = arg.replace('\t', r'\t')
+
+    # if there aren't any characters that require quoting, don't quote
+    # XXX no, it's more complicated than this; will need to quote anyway
+    #     if have to split the argument into multiple lines
+    #mustquote = [" ", "\t", "\n", "'", '"', ";", "{", "}", "//", "/*", "*/"]
+    #if not [True for c in arg if c in mustquote]:
+    #    quote = ""
+
+    # XXX allow for " {" even though the statement might not have sub-
+    #     statements; don't consider trailing comments
+    term = " {"
+
+    line_len = len("%s%s %s%s%s%s" % (indent, keyword,
+                                      quote, arg, quote, term))
+    if max_line_len is None or line_len <= max_line_len:
+        fd.write(" " + quote + arg + quote)
+        return
+
+    # XXX can't guarantee to split the argument in the same way as it
+    #     was originally split (not enough information) so do it naively
+    # XXX strictly num_chars could be negative, e.g. if max_line_len is VERY
+    #     small; should check for this
+    num_chars = len(arg) - (line_len - max_line_len)
+    fd.write(" " + quote + arg[:num_chars] + quote)
+    arg = arg[num_chars:]
+    while arg != '':
+        keyword_cont = ((len(keyword) - 1) * ' ') + '+'
+        line_len = len("%s%s %s%s%s%s" % (indent, keyword_cont,
+                                          quote, arg, quote, term))
+        num_chars = len(arg) - (line_len - max_line_len)
+        fd.write('\n' + indent + keyword_cont + " " +
+                 quote + arg[:num_chars] + quote)
+        arg = arg[num_chars:]
+
 def emit_arg(stmt, fd, indent, indentstep):
     """Heuristically pretty print the argument string"""
     # current alg. always print a double quoted string
@@ -162,7 +224,10 @@ def emit_arg(stmt, fd, indent, indentstep):
         fd.write('\n')
         fd.write(indent + indentstep + '"' + lines[0])
         for line in lines[1:-1]:
-            fd.write(indent + indentstep + ' ' + line)
+            if line.strip() == '':
+                fd.write('\n')
+            else:
+                fd.write(indent + indentstep + ' ' + line)
         # write last line
         fd.write(indent + indentstep + ' ' + lines[-1])
         if lines[-1][-1] == '\n':
@@ -176,8 +241,20 @@ def emit_comment(comment, fd, indent):
     for x in lines:
         if x[0] == '*':
             fd.write(indent + ' ' + x)
+        elif x.strip() == '':
+            fd.write('\n')
         else:
             fd.write(indent + x)
+
+def get_newlines_before(prev_stmt, this_stmt):
+    newlines_before = 0
+    if prev_stmt and prev_stmt.pos and this_stmt.pos_begin:
+        prev_stmt_line = prev_stmt.pos.line
+        this_stmt_begin_line = this_stmt.pos_begin.line
+        newlines_before = this_stmt_begin_line - prev_stmt_line
+        if newlines_before > 0:
+            newlines_before -= 1
+    return newlines_before
 
 def get_newlines_after(this_stmt, next_stmt):
     newlines_after = 1
