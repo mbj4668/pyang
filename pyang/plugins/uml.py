@@ -45,6 +45,9 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-output-directory",
                                  dest="outputdir",
                                  help="Put generated <modulename>.png or <title>.png file(s) in OUTPUTDIR (default img/) "),
+            # XXX option name should include format; otherwise can conflict?
+            #     should include the format name in the dest name and use a
+            #     shorter metavar
             optparse.make_option("--uml-title",
                                  dest="title",
                                  help="Set the title of the generated UML, including the output file name"),
