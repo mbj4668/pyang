@@ -113,7 +113,7 @@ class UMLPlugin(plugin.PyangPlugin):
 
     def emit(self, ctx, modules, fd):
         for (epos, etag, eargs) in ctx.errors:
-            if (epos.top.arg in self.mods and
+            if ((epos.top is None or epos.top.arg in self.mods) and
                 error.is_error(error.err_level(etag))):
                 self.fatal("%s contains errors" % epos.top.arg)
 
