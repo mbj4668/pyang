@@ -137,10 +137,14 @@ stmt_map = {
     'import':
         ('identifier',
          [('prefix', '1'),
-          ('revision-date', '?')]),
+          ('revision-date', '?'),
+          ('$1.1', ('description', '?')),
+          ('$1.1', ('reference', '?'))]),
     'include':
         ('identifier',
-         [('revision-date', '?')]),
+         [('revision-date', '?'),
+          ('$1.1', ('description', '?')),
+          ('$1.1', ('reference', '?'))]),
     'revision-date':
         ('date', []),
     'revision':
