@@ -1193,6 +1193,14 @@ $ osascript foo.scpt</screen>
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-print-groupings</option>
+        </term>
+        <listitem>
+          Print the top-level groupings defined in the module.
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
