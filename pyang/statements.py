@@ -1600,8 +1600,10 @@ def v_expand_2_augment(ctx, stmt):
     # if we're augmenting another module, make sure we're not
     # trying to add a mandatory node
     if stmt.i_module.i_modulename != stmt.i_target_node.i_module.i_modulename:
-        for sc in stmt.i_children:
-            chk_mandatory(sc)
+        # 1.1 allows mandatory augment if the augment is conditional
+        if stmt.i_module.i_version == '1' or stmt.search_one('when') is None:
+            for sc in stmt.i_children:
+                chk_mandatory(sc)
 
     # copy the expanded children into the target node
     def add_tmp_children(node, tmp_children):
