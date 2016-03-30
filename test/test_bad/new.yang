@@ -129,4 +129,10 @@ module new {
     }
   }
 
+  typedef foo {
+    type leafref {
+      path "/x1/y1"; // error; unprefixed unclear in 1
+    }
+  }
+
 }

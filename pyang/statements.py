@@ -2408,17 +2408,31 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 
     pathpos = path.pos
 
+    # Unprefixed paths in typedefs in YANG 1 were underspecified.  In
+    # YANG 1.1 the semantics are defined.  The code below is compatible
+    # with old pyang for YANG 1 modules.
+
     # If an un-prefixed identifier is found, it defaults to the
     # module where the path is defined, except if found within
     # a grouping, in which case it default to the module where the
     # grouping is used.
     if (path.parent.parent is not None and
         path.parent.parent.keyword == 'typedef'):
-        local_module = path.i_module
+        if path.i_module.i_version == '1':
+            local_module = path.i_module
+        else:
+            local_module = stmt.i_module
     elif stmt.keyword == 'module':
         local_module = stmt
     else:
-        local_module = stmt.i_module
+        if path.i_module.i_version == '1':
+            local_module = stmt.i_module
+        else:
+            local_module = path.i_module
+    if stmt.keyword == 'typedef':
+        in_typedef = True
+    else:
+        in_typedef = False
 
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
@@ -2428,6 +2442,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             if pmodule is None:
                 raise NotFound
             return (pmodule, name)
+        elif in_typedef and stmt.i_module.i_version != '1':
+            raise Abort
         else: # local identifier
             return (local_module, identifier)
 
@@ -2549,9 +2565,6 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                         (ptr.i_module.arg, ptr.arg, stmt.arg, stmt.pos))
                 raise NotFound
             if ptr.keyword in _keyword_with_children:
-#['list', 'container', 'case', 'grouping',
-#                               'module', 'submodule', 'input', 'output',
-#                               'notification']:
                 ptr = search_data_node(ptr.i_children, module_name, name,
                                        last_skipped)
                 if not is_submodule_included(path, ptr):

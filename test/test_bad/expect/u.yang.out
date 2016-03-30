@@ -8,3 +8,5 @@ u.yang:65: error: IDENTITY_NOT_FOUND
 u.yang:71: error: TYPE_VALUE
 u.yang:77: error: TYPE_VALUE
 u.yang:84: error: DEFAULT_AND_MIN_ELEMENTS
+u.yang:91: error: LEAFREF_IDENTIFIER_NOT_FOUND
+u.yang:107: error: LEAFREF_IDENTIFIER_NOT_FOUND

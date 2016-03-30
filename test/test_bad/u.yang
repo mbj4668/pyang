@@ -86,4 +86,43 @@ module u {
     min-elements 2;
   }
 
+  typedef foo {
+    type leafref {
+      path "/x1/y1";
+    }
+  }
+  typedef foo2 {
+    type leafref {
+      path "/x1/y2";
+    }
+  }
+
+  leaf goo {
+    type foo; //error; /x1 doesn't exist
+  }
+
+  grouping ggg {
+    typedef gggfoo {
+      type leafref {
+        path "/x1/y1";
+      }
+    }
+    leaf ggggoo {
+      type gggfoo;
+    }
+  }
+
+  grouping ggg2 {
+    typedef gggfoo2 {
+      type leafref {
+        path "/x2/y1";
+      }
+    }
+    leaf ggggoo2 {
+      type gggfoo2;
+    }
+  }
+
+  uses ggg; // error; /x1 doesn't exist
+
 }

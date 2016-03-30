@@ -1,5 +1,3 @@
-old1.yang:5: error: BAD_IMPORT_YANG_VERSION
-old1.yang:5: warning: UNUSED_IMPORT
 u.yang:6: error: BAD_INCLUDE_YANG_VERSION
 u.yang:12: error: FEATURE_NOT_FOUND
 u.yang:16: error: BAD_VALUE
@@ -11,4 +9,6 @@ u.yang:71: error: TYPE_VALUE
 u.yang:77: error: TYPE_VALUE
 u.yang:84: error: DEFAULT_AND_MIN_ELEMENTS
 u.yang:91: error: LEAFREF_IDENTIFIER_NOT_FOUND
+u.yang:96: error: LEAFREF_IDENTIFIER_NOT_FOUND
 u.yang:107: error: LEAFREF_IDENTIFIER_NOT_FOUND
+u.yang:118: error: LEAFREF_IDENTIFIER_NOT_FOUND
