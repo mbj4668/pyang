@@ -5,13 +5,13 @@ module req_inst {
 
   typedef lref {
     type leafref {
-      path "/foo";
+      path "/a:foo";
     }
   }
 
   typedef lref2 {
     type leafref {
-      path "/foo";
+      path "/a:foo";
       require-instance false;
     }
   }
