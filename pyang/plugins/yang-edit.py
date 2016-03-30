@@ -242,7 +242,12 @@ def update_or_add_stmt(stmt, keyword, arg, pos=None):
     if argval is None:
         child = None
     elif child:
-        child.arg = argval
+        if child.arg and child.arg != argval and child.arg != "TBD":
+            sys.stderr.write("%s: not replacing existing %s '%s' with "
+                             "'%s'\n" % (child.pos, keyword, child.arg,
+                                         argval))
+        else:
+            child.arg = argval
     else:
         child = statements.Statement(stmt.top, stmt, None, keyword, argval)
         if pos is None: pos = len(stmt.substmts)
