@@ -208,6 +208,7 @@ def parse_if_feature_expr(s):
     sx.wordchars += ":-" # need to handle prefixes and '-' in the name
     operators = [None]
     operands = []
+    precedence = {'not':3, 'and':2, 'or':1, None:0}
 
     def x():
         y()
@@ -250,7 +251,6 @@ def parse_if_feature_expr(s):
             operands.append((op, operands.pop(), operands.pop()))
 
     def op_gt(op1, op2):
-        precedence = {'not':3, 'and':2, 'or':1, None:0}
         return precedence[op1] > precedence[op2]
 
     def is_identifier(tok):
