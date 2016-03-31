@@ -1,6 +1,12 @@
 [![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang)
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
+## YANG 1.1 ##
+
+The development branch yang-1.1 can be used to do YANG 1.1 validation.
+Almost all of 1.1 has been implemented, with the main exception being
+the new submodule scoping rules.
+
 ## News ##
 **2015-10-06 - Version 1.6 released **
 
