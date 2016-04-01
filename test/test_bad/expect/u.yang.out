@@ -10,3 +10,9 @@ u.yang:77: error: TYPE_VALUE
 u.yang:84: error: DEFAULT_AND_MIN_ELEMENTS
 u.yang:91: error: LEAFREF_IDENTIFIER_NOT_FOUND
 u.yang:107: error: LEAFREF_IDENTIFIER_NOT_FOUND
+u.yang:137: error: TYPE_VALUE
+u.yang:143: error: BAD_ENUM_VALUE
+u.yang:155: error: BAD_ENUM_VALUE
+u.yang:169: error: TYPE_VALUE
+u.yang:175: error: BAD_BIT_POSITION
+u.yang:187: error: BAD_BIT_POSITION

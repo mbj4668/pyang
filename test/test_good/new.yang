@@ -149,6 +149,7 @@ module new {
     }
   }
   list l3 {
+    config false;
     key e;
     leaf e {
       type empty; // new 1.1. syntax
@@ -160,6 +161,14 @@ module new {
       path "/x1/y1";
     }
   }
+
+  leaf lr {
+    type leafref {
+      path "/l3/e";
+      require-instance false; // new 1.1 syntax
+    }
+  }
+
 
 }
 

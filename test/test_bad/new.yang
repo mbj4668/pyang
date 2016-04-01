@@ -123,6 +123,7 @@ module new {
     }
   }
   list l3 {
+    config false;
     key e;
     leaf e {
       type empty; // error; 1.1. syntax
@@ -132,6 +133,13 @@ module new {
   typedef foo {
     type leafref {
       path "/x1/y1"; // error; unprefixed unclear in 1
+    }
+  }
+
+  leaf lr {
+    type leafref {
+      path "/l3/e";
+      require-instance false; // error; 1.1 syntax
     }
   }
 

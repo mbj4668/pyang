@@ -510,11 +510,19 @@ def validate_enums(errors, enums, stmt):
     values = {}
     next = 0
     for e in enums:
+        # for derived enumerations, make sure the enum is defined
+        # in the base
+        stmt.i_type_spec.validate(errors, e.pos, e.arg)
         e.i_value = None
         value = e.search_one('value')
         if value is not None:
             try:
                 x = int(value.arg)
+                # for derived enumerations, make sure the value isn't changed
+                oldval = stmt.i_type_spec.get_value(e.arg)
+                if oldval is not None and oldval != x:
+                    err_add(errors, value.pos, 'BAD_ENUM_VALUE',
+                            (value.arg, oldval))
                 e.i_value = x
                 if x < -2147483648 or x > 2147483647:
                     raise ValueError
@@ -546,6 +554,9 @@ def validate_enums(errors, enums, stmt):
 class EnumerationTypeSpec(TypeSpec):
     def __init__(self):
         TypeSpec.__init__(self, 'enumeration')
+
+    def get_value(self, val):
+        return None
 
     def restrictions(self):
         return ['enum']
@@ -584,10 +595,18 @@ def validate_bits(errors, bits, stmt):
     values = {}
     next = 0
     for b in bits:
+        # for derived bits, make sure the bit is defined
+        # in the base
+        stmt.i_type_spec.validate(errors, b.pos, b.arg)
         position = b.search_one('position')
         if position is not None:
             try:
                 x = int(position.arg)
+                # for derived bits, make sure the position isn't changed
+                oldpos = stmt.i_type_spec.get_position(b.arg)
+                if oldpos is not None and oldpos != x:
+                    err_add(errors, position.pos, 'BAD_BIT_POSITION',
+                            (position.arg, oldpos))
                 b.i_position = x
                 if x < 0 or x > 4294967295:
                     raise ValueError
@@ -617,6 +636,9 @@ class BitsTypeSpec(TypeSpec):
     def __init__(self):
         TypeSpec.__init__(self, 'bits')
 
+    def get_position(self, bit):
+        return None
+
     def restrictions(self):
         return ['bit']
 
@@ -636,6 +658,13 @@ class BitTypeSpec(TypeSpec):
                         (v, self.definition, 'bit not defined' + errstr))
                 return False
         return True
+
+    def get_position(self, bit):
+        r  = util.keysearch(bit, 0, self.bits)
+        if r is not None:
+            return r[1]
+        else:
+            return None
 
     def restrictions(self):
         return self.base.restrictions()

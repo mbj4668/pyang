@@ -125,4 +125,69 @@ module u {
 
   uses ggg; // error; /x1 doesn't exist
 
+  typedef e1 {
+    type enumeration {
+      enum a;
+      enum b;
+      enum c;
+    }
+  }
+  typedef e2 {
+    type e1 {
+      enum d; // error; new name
+      enum b;
+    }
+  }
+  typedef e3 {
+    type e1 {
+      enum a { value 3; } // error; bad value
+      enum b;
+    }
+  }
+  typedef e4 {
+    type e1 {
+      enum a;
+      enum c { value 2; } // ok, same value
+    }
+  }
+  typedef e5 {
+    type e4 {
+      enum a { value 1; } // error; bad value
+      enum c { value 2; } // ok, same value
+    }
+  }
+
+  typedef b1 {
+    type bits {
+      bit a;
+      bit b;
+      bit c;
+    }
+  }
+  typedef b2 {
+    type b1 {
+      bit d; // error; new name
+      bit b;
+    }
+  }
+  typedef b3 {
+    type b1 {
+      bit a { position 3; } // error; bad position
+      bit b;
+    }
+  }
+  typedef b4 {
+    type b1 {
+      bit a;
+      bit c { position 2; } // ok, same position
+    }
+  }
+  typedef b5 {
+    type b4 {
+      bit a { position 1; } // error; bad position
+      bit c { position 2; } // ok, same position
+    }
+  }
+
+
 }

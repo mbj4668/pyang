@@ -220,12 +220,18 @@ error_codes = \
     'ENUM_VALUE':
       (1,
        'the enumeration value "%s" is not an 32 bit integer'),
+    'BAD_ENUM_VALUE':
+      (1,
+       'the given value "%s" does not match the base enum value "%d"'),
     'DUPLICATE_BIT_POSITION':
       (1,
        'the position "%d" has already been used for the bit at %s'),
     'BIT_POSITION':
       (1,
        'the position value "%s" is not valid'),
+    'BAD_BIT_POSITION':
+      (1,
+       'the given position "%s" does not match the base bit position "%d"'),
     'NEED_KEY':
       (1,
        'the list needs at least one key'),
