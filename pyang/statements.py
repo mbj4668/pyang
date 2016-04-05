@@ -1778,11 +1778,18 @@ def v_reference_list(ctx, stmt):
                             return
                 default = ptr.search_one('default')
                 if default is not None:
-                    err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
+                        err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
+                for substmt in ['if-feature', 'when']:
+                    s = ptr.search_one(substmt)
+                    if s is not None:
+                        err_add(ctx.errors, s.pos, 'KEY_BAD_SUBSTMT', substmt)
                 mandatory = ptr.search_one('mandatory')
                 if mandatory is not None and mandatory.arg == 'false':
                     err_add(ctx.errors, mandatory.pos,
                             'KEY_HAS_MANDATORY_FALSE', ())
+                when_ = ptr.search_one('when')
+                if when_ is not None:
+                    err_add(ctx.errors, when_.pos, 'KEY_HAS_DEFAULT', ())
 
                 if ptr.i_config != stmt.i_config:
                     err_add(ctx.errors, ptr.search_one('config').pos,
