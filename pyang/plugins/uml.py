@@ -456,7 +456,7 @@ class uml_emitter:
              elif node.keyword == 'leaf-list':
                  fd.write('%s : %s %s %s\n' %(self.full_path(parent), node.arg, '[]: ' + self.typestring(node), self.attribs(node)) )
                  self.emit_must_leaf(parent, node, fd)
-             elif node.keyword == ('tailf-common', 'action'):
+             elif node.keyword in ['action', ('tailf-common', 'action')]:
                  self.emit_action(parent, node, fd)
              elif node.keyword == ('tailf-common', 'callpoint'):
                  fd.write('%s : callpoint:%s()\n' %(self.full_path(parent), node.arg) )
