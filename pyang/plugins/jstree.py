@@ -442,7 +442,7 @@ def print_node(s, module, fd, prefix, ctx, level=0):
                                   status,
                                   pathstr))
     else:
-        if s.keyword == ('tailf-common', 'action'):
+        if s.keyword in ['action', ('tailf-common', 'action')]:
             classstring = "action"
             typeinfo = action_params(s)
             typename = "parameters"
