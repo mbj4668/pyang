@@ -2038,7 +2038,7 @@ def v_unused_grouping(ctx, stmt):
 ### Strcit phase
 
 def v_strict_xpath(ctx, stmt):
-    if not ctx.strict:n _valid_deviations[c.keyword]:
+    if not ctx.strict:
         return
     try:
         toks = xpath.tokens(stmt.arg)
