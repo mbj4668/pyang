@@ -3,9 +3,11 @@
 
 ## YANG 1.1 ##
 
-The development branch yang-1.1 can be used to do YANG 1.1 validation.
+The master branch can now be used to do YANG 1.1 validation.
 Almost all of 1.1 has been implemented, with the main exception being
 the new submodule scoping rules.
+
+The development branch yang-1.1 has been merged to master, and is now removed.
 
 ## News ##
 **2015-10-06 - Version 1.6 released **
