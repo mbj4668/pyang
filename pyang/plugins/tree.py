@@ -82,7 +82,7 @@ Each node is printed as:
    name is printed as <prefix>:<name>.
 
   <opts> is one of:
-    ?  for an optional leaf or choice
+    ?  for an optional leaf, choice or anyxml
     !  for a presence container
     *  for a leaf-list or list
     [<keys>] for a list's keys
@@ -246,7 +246,8 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
     else:
         if s.keyword == 'leaf-list':
             name += '*'
-        elif s.keyword == 'leaf' and not hasattr(s, 'i_is_key'):
+        elif (s.keyword == 'leaf' and not hasattr(s, 'i_is_key')
+            or s.keyword == 'anyxml'):
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
