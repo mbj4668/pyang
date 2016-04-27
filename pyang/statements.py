@@ -133,7 +133,7 @@ extra_xpath_functions = [
     ]
 
 data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
-                            'choice', 'anyxml', 'uses', 'augment']
+                            'choice', 'anyxml', 'anydata', 'uses', 'augment']
 
 _validation_phases = [
     # init phase:
@@ -298,7 +298,7 @@ _validation_variables = [
     ]
 
 _data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
-                  'anyxml', 'action', 'rpc', 'notification']
+                  'anyxml', 'anydata', 'action', 'rpc', 'notification']
 
 _keywords_with_no_explicit_config = ['action', 'rpc', 'notification']
 
@@ -1314,7 +1314,8 @@ def v_expand_1_children(ctx, stmt):
         # already expanded
         return
     elif stmt.keyword == 'choice':
-        shorthands = ['leaf', 'leaf-list', 'container', 'list', 'anyxml']
+        shorthands = ['leaf', 'leaf-list', 'container', 'list',
+                      'anyxml', 'anydata']
         for s in stmt.substmts:
             if s.keyword in shorthands:
                 # create an artifical case node for the shorthand
