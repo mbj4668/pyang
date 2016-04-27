@@ -58,6 +58,7 @@ module xt4 {
     type instance-identifier {
       require-instance true;
     }
+    description "foo";
   }
 
   deviation /a {
