@@ -58,7 +58,7 @@ module id {
   identity des5 {
     base "crypto-alg2"; // error: not defined
     description "Triple DES crypto algorithm";
-    base "crypto-alg2"; // error: syntax
+    base "crypto:crypto-alg"; // error: syntax
   }
 
   typedef crypto-type {

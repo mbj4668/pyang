@@ -166,7 +166,7 @@ def print_attributes(s,fd, ctx):
 
         # Search actions
         for ch in s.i_children:
-            if ch.keyword == ('tailf-common', 'action'):
+            if ch.keyword in ['action', ('tailf-common', 'action')]:
                 if found_actions == False:
                     fd.write("make new shape at end of graphics with properties {autosizing:full, size:{187.5, 28.0}, text:{text:\"")
                     found_actions = True

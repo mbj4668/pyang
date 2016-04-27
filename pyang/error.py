@@ -78,7 +78,8 @@ error_codes = \
        'keyword "%s" not in canonical order, (See RFC 6020, Section 12)'),
     'UNEXPECTED_KEYWORD_CANONICAL_1':
       (1,
-       'keyword "%s" not in canonical order, expected "%s", (See RFC 6020, Section 12)'),
+       'keyword "%s" not in canonical order,'
+       'expected "%s", (See RFC 6020, Section 12)'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),
@@ -109,9 +110,15 @@ error_codes = \
     'BAD_IMPORT':
       (1,
        'cannot import %s "%s", must be a module'),
+    'BAD_IMPORT_YANG_VERSION':
+      (1,
+       'a version %s module cannot import a version %s module by revision'),
     'BAD_INCLUDE':
       (1,
        'cannot include %s "%s", must be a submodule'),
+    'BAD_INCLUDE_YANG_VERSION':
+      (1,
+       'cannot include a version %s submodule in a version %s module'),
     'BAD_MODULE_NAME':
       (2,
        'unexpected modulename "%s" in %s, should be %s'),
@@ -213,12 +220,18 @@ error_codes = \
     'ENUM_VALUE':
       (1,
        'the enumeration value "%s" is not an 32 bit integer'),
+    'BAD_ENUM_VALUE':
+      (1,
+       'the given value "%s" does not match the base enum value "%d"'),
     'DUPLICATE_BIT_POSITION':
       (1,
        'the position "%d" has already been used for the bit at %s'),
     'BIT_POSITION':
       (1,
        'the position value "%s" is not valid'),
+    'BAD_BIT_POSITION':
+      (1,
+       'the given position "%s" does not match the base bit position "%d"'),
     'NEED_KEY':
       (1,
        'the list needs at least one key'),
@@ -342,12 +355,16 @@ error_codes = \
     'BAD_TYPE_IN_KEY':
       (1,
        'the type %s cannot be part of a key, used by leaf %s'),
-    'BAD_TYPE_IN_LEAF_LIST':
+    'KEY_BAD_SUBSTMT':
       (1,
-       'the type %s cannot be used for a leaf-list'),
+       'the statement %s cannot be given for a key'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
+    'DEFAULT_AND_MIN_ELEMENTS':
+      (1,
+       'a \'default\' value cannot be given when \'min-elements\' is'
+       ' greater than 0'),
     'CURRENT_USES_DEPRECATED':
       (2,
        'the %s definiton is current, but the %s it references is deprecated'),

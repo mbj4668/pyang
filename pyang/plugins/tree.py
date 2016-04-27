@@ -32,6 +32,10 @@ class TreePlugin(plugin.PyangPlugin):
             optparse.make_option("--tree-path",
                                  dest="tree_path",
                                  help="Subtree to print"),
+            optparse.make_option("--tree-print-groupings",
+                                 dest="tree_print_groupings",
+                                 action="store_true",
+                                 help="Print groupings"),
             ]
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
@@ -67,7 +71,7 @@ Each node is printed as:
   <flags> is one of:
     rw  for configuration data
     ro  for non-configuration data
-    -x  for rpcs
+    -x  for rpcs and actions
     -n  for notifications
 
   <name> is the name of the node
@@ -162,6 +166,19 @@ def emit_tree(ctx, modules, fd, depth, path):
                 printed_header = True
             fd.write("notifications:\n")
             print_children(notifs, module, fd, ' ', path, 'notification', depth)
+
+        if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
+            if not printed_header:
+                print_header()
+                printed_header = True
+            fd.write("groupings:\n")
+            for gname in module.i_groupings:
+                fd.write('  ' + gname + '\n')
+                g = module.i_groupings[gname]
+                print_children(g.i_children, module, fd, '   ', path,
+                               'grouping', depth)
+                fd.write('\n')
+
 
 def print_children(i_children, module, fd, prefix, path, mode, depth, width=0):
     if depth == 0:
@@ -272,7 +289,7 @@ def get_status_str(s):
 def get_flags_str(s, mode):
     if mode == 'input':
         return "-w"
-    elif (s.keyword == 'rpc' or s.keyword == ('tailf-common', 'action')):
+    elif s.keyword in ('rpc', 'action', ('tailf-common', 'action')):
         return '-x'
     elif s.keyword == 'notification':
         return '-n'

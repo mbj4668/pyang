@@ -54,7 +54,6 @@ module xt4 {
     type instance-identifier;
   }
 
-    
   leaf e {
     type instance-identifier {
       require-instance true;

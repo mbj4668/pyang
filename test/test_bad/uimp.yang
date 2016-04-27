@@ -1,0 +1,27 @@
+module uimp {
+  namespace urn:ump;
+  prefix uimp;
+  yang-version 1.1;
+
+  import u {
+    prefix u;
+  }
+
+  container x1 {
+    leaf y1 {
+      type string;
+    }
+  }
+
+  uses u:ggg;
+
+  uses u:ggg2; // error /x1/y2 not defined
+
+  leaf h {
+    type u:foo;
+  }
+  leaf h2 {
+    type u:foo2; // error; /x2 not defined
+  }
+
+}

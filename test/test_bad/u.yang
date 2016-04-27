@@ -1,0 +1,193 @@
+module u {
+  yang-version 1.1;
+  namespace urn:u;
+  prefix u;
+
+  include usub; // error; bad version in submodule
+  revision 2015-11-06;
+  feature foo;
+  feature bar;
+
+  container a {
+    if-feature "foo and not bar or foox"; // error: foox not defined
+  }
+
+  container b {
+    if-feature "foo and not"; // error: bad syntax
+  }
+
+  container c {
+    if-feature "foo and "; // error: bad syntax
+  }
+
+  action reset; // error: not allowed on top-level
+
+  typedef id {
+    type string {
+      pattern '[a-zA-Z_][a-zA-Z0-9\-_.]*';
+      pattern '[xX][mM][lL].*' {
+        modifier invert-match;
+      }
+    }
+  }
+
+  leaf foo {
+    type id;
+    default "xMlu"; // error: bad pattern
+  }
+
+  leaf bar {
+    type id;
+    default "xmq-foo";
+  }
+
+  typedef rr {
+    type enumeration {
+      enum r {
+        if-feature foo;
+      }
+    }
+  }
+
+  list l2 {
+    key "id";
+    leaf id {
+      if-feature foo; // error: not legal in 1.1
+      when f; // error: not legal in 1.1
+      type int32;
+    }
+  }
+
+  identity id1;
+  identity id2;
+  identity id3 {
+    base id1;
+    base idx; // error; doesn't exist
+  }
+
+  leaf-list ll {
+    type uint32;
+    default 1;
+    default -2; // error; bad value
+  }
+  typedef fff {
+    type uint32;
+    default 42;
+  }
+  leaf-list lla { // error, restriction doesn't match default
+    type fff {
+      range "0..10";
+    }
+  }
+  leaf-list llb {
+    type uint32;
+    default 1; // error; default and min-elements
+    default 2;
+    min-elements 2;
+  }
+
+  typedef foo {
+    type leafref {
+      path "/x1/y1";
+    }
+  }
+  typedef foo2 {
+    type leafref {
+      path "/x1/y2";
+    }
+  }
+
+  leaf goo {
+    type foo; //error; /x1 doesn't exist
+  }
+
+  grouping ggg {
+    typedef gggfoo {
+      type leafref {
+        path "/x1/y1";
+      }
+    }
+    leaf ggggoo {
+      type gggfoo;
+    }
+  }
+
+  grouping ggg2 {
+    typedef gggfoo2 {
+      type leafref {
+        path "/x2/y1";
+      }
+    }
+    leaf ggggoo2 {
+      type gggfoo2;
+    }
+  }
+
+  uses ggg; // error; /x1 doesn't exist
+
+  typedef e1 {
+    type enumeration {
+      enum a;
+      enum b;
+      enum c;
+    }
+  }
+  typedef e2 {
+    type e1 {
+      enum d; // error; new name
+      enum b;
+    }
+  }
+  typedef e3 {
+    type e1 {
+      enum a { value 3; } // error; bad value
+      enum b;
+    }
+  }
+  typedef e4 {
+    type e1 {
+      enum a;
+      enum c { value 2; } // ok, same value
+    }
+  }
+  typedef e5 {
+    type e4 {
+      enum a { value 1; } // error; bad value
+      enum c { value 2; } // ok, same value
+    }
+  }
+
+  typedef b1 {
+    type bits {
+      bit a;
+      bit b;
+      bit c;
+    }
+  }
+  typedef b2 {
+    type b1 {
+      bit d; // error; new name
+      bit b;
+    }
+  }
+  typedef b3 {
+    type b1 {
+      bit a { position 3; } // error; bad position
+      bit b;
+    }
+  }
+  typedef b4 {
+    type b1 {
+      bit a;
+      bit c { position 2; } // ok, same position
+    }
+  }
+  typedef b5 {
+    type b4 {
+      bit a { position 1; } // error; bad position
+      bit c { position 2; } // ok, same position
+    }
+  }
+
+
+}

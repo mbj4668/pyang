@@ -640,9 +640,10 @@ def chk_leafref(old, new, oldts, newts, ctx):
 
 def chk_identityref(old, new, oldts, newts, ctx):
     # verify that the base is the same
-    if (newts.base.i_module.i_modulename != oldts.base.i_module.i_modulename or
-        newts.base.arg != oldts.base.arg):
-        err_def_changed(oldts.base, newts.base, ctx)
+    if (newts.idbase.i_module.i_modulename !=
+        oldts.idbase.i_module.i_modulename or
+        newts.idbase.arg != oldts.idbase.arg):
+        err_def_changed(oldts.idbase, newts.idbase, ctx)
 
 def chk_instance_identifier(old, new, oldts, newts, ctx):
     # FIXME:

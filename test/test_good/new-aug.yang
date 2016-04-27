@@ -1,0 +1,18 @@
+module new-aug {
+  yang-version 1.1;
+  namespace urn:new-aug;
+  prefix na;
+
+  import new {
+    prefix n;
+  }
+
+
+  augment /n:yy {
+    when "foo";
+    leaf bar {
+      type string;
+      mandatory true;
+    }
+  }
+}
