@@ -488,41 +488,36 @@ The stylesheet uses the following modes:
   <xsl:template match="rng:ref" mode="ref">
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
-    <xsl:choose>
-      <xsl:when
-	  test="key('refdef',@name)[@nma:leafref|nma:instance-identifier
-		|descendant::rng:*[&annots;]]">
-	<!-- A "rng:define" with annotations: instantiate the
-	     corresponding abstract pattern.-->
-	<xsl:element name="sch:pattern">
-	  <xsl:attribute name="id">
-	    <xsl:value-of select="generate-id()"/>
+    <xsl:if
+	test="key('refdef',@name)[@nma:leafref|nma:instance-identifier
+	      |descendant::rng:*[&annots;]]">
+      <!-- A "rng:define" with annotations: instantiate the
+	   corresponding abstract pattern.-->
+      <xsl:element name="sch:pattern">
+	<xsl:attribute name="id">
+	  <xsl:value-of select="generate-id()"/>
+	</xsl:attribute>
+	<xsl:attribute name="is-a">
+	  <xsl:value-of select="@name"/>
+	</xsl:attribute>
+	<xsl:element name="sch:param">
+	  <xsl:attribute name="name">start</xsl:attribute>
+	  <xsl:attribute name="value">
+	    <xsl:value-of select="$prevpath"/>
 	  </xsl:attribute>
-	  <xsl:attribute name="is-a">
-	    <xsl:value-of select="@name"/>
-	  </xsl:attribute>
-	  <xsl:element name="sch:param">
-	    <xsl:attribute name="name">start</xsl:attribute>
-	    <xsl:attribute name="value">
-	      <xsl:value-of select="$prevpath"/>
-	    </xsl:attribute>
-	  </xsl:element>
-	  <xsl:element name="sch:param">
-	    <xsl:attribute name="name">pref</xsl:attribute>
-	    <xsl:attribute name="value">
-	      <xsl:value-of select="$prefix"/>
-	    </xsl:attribute>
-	  </xsl:element>
 	</xsl:element>
-      </xsl:when>
-      <xsl:otherwise>
-	<!-- No annotations, just follow the reference. -->
-	<xsl:apply-templates select="key('refdef',@name)" mode="ref">
-	  <xsl:with-param name="prevpath" select="$prevpath"/>
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:apply-templates>
-      </xsl:otherwise>
-    </xsl:choose>
+	<xsl:element name="sch:param">
+	  <xsl:attribute name="name">pref</xsl:attribute>
+	  <xsl:attribute name="value">
+	    <xsl:value-of select="$prefix"/>
+	  </xsl:attribute>
+	</xsl:element>
+      </xsl:element>
+    </xsl:if>
+    <xsl:apply-templates select="key('refdef',@name)" mode="ref">
+      <xsl:with-param name="prevpath" select="$prevpath"/>
+      <xsl:with-param name="prefix" select="$prefix"/>
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="rng:element" mode="ref">
