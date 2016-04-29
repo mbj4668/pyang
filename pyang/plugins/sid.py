@@ -106,7 +106,7 @@ class SidPlugin(plugin.PyangPlugin):
             sys.stderr.write("ERROR, file '%s' not found\n" % e.filename)
             sys.exit(1)
         except json.decoder.JSONDecodeError as e:
-            sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e.msg))
+            sys.stderr.write("ERROR in '%s', line %d, column %d, %s\n" % (sid_file.input_file_name, e.lineno, e.colno, e.msg))
             sys.exit(1)
 
 def print_help():
@@ -180,6 +180,9 @@ class SidFile:
             self.set_initial_range(self.range)
 
         if self.input_file_name is not None:
+            if self.input_file_name[-4:] != ".sid":
+                raise SidParcingError("File '%s' is not a .sid file" % self.input_file_name)
+
             with open(self.input_file_name) as f:
                 self.content = json.load(f, object_pairs_hook=collections.OrderedDict)
             self.validate_key_and_value()
@@ -298,7 +301,7 @@ class SidFile:
         for item in items:
             for key in item:
                 if key == 'type':
-                    if type(item[key]) != str or not re.match(r'identity$|node$|notification$|rpc$', item[key]):
+                    if type(item[key]) != str or not re.match(r'identity$|node$|notification$|rpc$|action$', item[key]):
                         raise SidFileError("invalid 'type' value '%s'." % item[key])
                     continue
 
@@ -363,7 +366,7 @@ class SidFile:
             item['status'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
 
         for children in module.i_children:
-            if children.keyword == 'leaf' or children.keyword == 'leaf-list' or children.keyword == 'anyxml':
+            if children.keyword == 'leaf' or children.keyword == 'leaf-list' or children.keyword == 'anyxml' or children.keyword == 'anydata':
                 self.merge_item(self.getType(children), self.getPath(children))
 
             if children.keyword == 'container' or children.keyword == 'list':
@@ -384,7 +387,7 @@ class SidFile:
                 self.collect_inner_data_nodes(children.i_children)
 
         for identity in module.i_identities:
-                self.merge_item('identity', "%s:%s" % (module.i_modulename, identity))
+                self.merge_item('identity', "/%s%s" % (self.get_base_identity(module.i_identities[identity]), identity))
 
         for substmt in module.substmts:
             if substmt.keyword == 'augment':
@@ -392,19 +395,40 @@ class SidFile:
 
     def collect_inner_data_nodes(self, children):
         for statement in children:
-            if statement.keyword == 'leaf' or statement.keyword == 'leaf-list' or statement.keyword == 'anyxml':
+            if statement.keyword == 'leaf' or statement.keyword == 'leaf-list' or statement.keyword == 'anyxml' or statement.keyword == 'anydata':
                 self.merge_item(self.getType(statement), self.getPath(statement))
 
             if statement.keyword == 'container' or statement.keyword == 'list':
                 self.merge_item(self.getType(statement), self.getPath(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
+            if statement.keyword == 'action':
+                self.merge_item('action', self.getPath(statement))
+                for children in statement.i_children:
+                    if children.keyword == 'input' or children.keyword == 'output':
+                        self.collect_inner_data_nodes(children.i_children)
+
+            if statement.keyword == 'notification':
+                self.merge_item('notification', self.getPath(statement))
+                self.collect_inner_data_nodes(statement.i_children)
+
             if statement.keyword == 'choice' or statement.keyword == 'case':
                 self.collect_inner_data_nodes(statement.i_children)
+
+    def get_base_identity(self, identity):
+        for substmts in identity.substmts:
+            if substmts.keyword == 'base':
+                if substmts.arg.find(':') == -1:
+                    return "%s/" % substmts.arg
+                else:
+                    return "%s/" % substmts.arg[substmts.arg.find(':')+1: ]
+        return ""
 
     def getType(self, statement):
         if statement.keyword == "rpc":
             return 'rpc'
+        if statement.keyword == "action":
+            return 'action'
         if statement.keyword == "notification":
             return 'notification'
         if statement.parent != None:
