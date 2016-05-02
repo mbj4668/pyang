@@ -1,0 +1,16 @@
+module augment-shorthand-case {
+  namespace "urn:x";
+  prefix x;
+
+  container x {
+    choice y;
+  }
+
+  augment /x/y {
+    container foo {
+      leaf a {
+        type string;
+      }
+    }
+  }
+}
