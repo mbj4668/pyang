@@ -364,6 +364,7 @@ class FileRepository(Repository):
         Repository.__init__(self)
         self.dirs = path.split(os.pathsep)
         self.no_path_recurse = no_path_recurse
+        self.modules = None
 
         if use_env:
             modpath = os.getenv('YANG_MODPATH')
@@ -377,11 +378,28 @@ class FileRepository(Repository):
             inst = os.getenv('YANG_INSTALL')
             if inst is not None:
                 self.dirs.append(os.path.join(inst, 'yang', 'modules'))
-            else:
-                self.dirs.append(os.path.join(sys.prefix,
-                                              'share','yang','modules'))
+                return  # skip search if install location is indicated
 
-        self.modules = None
+            default_install = os.path.join(sys.prefix,
+                                           'share','yang','modules')
+            if os.path.exists(default_install):
+                self.dirs.append(default_install)
+                return  # end search if default location exists
+
+            # for some systems, sys.prefix returns `/usr`
+            # but the real location is `/usr/local`
+            # if the package is installed with pip
+            # this information can be easily retrieved
+            import pkgutil
+            if not pkgutil.find_loader('pip'):
+                return  # abort search if pip is not installed
+
+            import pip
+            location = pip.locations.distutils_scheme('pyang')
+            self.dirs.append(os.path.join(location['data'],
+                                          'share','yang','modules'))
+
+
 
     def _setup(self, ctx):
         # check all dirs for yang and yin files
