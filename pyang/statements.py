@@ -1657,7 +1657,7 @@ def v_expand_2_augment(ctx, stmt):
                 add_tmp_children(ch, tmp.i_children)
             elif node.keyword == 'choice' and tmp.keyword != 'case':
                 # create an artifical case node for the shorthand
-                new_case = create_new_case(ctx, node, tmp)
+                new_case = create_new_case(ctx, node, tmp, expand=False)
                 new_case.parent = node
             else:
                 node.i_children.append(tmp)
@@ -1691,7 +1691,7 @@ def v_expand_2_augment(ctx, stmt):
                 return
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
             # create an artifical case node for the shorthand
-            new_case = create_new_case(ctx, stmt.i_target_node, c)
+            new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
             new_case.parent = stmt.i_target_node
             v_inherit_properties(ctx, stmt.i_target_node, new_case)
         else:
@@ -1707,14 +1707,15 @@ def v_expand_2_augment(ctx, stmt):
             stmt.i_target_node.substmts.append(s)
             s.parent = stmt.i_target_node
 
-def create_new_case(ctx, choice, child):
+def create_new_case(ctx, choice, child, expand=True):
     new_case = Statement(child.top, child.parent, child.pos, 'case', child.arg)
     v_init_stmt(ctx, new_case)
     new_child = child.copy(new_case)
     new_case.i_children = [new_child]
     new_case.i_module = child.i_module
     choice.i_children.append(new_case)
-    v_expand_1_children(ctx, new_child)
+    if expand:
+        v_expand_1_children(ctx, new_child)
     return new_case
 
 ### Unique name check phase
