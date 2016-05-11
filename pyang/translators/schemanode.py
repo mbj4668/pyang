@@ -224,7 +224,8 @@ class SchemaNode(object):
 
     def _chorder(self):
         """Add <interleave> if child order is arbitrary."""
-        if (self.interleave and len(self.children) > 1):
+        if (self.interleave and
+            len([ c for c in self.children if ":" not in c.name ]) > 1):
             return "<interleave>%s</interleave>"
         return "%s"
 
