@@ -12,8 +12,6 @@ module turing-machine {
       "Initial revision.";
   }
 
-  /* Typedefs */
-
   typedef tape-symbol {
     type string {
       length "0..1";
@@ -38,16 +36,14 @@ module turing-machine {
 
   typedef head-dir {
     type enumeration {
-      enum left;
-      enum right;
+      enum "left";
+      enum "right";
     }
     default "right";
     description
       "Possible directions for moving the read/write head, one cell
        to the left or right (default).";
   }
-
-  /* Groupings */
 
   grouping tape-cells {
     description
@@ -74,8 +70,6 @@ module turing-machine {
       }
     }
   }
-
-  /* State data and Configuration */
 
   container turing-machine {
     description
@@ -157,8 +151,6 @@ module turing-machine {
     }
   }
 
-  /* RPCs */
-
   rpc initialize {
     description
       "Initialize the Turing Machine as follows:
@@ -186,8 +178,6 @@ module turing-machine {
     description
       "Start the Turing Machine operation.";
   }
-
-  /* Notifications */
 
   notification halted {
     description
