@@ -2,7 +2,6 @@
 
 import os
 import sys
-import string
 
 plugins = []
 """List of registered PyangPlugin instances"""
@@ -23,7 +22,7 @@ def init(plugindirs=[]):
     # add paths from env
     pluginpath = os.getenv('PYANG_PLUGINPATH')
     if pluginpath is not None:
-        plugindirs.extend(string.split(pluginpath, os.pathsep))
+        plugindirs.extend(pluginpath.split(os.pathsep))
 
     syspath = sys.path
     for plugindir in plugindirs:
