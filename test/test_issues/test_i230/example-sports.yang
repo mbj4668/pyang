@@ -1,0 +1,22 @@
+module example-sports {
+  namespace "http://example.com/example-sports";
+  prefix sports;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  container sports {
+    config true;
+    list person {
+      key "name";
+      leaf name {
+        type string;
+      }
+      leaf birthday {
+        type yang:date-and-time;
+        mandatory true;
+      }
+    }
+  }
+}
