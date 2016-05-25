@@ -51,6 +51,16 @@ class InvalidNodeError(Error):
     def __str__(self):
         return (Error.__str__(self) + " - invalid node")
 
+class MissingKeyError(Error):
+    """Exception raised if a list entry doesn't have all keys."""
+
+    def __init__(self, path, key):
+        Error.__init__(self, path)
+        self.key = key
+
+    def __str__(self):
+        return Error.__str__(self) + " - missing key '{}:{}'".format(*self.key)
+
 class InvalidAnnotationObjectError(Error):
     """Exception raise for an invalid annotation object."""
 
@@ -166,12 +176,16 @@ class Translator (object):
                 for child in job:
                     check_val(isinstance(child, dict), new_path, "list entry")
                     el = ET.SubElement(xml_parent, qn)
+                    ent_path = new_path + "/%d/" % i
                     self.translate_obj(child, mod_name, node_spec[1],
-                                       el, new_path + "/%d/" % i)
+                                       el, ent_path)
                     # Rearrange the subtree so that keys come first and in order
                     for k in keys:
                         knode = el.find(self.et_qname(*k))
-                        el.remove(knode)
+                        try:
+                            el.remove(knode)
+                        except ValueError:
+                            raise MissingKeyError(ent_path, k)
                         el.insert(0,knode)
                     i += 1
             elif node_spec[0] == "leaf":
