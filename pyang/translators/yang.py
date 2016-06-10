@@ -125,14 +125,18 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, next_stmt,
         else:
             emit_arg(stmt, fd, indent, indentstep)
 
-    if len(stmt.substmts) == 0:
+    # XXX see statements.py
+    substmts = [s for s in stmt.substmts
+                if not hasattr(s, "_ignored_by_output_format_")]
+    
+    if len(substmts) == 0:
         fd.write(';' + stmt_term)
     else:
         fd.write(' {\n')
         if ctx.opts.yang_canonical:
-            substmts = grammar.sort_canonical(stmt.keyword, stmt.substmts)
-        else:
-            substmts = stmt.substmts
+            substmts = grammar.sort_canonical(stmt.keyword, substmts)
+        #else:
+        #    substmts = stmt.substmts
         if level == 0:
             kwd_class = 'header'
         for (i, s) in enumerate(substmts):
