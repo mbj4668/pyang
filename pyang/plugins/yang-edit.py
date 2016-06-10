@@ -43,6 +43,12 @@ class YANGEditPlugin(yang.YANGPlugin):
                            metavar="VERSION",
                            help="Set YANG version to the supplied value"),
 
+            # set namespace
+            YANGEditOption("--yang-edit-namespace",
+                           dest="yang_edit_namespace",
+                           metavar="NAMESPACE",
+                           help="Set YANG namespace to the supplied value"),
+
             # set imported/included module/submodule revision dates
             YANGEditOption("--yang-edit-update-import-dates",
                            dest="yang_edit_update_import_dates",
@@ -113,7 +119,8 @@ class YANGEditPlugin(yang.YANGPlugin):
         update_import_dates = ctx.opts.yang_edit_update_import_dates
 
         header = {
-            "yang-version": ctx.opts.yang_edit_yang_version
+            "yang-version": ctx.opts.yang_edit_yang_version,
+            "namespace": ctx.opts.yang_edit_namespace
         }
         
         meta = {
@@ -142,8 +149,6 @@ class YANGEditEmitHooks(yang.YANGEmitHooks):
         self._revision = revision
         self._revision_done = False
 
-    # XXX if adding statements should place them in the canonical location;
-    #     currently are just appending them
     def emit_stmt_hook(self, ctx, stmt, level):
         keyword = stmt.keyword
 
@@ -180,7 +185,7 @@ class YANGEditEmitHooks(yang.YANGEmitHooks):
             update_or_add_stmt(stmt, keyword, self._header[keyword], 0)
 
     def _set_meta_details(self, ctx, stmt):
-        newarg = get_arg_value(self._meta[stmt.keyword], stmt.arg)
+        (newarg, ignore) = get_arg_value(self._meta[stmt.keyword], stmt.arg)
         if newarg is not None:
             stmt.arg = newarg
 
@@ -200,8 +205,9 @@ class YANGEditEmitHooks(yang.YANGEmitHooks):
 
 def get_arg_value(arg, currarg=None):
     if arg is None or arg[0] not in ["%", "@"]:
-        return arg
+        return (arg, True)
     else:
+        replace = False
         try:
             argval = ""
             specs = arg.split("+")
@@ -215,11 +221,19 @@ def get_arg_value(arg, currarg=None):
                         summary = get_arg_summary(currarg)
                         if summary:
                             argval += summary
+                    elif spec.startswith("%SUBST/"):
+                        (ignore, old, new) = spec.split("/")
+                        if currarg is None:
+                            if argval == "":
+                                argval = None
+                        else:
+                            argval = currarg.replace(old, new)
+                        replace = True
                     else:
                         argval += spec
                 elif spec[0] == "@":
                     argval += open(spec[1:], "r").read().rstrip()
-            return argval
+            return (argval, replace)
         except IOError as e:
             raise error.EmitError(str(e))
 
@@ -234,15 +248,17 @@ def get_arg_summary(arg):
         summary += line
     return summary if summary else "TBD"
 
-# XXX need proper insertion in canonical order
+# XXX need proper insertion in canonical order; currently just appending
+#     (apart from hack noted below)
 def update_or_add_stmt(stmt, keyword, arg, pos=None):
     child = stmt.search_one(keyword)
     currarg = child.arg if child else None
-    argval = get_arg_value(arg, currarg)
+    (argval, replace) = get_arg_value(arg, currarg)
     if argval is None:
         child = None
     elif child:
-        if child.arg and child.arg != argval and child.arg != "TBD":
+        if not replace and child.arg and child.arg != argval and \
+           child.arg != "TBD":
             sys.stderr.write("%s: not replacing existing %s '%s' with "
                              "'%s'\n" % (child.pos, keyword, child.arg,
                                          argval))
@@ -251,6 +267,9 @@ def update_or_add_stmt(stmt, keyword, arg, pos=None):
     else:
         child = statements.Statement(stmt.top, stmt, None, keyword, argval)
         if pos is None: pos = len(stmt.substmts)
+        # XXX this hack ensures that "reference" is always last
+        if pos > 0 and stmt.substmts[pos-1].keyword == "reference":
+            pos -= 1
         stmt.substmts.insert(pos, child)
     return child
 
