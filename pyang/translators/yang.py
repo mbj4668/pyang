@@ -194,6 +194,8 @@ def emit_arg_squote(keyword, arg, fd, indent, indentstep, max_line_len):
     # XXX strictly num_chars could be negative, e.g. if max_line_len is VERY
     #     small; should check for this
     num_chars = len(arg) - (line_len - max_line_len)
+    while num_chars > 2 and arg[num_chars-1:num_chars].isalnum():
+        num_chars -= 1
     fd.write(" " + quote + arg[:num_chars] + quote)
     arg = arg[num_chars:]
     while arg != '':
@@ -201,6 +203,8 @@ def emit_arg_squote(keyword, arg, fd, indent, indentstep, max_line_len):
         line_len = len("%s%s %s%s%s%s" % (indent, keyword_cont,
                                           quote, arg, quote, term))
         num_chars = len(arg) - (line_len - max_line_len)
+        while num_chars > 2 and arg[num_chars-1:num_chars].isalnum():
+            num_chars -= 1
         fd.write('\n' + indent + keyword_cont + " " +
                  quote + arg[:num_chars] + quote)
         arg = arg[num_chars:]
