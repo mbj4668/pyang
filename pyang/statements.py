@@ -1699,10 +1699,13 @@ def v_expand_2_augment(ctx, stmt):
             c.parent = stmt.i_target_node
             v_inherit_properties(ctx, stmt.i_target_node, c)
     if_features = stmt.search('if-feature')
+    # XXX these additional child if-feature statements cause problems for
+    #     output formats, so mark them to make it easy to ignore them
     for s in stmt.substmts:
         for f in if_features:
-            s.substmts.append(Statement(f.top, stmt.parent, f.pos, f.keyword,
-                                        f.arg))
+            c = Statement(f.top, stmt.parent, f.pos, f.keyword, f.arg)
+            c._ignored_by_output_format_ = True
+            s.substmts.append(c)
         if s.keyword in _copy_augment_keywords:
             stmt.i_target_node.substmts.append(s)
             s.parent = stmt.i_target_node
