@@ -2,7 +2,6 @@
 import optparse
 import sys
 import re
-import string
 
 from pyang import plugin
 from pyang import statements
@@ -41,7 +40,7 @@ class OmniPlugin(plugin.PyangPlugin):
 
     def emit(self, ctx, modules, fd):
         if ctx.opts.omni_tree_path is not None:
-            path = string.split(ctx.opts.omn_tree_path, '/')
+            path = ctx.opts.omni_tree_path.split('/')
             if path[0] == '':
                 path = path[1:]
         else:
