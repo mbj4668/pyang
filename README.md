@@ -1,15 +1,11 @@
 [![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang)
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
-## YANG 1.1 ##
-
-The master branch can now be used to do YANG 1.1 validation.
-Almost all of 1.1 has been implemented, with the main exception being
-the new submodule scoping rules.
-
-The development branch yang-1.1 has been merged to master, and is now removed.
-
 ## News ##
+**2016-06-16 - Version 1.7 released **
+  * Support for YANG 1.1, with the exception of the new submodule scoping rules. 
+
+
 **2015-10-06 - Version 1.6 released **
 
   * pyang can now be installed via [PyPi](https://pypi.python.org/pypi).

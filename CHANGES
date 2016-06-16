@@ -1,3 +1,22 @@
+   1.7 - 2016-06-16
+         added support for YANG 1.1
+         added command line flag --ignore-error, thanks to Nick Weeds
+         added option --tree-print-groupings to the 'tree' plugin
+         removed the 'hypertree' and 'xmi' plugins
+
+         #180,#191,#221 - YIN and YANG modules now support utf-8 encoded
+           characters
+         #190 - the options --lint and --ietf now checks for mandatory
+           top-level nodes
+         #200 - unique statements w/o prefixes now work in yang2dsdl
+         #201 - the options --lint and --ietf now verifies that a
+           module's revision is newer or the same as the most recent
+           submodule's revision
+         #206 - detect bad augment from submodule
+         #208 - yang2dsdl now correctly handle must statements in nested
+           groupings
+         #234 - handling of XPath operator bug fix
+
    1.6 - 2015-10-06
          removed the deprecated, incomplete and erroneous XSD plugin - use
            the DSDL plugin instead.
@@ -42,8 +61,6 @@
 
          implement try/except block for plugin directory listing,
            thanks to Ebben Aries
-
-         added command line flag --ignore-error
 
    1.5 - 2014-11-18
          added new plugin: 'capability' to print the capability string for
