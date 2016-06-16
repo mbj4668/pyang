@@ -76,15 +76,12 @@ def tokens(s):
                     # XPath 1.0 spec, 3.7 special rule 1a
                     # interpret '*' as a wildcard
                     tok = ('wildcard', m.group(0))
-                elif (tokname == 'name' and prec is not None and
-                      not _is_special(prec)):
+                elif (tokname == 'name' and
+                      prec is not None and not _is_special(prec) and
+                      m.group(0) in operators):
                     # XPath 1.0 spec, 3.7 special rule 1b
                     # interpret the name as an operator
-                    if m.group(0) in operators:
-                        tok = (m.group(0), m.group(0))
-                    else:
-                        e = "%s: unknown operator %s" % (pos+1, m.group(0))
-                        raise SyntaxError(e)
+                    tok = (m.group(0), m.group(0))
                 elif tokname == 'name':
                     # check if next token is '('
                     if re_open_para.match(s, pos + len(m.group(0))):
