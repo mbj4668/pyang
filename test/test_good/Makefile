@@ -9,6 +9,9 @@ test: clean utf8-test
 		echo " generating yin...";				\
 		$(PYANG) -f yin -o $$m.yin $$m || exit 1;		\
 		echo -n " ";						\
+		echo " generating yang from the generated yin...";	\
+		$(PYANG) -f yang -o $$m.gen.yang $$m.yin || exit 1;	\
+		echo -n " ";						\
 		echo -n " generating yang...";				\
 		$(PYANG) -f yang -o $$m.gen.yang $$m || exit 1;		\
 		echo " generating yin from the generated yang...";	\

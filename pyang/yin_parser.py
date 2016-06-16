@@ -85,7 +85,7 @@ class YinParser(object):
         self.element_stack = []
 
         try:
-            self.parser.Parse(text, True)
+            self.parser.Parse(text.encode('utf-8'), True)
         except error.Abort:
             return None
         except expat.ExpatError as ex:

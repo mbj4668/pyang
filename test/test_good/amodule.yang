@@ -1,0 +1,16 @@
+module amodule {
+  namespace "urn:test:amodule";
+  prefix "amodule";
+
+  organization "organização güi";
+  contact "àéïç¢ô";
+
+  grouping x {
+    leaf y { type string; }
+  }
+
+  rpc run {
+    input { uses x; }
+    output { uses x; }
+  }
+}
