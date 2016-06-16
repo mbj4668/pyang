@@ -19,3 +19,4 @@ u.yang:155: error: BAD_ENUM_VALUE
 u.yang:169: error: TYPE_VALUE
 u.yang:175: error: BAD_BIT_POSITION
 u.yang:187: error: BAD_BIT_POSITION
+u.yang:203: error: TYPE_VALUE

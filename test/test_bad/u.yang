@@ -189,5 +189,19 @@ module u {
     }
   }
 
+  typedef bfoo {
+    type bits {
+      bit un;
+      bit dos;
+      bit tres;
+    }
+  }
+
+  leaf bbar {
+    type bfoo {
+      bit un;
+      bit dosx; // error; not defined in base
+    }
+  }
 
 }

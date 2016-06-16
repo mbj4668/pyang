@@ -652,11 +652,10 @@ class BitTypeSpec(TypeSpec):
         return str.split()
 
     def validate(self, errors, pos, val, errstr = ''):
-        for v in val:
-            if util.keysearch(v, 0, self.bits) == None:
-                err_add(errors, pos, 'TYPE_VALUE',
-                        (v, self.definition, 'bit not defined' + errstr))
-                return False
+        if util.keysearch(val, 0, self.bits) == None:
+            err_add(errors, pos, 'TYPE_VALUE',
+                    (val, self.definition, 'bit not defined' + errstr))
+            return False
         return True
 
     def get_position(self, bit):
