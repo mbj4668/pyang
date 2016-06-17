@@ -128,6 +128,7 @@ module yt3 {
         bit b { position 2; }
         bit c { position 7; }
       }
+      default "a";
     }
 
     typedef t17 {

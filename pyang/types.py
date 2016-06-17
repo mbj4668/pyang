@@ -597,7 +597,7 @@ def validate_bits(errors, bits, stmt):
     for b in bits:
         # for derived bits, make sure the bit is defined
         # in the base
-        stmt.i_type_spec.validate(errors, b.pos, b.arg)
+        stmt.i_type_spec.validate(errors, b.pos, [b.arg])
         position = b.search_one('position')
         if position is not None:
             try:
@@ -652,10 +652,11 @@ class BitTypeSpec(TypeSpec):
         return str.split()
 
     def validate(self, errors, pos, val, errstr = ''):
-        if util.keysearch(val, 0, self.bits) == None:
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (val, self.definition, 'bit not defined' + errstr))
-            return False
+        for v in val:
+            if util.keysearch(v, 0, self.bits) == None:
+                err_add(errors, pos, 'TYPE_VALUE',
+                        (v, self.definition, 'bit not defined' + errstr))
+                return False
         return True
 
     def get_position(self, bit):
