@@ -2,6 +2,7 @@
 import optparse
 import sys
 import re
+import string
 
 from pyang import plugin
 from pyang import statements
@@ -10,12 +11,15 @@ paths_in_module = []
 leafrefs = []
 key = ''
 class_keywords = ["container", "list", "case", "choice", "augment"]
+servicepoints = ["servicepoint", "productpoint"]
 classnamecolor = " {0.113725, 0.352941, 0.670588}"
 mandatoryconfig = " {0.600000, 0.152941, 0.152941}"
 optionalconfig = " {0.129412, 0.501961, 0.254902}"
 notconfig = " {0.549020, 0.486275, 0.133333}"
 #which line for containment, omnigraffles makes some bezier, override this
-connectline = " tail type: \"FilledDiamond\", head type: \"None\", line type: \"Straight\" "
+containsline = " tail type: \"FilledDiamond\", head type: \"None\", line type: \"Straight\" "
+leafrefline = " line type: \"Straight\", head type: \"FilledArrow\" "
+
 
 
 def pyang_plugin_init():
@@ -40,7 +44,7 @@ class OmniPlugin(plugin.PyangPlugin):
 
     def emit(self, ctx, modules, fd):
         if ctx.opts.omni_tree_path is not None:
-            path = ctx.opts.omni_tree_path.split('/')
+            path = string.split(ctx.opts.omn_tree_path, '/')
             if path[0] == '':
                 path = path[1:]
         else:
@@ -64,21 +68,32 @@ tell application id "com.omnigroup.OmniGraffle6"
 	make new document with properties {name:\"%s\"}
     set bounds of window 1 to {50, 50, 1200, 800}
 	tell first canvas of document \"%s\"
-		set canvasSize to {600, 600}
+        set canvasSize to {600, 600}
 		set name to \"YANG Model\"
 		set adjusts pages to true
-		make new shape at end of graphics with properties {autosizing: vertically only, size: {139.500000, 14.000000}, text: {alignment: center, font: "Helvetica-Bold", text: "Legend"}, text placement: top, origin: {5800.000000, 32.000000}, vertical padding: 0}
+
+		make new shape at end of graphics with properties {fill: no fill, draws stroke: false, draws shadow: false, autosizing: full, size: {32.000000, 20.000000}, text: {size: 8, alignment: center, font: "HelveticaNeue", text: "leafref"}, origin: {2403.202333, 169.219094}}
+		make new line at end of graphics with properties {point list: {{2513.245592418806, 185.5962102698529}, {2373.745592418806, 185.3149602698529}}, draws shadow: false, head type: "FilledArrow"}
+		make new shape at end of graphics with properties {fill: no fill, draws stroke: false, draws shadow: false, autosizing: full, size: {105.000000, 20.000000}, text: {size: 8, alignment: center, font: "HelveticaNeue", text: "Schema tree, containment"}, origin: {2397.741930, 138.863190}}
+		make new line at end of graphics with properties {point list: {{2374.993645107464, 154.4881903780727}, {2514.493645107464, 154.4881903780727}}, draws shadow: false, tail type: "FilledDiamond"}
+		make new shape at end of graphics with properties {autosizing: vertically only, size: {139.500000, 14.000000}, text: {alignment: center, font: "Helvetica-Bold", text: "Legend"}, text placement: top, origin: {2366.929155, 43.937008}, vertical padding: 0}
 		make new shape at end of graphics with properties {autosizing: vertically only, size: {139.500000, 56.000000}, text: {{color: {0.600000, 0.152941, 0.152941}, text: "Mandatory config
 "}, {color: {0.129412, 0.501961, 0.254902}, text: "Optional config
 "}, {color: {0.129412, 0.501961, 0.254902}, text: "Key leaf", underlined: true}, {color: {0.129412, 0.501961, 0.254902}, text: "
-"}, {color: {0.549020, 0.486275, 0.133333}, text: "Not config"}}, text placement: top, origin: {5800.000000, 46.000000}, vertical padding: 0}
+"}, {color: {0.549020, 0.486275, 0.133333}, text: "Not config"}}, text placement: top, origin: {2366.929155, 57.937008}, vertical padding: 0}
 		assemble graphics -2 through -1 table shape { 2, 1 }
-""" %(name, name))
+		assemble graphics -5 through -1
+
+    """ %(name, name))
+
+
+
 
 def post_process(fd, ctx):
     for s in leafrefs:
         # dont try to connect to class not given as input to pyang
-        if (s.strip().split(" to ")[1] in paths_in_module):
+
+        if (s.strip().split(" to ")[1].split(" with ")[0]in paths_in_module):
             fd.write(s)
 
 
@@ -117,7 +132,13 @@ def iterate_children(parent, s, module, fd, path, ctx):
            print_node(s, ch, module, fd, path, ctx)
 
 def print_class_header(s, fd, ctx, root='false'):
-    fd.write("make new shape at end of graphics with properties {autosizing: full, size: {187.500000, 14.000000}, text: {{alignment: center, font: \"Helvetica-Bold\", text: \"%s \"}, {alignment: center, color:%s, font: \"Helvetica-Bold\", text: \"%s \"}}, text placement: top, origin: {150.000000, 11.500000}, vertical padding: 0}\n" %(s.keyword, classnamecolor, s.arg))
+    global servicepoints
+    service = ""
+    for sub in s.substmts:
+         if sub.keyword[1] in servicepoints:
+             service = "SERVICE\n"
+
+    fd.write("make new shape at end of graphics with properties {autosizing: full, size: {187.500000, 14.000000}, text: {{alignment: center, font: \"Helvetica-Bold\", text: \"%s \"}, {alignment: center, color:%s, font: \"Helvetica-Bold\", text: \"%s \"}}, text placement: top, origin: {150.000000, 11.500000}, vertical padding: 0}\n" %(service + s.keyword, classnamecolor, s.arg))
 
 
 
@@ -165,7 +186,7 @@ def print_attributes(s,fd, ctx):
 
         # Search actions
         for ch in s.i_children:
-            if ch.keyword in ['action', ('tailf-common', 'action')]:
+            if ch.keyword == ('tailf-common', 'action'):
                 if found_actions == False:
                     fd.write("make new shape at end of graphics with properties {autosizing:full, size:{187.5, 28.0}, text:{text:\"")
                     found_actions = True
@@ -211,7 +232,7 @@ def print_associations(s, fd, ctx):
 
 
 def print_aggregation(parent, this, fd, lower, upper, ctx):
-     fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), connectline))
+     fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), containsline))
 
 def print_rpc(rpc, fd, ctx, root='false'):
     fd.write("<UML:Class xmi.id = \'%s\' name = \'%s\' " %(fullpath(rpc), rpc.arg))
@@ -246,23 +267,10 @@ def print_leaf(leaf, str, index, fd, ctx):
     else:
         fd.write("{font: \"Helvetica-Oblique\", color: %s, underlined: true, text: \"%s%s%s %s %s\n\"}" %(color, leaf.arg, str, mand, c, get_typename(leaf)))
 
-def print_action_operation(action, fd, ctx):
-    fd.write("<UML:Classifier.feature>")
-
-    fd.write("<UML:Operation xmi.id = \'%s-operation\'\n" %fullpath(action))
-    fd.write("name = \'%s\' visibility = \'public\' isSpecification = \'false\' ownerScope = \'instance\'\n" %action.arg)
-    fd.write(" isQuery = \'false\' concurrency = \'sequential\' isRoot = \'false\' isLeaf = \'false\' isAbstract = \'false\'>\n")
-
-    # fd.write("<UML:BehavioralFeature.parameter>\n")
-    # fd.write("<UML:Parameter xmi.id = \'%s-return\' name = 'return' isSpecification = 'false' kind = 'return'/>" %fullpath(action))
-    # fd.write("</UML:BehavioralFeature.parameter>")
-    fd.write("</UML:Operation>")
-    fd.write("</UML:Classifier.feature>")
 
 def print_association(fromclass, toclass, fromleaf, toleaf, association, fd, ctx):
 
-    leafrefs.append("connect " + (fullpath(fromclass)) + " to " + fullpath(toclass) + "\n")
-
+    leafrefs.append("connect " + (fullpath(fromclass)) + " to " + fullpath(toclass) + " with properties {" + leafrefline + "}\n", )
 
 def print_text(t, fd, ctx):
     fd.write("make new shape at end of graphics with properties {fill: no fill, draws stroke: false, draws shadow: false, autosizing: full, size: {57.000000, 30.000000}, text: {size: 16, alignment: center, font: \"HelveticaNeue\", text: \"%s\"}, origin: {100, 4.500000}}\n" %t)
