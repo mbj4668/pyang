@@ -43,7 +43,11 @@ class JSTreePlugin(plugin.PyangPlugin):
 def emit_css(fd, ctx):
     fd.write("""
 <style type="text/css" media="all">
-
+.ext1{color: blue;}
+.maindiv{background: #eee; border: dashed 1px #000;}
+table{width: 100%}
+th {text-align: left;}
+.ext2 {white-space: nowrap;}
 body, h1, h2, h3, h4, h5, h6, p, td, table td, input, select {
         font-family: Verdana, Helvetica, Arial, sans-serif;
         font-size: 10pt;
@@ -109,7 +113,7 @@ ol#root  {padding-left: 5px; margin-top: 2px; margin-bottom: 1px;
 
 def emit_js(fd, ctx):
     fd.write("""
-<script language="javascript1.2">
+<script type="text/javascript">
 function toggleRows(elm) {
  var rows = document.getElementsByTagName("TR");
  elm.style.backgroundImage = """ + '"' + get_leaf_img() + '"' + """;
@@ -157,13 +161,18 @@ function matchStart(target, pattern, matchDirectChildrenOnly) {
 }
 
 function collapseAllRows() {
- var rows = document.getElementsByTagName("TR");
- for (var i = 0; i < rows.length; i++) {
+var rows = document.getElementsByTagName("TR");
+for (var i = 0; i < rows.length; i++) {
    var r = rows[i];
    if (r.id.indexOf("-") >= 0) {
      r.style.display = "none";
    }
- }
+}
+  var as = document.getElementsByClassName("folder");
+  for (var i = 0; i < as.length; i ++) {
+    var r = as[i];
+      r.style.backgroundImage = """+'"'+get_folder_closed_img()+'"'+""";
+  }
 }
 
 function expandAllRows() {
@@ -174,19 +183,27 @@ function expandAllRows() {
       r.style.display = "table-row";
     }
   }
+  var as = document.getElementsByClassName("folder");
+  for (var i = 0; i < as.length; i ++) {
+    var r = as[i];
+      r.style.backgroundImage = """ + '"' + get_folder_open_img() + '"' + """;
+  }
 }
 </script>
+</head>
 """)
 
 def emit_header(modules, fd, ctx):
+    fd.write("<!DOCTYPE html> \n<html>")
     title = "";
     for m in modules:
         title = title + " " + m.arg
-    fd.write("<head><title>%s \n</title>" %title)
+    fd.write("<head><meta charset=\"UTF-8\"><title>%s \n</title>" %title)
 
 def emit_footer(fd, ctx):
     fd.write("""
 </table>
+</div>
 </div>
 </body>
 </html>
@@ -202,7 +219,7 @@ def emit_bodystart(modules, fd, ctx):
    <img src="""+get_tailf_logo()+""" />
 </a>
 <div class="app">
-<div style="background: #eee; border: dashed 1px #000;">
+<div class="maindiv">
 """)
     for module in modules:
         bstr = ""
@@ -221,35 +238,35 @@ def emit_bodystart(modules, fd, ctx):
             prstr = pr.arg
 
         if module.keyword == 'module':
-           fd.write("""<h1> %s: <font color=blue>%s%s</font>, Namespace:
-                    <font color=blue>%s</font>, Prefix:
-                    <font color=blue>%s</font></h1> \n"""
+           fd.write("""<h1> %s: <span class="ext1">%s%s</span>, Namespace:
+                    <span class="ext1">%s</span>, Prefix:
+                    <span class="ext1">%s</span></h1> \n"""
                     % (module.keyword.capitalize(),
                        module.arg,
                        bstr,
                        nsstr,
                        prstr))
         else:
-           fd.write("<h1> %s: <font color=blue>%s%s</font></h1> \n"
+           fd.write("<h1> %s: <span class=\"ext1\">%s%s</span></h1> \n"
                     % (module.keyword.capitalize(), module.arg, bstr))
 
     fd.write("""
- <table width="100%">
+ <table>
 
  <tr>
   <!-- specifing one or more widths keeps columns
        constant despite changes in visible content -->
-  <th align=left>
+  <th>
      Element
      <a href='#' onclick='expandAllRows();'>[+]Expand all</a>
      <a href='#' onclick='collapseAllRows();'>[-]Collapse all</a>
   </th>
-  <th align=left>Schema</th>
-  <th align=left>Type</th>
-  <th align=left>Flags</th>
-  <th align=left>Opts</th>
-  <th align=left>Status</th>
-  <th align=left>Path</th>
+  <th>Schema</th>
+  <th>Type</th>
+  <th>Flags</th>
+  <th>Opts</th>
+  <th>Status</th>
+  <th>Path</th>
 </tr>
 """)
 
@@ -277,16 +294,16 @@ def emit_tree(modules, fd, ctx):
 
         levelcnt[1] += 1
         fd.write("""<tr id="%s" class="a">
-                     <td id="p1">
-                        <div id="p2" class="tier1">
-                           <a href="#" id="p3"
+                     <td>
+                        <div class="tier1">
+                           <a href="#"
                               onclick="toggleRows(this);return false;"
                               class="folder">&nbsp;
                            </a>
-                           <font color=blue>%s</font>
+                           <span class="ext1">%s</span>
                         </div>
                      </td> \n""" %(levelcnt[1], temp_mod_arg))
-        fd.write("""<td>%s</td><td></td><td></td><td></td><td>
+        fd.write("""<td>%s</td><td></td><td></td><td></td><td></td><td>
                     </td></tr>\n""" %module.keyword)
         #fd.write("<td>module</td><td></td><td></td><td></td><td></td></tr>\n")
 
@@ -298,31 +315,31 @@ def emit_tree(modules, fd, ctx):
         levelcnt[1] += 1
         if len(rpcs) > 0:
             fd.write("""<tr id="%s" class="a">
-                         <td nowrap id="p1000">
-                            <div id="p2000" class="tier1">
-                               <a href="#" id="p3000"
+                         <td class="ext2">
+                            <div class="tier1">
+                               <a href="#"
                                   onclick="toggleRows(this);
                                   return false;" class="folder">&nbsp;
                                </a>
                                %s:rpcs
                             </div>
                          </td> \n""" %(levelcnt[1],prstr))
-            fd.write("<td></td><td></td><td></td><td></td><td></td></tr>\n")
+            fd.write("<td></td><td></td><td></td><td></td><td></td><td></td></tr>\n")
             print_children(rpcs, module, fd, ' ', ctx, 2)
 
         notifs = module.search('notification')
         levelcnt[1] += 1
         if len(notifs) > 0:
             fd.write("""<tr id="%s" class="a">
-                        <td nowrapid="p4000">
-                           <div id="p5000" class="tier1">
-                              <a href="#" id="p6000"
+                        <td class="ext2">
+                           <div class="tier1">
+                              <a href="#" 
                                  onclick="toggleRows(this);return false;"
                                  class="folder">&nbsp;
                               </a>%s:notifs
                            </div>
                         </td> \n""" %(levelcnt[1],prstr))
-            fd.write("<td></td><td></td><td></td><td></td><td></td></tr>\n")
+            fd.write("<td></td><td></td><td></td><td></td><td></td><td></td></tr>\n")
             print_children(notifs, module, fd, ' ', ctx, 2)
 
 def print_children(i_children, module, fd, prefix, ctx, level=0):
@@ -420,21 +437,21 @@ def print_node(s, module, fd, prefix, ctx, level=0):
            from pyang.plugins.html import force_link
            name = force_link(ctx,s,module,name)
         fd.write("""<tr id="%s" class="a">
-                       <td nowrap id="p4000">
-                          <div id="p5000" class="tier%s">
-                             <a href="#" id="p6000"
+                       <td class="ext2">
+                          <div class="tier%s">
+                             <a href="#"
                                 onclick="toggleRows(this);return false"
                                 class="folder">&nbsp;
                              </a>
                              <abbr title="%s">%s</abbr>
                           </div>
-                       </td> \n""" %(idstring, level, descrstring, name))
-        fd.write("""<td nowrap>%s</td>
-                    <td nowrap>%s</td>
-                    <td nowrap>%s</td>
+                       </td> \n""" %(idstring, level, descrstring.replace('"', '&quot;'), name))
+        fd.write("""<td class="ext2">%s</td>
+                    <td class="ext2">%s</td>
+                    <td class="ext2">%s</td>
                     <td>%s</td>
                     <td>%s</td>
-                    <td nowrap>%s</td>
+                    <td class="ext2">%s</td>
                     </tr> \n""" %(s.keyword,
                                   nodetype,
                                   flags,
@@ -456,26 +473,26 @@ def print_node(s, module, fd, prefix, ctx, level=0):
             typeinfo = typestring(s)
             typename = nodetype
         fd.write("""<tr id="%s" class="a">
-                       <td nowrap>
-                          <div id=9999 class=tier%s>
+                       <td class="ext2">
+                          <div class="tier%s">
                              <a class="%s">&nbsp;</a>
                              <abbr title="%s"> %s %s %s</abbr>
                           </div>
                        </td>
                        <td>%s</td>
-                       <td nowrap><abbr title="%s">%s</abbr></td>
-                       <td nowrap>%s</td>
+                       <td class="ext2"><abbr title="%s">%s</abbr></td>
+                       <td class="ext2">%s</td>
                        <td>%s</td>
                        <td>%s</td>
-                       <td nowrap>%s</td</tr> \n""" %(idstring,
+                       <td class="ext2">%s</td></tr> \n""" %(idstring,
                                                       level,
                                                       classstring,
-                                                      descrstring,
+                                                      descrstring.replace('"', '&quot;'),
                                                       fontstarttag,
                                                       name,
                                                       fontendtag,
                                                       keyword,
-                                                      typeinfo,
+                                                      typeinfo.replace('"', '&quot;'),
                                                       typename,
                                                       flags,
                                                       options,
@@ -644,7 +661,6 @@ def get_action_css():
 background:url(data:image/gif;base64,R0lGODlhEAAQALMAAAAAABERETMzM1VVVWZmZnd3d4iIiJmZmaqqqru7u8zMzO7u7v///wAAAAAAAAAAACH5BAkKAA0AIf8LSUNDUkdCRzEwMTL/AAAHqGFwcGwCIAAAbW50clJHQiBYWVogB9kAAgAZAAsAGgALYWNzcEFQUEwAAAAAYXBwbAAAAAAAAAAAAAAAAAAAAAAAAPbWAAEAAAAA0y1hcHBsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALZGVzYwAAAQgAAABvZHNjbQAAAXgAAAVsY3BydAAABuQAAAA4d3RwdAAABxwAAAAUclhZWgAABzAAAAAUZ1hZWgAAB0QAAAAUYlhZWgAAB1gAAAAUclRSQwAAB2wAAAAOY2hhZAAAB3wAAAAsYlRSQwAAB2wAAAAOZ1RS/0MAAAdsAAAADmRlc2MAAAAAAAAAFEdlbmVyaWMgUkdCIFByb2ZpbGUAAAAAAAAAAAAAABRHZW5lcmljIFJHQiBQcm9maWxlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABtbHVjAAAAAAAAAB4AAAAMc2tTSwAAACgAAAF4aHJIUgAAACgAAAGgY2FFUwAAACQAAAHIcHRCUgAAACYAAAHsdWtVQQAAACoAAAISZnJGVQAAACgAAAI8emhUVwAAABYAAAJkaXRJVAAAACgAAAJ6bmJOTwAAACYAAAKia29LUgAAABYAAP8CyGNzQ1oAAAAiAAAC3mhlSUwAAAAeAAADAGRlREUAAAAsAAADHmh1SFUAAAAoAAADSnN2U0UAAAAmAAAConpoQ04AAAAWAAADcmphSlAAAAAaAAADiHJvUk8AAAAkAAADomVsR1IAAAAiAAADxnB0UE8AAAAmAAAD6G5sTkwAAAAoAAAEDmVzRVMAAAAmAAAD6HRoVEgAAAAkAAAENnRyVFIAAAAiAAAEWmZpRkkAAAAoAAAEfHBsUEwAAAAsAAAEpHJ1UlUAAAAiAAAE0GFyRUcAAAAmAAAE8mVuVVMAAAAmAAAFGGRhREsAAAAuAAAFPgBWAWEAZQBvAGIAZQD/YwBuAP0AIABSAEcAQgAgAHAAcgBvAGYAaQBsAEcAZQBuAGUAcgBpAQ0AawBpACAAUgBHAEIAIABwAHIAbwBmAGkAbABQAGUAcgBmAGkAbAAgAFIARwBCACAAZwBlAG4A6AByAGkAYwBQAGUAcgBmAGkAbAAgAFIARwBCACAARwBlAG4A6QByAGkAYwBvBBcEMAQzBDAEOwRMBD0EOAQ5ACAEPwRABD4ERAQwBDkEOwAgAFIARwBCAFAAcgBvAGYAaQBsACAAZwDpAG4A6QByAGkAcQB1AGUAIABSAFYAQpAadSgAIABSAEcAQgAggnJfaWPPj/AAUAByAG8AZgBp/wBsAG8AIABSAEcAQgAgAGcAZQBuAGUAcgBpAGMAbwBHAGUAbgBlAHIAaQBzAGsAIABSAEcAQgAtAHAAcgBvAGYAaQBsx3y8GAAgAFIARwBCACDVBLhc0wzHfABPAGIAZQBjAG4A/QAgAFIARwBCACAAcAByAG8AZgBpAGwF5AXoBdUF5AXZBdwAIABSAEcAQgAgBdsF3AXcBdkAQQBsAGwAZwBlAG0AZQBpAG4AZQBzACAAUgBHAEIALQBQAHIAbwBmAGkAbADBAGwAdABhAGwA4QBuAG8AcwAgAFIARwBCACAAcAByAG8AZgBpAGxmbpAaACAAUgBHAEIAIGPPj//wZYdO9k4AgiwAIABSAEcAQgAgMNcw7TDVMKEwpDDrAFAAcgBvAGYAaQBsACAAUgBHAEIAIABnAGUAbgBlAHIAaQBjA5MDtQO9A7kDugPMACADwAPBA78DxgOvA7sAIABSAEcAQgBQAGUAcgBmAGkAbAAgAFIARwBCACAAZwBlAG4A6QByAGkAYwBvAEEAbABnAGUAbQBlAGUAbgAgAFIARwBCAC0AcAByAG8AZgBpAGUAbA5CDhsOIw5EDh8OJQ5MACAAUgBHAEIAIA4XDjEOSA4nDkQOGwBHAGUAbgBlAGwAIABSAEcAQgAgAFAAcgBvAGYAaQBsAGkAWQBsAGX/AGkAbgBlAG4AIABSAEcAQgAtAHAAcgBvAGYAaQBpAGwAaQBVAG4AaQB3AGUAcgBzAGEAbABuAHkAIABwAHIAbwBmAGkAbAAgAFIARwBCBB4EMQRJBDgEOQAgBD8EQAQ+BEQEOAQ7BEwAIABSAEcAQgZFBkQGQQAgBioGOQYxBkoGQQAgAFIARwBCACAGJwZEBjkGJwZFAEcAZQBuAGUAcgBpAGMAIABSAEcAQgAgAFAAcgBvAGYAaQBsAGUARwBlAG4AZQByAGUAbAAgAFIARwBCAC0AYgBlAHMAawByAGkAdgBlAGwAcwBldGV4dAAAAABDb3B5cmlnaHQgMjAwrzcgQXBwbGUgSW5jLiwgYWxsIHJpZ2h0cyByZXNlcnZlZC4AWFlaIAAAAAAAAPNSAAEAAAABFs9YWVogAAAAAAAAdE0AAD3uAAAD0FhZWiAAAAAAAABadQAArHMAABc0WFlaIAAAAAAAACgaAAAVnwAAuDZjdXJ2AAAAAAAAAAEBzQAAc2YzMgAAAAAAAQxCAAAF3v//8yYAAAeSAAD9kf//+6L///2jAAAD3AAAwGwALAAAAAAQABAAAARDsIFJ62xYDhDY+l+CXJIxBQoxEMdUtNI1KQUVA1nO4XqeAQKebwgUDn+DgPEoUS6PuyfRydQplVXMDpvdSq3U7G0YAQA7)
 no-repeat; float: left; height: 14px; width: 12px; padding-right: 10px; margin-left: 3px;
           """
-
 def get_tailf_logo(): return """ "data:image/gif;base64,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" """
 
 def get_folder_open_img(): return """url(data:image/gif;base64,R0lGODlhGgAOALMLAJmZmYqKiv///+zs7MzMzGZmZrOzs7q6uqqqqnZ2duHh4f///wAAAAAAAAAAAAAAACH5BAEAAAsALAAAAAAaAA4AAASScMlJq714qgMMIQuBAMAwZBRADIJAGMfwBQE6GW0uGzRS2wuAQPHhABAIAyBAABSe0IJKgiAEDgSF7OVDBKNQwEQlbBG5CZAiAA4oxsoc8WBAFEALe9SQ6rS2dU5vCwJsTwECKUwmcyMBCYMhUHgTj1kfRTwFJxKFBYgVlpdNNCUVBHcWCUwHpQacFgJCqp98GBEAOw==)"""
