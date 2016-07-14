@@ -133,3 +133,12 @@ def unique_prefixes(context):
             new = "%s%x" % (prf, suff)
         res[m] = new
     return res
+
+files_read = {}
+def report_file_read(filename, extra=None):
+    import os.path
+    realpath = os.path.realpath(filename)
+    read = "READ" if realpath in files_read else "read"
+    extra = (" " + extra) if extra else ""
+    sys.stderr.write("# %s %s%s\n" % (read, filename, extra))
+    files_read[realpath] = True
