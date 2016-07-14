@@ -411,6 +411,7 @@ class FileRepository(Repository):
 
     # FIXME: bad strategy; when revisions are not used in the filename
     # this code parses all modules :(  need to do this lazily
+    # FIXME: actually this function is never called and can be deleted
     def _peek_revision(self, absfilename, format, ctx):
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
@@ -441,6 +442,9 @@ class FileRepository(Repository):
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
+            # FIXME: use an option (verbose?) to control this; the trouble
+            #        that ctx is not always available where it's needed
+            #util.report_file_read(absfilename)
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
         except UnicodeDecodeError as ex:
