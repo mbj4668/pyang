@@ -295,7 +295,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 text = fd.read()
                 # FIXME: use an option (verbose?) to control this; the trouble
                 #        that ctx is not always available where it's needed
-                # util.report_file_read(filename, "(CL)")
+                util.report_file_read(filename, "(CL)")
             except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
                 sys.exit(1)
