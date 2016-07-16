@@ -138,5 +138,6 @@ def report_file_read(filename, extra=None):
     realpath = os.path.realpath(filename)
     read = "READ" if realpath in files_read else "read"
     extra = (" " + extra) if extra else ""
-    sys.stderr.write("# %s %s%s\n" % (read, filename, extra))
+    # FIXME: re-enable this once this function is called conditionally
+    #sys.stderr.write("# %s %s%s\n" % (read, filename, extra))
     files_read[realpath] = True
