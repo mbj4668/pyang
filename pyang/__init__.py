@@ -498,7 +498,7 @@ class FileRepository(Repository):
             text = fd.read()
             # FIXME: use an option (verbose?) to control this; the trouble
             #        that ctx is not always available where it's needed
-            #util.report_file_read(absfilename)
+            util.report_file_read(absfilename)
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
         except UnicodeDecodeError as ex:
