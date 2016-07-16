@@ -112,7 +112,8 @@ def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, next_stmt,
     # XXX is this safe? parent is clearly manipulated by augment etc; better
     #     to pass it in as (yet another) argument?
     prev_stmt = stmt.parent \
-                if stmt.parent and stmt.parent.substmts[0] is stmt else None
+                if stmt.parent and stmt.parent.substmts and \
+                   stmt.parent.substmts[0] is stmt else None
     newlines_before = get_newlines_before(prev_stmt, stmt) \
                       if ctx.opts.yang_keep_blank_lines else 0
     if newlines_before > 0:
