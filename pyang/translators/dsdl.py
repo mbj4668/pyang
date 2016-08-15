@@ -231,6 +231,7 @@ class HybridDSDLSchema(object):
     def __init__(self):
         """Initialize the dispatch dictionaries."""
         self.stmt_handler = {
+            "action": self.noop,
             "anyxml": self.anyxml_stmt,
             "argument": self.noop,
             "augment": self.noop,
