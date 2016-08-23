@@ -259,6 +259,9 @@ error_codes = \
       (1,
        'the identifer "%s" has not the same config property as the'
        ' other nodes in the unique expression'),
+    'ILLEGAL_ESCAPE':
+      (1,
+       'the escape sequence "\%s" is illegal in double quoted strings'),
     'UNIQUE_IS_KEY':
       (4,
        'all keys in the list are redundantly present in the unique statement'),

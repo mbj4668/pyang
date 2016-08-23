@@ -200,7 +200,7 @@ class YangTokenizer(object):
                             special = '\\'
                         elif self.strict_quoting:
                             error.err_add(self.errors, self.pos,
-                                          'ILLEGAL_ESCAPE', ())
+                                          'ILLEGAL_ESCAPE', self.buf[i+1])
                             raise error.Abort
 
                         if special != None:
