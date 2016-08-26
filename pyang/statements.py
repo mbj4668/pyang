@@ -876,14 +876,20 @@ def v_type_type(ctx, stmt):
                 stmt.i_type_spec.i_source_stmt = stmt
 
     # check the base restriction
-    base = stmt.search_one('base')
-    if base is not None and stmt.arg != 'identityref':
-        err_add(ctx.errors, base.pos, 'BAD_RESTRICTION', 'base')
-    elif base is not None:
-        v_type_base(ctx, base)
-        if base.i_identity is not None:
+    bases = stmt.search('base')
+    if bases != [] and stmt.arg != 'identityref':
+        err_add(ctx.errors, bases[0].pos, 'BAD_RESTRICTION', 'base')
+    elif len(bases) > 1 and stmt.i_module.i_version == '1':
+        err_add(ctx.errors, bases[1].pos, 'UNEXPECTED_KEYWORD', 'base')
+    else:
+        idbases = []
+        for base in bases:
+            v_type_base(ctx, base)
+            if base.i_identity is not None:
+               idbases.append(base)
+        if len(idbases) > 0:
             stmt.i_is_derived = True
-            stmt.i_type_spec = types.IdentityrefTypeSpec(base)
+            stmt.i_type_spec = types.IdentityrefTypeSpec(idbases)
 
     # check the require-instance restriction
     req_inst = stmt.search_one('require-instance')

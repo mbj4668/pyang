@@ -217,7 +217,7 @@ stmt_map = {
             [('path', '?'),
              ('require-instance', '?')],
             [('require-instance', '?')],
-            [('base', '?')],
+            [('base', '*')], # '?' in yang version 1; checked in statements.py
             [('type', '*')]])]),
     'range':
         ('range-arg',

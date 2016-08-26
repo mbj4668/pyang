@@ -639,11 +639,22 @@ def chk_leafref(old, new, oldts, newts, ctx):
     cmp_node(old.parent.i_leafref_ptr[0], new.parent.i_leafref_ptr[0])
 
 def chk_identityref(old, new, oldts, newts, ctx):
-    # verify that the base is the same
-    if (newts.idbase.i_module.i_modulename !=
-        oldts.idbase.i_module.i_modulename or
-        newts.idbase.arg != oldts.idbase.arg):
-        err_def_changed(oldts.idbase, newts.idbase, ctx)
+    # verify that the bases are the same
+    extra = [n for n in newts.idbases]
+    for oidbase in oldts.idbases:
+        found = False
+        for nidbase in newts.idbases:
+            if (nidbase.i_module.i_modulename ==
+                oidbase.i_module.i_modulename and
+                nidbase.arg == oidbase.arg):
+                found = True
+                extra.remove(nidbase)
+        if not found:
+            err_add(ctx.errors, new.pos, 'CHK_DEF_REMOVED',
+                    ('base', oidbase.arg, old.pos))
+    for n in extra:
+        err_add(ctx.errors, n.pos, 'CHK_DEF_ADDED',
+                ('base', n.arg))
 
 def chk_instance_identifier(old, new, oldts, newts, ctx):
     # FIXME:

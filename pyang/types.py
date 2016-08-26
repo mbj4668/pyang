@@ -214,9 +214,9 @@ class EmptyTypeSpec(TypeSpec):
         return None
 
 class IdentityrefTypeSpec(TypeSpec):
-    def __init__(self, idbase):
+    def __init__(self, idbases):
         TypeSpec.__init__(self, 'identityref')
-        self.idbase = idbase
+        self.idbases = idbases
 
     def str_to_val(self, errors, pos, s):
         if s.find(":") == -1:
@@ -224,12 +224,12 @@ class IdentityrefTypeSpec(TypeSpec):
             name = s
         else:
             [prefix, name] = s.split(':', 1)
-        if prefix is None or self.idbase.i_module.i_prefix == prefix:
+        if prefix is None or self.idbases[0].i_module.i_prefix == prefix:
             # check local identities
-            pmodule = self.idbase.i_module
+            pmodule = self.idbases[0].i_module
         else:
             # this is a prefixed name, check the imported modules
-            pmodule = util.prefix_to_module(self.idbase.i_module, prefix,
+            pmodule = util.prefix_to_module(self.idbases[0].i_module, prefix,
                                             pos, errors)
             if pmodule is None:
                 return None
@@ -238,13 +238,14 @@ class IdentityrefTypeSpec(TypeSpec):
                     (s, self.definition, 'identityref not found'))
             return None
         val = pmodule.i_identities[name]
-        my_identity = self.idbase.i_identity
-        if not is_derived_from_or_self(val, self.idbase.i_identity, []):
-            err_add(errors, pos, 'TYPE_VALUE',
-                    (s, self.definition,
-                     'identityref not derived from %s' % \
-                     my_identity.arg))
-            return None
+        for idbase in self.idbases:
+            my_identity = idbase.i_identity
+            if not is_derived_from_or_self(val, my_identity, []):
+                err_add(errors, pos, 'TYPE_VALUE',
+                        (s, self.definition,
+                         'identityref not derived from %s' % \
+                         my_identity.arg))
+                return None
         else:
             return val
 
