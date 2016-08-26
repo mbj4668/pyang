@@ -117,7 +117,7 @@ def emit_tree(ctx, modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, ' ', path, 'data', depth)
+            print_children(chs, module, fd, '  ', path, 'data', depth)
 
         mods = [module]
         for i in module.search('include'):
@@ -132,9 +132,9 @@ def emit_tree(ctx, modules, fd, depth, path):
                     if not printed_header:
                         print_header()
                         printed_header = True
-                    fd.write("augment %s:\n" % augment.arg)
+                    fd.write("  augment %s:\n" % augment.arg)
                     print_children(augment.i_children, m, fd,
-                                   ' ', path, 'augment', depth)
+                                   '  ', path, 'augment', depth)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -148,8 +148,8 @@ def emit_tree(ctx, modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("rpcs:\n")
-            print_children(rpcs, module, fd, ' ', path, 'rpc', depth)
+            fd.write("\n  rpcs:\n")
+            print_children(rpcs, module, fd, '  ', path, 'rpc', depth)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -163,18 +163,19 @@ def emit_tree(ctx, modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("notifications:\n")
-            print_children(notifs, module, fd, ' ', path, 'notification', depth)
+            fd.write("\n  notifications:\n")
+            print_children(notifs, module, fd, '  ', path,
+                           'notification', depth)
 
         if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("groupings:\n")
+            fd.write("  groupings:\n")
             for gname in module.i_groupings:
                 fd.write('  ' + gname + '\n')
                 g = module.i_groupings[gname]
-                print_children(g.i_children, module, fd, '   ', path,
+                print_children(g.i_children, module, fd, '    ', path,
                                'grouping', depth)
                 fd.write('\n')
 
