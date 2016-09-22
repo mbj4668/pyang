@@ -1547,6 +1547,11 @@ def v_expand_1_uses(ctx, stmt):
                     target.substmts.remove(old)
                 s.parent = target
                 target.substmts.append(s)
+    v_inherit_properties(ctx, stmt.parent)
+    for ch in refined:
+        # after refinement, we need to re-run some of the tests, e.g. if
+        # the refinement added a default value it needs to be checked.
+        v_recheck_target(ctx, ch)
 
 def v_inherit_properties(ctx, stmt, child=None):
     def iter(s, config_value, allow_explicit):
@@ -2124,14 +2129,16 @@ def v_reference_deviate(ctx, stmt):
                         c.arg = c.i_module.i_prefix + ':' + c.arg
                     t.substmts.append(c)
 
-# FIXME: after deviation, we need to re-run some of the tests, e.g. if
+# after deviation, we need to re-run some of the tests, e.g. if
 # the deviation added a default value it needs to be checked.
 def v_reference_deviation_4(ctx, stmt):
     if not hasattr(stmt, 'i_target_node') or stmt.i_target_node is None:
         # this is set in v_reference_deviation above.  if none
         # is found, an error has already been reported.
         return
-    t = stmt.i_target_node
+    v_recheck_target(ctx, stmt.i_target_node)
+
+def v_recheck_target(ctx, t):
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
         v_reference_leaf_leafref(ctx, t)
@@ -2141,7 +2148,6 @@ def v_reference_deviation_4(ctx, stmt):
     elif t.keyword == 'list':
         t.i_is_validated = False
         v_reference_list(ctx, t)
-
 
 ### Unused definitions phase
 
