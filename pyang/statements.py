@@ -1719,14 +1719,14 @@ def v_expand_2_augment(ctx, stmt):
             s.parent = stmt.i_target_node
 
 def create_new_case(ctx, choice, child, expand=True):
-    new_case = Statement(child.top, child.parent, child.pos, 'case', child.arg)
+    new_case = Statement(child.top, choice, child.pos, 'case', child.arg)
     v_init_stmt(ctx, new_case)
-    new_child = child.copy(new_case)
-    new_case.i_children = [new_child]
+    child.parent = new_case
+    new_case.i_children = [child]
     new_case.i_module = child.i_module
     choice.i_children.append(new_case)
     if expand:
-        v_expand_1_children(ctx, new_child)
+        v_expand_1_children(ctx, child)
     return new_case
 
 ### Unique name check phase
