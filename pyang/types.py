@@ -240,7 +240,7 @@ class IdentityrefTypeSpec(TypeSpec):
         val = pmodule.i_identities[name]
         for idbase in self.idbases:
             my_identity = idbase.i_identity
-            if not is_derived_from_or_self(val, my_identity, []):
+            if not is_derived_from(val, my_identity):
                 err_add(errors, pos, 'TYPE_VALUE',
                         (s, self.definition,
                          'identityref not derived from %s' % \
@@ -248,6 +248,13 @@ class IdentityrefTypeSpec(TypeSpec):
                 return None
         else:
             return val
+
+def is_derived_from(a, b):
+    if a == b:
+        # an identity is not derived from itself
+        return False
+    else:
+        return is_derived_from_or_self(a, b, [])
 
 def is_derived_from_or_self(a, b, visited):
     # return True if a is derived from b

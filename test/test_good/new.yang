@@ -92,18 +92,25 @@ module new {
     base id3;
     base id4;
   }
+  identity id6 {
+    base id2;
+  }
+  identity id7 {
+    base id5;
+  }
+
   leaf idleaf1 {
     type identityref {
       base id2;
       base id5; // new 1.1 syntax
     }
-    default id5;
+    default id7;
   }
   leaf idleaf2 {
     type identityref {
       base id5;
     }
-    default id5;
+    default id7;
   }
   leaf idleaf3 {
     type identityref {
