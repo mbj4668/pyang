@@ -1,0 +1,31 @@
+module test {
+  yang-version 1.1;
+
+  namespace urn:test;
+
+  prefix test;
+
+  container test-root {
+    list test-root-child {
+      key name;
+
+      leaf name {
+        type string;
+      }
+
+      leaf state {
+        type leafref {
+          path "../../test-root-child-state/name";
+        }
+      }
+    }
+
+    list test-root-child-state {
+      key name;
+
+      leaf name {
+        type string;
+      }
+    }
+  }
+}

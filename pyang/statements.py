@@ -2042,6 +2042,7 @@ def v_reference_deviate(ctx, stmt):
             err_add(ctx.errors, stmt.pos, 'BAD_DEVIATE_KEY',
                     (t.i_module.arg, t.arg))
             return
+        t.i_this_not_supported = True
         if not hasattr(t.parent, 'i_not_supported'):
             t.parent.i_not_supported = []
         t.parent.i_not_supported.append(t)
@@ -2135,6 +2136,8 @@ def v_reference_deviation_4(ctx, stmt):
     if not hasattr(stmt, 'i_target_node') or stmt.i_target_node is None:
         # this is set in v_reference_deviation above.  if none
         # is found, an error has already been reported.
+        return
+    if hasattr(stmt.i_target_node, 'i_this_not_supported'):
         return
     v_recheck_target(ctx, stmt.i_target_node)
 
