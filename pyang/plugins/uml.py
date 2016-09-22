@@ -36,64 +36,64 @@ class UMLPlugin(plugin.PyangPlugin):
         optlist = [
             optparse.make_option("--uml-classes-only",
                                  action="store_true",
-                                 dest="classes_only",
+                                 dest="uml_classes_only",
                                  default = False,
                                  help="Generate UML with classes only, no attributes "),
             optparse.make_option("--uml-split-pages",
-                                 dest="pages_layout",
+                                 dest="uml_pages_layout",
                                  help="Generate UML output split into pages (separate .png files), NxN, example 2x2 "),
             optparse.make_option("--uml-output-directory",
-                                 dest="outputdir",
+                                 dest="uml_outputdir",
                                  help="Put generated <modulename>.png or <title>.png file(s) in OUTPUTDIR (default img/) "),
             optparse.make_option("--uml-title",
-                                 dest="title",
+                                 dest="uml_title",
                                  help="Set the title of the generated UML, including the output file name"),
             optparse.make_option("--uml-header",
-                                 dest="header",
+                                 dest="uml_header",
                                  help="Set the page header of the generated UML"),
             optparse.make_option("--uml-footer",
-                                 dest="footer",
+                                 dest="uml_footer",
                                  help="Set the page footer of the generated UML"),
             optparse.make_option("--uml-long-identifiers",
                                  action="store_true",
-                                 dest="longids",
+                                 dest="uml_longids",
                                  default =False,
                                  help="Use the full schema identifiers for UML class names."),
             optparse.make_option("--uml-inline-groupings",
                                  action="store_true",
-                                 dest="inline",
+                                 dest="uml_inline",
                                  default =False,
                                  help="Inline groupings where they are used."),
             optparse.make_option("--uml-inline-augments",
                                  action="store_true",
-                                 dest="inline_augments",
+                                 dest="uml_inline_augments",
                                  default =False,
                                  help="Inline groupings where they are used."),
             optparse.make_option("--uml-description",
                                  action="store_true",
-                                 dest="descr",
+                                 dest="uml_descr",
                                  default =False,
                                  help="Include description of structural nodes in diagram."),
             optparse.make_option("--uml-no",
-                                 dest="no",
+                                 dest="uml_no",
                                  default = "",
                                  help="Suppress parts of the diagram. \nValid suppress values are: module, uses, leafref, identity, identityref, typedef, import, annotation, circles, stereotypes. Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. Module suppresses module box around the diagram and module information. \nExample --uml-no=circles,stereotypes,typedef,import"),
             optparse.make_option("--uml-truncate",
-                                 dest="truncate",
+                                 dest="uml_truncate",
                                  default = "",
                                  help="Leafref attributes and augment elements can have long paths making the classes too wide. \nThis option will only show the tail of the path. \nExample --uml-truncate=augment,leafref"),
             optparse.make_option("--uml-max-enums",
-                                 dest="max_enums",
+                                 dest="uml_max_enums",
                                  default = "3",
                                  help="The maximum number of enumerated values being rendered"),
 
             optparse.make_option("--uml-filter",
                                  action="store_true",
-                                 dest="gen_filter_file",
+                                 dest="uml_gen_filter_file",
                                  default = False,
                                  help="Generate filter file, comment out lines with '-' and use with option '--filter-file' to filter the UML diagram"),
             optparse.make_option("--uml-filter-file",
-                                 dest="filter_file",
+                                 dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
             ]
         if hasattr(optparser, 'uml_opts'):
@@ -118,9 +118,9 @@ class UMLPlugin(plugin.PyangPlugin):
                 self.fatal("%s contains errors" % epos.top.arg)
 
 
-        if ctx.opts.pages_layout is not None:
-            if re.match('[0-9]x[0-9]', ctx.opts.pages_layout) is None:
-                self.fatal("Illegal page split option %s, should be [0-9]x[0-9], example 2x2" % ctx.opts.pages_layout)
+        if ctx.opts.uml_pages_layout is not None:
+            if re.match('[0-9]x[0-9]', ctx.opts.uml_pages_layout) is None:
+                self.fatal("Illegal page split option %s, should be [0-9]x[0-9], example 2x2" % ctx.opts.uml_pages_layout)
 
 
         umldoc = uml_emitter(ctx)
@@ -171,61 +171,62 @@ class uml_emitter:
 
     def __init__(self, ctx):
         self._ctx = ctx
-        self.ctx_fullpath = ctx.opts.longids
-        self.ctx_description = ctx.opts.descr
-        self.ctx_classesonly = ctx.opts.classes_only
+        self.ctx_fullpath = ctx.opts.uml_longids
+        self.ctx_description = ctx.opts.uml_descr
+        self.ctx_classesonly = ctx.opts.uml_classes_only
         # output dir from option -D or default img/
-        if ctx.opts.outputdir is not None:
-            self.ctx_outputdir = ctx.opts.outputdir
+        if ctx.opts.uml_outputdir is not None:
+            self.ctx_outputdir = ctx.opts.uml_outputdir
             if self.ctx_outputdir[len(self.ctx_outputdir)-1] != '/':
                 self.ctx_outputdir += '/'
         else:
             self.ctx_outputdir = 'img/'
 
         # split into pages ? option -s
-        if ctx.opts.pages_layout is not None:
-            self.ctx_pagelayout = ctx.opts.pages_layout
+        if ctx.opts.uml_pages_layout is not None:
+            self.ctx_pagelayout = ctx.opts.uml_pages_layout
 
         # Title from option -t
-        self.ctx_title = ctx.opts.title
+        self.ctx_title = ctx.opts.uml_title
 
-        self.ctx_inline_augments = ctx.opts.inline_augments
+        self.ctx_inline_augments = ctx.opts.uml_inline_augments
 
-        self.ctx_leafrefs = not "leafref" in ctx.opts.no.split(",")
-        self.ctx_uses = not "uses" in ctx.opts.no.split(",")
-        self.ctx_annotations = not "annotation" in ctx.opts.no.split(",")
-        self.ctx_identityrefs = not "identityref" in ctx.opts.no.split(",")
-        self.ctx_identities = not "identity" in ctx.opts.no.split(",")
-        self.ctx_typedefs = not "typedef" in ctx.opts.no.split(",")
-        self.ctx_imports = not "import" in ctx.opts.no.split(",")
-        self.ctx_circles = not "circles" in ctx.opts.no.split(",")
-        self.ctx_stereotypes = not "stereotypes" in ctx.opts.no.split(",")
+        no = ctx.opts.uml_no.split(",")
+        self.ctx_leafrefs = not "leafref" in no
+        self.ctx_uses = not "uses" in no
+        self.ctx_annotations = not "annotation" in no
+        self.ctx_identityrefs = not "identityref" in no
+        self.ctx_identities = not "identity" in no
+        self.ctx_typedefs = not "typedef" in no
+        self.ctx_imports = not "import" in no
+        self.ctx_circles = not "circles" in no
+        self.ctx_stereotypes = not "stereotypes" in no
 
         nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes")
-        if ctx.opts.no != "":
-            for no_opt in ctx.opts.no.split(","):
+        if ctx.opts.uml_no != "":
+            for no_opt in no:
                 if no_opt not in nostrings:
                     sys.stderr.write("\"%s\" no valid argument to --uml-no=...,  valid arguments: %s \n" %(no_opt, nostrings))
 
-        self.ctx_filterfile = ctx.opts.gen_filter_file
+        self.ctx_filterfile = ctx.opts.uml_gen_filter_file
 
-        self.ctx_truncate_augments = "augment" in ctx.opts.truncate.split(",")
-        self.ctx_truncate_leafrefs = "leafref" in ctx.opts.truncate.split(",")
-        self.ctx_no_module = "module" in ctx.opts.no.split(",")
+        self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
+        self.ctx_truncate_leafrefs = "leafref" in ctx.opts.uml_truncate.split(",")
+        self.ctx_no_module = "module" in no
 
         truncatestrings = ("augment", "leafref")
-        if ctx.opts.truncate != "":
-            for trunc in ctx.opts.truncate.split(","):
+        if ctx.opts.uml_truncate != "":
+            for trunc in ctx.opts.uml_truncate.split(","):
                 if trunc not in truncatestrings:
                     sys.stderr.write("\"%s\" no valid argument to --uml-truncate=...,  valid arguments: %s \n" %(trunc, truncatestrings))
 
-        if ctx.opts.filter_file is not None:
+        if ctx.opts.uml_filter_file is not None:
             try:
-                self.ctx_usefilterfile = open(ctx.opts.filter_file, "r")
+                self.ctx_usefilterfile = open(ctx.opts.uml_filter_file, "r")
                 self.filterpaths = self.ctx_usefilterfile.readlines()
                 self.ctx_usefilterfile.close()
             except IOError:
-                raise error.EmitError("Filter file %s does not exist" %ctx.opts.filter_file, 2)
+                raise error.EmitError("Filter file %s does not exist" %ctx.opts.uml_filter_file, 2)
 
     def emit(self, modules, fd):
         title = ''
@@ -316,7 +317,7 @@ class uml_emitter:
             for s in stmt.substmts:
                 self.emit_child_stmt(stmt, s, fd)
 
-        elif stmt.keyword == 'grouping' and not self._ctx.opts.inline:
+        elif stmt.keyword == 'grouping' and not self._ctx.opts.uml_inline:
             self.emit_grouping(mod, stmt, fd, True)
 
         elif stmt.keyword == 'choice':
@@ -378,7 +379,7 @@ class uml_emitter:
              if cont:
                 for children in node.substmts:
                     self.emit_child_stmt(node, children, fd)
-         elif node.keyword == 'grouping' and not self._ctx.opts.inline:
+         elif node.keyword == 'grouping' and not self._ctx.opts.uml_inline:
              self.emit_grouping(parent, node, fd)
 
          elif node.keyword == 'list':
@@ -405,11 +406,11 @@ class uml_emitter:
                  for children in node.substmts:
                      self.emit_child_stmt(node, children, fd)
          elif node.keyword == 'uses':
-             if (not self.ctx_filterfile) and not (self._ctx.opts.inline):
+             if (not self.ctx_filterfile) and not (self._ctx.opts.uml_inline):
                  fd.write('%s : %s {uses} \n' %(self.full_path(parent), node.arg))
-             if not (self._ctx.opts.inline):
+             if not (self._ctx.opts.uml_inline):
                  self.emit_uses(parent, node)
-             if hasattr(node, 'i_grouping') and (self._ctx.opts.inline) and cont:
+             if hasattr(node, 'i_grouping') and (self._ctx.opts.uml_inline) and cont:
                  grouping_node = node.i_grouping
                  if grouping_node is not None:
                      # inline grouping here
@@ -501,8 +502,8 @@ class uml_emitter:
 
 
         fd.write('Title %s \n' %title)
-        if self._ctx.opts.header is not None:
-            fd.write('center header\n <size:48> %s </size>\n endheader \n' %self._ctx.opts.header)
+        if self._ctx.opts.uml_header is not None:
+            fd.write('center header\n <size:48> %s </size>\n endheader \n' %self._ctx.opts.uml_header)
 
 
     def emit_module_header(self, module, fd):
@@ -599,8 +600,8 @@ class uml_emitter:
 
 
     def emit_uml_footer(self, module, fd):
-        if self._ctx.opts.footer is not None:
-            fd.write('center footer\n <size:24> %s </size>\n endfooter \n' %self._ctx.opts.footer)
+        if self._ctx.opts.uml_footer is not None:
+            fd.write('center footer\n <size:24> %s </size>\n endfooter \n' %self._ctx.opts.uml_footer)
         else:
             now = datetime.datetime.now()
             fd.write('center footer\n <size:20> UML Generated : %s </size>\n endfooter \n' %now.strftime("%Y-%m-%d %H:%M"))
@@ -710,9 +711,9 @@ class uml_emitter:
             if e.arg == 'enumeration':
                     # enum_name = self.full_path(t, False)
                     fd.write('enum \"%s\" as %s {\n' %(t.arg, self.full_path(t)))
-                    for enums in e.substmts[:int(self._ctx.opts.max_enums)]:
+                    for enums in e.substmts[:int(self._ctx.opts.uml_max_enums)]:
                          fd.write('%s\n' %enums.arg)
-                    if (len(e.substmts) > int(self._ctx.opts.max_enums)):
+                    if (len(e.substmts) > int(self._ctx.opts.uml_max_enums)):
                          fd.write('%s\n' %"MORE")
                     fd.write("}\n")
             else:
