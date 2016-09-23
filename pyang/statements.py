@@ -2303,7 +2303,12 @@ def search_grouping(stmt, name):
                 if mod.search_one('include', g.i_orig_module.arg) is None:
                     return None
             return g
-        stmt = stmt.parent
+        if stmt.keyword == 'submodule':
+          # find the parent module of the submodule to
+          # check whether it has this grouping
+          stmt = stmt.i_ctx.modules[(stmt.search_one('belongs-to').arg, 'unknown')]
+        else:
+          stmt = stmt.parent
     return None
 
 def search_data_keyword_child(children, modulename, identifier):
