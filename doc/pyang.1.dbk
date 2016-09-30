@@ -1228,6 +1228,17 @@ $ osascript foo.scpt</screen>
           Print the top-level groupings defined in the module.
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-max-length</option>
+          <replaceable>maxlen</replaceable>
+        </term>
+        <listitem>
+          Try to break lines so they are no longer than
+          <replaceable>maxlen</replaceable>.  This is a best effort
+          algorithm.
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
