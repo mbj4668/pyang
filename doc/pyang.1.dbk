@@ -1230,7 +1230,7 @@ $ osascript foo.scpt</screen>
       </varlistentry>
       <varlistentry>
         <term>
-          <option>--tree-max-length</option>
+          <option>--tree-line-length</option>
           <replaceable>maxlen</replaceable>
         </term>
         <listitem>
