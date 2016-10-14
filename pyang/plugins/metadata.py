@@ -41,7 +41,7 @@ md_stmts = [
     #  <list of keywords where <keyword> can occur>)
 
     ('annotation', '*',
-     ('identifier', [('if-feature', '?'),
+     ('identifier', [('if-feature', '*'),
                      ('status', '?'),
                      ('type', '1'),
                      ('unit', '?'),
