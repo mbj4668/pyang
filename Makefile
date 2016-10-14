@@ -9,6 +9,7 @@ dist: doc
 	rm -f MANIFEST
 	echo "include LICENSE" > MANIFEST.in
 	echo "include env.sh" >> MANIFEST.in
+	echo "include etc/bash_completion.d/pyang" >> MANIFEST.in
 	echo "recursive-include man *" >> MANIFEST.in
 	echo "recursive-include schema *" >> MANIFEST.in
 	echo "recursive-include xslt *" >> MANIFEST.in
