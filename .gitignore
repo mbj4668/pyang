@@ -1,11 +1,11 @@
 MANIFEST
-MANIFEST.in
 TAGS
 build
 dist
 *.rnc
 schemas.xml
 *.pyc
+*.egg-info
 .coverage*
 /test/test_*/*.dsrl
 /test/test_*/*.rng
