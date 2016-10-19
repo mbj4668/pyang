@@ -287,8 +287,14 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
         line += keystr
 
     features = s.search('if-feature')
-    if len(features) > 0:
-        fstr = " {%s}?" % ",".join([f.arg for f in features])
+    featurenames = [f.arg for f in features]
+    if hasattr(s, 'i_augment'):
+        afeatures = s.i_augment.search('if-feature')
+        featurenames.extend([f.arg for f in afeatures
+                             if f.arg not in featurenames])
+
+    if len(featurenames) > 0:
+        fstr = " {%s}?" % ",".join(featurenames)
         if (llen is not None and len(line) + len(fstr) > llen):
             fd.write(line + '\n')
             line = prefix + ' ' * (brcol - len(prefix))

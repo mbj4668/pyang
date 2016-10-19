@@ -1709,11 +1709,7 @@ def v_expand_2_augment(ctx, stmt):
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node
             v_inherit_properties(ctx, stmt.i_target_node, c)
-    if_features = stmt.search('if-feature')
     for s in stmt.substmts:
-        for f in if_features:
-            s.substmts.append(Statement(f.top, stmt.parent, f.pos, f.keyword,
-                                        f.arg))
         if s.keyword in _copy_augment_keywords:
             stmt.i_target_node.substmts.append(s)
             s.parent = stmt.i_target_node
