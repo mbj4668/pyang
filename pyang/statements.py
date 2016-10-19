@@ -2057,7 +2057,14 @@ def v_reference_deviate(ctx, stmt):
             del t.parent.substmts[idx]
     elif stmt.arg == 'add':
         for c in stmt.substmts:
-            if c.keyword in _singleton_keywords:
+            if (c.keyword == 'config'
+                and hasattr(t, 'i_config')):
+                # config is special: since it is an inherited property
+                # with a default, all nodes has a config property.  this means
+                # that it can only be replaced.
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
+                        (c.keyword, t.i_module.arg, t.arg))
+            elif c.keyword in _singleton_keywords:
                 if t.search_one(c.keyword) != None:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
                             (c.keyword, t.i_module.arg, t.arg))
