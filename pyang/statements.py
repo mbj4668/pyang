@@ -2423,7 +2423,7 @@ def iterate_i_children(stmt, f):
 def is_submodule_included(src, tgt):
     """Check that the tgt's submodule is included by src, if they belong
     to the same module."""
-    if tgt is None:
+    if tgt is None or not hasattr(tgt, 'i_orig_module'):
         return True
     if (tgt.i_orig_module.keyword == 'submodule' and
         src.i_orig_module != tgt.i_orig_module and
