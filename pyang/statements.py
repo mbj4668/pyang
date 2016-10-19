@@ -708,7 +708,7 @@ def v_type_typedef(ctx, stmt):
         # ensure the type is validated
         v_type_type(ctx, type_)
         # check the direct typedef
-        if (type_.i_typedef is not None and 
+        if (type_.i_typedef is not None and
             type_.i_typedef.is_grammatically_valid == True):
             v_type_typedef(ctx, type_.i_typedef)
         # check all union's types
@@ -2447,7 +2447,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 
     # If an un-prefixed identifier is found, it defaults to the
     # module where the path is defined, except if found within
-    # a grouping, in which case it default to the module where the
+    # a grouping, in which case it defaults to the module where the
     # grouping is used.
     if (path.parent.parent is not None and
         path.parent.parent.keyword == 'typedef'):
@@ -2458,10 +2458,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
     elif stmt.keyword == 'module':
         local_module = stmt
     else:
-        if path.i_module.i_version == '1':
-            local_module = stmt.i_module
-        else:
-            local_module = path.i_module
+        local_module = stmt.i_module
     if stmt.keyword == 'typedef':
         in_typedef = True
     else:
