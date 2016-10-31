@@ -881,6 +881,9 @@ def v_type_type(ctx, stmt):
         err_add(ctx.errors, bases[0].pos, 'BAD_RESTRICTION', 'base')
     elif len(bases) > 1 and stmt.i_module.i_version == '1':
         err_add(ctx.errors, bases[1].pos, 'UNEXPECTED_KEYWORD', 'base')
+    elif stmt.arg == 'identityref' and bases == []:
+        err_add(ctx.errors, stmt.pos, 'MISSING_TYPE_SPEC',
+                ('identityref', 'base'))
     else:
         idbases = []
         for base in bases:
@@ -909,8 +912,12 @@ def v_type_type(ctx, stmt):
         ('enum' not in stmt.i_type_spec.restrictions() or
          stmt.i_module.i_version == '1' and stmt.arg != 'enumeration')):
         err_add(ctx.errors, enums[0].pos, 'BAD_RESTRICTION', 'enum')
+    elif stmt.arg == 'enumeration' and enums == []:
+        err_add(ctx.errors, stmt.pos, 'MISSING_TYPE_SPEC',
+                ('enumeration', 'enum'))
     elif enums != []:
         stmt.i_is_derived = True
+
         enum_spec = types.validate_enums(ctx.errors, enums, stmt)
         if enum_spec is not None:
             stmt.i_type_spec = types.EnumTypeSpec(stmt.i_type_spec,
@@ -923,6 +930,9 @@ def v_type_type(ctx, stmt):
         ('bit' not in stmt.i_type_spec.restrictions() or
          stmt.i_module.i_version == '1' and stmt.arg != 'bits')):
         err_add(ctx.errors, bits[0].pos, 'BAD_RESTRICTION', 'bit')
+    elif stmt.arg == 'bits' and bits == []:
+        err_add(ctx.errors, stmt.pos, 'MISSING_TYPE_SPEC',
+                ('bits', 'bit'))
     elif bits != []:
         stmt.i_is_derived = True
         bit_spec = types.validate_bits(ctx.errors, bits, stmt)

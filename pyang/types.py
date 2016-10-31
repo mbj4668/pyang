@@ -509,10 +509,6 @@ class PatternTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 def validate_enums(errors, enums, stmt):
-    if enums == []:
-        err_add(errors, stmt.pos, 'MISSING_TYPE_SPEC',
-                ('enumeration', 'enum'))
-        return None
     # make sure all names and values given are unique
     names = {}
     values = {}
@@ -594,10 +590,6 @@ class EnumTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 def validate_bits(errors, bits, stmt):
-    if bits == []:
-        err_add(errors, stmt.pos, 'MISSING_TYPE_SPEC',
-                ('bits', 'bit'))
-        return None
     # make sure all names and positions given are unique
     names = {}
     values = {}
