@@ -1320,7 +1320,7 @@ def v_expand_1_children(ctx, stmt):
         # already expanded
         return
     elif stmt.keyword == 'choice':
-        shorthands = ['leaf', 'leaf-list', 'container', 'list',
+        shorthands = ['leaf', 'leaf-list', 'container', 'list', 'choice',
                       'anyxml', 'anydata']
         for s in stmt.substmts:
             if s.keyword in shorthands:
