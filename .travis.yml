@@ -10,9 +10,10 @@ addons:
     packages:
       - xsltproc
       - jing
+      - bash
 install:
   - pip install -r requirements.txt
-  - pip install coveralls
+  - pip install coveralls virtualenv
   - SITEPACKAGES=$(pip --version | sed -n 's@.*from \([^ ]\+\) .*@\1@p')
   - echo 'import coverage; coverage.process_startup()' > $SITEPACKAGES/sitecustomize.py
   - printf '[run]\nparallel=True\n' > ~/coverage.cfg
