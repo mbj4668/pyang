@@ -1,5 +1,0 @@
-<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
-  <capabilities>
-    <capability>http://example.com/test?module=test</capability>
-  </capabilities>
-</hello>

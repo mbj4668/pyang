@@ -166,17 +166,15 @@ class Context(object):
                     format = util.guess_format(text)
 
                 if format == 'yin':
-                    yintext = text
                     p = yin_parser.YinParser({'no_include':True,
                                               'no_extensions':True})
                 else:
-                    yintext = None
                     p = yang_parser.YangParser()
 
                 module = p.parse(self, ref, text)
                 if module is not None:
                     rev = util.get_latest_revision(module)
-                    revs[i] = (rev, ('parsed', module, ref, yintext))
+                    revs[i] = (rev, ('parsed', module, ref))
             i += 1
 
     def search_module(self, pos, modulename, revision=None):
@@ -223,19 +221,12 @@ class Context(object):
         elif handle[0] == 'parsed':
             module = handle[1]
             ref = handle[2]
-            yintext = handle[3]
             if modulename != module.arg:
                 error.err_add(self.errors, module.pos, 'BAD_MODULE_NAME',
                               (module.arg, ref, modulename))
                 module = None
-            elif yintext is None:
-                module = self.add_parsed_module(handle[1])
             else:
-                p = yin_parser.YinParser()
-                self.yin_module_map[module.arg] = []
-                module = p.parse(self, ref, yintext)
-                if module is not None:
-                    module = self.add_parsed_module(module)
+                module = self.add_parsed_module(handle[1])
         else:
             # get it from the repos
             try:
