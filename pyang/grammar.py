@@ -403,7 +403,6 @@ stmt_map = {
         ('identifier',
          [('when', '?'),
           ('if-feature', '*'),
-          ('must', '*'),
           ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
