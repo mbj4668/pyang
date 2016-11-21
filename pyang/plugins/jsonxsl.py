@@ -203,9 +203,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
     def get_types(self, node):
         res = []
         def resolve(typ):
-            if typ is None:
-                res.append("string") # default for annotations
-            elif typ.arg == "leafref":
+            if typ.arg == "leafref":
                 resolve(typ.i_type_spec.i_target_node.search_one("type"))
             elif typ.arg == "union":
                 for ut in typ.i_type_spec.types: resolve(ut)
