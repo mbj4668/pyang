@@ -291,7 +291,7 @@ class HybridDSDLSchema(object):
             "min-elements": self.noop,
             "status": self.nma_attribute,
             "submodule": self.noop,
-            "type": self.type_stmt,
+            "type": self.noop,
             "typedef" : self.noop,
             "unique" : self.unique_stmt,
             "units" : self.nma_attribute,
@@ -311,7 +311,7 @@ class HybridDSDLSchema(object):
             "binary": self.binary_type,
             "bits": self.bits_type,
             "decimal64": self.numeric_type,
-            "enumeration": self.choice_type,
+            "enumeration": self.enumeration_type,
             "empty": self.noop,
             "identityref": self.identityref_type,
             "instance-identifier": self.instance_identifier_type,
@@ -319,13 +319,13 @@ class HybridDSDLSchema(object):
             "int16": self.numeric_type,
             "int32": self.numeric_type,
             "int64": self.numeric_type,
-            "leafref": self.leafref_type,
+            "leafref": self.noop,
             "string" : self.string_type,
             "uint8": self.numeric_type,
             "uint16": self.numeric_type,
             "uint32": self.numeric_type,
             "uint64": self.numeric_type,
-            "union": self.choice_type,
+            "union": self.union_type,
         }
 
     def serialize(self):
@@ -661,6 +661,9 @@ class HybridDSDLSchema(object):
         delem.attr["name"] = name
         def_map[name] = delem
         if def_map is self.global_defs: self.gg_level += 1
+        ts = dstmt.search_one("type")
+        if ts:
+            self.type_stmt(ts, delem, {})
         self.handle_substmts(dstmt, delem)
         if def_map is self.global_defs: self.gg_level -= 1
 
@@ -1023,6 +1026,10 @@ class HybridDSDLSchema(object):
             if defv is not None:
                 elem.default = defv
                 self.propagate_occur(elem, 1)
+        if stmt.i_leafref:
+            self.leafref_type(stmt, elem)
+        else:
+            self.type_stmt(stmt.search_one("type"), elem, {})
         self.handle_substmts(stmt, elem)
 
     def leaf_list_stmt(self, stmt, p_elem, pset):
@@ -1034,6 +1041,10 @@ class HybridDSDLSchema(object):
         refd = self.process_patches(pset, stmt, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
+        if stmt.i_leafref:
+            self.leafref_type(stmt, lelem)
+        else:
+            self.type_stmt(stmt.search_one("type"), lelem, {})
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
@@ -1193,13 +1204,12 @@ class HybridDSDLSchema(object):
         SchemaNode("value", elem, "true")
         SchemaNode("value", elem, "false")
 
-    def choice_type(self, tchain, p_elem):
-        """Handle ``enumeration`` and ``union`` types."""
-        elem = SchemaNode.choice(p_elem, occur=2)
-        self.handle_substmts(tchain[0], elem)
-
     def empty_type(self, tchain, p_elem):
         SchemaNode("empty", p_elem)
+
+    def enumeration_type(self, tchain, p_elem):
+        elem = SchemaNode.choice(p_elem, occur=2)
+        self.handle_substmts(tchain[0], elem)
 
     def identityref_type(self, tchain, p_elem):
         bid = tchain[0].search_one("base").i_identity
@@ -1222,14 +1232,15 @@ class HybridDSDLSchema(object):
         rinst = tchain[0].search_one("require-instance")
         if rinst: ii.attr["require-instance"] = rinst.arg
 
-    def leafref_type(self, tchain, p_elem):
-        typ = tchain[0]
+    def leafref_type(self, cnode, p_elem):
+        """Leafref type has to be handled separately."""
         occur = p_elem.occur
-        pathstr = typ.parent.i_leafref.i_expanded_path
-        p_elem.attr["nma:leafref"] = self.yang_to_xpath(pathstr)
-        while type(typ.i_type_spec) == types.PathTypeSpec:
-            typ = typ.i_type_spec.i_target_node.search_one("type")
-        self.handle_stmt(typ, p_elem)
+        p_elem.attr["nma:leafref"] = self.yang_to_xpath(
+            cnode.i_leafref.i_expanded_path)
+        while cnode.i_leafref:
+            cnode = cnode.i_leafref_ptr[0]
+        typ = cnode.search_one("type")
+        self.type_stmt(typ, p_elem, {})
         if occur == 0: p_elem.occur = 0
 
     def mapped_type(self, tchain, p_elem):
@@ -1260,3 +1271,9 @@ class HybridDSDLSchema(object):
             for p in pels: elem.subnode(p)
             return elem
         self.type_with_ranges(tchain, p_elem, "length", get_data)
+
+    def union_type(self, tchain, p_elem):
+        elem = SchemaNode.choice(p_elem, occur=2)
+        for t in tchain[0].search("type"):
+            self.type_stmt(t, elem, {})
+        self.handle_substmts(tchain[0], elem)
