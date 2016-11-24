@@ -239,6 +239,8 @@ _validation_map = {
         lambda ctx, s: v_unique_name_defintions(ctx, s),
     ('unique_name', '$has_children'): \
         lambda ctx, s: v_unique_name_children(ctx, s),
+    ('unique_name', 'leaf-list'): \
+        lambda ctx, s: v_unique_name_leaf_list(ctx, s),
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
@@ -1786,6 +1788,18 @@ def v_unique_name_children(ctx, stmt):
 
     for c in chs:
         check(c)
+
+def v_unique_name_leaf_list(ctx, stmt):
+    """Make sure config true leaf-lists do nothave duplicate defaults"""
+
+    if not stmt.i_config:
+        return
+    seen = []
+    for defval in stmt.i_default:
+        if defval in seen:
+            err_add(ctx.errors, stmt.pos, 'DUPLICATE_DEFAULT', (defval))
+        else:
+            seen.append(defval)
 
 ### Reference phase
 
