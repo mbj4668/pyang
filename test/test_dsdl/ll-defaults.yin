@@ -2,7 +2,6 @@
 <module name="ll-defaults"
         xmlns="urn:ietf:params:xml:ns:yang:yin:1"
         xmlns:test="http://example.com/ll/defaults">
-  <yang-version value="1.1"/>
   <namespace uri="http://example.com/ll/defaults"/>
   <prefix value="df"/>
   <typedef name="myuint8">
