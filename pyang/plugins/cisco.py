@@ -17,7 +17,7 @@ class CiscoPlugin(lint.LintPlugin):
     def __init__(self):
         lint.LintPlugin.__init__(self)
         self.namespace_prefixes = ['http://cisco.com/ns/yang/']
-        self.modulename_prefixes = ['Cisco']
+        self.modulename_prefixes = ['Cisco-IOS-XR', 'Cisco-IOS-XE', 'Cisco-IOS-NXOS']
 
     def add_opts(self, optparser):
         optlist = [
