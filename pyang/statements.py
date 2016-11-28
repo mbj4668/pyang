@@ -1856,9 +1856,6 @@ def v_reference_list(ctx, stmt):
                 if mandatory is not None and mandatory.arg == 'false':
                     err_add(ctx.errors, mandatory.pos,
                             'KEY_HAS_MANDATORY_FALSE', ())
-                when_ = ptr.search_one('when')
-                if when_ is not None:
-                    err_add(ctx.errors, when_.pos, 'KEY_HAS_DEFAULT', ())
 
                 if ptr.i_config != stmt.i_config:
                     err_add(ctx.errors, ptr.search_one('config').pos,
