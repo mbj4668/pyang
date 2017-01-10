@@ -122,6 +122,10 @@ class SchemaNode(object):
         self.annots = []
         self.attr = {}
 
+    def rng_children(self):
+        """Return receiver's children that are not extensions."""
+        return [c for c in self.children if ":" not in c.name]
+
     def serialize_children(self):
         """Return serialization of receiver's children.
         """
@@ -198,7 +202,7 @@ class SchemaNode(object):
         """Return the serialization format for a define node.""" 
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
-        middle = self._chorder() if self.children else "<empty/>%s"
+        middle = self._chorder() if self.rng_children() else "<empty/>%s"
         return (self.start_tag() + self.serialize_annots().replace("%", "%%")
                 + middle + self.end_tag())
 
@@ -213,7 +217,7 @@ class SchemaNode(object):
                 self.attr["nma:default"] = self.default
             else:
                 self.attr["nma:implicit"] = "true"
-        middle = self._chorder() if self.children else "<empty/>%s"
+        middle = self._chorder() if self.rng_children() else "<empty/>%s"
         fmt = (self.start_tag() + self.serialize_annots().replace("%", "%%") +
                middle + self.end_tag())
         if (occ == 2 or self.parent.name == "choice"
@@ -245,14 +249,14 @@ class SchemaNode(object):
             ord_ = "oneOrMore"
             if int(self.minEl) > 1:
                 self.attr["nma:min-elements"] = self.minEl
-        middle = self._chorder() if self.children else "<empty/>%s"
+        middle = self._chorder() if self.rng_children() else "<empty/>%s"
         return ("<" + ord_ + ">" + self.start_tag("element") +
                 (self.serialize_annots() + keys).replace("%", "%%")  +
                 middle + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self, occur):
         """Return the serialization format for a choice node.""" 
-        middle = "%s" if self.children else "<empty/>%s"
+        middle = "%s" if self.rng_children() else "<empty/>%s"
         fmt = self.start_tag() + middle + self.end_tag()
         if self.occur != 2:
             return "<optional>" + fmt + "</optional>"
@@ -263,7 +267,7 @@ class SchemaNode(object):
         """Return the serialization format for a case node.""" 
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
-        ccnt = len(self.children)
+        ccnt = len(self.rng_children())
         if ccnt == 0: return "<empty/>%s"
         if ccnt == 1 or not self.interleave:
             return self.start_tag("group") + "%s" + self.end_tag("group")
