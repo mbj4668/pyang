@@ -2092,7 +2092,7 @@ def v_reference_deviate(ctx, stmt):
                     t.substmts.append(c)
             else:
                 # multi-valued keyword; just add the statement if it is valid
-                if t.keyword not in _valid_deviations[c.keyword]:
+                if not hasattr(c, 'i_extension') and t.keyword not in _valid_deviations[c.keyword]:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
                             c.keyword)
                 else:
