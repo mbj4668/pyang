@@ -262,6 +262,10 @@ error_codes = \
     'ILLEGAL_ESCAPE':
       (1,
        'the escape sequence "\%s" is illegal in double quoted strings'),
+    'ILLEGAL_ESCAPE_WARN':
+      (4,
+       'the escape sequence "\%s" is unsafe in double quoted strings' \
+       ' - pass the flag --lax-quote-checks to avoid this warning'),
     'UNIQUE_IS_KEY':
       (4,
        'all keys in the list are redundantly present in the unique statement'),

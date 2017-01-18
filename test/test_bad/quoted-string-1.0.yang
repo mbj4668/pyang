@@ -1,5 +1,4 @@
 module quoted-string-1.0 {
-  yang-version 1;
   namespace urn:example:qs;
   prefix qs;
 
@@ -7,5 +6,9 @@ module quoted-string-1.0 {
     "Newline is ok.\nAnd tab\t, and a slash\\, and a
      double quote \".";
 
+  container x {
+    description
+      "But nothing else! \'."; // this is a warning
+  }
 }
 

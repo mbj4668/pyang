@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2016-06-16
+.\"      Date: 2016-11-02
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.7
+.\"    Source: pyang-1.7.1
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2016\-06\-16" "pyang\-1\&.7" "pyang manual"
+.TH "PYANG" "1" "2016\-11\-02" "pyang\-1\&.7\&.1" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -196,6 +196,13 @@ Validate the module(s) according to the generic YANG guideline as specified in
 .RS 4
 Validate the module(s) like
 \fB\-\-lint\fR, and in addition verifies that the namespace and module name follow the IETF conventions\&.
+.RE
+.PP
+\fB\-\-lax\-quote\-checks\fR
+.RS 4
+Lax checks of backslashes in double quoted strings in YANG version 1 modules\&. RFC 6020 does not clearly define how to handle backslahes within double quoted strings, when the character after the backslash is not one of the characters listed in Section 6\&.1\&.3 in RFC 6020\&.
+.sp
+Earlier versions of pyang silently accepted such escape sequences, but the current version treats this as an error, just like it is defined in YANG 1\&.1\&. Passing this flag to pyang makes pyang silently accept such escape sequences\&.
 .RE
 .PP
 \fB\-\-lax\-xpath\-checks\fR
@@ -831,7 +838,7 @@ is a slash ("/") separated path to a subtree to print\&. For example "/nacm/grou
           Print the top\-level groupings defined in the module\&.
         .RE
 .PP
-\fB\-\-tree\-max\-length\fR \fImaxlen\fR
+\fB\-\-tree\-line\-length\fR \fImaxlen\fR
 .RS 4
 
           Try to break lines so they are no longer than

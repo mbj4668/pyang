@@ -38,6 +38,7 @@ class Context(object):
         self.max_line_len = None
         self.max_identifier_len = None
         self.implicit_errors = True
+        self.lax_quote_checks = False
         self.lax_xpath_checks = False
         self.deviation_modules = []
         self.features = {}
