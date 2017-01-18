@@ -1,3 +1,9 @@
+   ???   - ???
+         added a warning for unsafe escape sequences in double quoted
+           strings.
+         added --lax-quote-checks to turn of the warning for unsafe
+           escape sequences.
+
    1.7.1 - 2016-11-02
          added support for RFC 7952, metadata annotations
          added --tree-max-length option
