@@ -207,7 +207,6 @@ class YangTokenizer(object):
                         elif self.strict_quoting:
                             error.err_add(self.errors, self.pos,
                                           'ILLEGAL_ESCAPE_WARN', self.buf[i+1])
-                            raise error.Abort
                         if special != None:
                             strs.append(self.buf[start:i])
                             strs.append(special)
