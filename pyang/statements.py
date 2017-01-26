@@ -2092,9 +2092,27 @@ def v_reference_deviate(ctx, stmt):
                     t.substmts.append(c)
             else:
                 # multi-valued keyword; just add the statement if it is valid
-                if t.keyword not in _valid_deviations[c.keyword]:
+                if (c.keyword not in _valid_deviations):
+                    if util.is_prefixed(c.keyword):
+                        (prefix, name) = c.keyword
+                        pmodule = prefix_to_module(c.i_module, prefix, c.pos,
+                                                   [])
+                        if (pmodule is not None and
+                            pmodule.modulename in grammar.extension_modules):
+                            err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
+                                    c.keyword)
+
+                        else:
+                            # unknown module, let's assume the extension can
+                            # be deviated
+                            t.substmts.append(c)
+                    else:
+                        err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
+                                c.keyword)
+                elif t.keyword not in _valid_deviations[c.keyword]:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
                             c.keyword)
+
                 else:
                     t.substmts.append(c)
     else: # delete or replace
