@@ -262,6 +262,10 @@ error_codes = \
     'ILLEGAL_ESCAPE':
       (1,
        'the escape sequence "\%s" is illegal in double quoted strings'),
+    'ILLEGAL_ESCAPE_WARN':
+      (4,
+       'the escape sequence "\%s" is unsafe in double quoted strings' \
+       ' - pass the flag --lax-quote-checks to avoid this warning'),
     'UNIQUE_IS_KEY':
       (4,
        'all keys in the list are redundantly present in the unique statement'),
@@ -368,6 +372,9 @@ error_codes = \
       (1,
        'a \'default\' value cannot be given when \'min-elements\' is'
        ' greater than 0'),
+    'DUPLICATE_DEFAULT':
+        (1,
+         'the default value %s is given twice in the leaf list'),
     'CURRENT_USES_DEPRECATED':
       (2,
        'the %s definiton is current, but the %s it references is deprecated'),

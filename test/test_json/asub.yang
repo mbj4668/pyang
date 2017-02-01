@@ -1,5 +1,4 @@
 submodule asub {
-  yang-version 1.1;
   belongs-to amod {
     prefix a;
   }

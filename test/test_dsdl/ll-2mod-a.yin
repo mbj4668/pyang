@@ -2,7 +2,6 @@
 <module name="ll-2mod-a"
         xmlns="urn:ietf:params:xml:ns:yang:yin:1"
         xmlns:ta="http://example.com/ll/2mod-a">
-  <yang-version value="1.1"/>
   <namespace uri="http://example.com/ll/2mod-a"/>
   <prefix value="ta"/>
   <import module="ietf-yang-types">

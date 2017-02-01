@@ -11,7 +11,8 @@ import sys
 
 class YangTokenizer(object):
     def __init__(self, text, pos, errors,
-                 max_line_len=None, keep_comments=False):
+                 max_line_len=None, keep_comments=False,
+                 strict_quoting = False):
         self.lines = collections.deque(text.splitlines(True))
         self.pos = pos
         self.buf = ''
@@ -23,7 +24,8 @@ class YangTokenizer(object):
             self.max_line_len = None
         self.keep_comments = keep_comments
         self.errors = errors
-        self.strict_quoting = False
+        self.is_1_1 = False
+        self.strict_quoting = strict_quoting
 
     def readline(self):
         if len(self.lines) == 0:
@@ -198,11 +200,13 @@ class YangTokenizer(object):
                             special = '\"'
                         elif self.buf[i+1] == '\\':
                             special = '\\'
-                        elif self.strict_quoting:
+                        elif self.strict_quoting and self.is_1_1:
                             error.err_add(self.errors, self.pos,
                                           'ILLEGAL_ESCAPE', self.buf[i+1])
                             raise error.Abort
-
+                        elif self.strict_quoting:
+                            error.err_add(self.errors, self.pos,
+                                          'ILLEGAL_ESCAPE_WARN', self.buf[i+1])
                         if special != None:
                             strs.append(self.buf[start:i])
                             strs.append(special)
@@ -252,10 +256,10 @@ class YangParser(object):
         self.ctx = ctx
         self.pos = error.Position(ref)
         self.top = None
-
         try:
             self.tokenizer = YangTokenizer(text, self.pos, ctx.errors,
-                                           ctx.max_line_len, ctx.keep_comments)
+                                           ctx.max_line_len, ctx.keep_comments,
+                                           not ctx.lax_quote_checks)
             stmt = self._parse_statement(None)
         except error.Abort:
             return None
@@ -295,6 +299,7 @@ class YangParser(object):
             arg = self.tokenizer.get_string()
         # check for YANG 1.1
         if keywd == 'yang-version' and arg == '1.1':
+            self.tokenizer.is_1_1 = True;
             self.tokenizer.strict_quoting = True
         stmt = statements.Statement(self.top, parent, self.pos, keywd, arg)
         if self.top is None:

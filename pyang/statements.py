@@ -239,6 +239,8 @@ _validation_map = {
         lambda ctx, s: v_unique_name_defintions(ctx, s),
     ('unique_name', '$has_children'): \
         lambda ctx, s: v_unique_name_children(ctx, s),
+    ('unique_name', 'leaf-list'): \
+        lambda ctx, s: v_unique_name_leaf_list(ctx, s),
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
@@ -1561,7 +1563,7 @@ def v_expand_1_uses(ctx, stmt):
     for ch in refined:
         # after refinement, we need to re-run some of the tests, e.g. if
         # the refinement added a default value it needs to be checked.
-        v_recheck_target(ctx, ch)
+        v_recheck_target(ctx, ch, reference=False)
 
 def v_inherit_properties(ctx, stmt, child=None):
     def iter(s, config_value, allow_explicit):
@@ -1787,6 +1789,18 @@ def v_unique_name_children(ctx, stmt):
     for c in chs:
         check(c)
 
+def v_unique_name_leaf_list(ctx, stmt):
+    """Make sure config true leaf-lists do nothave duplicate defaults"""
+
+    if not stmt.i_config:
+        return
+    seen = []
+    for defval in stmt.i_default:
+        if defval in seen:
+            err_add(ctx.errors, stmt.pos, 'DUPLICATE_DEFAULT', (defval))
+        else:
+            seen.append(defval)
+
 ### Reference phase
 
 def v_reference_list(ctx, stmt):
@@ -1842,9 +1856,6 @@ def v_reference_list(ctx, stmt):
                 if mandatory is not None and mandatory.arg == 'false':
                     err_add(ctx.errors, mandatory.pos,
                             'KEY_HAS_MANDATORY_FALSE', ())
-                when_ = ptr.search_one('when')
-                if when_ is not None:
-                    err_add(ctx.errors, when_.pos, 'KEY_HAS_DEFAULT', ())
 
                 if ptr.i_config != stmt.i_config:
                     err_add(ctx.errors, ptr.search_one('config').pos,
@@ -2081,9 +2092,27 @@ def v_reference_deviate(ctx, stmt):
                     t.substmts.append(c)
             else:
                 # multi-valued keyword; just add the statement if it is valid
-                if t.keyword not in _valid_deviations[c.keyword]:
+                if (c.keyword not in _valid_deviations):
+                    if util.is_prefixed(c.keyword):
+                        (prefix, name) = c.keyword
+                        pmodule = prefix_to_module(c.i_module, prefix, c.pos,
+                                                   [])
+                        if (pmodule is not None and
+                            pmodule.modulename in grammar.extension_modules):
+                            err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
+                                    c.keyword)
+
+                        else:
+                            # unknown module, let's assume the extension can
+                            # be deviated
+                            t.substmts.append(c)
+                    else:
+                        err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
+                                c.keyword)
+                elif t.keyword not in _valid_deviations[c.keyword]:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
                             c.keyword)
+
                 else:
                     t.substmts.append(c)
     else: # delete or replace
@@ -2152,18 +2181,21 @@ def v_reference_deviation_4(ctx, stmt):
         return
     if hasattr(stmt.i_target_node, 'i_this_not_supported'):
         return
-    v_recheck_target(ctx, stmt.i_target_node)
+    v_recheck_target(ctx, stmt.i_target_node, reference=True)
 
-def v_recheck_target(ctx, t):
+def v_recheck_target(ctx, t, reference=False):
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
-        v_reference_leaf_leafref(ctx, t)
+        if reference:
+            v_reference_leaf_leafref(ctx, t)
     elif t.keyword == 'leaf-list':
         v_type_leaf_list(ctx, t)
-        v_reference_leaf_leafref(ctx, t)
+        if reference:
+            v_reference_leaf_leafref(ctx, t)
     elif t.keyword == 'list':
         t.i_is_validated = False
-        v_reference_list(ctx, t)
+        if reference:
+            v_reference_list(ctx, t)
 
 ### Unused definitions phase
 
@@ -2686,7 +2718,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             err_add(ctx.errors, pathpos, 'LEAFREF_MULTIPLE_KEYS',
                     (ptr.i_module.i_modulename, ptr.arg, stmt.arg, stmt.pos))
         if ((hasattr(stmt, 'i_config') and stmt.i_config == True) and
-            ptr.i_config == False and not accept_non_config_target):
+            hasattr(ptr, 'i_config') and ptr.i_config == False
+            and not accept_non_config_target):
             err_add(ctx.errors, pathpos, 'LEAFREF_BAD_CONFIG',
                     (stmt.arg, ptr.arg, ptr.pos))
         if ptr == stmt:

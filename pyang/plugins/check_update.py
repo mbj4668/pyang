@@ -133,6 +133,8 @@ def check_update(ctx, oldfilename, newmod):
     oldrepo = pyang.FileRepository(oldpath, use_env=False)
     oldctx = pyang.Context(oldrepo)
     oldctx.opts = ctx.opts
+    oldctx.lax_xpath_checks = ctx.lax_xpath_checks
+    oldctx.lax_quote_checks = ctx.lax_quote_checks
 
     if ctx.opts.verbose:
         print("Loading old modules from:")

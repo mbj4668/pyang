@@ -2,7 +2,6 @@
 <module name="ll-obu"
         xmlns="urn:ietf:params:xml:ns:yang:yin:1"
         xmlns:test="http://example.com/ll/obu">
-  <yang-version value="1.1"/>
   <namespace uri="http://example.com/ll/obu"/>
   <prefix value="obu"/>
   <container name="users">
