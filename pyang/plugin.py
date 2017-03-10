@@ -2,6 +2,7 @@
 
 import os
 import sys
+import pkg_resources
 
 plugins = []
 """List of registered PyangPlugin instances"""
@@ -14,6 +15,11 @@ def init(plugindirs=[]):
     yang.pyang_plugin_init()
     yin.pyang_plugin_init()
     dsdl.pyang_plugin_init()
+
+    # initialize installed plugins
+    for ep in pkg_resources.iter_entry_points(group='pyang.plugin'):
+        plugin_init = ep.load()
+        plugin_init()
 
     # search for plugins in std directory
     basedir = os.path.split(sys.modules['pyang'].__file__)[0]
