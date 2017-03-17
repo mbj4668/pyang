@@ -1,9 +1,7 @@
 a.yang:8: error: BAD_VALUE
 a.yang:15: error: BAD_VALUE
-a.yang:22: error: BAD_VALUE
-a.yang:28: error: TYPE_VALUE
-a.yang:33: error: TYPE_VALUE
-a.yang:38: error: TYPE_VALUE
-a.yang:44: error: TYPE_VALUE
-a.yang:50: error: TYPE_VALUE
-a.yang:56: error: TYPE_VALUE
+a.yang:21: error: TYPE_VALUE
+a.yang:26: error: TYPE_VALUE
+a.yang:31: error: TYPE_VALUE
+a.yang:37: error: TYPE_VALUE
+a.yang:43: error: TYPE_VALUE
