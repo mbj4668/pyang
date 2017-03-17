@@ -9,13 +9,6 @@ module a {
       }
     }
   }
-  leaf x2 {
-    type enumeration {
-      enum one {
-        value +1;
-      }
-    }
-  }
   leaf u {
     type bits {
       bit one {
@@ -30,7 +23,7 @@ module a {
   }
   leaf y2 {
     type int32 {
-      range "+02 .. 3";
+      range "02 .. 3";
     }
   }
   leaf y3 {
@@ -48,12 +41,6 @@ module a {
     type decimal64 {
       fraction-digits 2;
       range "1.01 .. 02.33";
-    }
-  }
-  leaf z3 {
-    type decimal64 {
-      fraction-digits 2;
-      range "+01.01";
     }
   }
 }
