@@ -204,4 +204,12 @@ module u {
     }
   }
 
+  leaf idref1 {
+    type identityref {
+      base id1;
+      base id2;
+    }
+    default id2; // error; not derived from id1
+  }
+
 }

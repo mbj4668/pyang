@@ -16,6 +16,12 @@ module amod {
     base bogus;
   }
 
+  typedef foo-ref {
+    type leafref {
+      path "/a:top/a:foo";
+    }
+  }
+
   container top {
 
     typedef bool {
@@ -46,9 +52,7 @@ module amod {
       }
     }
     leaf mek {
-      type leafref {
-        path "/a:top/a:foo";
-      }
+      type foo-ref;
     }
     anyxml junk;
     choice ch {

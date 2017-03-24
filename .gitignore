@@ -1,11 +1,14 @@
 MANIFEST
-MANIFEST.in
 TAGS
 build
 dist
+pyang.egg-info  # created during build
+.cache  # created during build
+.python-version
 *.rnc
 schemas.xml
 *.pyc
+*.egg-info
 .coverage*
 /test/test_*/*.dsrl
 /test/test_*/*.rng

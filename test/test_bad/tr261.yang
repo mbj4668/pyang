@@ -1,0 +1,29 @@
+module tr261 {
+  namespace urn:tr261;
+  prefix x;
+
+  grouping a {
+    leaf b {
+      type uint8;
+      mandatory true;
+    }
+  }
+
+  container x {
+    uses a {
+      refine b {
+        default "0"; // error; mandatory and default
+      }
+    }
+  }
+
+  container y {
+    uses a {
+      refine b {
+        default "0";
+        mandatory false;
+      }
+    }
+  }
+
+}

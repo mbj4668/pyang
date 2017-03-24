@@ -1,0 +1,45 @@
+module x {
+  namespace urn:x;
+  prefix x;
+
+
+  grouping p-group {
+    list p {
+      key "name";
+      leaf name {
+        type leafref {
+          path "../config/name";
+        }
+      }
+      //uses config; // this is the right line and compiles fine
+    }
+    uses config; // this line causes assertion
+  }
+  grouping config {
+    container config {
+    }
+  }
+
+  grouping name-group {
+    leaf name {
+      type string;
+    }
+  }
+
+  augment /b/ps/p/config {
+      uses name-group;
+  }
+
+  grouping top{
+    container b {
+      presence "test";
+
+      container ps {
+        uses p-group;
+      }
+    }
+  }
+
+  uses top;
+
+}

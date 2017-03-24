@@ -1,0 +1,15 @@
+module x {
+//  yang-version 1.1;
+  namespace "urn:x";
+  prefix x;
+
+  leaf foo {
+    type enumeration;
+  }
+  leaf bar {
+    type bits;
+  }
+  leaf meh {
+    type identityref;
+  }
+}
