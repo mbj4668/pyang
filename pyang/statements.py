@@ -2800,6 +2800,8 @@ class Statement(object):
             new.parent = parent
         new.substmts = []
         for s in self.substmts:
+            if hasattr(s, 'i_module'):
+                s.i_module = new if new.i_module is None else new.i_module
             if s.keyword in ignore:
                 pass
             elif s.keyword in nocopy:
