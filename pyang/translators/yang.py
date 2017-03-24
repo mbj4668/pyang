@@ -48,9 +48,11 @@ def emit_yang(ctx, hooks, module, fd):
     stmts = module.real_parent.substmts if module.real_parent else [module]
     for (i, stmt) in enumerate(stmts):
         next_stmt = stmts[i+1] if (i < len(stmts) - 1) else None
-        emit_stmt(ctx, hooks, stmt, fd, 0, None, next_stmt, False, '', '  ')
+        emit_stmt(ctx, hooks, stmt, fd, 0, None, None, next_stmt, False,
+                  '', '  ')
 
-_force_newline_arg = ('description', 'contact', 'organization', 'reference')
+_force_newline_arg = ('description', 'contact', 'organization', 'reference',
+                      'error-message')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'non-negative-integer', 'date', 'ordered-by-arg',
                        'fraction-digits-arg', 'deviate-arg', 'version',
@@ -94,14 +96,39 @@ _keyword_with_trailing_newline = (
     'extension',
     )
 
-def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, next_stmt,
-              no_indent, indent, indentstep):
-    hooks.emit_stmt_hook(ctx, stmt, level)
+def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, prev_stmt,
+              next_stmt, no_indent, indent, indentstep):
+    (no_indent, replstmts) = _emit_stmt(ctx, hooks, stmt, fd, level,
+                                        prev_kwd_class, prev_stmt, next_stmt,
+                                        no_indent, indent, indentstep)
+    
+    # if None, the statement has been emitted and no further action is needed
+    if replstmts is None:
+        return no_indent
+
+    # otherwise the statement is to be replaced with the returned (possibly
+    # empty) list of statements
+    # XXX statement replacement is not supported recursively; it could be, but
+    #     this is error-prone and it's not currently needed
+    for (i, replstmt) in enumerate(replstmts):
+        p = prev_stmt if i == 0 else None
+        n = replstmts[i+1] if (i < len(replstmts) - 1) else next_stmt
+        (no_indent, _) = _emit_stmt(ctx, hooks, replstmt, fd, level,
+                                    prev_kwd_class, p, n, no_indent, indent,
+                                    indentstep)
+
+    return no_indent
+
+def _emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, prev_stmt,
+               next_stmt, no_indent, indent, indentstep):
+    replstmts = hooks.emit_stmt_hook(ctx, stmt, level)
+    if replstmts is not None:
+        return (no_indent, replstmts)
 
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
-                return
+                return (no_indent, None)
 
     if util.is_prefixed(stmt.raw_keyword):
         (prefix, identifier) = stmt.raw_keyword
@@ -109,11 +136,6 @@ def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, next_stmt,
     else:
         keyword = stmt.keyword
 
-    # XXX is this safe? parent is clearly manipulated by augment etc; better
-    #     to pass it in as (yet another) argument?
-    prev_stmt = stmt.parent \
-                if stmt.parent and stmt.parent.substmts and \
-                   stmt.parent.substmts[0] is stmt else None
     newlines_before = get_newlines_before(prev_stmt, stmt) \
                       if ctx.opts.yang_keep_blank_lines else 0
     if newlines_before > 0:
@@ -129,21 +151,40 @@ def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, next_stmt,
     newlines_after = get_newlines_after(stmt, next_stmt) \
                      if ctx.opts.yang_keep_blank_lines else 1
     stmt_term = newlines_after * '\n' if newlines_after > 0 else ' '
-    # XXX uncomment this to debug --yang-keep-blank-lines
-    #stmt_term = ' ' + pos_range(stmt) + ' ' + str(newlines_after) + stmt_term
+
+    # XXX uncomment these lines to debug --yang-keep-blank-lines
+    #if ctx.opts.yang_keep_blank_lines:
+    #    stmt_term = " %s %d %d %s" % (pos_range(stmt), newlines_before,
+    #                                  newlines_after, stmt_term)
 
     if keyword == '_comment':
         emit_comment(stmt.arg, fd, '' if no_indent else indent)
         fd.write(stmt_term)
-        return
+        return (False, None)
 
     fd.write(indent + keyword)
     if stmt.arg != None:
         if keyword in grammar.stmt_map:
+            # XXX for some statements, don't quote arguments if not necessary
+            non_quote = False
+            if keyword in ['max-elements']:
+                mustquote_strings = [" ", "\t", "\n", "'", '"', ";", "{", "}",
+                                     "//", "/*", "*/"]
+                non_quote = (len([True for c in stmt.arg
+                                  if c in mustquote_strings]) == 0)
             (arg_type, _subspec) = grammar.stmt_map[keyword]
-            if arg_type in _non_quote_arg_type:
+            if arg_type in _non_quote_arg_type or non_quote:
                 fd.write(' ' + stmt.arg)
-            elif keyword in ['augment', 'must', 'path', 'pattern', 'when']:
+            # XXX don't use smart quoting for 'must' and 'when' because assume
+            #     that multi-line strings will be used for these statements;
+            #     this can't be done for 'pattern' because space is significant
+            #     (but do if their arguments contain double quotes, so as to
+            #     avoid escaped double quotes!)
+            # XXX in order to guarantee that pattern strings can be preserved
+            #     unaltered, need a way a preserving the original strings, or
+            #     at minimum noting the separate concatenated sections
+            elif keyword in ['augment', 'path', 'pattern'] or \
+                 (keyword in ['must', 'when'] and '"' in stmt.arg):
                 # XXX is there a generic way of knowing which statements
                 #     need this treatment?
                 emit_arg_squote(keyword, stmt.arg, fd, indent, indentstep,
@@ -164,12 +205,14 @@ def emit_stmt(ctx, hooks, stmt, fd, level, prev_kwd_class, next_stmt,
         if level == 0:
             kwd_class = 'header'
         for (i, s) in enumerate(substmts):
+            p = stmt if i == 0 else None
             n = substmts[i+1] if (i < len(substmts) - 1) else None
-            no_indent = emit_stmt(ctx, hooks, s, fd, level + 1, kwd_class, n,
-                                  no_indent, indent + indentstep, indentstep)
+            no_indent = emit_stmt(ctx, hooks, s, fd, level + 1, kwd_class, p,
+                                  n, no_indent, indent + indentstep,
+                                  indentstep)
             kwd_class = get_kwd_class(s.keyword)
         fd.write(indent + '}' + stmt_term)
-    return (newlines_after == 0)
+    return ((newlines_after == 0), None)
 
 def emit_arg_squote(keyword, arg, fd, indent, indentstep, max_line_len):
     """Heuristically pretty print the argument with smart quotes"""
@@ -182,13 +225,6 @@ def emit_arg_squote(keyword, arg, fd, indent, indentstep, max_line_len):
         arg = arg.replace('\\', r'\\')
         arg = arg.replace('"', r'\"')
         arg = arg.replace('\t', r'\t')
-
-    # if there aren't any characters that require quoting, don't quote
-    # XXX no, it's more complicated than this; will need to quote anyway
-    #     if have to split the argument into multiple lines
-    #mustquote = [" ", "\t", "\n", "'", '"', ";", "{", "}", "//", "/*", "*/"]
-    #if not [True for c in arg if c in mustquote]:
-    #    quote = ""
 
     # XXX allow for " {" even though the statement might not have sub-
     #     statements; don't consider trailing comments
