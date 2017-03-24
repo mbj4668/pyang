@@ -1,0 +1,28 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  rpc a {
+    input {
+      uses g {
+        refine b {
+          mandatory true;
+        }
+      }
+    }
+  }
+
+  container x {
+    leaf y {
+      type int32;
+    }
+  }
+
+  grouping g {
+    leaf b {
+      type leafref {
+        path "/x/y";
+      }
+    }
+  }
+}

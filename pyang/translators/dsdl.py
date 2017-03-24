@@ -231,6 +231,7 @@ class HybridDSDLSchema(object):
     def __init__(self):
         """Initialize the dispatch dictionaries."""
         self.stmt_handler = {
+            "action": self.noop,
             "anyxml": self.anyxml_stmt,
             "argument": self.noop,
             "augment": self.noop,
@@ -361,6 +362,10 @@ class HybridDSDLSchema(object):
         metadata = []
         self.has_meta = False
         for module in modules[0].i_ctx.modules.values():
+            yver = module.search_one("yang-version")
+            if yver and float(yver.arg) > 1.0:
+                raise error.EmitError(
+                    "DSDL plugin supports only YANG version 1.")
             if module.keyword == "module":
                 for idn in module.i_identities.values():
                     self.register_identity(idn)

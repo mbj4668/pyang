@@ -203,11 +203,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
     def get_types(self, node):
         res = []
         def resolve(typ):
-            if typ is None:
-                res.append("string") # default for annotations
-            elif typ.arg == "leafref":
-                resolve(typ.i_type_spec.i_target_node.search_one("type"))
-            elif typ.arg == "union":
+            if typ.arg == "union":
                 for ut in typ.i_type_spec.types: resolve(ut)
             elif typ.arg == "decimal64":
                 res.append("decimal@" +
@@ -216,7 +212,11 @@ class JsonXslPlugin(plugin.PyangPlugin):
                 resolve(typ.i_typedef.search_one("type"))
             else:
                 res.append(typ.arg)
-        resolve(node.search_one("type"))
+        typ = node.search_one("type")
+        if typ.arg == "leafref":
+            resolve(node.i_leafref_ptr[0].search_one("type"))
+        else:
+            resolve(typ)
         return res
 
     def qname(self, node):

@@ -57,7 +57,7 @@ class DependPlugin(plugin.PyangPlugin):
         # cannot do this unless everything is ok for our module
         modulenames = [m.arg for m in modules]
         for (epos, etag, eargs) in ctx.errors:
-            if (epos.top.arg in modulenames and
+            if ((epos.top is None or epos.top.arg in modulenames) and
                 error.is_error(error.err_level(etag))):
                 raise error.EmitError("%s contains errors" % epos.top.arg)
         emit_depend(ctx, modules, fd)

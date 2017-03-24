@@ -1,0 +1,15 @@
+module my-x {
+  namespace urn:my-x;
+  prefix x;
+
+  include my-xs1;
+  include my-xs2;
+
+  organization "-";
+  contact "-";
+  description "-";
+
+  revision 2016-09-27 {
+    reference "-";
+  }
+}

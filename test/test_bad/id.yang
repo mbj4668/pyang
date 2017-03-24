@@ -44,17 +44,17 @@ module id {
     base "crypto:crypto-alg";
     description "DES crypto algorithm";
   }
-  
+
   identity des3 {
     base "crypto:crypto-alg";
     description "Triple DES crypto algorithm";
   }
-  
+
   identity des4 {
     base "crypto:crypto-alg2"; // error: not defined
     description "Triple DES crypto algorithm";
   }
-  
+
   identity des5 {
     base "crypto-alg2"; // error: not defined
     description "Triple DES crypto algorithm";
@@ -104,7 +104,7 @@ module id {
     type identityref {
       base crypto:crypto-alg;
     }
-    default crypto:crypto-alg;
+    default crypto:crypto-alg; // error; not derived from itself
   }
 
   leaf x3 {
