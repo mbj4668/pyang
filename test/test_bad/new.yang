@@ -143,4 +143,12 @@ module new {
     }
   }
 
+  leaf idleaf1 {
+    type identityref {
+      base id2;
+      base id1; // error; 1.1 syntax
+    }
+    default id3;
+  }
+
 }

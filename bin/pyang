@@ -125,6 +125,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="strict",
                              action="store_true",
                              help="Force strict YANG compliance."),
+        optparse.make_option("--lax-quote-checks",
+                             dest="lax_quote_checks",
+                             action="store_true",
+                             help="Lax check of backslash in quoted strings."),
         optparse.make_option("--lax-xpath-checks",
                              dest="lax_xpath_checks",
                              action="store_true",
@@ -222,6 +226,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.max_identifier_len = o.max_identifier_len
     ctx.trim_yin = o.trim_yin
     ctx.lax_xpath_checks = o.lax_xpath_checks
+    ctx.lax_quote_checks = o.lax_quote_checks
     ctx.strict = o.strict
 
     # make a map of features to support, per module
@@ -416,6 +421,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 fd.close()
                 os.remove(tmpfile)
             sys.exit(e.exit_code)
+        except:
+            if tmpfile != None:
+                fd.close()
+                os.remove(tmpfile)
+            raise
         if tmpfile != None:
             fd.close()
             os.rename(tmpfile, o.outfile)

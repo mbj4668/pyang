@@ -51,7 +51,9 @@ def is_local(identifier):
     return type(identifier) == type('') or type(identifier) == type(u(''))
 
 def keyword_to_str(keyword):
-    if is_prefixed(keyword):
+    if keyword == '__tmp_augment__':
+        return "undefined"
+    elif is_prefixed(keyword):
         (prefix, keyword) = keyword
         return prefix + ":" + keyword
     else:

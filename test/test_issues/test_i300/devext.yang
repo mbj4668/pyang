@@ -1,0 +1,13 @@
+module devext {
+  namespace "http://example.com/devext";
+  prefix de;
+  import ietf-interfaces {
+    prefix if;
+  }
+  extension foo;
+  deviation "/if:interfaces" {
+    deviate "add" {
+      de:foo;
+    }
+  }
+}

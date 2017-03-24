@@ -1,0 +1,12 @@
+module leafref2-1.1 {
+  yang-version 1.1;
+  namespace urn:example:ll2;
+  prefix ll2;
+
+  import leafref-1.1 {
+    prefix ll;
+  }
+
+  uses ll:x;
+
+}

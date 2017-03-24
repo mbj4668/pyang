@@ -75,6 +75,12 @@ module d {
       default x; // error: mandatory and default
       leaf x { type string; }
       leaf y { type string; }
+      case z {
+        must "/x"; // error: must not allowed in case
+        leaf z {
+          type string;
+        }
+      }
     }
   }
 }

@@ -1,0 +1,19 @@
+module test-dev {
+  yang-version 1.1;
+
+  namespace urn:test-dev;
+
+  prefix test-dev;
+
+  import test {
+    prefix t;
+  }
+
+  deviation /t:test-root/t:test-root-child/t:state {
+    deviate not-supported;
+  }
+
+  deviation /t:test-root/t:test-root-child-state {
+    deviate not-supported;
+  }
+}

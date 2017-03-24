@@ -44,13 +44,13 @@ class LintPlugin(plugin.PyangPlugin):
                                  help="Validate the module(s) according to " \
                                  "RFC 6087 rules."),
             optparse.make_option("--lint-namespace-prefix",
-                                 dest="namespace_prefixes",
+                                 dest="lint_namespace_prefixes",
                                  default=[],
                                  action="append",
                                  help="Validate that the module's namespace " \
                                      "matches one of the given prefixes."),
             optparse.make_option("--lint-modulename-prefix",
-                                 dest="modulename_prefixes",
+                                 dest="lint_modulename_prefixes",
                                  default=[],
                                  action="append",
                                  help="Validate that the module's name " \
@@ -72,8 +72,8 @@ class LintPlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
         # always add additional prefixes given on the command line
-        self.namespace_prefixes.extend(ctx.opts.namespace_prefixes)
-        self.modulename_prefixes.extend(ctx.opts.modulename_prefixes)
+        self.namespace_prefixes.extend(ctx.opts.lint_namespace_prefixes)
+        self.modulename_prefixes.extend(ctx.opts.lint_modulename_prefixes)
 
         # register our grammar validation funs
 
@@ -247,6 +247,9 @@ def v_chk_module_name(ctx, stmt, modulename_prefixes):
         err_add(ctx.errors, stmt.pos, 'LINT_NO_MODULENAME_PREFIX', ())
 
 def v_chk_include(ctx, stmt):
+    if stmt.i_orig_module.keyword != 'module':
+        # the rule applies only to modules
+        return
     latest = stmt.i_orig_module.i_latest_revision
     if latest is None:
         return

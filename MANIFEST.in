@@ -1,0 +1,8 @@
+include etc/bash_completion.d/pyang
+recursive-include modules *
+recursive-include xslt *
+recursive-include schema *
+recursive-include tools/images *
+recursive-include man *
+include LICENSE
+include env.sh

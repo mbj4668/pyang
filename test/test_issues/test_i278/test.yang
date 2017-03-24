@@ -1,0 +1,21 @@
+module test {
+  yang-version 1.1;
+  namespace "http://example.com/test";
+  prefix t;
+
+  typedef foo-ref {
+    type leafref {
+      path "/foo/clef";
+    }
+  }
+
+  list foo {
+    key "clef";
+    leaf clef {
+      type string;
+    }
+  }
+  leaf bar {
+    type foo-ref;
+  }
+}
