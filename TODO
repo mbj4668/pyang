@@ -1,8 +1,5 @@
   o  add validation of XPath (lower prio) (when, must)
 
-  o  add more stuff to XSD output:
-     o  use substitutiongroup for augment
-
   o  add validation of instance-identifier defaults
 
   o  move all plugin API functions to plugin.py
@@ -15,4 +12,3 @@ Optimizations:
      but do it when something is used.  even better would be to lazy
      validate.  hmm, maybe separate the side-effect free validation
      functions from the functions that have side-effect (like expand).
-  

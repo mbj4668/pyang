@@ -1,0 +1,22 @@
+module example-4-b {
+
+  yang-version "1.1";
+
+  namespace "http://example.com/example-4-b";
+
+  prefix "ex4b";
+
+  import example-4-a {
+    prefix "ex4a";
+  }
+
+  augment "/ex4a:bag/ex4a:opts" {
+//    case fooref {
+      leaf fooref {
+        type leafref {
+          path "../ex4a:foo";
+        }
+      }
+//    }
+  }
+}

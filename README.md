@@ -2,6 +2,10 @@
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## News ##
+**2016-11-02 - Version 1.7.1 released **
+
+  * This is mainly a bug fix release, see CHANGES for details.
+
 **2016-06-16 - Version 1.7 released **
   * Support for YANG 1.1, with the exception of the new submodule scoping rules. 
 
@@ -58,7 +62,7 @@
 
 ## Overview ##
 
-YANG ([RFC 6020](http://tools.ietf.org/html/rfc6020)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
+YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
 
 pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
 
@@ -70,6 +74,8 @@ pyang is compatible with the following IETF RFCs:
   * [RFC 6087](http://tools.ietf.org/html/rfc6087)
   * [RFC 6110](http://tools.ietf.org/html/rfc6110)
   * [RFC 6643](http://tools.ietf.org/html/rfc6643)
+  * [RFC 7950](http://tools.ietf.org/html/rfc7950)
+  * [RFC 7952](http://tools.ietf.org/html/rfc7952)
 
 ## Features ##
 

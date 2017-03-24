@@ -6,7 +6,6 @@ u.yang:23: error: UNEXPECTED_KEYWORD
 u.yang:36: error: TYPE_VALUE
 u.yang:55: error: KEY_BAD_SUBSTMT
 u.yang:56: error: KEY_BAD_SUBSTMT
-u.yang:56: warning: KEY_HAS_DEFAULT
 u.yang:65: error: IDENTITY_NOT_FOUND
 u.yang:71: error: TYPE_VALUE
 u.yang:77: error: TYPE_VALUE
@@ -22,3 +21,4 @@ u.yang:169: error: TYPE_VALUE
 u.yang:175: error: BAD_BIT_POSITION
 u.yang:187: error: BAD_BIT_POSITION
 u.yang:203: error: TYPE_VALUE
+u.yang:212: error: TYPE_VALUE

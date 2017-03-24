@@ -1,0 +1,12 @@
+module x {
+  namespace "urn:x";
+  prefix x;
+
+  feature x;
+
+  container foo;
+  augment "/foo" {
+    if-feature "x";
+    container bar;
+  }
+}

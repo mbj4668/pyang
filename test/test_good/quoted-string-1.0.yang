@@ -7,9 +7,5 @@ module quoted-string-1.0 {
     "Newline is ok.\nAnd tab\t, and a slash\\, and a
      double quote \".";
 
-  container x {
-    description
-      "And this is ok: \'.";
-  }
 }
 

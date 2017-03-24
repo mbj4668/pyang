@@ -1,11 +1,11 @@
 module a {
+  yang-version 1.1;
   namespace urn:a;
   prefix a;
 
   import b {
     prefix b2;
   }
-
   revision 2014-04-01;
 
   typedef my-union1 {
@@ -106,6 +106,7 @@ module a {
         leaf yy {
           type identityref {
             base xx;
+            base yy;
           }
         }
       }

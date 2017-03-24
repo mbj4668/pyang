@@ -1,3 +1,30 @@
+   ???   - ???
+         added a warning for unsafe escape sequences in double quoted
+           strings.
+         added --lax-quote-checks to turn of the warning for unsafe
+           escape sequences.
+
+   1.7.1 - 2016-11-02
+         added support for RFC 7952, metadata annotations
+         added --tree-max-length option
+
+         #126 - correctly validate implicitly added YIN files
+         #218 - do not copy if-feature to augment children
+         #225 - improve default implicit YANG_MODPATH discovery
+         #232 - bit default fix
+         #259 - handle multiple bases in identityref
+         #261 - detect mandatory and default after refine
+         #262 - fixed chorthand case expansion
+         #263 - don't validate nodes that are not-supported
+         #265 - an identity is not derived from itself
+         #267 - generate error if config property is added in deviation
+         #271 - do not warn about submodule revision mismatch
+         #272 - incorrect handling of unprefixed paths in leafrefs in
+                groupings
+         #276 - detect enumeration/bits/identityref w/o enum/bit/base
+         #277 - handle shorthand choice correctly
+
+
    1.7 - 2016-06-16
          added support for YANG 1.1
          added command line flag --ignore-error, thanks to Nick Weeds
