@@ -9,6 +9,7 @@ d.yang:64: error: TYPE_VALUE
 d.yang:66: error: MULTIPLE_REFINE
 d.yang:70: error: DUPLICATE_CHILD_NAME
 d.yang:73: error: DEFAULT_AND_MANDATORY
+d.yang:79: error: UNEXPECTED_KEYWORD
 e.yang:14: warning: UNUSED_TYPEDEF
 e.yang:17: warning: UNUSED_GROUPING
 e.yang:64: error: INVALID_CONFIG

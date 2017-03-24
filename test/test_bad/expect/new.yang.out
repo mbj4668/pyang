@@ -26,3 +26,4 @@ new.yang:118: error: BAD_TYPE_IN_UNION
 new.yang:127: error: BAD_TYPE_IN_KEY
 new.yang:135: error: LEAFREF_IDENTIFIER_NOT_FOUND
 new.yang:142: error: BAD_RESTRICTION
+new.yang:149: error: UNEXPECTED_KEYWORD

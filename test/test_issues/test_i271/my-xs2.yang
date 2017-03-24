@@ -1,0 +1,15 @@
+submodule my-xs2 {
+  belongs-to my-x {
+    prefix x;
+  }
+
+  include my-xs1;
+
+  organization "-";
+  contact "-";
+  description "-";
+
+  revision 2016-09-18 {
+    reference "-";
+  }
+}
