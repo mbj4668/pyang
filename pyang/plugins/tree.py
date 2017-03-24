@@ -28,6 +28,10 @@ class TreePlugin(plugin.PyangPlugin):
                                  type="int",
                                  dest="tree_depth",
                                  help="Number of levels to print"),
+            optparse.make_option("--tree-line-length",
+                                 type="int",
+                                 dest="tree_line_length",
+                                 help="Maximum line length"),
             optparse.make_option("--tree-path",
                                  dest="tree_path",
                                  help="Subtree to print"),
@@ -54,7 +58,8 @@ class TreePlugin(plugin.PyangPlugin):
                 path = path[1:]
         else:
             path = None
-        emit_tree(ctx, modules, fd, ctx.opts.tree_depth, path)
+        emit_tree(ctx, modules, fd, ctx.opts.tree_depth,
+                  ctx.opts.tree_line_length, path)
 
 def print_help():
     print("""
@@ -95,7 +100,7 @@ Each node is printed as:
     within curly brackets and a question mark "{...}?"
 """)
 
-def emit_tree(ctx, modules, fd, depth, path):
+def emit_tree(ctx, modules, fd, depth, llen, path):
     for module in modules:
         printed_header = False
 
@@ -117,7 +122,7 @@ def emit_tree(ctx, modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, ' ', path, 'data', depth)
+            print_children(chs, module, fd, '  ', path, 'data', depth, llen)
 
         mods = [module]
         for i in module.search('include'):
@@ -132,9 +137,9 @@ def emit_tree(ctx, modules, fd, depth, path):
                     if not printed_header:
                         print_header()
                         printed_header = True
-                    fd.write("augment %s:\n" % augment.arg)
+                    fd.write("  augment %s:\n" % augment.arg)
                     print_children(augment.i_children, m, fd,
-                                   ' ', path, 'augment', depth)
+                                   '  ', path, 'augment', depth, llen)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -148,8 +153,8 @@ def emit_tree(ctx, modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("rpcs:\n")
-            print_children(rpcs, module, fd, ' ', path, 'rpc', depth)
+            fd.write("\n  rpcs:\n")
+            print_children(rpcs, module, fd, '  ', path, 'rpc', depth, llen)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -163,23 +168,25 @@ def emit_tree(ctx, modules, fd, depth, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("notifications:\n")
-            print_children(notifs, module, fd, ' ', path, 'notification', depth)
+            fd.write("\n  notifications:\n")
+            print_children(notifs, module, fd, '  ', path,
+                           'notification', depth, llen)
 
         if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("groupings:\n")
+            fd.write("  groupings:\n")
             for gname in module.i_groupings:
                 fd.write('  ' + gname + '\n')
                 g = module.i_groupings[gname]
-                print_children(g.i_children, module, fd, '   ', path,
-                               'grouping', depth)
+                print_children(g.i_children, module, fd, '    ', path,
+                               'grouping', depth, llen)
                 fd.write('\n')
 
 
-def print_children(i_children, module, fd, prefix, path, mode, depth, width=0):
+def print_children(i_children, module, fd, prefix, path, mode, depth,
+                   llen, width=0):
     if depth == 0:
         if i_children: fd.write(prefix + '     ...\n')
         return
@@ -216,10 +223,13 @@ def print_children(i_children, module, fd, prefix, path, mode, depth, width=0):
                 mode = 'input'
             elif ch.keyword == 'output':
                 mode = 'output'
-            print_node(ch, module, fd, newprefix, path, mode, depth, width)
+            print_node(ch, module, fd, newprefix, path, mode, depth, llen,
+                       width)
 
-def print_node(s, module, fd, prefix, path, mode, depth, width):
-    fd.write("%s%s--" % (prefix[0:-1], get_status_str(s)))
+def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
+    line = "%s%s--" % (prefix[0:-1], get_status_str(s))
+
+    brcol = len(line) + 4
 
     if s.i_module.i_modulename == module.i_modulename:
         name = s.arg
@@ -228,20 +238,21 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
     flags = get_flags_str(s, mode)
     if s.keyword == 'list':
         name += '*'
-        fd.write(flags + " " + name)
+        line += flags + " " + name
     elif s.keyword == 'container':
         p = s.search_one('presence')
         if p is not None:
             name += '!'
-        fd.write(flags + " " + name)
+        line += flags + " " + name
     elif s.keyword  == 'choice':
         m = s.search_one('mandatory')
         if m is None or m.arg == 'false':
-            fd.write(flags + ' (' + name + ')?')
+            line += flags + ' (' + name + ')?'
         else:
-            fd.write(flags + ' (' + name + ')')
+            line += flags + ' (' + name + ')'
     elif s.keyword == 'case':
-        fd.write(':(' + name + ')')
+        line += ':(' + name + ')'
+        brcol += 1
     else:
         if s.keyword == 'leaf-list':
             name += '*'
@@ -252,18 +263,44 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
                 name += '?'
         t = get_typename(s)
         if t == '':
-            fd.write("%s %s" % (flags, name))
+            line += "%s %s" % (flags, name)
+        elif (llen is not None and
+              len(line) + len(flags) + width+1 + len(t) > llen):
+            # there's no room for the type name
+            if (get_leafref_path(s) is not None and
+                len(t) + brcol > llen):
+                # it's not even room for the leafref path; skip it
+                line += "%s %-*s   leafref" % (flags, width+1, name)
+            else:
+                line += "%s %s" % (flags, name)
+                fd.write(line + '\n')
+                line = prefix + ' ' * (brcol - len(prefix)) + ' ' + t
         else:
-            fd.write("%s %-*s   %s" % (flags, width+1, name, t))
+            line += "%s %-*s   %s" % (flags, width+1, name, t)
 
     if s.keyword == 'list' and s.search_one('key') is not None:
-        fd.write(" [%s]" % re.sub('\s+', ' ', s.search_one('key').arg))
+        keystr = " [%s]" % re.sub('\s+', ' ', s.search_one('key').arg)
+        if (llen is not None and
+            len(line) + len(keystr) > llen):
+            fd.write(line + '\n')
+            line = prefix + ' ' * (brcol - len(prefix))
+        line += keystr
 
     features = s.search('if-feature')
-    if len(features) > 0:
-        fd.write(" {%s}?" % ",".join([f.arg for f in features]))
+    featurenames = [f.arg for f in features]
+    if hasattr(s, 'i_augment'):
+        afeatures = s.i_augment.search('if-feature')
+        featurenames.extend([f.arg for f in afeatures
+                             if f.arg not in featurenames])
 
-    fd.write('\n')
+    if len(featurenames) > 0:
+        fstr = " {%s}?" % ",".join(featurenames)
+        if (llen is not None and len(line) + len(fstr) > llen):
+            fd.write(line + '\n')
+            line = prefix + ' ' * (brcol - len(prefix))
+        line += fstr
+
+    fd.write(line + '\n')
     if hasattr(s, 'i_children'):
         if depth is not None:
             depth = depth - 1
@@ -273,9 +310,10 @@ def print_node(s, module, fd, prefix, path, mode, depth, width):
                    if ch.arg == path[0]]
             path = path[1:]
         if s.keyword in ['choice', 'case']:
-            print_children(chs, module, fd, prefix, path, mode, depth, width)
+            print_children(chs, module, fd, prefix, path, mode, depth,
+                           llen, width)
         else:
-            print_children(chs, module, fd, prefix, path, mode, depth)
+            print_children(chs, module, fd, prefix, path, mode, depth, llen)
 
 def get_status_str(s):
     status = s.search_one('status')
@@ -299,6 +337,14 @@ def get_flags_str(s, mode):
         return 'ro'
     else:
         return '--'
+
+def get_leafref_path(s):
+    t = s.search_one('type')
+    if t is not None:
+        if t.arg == 'leafref':
+            return t.search_one('path')
+    else:
+        return None
 
 def get_typename(s):
     t = s.search_one('type')

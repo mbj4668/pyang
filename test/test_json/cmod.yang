@@ -9,13 +9,13 @@ module cmod {
   import amod {
     prefix a;
   }
-  
+
   identity "base-id";
 
   identity "derived-id" {
     base "base-id";
   }
-  
+
   md:annotation "idann" {
     type identityref {
       base "base-id";
@@ -28,6 +28,7 @@ module cmod {
 
   md:annotation "strann" {
     if-feature a:abc;
+    type string;
   }
 
   md:annotation "u64ann" {

@@ -48,6 +48,7 @@
       <arg choice="opt">--strict</arg>
       <arg choice="opt">--lint</arg>
       <arg choice="opt">--ietf</arg>
+      <arg choice="opt">--lax-quote-checks</arg>
       <arg choice="opt">--lax-xpath-checks</arg>
       <arg choice="opt">--hello</arg>
       <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
@@ -338,6 +339,27 @@
             Validate the module(s) like <option>--lint</option>, and
             in addition verifies that the namespace and module name
             follow the IETF conventions.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--lax-quote-checks</option>
+        </term>
+        <listitem>
+          <para>
+            Lax checks of backslashes in double quoted strings in YANG
+            version 1 modules.  RFC 6020 does not clearly define how
+            to handle backslahes within double quoted strings, when the
+            character after the backslash is not one of the characters
+            listed in Section 6.1.3 in RFC 6020.
+          </para>
+          <para>
+            Earlier versions of pyang silently accepted such escape
+            sequences, but the current version treats this as an
+            error, just like it is defined in YANG 1.1.  Passing this
+            flag to pyang makes pyang silently accept such escape sequences.
           </para>
         </listitem>
       </varlistentry>
@@ -1226,6 +1248,17 @@ $ osascript foo.scpt</screen>
         </term>
         <listitem>
           Print the top-level groupings defined in the module.
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-line-length</option>
+          <replaceable>maxlen</replaceable>
+        </term>
+        <listitem>
+          Try to break lines so they are no longer than
+          <replaceable>maxlen</replaceable>.  This is a best effort
+          algorithm.
         </listitem>
       </varlistentry>
     </variablelist>

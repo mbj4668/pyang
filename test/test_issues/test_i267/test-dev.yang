@@ -1,0 +1,16 @@
+module test-dev {
+  yang-version 1.1;
+  namespace urn:test-dev;
+  prefix test-dev;
+  import test {
+    prefix t;
+  }
+  deviation /t:root/t:child/t:foo {
+    deviate delete {
+        mandatory true;
+    }
+    deviate add {
+        config false;
+    }
+  }
+}
