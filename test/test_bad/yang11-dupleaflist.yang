@@ -1,0 +1,23 @@
+module yang11-dupleaflist {
+
+  yang-version 1.1;
+  namespace "http://netconfcentral.org/ns/yang11-dupleaflist";
+  prefix ydupll;
+  revision "2016-11-22";
+
+  leaf-list A {
+    type int8;
+    default 0;
+    default 10;
+    default 0; // error; duplicate default value
+  }
+
+  leaf-list B {
+    config false;
+    type int8;
+    default 1;
+    default 11;
+    default 1;
+  }
+
+}
