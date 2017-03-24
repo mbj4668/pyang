@@ -76,6 +76,12 @@ class YANGEditPlugin(yang.YANGPlugin):
                            "to the supplied value"),
 
             # set revision info
+            YANGEditOption("--yang-edit-previous-revision-date",
+                           dest="yang_edit_previous_revision_date",
+                           type="date",
+                           metavar="PREVDATE",
+                           help="Delete any revisions later than "
+                           "the supplied yyyy-mm-dd"),
             YANGEditOption("--yang-edit-revision-date",
                            dest="yang_edit_revision_date",
                            type="date",
@@ -130,7 +136,8 @@ class YANGEditPlugin(yang.YANGPlugin):
         }
 
         revision = {
-            "arg": ctx.opts.yang_edit_revision_date,
+            "olddate": ctx.opts.yang_edit_previous_revision_date,
+            "newdate": ctx.opts.yang_edit_revision_date,
             "description": ctx.opts.yang_edit_revision_description,
             "reference": ctx.opts.yang_edit_revision_reference,
         }
@@ -151,6 +158,7 @@ class YANGEditEmitHooks(yang.YANGEmitHooks):
 
     def emit_stmt_hook(self, ctx, stmt, level):
         keyword = stmt.keyword
+        replstmts = None
 
         if level == 0:
             if keyword in ["module", "submodule"]:
@@ -166,8 +174,11 @@ class YANGEditEmitHooks(yang.YANGEmitHooks):
             self._set_meta_details(ctx, stmt)
 
         elif keyword == "revision" and not self._revision_done:
-            self._set_revision_details(ctx, stmt)
-            self._revision_done = True
+            allrevs = stmt.parent.search("revision")
+            lastrev = stmt == allrevs[-1]
+            replstmts = self._set_revision_details(ctx, stmt, lastrev)
+
+        return replstmts
 
     def _update_import_date(self, ctx, stmt):
         imprev = stmt.search_one("revision-date")
@@ -189,19 +200,66 @@ class YANGEditEmitHooks(yang.YANGEmitHooks):
         if newarg is not None:
             stmt.arg = newarg
 
-    def _set_revision_details(self, ctx, stmt):
-        newarg = self._revision.get("arg", None)
-        if newarg is not None:
-            newest = get_newest_submodule(ctx, stmt.top, 0)
-            if newarg < newest[1]:
-                raise error.EmitError("Revision %s is older than newest "
-                                      "included submodule %s@%s" % \
-                                      (newarg, newest[0], newest[1]))
-            stmt.arg = newarg
+    # XXX note that this logic relies on there already being at least one
+    #     revision statement; --lint checks this so it should be OK
+    def _set_revision_details(self, ctx, stmt, lastrev):
+        # the logic is quite tricky; here's what we want to achieve:
+        # * "olddate" is the date of the oldest revision to be retained; if not
+        #   supplied, any existing revisions are deleted
+        # * if "newdate" is supplied, it's the date of the next published
+        #   revision and is to be inserted at the start of any remaining
+        #   revisions 
+        # * reuse rather than delete the oldest revision statement, purely in
+        #   order to retain any blank lines after it
 
-        other_keywords = set(self._revision.keys()) - set(["arg"])
-        for keyword in other_keywords:
-            update_or_add_stmt(stmt, keyword, self._revision[keyword])
+        # default action is to do nothing
+        action = ""
+        #sys.stderr.write("revision %s (lastrev %s)\n" % (stmt.arg, lastrev))
+        
+        # determine whether to delete this old revision
+        olddate = self._revision.get("olddate", None)
+        if olddate is None or stmt.arg > olddate:
+            action = "delete"
+            #sys.stderr.write("-> delete (olddate %s)\n" % olddate)
+
+        # determine whether to insert the new revision
+        newdate = self._revision.get("newdate", None)
+        if newdate is not None and (action != "delete" or lastrev):
+            action = "replace" if action == "delete" else "insert"
+            #sys.stderr.write("-> %s (newdate %s)\n" % (action, newdate))
+        
+        # if deleting, return an empty list
+        replstmts = None
+        if action == "delete":
+            replstmts = []
+
+        # replace and insert logic is quite similar:
+        # * if replacing, modify this statement and return a list containing
+        #   only it
+        # * if inserting, create a new statement and return a list containing
+        #   the new and the original statement
+        elif action == "replace" or action == "insert":
+            if action == "replace":
+                revstmt = stmt
+                revstmt.arg = newdate
+            else:
+                revstmt = statements.Statement(stmt.top, stmt.parent, None,
+                                               "revision", newdate)
+
+            other_keywords = set(self._revision.keys()) - \
+                             set(["olddate", "newdate"])
+            for keyword in other_keywords:
+                update_or_add_stmt(revstmt, keyword, self._revision[keyword])
+
+            if action == "replace":
+                replstmts = [revstmt]
+            else:
+                replstmts = [revstmt, stmt]
+
+            self._revision_done = True            
+
+        #sys.stderr.write("= %s\n" % [s.arg for s in replstmts])
+        return replstmts
 
 def get_arg_value(arg, currarg=None):
     if arg is None or arg[0] not in ["%", "@"]:
@@ -250,7 +308,7 @@ def get_arg_summary(arg):
 
 # XXX need proper insertion in canonical order; currently just appending
 #     (apart from hack noted below)
-def update_or_add_stmt(stmt, keyword, arg, pos=None):
+def update_or_add_stmt(stmt, keyword, arg, index=None):
     child = stmt.search_one(keyword)
     currarg = child.arg if child else None
     (argval, replace) = get_arg_value(arg, currarg)
@@ -266,27 +324,16 @@ def update_or_add_stmt(stmt, keyword, arg, pos=None):
             child.arg = argval
     else:
         child = statements.Statement(stmt.top, stmt, None, keyword, argval)
-        if pos is None: pos = len(stmt.substmts)
+        if index is None: index = len(stmt.substmts)
         # XXX this hack ensures that "reference" is always last
-        if pos > 0 and stmt.substmts[pos-1].keyword == "reference":
-            pos -= 1
-        stmt.substmts.insert(pos, child)
+        if index > 0 and stmt.substmts[index-1].keyword == "reference":
+            index -= 1
+        stmt.substmts.insert(index, child)
     return child
 
-def get_newest_submodule(ctx, mod, level, newest=None):
-    if newest is None:
-        newest = (None, "0000-00-00")
-
-    if level > 0:
-        rev_stmt = mod.search_one("revision")
-        if rev_stmt and rev_stmt.arg > newest[1]:
-            newest = (mod.arg, rev_stmt.arg)
-
-    for inc_stmt in mod.search("include"):
-        inc_rev_date_stmt = inc_stmt.search_one("revision-date")
-        inc_rev_date = inc_rev_date_stmt.arg if inc_rev_date_stmt else None
-        mod = ctx.get_module(inc_stmt.arg, inc_rev_date)
-        if mod:
-            newest = get_newest_submodule(ctx, mod, level + 1, newest)
-
-    return newest
+# XXX is there a proper function for this?
+def delete_stmt(parent, stmt):
+    if stmt in parent.substmts:
+        idx = parent.substmts.index(stmt)
+        del parent.substmts[idx]
+    del stmt
