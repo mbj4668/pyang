@@ -1,9 +1,10 @@
 """IEEE usage guidelines plugin
-See RFC 6087
+See http://standards.ieee.org/develop/regauth/tut/ieeeurn.pdf
 """
 
 import optparse
 import sys
+import re
 
 from pyang import plugin
 from pyang import statements
@@ -17,7 +18,6 @@ def pyang_plugin_init():
 class IEEEPlugin(lint.LintPlugin):
     def __init__(self):
         lint.LintPlugin.__init__(self)
-        self.namespace_prefixes = ['urn:ieee:std:']
         self.modulename_prefixes = ['ieee']
 
     def add_opts(self, optparser):
@@ -34,3 +34,18 @@ class IEEEPlugin(lint.LintPlugin):
         if not ctx.opts.ieee:
             return
         self._setup_ctx(ctx)
+
+        error.add_error_code(
+           'IEEE_BAD_NAMESPACE_VALUE', 4,
+           'the namespace should be on the form '
+           '"urn:ieee:std:{IEEE standard designation}:yang:%s')
+
+        statements.add_validation_fun(
+            'grammar', ['namespace'],
+            lambda ctx, s: self.v_chk_namespace(ctx, s))
+
+    def v_chk_namespace(self, ctx, stmt):
+        r = 'urn:ieee:std:.*:yang:' + stmt.i_module.arg
+        if re.match(r, stmt.arg) is None:
+            err_add(ctx.errors, stmt.pos, 'IEEE_BAD_NAMESPACE_VALUE',
+                    stmt.i_module.arg)
