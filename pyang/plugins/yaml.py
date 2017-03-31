@@ -40,14 +40,15 @@ class YAMLPlugin(plugin.PyangPlugin):
             if ch.keyword in ["rpc", "notification"]: continue
             if ch.keyword in ["container", "list", "choice", "case"]:
                 parent = ch
+                if is_indent:
+                    indent = indent + 2
+                    is_indent = False
                 fd.write(' ' * indent + "%s: " % (ch.arg)+"\n")
                 self.process_children(ch, parent, fd, indent+2)
             elif ch.keyword in ["leaf", "leaf-list"]:
                 if hasattr(ch, 'i_is_key'):
-                    is_indent = True
                     fd.write(' ' * indent + "- %s:" % ch.arg + "\n")
-                    if not is_indent:
-                        indent = indent + 2
+                    is_indent = True
                 elif ch.keyword == "leaf-list":
                     fd.write(' ' * indent + "%s:" % ch.arg + "\n")
                 else:
