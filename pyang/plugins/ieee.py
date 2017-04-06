@@ -38,7 +38,7 @@ class IEEEPlugin(lint.LintPlugin):
         error.add_error_code(
            'IEEE_BAD_NAMESPACE_VALUE', 4,
            'the namespace should be on the form '
-           '"urn:ieee:std:{IEEE standard designation}:yang:%s')
+           'urn:ieee:std:{IEEE standard designation}:yang:%s')
 
         statements.add_validation_fun(
             'grammar', ['namespace'],

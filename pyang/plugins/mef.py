@@ -17,7 +17,7 @@ def pyang_plugin_init():
 class MEFPlugin(lint.LintPlugin):
     def __init__(self):
         lint.LintPlugin.__init__(self)
-        self.namespace_prefixes = ['urn:mef:yang:' 'urn:mef:xid']
+        self.namespace_prefixes = ['urn:mef:yang:', 'urn:mef:xid:']
         self.modulename_prefixes = ['mef']
 
     def add_opts(self, optparser):
