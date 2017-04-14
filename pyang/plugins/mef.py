@@ -33,4 +33,6 @@ class MEFPlugin(lint.LintPlugin):
     def setup_ctx(self, ctx):
         if not ctx.opts.mef:
             return
+
+        ctx.max_line_len = 70
         self._setup_ctx(ctx)
