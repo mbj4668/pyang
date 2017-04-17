@@ -39,6 +39,7 @@ type_class = dict((t,"unquoted") for t in
                   ("boolean", "int8", "int16", "int32",
                    "uint8", "uint16", "uint32"))
 """Classification of types suited for JSON translation."""
+type_class.update(('decimal@' + str(t),"unquoted") for t in range(1,18))
 
 type_class.update((t,t) for t in
                   ("empty", "instance-identifier", "identityref", "string"))
