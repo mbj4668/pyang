@@ -108,6 +108,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             "list": self.list,
             "leaf-list": self.leaf_list,
             "rpc": self.ignore,
+            "action": self.ignore,
             "notification": self.ignore
             }
         self.ns_uri = {}
@@ -186,7 +187,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
         self.list_comment(node, nel, minel)
-
+        
     def sample_element(self, node, parent, module, path):
         """Create element under `parent`.
 
