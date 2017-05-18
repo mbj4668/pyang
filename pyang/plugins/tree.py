@@ -94,7 +94,7 @@ Each node is printed as:
   <type> is the name of the type for leafs and leaf-lists
 
     If the type is a leafref, the type is printed as "-> TARGET", where
-    TARGET is either the leafref path, with prefixed removed if possible.
+    TARGET is the leafref path, with prefix removed if possible.
 
   <if-features> is the list of features this node depends on, printed
     within curly brackets and a question mark "{...}?"
