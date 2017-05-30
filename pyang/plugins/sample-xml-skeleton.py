@@ -108,6 +108,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             "list": self.list,
             "leaf-list": self.leaf_list,
             "rpc": self.ignore,
+            "action": self.ignore,
             "notification": self.ignore
             }
         self.ns_uri = {}
