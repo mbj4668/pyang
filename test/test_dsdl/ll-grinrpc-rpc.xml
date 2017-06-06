@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<nc:rpc message-id="101"
+<nc:rpc nc:message-id="101"
 	xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
   <rpc-1 xmlns="http://example.com/ll/grinrpc">
     <list-1>

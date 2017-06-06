@@ -41,7 +41,7 @@
   </define>
 
   <define name="message-id-attribute">
-    <attribute name="message-id">
+    <attribute name="nc:message-id">
       <data type="string">
 	<param name="maxLength">4095</param>
       </data>

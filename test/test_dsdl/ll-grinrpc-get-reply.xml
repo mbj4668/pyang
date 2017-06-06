@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <nc:rpc-reply xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
-	      message-id="142">
+	      nc:message-id="142">
   <nc:data xmlns="http://example.com/ll/grinrpc">
     <cont-1>
       <list-1>
