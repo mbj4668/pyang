@@ -75,6 +75,9 @@ def emit_depend(ctx, modules, fd):
                 continue
             if ctx.opts.depend_include_path:
                 m = ctx.get_module(i)
+                # XXX m can be None, e.g. my bbf-melt-processing-profiles
+                if not m:
+                    continue
                 if ctx.opts.depend_extension is None:
                     filename = m.pos.ref
                 else:
