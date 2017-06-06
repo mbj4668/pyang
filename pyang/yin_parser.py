@@ -1,5 +1,6 @@
 import sys
 from xml.parsers import expat
+from warnings import warn
 import copy
 
 from . import syntax
@@ -88,6 +89,14 @@ class YinParser(object):
             self.parser.Parse(text.encode('utf-8'), True)
         except error.Abort:
             return None
+        except UnicodeEncodeError as ex:
+            # xml.parsers.expat cannot parse unicode string
+            # see issue #221
+            warn(UnicodeWarning(str(ex)))
+            ascii_text = text.encode('ascii', 'ignore')
+            self.parser.Parse(ascii_text, True)
+            # Incomplete workaround: this does not solve the problem,
+            # just avoid breaking pyang
         except expat.ExpatError as ex:
             self.pos.line = ex.lineno
             error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
