@@ -279,12 +279,22 @@ class YinParser(object):
         if not hasattr(self.ctx, 'yin_module_map'):
             self.ctx.yin_module_map = {}
 
+        # as we are ignoring the already visited modules, the prefix map may not be update. 
+        # caching prefixmap as well for each module. 
+        # Fix for:  error: no module with the namespace <extension file namespace> is imported
+        if not hasattr(self.ctx, 'yin_module_prefix_map'):
+            self.ctx.yin_module_prefix_map = {}
+
         if self.top.keyword == 'module':
             if self.top.arg not in self.ctx.yin_module_map:
                 self.ctx.yin_module_map[self.top.arg] = []
             mymodules = self.ctx.yin_module_map[self.top.arg]
+            if self.top.arg not in self.ctx.yin_module_prefix_map:
+                self.ctx.yin_module_prefix_map[self.top.arg] = {}
+            moduleprefixes = self.ctx.yin_module_prefix_map[self.top.arg]
         else:
             mymodules = []
+            moduleprefixes = {}
 
         for ch in self.top_element.children:
             if ch.ns == yin_namespace and ch.local_name == 'import':
@@ -292,6 +302,7 @@ class YinParser(object):
                 if modname is not None:
                     if modname in mymodules:
                         # circular import; ignore here and detect in validation
+                        self.prefixmap.update(moduleprefixes)
                         pass
                     else:
                         mymodules.append(modname)
@@ -309,6 +320,8 @@ class YinParser(object):
                                     prefix = p.find_attribute('value')
                                     if prefix is not None:
                                         self.prefixmap[ns.arg] = prefix
+                                        moduleprefixes[ns.arg] = prefix
+                                        
 
             elif (ch.ns == yin_namespace and ch.local_name == 'include' and
                   'no_include' not in self.extra):
