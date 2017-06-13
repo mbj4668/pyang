@@ -102,7 +102,8 @@ Each node is printed as:
     *  for a leaf-list or list
     [<keys>] for a list's keys
 
-  <type> is the name of the type for leafs and leaf-lists
+    <type> is the name of the type for leafs and leaf-lists, or
+           "<anydata>" or "<anyxml>" for anydata and anyxml, respectively
 
     If the type is a leafref, the type is printed as "-> TARGET", where
     TARGET is the leafref path, with prefix removed if possible.
@@ -396,5 +397,9 @@ def get_typename(s):
                 return t.arg
         else:
             return t.arg
+    elif s.keyword == 'anydata':
+        return '<anydata>'
+    elif s.keyword == 'anyxml':
+        return '<anyxml>'
     else:
         return ''
