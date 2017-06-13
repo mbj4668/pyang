@@ -1247,9 +1247,20 @@ $ osascript foo.scpt</screen>
           <option>--tree-print-groupings</option>
         </term>
         <listitem>
-	  <para>
+          <para>
             Print the top-level groupings defined in the module.
-	  </para>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-print-yang-data</option>
+        </term>
+        <listitem>
+          <para>
+            Print the ietf-restconf:yang-data structures defined in
+            the module.
+          </para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -1258,11 +1269,11 @@ $ osascript foo.scpt</screen>
           <replaceable>maxlen</replaceable>
         </term>
         <listitem>
-	  <para>
+          <para>
             Try to break lines so they are no longer than
             <replaceable>maxlen</replaceable>.  This is a best effort
             algorithm.
-	  </para>
+          </para>
         </listitem>
       </varlistentry>
     </variablelist>

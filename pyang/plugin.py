@@ -54,6 +54,12 @@ def register_plugin(plugin):
     """
     plugins.append(plugin)
 
+def is_plugin_registered(name):
+    for plugin in plugins:
+        if plugin.name == name:
+            return True
+    return False
+
 class PyangPlugin(object):
     """Abstract base class for pyang plugins
 
@@ -68,7 +74,8 @@ class PyangPlugin(object):
     front-end program, or both.
     """
 
-    def __init__(self):
+    def __init__(self, name=None):
+        self.name = name
         self.multiple_modules = False
         self.handle_comments = False
 

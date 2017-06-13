@@ -14,6 +14,9 @@ def pyang_plugin_init():
     plugin.register_plugin(TreePlugin())
 
 class TreePlugin(plugin.PyangPlugin):
+    def __init__(self):
+        plugin.PyangPlugin.__init__(self, 'tree')
+
     def add_output_format(self, fmts):
         self.multiple_modules = True
         fmts['tree'] = self
@@ -40,6 +43,14 @@ class TreePlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  help="Print groupings"),
             ]
+        if plugin.is_plugin_registered('restconf'):
+            optlist.append(
+                optparse.make_option("--tree-print-yang-data",
+                                     dest="tree_print_yang_data",
+                                     action="store_true",
+                                     help="Print ietf-restconf:yang-data " +
+                                     "structures")
+            )
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
 
@@ -183,6 +194,19 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_children(g.i_children, module, fd, '    ', path,
                                'grouping', depth, llen)
                 fd.write('\n')
+
+        if ctx.opts.tree_print_yang_data:
+            yds = module.search(('ietf-restconf', 'yang-data'))
+            if len(yds) > 0:
+                if not printed_header:
+                    print_header()
+                    printed_header = True
+                fd.write("  yang-data:\n")
+                for yd in yds:
+                    fd.write('  ' + yd.arg + '\n')
+                    print_children(yd.i_children, module, fd, '    ', path,
+                                   'yang-data', depth, llen)
+                    fd.write('\n')
 
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,

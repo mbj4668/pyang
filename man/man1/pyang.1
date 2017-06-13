@@ -684,13 +684,6 @@ jstree output specific option:
 .RS 4
 Do not include paths in the output\&. This option makes the page less wide\&.
 .RE
-.PP
-\fB\-\-jstree\-path\fR \fIpath\fR
-.RS 4
-Subtree to print\&. The
-\fIpath\fR
-is a slash ("/") separated path to a subtree to print\&. For example "/nacm/groups"\&. All ancestors and the selected subtree are printed\&.
-.RE
 .SH "JTOX OUTPUT"
 .PP
 The
@@ -842,6 +835,11 @@ is a slash ("/") separated path to a subtree to print\&. For example "/nacm/grou
 \fB\-\-tree\-print\-groupings\fR
 .RS 4
 Print the top\-level groupings defined in the module\&.
+.RE
+.PP
+\fB\-\-tree\-print\-yang\-data\fR
+.RS 4
+Print the ietf\-restconf:yang\-data structures defined in the module\&.
 .RE
 .PP
 \fB\-\-tree\-line\-length\fR \fImaxlen\fR
