@@ -1,8 +1,33 @@
-   ???   - ???
+   1.7.2 - 2016-06-14
+         added support for external plugins, using setuptools entry_points
          added a warning for unsafe escape sequences in double quoted
            strings.
          added --lax-quote-checks to turn of the warning for unsafe
            escape sequences.
+         added restconf plugin
+         added --tree-print-yang-data
+         print anydata/anyxml better in tree diagrams
+         grammar fix; "must" not allowed in "case"
+
+         pr:248 replace newlines in typestrings with spaces in UML,
+                thanks to William Lupton
+         pr:281 added --jstree-path, thanks to Ralph Schmieder
+         pr:289 added plugins for bbf, ieee, and mef, thanks to
+                Mahesh Jethanandani
+         pr:312 ignore actions when generating sample XML, thanks to
+                William Lupton
+         pr:313 corrected --tree-help output, thanks to lifeunleaded
+
+         #278 - handle unprefixed leafref paths in jsonxsl.py
+         #284 - removed broken error message for 'when' on key leafs
+         #285 - handle illegal integer strings
+         #297 - corrected translation of empty container with extension
+                statement in DSDL
+         #300 - handle unknown extensions in deviation
+         #301 - fix bug w/ refine of leafref leaf
+         #310 - when using the windows command prompt, "pyang" was not
+                found, thanks to Mallikarjunarao Kosuri
+
 
    1.7.1 - 2016-11-02
          added support for RFC 7952, metadata annotations
@@ -226,7 +251,7 @@
         handle auto-assignment of enum values and bit positions
         allow plugins to register grammar for extensions
         added a plugin for the 'yang-smi' SMIv2 module
-	rewrote yin_parser - now handles extensions properly
+        rewrote yin_parser - now handles extensions properly
         added bin/yang2html which can be used to syntax coloring of yang
           modules
         new algorithm for finding standard YANG modules (see pyang(1))
@@ -250,21 +275,21 @@
         XSD: added --xsd-no-lecture command line option
         XSD: fixed XSD output bug in some rare cases involving typedef chains
 
-	DSDL: corrected handling of multiple length alternatives
-	DSDL: added TODO
-	DSDL: added support for multiple patterns in string restrictions
-	DSDL: added xmlns declaration for the data model NS
-	DSDL: $this in must-stmt is now replaced with current()
-	  rather than '.'
-	DSDL: local top-level named patterns now don't start with '__'
-	DSDL: added XSLT stylesheet that separates DSRL
+        DSDL: corrected handling of multiple length alternatives
+        DSDL: added TODO
+        DSDL: added support for multiple patterns in string restrictions
+        DSDL: added xmlns declaration for the data model NS
+        DSDL: $this in must-stmt is now replaced with current()
+          rather than '.'
+        DSDL: local top-level named patterns now don't start with '__'
+        DSDL: added XSLT stylesheet that separates DSRL
 
         known issue: augmenting the input parameters of an rpc that is
           declared without any input parameters does not work
         known issue: an error is not reported if the same node is added
           twice via an augment
-	known issue: chained derivation of types doesn't work properly
-	  in the DSDL translator
+        known issue: chained derivation of types doesn't work properly
+          in the DSDL translator
 
    0.9.1 - 2008-07-08
         rewrote yang parser
