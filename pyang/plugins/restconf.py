@@ -47,7 +47,7 @@ restconf_stmts = [
     #  (<argument type name | None>, <substmts>),
     #  <list of keywords where <keyword> can occur>)
 
-    ('yang-data', '?',
+    ('yang-data', '*',
      ('identifier', grammar.data_def_stmts),
      ['module', 'submodule']),
 
