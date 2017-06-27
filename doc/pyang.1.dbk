@@ -102,7 +102,9 @@
       The <command>pyang</command> program is used to validate YANG
       modules (<link
       xlink:href="http://tools.ietf.org/html/rfc6020">RFC
-      6020</link>).  It is also used to convert YANG modules into
+      6020</link> and <link
+      xlink:href="http://tools.ietf.org/html/rfc7950">RFC
+      7950</link>).  It is also used to convert YANG modules into
       equivalent YIN modules.  From a valid module a hybrid DSDL schema (<link
       xlink:href="http://tools.ietf.org/html/rfc6110">RFC 6110</link>)
       can be generated.
@@ -350,16 +352,22 @@
         <listitem>
           <para>
             Lax checks of backslashes in double quoted strings in YANG
-            version 1 modules.  RFC 6020 does not clearly define how
-            to handle backslahes within double quoted strings, when the
+            version 1 modules. <link
+            xlink:href="http://tools.ietf.org/html/rfc6020">RFC
+            6020</link> does not clearly define how to handle
+            backslahes within double quoted strings, when the
             character after the backslash is not one of the characters
-            listed in Section 6.1.3 in RFC 6020.
+            listed in Section 6.1.3 in <link
+            xlink:href="http://tools.ietf.org/html/rfc6020">RFC
+            6020</link>.
           </para>
           <para>
             Earlier versions of pyang silently accepted such escape
             sequences, but the current version treats this as an
-            error, just like it is defined in YANG 1.1.  Passing this
-            flag to pyang makes pyang silently accept such escape sequences.
+            error, just like it is defined in YANG 1.1 (<link
+            xlink:href="http://tools.ietf.org/html/rfc7950">RFC
+            7950</link>).  Passing this flag to pyang makes pyang
+            silently accept such escape sequences.
           </para>
         </listitem>
       </varlistentry>
@@ -633,7 +641,9 @@
             Checks that a new revision of a module follows the update
             rules given in <link
             xlink:href="http://tools.ietf.org/html/rfc6020">RFC
-            6020</link>.  <emphasis>oldfile</emphasis> is the old
+            6020</link> and <link
+            xlink:href="http://tools.ietf.org/html/rfc7950">RFC
+            7950</link>.  <emphasis>oldfile</emphasis> is the old
             module and <emphasis>file</emphasis> is the new version of
             the module.
           </para>
@@ -829,7 +839,7 @@
     capability URL for each module of the input data model, taking
     into account features and deviations, as described in section
     5.6.4 of <link
-    xlink:href="http://tools.ietf.org/html/rfc6020">RFC 6020</link>.</para>
+    xlink:href="http://tools.ietf.org/html/rfc6020">RFC 6020</link>.</para>
     <para>
       Options for the <emphasis>capability</emphasis> output format:
     </para>
@@ -943,7 +953,8 @@
      interim product used by <command>yang2dsdl</command>(1).</para>
      <para>The <emphasis>dsdl</emphasis> plugin also supports metadata
      annotations, if they are defined and used as described in <link
-     xlink:href="https://tools.ietf.org/html/draft-lhotka-netmod-yang-metadata">draft-lhotka-netmod-yang-metadata</link>.</para>
+     xlink:href="http://tools.ietf.org/html/rfc7952">RFC
+     7952</link>.</para>
     <para>
       Options for the <emphasis>dsdl</emphasis> output format:
     </para>
@@ -984,16 +995,16 @@
       The <emphasis>jsonxsl</emphasis> output generates an XSLT 1.0
       stylesheet that can be used for transforming an XML instance
       document into JSON text as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-ietf-netmod-yang-json">draft-ietf-netmod-yang-json</link>. The
-      XML document must be a valid instance of the data model which is
-      specified as one or more input YANG modules on the command line
-      (or via a &lt;hello&gt; message, see the
+      xlink:href="http://tools.ietf.org/html/rfc7951">RFC
+      7951</link>. The XML document must be a valid instance of the
+      data model which is specified as one or more input YANG modules
+      on the command line (or via a &lt;hello&gt; message, see the
       <option>--hello</option> option).
     </para>
      <para>The <emphasis>jsonxsl</emphasis> plugin also converts
      metadata annotations, if they are defined and used as described
-     in <link
-     xlink:href="https://tools.ietf.org/html/draft-lhotka-netmod-yang-metadata">draft-lhotka-netmod-yang-metadata</link>.</para>
+     in <link xlink:href="http://tools.ietf.org/html/rfc7952">RFC
+     7952</link>.</para>
     <para>
       The data tree(s) must be wrapped at least in either
       &lt;nc:data&gt; or &lt;nc:config&gt; element, where "nc" is the
@@ -1058,7 +1069,8 @@
       which can be used as one of the inputs to
       <command>json2xml</command> for transforming a JSON document
       to XML as specified in <link
-      xlink:href="http://tools.ietf.org/html/draft-ietf-netmod-yang-json">draft-ietf-netmod-yang-json</link>.
+     xlink:href="http://tools.ietf.org/html/rfc7951">RFC
+     7951</link>.
     </para>
     <para>
       The <emphasis>jtox</emphasis> output itself is a JSON document
