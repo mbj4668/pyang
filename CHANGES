@@ -1,3 +1,8 @@
+   1.7.3 - 2016-06-27
+         #318 - handle multiple rc:yang-data statements.
+                this bug caused validation of ietf-restconf, or any
+                module that imported ietf-restconf, to fail.
+
    1.7.2 - 2016-06-14
          added support for external plugins, using setuptools entry_points
          added a warning for unsafe escape sequences in double quoted
