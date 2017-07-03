@@ -154,6 +154,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Do not recurse into directories in the \
                                    yang path."),
+        optparse.make_option("--ensure-hyphenated-names",
+                             dest="ensure_hyphenated_names",
+                             action="store_true",
+                             help="No upper case and underscore in names."),
         ]
 
     optparser = optparse.OptionParser(usage, add_help_option = False)
@@ -228,6 +232,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.lax_xpath_checks = o.lax_xpath_checks
     ctx.lax_quote_checks = o.lax_quote_checks
     ctx.strict = o.strict
+    ctx.ensure_hyphenated_names = o.ensure_hyphenated_names
 
     # make a map of features to support, per module
     if o.hello:

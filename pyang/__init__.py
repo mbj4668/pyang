@@ -43,6 +43,7 @@ class Context(object):
         self.deviation_modules = []
         self.features = {}
         self.keep_comments = False
+        self.ensure_hyphenated_names = False
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:
