@@ -14,6 +14,9 @@ def pyang_plugin_init():
     plugin.register_plugin(TreePlugin())
 
 class TreePlugin(plugin.PyangPlugin):
+    def __init__(self):
+        plugin.PyangPlugin.__init__(self, 'tree')
+
     def add_output_format(self, fmts):
         self.multiple_modules = True
         fmts['tree'] = self
@@ -40,6 +43,14 @@ class TreePlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  help="Print groupings"),
             ]
+        if plugin.is_plugin_registered('restconf'):
+            optlist.append(
+                optparse.make_option("--tree-print-yang-data",
+                                     dest="tree_print_yang_data",
+                                     action="store_true",
+                                     help="Print ietf-restconf:yang-data " +
+                                     "structures")
+            )
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
 
@@ -91,10 +102,11 @@ Each node is printed as:
     *  for a leaf-list or list
     [<keys>] for a list's keys
 
-  <type> is the name of the type for leafs and leaf-lists
+    <type> is the name of the type for leafs and leaf-lists, or
+           "<anydata>" or "<anyxml>" for anydata and anyxml, respectively
 
     If the type is a leafref, the type is printed as "-> TARGET", where
-    TARGET is either the leafref path, with prefixed removed if possible.
+    TARGET is the leafref path, with prefix removed if possible.
 
   <if-features> is the list of features this node depends on, printed
     within curly brackets and a question mark "{...}?"
@@ -183,6 +195,19 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_children(g.i_children, module, fd, '    ', path,
                                'grouping', depth, llen)
                 fd.write('\n')
+
+        if ctx.opts.tree_print_yang_data:
+            yds = module.search(('ietf-restconf', 'yang-data'))
+            if len(yds) > 0:
+                if not printed_header:
+                    print_header()
+                    printed_header = True
+                fd.write("  yang-data:\n")
+                for yd in yds:
+                    fd.write('  ' + yd.arg + '\n')
+                    print_children(yd.i_children, module, fd, '    ', path,
+                                   'yang-data', depth, llen)
+                    fd.write('\n')
 
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,
@@ -372,5 +397,9 @@ def get_typename(s):
                 return t.arg
         else:
             return t.arg
+    elif s.keyword == 'anydata':
+        return '<anydata>'
+    elif s.keyword == 'anyxml':
+        return '<anyxml>'
     else:
         return ''

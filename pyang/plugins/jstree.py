@@ -24,6 +24,9 @@ class JSTreePlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  help="""Do not include paths to make
                                        page less wide"""),
+            optparse.make_option("--jstree-path",
+                                 dest="jstree_path",
+                                 help="Subtree to print"),
             ]
 
         g = optparser.add_option_group("JSTree output specific options")
@@ -33,12 +36,19 @@ class JSTreePlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
+        if ctx.opts.jstree_path is not None:
+            path = ctx.opts.jstree_path.split('/')
+            if path[0] == '':
+                path = path[1:]
+        else:
+            path = None
         emit_header(modules, fd, ctx)
         emit_css(fd, ctx)
         emit_js(fd, ctx)
         emit_bodystart(modules,fd, ctx)
-        emit_tree(modules, fd, ctx)
+        emit_tree(modules, fd, ctx, path)
         emit_footer(fd, ctx)
+
 
 def emit_css(fd, ctx):
     fd.write("""
@@ -253,7 +263,7 @@ def emit_bodystart(modules, fd, ctx):
 </tr>
 """)
 
-def emit_tree(modules, fd, ctx):
+def emit_tree(modules, fd, ctx, path):
     global levelcnt
     for module in modules:
         bstr = ""
@@ -276,25 +286,38 @@ def emit_tree(modules, fd, ctx):
            temp_mod_arg = force_link(ctx,module,module)
 
         levelcnt[1] += 1
-        fd.write("""<tr id="%s" class="a">
-                     <td id="p1">
-                        <div id="p2" class="tier1">
-                           <a href="#" id="p3"
-                              onclick="toggleRows(this);return false;"
-                              class="folder">&nbsp;
-                           </a>
-                           <font color=blue>%s</font>
-                        </div>
-                     </td> \n""" %(levelcnt[1], temp_mod_arg))
-        fd.write("""<td>%s</td><td></td><td></td><td></td><td>
-                    </td></tr>\n""" %module.keyword)
-        #fd.write("<td>module</td><td></td><td></td><td></td><td></td></tr>\n")
-
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
-        print_children(chs, module, fd, ' ', ctx, 2)
+        if path is not None and len(path) > 0:
+            chs = [ch for ch in chs if ch.arg == path[0]]
+            path = path[1:]
+
+        if len(chs) > 0:
+            fd.write("""<tr id="%s" class="a">
+                         <td id="p1">
+                            <div id="p2" class="tier1">
+                               <a href="#" id="p3"
+                                  onclick="toggleRows(this);return false;"
+                                  class="folder">&nbsp;
+                               </a>
+                               <font color=blue>%s</font>
+                            </div>
+                         </td> \n""" %(levelcnt[1], temp_mod_arg))
+            fd.write("""<td>%s</td><td></td><td></td><td></td><td>
+                        </td></tr>\n""" %module.keyword)
+            #fd.write("<td>module</td><td></td><td></td><td></td><td></td></tr>\n")
+
+            # print_children(chs, module, fd, '  ', path, 'data', depth, llen)
+            print_children(chs, module, fd, ' ', path, ctx, 2)
 
         rpcs = module.search('rpc')
+        if path is not None:
+            if len(path) > 0:
+                rpcs = [rpc for rpc in rpcs if rpc.arg == path[0]]
+                path = path[1:]
+            else:
+                rpcs = []
+
         levelcnt[1] += 1
         if len(rpcs) > 0:
             fd.write("""<tr id="%s" class="a">
@@ -308,9 +331,15 @@ def emit_tree(modules, fd, ctx):
                             </div>
                          </td> \n""" %(levelcnt[1],prstr))
             fd.write("<td></td><td></td><td></td><td></td><td></td></tr>\n")
-            print_children(rpcs, module, fd, ' ', ctx, 2)
+            print_children(rpcs, module, fd, ' ', path, ctx, 2)
 
         notifs = module.search('notification')
+        if path is not None:
+            if len(path) > 0:
+                notifs = [n for n in notifs if n.arg == path[0]]
+                path = path[1:]
+            else:
+                notifs = []
         levelcnt[1] += 1
         if len(notifs) > 0:
             fd.write("""<tr id="%s" class="a">
@@ -323,13 +352,14 @@ def emit_tree(modules, fd, ctx):
                            </div>
                         </td> \n""" %(levelcnt[1],prstr))
             fd.write("<td></td><td></td><td></td><td></td><td></td></tr>\n")
-            print_children(notifs, module, fd, ' ', ctx, 2)
+            print_children(notifs, module, fd, ' ', path, ctx, 2)
 
-def print_children(i_children, module, fd, prefix, ctx, level=0):
+
+def print_children(i_children, module, fd, prefix, path, ctx, level=0):
     for ch in i_children:
-        print_node(ch, module, fd, prefix, ctx, level)
+        print_node(ch, module, fd, prefix, path, ctx, level)
 
-def print_node(s, module, fd, prefix, ctx, level=0):
+def print_node(s, module, fd, prefix, path, ctx, level=0):
 
     global levelcnt
     fontstarttag = ""
@@ -484,10 +514,15 @@ def print_node(s, module, fd, prefix, ctx, level=0):
 
     if hasattr(s, 'i_children'):
         level += 1
+        chs = s.i_children
+        if path is not None and len(path) > 0:
+            chs = [ch for ch in chs
+                   if ch.arg == path[0]]
+            path = path[1:]
         if s.keyword in ['choice', 'case']:
-            print_children(s.i_children, module, fd, prefix, ctx, level)
+            print_children(chs, module, fd, prefix, path, ctx, level)
         else:
-            print_children(s.i_children, module, fd, prefix, ctx, level)
+            print_children(chs, module, fd, prefix, path, ctx, level)
 
 def get_status_str(s):
     status = s.search_one('status')

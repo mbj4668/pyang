@@ -2,15 +2,28 @@
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## News ##
-**2016-11-02 - Version 1.7.1 released **
+**2017-06-27 - Version 1.7.3 released**
+
+  * Handle multiple rc:yang-data statements.  This bug caused
+    validation of ietf-restconf, or any module that imported
+    ietf-restconf, to fail.
+
+**2017-06-14 - Version 1.7.2 released**
+
+  * Added support for external plugins, using setuptools entry_points,
+    with the entry point "pyang.plugin".
+
+  * ... and various other enhancements and bug fixes, see CHANGES.
+
+**2016-11-02 - Version 1.7.1 released**
 
   * This is mainly a bug fix release, see CHANGES for details.
 
-**2016-06-16 - Version 1.7 released **
+**2016-06-16 - Version 1.7 released**
   * Support for YANG 1.1, with the exception of the new submodule scoping rules. 
 
 
-**2015-10-06 - Version 1.6 released **
+**2015-10-06 - Version 1.6 released**
 
   * pyang can now be installed via [PyPi](https://pypi.python.org/pypi).
 
