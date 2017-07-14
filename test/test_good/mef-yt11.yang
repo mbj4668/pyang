@@ -1,0 +1,905 @@
+module mef-yt11 {
+  namespace "urn:mef:xid:mef-yt11";
+  prefix mef-yt11;
+
+  organization "MEF Forum";
+  contact
+    "Web URL: http://mef.net/
+     E-mail:  namespace@mef.net
+     Postal:  MEF Forum
+              6033 W. Century Boulevard, Suite 1107
+              Los Angeles, CA 90045
+              U.S.A. 
+     Phone:   +1 310-642-2800 
+     Fax:     +1 310-642-2808";
+  description
+    "This module defines the YANG Type Definitions and shared 
+     (templated) groupings of data elements used by MEF Services
+	  YANG Modules.
+     
+     Reference Overview:
+     A number of base documents have been used to create 
+     the MEF Types YANG Module. The following are the 
+     abbreviations for the baseline documents:
+     [RFC 6991] refers to IETF RFC 6991 'Common YANG Data Types',
+     2013-07-15  
+     [RFC 6643] refers to IETF RFC 6643 'Translation of Structure
+     of Management Information
+     Version 2 (SMIv2) MIB Modules to YANG Modules', 2011-11-25  
+     [802.1AB] refers to 'Station and Media Access Control
+     Connectivity Discovery', IEEE 802.1AB-2009, September 2009
+     [802.1Q] refers to IEEE 802.1Q-2014 'IEEE Standard for Local
+     and metropolitan area networks --Media Access Control (MAC)
+     Bridges and Virtual Bridged Local Area Networks, August 2011
+     [802-2001] refers to 'IEEE Standard for Local and Metropolitan
+     Area Networks: Overview and Architecture', IEEE 802-2001,
+     February 2002
+     [MEF10.3] refers to MEF 10.3 
+     'Ethernet Services Attributes Phase 3', October 2013
+     [MEF6.2] refers to MEF 6.2 
+     'EVC Ethernet Services Defintions Phase 3', August 2014
+     [MEF40] refers to MEF 40 
+     'UNI and EVC Definition of Managed Objects', April 2013
+     [MEF45] refers to MEF 45 'Multi-CEN L2CP', August 2014
+     [MEF7.3] refers to MEF 7.3 
+     'Carrier Ethernet Management Information Model',
+     Working Draft #1 2015
+     [RFC 2737] refers to IETF RFC 2737 'Entity MIB (Version 2)',
+     December 1999
+     [RFC 2863] refers to IETF RFC 2863 'The Interfaces Group MIB',
+     June 2000
+     [RFC 3419] refers to IETF RFC 3419 
+     'Textual Conventions for Transport Addresses', 2015
+     [G.8013] refers to ITU-T G.8013 
+     'OAM functions and mechanisms for Ethernet based networks',
+     July 2011
+     [Q.840.1] refers to ITU-T Q.840.1 
+     'Requirements and analysis for NMS-EMS management interface
+     of Ethernet over Transport and Metro Ethernet 
+     Network(EoT/MEN)' March 2007";
+
+  revision 2017-01-10 {
+ 	    description
+ 	      "Updated to address CFC1 Review Comments.";
+ 	    reference
+ 	      "EVC Ethernet Services Definitions YANG Modules 
+ 	       (MEF XX), TBD";
+  }
+  revision 2016-07-01 {
+    description
+         "Updated to better align with MEF 7.3 and
+          MEF Common Information Model attributes";
+    reference "EVC Ethernet Services Definitions YANG Modules
+            	    	      (MEF XX), TBD";
+  }
+
+
+  revision 2016-04-17 {
+    description
+      "First set of updates to better align with
+       MEF Common Information Model names";
+    reference "EVC Ethernet Services Definitions YANG Modules 
+    	      (MEF XX), TBD";
+  }
+
+  revision 2015-05-26 {
+    description
+      "Formal Project Review Draft 1.";
+    reference "EVC Ethernet Services Definitions YANG Modules " +
+    		"(MEF XX), TBD";
+  }
+
+  identity ieee-8023-interface-type {
+    description
+      "Base identity from which specific IEEE 802.3-2012 " +
+      "interface types are derived. This list was taken " +
+      "from Section 1.4 'Definitions'.";
+  }
+
+  identity ieee8023-10BASE2 {
+    base ieee-8023-interface-type;
+    description
+      "10BASE2";
+  }
+
+  identity ieee8023-10BASE5 {
+    base ieee-8023-interface-type;
+    description
+      "10BASE5";
+  }
+
+  identity ieee8023-10BASE-F {
+    base ieee-8023-interface-type;
+    description
+      "10BASEF";
+  }
+
+  identity ieee8023-10BASE-FB {
+    base ieee-8023-interface-type;
+    description
+      "10BASE-FB";
+  }
+
+  identity ieee8023-1000BASE-PX-D {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-PX-D";
+  }
+
+  identity ieee8023-1000BASE-PX-U {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-PX-U";
+  }
+
+  identity ieee8023-10BASE-FL {
+    base ieee-8023-interface-type;
+    description
+      "10BASE-FL";
+  }
+
+  identity ieee8023-10BASE-FP {
+    base ieee-8023-interface-type;
+    description
+      "10BASE-FP";
+  }
+
+  identity ieee8023-10BASE-T {
+    base ieee-8023-interface-type;
+    description
+      "10BASE-T";
+  }
+
+  identity ieee8023-10BASE-Te {
+    base ieee-8023-interface-type;
+    description
+      "10BASE-Te";
+  }
+
+  identity ieee8023-10BROAD36 {
+    base ieee-8023-interface-type;
+    description
+      "10BROAD36";
+  }
+
+  identity ieee8023-10PASS-TS {
+    base ieee-8023-interface-type;
+    description
+      "10PASS-TS";
+  }
+
+  identity ieee8023-100BASE-BX10 {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-BX10";
+  }
+
+  identity ieee8023-100BASE-FX {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-FX";
+  }
+
+  identity ieee8023-100BASE-LX10 {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-LX10";
+  }
+
+  identity ieee8023-100BASE-T {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-T";
+  }
+
+  identity ieee8023-100BASE-T2 {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-T2";
+  }
+
+  identity ieee8023-100BASE-T4 {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-T4";
+  }
+
+  identity ieee8023-100BASE-TX {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-TX";
+  }
+
+  identity ieee8023-100BASE-X {
+    base ieee-8023-interface-type;
+    description
+      "100BASE-X";
+  }
+
+  identity ieee8023-1000BASE-BX10 {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-BX10";
+  }
+
+  identity ieee8023-1000BASE-CX {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-CX";
+  }
+
+  identity ieee8023-1000BASE-KX {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-KX";
+  }
+
+  identity ieee8023-1000BASE-LX {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-LX";
+  }
+
+  identity ieee8023-1000BASE-LX10 {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-LX10";
+  }
+
+  identity ieee8023-1000BASE-PX10 {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-PX10";
+  }
+
+  identity ieee8023-1000BASE-PX20 {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-PX20";
+  }
+
+  identity ieee8023-1000BASE-SX {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-SX";
+  }
+
+  identity ieee8023-1000BASE-T {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-T";
+  }
+
+  identity ieee8023-1000BASE-X {
+    base ieee-8023-interface-type;
+    description
+      "1000BASE-X";
+  }
+
+  identity ieee8023-10GBASE-CX4 {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-CX4";
+  }
+
+  identity ieee8023-10GBASE-E {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-E";
+  }
+
+  identity ieee8023-10GBASE-ER {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-ER";
+  }
+
+  identity ieee8023-10GBASE-EW {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-EW";
+  }
+
+  identity ieee8023-10GBASE-KR {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-KR";
+  }
+
+  identity ieee8023-10GBASE-KX4 {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-KX4";
+  }
+
+  identity ieee8023-10GBASE-L {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-L";
+  }
+
+  identity ieee8023-10GBASE-LR {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-LR";
+  }
+
+  identity ieee8023-10GBASE-LRM {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-LRM";
+  }
+
+  identity ieee8023-10GBASE-LW {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-LW";
+  }
+
+  identity ieee8023-10GBASE-LX4 {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-LX4";
+  }
+
+  identity ieee8023-10GBASE-PR {
+    base ieee-8023-interface-type;
+    description
+      "10GBASE-PR";
+  }
+
+  typedef identifier45 {
+    type string {
+      length "min..45";
+      pattern "[ -~]+";
+    }
+    description
+      "This type definition accepts any visible ASCII character " +
+      "plus the <space> character.The string must be an RFC 2579 " +
+      "Display String (RFC 854 ASCII 0.00-0.7f) but not contain " +
+      "the characters 0.00 through 0.1f. It does not accept " +
+      "the <delete> character (0.7f) despite the current MEF " +
+      "specification not disallowing it.";
+    reference "[MEF10.3] [R8], [R9]. [RFC2579]. [RFC854].";
+  }
+  typedef identifier90 {
+	    type string {
+	      length "min..90";
+	      pattern "[ -~]+";
+	    }
+	    description
+	      "This type definition is intended for use EVC End Point ID." +
+	      "This type definition accepts any visible ASCII character " +
+	      "plus the <space> character.The string must be an RFC 2579 " +
+	      "Display String (RFC 854 ASCII 0.00-0.7f) but not contain " +
+	      "the characters 0.00 through 0.1f. It does not accept " +
+	      "the <delete> character (0.7f) despite the current MEF " +
+	      "specification not disallowing it.";
+	    reference "[MEF10.3] [R8], [R9]. [RFC2579]. [RFC854].";
+	  }
+  typedef identifier255 {
+	    type string {
+	      length "min..255";
+	      pattern "[ -~]+";
+	    }
+	    description
+	      "This type definition is intended for use EVC End Point ID." +
+	      "This type definition accepts any visible ASCII character " +
+	      "plus the <space> character.The string must be an RFC 2579 " +
+	      "Display String (RFC 854 ASCII 0.00-0.7f) but not contain " +
+	      "the characters 0.00 through 0.1f. It does not accept " +
+	      "the <delete> character (0.7f) despite the current MEF " +
+	      "specification not disallowing it.";
+	    reference "[MEF10.3] [R8], [R9]. [RFC2579]. [RFC854].";
+	  }  
+  typedef max-svc-frame-size-type {
+    type uint16 {
+      range "1522..16384";
+    }
+    units "bytes";
+    description
+      "Max Frame Size Type in bytes. Service Frames larger than " +
+      "this size will be discarded.";
+    reference "[MEF 10.3] Section 8.9 and Section 9.7.";
+  }
+
+  typedef sls-type {
+	    type identifier45;
+	    description
+	      "SLS Type";
+	    reference "[MEF10.3].";
+	  }
+
+  typedef evc-id-type {
+    type identifier45;
+    description
+      "EVC ID Type";
+    reference "[MEF10.3].";
+  }
+
+  typedef simple-percent {
+    type decimal64 {
+      fraction-digits 2;
+      range "0.00 .. 100.00";
+    }
+    description "Percent.";
+  }
+
+  typedef vlan-id-type {
+    type uint32 {
+      range "1..4094";
+    }
+    description
+      "The VLAN-ID that uniquely identifies a VLAN.  This is the " +
+      "12-bit  VLAN-ID used in the VLAN Tag header. The range " +
+      "is defined by the REFERENCED specification. VLAN ID 0 is " +
+      "used for VLAN Unaware Mode.";
+    reference "[802.1Q]";
+  }
+
+  typedef ieee8021p-priority-type {
+    type uint8 {
+      range "0..7";
+    }
+    description
+      "An 802.1Q user priority value.";
+    reference "[802.1Q]";
+  }
+
+  typedef performance-metric-type {
+    type enumeration {
+      enum "one-way-frame-delay-pm" {
+        description
+          "One-way Frame Delay PM";
+      }
+      enum "one-way-frame-delay-range-pm" {
+        description
+          "One-way Frame Delay Range PM";
+      }
+      enum "one-way-mean-frame-delay-pm" {
+        description
+          "One-way Mean Frame Delay PM";
+      }
+      enum "one-way-inter-frame-delay-variation-pm" {
+        description
+          "One-way Inter-Frame Delay Variation PM";
+      }
+      enum "one-way-frame-loss-ratio-pm" {
+        description
+          "One-way Frame Loss Ratio PM";
+      }
+      enum "one-way-availability-pm" {
+        description
+          "One-way Availability PM";
+      }
+      enum "one-way-high-loss-interval-pm" {
+        description
+          "One-way High Loss Interval PM";
+      }
+      enum "one-way-consecutive-high-loss-interval-pm" {
+        description
+          "One-way Consecutive High Loss Interval PM";
+      }
+      enum "one-way-group-availability-pm" {
+        description
+          "One-way Group Availability PM";
+      }
+      enum "one-way-composite-pm" {
+        description
+          "One-way Composite PM";
+      }
+    }
+    description
+      "Performance Metrics.";
+    reference "[MEF10.3] Section 8.8 and Section 11.";
+  }
+
+  typedef connection-type {
+    type enumeration {
+      enum "point-to-point" {
+        description
+          "Point to Point.";
+      }
+      enum "multipoint-to-multipoint" {
+        description
+          "Multipoint to Multipoint.";
+      }
+      enum "rooted-multipoint" {
+        description
+          "Rooted Multipoint.";
+      }
+    }
+    description
+      "EVC Type";
+    reference "[MEF10.3] Section 8.1.";
+  }
+
+  typedef evc-uni-role-type {
+    type enumeration {
+      enum "root" {
+        description
+          "Root Role for UNI. Valid setting for all service " +
+          "types. A UNI set to this value may send frames " +
+          "to UNIs configured as 'root' or 'leaf'.";
+      }
+      enum "leaf" {
+        description
+          "Leaf Role for UNI. Valid setting for Root-Multipoint " +
+          "EVCs only. A UNI set to this value may send frames " +
+          "to UNIs 'root'.";
+      }
+    }
+    description
+      "This object configures UNI type on an EVC.";
+    reference "[MEF10.3] Section 8.1.2.1.";
+  }
+
+  typedef data-svc-frame-delivery-type {
+    type enumeration {
+      enum "discard" {
+        description
+          "Service Frames are discarded.";
+      }
+      enum "unconditional" {
+        description
+          "Service Frames are unconditionally
+           delivered no matter the content of the 
+           Service Frame. An example of this is
+           a Point-to-Point EVC";
+      }
+      enum "conditional" {
+        description
+          "Service Frame are conditionally 
+           delivered to the destination UNI. The
+           condition is specified, for example via a
+           bandwidth profile or unicast MAC address 
+           learning.";
+      }
+    }
+    description
+      "A MEF service can have one of three different " +
+      "delivery types.";
+  }
+
+  typedef uni-resileincy-service-type {
+    type enumeration {
+      enum "none" {
+        description
+          "No protection mechanism defined.";
+      }
+      enum "dual-link-aggregation" {
+        description
+          "Protection mechanism is Link Aggreg-
+           ation as specified in [802.3], with one link in
+           active mode and one link in standby mode.";
+      }
+      enum "other" {
+        description
+          "Protection method defined that is not
+           Link Aggregation active/standby mode.";
+      }
+    }
+    description
+      "This object type of resiliency mechanism for a " +
+      "specific UNI.";
+    reference "[MEF10.3]";
+  }
+
+  typedef evc-cos-identifier-field-type {
+    type enumeration {
+      enum "evc" {
+        description
+          "The EVC ID, depends on the CE-VLAN ID / EVC Mapping " +
+          "at the UNI, will be used to map Service Frames to " +
+          "CoS Names/Labels.";
+        reference "MEF 10.3 Section 10.2.1.1 for " +
+        		"Data Service Frames.";
+      }
+      enum "pcp" {
+        description
+          "The Priority Code Point(PCP) value within the " +
+          "CE-VLAN Tag will be used to map Service Frames " +
+          "to CoS Names/Labels.";
+        reference "MEF 10.3 Section 10.2.1.2: Priority Code " +
+        		"Point (PCP) Field in the Customer VLAN Tag " +
+        		"in a Tagged Service Frame. ";
+      }
+      enum "dscp" {
+        description
+          "The Differentiated Services Code Point(DSCP) value " +
+          "from the IP Packet's IP Header Differentiated " +
+          "Services Group, associated with the Service Frame, " +
+          "will be used to map Service Frames to CoS Names/Labels.";
+        reference "MEF 10.3 Section 10.2.1.3: AKA Internet " +
+        		"Protocol. For a Data Service Frame carrying an " +
+        		"IPv4 or and IPv6 packet.";
+      }
+    }
+    description
+      "[MEF10.3] Section 10.2.1.";
+  }
+
+  typedef evc-eec-identifier-type {
+    type enumeration {
+      enum "pcp" {
+        description
+          "The Priority Code Point(PCP) value within the " +
+          "CE-VLAN Tag will be used to map Service Frames " +
+          "to EEC Names/Labels.";
+        reference "MEF 10.3 Section 10.2.1.2: Priority Code " +
+        		"Point (PCP) Field in the Customer VLAN Tag " +
+        		"in a Tagged Service Frame.";
+      }
+      enum "cos" {
+        description
+          "The CE-VLAN CoS used to map Service Frames " +
+          "to Egress Equivalance Class.";
+        reference "MEF 10.3 Section 10.2.1.1: Class of Service " +
+          "Identifier Based on EVC.";
+      }
+      enum "dscp" {
+        description
+          "The Differentiated Services Code Point(DSCP) value " +
+          "from the IP Packet's IP Header Differentiated " +
+          "Services Group, associated with the Service Frame, " +
+          "will be used to map Service Frames to EEC Names/Labels.";
+        reference "MEF 10.3 Section 10.2.1.3: AKA Internet " +
+        		"Protocol. For a Data Service Frame carrying " +
+        		"an IPv4 or and IPv6 packet.";
+      }
+    }
+    description
+      "[MEF10.3] Section 10.2.1.";
+  }
+
+  typedef evc-color-identifier-field-type {
+    type enumeration {
+      enum "evc" {
+        description
+        	"All Service Frames mapped to the EVC have " +
+            "the same color.";
+        reference "MEF 10.3 Section 10.3.1: Color " +
+        		"Identifier Based on EVC.";
+      }
+      enum "pcp" {
+        description
+          "When the Color Identifier is based on CE-VLAN" +
+          "CoS.";
+        reference "MEF 10.3 Section 10.3.3: Color Identifier" +
+                  "Based on CE-VLAN CoS";
+      }
+      enum "dei" {
+        description
+          "When the Color Identifier is based on CE-VLAN" +
+          "Drop Eligible Indicator(DEI) field of the CE-VLAN Tag.";
+        reference "MEF 10.3 Section 10.3.2: Color Identifier Based " +
+          "on CE-VLAN Tag DEI";
+      }
+      enum "dscp" {
+        description
+          "The Differentiated Services Code Point(DSCP) value " +
+          "from the IP Packet's IP Header Differentiated " +
+          "Services Group, associated with the Service " +
+          "Frame";
+        reference "MEF 10.3 Section 10.2.1.3: AKA Internet " +
+        		"Protocol. For a Data Service Frame carrying " +
+        		"an IPv4 or and IPv6 packet.";
+      }
+    }
+    description
+      "Color Identification Type.";
+    reference "[MEF23.1].";
+  }
+
+  typedef color-type {
+    type enumeration {
+      enum "green" {
+        description
+          "Green.";
+      }
+      enum "yellow" {
+        description
+          "Yellow.";
+      }
+    }
+    description
+      "Color Type.";
+    reference "[MEF23.1].";
+  }
+
+  typedef bwp-ir-type {
+    type uint32;
+    units bps;
+    description
+      "Bandwidth Profile Information Rate in " +
+      "bits Per Second.";
+    reference "[MEF10.3] [R143], [R144].";
+  }
+
+  typedef bwp-bs-type {
+    type uint32;
+    units bytes;
+    description
+      "Bandwidth Profile Burst Size in Bytes.";
+    reference "[MEF10.3] [R145].";
+  }
+
+  typedef elmi-status-error-threshold-type {
+    type uint8 {
+      range "2 .. 10";
+    }
+    description
+      "The count of consecutive ELMI status polling errors " +
+      "before raising an error.";
+    reference "[MEF16] Section 5.6.1.";
+  }
+
+  typedef elmi-polling-timer-type {
+    type uint8 {
+      range "5 .. 30";
+    }
+    description
+      "The type used for a timer started after tranmitting " +
+      "a Status Enquiry. If the timer expires, record " +
+      "the error if a STATUS message not received and " +
+      "resend Status Enquiry.";
+    reference "[MEF16] Section 5.6.1.";
+  }
+
+  typedef elmi-polling-verification-timer-type {
+    type uint8 {
+      range "5 .. 30";
+    }
+    description
+      "The type used for a timer started after tranmitting " +
+      "a Status Message. If a Status Enquiry is received before " +
+      "this timer expires, record the error.";
+    reference "[MEF16] Section 5.6.1.";
+  }
+
+  typedef bwp-color-mode-type {
+    type enumeration {
+      enum "color-blind" {
+        description
+          "Color Blind. Do not use CoS Color Configuration for " +
+          "this Bandwidth Profile.";
+      }
+      enum "color-aware" {
+        description
+          "Color Aware. Use CoS Color Configuration for this " +
+          "Bandwidth Profile.";
+      }
+    }
+    description
+      "This attribute describes the color mode (CM) to be " +
+      "applied as \"color-blind mode\" or \"color-aware mode\".";
+    reference "[MEF10.3] Section 10.3, [R151].";
+  }
+
+  typedef l2cp-handling-type {
+    type enumeration {
+      enum "discard" {
+        description
+          "Discard - An action taken at a L2CP Decision Point " +
+          "where a L2CP frame is neither delivered to a protocol " +
+          "entity, nor delivered to the External Interface " +
+          "where the L2CP Decision Point is located, nor " +
+          "propagated to L2CP Decision Points at other " +
+          "External Interfaces.";
+      }
+      enum "pass" {
+        description
+          "Pass(Tunnel) - An action taken at a L2CP Decision " +
+          "Point where a L2CP frame is either delivered to " +
+          "the External Interface where the L2CP Decision Point " +
+          "is located, or propagated to the L2CP Decision " +
+          "Points located at all other External Interfaces " +
+          "associated by the EVC or OVC.";
+      }
+      enum "peer" {
+        description
+          "Peer - An action taken at a L2CP Decision Point " +
+          "where a L2CP frame is delivered to a protocol " +
+          "entity determined by the Protocol Identifier " +
+          "in the L2CP Frame.";
+      }
+    }
+    description
+      "L2CP Service Frame handling option.";
+    reference "[MEF45] Table 8.";
+  }
+
+  typedef l2cp-address-set-type {
+    type enumeration {
+      enum "cta" {
+        description
+          "C-VLAN Tag Aware (CTA), for VLAN-based services where" +
+          " the CE-VLAN ID is used to map a frame to a service.";
+      }
+      enum "blind-ctb" {
+        description
+          "C-VLAN Tag Blind (CTB), for Port-based services where " +
+          "the CE-VLAN ID is not used to map a frame to a service.";
+      }
+      enum "option2-blind-ctb2" {
+        description
+          "C-VLAN Tag Blind Option 2 (CTB-2), for point-to-point " +
+          "Port-based services that support the EPL Option 2 " +
+          "L2CP processing.";
+      }
+    }
+    description
+      "The L2CP Address Set Service Attribute specifies the " +
+      "subset of the Bridge Reserved Addresses that are " +
+      "filtered (i.e. L2CP Frames with this destination " +
+      "address are Peered or Discarded but not Passed) " +
+      "at a L2CP Decision Point.";
+    reference "[MEF10.3] Section 9.19. [MEF45] Section 8.1, " +
+    		"[R2] through [R9]. [MEF6.2] Section 8.2.2, [R1]. " +
+    		"[MEF45] Section 8.1.";
+  }
+
+  typedef l2cp-protocol-field-type {
+    type enumeration {
+      enum "ethertype" {
+        description
+          "Ethertype.";
+      }
+      enum "llc" {
+        description
+          "LLC.";
+      }
+      enum "other" {
+        description
+          "Other: Not using LLC nor Ethertype to specify " +
+          "the Protocol ID.";
+      }
+    }
+    description
+      "The Peering Protocol Identifier is one of Ethertype, " +
+      "LLC, or Other.";
+    reference "[MEF45] Section 7.";
+  }
+
+  typedef mef-service-type {
+    type enumeration {
+      enum "epl" {
+        description
+          "Ethernet Private Line Service (EPL) Point-to-Point " +
+          "EVC, all to one bundling";
+      }
+      enum "evpl" {
+        description
+          "Ethernet Virtual Private Line (EVPL) Point-to-Point " +
+          "EVC, bundling and/or multiplexing";
+      }
+      enum "eplan" {
+        description
+          "Ethernet Private LAN Service (EP-LAN) " +
+          "Multipoint-to-Multipoint EVC, all to one bundling";
+      }
+      enum "evplan" {
+        description
+          "Ethernet Virtual Private LAN Service (EVP-LAN) " +
+          "Multipoint-to-Multipoint EVC, bundling and/or " +
+          "multiplexing";
+      }
+      enum "eptree" {
+        description
+          "Ethernet Private Tree Service (EP-Tree) " +
+          "Rooted-Multipoint EVC, all to one bundling";
+      }
+      enum "evptree" {
+        description
+          "Ethernet Virtual Private Tree Service (EVP-Tree) " +
+          "Rooted-Multipoint EVC, bundling and/or multiplexing";
+      }
+      enum "other" {
+    	  description
+    	    "Use Other MEF Service if one of the existing enumerations does not apply";
+      }
+    }
+    description
+      "This object indicates the specific Ethernet service type.";
+  }
+}

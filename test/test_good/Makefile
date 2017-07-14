@@ -2,7 +2,7 @@ PYANG = pyang -Werror -WWBAD_MODULE_NAME
 
 MODULES ?= $(wildcard *.yang)
 
-test: clean utf8-test
+test: clean utf8-test mef-ieee-test
 	@for m in $(MODULES); do 					\
 		echo -n "checking $$m...";				\
 		$(PYANG) $$m || exit 1;					\
@@ -31,6 +31,11 @@ utf8-test:
 	pyang -f yang q.yang > x || exit 1; \
 	pyang -f yang q.yang -o x || exit 1; \
 	rm -f x
+
+mef-ieee-test:
+	pyang --mef mef-yt10.yang || exit 1; \
+        pyang --mef mef-yt11.yang || exit 1; \
+        pyang --ieee ieee-yt12.yang || exit 1;
 
 clean:
 	rm -rf *.yang.yin *.gen.* *.dsdl

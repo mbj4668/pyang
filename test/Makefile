@@ -16,6 +16,13 @@ python3_test: python3/python
 
 itest:
 	@echo -n "selftest... "; ./selftest.py || exit 1; echo "ok";	\
+	echo -n "validate all modules... ";				\
+	for d in ../modules/*; do					\
+		( cd $$d;						\
+		for m in *.yang; do					\
+			pyang $$m || exit 1;				\
+		done ) || exit 1;					\
+	done || exit 1; echo "ok";					\
 	for d in $(DIRS); do 						\
 		( cd $$d && $(MAKE) test ) || exit 1;			\
 	done

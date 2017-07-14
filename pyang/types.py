@@ -38,14 +38,16 @@ class IntTypeSpec(TypeSpec):
         self.min = min
         self.max = max
 
-    def str_to_val(self, errors, pos, str):
+    def str_to_val(self, errors, pos, s):
         try:
-            if str in ['min', 'max']:
-                return str
-            return int(str, 0)
+            if s in ['min', 'max']:
+                return s
+            if syntax.re_integer.search(s) is None:
+                raise ValueError
+            return int(s, 0)
         except ValueError:
             err_add(errors, pos, 'TYPE_VALUE',
-                    (str, self.definition, 'not an integer'))
+                    (s, self.definition, 'not an integer'))
             return None
 
     def validate(self, errors, pos, val, errstr = ''):
@@ -287,7 +289,7 @@ def validate_ranges(errors, pos, ranges, type_):
     # make sure the range values are of correct type and increasing
     cur_lo = None
     for (lo, hi) in ranges:
-        if lo != 'min' and lo != 'max':
+        if lo != 'min' and lo != 'max' and lo != None:
             type_.i_type_spec.validate(errors, pos, lo)
         if hi != 'min' and hi != 'max' and hi != None:
             type_.i_type_spec.validate(errors, pos, hi)

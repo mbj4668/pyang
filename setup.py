@@ -6,6 +6,7 @@ import glob
 import os
 import re
 import sys
+import tempfile
 
 modules_iana = glob.glob(os.path.join('modules', 'iana', '*.yang'))
 modules_ietf = glob.glob(os.path.join('modules', 'ietf', '*.yang'))
@@ -51,12 +52,14 @@ class PyangDist(Distribution):
             Distribution.run_commands(self)
 
 # If the installation is on windows, place pyang.bat file in Scripts directory
-if os.sep == '\\':
-    script_dir = join(sys.prefix, 'Scripts')
-    pyang_file = join(script_dir, 'pyang')
-    path = join(script_dir, 'pyang.bat')
-    with open(path, 'w') as script:
-        script.write('@echo off\n%s %s %%*\n' % ('python', pyang_file))
+script_files = []
+if os.name == "nt":
+    pyang_bat_file = "{}/{}.bat".format(tempfile.gettempdir(), "pyang")
+    with open(pyang_bat_file, 'w') as script:
+        script.write('@echo off\npython %cd%\pyang %*\n')
+    script_files = ['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml', pyang_bat_file]
+else:
+    script_files = ['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml']
 
 setup(name='pyang',
       version=pyang.__version__,
@@ -75,7 +78,7 @@ setup(name='pyang',
             ],
       keywords='YANG validator',
       distclass=PyangDist,
-      scripts=['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml'],
+      scripts=script_files,
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],
       data_files=[
             ('share/man/man1', man1),
@@ -87,3 +90,7 @@ setup(name='pyang',
             ('etc/bash_completion.d', ['etc/bash_completion.d/pyang']),
             ]
       )
+
+# Remove Bat file
+if os.name == "nt":
+    os.remove(pyang_bat_file)
