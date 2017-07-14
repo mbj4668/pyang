@@ -1,4 +1,4 @@
-// comment before module statement
+// comment before module statement (single blank line after)
 
 module a {
   namespace "urn:a";
@@ -31,7 +31,8 @@ module a {
     type int32;
   }
 
-  /* single line */
+  
+  /* single line (two blank lines before) */
 
   container x {
     // the container is y

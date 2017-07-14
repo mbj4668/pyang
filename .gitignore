@@ -26,3 +26,4 @@ schemas.xml
 /test/test_json/test-data.xml
 /test/test_xsd/*.xsd
 /test/test_yang/out/
+/test/test_yang/out2/
