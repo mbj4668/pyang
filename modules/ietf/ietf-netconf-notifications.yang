@@ -122,10 +122,6 @@ module ietf-netconf-notifications {
 
     uses changed-by-parms;
 
-
-
-
-
     leaf datastore {
       type enumeration {
         enum running {
@@ -205,7 +201,6 @@ module ietf-netconf-notifications {
     }
   } // notification netconf-capability-change
 
-
   notification netconf-session-start {
     description
       "Generated when a NETCONF server detects that a
@@ -215,9 +210,6 @@ module ietf-netconf-notifications {
        the session.";
     uses common-session-parms;
   } // notification netconf-session-start
-
-
-
 
   notification netconf-session-end {
     description
@@ -283,7 +275,6 @@ module ietf-netconf-notifications {
     }
   } // notification netconf-session-end
 
-
   notification netconf-confirmed-commit {
     description
       "Generated when a NETCONF server detects that a
@@ -294,7 +285,7 @@ module ietf-netconf-notifications {
       "RFC 6241, Section 8.4";
 
     uses common-session-parms {
-      when "../confirm-event != 'timeout'";
+      when "confirm-event != 'timeout'";
     }
 
     leaf confirm-event {

@@ -1,0 +1,46 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  leaf x1 {
+    type enumeration {
+      enum one {
+        value 01;
+      }
+    }
+  }
+  leaf u {
+    type bits {
+      bit one {
+        position 01;
+      }
+    }
+  }
+  leaf y1 {
+    type int32 {
+      range "1 | 02";
+    }
+  }
+  leaf y2 {
+    type int32 {
+      range "02 .. 3";
+    }
+  }
+  leaf y3 {
+    type int32 {
+      range "2 .. 03";
+    }
+  }
+  leaf z1 {
+    type decimal64 {
+      fraction-digits 2;
+      range "01.01 .. 2.33";
+    }
+  }
+  leaf z2 {
+    type decimal64 {
+      fraction-digits 2;
+      range "1.01 .. 02.33";
+    }
+  }
+}
