@@ -1480,6 +1480,14 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--yang-keep-blank-lines</option></term>
+        <listitem>
+          <para>
+            Keep blank lines and trailing comments.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--yang-remove-unused-imports</option></term>
         <listitem>
           <para>
