@@ -34,6 +34,7 @@
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
+      <arg choice="opt">-x</arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
       <arg choice="plain" rep="repeat">
         <replaceable>file</replaceable>
@@ -46,6 +47,7 @@
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
+      <arg choice="opt">-x</arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
       <arg choice="plain">
         <replaceable>file</replaceable>
@@ -58,6 +60,7 @@
       <arg choice="opt">-d <replaceable>dir</replaceable></arg>
       <arg choice="plain">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
+      <arg choice="opt">-x</arg>
       <arg choice="plain">-v <replaceable>instance</replaceable></arg>
     </cmdsynopsis>
     <cmdsynopsis>
@@ -306,6 +309,15 @@
         <listitem>
           <para>Validates an instance XML document contained in file
           <replaceable>instance</replaceable>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-x</option></term>
+        <listitem>
+          <para>Try to translate modules written in unsupported YANG
+          versions.  If the module doesn't use any constructs
+          introduced after YANG version 1, this may work.  This option
+          may produce unexpected results.  Use at own risk.</para>
         </listitem>
       </varlistentry>
     </variablelist>
