@@ -50,6 +50,8 @@
       <arg choice="opt">--ietf</arg>
       <arg choice="opt">--lax-quote-checks</arg>
       <arg choice="opt">--lax-xpath-checks</arg>
+      <arg choice="opt">--features <replaceable>features</replaceable></arg>
+      <arg choice="opt">--max-status <replaceable>maxstatus</replaceable></arg>
       <arg choice="opt">--hello</arg>
       <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
@@ -511,6 +513,27 @@
           <informalexample>
             <screen>$ pyang -f tree --features mymod: mymod.yang</screen>
           </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--max-status</option>
+          <replaceable>maxstatus</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <replaceable>maxstatus</replaceable> is one of:
+            <replaceable>current</replaceable>,
+            <replaceable>deprecated</replaceable>, or
+            <replaceable>obsolete</replaceable>.
+          </para>
+          <para>
+            This option is used to prune the data model by removing
+            all nodes that are defined with a "status" that is less
+            than the given <replaceable>maxstatus</replaceable>.  This
+            option affects all output formats.
+          </para>
         </listitem>
       </varlistentry>
 

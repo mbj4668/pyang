@@ -214,6 +214,7 @@ _validation_map = {
     ('type', 'feature'):lambda ctx, s: v_type_feature(ctx, s),
     ('type', 'if-feature'):lambda ctx, s: v_type_if_feature(ctx, s),
     ('type', 'identity'):lambda ctx, s: v_type_identity(ctx, s),
+    ('type', 'status'):lambda ctx, s: v_type_status(ctx, s),
     ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
 
@@ -1260,6 +1261,17 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 stmt.i_module.i_prune.append(stmt.parent)
     except Abort:
         pass
+
+def v_type_status(ctx, stmt):
+    if ctx.max_status is not None:
+        def n(s):
+            if s == 'current':    return 0;
+            if s == 'deprecated': return 1;
+            if s == 'obsolete':   return 2;
+        if n(stmt.arg) > n(ctx.max_status):
+            # prune the parent
+            if stmt.parent not in stmt.i_module.i_prune:
+                stmt.i_module.i_prune.append(stmt.parent)
 
 def v_type_identity(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):

@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -285,6 +285,18 @@ $ pyang \-f tree \-\-features mymod: mymod\&.yang
 .if n \{\
 .RE
 .\}
+.RE
+.PP
+\fB\-\-max\-status\fR \fImaxstatus\fR
+.RS 4
+\fImaxstatus\fR
+is one of:
+\fIcurrent\fR,
+\fIdeprecated\fR, or
+\fIobsolete\fR\&.
+.sp
+This option is used to prune the data model by removing all nodes that are defined with a "status" that is less than the given
+\fImaxstatus\fR\&. This option affects all output formats\&.
 .RE
 .PP
 \fB\-\-deviation\-module\fR \fIfile\fR

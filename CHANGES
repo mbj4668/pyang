@@ -1,4 +1,5 @@
    1.7.4 - ?????
+         added --max-status to prune old definitions
          added yang2dsdl -x to try to translate 1.1 modules
 
    1.7.3 - 2017-06-27

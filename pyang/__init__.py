@@ -42,6 +42,7 @@ class Context(object):
         self.lax_xpath_checks = False
         self.deviation_modules = []
         self.features = {}
+        self.max_status = None
         self.keep_comments = False
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
