@@ -1,6 +1,8 @@
    1.7.4 - ?????
          added --max-status to prune old definitions
          added yang2dsdl -x to try to translate 1.1 modules
+         check that a current/deprecated node does not reference a node
+           with "lesser" status.
 
    1.7.3 - 2017-06-27
          #318 - handle multiple rc:yang-data statements.
