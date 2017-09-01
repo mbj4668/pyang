@@ -70,7 +70,6 @@ class LintPlugin(plugin.PyangPlugin):
         ctx.canonical = True
         ctx.max_identifier_len = 64
         ctx.implicit_errors = False
-        ctx.ensure_hyphenated_names = True
 
         # always add additional prefixes given on the command line
         self.namespace_prefixes.extend(ctx.opts.lint_namespace_prefixes)
