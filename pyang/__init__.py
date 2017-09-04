@@ -42,6 +42,7 @@ class Context(object):
         self.lax_xpath_checks = False
         self.deviation_modules = []
         self.features = {}
+        self.max_status = None
         self.keep_comments = False
         self.ensure_hyphenated_names = False
 

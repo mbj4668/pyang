@@ -1,19 +1,16 @@
-"""SMIv2 plugin
+"""RESTCONF plugin
 
-Verifies SMIv2 YANG statements as defined in RFC 6643.
+Verifies RESTCONF YANG statements as defined in RFC 8040.
 
-This implementation relaxes one rule from RFC 6643; it allows
-smiv2:subid if an ancestor statement has a smiv2:oid or smiv2:subid
-statement.  RFC 6643 requires the parent statement to have the
-smiv2:oid or smiv2:subid statement.
-
-Verifies the grammar of the restcinf extension statements.
+Verifies the grammar of the restconf extension statements.
 """
 
 import pyang
 from pyang import plugin
 from pyang import grammar
 from pyang import statements
+from pyang import error
+from pyang.error import err_add
 
 restconf_module_name = 'ietf-restconf'
 
@@ -41,6 +38,16 @@ def pyang_plugin_init():
         grammar.add_to_stmts_rules(add_to_stmts,
                                    [((restconf_module_name, stmt), occurance)])
 
+    # Add validation functions
+    statements.add_validation_fun('expand_2',
+                                  [yd],
+                                  v_yang_data)
+
+    # Register special error codes
+    error.add_error_code('RESTCONF_YANG_DATA_CHILD', 1,
+                         "the 'yang-data' extension must have exactly one " +
+                         "child that is a container")
+
 restconf_stmts = [
 
     # (<keyword>, <occurance when used>,
@@ -52,3 +59,8 @@ restconf_stmts = [
      ['module', 'submodule']),
 
 ]
+
+def v_yang_data(ctx, stmt):
+    if (len(stmt.i_children) != 1 or
+        stmt.i_children[0].keyword != 'container'):
+        err_add(ctx.errors, stmt.pos, 'RESTCONF_YANG_DATA_CHILD', ())

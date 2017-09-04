@@ -33,7 +33,7 @@ module/*hej*/xt1 {
     type myInt1 {
       range "1 | 5..6";
     }
-    status deprecated;
+    //status deprecated;
   }
   typedef myInt3 {
     type myInt2 {
