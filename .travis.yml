@@ -10,6 +10,7 @@ addons:
     packages:
       - xsltproc
       - jing
+      - libxml2-utils
       - bash
 install:
   - pip install -r requirements.txt
