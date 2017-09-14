@@ -656,6 +656,12 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                               (stmt.arg, ctx.max_identifier_len))
                 # recoverable error
                 stmt.is_grammatically_valid = True
+            elif ((arg_type == 'identifier' or arg_type == 'enum-arg') and
+                  ctx.ensure_hyphenated_names
+                  and util.not_hyphenated(stmt.arg)):
+                error.err_add(ctx.errors, stmt.pos, 'NOT_HYPHENATED', stmt.arg)
+                # recoverable error
+                stmt.is_grammatically_valid = True                
             else:
                 stmt.is_grammatically_valid = True
 

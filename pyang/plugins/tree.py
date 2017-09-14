@@ -142,9 +142,13 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if subm is not None:
                 mods.append(subm)
         for m in mods:
+            section_delimiter_printed=False
             for augment in m.search('augment'):
                 if (hasattr(augment.i_target_node, 'i_module') and
                     augment.i_target_node.i_module not in modules + mods):
+                    if not section_delimiter_printed:
+                        fd.write('\n')
+                        section_delimiter_printed = True
                     # this augment has not been printed; print it
                     if not printed_header:
                         print_header()
@@ -188,13 +192,15 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            fd.write("  groupings:\n")
+            section_delimiter_printed = False
             for gname in module.i_groupings:
-                fd.write('  ' + gname + '\n')
+                if not section_delimiter_printed:
+                    fd.write('\n')
+                    section_delimiter_printed = True
+                fd.write("  grouping %s\n" % gname)
                 g = module.i_groupings[gname]
-                print_children(g.i_children, module, fd, '    ', path,
-                               'grouping', depth, llen)
-                fd.write('\n')
+                print_children(g.i_children, module, fd,
+                               '  ', path, 'grouping', depth, llen)
 
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
@@ -202,12 +208,14 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 if not printed_header:
                     print_header()
                     printed_header = True
-                fd.write("  yang-data:\n")
+                section_delimiter_printed = False
                 for yd in yds:
-                    fd.write('  ' + yd.arg + '\n')
+                    if not section_delimiter_printed:
+                        fd.write('\n')
+                        section_delimiter_printed = True
+                    fd.write("  yang-data %s:\n" % yd.arg)
                     print_children(yd.i_children, module, fd, '    ', path,
                                    'yang-data', depth, llen)
-                    fd.write('\n')
 
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,

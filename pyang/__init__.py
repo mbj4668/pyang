@@ -14,8 +14,8 @@ from . import grammar
 from . import util
 from . import statements
 
-__version__ = '1.7.2'
-__date__ = '2017-06-14'
+__version__ = '1.7.3'
+__date__ = '2017-06-27'
 
 class Context(object):
     """Class which encapsulates a parse session"""
@@ -42,7 +42,9 @@ class Context(object):
         self.lax_xpath_checks = False
         self.deviation_modules = []
         self.features = {}
+        self.max_status = None
         self.keep_comments = False
+        self.ensure_hyphenated_names = False
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:

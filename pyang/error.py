@@ -375,15 +375,9 @@ error_codes = \
     'DUPLICATE_DEFAULT':
         (1,
          'the default value %s is given twice in the leaf list'),
-    'CURRENT_USES_DEPRECATED':
+    'BAD_STATUS_REFERENCE':
       (2,
-       'the %s definiton is current, but the %s it references is deprecated'),
-    'CURRENT_USES_OBSOLETE':
-      (2,
-       'the %s definiton is current, but the %s it references is obsolete'),
-    'DEPRECATED_USES_OBSOLETE':
-      (3,
-       'the %s definiton is deprecated, but the %s it references is obsolete'),
+       'the "%s" definition is %s, but the "%s" it references is %s'),
     'REVISION_ORDER':
       (4,
        'the revision statements are not given in reverse chronological order'),
@@ -459,6 +453,9 @@ error_codes = \
     'STRICT_XPATH_FUNCTION':
       (2,
        'XPath function "%s" is not allowed for strict YANG compliance'),
+    'NOT_HYPHENATED':
+      (4,
+       'name is not hyphenated, e.g using upper-case or underscore: %s'),
     }
 
 def add_error_code(tag, level, fmt):

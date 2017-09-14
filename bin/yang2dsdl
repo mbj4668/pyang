@@ -7,7 +7,7 @@
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -64,13 +64,17 @@ Options:
   -j             Use jing for RELAX NG validation instead of xmllint.
   -s             Performs just validation, without (re)generating
                  the schemas. Only allowed together with -v and -b.
+  -x             Try to translate modules written in unsupported YANG
+                 versions.  If the module doesn't use any constructs
+                 introduced after YANG version 1, this may work.
+                 This option may produce unexpected results.  Use at own risk.
 EOF
 }
 
 gen_relaxng() {
     echo "== Generating RELAX NG schema '$btname.rng'"
     rngparms="$XSLT_OPTS $gen_rng_parms --stringparam target $target \
-	--stringparam basename $basename \
+        --stringparam basename $basename \
         --stringparam schema-dir $schema_dir \
         $xslt_dir/gen-relaxng.xsl $hybs"
     xsltproc --output $btname.rng $rngparms
@@ -99,27 +103,27 @@ gen_dsrl() {
 validate() {
     printf "\n== Validating grammar and datatypes ...\n"
     if [ -f $btname.rng ] ; then
-	if [ "$jing" = "0" ] ; then
-	    xmllint --noout --relaxng $btname.rng $instance
-	    [ $? -eq 0 ] || exit 3
-	else
-	    jing $btname.rng $instance
-	    [ $? -eq 0 ] || exit 3
-	    echo $instance validates.
-	fi
+        if [ "$jing" = "0" ] ; then
+            xmllint --noout --relaxng $btname.rng $instance
+            [ $? -eq 0 ] || exit 3
+        else
+            jing $btname.rng $instance
+            [ $? -eq 0 ] || exit 3
+            echo $instance validates.
+        fi
     else
         echo "RELAX NG schema '$btname.rng' not found."
-	exit 2
+        exit 2
     fi
     if [ "$target" = "edit-config" ] ; then
-	return
+        return
     fi
     printf "\n== Adding default values... "
     if [ -f $btname.dsrl ] ; then
         xsltproc -o $dsrlxsl $xslt_dir/dsrl2xslt.xsl $btname.dsrl
-	[ $? -eq 0 ] || exit 2
+        [ $? -eq 0 ] || exit 2
         xsltproc -o $instwdef $dsrlxsl $instance
-	[ $? -eq 0 ] || exit 3
+        [ $? -eq 0 ] || exit 3
         inst4sch=$instwdef
         printf "done.\n"
     else
@@ -131,7 +135,7 @@ validate() {
         xsltproc $xslt_dir/iso_abstract_expand.xsl $btname.sch | \
             xsltproc -o $schxsl $xslt_dir/iso_svrl_for_xslt1.xsl -
         xsltproc $schxsl $inst4sch | xsltproc $xslt_dir/svrl2text.xsl -
-	[ $? -eq 0 ] || exit 3
+        [ $? -eq 0 ] || exit 3
     else
         echo "Schematron schema '$btname.sch' not found, skipping ..."
     fi
@@ -146,7 +150,7 @@ rtfm () {
     exit 1
 }
 
-while getopts ":ht:d:b:v:jLs" opt ; do
+while getopts ":ht:d:b:v:jLsx" opt ; do
     case $opt in
         h)
             usage
@@ -155,7 +159,8 @@ while getopts ":ht:d:b:v:jLs" opt ; do
         t)
             target=$OPTARG
             if [ "$target" != "data" ] && [ "$target" != "config" ] && \
-	       [ "$target" != "get-reply" ] && [ "$target" != "get-config-reply" ] \
+                   [ "$target" != "get-reply" ] && \
+                   [ "$target" != "get-config-reply" ] \
                && [ "$target" != "rpc" ] && [ "$target" != "rpc-reply" ] && \
                [ "$target" != "edit-config" ] && [ "$target" != "notification" ]
             then
@@ -180,14 +185,17 @@ while getopts ":ht:d:b:v:jLs" opt ; do
                 exit 1
             fi
             ;;
-	j)
-	    jing=1
-	    ;;
-	L)
-	    hello=1
-	    ;;
+        j)
+            jing=1
+            ;;
+        L)
+            hello=1
+            ;;
         s)
             noschema=1
+            ;;
+        x)
+            pyang_opts="${pyang_opts} --dsdl-lax-yang-version"
             ;;
         \?)
             echo "Invalid option: -$OPTARG." >&2
@@ -195,7 +203,7 @@ while getopts ":ht:d:b:v:jLs" opt ; do
             ;;
         :)
             echo "Option -$OPTARG requires an argument."
-	    rtfm
+            rtfm
             ;;
     esac
 done
@@ -217,25 +225,25 @@ trap "cleanup" 0 1 2 3 15
 
 if [ "$noschema" = "0" ] ; then
     if [ "$infiles" = "" ] ; then
-	echo "No input file(s) given." >&2
-	rtfm
+        echo "No input file(s) given." >&2
+        rtfm
     elif [ ! -w $dir ] ; then
         echo "Directory '$dir' not writable."
         exit 1
     fi
     if [ "$hello" = "1" ] ; then
-	printf "\n== Validating hello file ...\n"
-	hellorng=$schema_dir/hello-server.rng
-	if [ "$jing" = "0" ] ; then
-	    xmllint --noout --relaxng $hellorng $infiles
-	    [ $? -eq 0 ] || exit 3
-	else
-	    jing $hellorng $infiles
-	    [ $? -eq 0 ] || exit 3
-	    echo $infiles validates.
-	fi
-	pyang_opts="${pyang_opts} --hello"
-	printf "\n"
+        printf "\n== Validating hello file ...\n"
+        hellorng=$schema_dir/hello-server.rng
+        if [ "$jing" = "0" ] ; then
+            xmllint --noout --relaxng $hellorng $infiles
+            [ $? -eq 0 ] || exit 3
+        else
+            jing $hellorng $infiles
+            [ $? -eq 0 ] || exit 3
+            echo $infiles validates.
+        fi
+        pyang_opts="${pyang_opts} --hello"
+        printf "\n"
     fi
     pyang -f dsdl -o $hybs $pyang_opts $infiles
     [ $? -eq 0 ] || exit 2

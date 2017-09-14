@@ -214,6 +214,7 @@ _validation_map = {
     ('type', 'feature'):lambda ctx, s: v_type_feature(ctx, s),
     ('type', 'if-feature'):lambda ctx, s: v_type_if_feature(ctx, s),
     ('type', 'identity'):lambda ctx, s: v_type_identity(ctx, s),
+    ('type', 'status'):lambda ctx, s: v_type_status(ctx, s),
     ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
 
@@ -1044,10 +1045,28 @@ def _v_type_common_leaf(ctx, stmt):
     # ensure our type is validated
     v_type_type(ctx, type_)
 
+    if type_.i_typedef:
+        chk_status(ctx, stmt, type_.i_typedef)
+
     # keep track of our leafref
     type_spec = type_.i_type_spec
     if type(type_spec) == types.PathTypeSpec:
         stmt.i_leafref = type_spec
+
+def chk_status(ctx, x, y):
+    if (x.top.i_modulename != y.top.i_modulename):
+        return
+    def status(s):
+        stat = s.search_one('status')
+        if stat is not None:
+            return stat.arg
+        return 'current'
+    xstatus = status(x)
+    ystatus = status(y)
+    if ((xstatus == 'current' and ystatus != 'current') or
+        (xstatus == 'deprecated' and ystatus == 'obsolete')):
+        err_add(ctx.errors, x.pos, 'BAD_STATUS_REFERENCE',
+                (x.keyword, xstatus, y.keyword, ystatus))
 
 def v_type_grouping(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
@@ -1123,6 +1142,7 @@ def v_type_uses(ctx, stmt, no_error_report=False):
         err_add(ctx.errors, stmt.pos,
                 'GROUPING_NOT_FOUND', (name, pmodule.arg))
     if stmt.i_grouping is not None:
+        chk_status(ctx, stmt, stmt.i_grouping)
         stmt.i_grouping.i_is_unused = False
 
 def v_type_augment(ctx, stmt):
@@ -1260,6 +1280,17 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 stmt.i_module.i_prune.append(stmt.parent)
     except Abort:
         pass
+
+def v_type_status(ctx, stmt):
+    if ctx.max_status is not None:
+        def n(s):
+            if s == 'current':    return 0;
+            if s == 'deprecated': return 1;
+            if s == 'obsolete':   return 2;
+        if n(stmt.arg) > n(ctx.max_status):
+            # prune the parent
+            if stmt.parent not in stmt.i_module.i_prune:
+                stmt.i_module.i_prune.append(stmt.parent)
 
 def v_type_identity(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
@@ -1981,6 +2012,7 @@ def v_reference_leaf_leafref(ctx, stmt):
         path_type_spec.i_path_list = path_list
         stmt.i_leafref_expanded = True
         if ptr is not None:
+            chk_status(ctx, stmt, ptr)
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
 
 def v_reference_must(ctx, stmt):
@@ -2833,22 +2865,6 @@ class Statement(object):
            for x in self.i_children:
                x.pprint(indent + ' ', f)
            print(indent + '--- END i_children ---')
-
-
-## FIXME: not used
-def validate_status(errors, x, y, defn, ref):
-    xstatus = x.status
-    if xstatus is None:
-        xstatus = 'current'
-    ystatus = y.status
-    if ystatus is None:
-        ystatus = 'current'
-    if xstatus == 'current' and ystatus == 'deprecated':
-        err_add(errors, x.pos, 'CURRENT_USES_DEPRECATED', (defn, ref))
-    elif xstatus == 'current' and ystatus == 'obsolete':
-        err_add(errors, x.pos, 'CURRENT_USES_OBSOLETE', (defn, ref))
-    elif xstatus == 'deprecated' and ystatus == 'obsolete':
-        err_add(errors, x.pos, 'DEPRECATED_USES_OBSOLETE', (defn, ref))
 
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "

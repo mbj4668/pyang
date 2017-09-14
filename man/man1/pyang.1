@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2016-11-02
+.\"      Date: 2017-06-27
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.7.1
+.\"    Source: pyang-1.7.3
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2016\-11\-02" "pyang\-1\&.7\&.1" "pyang manual"
+.TH "PYANG" "1" "2017\-06\-27" "pyang\-1\&.7\&.3" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -55,7 +55,9 @@ reads input from stdin, which must be one module or a server <hello> message\&.
 .PP
 The
 \fBpyang\fR
-program is used to validate YANG modules (\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2)\&. It is also used to convert YANG modules into equivalent YIN modules\&. From a valid module a hybrid DSDL schema (\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[3]\d\s+2) can be generated\&.
+program is used to validate YANG modules (\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2
+and
+\m[blue]\fBRFC 7950\fR\m[]\&\s-2\u[3]\d\s+2)\&. It is also used to convert YANG modules into equivalent YIN modules\&. From a valid module a hybrid DSDL schema (\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[4]\d\s+2) can be generated\&.
 .PP
 If no
 \fIformat\fR
@@ -189,7 +191,7 @@ Force strict YANG compliance\&. Currently this checks that the deref() function 
 \fB\-\-lint\fR
 .RS 4
 Validate the module(s) according to the generic YANG guideline as specified in
-\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[4]\d\s+2\&. In addition, it checks that the module is in canonical order\&.
+\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[5]\d\s+2\&. In addition, it checks that the module is in canonical order\&.
 .RE
 .PP
 \fB\-\-ietf\fR
@@ -200,9 +202,12 @@ Validate the module(s) like
 .PP
 \fB\-\-lax\-quote\-checks\fR
 .RS 4
-Lax checks of backslashes in double quoted strings in YANG version 1 modules\&. RFC 6020 does not clearly define how to handle backslahes within double quoted strings, when the character after the backslash is not one of the characters listed in Section 6\&.1\&.3 in RFC 6020\&.
+Lax checks of backslashes in double quoted strings in YANG version 1 modules\&.
+\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2
+does not clearly define how to handle backslahes within double quoted strings, when the character after the backslash is not one of the characters listed in Section 6\&.1\&.3 in
+\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2\&.
 .sp
-Earlier versions of pyang silently accepted such escape sequences, but the current version treats this as an error, just like it is defined in YANG 1\&.1\&. Passing this flag to pyang makes pyang silently accept such escape sequences\&.
+Earlier versions of pyang silently accepted such escape sequences, but the current version treats this as an error, just like it is defined in YANG 1\&.1 (\m[blue]\fBRFC 7950\fR\m[]\&\s-2\u[3]\d\s+2)\&. Passing this flag to pyang makes pyang silently accept such escape sequences\&.
 .RE
 .PP
 \fB\-\-lax\-xpath\-checks\fR
@@ -280,6 +285,18 @@ $ pyang \-f tree \-\-features mymod: mymod\&.yang
 .if n \{\
 .RE
 .\}
+.RE
+.PP
+\fB\-\-max\-status\fR \fImaxstatus\fR
+.RS 4
+\fImaxstatus\fR
+is one of:
+\fIcurrent\fR,
+\fIdeprecated\fR, or
+\fIobsolete\fR\&.
+.sp
+This option is used to prune the data model by removing all nodes that are defined with a "status" that is less than the given
+\fImaxstatus\fR\&. This option affects all output formats\&.
 .RE
 .PP
 \fB\-\-deviation\-module\fR \fIfile\fR
@@ -402,7 +419,9 @@ from where pyang is installed
 \fB\-\-check\-update\-from\fR \fIoldfile\fR
 .RS 4
 Checks that a new revision of a module follows the update rules given in
-\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2\&.
+\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2
+and
+\m[blue]\fBRFC 7950\fR\m[]\&\s-2\u[3]\d\s+2\&.
 \fIoldfile\fR
 is the old module and
 \fIfile\fR
@@ -447,7 +466,7 @@ Makefile dependency rule for the module\&.
 \fIdsdl\fR
 .RS 4
 Hybrid DSDL schema, see
-\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[3]\d\s+2\&.
+\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[4]\d\s+2\&.
 .RE
 .PP
 \fIjsonxsl\fR
@@ -507,7 +526,7 @@ The XML syntax of YANG\&.
 The
 \fIlint\fR
 option validates that the module follows the generic conventions and rules given in
-\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[4]\d\s+2\&. In addition, it checks that the module is in canonical order\&.
+\m[blue]\fBRFC 6087\fR\m[]\&\s-2\u[5]\d\s+2\&. In addition, it checks that the module is in canonical order\&.
 .PP
 Options for the
 \fIlint\fR
@@ -528,7 +547,7 @@ Validate that the module\*(Aqs name starts with
 The
 \fIcapability\fR
 output prints a capability URL for each module of the input data model, taking into account features and deviations, as described in section 5\&.6\&.4 of
-\m[blue]\fBRFC\ \&6020\fR\m[]\&\s-2\u[2]\d\s+2\&.
+\m[blue]\fBRFC 6020\fR\m[]\&\s-2\u[2]\d\s+2\&.
 .PP
 Options for the
 \fIcapability\fR
@@ -601,13 +620,13 @@ Name of YANG module or submodule to ignore in the prerequisites\&. This option c
 The
 \fIdsdl\fR
 output takes a data model consisting of one or more YANG modules and generates a hybrid DSDL schema as described in
-\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[3]\d\s+2\&. The hybrid schema is primarily intended as an interim product used by
+\m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[4]\d\s+2\&. The hybrid schema is primarily intended as an interim product used by
 \fByang2dsdl\fR(1)\&.
 .PP
 The
 \fIdsdl\fR
 plugin also supports metadata annotations, if they are defined and used as described in
-\m[blue]\fBdraft\-lhotka\-netmod\-yang\-metadata\fR\m[]\&\s-2\u[5]\d\s+2\&.
+\m[blue]\fBRFC 7952\fR\m[]\&\s-2\u[6]\d\s+2\&.
 .PP
 Options for the
 \fIdsdl\fR
@@ -632,14 +651,14 @@ Record translations of all top\-level typedefs and groupings in the output schem
 The
 \fIjsonxsl\fR
 output generates an XSLT 1\&.0 stylesheet that can be used for transforming an XML instance document into JSON text as specified in
-\m[blue]\fBdraft\-ietf\-netmod\-yang\-json\fR\m[]\&\s-2\u[6]\d\s+2\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules on the command line (or via a <hello> message, see the
+\m[blue]\fBRFC 7951\fR\m[]\&\s-2\u[7]\d\s+2\&. The XML document must be a valid instance of the data model which is specified as one or more input YANG modules on the command line (or via a <hello> message, see the
 \fB\-\-hello\fR
 option)\&.
 .PP
 The
 \fIjsonxsl\fR
 plugin also converts metadata annotations, if they are defined and used as described in
-\m[blue]\fBdraft\-lhotka\-netmod\-yang\-metadata\fR\m[]\&\s-2\u[5]\d\s+2\&.
+\m[blue]\fBRFC 7952\fR\m[]\&\s-2\u[6]\d\s+2\&.
 .PP
 The data tree(s) must be wrapped at least in either <nc:data> or <nc:config> element, where "nc" is the namespace prefix for the standard NETCONF URI "urn:ietf:params:xml:ns:netconf:base:1\&.0", or the XML instance document has to be a complete NETCONF RPC request/reply or notification\&. Translation of RPCs and notifications defined by the data model is also supported\&.
 .PP
@@ -691,7 +710,7 @@ The
 output generates a driver file which can be used as one of the inputs to
 \fBjson2xml\fR
 for transforming a JSON document to XML as specified in
-\m[blue]\fBdraft\-ietf\-netmod\-yang\-json\fR\m[]\&\s-2\u[6]\d\s+2\&.
+\m[blue]\fBRFC 7951\fR\m[]\&\s-2\u[7]\d\s+2\&.
 .PP
 The
 \fIjtox\fR
@@ -1115,22 +1134,27 @@ RFC 6020
 \%http://tools.ietf.org/html/rfc6020
 .RE
 .IP " 3." 4
+RFC 7950
+.RS 4
+\%http://tools.ietf.org/html/rfc7950
+.RE
+.IP " 4." 4
 RFC 6110
 .RS 4
 \%http://tools.ietf.org/html/rfc6110
 .RE
-.IP " 4." 4
+.IP " 5." 4
 RFC 6087
 .RS 4
 \%http://tools.ietf.org/html/rfc6087
 .RE
-.IP " 5." 4
-draft-lhotka-netmod-yang-metadata
-.RS 4
-\%https://tools.ietf.org/html/draft-lhotka-netmod-yang-metadata
-.RE
 .IP " 6." 4
-draft-ietf-netmod-yang-json
+RFC 7952
 .RS 4
-\%http://tools.ietf.org/html/draft-ietf-netmod-yang-json
+\%http://tools.ietf.org/html/rfc7952
+.RE
+.IP " 7." 4
+RFC 7951
+.RS 4
+\%http://tools.ietf.org/html/rfc7951
 .RE

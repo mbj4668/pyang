@@ -34,7 +34,8 @@ _pyang()
         --check-update-from
         -P --check-update-from-path
         --ietf
-        --lint"
+        --lint
+        --ensure-hyphenated-names"
 
     local opts_capability="--capability-entity"
 

@@ -2,6 +2,12 @@
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## News ##
+**2017-06-27 - Version 1.7.3 released**
+
+  * Handle multiple rc:yang-data statements.  This bug caused
+    validation of ietf-restconf, or any module that imported
+    ietf-restconf, to fail.
+
 **2017-06-14 - Version 1.7.2 released**
 
   * Added support for external plugins, using setuptools entry_points,

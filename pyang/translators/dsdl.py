@@ -6,7 +6,7 @@
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -78,6 +78,12 @@ class DSDLPlugin(plugin.PyangPlugin):
                                  default=False,
                                  help="Record all top-level defs"
                                  " (even if not used)"),
+            optparse.make_option("--dsdl-lax-yang-version",
+                                 dest="dsdl_lax_yang_version",
+                                 action="store_true",
+                                 default=False,
+                                 help="Try to translate modules with "
+                                 "unsupported YANG versions (use at own risk)"),
             ]
         g = optparser.add_option_group("Hybrid DSDL schema "
                                        "output specific options")
@@ -95,7 +101,9 @@ def emit_dsdl(ctx, modules, fd):
     schema = HybridDSDLSchema().from_modules(modules,
                                   ctx.opts.dsdl_no_dublin_core,
                                   ctx.opts.dsdl_no_documentation,
-                                  ctx.opts.dsdl_record_defs, debug=0)
+                                  ctx.opts.dsdl_record_defs,
+                                  ctx.opts.dsdl_lax_yang_version,
+                                  debug=0)
     fd.write(schema.serialize())
 
 class Patch(object):
@@ -344,7 +352,7 @@ class HybridDSDLSchema(object):
         return res + self.top_grammar.end_tag()
 
     def from_modules(self, modules, no_dc=False, no_a=False,
-                     record_defs=False, debug=0):
+                     record_defs=False, lax_yang_version=False, debug=0):
         """Return the instance representing mapped input modules."""
         self.namespaces = {
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
@@ -363,7 +371,7 @@ class HybridDSDLSchema(object):
         self.has_meta = False
         for module in modules[0].i_ctx.modules.values():
             yver = module.search_one("yang-version")
-            if yver and float(yver.arg) > 1.0:
+            if yver and float(yver.arg) > 1.0 and not lax_yang_version:
                 raise error.EmitError(
                     "DSDL plugin supports only YANG version 1.")
             if module.keyword == "module":

@@ -76,6 +76,7 @@ module a {
       must "foo and baz";
     }
     uses gg {
+      status obsolete;
       if-feature foo;
     }
     list arne {
