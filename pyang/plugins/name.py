@@ -35,9 +35,13 @@ def emit_name(ctx, modules, fd):
         bstr = ""
         rstr = ""
         if ctx.opts.print_revision:
-            r = module.search_one('revision')
-            if r is not None:
-                rstr = '@%s' % r.arg
+            rs = module.i_latest_revision
+            if rs is None:
+                r = module.search_one('revision')
+                if r is not None:
+                    rs = r.arg
+            if rs is not None:
+                rstr = '@%s' % rs
         b = module.search_one('belongs-to')
         if b is not None:
             bstr = " (belongs-to %s)" % b.arg
