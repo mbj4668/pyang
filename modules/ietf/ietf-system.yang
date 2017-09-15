@@ -66,9 +66,6 @@ module ietf-system {
       "RFC 7317: A YANG Data Model for System Management";
   }
 
-
-
-
  /*
   * Typedefs
   */
