@@ -298,7 +298,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
         if t == '':
             line += "%s %s" % (flags, name)
         elif (llen is not None and
-              len(line) + len(flags) + width+1 + len(t) > llen):
+              len(line) + len(flags) + width+1 + len(t) + 4 > llen):
             # there's no room for the type name
             if (get_leafref_path(s) is not None and
                 len(t) + brcol > llen):
