@@ -43,6 +43,10 @@ class IntTypeSpec(TypeSpec):
         try:
             if s in ['min', 'max']:
                 return s
+            if s[0] == '0' and s[1] != 'x': # positive octal
+                s = s[:1] + 'o' + s[1:]
+            elif s[0] == '-' and s[1] == '0' and s[2] != 'x': # negative octal
+                s = s[:2] + 'o' + s[2:]
             return int(s, 0)
         except ValueError:
             err_add(errors, pos, 'TYPE_VALUE',
