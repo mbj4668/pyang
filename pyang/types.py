@@ -35,6 +35,7 @@ class TypeSpec(object):
 class IntTypeSpec(TypeSpec):
     def __init__(self, name, min, max):
         TypeSpec.__init__(self, name)
+        self.is_int = True
         self.min = min
         self.max = max
 
@@ -42,8 +43,6 @@ class IntTypeSpec(TypeSpec):
         try:
             if s in ['min', 'max']:
                 return s
-            if syntax.re_integer.search(s) is None:
-                raise ValueError
             return int(s, 0)
         except ValueError:
             err_add(errors, pos, 'TYPE_VALUE',
@@ -273,13 +272,21 @@ def is_derived_from_or_self(a, b, visited):
 ## type restrictions
 
 def validate_range_expr(errors, stmt, type_):
+    def maybe_ensure_base10(s):
+        if hasattr(type_.i_type_spec, 'is_int'):
+            if s not in ['min', 'max'] and syntax.re_integer.search(s) is None:
+                err_add(errors, stmt.pos, 'TYPE_VALUE',
+                        (s, type_.i_type_spec.definition, 'not an integer'))
+
     # break the expression apart
     def f(lostr, histr):
+        maybe_ensure_base10(lostr),
         if histr == '':
             # this means that a single number was in the range, e.g.
             # "4 | 5..6".
             return (type_.i_type_spec.str_to_val(errors, stmt.pos, lostr),
                     None)
+        maybe_ensure_base10(histr),
         return (type_.i_type_spec.str_to_val(errors, stmt.pos, lostr),
                 type_.i_type_spec.str_to_val(errors, stmt.pos, histr))
     ranges = [f(m[1], m[6]) for m in syntax.re_range_part.findall(stmt.arg)]
