@@ -79,7 +79,7 @@ _keyword_with_trailing_newline = (
     'extension',
     )
 
-_keyword_squote_arg = (
+_keyword_prefer_squote_arg = (
     'must',
     'when',
     'pattern',
@@ -109,7 +109,8 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
 
     fd.write(indent + keyword)
     if stmt.arg != None:
-        if keyword in _keyword_squote_arg:
+        if (keyword in _keyword_prefer_squote_arg and
+            stmt.arg.find("'") == -1):
             fd.write(" '" + stmt.arg + "'")
         elif keyword in grammar.stmt_map:
             (arg_type, _subspec) = grammar.stmt_map[keyword]
