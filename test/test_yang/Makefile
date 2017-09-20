@@ -4,7 +4,7 @@ MODULES ?= $(wildcard *.yang)
 
 test: clean out
 	@for m in $(MODULES); do 					\
-	  echo -n "trying $$m...";					\
+	  echo "trying $$m..." | tr -d '\012';				\
 	  $(PYANG) $$m --keep-comments --canonical -f yang -o out/$$m	\
 	    || exit 1;							\
 	  diff expect/$$m out/$$m > $$m.diff 				\

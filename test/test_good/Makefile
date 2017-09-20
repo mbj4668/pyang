@@ -4,24 +4,24 @@ MODULES ?= $(wildcard *.yang)
 
 test: clean utf8-test mef-ieee-test
 	@for m in $(MODULES); do 					\
-		echo -n "checking $$m...";				\
+		echo "checking $$m..." | tr -d '\012';			\
 		$(PYANG) $$m || exit 1;					\
 		echo " generating yin...";				\
 		$(PYANG) -f yin -o $$m.yin $$m || exit 1;		\
-		echo -n " ";						\
+		echo " " | tr -d '\012';				\
 		echo " generating yang from the generated yin...";	\
 		$(PYANG) -f yang -o $$m.gen.yang $$m.yin || exit 1;	\
-		echo -n " ";						\
-		echo -n " generating yang...";				\
+		echo " " | tr -d '\012';				\
+		echo " generating yang..." | tr -d '\012';		\
 		$(PYANG) -f yang -o $$m.gen.yang $$m || exit 1;		\
 		echo " generating yin from the generated yang...";	\
 		$(PYANG) -f yin -o $$m.gen.yin $$m.gen.yang || exit 1;	\
-		echo -n " ";						\
-		echo -n " comparing the two generated yin...";		\
+		echo " " | tr -d '\012';				\
+		echo " comparing the two generated yin..." | tr -d '\012';\
 		diff $$m.yin $$m.gen.yin > $$m.diff ||	 		\
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
-		echo -n " generating DSDL...";				\
+		echo " generating DSDL..." | tr -d '\012';		\
 		(grep '^submodule' $$m > /dev/null || $(PYANG) -f dsdl -o $$m.dsdl $$m || exit 0);	\
 		echo " ok";						\
 	done

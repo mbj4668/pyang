@@ -7,7 +7,7 @@ MODULES = $(wildcard *.yang)
 
 test: subdirs
 	@for m in $(MODULES); do					\
-		echo -n "trying $$m...";				\
+		echo "trying $$m..." | tr -d '\012';			\
 		$(PYANG) $$m 2> $$m.out;				\
 		diff expect/$$m.out $$m.out > $$m.diff || 		\
 			{ cat $$m.diff; exit 1; };			\

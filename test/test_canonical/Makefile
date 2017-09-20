@@ -4,12 +4,12 @@ MODULES = $(wildcard *.yang)
 
 test:
 	@for m in $(MODULES); do					\
-		echo -n "trying canonical $$m...";			\
+		echo "trying canonical $$m..." | tr -d '\012';		\
 		$(PYANG) --print-error-code --canonical $$m 2> $$m.out;	\
 		diff expect/$$m.out $$m.out > $$m.diff || 		\
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
-		echo -n " trying normal $$m...";			\
+		echo " trying normal $$m..." | tr -d '\012';		\
 		$(PYANG) $$m || exit 1;					\
 		echo " ok";						\
 	done

@@ -4,7 +4,7 @@ MODULES = a.yang b.yang
 
 test:
 	@for m in $(MODULES); do					\
-		echo -n "trying $$m...";				\
+		echo "trying $$m..."Makefile;				\
 		$(PYANG) -f tree $$m > $$m.out;				\
 		diff expect/$$m.out $$m.out > $$m.diff ||		\
 			{ cat $$m.diff; exit 1; };			\

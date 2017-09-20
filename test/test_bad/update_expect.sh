@@ -10,7 +10,7 @@ do
 
   if [ "$1" != "-f" ]; then
       less $f
-      echo -n "Replace $expectFileName [y]nq: "
+      echo "Replace $expectFileName [y]nq: "  | tr -d '\012'
       read -n 1 answer
       echo
   fi
@@ -19,7 +19,7 @@ do
   then
     mv -f "$output" "$expectFileName"
   elif [ "${answer}" = "q" ]
-  then 
+  then
     exit 0
   fi
 done
