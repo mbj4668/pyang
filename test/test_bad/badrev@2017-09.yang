@@ -1,0 +1,5 @@
+module badrev {
+    namespace 'urn:badrev';
+
+    prefix 'badrev';
+}
