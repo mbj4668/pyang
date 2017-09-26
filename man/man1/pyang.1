@@ -33,9 +33,9 @@ pyang \- validate and convert YANG modules to various formats
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR \-h | \-\-help 
+\fBpyang\fR \-h | \-\-help
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR \-v | \-\-version 
+\fBpyang\fR \-v | \-\-version
 .PP
 One or more
 \fIfile\fR
@@ -739,6 +739,13 @@ is a slash ("/") separated path to a subtree to print\&. For example "/nacm/grou
 The
 \fIname\fR
 output prints the name of each module in the input data model\&. For submodules, it also shows the name of the main module to which the submodule belongs\&.
+.PP
+name output specific option:
+.PP
+\fB\-\-name\-print\-revision
+.RS 4
+Print the name and revision in name@revision format\&.
+.RE
 .SH "SAMPLE-XML-SKELETON OUTPUT"
 .PP
 The
@@ -1032,7 +1039,7 @@ leaf my\-port {
     path "deref(\&.\&./my\-ip)/\&.\&./port";
   }
 }
-      
+
 .fi
 .if n \{\
 .RE
@@ -1073,7 +1080,7 @@ The following example converts the ietf\-netconf\-monitoring module into a UML d
         ietf\-netconf\-monitoring\&.uml
         $ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
         $ open img/ietf\-netconf\-monitoring\&.png
-      
+
 .fi
 .if n \{\
 .RE
