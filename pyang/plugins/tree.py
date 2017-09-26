@@ -42,6 +42,10 @@ class TreePlugin(plugin.PyangPlugin):
                                  dest="tree_print_groupings",
                                  action="store_true",
                                  help="Print groupings"),
+            optparse.make_option("--tree-print-verbose-types",
+                                 dest="tree_print_verbose_types",
+                                 action="store_true",
+                                 help="Print expanded enumeration values and identityref bases")
             ]
         if plugin.is_plugin_registered('restconf'):
             optlist.append(
@@ -403,6 +407,22 @@ def get_typename(s):
                 return "-> %s" % "/".join(target)
             else:
                 return t.arg
+        elif t.arg == 'enumeration' and ctx.opts.tree_print_verbose_types:
+            ret = t.arg
+            es = t.search('enum')
+            if es is not None:
+                ret += ' ['
+                esl = []
+                for e in es:
+                    esl.append(e.arg)
+                ret += ', '.join(esl) + ']'
+            return ret
+        elif t.arg == 'identityref' and ctx.opts.tree_print_verbose_types:
+            ret = t.arg
+            b = t.search_one('base')
+            if b is not None:
+                ret += ' -> %s' % b.arg
+            return ret
         else:
             return t.arg
     elif s.keyword == 'anydata':
