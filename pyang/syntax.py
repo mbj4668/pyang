@@ -2,6 +2,7 @@
 
 import re
 import shlex
+import sys
 
 ### Regular expressions - constraints on arguments
 
@@ -211,7 +212,10 @@ def parse_if_feature_expr(s):
         # erroneous tokens if a unicode string was passed.
         # Also, shlex uses cStringIO internally which doesn't handle unicode
         # characters outside the ascii range anyway.
-        sx = shlex.shlex(s.encode("ascii"))
+        if sys.version < '3':
+            sx = shlex.shlex(s.encode("ascii"))
+        else:
+            sx = shlex.shlex(s)
     except UnicodeEncodeError:
         return None
     sx.wordchars += ":-" # need to handle prefixes and '-' in the name
