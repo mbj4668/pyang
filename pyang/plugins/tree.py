@@ -410,12 +410,11 @@ def get_typename(s, verbose_types):
         elif verbose_types and t.arg == 'enumeration':
             ret = t.arg
             es = t.search('enum')
-            if es is not None:
-                ret += ' ['
-                esl = []
-                for e in es:
-                    esl.append(e.arg)
-                ret += ', '.join(esl) + ']'
+            ret += ' ['
+            esl = []
+            for e in es:
+                esl.append(e.arg)
+            ret += ', '.join(esl) + ']'
             return ret
         elif verbose_types and t.arg == 'identityref':
             ret = t.arg
