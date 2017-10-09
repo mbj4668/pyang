@@ -125,12 +125,18 @@ error_codes = \
     'WBAD_MODULE_NAME':
       (4,
        'unexpected modulename "%s" in %s, should be %s'),
+    'FILENAME_BAD_MODULE_NAME':
+      (4,
+       'filename "%s" suggests invalid module name "%s", should match "%s"'),
     'BAD_REVISION':
       (3,
        'unexpected latest revision "%s" in %s, should be %s'),
     'WBAD_REVISION':
       (4,
        'unexpected latest revision "%s" in %s, should be %s'),
+    'FILENAME_BAD_REVISION':
+      (4,
+       'filename "%s" suggests invalid revision "%s", should match "%s"'),
     'BAD_SUB_BELONGS_TO':
       (1,
        'module %s includes %s, but %s does not specify a correct belongs-to'),

@@ -13,6 +13,7 @@ from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
+from pyang import syntax
 
 def run():
 
@@ -293,7 +294,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             sys.stderr.write("too many files to convert\n")
             sys.exit(1)
 
-        r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
         for filename in filenames:
             try:
                 fd = io.open(filename, "r", encoding="utf-8")
@@ -305,10 +305,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 s = str(ex).replace('utf-8', 'utf8')
                 sys.stderr.write("%s: unicode error: %s\n" % (filename, s))
                 sys.exit(1)
-            m = r.search(filename)
+            m = syntax.re_filename.search(filename)
             ctx.yin_module_map = {}
             if m is not None:
-                (name, _dummy, rev, format) = m.groups()
+                (name, rev, format) = m.groups()
                 name = os.path.basename(name)
                 module = ctx.add_module(filename, text, format, name, rev,
                                         expect_failure_error=False)

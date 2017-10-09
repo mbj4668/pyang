@@ -1,0 +1,6 @@
+module noname {
+    namespace "urn:noname";
+    prefix "noname";
+    revision 2017-09-26 {
+    }
+}

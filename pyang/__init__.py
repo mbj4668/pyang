@@ -13,6 +13,7 @@ from . import yin_parser
 from . import grammar
 from . import util
 from . import statements
+from . import syntax
 
 __version__ = '1.7.3'
 __date__ = '2017-06-27'
@@ -76,17 +77,25 @@ class Context(object):
         if module is None:
             return None
 
-        if expect_modulename is not None and expect_modulename != module.arg:
-            if expect_failure_error:
-                error.err_add(self.errors, module.pos, 'BAD_MODULE_NAME',
-                              (module.arg, ref, expect_modulename))
-                return None
-            else:
-                error.err_add(self.errors, module.pos, 'WBAD_MODULE_NAME',
-                              (module.arg, ref, expect_modulename))
+        if expect_modulename is not None:
+            if not re.match(syntax.re_identifier, expect_modulename):
+                error.err_add(self.errors, module.pos, 'FILENAME_BAD_MODULE_NAME',
+                              (ref, expect_modulename, syntax.identifier))
+            elif expect_modulename != module.arg:
+                if expect_failure_error:
+                    error.err_add(self.errors, module.pos, 'BAD_MODULE_NAME',
+                                  (module.arg, ref, expect_modulename))
+                    return None
+                else:
+                    error.err_add(self.errors, module.pos, 'WBAD_MODULE_NAME',
+                                  (module.arg, ref, expect_modulename))
+
         latest_rev = util.get_latest_revision(module)
         if expect_revision is not None:
-            if expect_revision != latest_rev:
+            if not re.match(syntax.re_date, expect_revision):
+                error.err_add(self.errors, module.pos, 'FILENAME_BAD_REVISION',
+                              (ref, expect_revision, 'YYYY-MM-DD'))
+            elif expect_revision != latest_rev:
                 if expect_failure_error:
                     error.err_add(self.errors, module.pos, 'BAD_REVISION',
                                   (latest_rev, ref, expect_revision))
@@ -416,7 +425,6 @@ class FileRepository(Repository):
     def _setup(self, ctx):
         # check all dirs for yang and yin files
         self.modules = []
-        r = re.compile(r"^(.*?)(\@(\d{4}-\d{2}-\d{2}))?\.(yang|yin)$")
         def add_files_from_dir(d):
             try:
                 files = os.listdir(d)
@@ -425,9 +433,9 @@ class FileRepository(Repository):
             for fname in files:
                 absfilename = os.path.join(d, fname)
                 if os.path.isfile(absfilename):
-                    m = r.search(fname)
+                    m = syntax.re_filename.search(fname)
                     if m is not None:
-                        (name, _dummy, rev, format) = m.groups()
+                        (name, rev, format) = m.groups()
                         if not os.access(absfilename, os.R_OK): continue
                         if absfilename.startswith("./"):
                             absfilename = absfilename[2:]
