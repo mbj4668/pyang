@@ -2882,7 +2882,7 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
 def mk_path_str(s, with_prefixes=False):
     """Returns the XPath path of the node"""
     if s.keyword in ['choice', 'case']:
-        return mk_path_str(s.parent)
+        return mk_path_str(s.parent, with_prefixes)
     def name(s):
         if with_prefixes:
             return s.i_module.i_prefix + ":" + s.arg
