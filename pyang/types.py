@@ -444,7 +444,7 @@ def _validate_pattern_libxml2(errors, stmt, invert_match):
         import libxml2
         try:
             re = libxml2.regexpCompile(stmt.arg)
-            return ('libxml2', re, stmt.pos, invert_match)
+            return ('libxml2', re, stmt.pos, invert_match, stmt.arg)
         except libxml2.treeError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
@@ -470,7 +470,7 @@ def _validate_pattern_lxml(errors, stmt, invert_match):
             '   </xsd:schema>' % quoteattr(stmt.arg))
         try:
             sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
-            return ('lxml', sch, stmt.pos, invert_match)
+            return ('lxml', sch, stmt.pos, invert_match, stmt.arg)
         except lxml.etree.XMLSchemaParseError as v:
             err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
             return None
@@ -505,7 +505,7 @@ class PatternTypeSpec(TypeSpec):
     def validate(self, errors, pos, val, errstr=''):
         if self.base.validate(errors, pos, val, errstr) == False:
             return False
-        for (type_, re, re_pos, invert_match) in self.res:
+        for (type_, re, re_pos, invert_match, patstr) in self.res:
             if type_ == 'libxml2':
                 is_valid = re.regexpExec(val) == 1
             elif type_ == 'lxml':
