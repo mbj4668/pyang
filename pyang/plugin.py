@@ -55,12 +55,9 @@ def register_plugin(plugin):
     plugins.append(plugin)
 
 def is_plugin_registered(name):
-    try:
-        for plugin in plugins:
-            if plugin.name == name:
-                return True
-    except AttributeError:
-        return False
+    for plugin in plugins:
+        if plugin.name == name:
+            return True
     return False
 
 class PyangPlugin(object):
