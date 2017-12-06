@@ -491,7 +491,7 @@ def validate_pattern_expr(errors, stmt):
     if res is not False:
         return res
     # Otherwise we can't validate patterns :(
-    return None
+    return ('skip', None, stmt.pos, invert_match, stmt.arg)
 
 class PatternTypeSpec(TypeSpec):
     def __init__(self, base, pattern_specs):
@@ -512,6 +512,8 @@ class PatternTypeSpec(TypeSpec):
                 import lxml
                 doc = StringIO('<a>%s</a>' % escape(val))
                 is_valid = re.validate(lxml.etree.parse(doc))
+            elif type_ == 'skip':
+                continue # can't validate patterns
             if ((not is_valid and not invert_match) or
                 (is_valid and invert_match)):
                 err_add(errors, pos, 'TYPE_VALUE',
