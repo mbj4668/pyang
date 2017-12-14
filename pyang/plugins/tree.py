@@ -106,7 +106,7 @@ Each node is printed as:
            "<anydata>" or "<anyxml>" for anydata and anyxml, respectively
 
     If the type is a leafref, the type is printed as "-> TARGET", where
-    TARGET is the leafref path, with prefix removed if possible.
+    TARGET is the leafref path, with prefixes removed if possible.
 
   <if-features> is the list of features this node depends on, printed
     within curly brackets and a question mark "{...}?"
