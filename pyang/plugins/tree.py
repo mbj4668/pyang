@@ -42,6 +42,10 @@ class TreePlugin(plugin.PyangPlugin):
                                  dest="tree_print_groupings",
                                  action="store_true",
                                  help="Print groupings"),
+            optparse.make_option("--tree-print-verbose-types",
+                                 dest="tree_print_verbose_types",
+                                 action="store_true",
+                                 help="Print expanded enumeration values and identityref bases")
             ]
         if plugin.is_plugin_registered('restconf'):
             optlist.append(
@@ -70,7 +74,7 @@ class TreePlugin(plugin.PyangPlugin):
         else:
             path = None
         emit_tree(ctx, modules, fd, ctx.opts.tree_depth,
-                  ctx.opts.tree_line_length, path)
+                  ctx.opts.tree_line_length, path, ctx.opts.tree_print_verbose_types)
 
 def print_help():
     print("""
@@ -112,7 +116,7 @@ Each node is printed as:
     within curly brackets and a question mark "{...}?"
 """)
 
-def emit_tree(ctx, modules, fd, depth, llen, path):
+def emit_tree(ctx, modules, fd, depth, llen, path, verbose_types):
     for module in modules:
         printed_header = False
 
@@ -134,7 +138,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, '  ', path, 'data', depth, llen)
+            print_children(chs, module, fd, '  ', path, 'data', depth, llen, verbose_types)
 
         mods = [module]
         for i in module.search('include'):
@@ -155,7 +159,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         printed_header = True
                     fd.write("  augment %s:\n" % augment.arg)
                     print_children(augment.i_children, m, fd,
-                                   '  ', path, 'augment', depth, llen)
+                                   '  ', path, 'augment', depth, llen, verbose_types)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -170,7 +174,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_header()
                 printed_header = True
             fd.write("\n  rpcs:\n")
-            print_children(rpcs, module, fd, '  ', path, 'rpc', depth, llen)
+            print_children(rpcs, module, fd, '  ', path, 'rpc', depth, llen, verbose_types)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -186,7 +190,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 printed_header = True
             fd.write("\n  notifications:\n")
             print_children(notifs, module, fd, '  ', path,
-                           'notification', depth, llen)
+                           'notification', depth, llen, verbose_types)
 
         if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
             if not printed_header:
@@ -200,7 +204,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 fd.write("  grouping %s\n" % gname)
                 g = module.i_groupings[gname]
                 print_children(g.i_children, module, fd,
-                               '  ', path, 'grouping', depth, llen)
+                               '  ', path, 'grouping', depth, llen, verbose_types)
 
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
@@ -215,11 +219,11 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         section_delimiter_printed = True
                     fd.write("  yang-data %s:\n" % yd.arg)
                     print_children(yd.i_children, module, fd, '    ', path,
-                                   'yang-data', depth, llen)
+                                   'yang-data', depth, llen, verbose_types)
 
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,
-                   llen, width=0):
+                   llen, verbose_types, width=0):
     if depth == 0:
         if i_children: fd.write(prefix + '     ...\n')
         return
@@ -257,9 +261,9 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
             elif ch.keyword == 'output':
                 mode = 'output'
             print_node(ch, module, fd, newprefix, path, mode, depth, llen,
-                       width)
+                       width, verbose_types)
 
-def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
+def print_node(s, module, fd, prefix, path, mode, depth, llen, width, verbose_types):
     line = "%s%s--" % (prefix[0:-1], get_status_str(s))
 
     brcol = len(line) + 4
@@ -294,7 +298,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
-        t = get_typename(s)
+        t = get_typename(s, verbose_types)
         if t == '':
             line += "%s %s" % (flags, name)
         elif (llen is not None and
@@ -344,9 +348,9 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
             path = path[1:]
         if s.keyword in ['choice', 'case']:
             print_children(chs, module, fd, prefix, path, mode, depth,
-                           llen, width)
+                           llen, verbose_types, width)
         else:
-            print_children(chs, module, fd, prefix, path, mode, depth, llen)
+            print_children(chs, module, fd, prefix, path, mode, depth, llen, verbose_types)
 
 def get_status_str(s):
     status = s.search_one('status')
@@ -379,7 +383,7 @@ def get_leafref_path(s):
     else:
         return None
 
-def get_typename(s):
+def get_typename(s, verbose_types):
     t = s.search_one('type')
     if t is not None:
         if t.arg == 'leafref':
@@ -403,6 +407,21 @@ def get_typename(s):
                 return "-> %s" % "/".join(target)
             else:
                 return t.arg
+        elif verbose_types and t.arg == 'enumeration':
+            ret = t.arg
+            es = t.search('enum')
+            ret += ' ['
+            esl = []
+            for e in es:
+                esl.append(e.arg)
+            ret += ', '.join(esl) + ']'
+            return ret
+        elif verbose_types and t.arg == 'identityref':
+            ret = t.arg
+            b = t.search_one('base')
+            if b is not None:
+                ret += ' -> %s' % b.arg
+            return ret
         else:
             return t.arg
     elif s.keyword == 'anydata':
