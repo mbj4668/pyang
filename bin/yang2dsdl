@@ -50,7 +50,7 @@ Options:
   -t <target>    Specifies the validation target. The argument <target>
                  must be one of: "data" (default), "config", "get-reply",
                  "get-config-reply", "edit-config", "rpc", "rpc-reply"
-                 and "notification".
+                 "get-data-reply" or "notification".
   -b <basename>  Specifies the basename of files in which the output
                  schemas are stored. The default is the concatenation
                  of the names of all input YANG modules connected
@@ -160,6 +160,7 @@ while getopts ":ht:d:b:v:jLsx" opt ; do
             target=$OPTARG
             if [ "$target" != "data" ] && [ "$target" != "config" ] && \
                    [ "$target" != "get-reply" ] && \
+                   [ "$target" != "get-data-reply" ] && \
                    [ "$target" != "get-config-reply" ] \
                && [ "$target" != "rpc" ] && [ "$target" != "rpc-reply" ] && \
                [ "$target" != "edit-config" ] && [ "$target" != "notification" ]

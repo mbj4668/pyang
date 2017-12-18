@@ -122,6 +122,12 @@
         operation.</para></listitem>
       </varlistentry>
       <varlistentry>
+        <term><literal>get-data-reply</literal></term>
+        <listitem><para>A complete NETCONF message
+        containing a reply to the &lt;ncds:get-data&gt;
+        operation.</para></listitem>
+      </varlistentry>
+      <varlistentry>
         <term><literal>get-config-reply</literal></term>
         <listitem><para>A complete NETCONF message
         containing a reply to the &lt;nc:get-config&gt;
@@ -297,6 +303,7 @@
           <userinput>data</userinput> (default),
           <userinput>config</userinput>,
           <userinput>get-reply</userinput>,
+          <userinput>get-data-reply</userinput>,
           <userinput>get-config-reply</userinput>,
           <userinput>edit-config</userinput>,
           <userinput>rpc</userinput>, <userinput>rpc-reply</userinput>
