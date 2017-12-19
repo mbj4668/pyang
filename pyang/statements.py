@@ -62,7 +62,7 @@ def add_keyword_phase_i_children(phase, keyword):
 
 def add_data_keyword(keyword):
     """Can be used by plugins to register extensions as data keywords."""
-    _data_keywords.append(keyword)
+    data_keywords.append(keyword)
 
 def add_keyword_with_children(keyword):
     _keyword_with_children[keyword] = True
@@ -300,8 +300,8 @@ _validation_variables = [
     ('$extension', lambda keyword: util.is_prefixed(keyword)),
     ]
 
-_data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
-                  'anyxml', 'anydata', 'action', 'rpc', 'notification']
+data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
+                 'anyxml', 'anydata', 'action', 'rpc', 'notification']
 
 _keywords_with_no_explicit_config = ['action', 'rpc', 'notification']
 
@@ -1429,7 +1429,7 @@ def v_expand_1_children(ctx, stmt):
             for a in s.search('augment'):
                 v_expand_2_augment(ctx, a)
 
-        elif s.keyword in _data_keywords and hasattr(stmt, 'i_children'):
+        elif s.keyword in data_keywords and hasattr(stmt, 'i_children'):
             stmt.i_children.append(s)
             v_expand_1_children(ctx, s)
         elif s.keyword in _keyword_with_children:
@@ -2387,7 +2387,7 @@ def search_data_keyword_child(children, modulename, identifier):
     for child in children:
         if ((child.arg == identifier) and
             (child.i_module.i_modulename == modulename) and
-            child.keyword in _data_keywords):
+            child.keyword in data_keywords):
             return child
     return None
 

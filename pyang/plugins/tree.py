@@ -42,6 +42,10 @@ class TreePlugin(plugin.PyangPlugin):
                                  dest="tree_print_groupings",
                                  action="store_true",
                                  help="Print groupings"),
+            optparse.make_option("--tree-no-expand-uses",
+                                 dest="tree_no_expand_uses",
+                                 action="store_true",
+                                 help="Do not expand uses of groupings"),
             ]
         if plugin.is_plugin_registered('restconf'):
             optlist.append(
@@ -86,6 +90,7 @@ Each node is printed as:
   <flags> is one of:
     rw  for configuration data
     ro  for non-configuration data
+    -u  for uses of a grouping
     -x  for rpcs and actions
     -n  for notifications
 
@@ -134,7 +139,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, '  ', path, 'data', depth, llen)
+            print_children(chs, module, fd, '  ', path, 'data', depth, llen,
+                           ctx.opts.tree_no_expand_uses)
 
         mods = [module]
         for i in module.search('include'):
@@ -155,7 +161,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         printed_header = True
                     fd.write("  augment %s:\n" % augment.arg)
                     print_children(augment.i_children, m, fd,
-                                   '  ', path, 'augment', depth, llen)
+                                   '  ', path, 'augment', depth, llen,
+                                   ctx.opts.tree_no_expand_uses)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -170,7 +177,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_header()
                 printed_header = True
             fd.write("\n  rpcs:\n")
-            print_children(rpcs, module, fd, '  ', path, 'rpc', depth, llen)
+            print_children(rpcs, module, fd, '  ', path, 'rpc', depth, llen,
+                           ctx.opts.tree_no_expand_uses)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -186,7 +194,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 printed_header = True
             fd.write("\n  notifications:\n")
             print_children(notifs, module, fd, '  ', path,
-                           'notification', depth, llen)
+                           'notification', depth, llen,
+                           ctx.opts.tree_no_expand_uses)
 
         if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
             if not printed_header:
@@ -200,7 +209,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 fd.write("  grouping %s\n" % gname)
                 g = module.i_groupings[gname]
                 print_children(g.i_children, module, fd,
-                               '  ', path, 'grouping', depth, llen)
+                               '  ', path, 'grouping', depth, llen,
+                               ctx.opts.tree_no_expand_uses)
 
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
@@ -215,11 +225,25 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         section_delimiter_printed = True
                     fd.write("  yang-data %s:\n" % yd.arg)
                     print_children(yd.i_children, module, fd, '    ', path,
-                                   'yang-data', depth, llen)
+                                   'yang-data', depth, llen,
+                                   ctx.opts.tree_no_expand_uses)
 
+def unexpand_uses(i_children):
+    res = []
+    uses = []
+    for ch in i_children:
+        if hasattr(ch, 'i_uses'):
+            g = ch.i_uses[0].arg
+            if g not in uses:
+                # first node from this uses
+                uses.append(g)
+                res.append(ch.i_uses[0])
+        else:
+            res.append(ch)
+    return res
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,
-                   llen, width=0):
+                   llen, no_expand_uses, width=0):
     if depth == 0:
         if i_children: fd.write(prefix + '     ...\n')
         return
@@ -235,6 +259,9 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
                 if nlen > w:
                     w = nlen
         return w
+
+    if no_expand_uses:
+        i_children = unexpand_uses(i_children)
 
     if width == 0:
         width = get_width(0, i_children)
@@ -257,9 +284,10 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
             elif ch.keyword == 'output':
                 mode = 'output'
             print_node(ch, module, fd, newprefix, path, mode, depth, llen,
-                       width)
+                       no_expand_uses, width)
 
-def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
+def print_node(s, module, fd, prefix, path, mode, depth, llen,
+               no_expand_uses, width):
     line = "%s%s--" % (prefix[0:-1], get_status_str(s))
 
     brcol = len(line) + 4
@@ -334,7 +362,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
         line += fstr
 
     fd.write(line + '\n')
-    if hasattr(s, 'i_children'):
+    if hasattr(s, 'i_children') and s.keyword != 'uses':
         if depth is not None:
             depth = depth - 1
         chs = s.i_children
@@ -344,9 +372,10 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen, width):
             path = path[1:]
         if s.keyword in ['choice', 'case']:
             print_children(chs, module, fd, prefix, path, mode, depth,
-                           llen, width)
+                           llen, no_expand_uses, width)
         else:
-            print_children(chs, module, fd, prefix, path, mode, depth, llen)
+            print_children(chs, module, fd, prefix, path, mode, depth, llen,
+                           no_expand_uses)
 
 def get_status_str(s):
     status = s.search_one('status')
@@ -364,6 +393,8 @@ def get_flags_str(s, mode):
         return '-x'
     elif s.keyword == 'notification':
         return '-n'
+    elif s.keyword == 'uses':
+        return '-u'
     elif s.i_config == True:
         return 'rw'
     elif s.i_config == False or mode == 'output' or mode == 'notification':
