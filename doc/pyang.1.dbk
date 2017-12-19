@@ -747,6 +747,12 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><emphasis>identifiers</emphasis></term>
+        <listitem>
+          <para>All identifiers in the module.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><emphasis>jsonxsl</emphasis></term>
         <listitem>
           <para>XSLT stylesheet for transforming XML instance
@@ -769,7 +775,8 @@
       <varlistentry>
         <term><emphasis>name</emphasis></term>
         <listitem>
-          <para>Module name, and the name of the main module for a submodule.</para>
+          <para>Module name, and the name of the main module for a
+          submodule.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
