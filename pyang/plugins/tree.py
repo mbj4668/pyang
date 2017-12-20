@@ -133,13 +133,15 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                if ch.keyword in statements.data_definition_keywords]
         if path is not None and len(path) > 0:
             chs = [ch for ch in chs if ch.arg == path[0]]
-            path = path[1:]
+            chpath = path[1:]
+        else:
+            chpath = path
 
         if len(chs) > 0:
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, '  ', path, 'data', depth, llen,
+            print_children(chs, module, fd, '  ', chpath, 'data', depth, llen,
                            ctx.opts.tree_no_expand_uses)
 
         mods = [module]
@@ -169,7 +171,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
         if path is not None:
             if len(path) > 0:
                 rpcs = [rpc for rpc in rpcs if rpc.arg == path[0]]
-                path = path[1:]
+                rpath = path[1:]
             else:
                 rpcs = []
         if len(rpcs) > 0:
@@ -177,7 +179,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_header()
                 printed_header = True
             fd.write("\n  rpcs:\n")
-            print_children(rpcs, module, fd, '  ', path, 'rpc', depth, llen,
+            print_children(rpcs, module, fd, '  ', rpath, 'rpc', depth, llen,
                            ctx.opts.tree_no_expand_uses)
 
         notifs = [ch for ch in module.i_children
@@ -185,7 +187,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
         if path is not None:
             if len(path) > 0:
                 notifs = [n for n in notifs if n.arg == path[0]]
-                path = path[1:]
+                npath = path[1:]
             else:
                 notifs = []
         if len(notifs) > 0:
@@ -193,7 +195,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_header()
                 printed_header = True
             fd.write("\n  notifications:\n")
-            print_children(notifs, module, fd, '  ', path,
+            print_children(notifs, module, fd, '  ', npath,
                            'notification', depth, llen,
                            ctx.opts.tree_no_expand_uses)
 
