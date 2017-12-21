@@ -161,7 +161,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                     if not printed_header:
                         print_header()
                         printed_header = True
-                    fd.write("  augment %s:\n" % augment.arg)
+                    print_path("  augment", ":", augment.arg, fd, llen)
                     print_children(augment.i_children, m, fd,
                                    '  ', path, 'augment', depth, llen,
                                    ctx.opts.tree_no_expand_uses)
@@ -245,6 +245,39 @@ def unexpand_uses(i_children):
         else:
             res.append(ch)
     return res
+
+def print_path(pre, post, path, fd, llen):
+    def print_comps(pre, p, is_first):
+        line = pre + '/' + p[0]
+        p = p[1:]
+        if len(line) > llen:
+            # too long, print it anyway; it won't fit next line either
+            pass
+        else:
+            while len(p) > 0 and len(line) + 1 + len(p[0]) <= llen:
+                if len(p) == 1 and len(line) + 1 + len(p[0]) + len(post) > llen:
+                    # if this is the last component, ensure 'post' fits
+                    break
+                line += '/' + p[0]
+                p = p[1:]
+        if len(p) == 0:
+            line += post
+        line += '\n'
+        fd.write(line)
+        if len(p) > 0:
+            if is_first:
+                pre = ' ' * (len(pre) + 2) # indent next line
+            print_comps(pre, p, False)
+
+    line = pre + ' ' + path + post
+    if llen is None or len(line) <= llen:
+        fd.write(line + '\n')
+    else:
+        p = path.split('/')
+        if p[0] == '':
+            p = p[1:]
+        pre += " "
+        print_comps(pre, p, True)
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,
                    llen, no_expand_uses, width=0):

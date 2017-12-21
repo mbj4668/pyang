@@ -1,0 +1,5 @@
+module: x
+    +--rw foo?   -> /y:pretty-long-identifier-name/shorter/another-long-identifier-name/also-short/but-this-is-long-again/x:bar
+
+  augment /y:pretty-long-identifier-name/y:shorter/y:another-long-identifier-name/y:also-short/y:but-this-is-long-again:
+    +--rw bar?   string
