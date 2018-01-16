@@ -80,7 +80,7 @@ def print_help():
     print("""
 Each node is printed as:
 
-<status> <flags> <name> <opts> <type> <if-features>
+<status>--<flags> <name><opts> <type> <if-features>
 
   <status> is one of:
     +  for current
@@ -89,7 +89,9 @@ Each node is printed as:
 
   <flags> is one of:
     rw  for configuration data
-    ro  for non-configuration data
+    ro  for non-configuration data, output parameters to rpcs
+        and actions, and notification parameters
+    -w  for input parameters to rpcs and actions
     -u  for uses of a grouping
     -x  for rpcs and actions
     -n  for notifications
@@ -383,13 +385,16 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
         else:
             line += "%s %-*s   %s" % (flags, width+1, name, t)
 
-    if s.keyword == 'list' and s.search_one('key') is not None:
-        keystr = " [%s]" % re.sub('\s+', ' ', s.search_one('key').arg)
-        if (llen is not None and
-            len(line) + len(keystr) > llen):
-            fd.write(line + '\n')
-            line = prefix + ' ' * (brcol - len(prefix))
-        line += keystr
+    if s.keyword == 'list':
+        if s.search_one('key') is not None:
+            keystr = " [%s]" % re.sub('\s+', ' ', s.search_one('key').arg)
+            if (llen is not None and
+                len(line) + len(keystr) > llen):
+                fd.write(line + '\n')
+                line = prefix + ' ' * (brcol - len(prefix))
+            line += keystr
+        else:
+            line += "[]"
 
     features = s.search('if-feature')
     featurenames = [f.arg for f in features]
