@@ -12,4 +12,8 @@ module y {
       }
     }
   }
+
+  notification my-notif;
+  rpc my-rpc;
+
 }

@@ -8,3 +8,7 @@ module: x
             /y:also-short
             /y:but-this-is-long-again:
     +--rw bar?   string
+  augment /y:my-notif:
+    +--ro bar?   string
+  augment /y:my-rpc/y:input:
+    +---w bar?   string

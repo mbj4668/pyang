@@ -162,8 +162,15 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         print_header()
                         printed_header = True
                     print_path("  augment", ":", augment.arg, fd, llen)
+                    mode = 'augment'
+                    if augment.i_target_node.keyword == 'input':
+                        mode = 'input'
+                    elif augment.i_target_node.keyword == 'output':
+                        mode = 'output'
+                    elif augment.i_target_node.keyword == 'notification':
+                        mode = 'notification'
                     print_children(augment.i_children, m, fd,
-                                   '  ', path, 'augment', depth, llen,
+                                   '  ', path, mode, depth, llen,
                                    ctx.opts.tree_no_expand_uses)
 
         rpcs = [ch for ch in module.i_children

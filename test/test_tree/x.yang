@@ -26,4 +26,16 @@ module x {
       type boolean;
     }
   }
+
+  augment /y:my-notif {
+    leaf bar {
+      type string;
+    }
+  }
+  augment /y:my-rpc/y:input {
+    leaf bar {
+      type string;
+    }
+  }
+
 }
