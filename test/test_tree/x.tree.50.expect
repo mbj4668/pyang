@@ -1,7 +1,7 @@
 module: x
-    +--rw foo?   leafref
-    +--rw q
-       +--rw enabled?   boolean
+  +--rw foo?   leafref
+  +--rw q
+     +--rw enabled?   boolean
 
   augment /y:pretty-long-identifier-name/y:shorter
             /y:another-long-identifier-name

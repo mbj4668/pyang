@@ -141,7 +141,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if not printed_header:
                 print_header()
                 printed_header = True
-            print_children(chs, module, fd, '  ', chpath, 'data', depth, llen,
+            print_children(chs, module, fd, '', chpath, 'data', depth, llen,
                            ctx.opts.tree_no_expand_uses)
 
         mods = [module]
