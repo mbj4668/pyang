@@ -35,6 +35,7 @@
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
       <arg choice="opt">-x</arg>
+      <arg choice="opt">-c</arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
       <arg choice="plain" rep="repeat">
         <replaceable>file</replaceable>
@@ -48,6 +49,7 @@
       <arg choice="opt">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
       <arg choice="opt">-x</arg>
+      <arg choice="opt">-c</arg>
       <arg choice="opt">-v <replaceable>instance</replaceable></arg>
       <arg choice="plain">
         <replaceable>file</replaceable>
@@ -61,6 +63,7 @@
       <arg choice="plain">-b <replaceable>basename</replaceable></arg>
       <arg choice="opt">-j</arg>
       <arg choice="opt">-x</arg>
+      <arg choice="opt">-c</arg>
       <arg choice="plain">-v <replaceable>instance</replaceable></arg>
     </cmdsynopsis>
     <cmdsynopsis>
@@ -325,6 +328,13 @@
           versions.  If the module doesn't use any constructs
           introduced after YANG version 1, this may work.  This option
           may produce unexpected results.  Use at own risk.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-c</option></term>
+        <listitem>
+          <para>Use only definitions with status "current" in the YANG
+          module.</para>
         </listitem>
       </varlistentry>
     </variablelist>

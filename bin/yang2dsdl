@@ -68,6 +68,8 @@ Options:
                  versions.  If the module doesn't use any constructs
                  introduced after YANG version 1, this may work.
                  This option may produce unexpected results.  Use at own risk.
+  -c             Use only definitions with status "current" in the YANG
+                 module.
 EOF
 }
 
@@ -150,7 +152,7 @@ rtfm () {
     exit 1
 }
 
-while getopts ":ht:d:b:v:jLsx" opt ; do
+while getopts ":ht:d:b:v:jLsxc" opt ; do
     case $opt in
         h)
             usage
@@ -197,6 +199,9 @@ while getopts ":ht:d:b:v:jLsx" opt ; do
             ;;
         x)
             pyang_opts="${pyang_opts} --dsdl-lax-yang-version"
+            ;;
+        c)
+            pyang_opts="${pyang_opts} --max-status current"
             ;;
         \?)
             echo "Invalid option: -$OPTARG." >&2
