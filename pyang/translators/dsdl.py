@@ -582,7 +582,8 @@ class HybridDSDLSchema(object):
         module = stmt.main_module()
         name = ""
         while True:
-            name = "__" + stmt.arg + name
+            pref = stmt.arg if stmt.arg else stmt.keyword
+            name = "__" + pref + name
             if stmt.keyword == "grouping": name = "_" + name
             if stmt.parent.parent is None: break
             stmt = stmt.parent
