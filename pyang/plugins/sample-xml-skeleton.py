@@ -120,7 +120,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         for yam in modules:
             self.process_children(yam, self.top, None, path)
         if sys.version > "3":
-            tree.write(fd, encoding="unicode", pretty_print=True, xml_declaration=True)
+            fd.write(str(etree.tostring(tree, pretty_print=True), 'utf-8'))
         elif sys.version > "2.7":
             tree.write(fd, encoding="UTF-8", pretty_print=True, xml_declaration=True)
         else:
