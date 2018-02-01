@@ -130,10 +130,10 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Do nothing for `node`."""
         pass
 
-    def process_children(self, node, elem, module, path):
+    def process_children(self, node, elem, module, path, omit=[]):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
-            if ch.i_config or self.doctype == "data":
+            if ch not in omit and (ch.i_config or self.doctype == "data"):
                 self.node_handler[ch.keyword](ch, elem, module, path)
 
     def container(self, node, elem, module, path):
@@ -172,9 +172,10 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
     def list(self, node, elem, module, path):
         """Create sample entries of a list."""
         nel, newm, path = self.sample_element(node, elem, module, path)
-        if path is None:
-            return
-        self.process_children(node, nel, newm, path)
+        if path is None: return
+        for kn in node.i_key:
+            self.node_handler[kn.keyword](kn, nel, newm, path)
+        self.process_children(node, nel, newm, path, node.i_key)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
         if self.annots: self.list_comment(node, nel, minel)
