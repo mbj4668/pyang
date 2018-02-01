@@ -177,7 +177,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         self.process_children(node, nel, newm, path)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
-        self.list_comment(node, nel, minel)
+        if self.annots: self.list_comment(node, nel, minel)
 
     def leaf_list(self, node, elem, module, path):
         """Create sample entries of a leaf-list."""
@@ -219,9 +219,10 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
 
     def list_comment(self, node, elem, minel):
         """Add list annotation to `elem`."""
-        if not self.annots: return
         lo = "0" if minel is None else minel.arg
         maxel = node.search_one("max-elements")
         hi = "" if maxel is None else maxel.arg
         elem.insert(0, ET.Comment(" # entries: %s..%s " % (lo,hi)))
+        elem.insert(0, ET.Comment(" # keys: " +
+                                  ",".join([k.arg for k in node.i_key])))
 
