@@ -41,8 +41,6 @@ class IntTypeSpec(TypeSpec):
 
     def str_to_val(self, errors, pos, s):
         try:
-            if s in ['min', 'max']:
-                return s
             if len(s) > 1 and s[0] == '0' and s[1] != 'x':
                 # positive octal
                 s = s[:1] + 'o' + s[1:]
@@ -127,8 +125,6 @@ class Decimal64TypeSpec(TypeSpec):
         self.max = Decimal64Value(9223372036854775807, fd=self.fraction_digits)
 
     def str_to_val(self, errors, pos, s0):
-        if s0 in ('min', 'max'):
-            return s0
         # make sure it is syntactically correct
         if syntax.re_decimal.search(s0) is None:
             err_add(errors, pos, 'TYPE_VALUE',
@@ -287,14 +283,20 @@ def validate_range_expr(errors, stmt, type_):
     # break the expression apart
     def f(lostr, histr):
         maybe_ensure_base10(lostr),
+        if lostr in ('min', 'max'):
+            loval = lostr
+        else:
+            loval = type_.i_type_spec.str_to_val(errors, stmt.pos, lostr)
         if histr == '':
             # this means that a single number was in the range, e.g.
             # "4 | 5..6".
-            return (type_.i_type_spec.str_to_val(errors, stmt.pos, lostr),
-                    None)
+            return (loval, None)
         maybe_ensure_base10(histr),
-        return (type_.i_type_spec.str_to_val(errors, stmt.pos, lostr),
-                type_.i_type_spec.str_to_val(errors, stmt.pos, histr))
+        if histr in ('min', 'max'):
+            hival = histr
+        else:
+            hival = type_.i_type_spec.str_to_val(errors, stmt.pos, histr)
+        return (loval, hival)
     ranges = [f(m[1], m[6]) for m in syntax.re_range_part.findall(stmt.arg)]
     return validate_ranges(errors, stmt.pos, ranges, type_)
 

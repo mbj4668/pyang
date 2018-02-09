@@ -19,28 +19,28 @@ module yt1 {
     }
 
     typedef Num3 {
-	default 7;   // should be error
+        default 7;   // should be error
         units seconds;
-	type int16 {
-	    range "-32000 .. 4 | max" {
+        type int16 {
+            range "-32000 .. 4 | max" {
                 error-app-tag "range-violation";
-	        error-message "Wrong value genius!";
+                error-message "Wrong value genius!";
             }
         }
         description "number test 3";
     }
 
     typedef Bug1 {
-	type int32 {
-	    range min..-1;
+        type int32 {
+            range min..-1;
         }
         description "parse bug 1";
         default "foo";   // should be error
     }
 
     typedef Num1 {
-	type int32 {
-	    range min..max;
+        type int32 {
+            range min..max;
         }
         description "test 1";
         status deprecated;
@@ -48,25 +48,38 @@ module yt1 {
 
     typedef Num2 {
         description "test 2";
-	type int32 {
-	    range "-32000 .. 4 | max";
+        type int32 {
+            range "-32000 .. 4 | max";
         }
         default -1;
     }
 
     typedef Num4 {
         description "test 4";
-	type Num1 {
-  	    range "3 | 7";
+        type Num1 {
+            range "3 | 7";
         }
     }
 
     typedef Num6 {
         description "test 6";
-	type Num3 {
-  	    range "-3 | -2 .. +2 | 3";
+        type Num3 {
+            range "-3 | -2 .. +2 | 3";
         }
-	default 0;
+        default 0;
+    }
+
+    leaf b1 {
+      type int32;
+      default "min";
+    }
+
+    leaf b2 {
+      type decimal64 {
+        fraction-digits 2;
+        range "2.33 .. max";
+      }
+      default "max";
     }
 
 }
