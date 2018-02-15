@@ -394,7 +394,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
                 line = prefix + ' ' * (brcol - len(prefix))
             line += keystr
         else:
-            line += "[]"
+            line += " []"
 
     features = s.search('if-feature')
     featurenames = [f.arg for f in features]
