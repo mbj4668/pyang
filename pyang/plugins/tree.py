@@ -296,14 +296,14 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
     def get_width(w, chs):
         for ch in chs:
             if ch.keyword in ['choice', 'case']:
-                w = get_width(w, ch.i_children)
+                nlen = 3 + get_width(0, ch.i_children)
             else:
                 if ch.i_module.i_modulename == module.i_modulename:
                     nlen = len(ch.arg)
                 else:
                     nlen = len(ch.i_module.i_prefix) + 1 + len(ch.arg)
-                if nlen > w:
-                    w = nlen
+            if nlen > w:
+                w = nlen
         return w
 
     if no_expand_uses:
@@ -376,7 +376,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             # there's no room for the type name
             if (get_leafref_path(s) is not None and
                 len(t) + brcol > llen):
-                # it's not even room for the leafref path; skip it
+                # there's not even room for the leafref path; skip it
                 line += "%s %-*s   leafref" % (flags, width+1, name)
             else:
                 line += "%s %s" % (flags, name)
@@ -421,7 +421,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             path = path[1:]
         if s.keyword in ['choice', 'case']:
             print_children(chs, module, fd, prefix, path, mode, depth,
-                           llen, no_expand_uses, width)
+                           llen, no_expand_uses, width - 3)
         else:
             print_children(chs, module, fd, prefix, path, mode, depth, llen,
                            no_expand_uses)
