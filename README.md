@@ -2,6 +2,12 @@
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## News ##
+**2018-01-23 - Version 1.7.4 released**
+
+  * tree plugin updated to align with draft-ietf-netmod-yang-tree-diagrams-05
+
+  * ... and various other enhancements and bug fixes, see CHANGES.
+
 **2017-06-27 - Version 1.7.3 released**
 
   * Handle multiple rc:yang-data statements.  This bug caused
