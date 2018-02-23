@@ -459,9 +459,6 @@ error_codes = \
     'STRICT_XPATH_FUNCTION':
       (2,
        'XPath function "%s" is not allowed for strict YANG compliance'),
-    'NOT_HYPHENATED':
-      (4,
-       'name is not hyphenated, e.g using upper-case or underscore: %s'),
     }
 
 def add_error_code(tag, level, fmt):

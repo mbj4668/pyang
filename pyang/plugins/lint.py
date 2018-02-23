@@ -11,6 +11,7 @@ import sys
 from pyang import plugin
 from pyang import statements
 from pyang import error
+from pyang import grammar
 from pyang.error import err_add
 
 def pyang_plugin_init():
@@ -55,6 +56,10 @@ class LintPlugin(plugin.PyangPlugin):
                                  action="append",
                                  help="Validate that the module's name " \
                                      "matches one of the given prefixes."),
+            optparse.make_option("--lint-ensure-hyphenated-names",
+                                 dest="lint_ensure_hyphenated_names",
+                                 action="store_true",
+                                 help="No upper case and underscore in names."),
             ]
         optparser.add_options(optlist)
 
@@ -97,6 +102,11 @@ class LintPlugin(plugin.PyangPlugin):
         statements.add_validation_fun(
             'grammar', ['$chk_recommended'],
             lambda ctx, s: v_chk_recommended_substmt(ctx, s))
+
+        if ctx.opts.lint_ensure_hyphenated_names:
+            statements.add_validation_fun(
+                'grammar', ['*'],
+                lambda ctx, s: v_chk_hyphenated_names(ctx, s))
 
         statements.add_validation_fun(
             'grammar', ['namespace'],
@@ -151,6 +161,9 @@ class LintPlugin(plugin.PyangPlugin):
             'LINT_TOP_MANDATORY', 3,
             'RFC 6087: 4.9: '
             + 'top-level node %s must not be mandatory')
+        error.add_error_code(
+            'LINT_NOT_HYPHENATED', 4,
+            '%s is not hyphenated, e.g., using upper-case or underscore')
 
         # override std error string
         error.add_error_code(
@@ -270,3 +283,16 @@ def v_chk_mandatory_top_level(ctx, stmt):
     for s in stmt.i_children:
         if statements.is_mandatory_node(s):
             err_add(ctx.errors, s.pos, 'LINT_TOP_MANDATORY', s.arg)
+
+def v_chk_hyphenated_names(ctx, stmt):
+    (arg_type, subspec) = grammar.stmt_map[stmt.keyword]
+    if ((arg_type == 'identifier' or arg_type == 'enum-arg') and
+        not_hyphenated(stmt.arg)):
+        error.err_add(ctx.errors, stmt.pos, 'LINT_NOT_HYPHENATED', stmt.arg)
+
+def not_hyphenated(name):
+    ''' Returns True if name is not hyphenated '''
+    if name == None:
+        return False
+    # Check for upper-case and underscore
+    return (name != name.lower() or "_" in name)

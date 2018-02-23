@@ -133,10 +133,3 @@ def unique_prefixes(context):
             new = "%s%x" % (prf, suff)
         res[m] = new
     return res
-
-def not_hyphenated(name):
-    ''' Returns True if name is not hyphenated '''
-    if name == None:
-        return False
-    # Check for upper-case and underscore
-    return (name != name.lower() or "_" in name)

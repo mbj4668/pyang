@@ -35,7 +35,7 @@ _pyang()
         -P --check-update-from-path
         --ietf
         --lint
-        --ensure-hyphenated-names"
+        --lint-ensure-hyphenated-names"
 
     local opts_capability="--capability-entity"
 
@@ -70,7 +70,7 @@ _pyang()
     local opts_tree="
         --tree-help
         --tree-depth
-	--tree-line-length
+        --tree-line-length
         --tree-path"
 
     local opts_uml="
@@ -105,54 +105,54 @@ _pyang()
 
     while [[ $wind -lt $cword ]]; do
         case ${words[$wind]} in
-	    -f|--format)
+            -f|--format)
                 plugin=${words[$wind+1]}
                 ;;
-	    -L|--hello)
-		hello=yes
-		;;
-	esac
-	((wind++))
+            -L|--hello)
+                hello=yes
+                ;;
+        esac
+        ((wind++))
     done
 
     case $prev in
         -o|--output)
-	    case $plugin in
-		dsdl)
-		    _filedir 'dsdl'
-		    ;;
-		jsonxsl)
-		    _filedir '@(xsl|xslt)'
-		    ;;
-		jstree)
-		    _filedir 'js'
-		    ;;
-		jtox)
-		    _filedir 'jtox'
-		    ;;
-		sample-xml-skeleton|hypertree)
-		    _filedir 'xml'
-		    ;;
-		omni)
-		    _filedir 'graffle'
-		    ;;
-		uml)
-		    _filedir 'uml'
-		    ;;
-		xmi)
-		    _filedir 'xmi'
-		    ;;
-		yang)
-		    _filedir 'yang'
-		    ;;
-		yin)
-		    _filedir 'yin'
-		    ;;
-		*)
-		    _filedir
-		    ;;
-	    esac
-	    return 0
+            case $plugin in
+                dsdl)
+                    _filedir 'dsdl'
+                    ;;
+                jsonxsl)
+                    _filedir '@(xsl|xslt)'
+                    ;;
+                jstree)
+                    _filedir 'js'
+                    ;;
+                jtox)
+                    _filedir 'jtox'
+                    ;;
+                sample-xml-skeleton|hypertree)
+                    _filedir 'xml'
+                    ;;
+                omni)
+                    _filedir 'graffle'
+                    ;;
+                uml)
+                    _filedir 'uml'
+                    ;;
+                xmi)
+                    _filedir 'xmi'
+                    ;;
+                yang)
+                    _filedir 'yang'
+                    ;;
+                yin)
+                    _filedir 'yin'
+                    ;;
+                *)
+                    _filedir
+                    ;;
+            esac
+            return 0
             ;;
         -W)
             COMPREPLY=($(compgen -W '$(pyang --list-errors 2>&1 | sed -nEe \
@@ -179,9 +179,9 @@ _pyang()
     fi
 
     if [[ -z $hello ]]; then
-	_filedir '@(yang|yin)'
+        _filedir '@(yang|yin)'
     else
-	_filedir 'xml'
+        _filedir 'xml'
     fi
 } &&
 complete -F _pyang pyang
@@ -199,50 +199,50 @@ _yang2dsdl()
     _get_comp_words_by_ref cur prev cword words
 
     case $prev in
-	-t)
+        -t)
             COMPREPLY=($(compgen -W '$targets' -- "$cur"))
             return 0
             ;;
-	-v)
-	    _filedir 'xml'
-	    return 0
-	    ;;
-	-d)
-	    _filedir -d
-	    return 0
-	    ;;
+        -v)
+            _filedir 'xml'
+            return 0
+            ;;
+        -d)
+            _filedir -d
+            return 0
+            ;;
     esac
 
     while [[ $wind -lt $cword ]]; do
         case ${words[$wind]} in
-	    -s)
+            -s)
                 mode=schemas	# use pre-generated schemas
-		break
+                break
                 ;;
-	    -L)
-		mode=hello
-		;;
-	esac
-	((wind++))
+            -L)
+                mode=hello
+                ;;
+        esac
+        ((wind++))
     done
 
     if [[ $cur == -* ]]; then
-	opts=(-t -d -b -j -v)
-	[[ -z $mode ]] && opts+=(-L)
-	[[ $prev == "yang2dsdl" ]] && opts+=(-h)
+        opts=(-t -d -b -j -v)
+        [[ -z $mode ]] && opts+=(-L)
+        [[ $prev == "yang2dsdl" ]] && opts+=(-h)
         COMPREPLY=($(compgen -W '${opts[*]}' -- "$cur"))
         return 0
     fi
 
     case $mode in
-	hello)
-	    _filedir 'xml'
-	    ;;
-	schemas)
-	    ;;
-	*)
-	    _filedir '@(yang|yin)'
-	    ;;
+        hello)
+            _filedir 'xml'
+            ;;
+        schemas)
+            ;;
+        *)
+            _filedir '@(yang|yin)'
+            ;;
     esac
 } &&
 complete -F _yang2dsdl yang2dsdl
@@ -258,35 +258,35 @@ _json2xml()
     _get_comp_words_by_ref cur prev cword words
 
     case $prev in
-	-t|--target)
+        -t|--target)
             COMPREPLY=($(compgen -W '$targets' -- "$cur"))
             return 0
             ;;
-	-o|--output)
-	    _filedir 'xml'
-	    return 0
-	    ;;
+        -o|--output)
+            _filedir 'xml'
+            return 0
+            ;;
     esac
 
     while [[ $wind -lt $cword ]]; do
-	if [[ ${words[$wind]} =~ .*\.jtox$ ]]; then
-	    jtox=yes
-	    break
-	fi
-	((wind++))
+        if [[ ${words[$wind]} =~ .*\.jtox$ ]]; then
+            jtox=yes
+            break
+        fi
+        ((wind++))
     done
 
     if [[ $cur == -* ]]; then
-	opts=(-t --target -o --output)
-	[[ $prev == "json2xml" ]] && opts+=(-h --help)
+        opts=(-t --target -o --output)
+        [[ $prev == "json2xml" ]] && opts+=(-h --help)
         COMPREPLY=($(compgen -W '${opts[*]}' -- "$cur"))
         return 0
     fi
 
     if [[ -z $jtox ]]; then
-	_filedir 'jtox'
+        _filedir 'jtox'
     else
-	_filedir 'json'
+        _filedir 'json'
     fi
 } &&
 complete -F _json2xml json2xml
