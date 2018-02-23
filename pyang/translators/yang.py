@@ -41,6 +41,8 @@ _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'fraction-digits-arg', 'deviate-arg', 'version',
                        'status-arg')
 
+_maybe_quote_arg_type = ('enum-arg', )
+
 _kwd_class = {
     'yang-version': 'header',
     'namespace': 'header',
@@ -85,6 +87,11 @@ _keyword_prefer_squote_arg = (
     'pattern',
     )
 
+_need_quote = (
+    " ", "}", "{", ";", '"', "'",
+    "\n", "\t", "\r", "//", "/*", "*/",
+    )
+
 def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
@@ -115,6 +122,9 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
         elif keyword in grammar.stmt_map:
             (arg_type, _subspec) = grammar.stmt_map[keyword]
             if arg_type in _non_quote_arg_type:
+                fd.write(' ' + stmt.arg)
+            elif (arg_type in _maybe_quote_arg_type and
+                  not need_quote(stmt.arg)):
                 fd.write(' ' + stmt.arg)
             else:
                 emit_arg(stmt, fd, indent, indentstep)
@@ -175,3 +185,9 @@ def emit_comment(comment, fd, indent):
         else:
             fd.write(indent + x)
     fd.write('\n')
+
+def need_quote(arg):
+    for ch in _need_quote:
+        if arg.find(ch) != -1:
+            return True
+    return False
