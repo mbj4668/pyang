@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2017-06-27
+.\"      Date: 2018-02-23
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.7.3
+.\"    Source: pyang-1.7.4
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2017\-06\-27" "pyang\-1\&.7\&.3" "pyang manual"
+.TH "PYANG" "1" "2018\-02\-23" "pyang\-1\&.7\&.4" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -546,6 +546,11 @@ Validate that the module\*(Aqs namespace is on the form: "<prefix><modulename>"\
 .RS 4
 Validate that the module\*(Aqs name starts with
 \fIprefix\fR\&.
+.RE
+.PP
+\fB\-\-lint\-ensure\-hyphenated\-names\fR
+.RS 4
+Validate that all identifiers use hyphenated style, i\&.e\&., no uppercase letters or underscores\&.
 .RE
 .SH "CAPABILITY OUTPUT"
 .PP

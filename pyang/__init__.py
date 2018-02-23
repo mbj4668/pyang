@@ -15,8 +15,8 @@ from . import util
 from . import statements
 from . import syntax
 
-__version__ = '1.7.3'
-__date__ = '2017-06-27'
+__version__ = '1.7.4'
+__date__ = '2018-02-23'
 
 class Context(object):
     """Class which encapsulates a parse session"""

@@ -2,12 +2,12 @@
 .\"     Title: yang2dsdl
 .\"    Author: Ladislav Lhotka <lhotka@nic.cz>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2017-06-27
+.\"      Date: 2018-02-23
 .\"    Manual: pyang manual
-.\"    Source: yang2dsdl-1.7.3
+.\"    Source: yang2dsdl-1.7.4
 .\"  Language: English
 .\"
-.TH "YANG2DSDL" "1" "2017\-06\-27" "yang2dsdl\-1\&.7\&.3" "pyang manual"
+.TH "YANG2DSDL" "1" "2018\-02\-23" "yang2dsdl\-1\&.7\&.4" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,11 +31,11 @@
 yang2dsdl \- translates YANG data models to DSDL schemas and validates instance documents\&.
 .SH "SYNOPSIS"
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-x] [\-v\ \fIinstance\fR] \fIfile\fR...
+\fByang2dsdl\fR [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-x] [\-c] [\-v\ \fIinstance\fR] \fIfile\fR...
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR \-L [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-x] [\-v\ \fIinstance\fR] \fIfile\fR
+\fByang2dsdl\fR \-L [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] [\-b\ \fIbasename\fR] [\-j] [\-x] [\-c] [\-v\ \fIinstance\fR] \fIfile\fR
 .HP \w'\fByang2dsdl\fR\ 'u
-\fByang2dsdl\fR \-s [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] \-b\ \fIbasename\fR [\-j] [\-x] \-v\ \fIinstance\fR
+\fByang2dsdl\fR \-s [\-t\ \fItarget\fR] [\-d\ \fIdir\fR] \-b\ \fIbasename\fR [\-j] [\-x] [\-c] \-v\ \fIinstance\fR
 .HP \w'\fByang2dsdl\fR\ 'u
 \fByang2dsdl\fR \-h
 .SH "DESCRIPTION"
@@ -270,6 +270,11 @@ Validates an instance XML document contained in file
 \fB\-x\fR
 .RS 4
 Try to translate modules written in unsupported YANG versions\&. If the module doesn\*(Aqt use any constructs introduced after YANG version 1, this may work\&. This option may produce unexpected results\&. Use at own risk\&.
+.RE
+.PP
+\fB\-c\fR
+.RS 4
+Use only definitions with status "current" in the YANG module\&.
 .RE
 .SH "FILES"
 .PP

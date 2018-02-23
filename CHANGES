@@ -1,8 +1,31 @@
-   1.7.4 - ?????
+   1.7.4 - 2018-02-23
+         the tree output is now aligned with
+           draft-ietf-netmod-yang-tree-diagrams-05
+         added --tree-no-expand-uses to not expang groupings in uses
          added --max-status to prune old definitions
          added yang2dsdl -x to try to translate 1.1 modules
+         added yang2dsdl -c to use current definitions only
+         added target get-data-reply to yang2dsdl
          check that a current/deprecated node does not reference a node
            with "lesser" status.
+         added 'identifiers' plugin
+         the yang output plugin no longer quotes enums, unless required
+           b/c the argument contains a character that needs quotes
+
+         pr:319 - added --name-print-revision option,
+                  thanks to Joe Clarke
+         pr:321 - added --lint-ensure-hyphenated-names option,
+                  thanks to Reshad Rahman
+         pr:331 - avoid misinterpreting malformed filenames,
+                  thanks to Glenn Matthews
+
+         #309 - legal if-feature expressions gave error in python3
+         #324 - better handling of min/max
+         #329 - hexadecimal and octal formats now accepted as default value
+                for integer types
+         #358 - translator dsdl bug with groupings fixed
+         #360 - bug when xsltproc failing with "undefined namespace prefix"
+                for identityref when prefix defined in tag of text fixed
 
    1.7.3 - 2017-06-27
          #318 - handle multiple rc:yang-data statements.

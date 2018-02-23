@@ -861,6 +861,19 @@
         </listitem>
       </varlistentry>
     </variablelist>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--lint-ensure-hyphenated-names</option>
+        </term>
+        <listitem>
+          <para>
+            Validate that all identifiers use hyphenated style, i.e.,
+            no uppercase letters or underscores.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.capability_output">
