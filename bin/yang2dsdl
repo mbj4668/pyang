@@ -152,7 +152,7 @@ rtfm () {
     exit 1
 }
 
-while getopts ":ht:d:b:v:jLsxc" opt ; do
+while getopts ":ht:d:b:v:jLsxcp:" opt ; do
     case $opt in
         h)
             usage
@@ -202,6 +202,9 @@ while getopts ":ht:d:b:v:jLsxc" opt ; do
             ;;
         c)
             pyang_opts="${pyang_opts} --max-status current"
+            ;;
+        p)
+            pyang_opts="${pyang_opts} -p $OPTARG"
             ;;
         \?)
             echo "Invalid option: -$OPTARG." >&2
