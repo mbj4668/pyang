@@ -227,6 +227,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         maxel = node.search_one("max-elements")
         hi = "" if maxel is None else maxel.arg
         elem.insert(0, etree.Comment(" # entries: %s..%s " % (lo,hi)))
-        elem.insert(0, etree.Comment(" # keys: " +
-                                     ",".join([k.arg for k in node.i_key])))
+        if node.keyword == 'list':
+            elem.insert(0, etree.Comment(" # keys: " +
+                                         ",".join([k.arg for k in node.i_key])))
 
