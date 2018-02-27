@@ -230,7 +230,7 @@ class HybridDSDLSchema(object):
     """Mapping of simple datatypes from YANG to W3C datatype library"""
 
     data_nodes = ("leaf", "container", "leaf-list", "list",
-                  "anyxml", "rpc", "notification")
+                  "anydata", "anyxml", "rpc", "notification")
     """Keywords of YANG data nodes."""
 
     schema_nodes = data_nodes + ("choice", "case")
@@ -241,6 +241,7 @@ class HybridDSDLSchema(object):
         self.stmt_handler = {
             "action": self.noop,
             "anyxml": self.anyxml_stmt,
+            "anydata": self.anyxml_stmt,
             "argument": self.noop,
             "augment": self.noop,
             "base": self.noop,
