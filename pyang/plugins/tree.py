@@ -354,9 +354,9 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
     elif s.keyword  == 'choice':
         m = s.search_one('mandatory')
         if m is None or m.arg == 'false':
-            line += flags + ' (' + name + ')?'
+            line += '(' + name + ')?'
         else:
-            line += flags + ' (' + name + ')'
+            line += '(' + name + ')'
     elif s.keyword == 'case':
         line += ':(' + name + ')'
         brcol += 1
