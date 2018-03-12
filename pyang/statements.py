@@ -2893,3 +2893,53 @@ def mk_path_str(s, with_prefixes=False):
     else:
         p = mk_path_str(s.parent, with_prefixes)
         return p + "/" + name(s)
+
+def get_type(stmt):
+    """Gets the immediate, top-level type of the node.
+    TODO: Add get_prefixed_type method to get prefixed types.
+    """
+    type_obj = stmt.search_one('type')
+    # Return type value if exists
+    return getattr(type_obj, 'arg', None)
+
+def get_qualified_type(stmt):
+    """Gets the qualified, top-level type of the node.
+    This enters the typedef if defined instead of using the prefix
+    to ensure absolute distinction.
+    """
+    type_obj = stmt.search_one('type')
+    fq_type_name = None
+    if type_obj:
+        if getattr(type_obj, 'i_typedef', None):
+            # If type_obj has typedef, substitute.
+            # Absolute module:type instead of prefix:type
+            type_obj = type_obj.i_typedef
+        type_name = type_obj.arg
+        if getattr(type_obj, 'i_type_spec', None):
+            # i_type_spec appears to indicate primitive type
+            # Make sure it isn't there and just null, though.
+            # It doesn't make sense to qualify a primitive type..
+            # ...........................................I think.
+            fq_type_name = type_name
+        else:
+            type_module = type_obj.i_orig_module.arg
+            fq_type_name = '%s:%s' % (type_module, type_name)
+    return fq_type_name
+
+def get_primitive_type(stmt):
+    """Recurses through the typedefs and returns
+    the most primitive YANG type defined.
+    """
+    type_obj = stmt.search_one('type')
+    type_name = getattr(type_obj, 'arg', None)
+    typedef_obj = getattr(type_obj, 'i_typedef', None)
+    if typedef_obj:
+        type_name = get_primitive_type(typedef_obj)
+    return type_name
+
+def get_description(stmt):
+    """Retrieves the description of the statement if present.
+    """
+    description_obj = stmt.search_one('description')
+    # Return description value if exists
+    return getattr(description_obj, 'arg', None)
