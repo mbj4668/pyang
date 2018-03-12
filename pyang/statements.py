@@ -2879,20 +2879,25 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)
 
-def mk_path_str(s, with_prefixes=False):
+def mk_path_str(stmt, with_prefixes=False):
     """Returns the XPath path of the node"""
-    if s.keyword in ['choice', 'case']:
-        return mk_path_str(s.parent)
-    def name(s):
+    if stmt.keyword in ['choice', 'case']:
+        return mk_path_str(stmt.parent, with_prefixes)
+    def name(stmt):
         if with_prefixes:
-            return s.i_module.i_prefix + ":" + s.arg
+            return '%s:%s' % (stmt.i_module.i_prefix, stmt.arg)
         else:
-            return s.arg
-    if s.parent.keyword in ['module', 'submodule']:
-        return "/" + name(s)
+            return stmt.arg
+    if stmt.parent.keyword in ['module', 'submodule']:
+        return '/%s' % name(stmt)
     else:
-        p = mk_path_str(s.parent, with_prefixes)
-        return p + "/" + name(s)
+        xpath = mk_path_str(stmt.parent, with_prefixes)
+        return '%s/%s' % (xpath, name(stmt))
+
+def get_xpath(stmt, with_prefixes=False):
+    """Equivalent to mk_path_str.
+    """
+    return mk_path_str(stmt, with_prefixes)
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
@@ -2931,10 +2936,12 @@ def get_primitive_type(stmt):
     the most primitive YANG type defined.
     """
     type_obj = stmt.search_one('type')
-    type_name = getattr(type_obj, 'arg', None)
+    type_name = None
     typedef_obj = getattr(type_obj, 'i_typedef', None)
     if typedef_obj:
         type_name = get_primitive_type(typedef_obj)
+    else:
+        type_name = getattr(type_obj, 'arg', None)
     return type_name
 
 def get_description(stmt):
