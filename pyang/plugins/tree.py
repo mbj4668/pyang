@@ -237,7 +237,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         fd.write('\n')
                         section_delimiter_printed = True
                     fd.write("  yang-data %s:\n" % yd.arg)
-                    print_children(yd.i_children, module, fd, '    ', path,
+                    print_children(yd.i_children, module, fd, '  ', path,
                                    'yang-data', depth, llen,
                                    ctx.opts.tree_no_expand_uses)
 
@@ -449,7 +449,7 @@ def get_flags_str(s, mode):
     elif s.i_config == False or mode == 'output' or mode == 'notification':
         return 'ro'
     else:
-        return '--'
+        return ''
 
 def get_leafref_path(s):
     t = s.search_one('type')
