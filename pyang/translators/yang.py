@@ -100,9 +100,9 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
 
     if util.is_prefixed(stmt.raw_keyword):
         (prefix, identifier) = stmt.raw_keyword
-        keyword = prefix + ':' + identifier
+        keywordstr = prefix + ':' + identifier
     else:
-        keyword = stmt.keyword
+        keywordstr = stmt.keyword
 
     kwd_class = get_kwd_class(stmt.keyword)
     if ((level == 1 and
@@ -110,17 +110,17 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
         stmt.keyword in _keyword_with_trailing_newline):
         fd.write('\n')
 
-    if keyword == '_comment':
+    if stmt.keyword == '_comment':
         emit_comment(stmt.arg, fd, indent)
         return
 
-    fd.write(indent + keyword)
+    fd.write(indent + keywordstr)
     if stmt.arg != None:
-        if (keyword in _keyword_prefer_squote_arg and
+        if (stmt.keyword in _keyword_prefer_squote_arg and
             stmt.arg.find("'") == -1):
             fd.write(" '" + stmt.arg + "'")
-        elif keyword in grammar.stmt_map:
-            (arg_type, _subspec) = grammar.stmt_map[keyword]
+        elif stmt.keyword in grammar.stmt_map:
+            (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
             if arg_type in _non_quote_arg_type:
                 fd.write(' ' + stmt.arg)
             elif (arg_type in _maybe_quote_arg_type and
