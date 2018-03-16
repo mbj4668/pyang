@@ -95,7 +95,7 @@ class YangTokenizer(object):
                     # remove at most the same number of whitespace as
                     # the comment start was indented
                     j = 0
-                    while (j < offset and
+                    while (j < offset and j < len(self.buf) and
                            self.buf[j].isspace()):
                         j = j + 1
                     self.buf = self.buf[j:]
