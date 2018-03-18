@@ -6,6 +6,7 @@ import sys
 import zlib
 import re
 import io
+from datetime import datetime
 
 from . import error
 from . import yang_parser
@@ -102,6 +103,14 @@ class Context(object):
                 else:
                     error.err_add(self.errors, module.pos, 'WBAD_REVISION',
                                   (latest_rev, ref, expect_revision))
+
+        lrev = latest_rev.split('-')
+        try:
+            dt = datetime(int(lrev[0]), int(lrev[1]), int(lrev[2]))
+        except Exception as e:
+            error.err_add(self.errors, module.pos, 'BAD_REVISION_DATE',
+                          (latest_rev, ref, str(e)))
+            return None
 
         if module.arg not in self.revs:
             self.revs[module.arg] = []

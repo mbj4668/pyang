@@ -137,6 +137,9 @@ error_codes = \
     'FILENAME_BAD_REVISION':
       (4,
        'filename "%s" suggests invalid revision "%s", should match "%s"'),
+    'BAD_REVISION_DATE':
+      (2,
+       'revision "%s" in %s is not a valid date, %s'),
     'BAD_SUB_BELONGS_TO':
       (1,
        'module %s includes %s, but %s does not specify a correct belongs-to'),
