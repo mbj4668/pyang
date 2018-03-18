@@ -3,6 +3,7 @@
 import re
 import shlex
 import sys
+import datetime
 
 ### Regular expressions - constraints on arguments
 
@@ -139,7 +140,7 @@ arg_type_map = {
     "uri": lambda s: re_uri.search(s) is not None,
     "boolean": lambda s: re_boolean.search(s) is not None,
     "version": lambda s: re_version.search(s) is not None,
-    "date": lambda s: re_date.search(s) is not None,
+    "date": lambda s: chk_date_arg(s),
     "status-arg": lambda s: re_status.search(s) is not None,
     "key-arg": lambda s: re_key.search(s) is not None,
     "length-arg": lambda s: re_length.search(s) is not None,
@@ -168,6 +169,19 @@ arg_type_map = {
 Regular expressions for all argument types except plain string that
 are checked directly by the parser.
 """
+
+def chk_date_arg(s):
+    """Checks if the string `s` is a valid date string.
+
+    Return True of False."""
+    if re_date.search(s) is None:
+        return False
+    comp = s.split('-')
+    try:
+        dt = datetime.date(int(comp[0]), int(comp[1]), int(comp[2]))
+        return True
+    except Exception as e:
+        return False
 
 def chk_enum_arg(s):
     """Checks if the string `s` is a valid enum string.
