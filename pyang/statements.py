@@ -203,7 +203,7 @@ _validation_map = {
     ('grammar', 'module'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'submodule'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'typedef'):lambda ctx, s: v_grammar_typedef(ctx, s),
-    ('grammar', '*'):lambda ctx, s: v_grammar_unique_defs(ctx, s),
+    ('grammar', '*'):lambda ctx, s: v_grammar_all(ctx, s),
 
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
@@ -539,6 +539,10 @@ def v_grammar_typedef(ctx, stmt):
     if types.is_base_type(stmt.arg):
         err_add(ctx.errors, stmt.pos, 'BAD_TYPE_NAME', stmt.arg)
 
+def v_grammar_all(ctx, stmt):
+    v_grammar_unique_defs(ctx, stmt)
+    v_grammar_identifier(ctx, stmt)
+
 def v_grammar_unique_defs(ctx, stmt):
     """Verify that all typedefs and groupings are unique
     Called for every statement.
@@ -559,6 +563,20 @@ def v_grammar_unique_defs(ctx, stmt):
                         errcode, (definition.arg, other.pos))
             else:
                 dict[definition.arg] = definition
+
+def v_grammar_identifier(ctx, stmt):
+    try:
+        (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
+    except KeyError:
+        return
+    if (arg_type == 'identifier' and
+        grammar.re_identifier_illegal_prefix.search(stmt.arg) is not None):
+        if stmt.keyword == 'module' or stmt.keyword == 'submodule':
+            mod = stmt
+        else:
+            mod = stmt.i_module
+        if mod.i_version == '1':
+            err_add(ctx.errors, stmt.pos, 'XML_IDENTIFIER', stmt.arg)
 
 ### import and include phase
 

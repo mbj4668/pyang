@@ -644,12 +644,6 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                 error.err_add(ctx.errors, stmt.pos,
                               'BAD_VALUE', (stmt.arg, arg_type))
             elif (arg_type == 'identifier' and
-                  re_identifier_illegal_prefix.search(stmt.arg) is not None):
-                error.err_add(ctx.errors, stmt.pos, 'XML_IDENTIFIER',
-                              stmt.arg)
-                # recoverable error
-                stmt.is_grammatically_valid = True
-            elif (arg_type == 'identifier' and
                   ctx.max_identifier_len is not None
                   and len(stmt.arg) > ctx.max_identifier_len):
                 error.err_add(ctx.errors, stmt.pos, 'LONG_IDENTIFIER',
