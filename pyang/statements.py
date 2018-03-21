@@ -2920,11 +2920,8 @@ def get_qualified_type(stmt):
             # Absolute module:type instead of prefix:type
             type_obj = type_obj.i_typedef
         type_name = type_obj.arg
-        if getattr(type_obj, 'i_type_spec', None):
-            # i_type_spec appears to indicate primitive type
-            # Make sure it isn't there and just null, though.
-            # It doesn't make sense to qualify a primitive type..
-            # ...........................................I think.
+        if check_primitive_type(type_obj):
+            # Doesn't make sense to qualify a primitive..I think.
             fq_type_name = type_name
         else:
             type_module = type_obj.i_orig_module.arg
@@ -2936,13 +2933,18 @@ def get_primitive_type(stmt):
     the most primitive YANG type defined.
     """
     type_obj = stmt.search_one('type')
-    type_name = None
+    type_name = getattr(type_obj, 'arg', None)
     typedef_obj = getattr(type_obj, 'i_typedef', None)
     if typedef_obj:
         type_name = get_primitive_type(typedef_obj)
-    else:
-        type_name = getattr(type_obj, 'arg', None)
+    elif type_obj and not check_primitive_type(type_obj):
+        raise Exception('%s is not a primitive! Incomplete parse tree?', type_name)
     return type_name
+
+def check_primitive_type(stmt):
+    """i_type_spec appears to indicate primitive type.
+    """
+    return True if getattr(stmt, 'i_type_spec', None) else False
 
 def get_description(stmt):
     """Retrieves the description of the statement if present.
