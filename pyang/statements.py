@@ -2938,7 +2938,7 @@ def get_primitive_type(stmt):
     if typedef_obj:
         type_name = get_primitive_type(typedef_obj)
     elif type_obj and not check_primitive_type(type_obj):
-        raise Exception('%s is not a primitive! Incomplete parse tree?', type_name)
+        raise Exception('%s is not a primitive! Incomplete parse tree?' % type_name)
     return type_name
 
 def check_primitive_type(stmt):
