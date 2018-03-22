@@ -54,10 +54,10 @@ module ietf-routing {
   }
 
   revision 2016-11-04 {
-       description
-         "Initial revision.";
-       reference
-         "RFC 8022: A YANG Data Model for Routing Management";
+    description
+      "Initial revision.";
+    reference
+      "RFC 8022: A YANG Data Model for Routing Management";
   }
 
   /* Features */
@@ -90,6 +90,7 @@ module ietf-routing {
       "Base identity from which identities describing address
        families are derived.";
   }
+
   identity ipv4 {
     base address-family;
     description
