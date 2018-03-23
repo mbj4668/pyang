@@ -37,7 +37,8 @@ def emit_yang(ctx, module, fd):
 
 _force_newline_arg = ('description', 'contact', 'organization')
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
-                       'non-negative-integer', 'date', 'ordered-by-arg',
+                       'non-negative-integer', 'max-value',
+                       'date', 'ordered-by-arg',
                        'fraction-digits-arg', 'deviate-arg', 'version',
                        'status-arg')
 
