@@ -27,6 +27,7 @@ module ietf-network-state {
 
      Editor:    Nitin Bahadur
                 <mailto:nitin_bahadur@yahoo.com>
+
      Editor:    Hariharan Ananthakrishnan
                 <mailto:hari@packetdesign.com>
 
@@ -135,7 +136,6 @@ module ietf-network-state {
             "References the underlay network.";
         }
       }
-
       list node {
         key "node-id";
         description

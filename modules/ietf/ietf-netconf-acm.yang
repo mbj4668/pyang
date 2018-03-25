@@ -37,7 +37,6 @@ module ietf-netconf-acm {
      This version of this YANG module is part of RFC 8341; see
      the RFC itself for full legal notices.";
 
-
   revision "2018-02-14" {
     description
       "Added support for YANG 1.1 actions and notifications tied to

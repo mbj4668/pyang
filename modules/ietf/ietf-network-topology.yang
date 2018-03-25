@@ -256,7 +256,6 @@ module ietf-network-topology {
            corresponding constraint needs to be articulated.
            The corresponding information is simply provided by the
            implementing system.";
-
         leaf network-ref {
           type leafref {
             path "../../../nw:supporting-node/nw:network-ref";
