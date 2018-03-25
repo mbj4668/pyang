@@ -130,13 +130,6 @@ module ietf-origin {
       "An origin identity reference.";
   }
 
-
-
-
-
-
-
-
   /*
    * Metadata annotations
    */

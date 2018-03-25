@@ -208,7 +208,6 @@ module ietf-network-topology-state {
       }
     }
   }
-
   augment "/nw-s:networks/nw-s:network/nw-s:node" {
     description
       "Augments termination points that terminate links.

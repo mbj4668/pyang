@@ -553,24 +553,6 @@ module ietf-ip {
     }
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /*
    * Legacy operational state data nodes
    */
@@ -761,8 +743,6 @@ module ietf-ip {
                 "This isn't a valid address, and it shouldn't appear
                  as the destination or source address of a packet.";
             }
-
-
             enum inaccessible {
               description
                 "The address is not accessible because the interface
@@ -804,13 +784,6 @@ module ietf-ip {
              RFC 4862: IPv6 Stateless Address Autoconfiguration";
         }
       }
-
-
-
-
-
-
-
       list neighbor {
         key "ip";
         status deprecated;

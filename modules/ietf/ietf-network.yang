@@ -33,6 +33,7 @@ module ietf-network {
 
      Editor:    Xufeng Liu
                 <mailto:xufeng.liu.ietf@gmail.com>";
+
   description
     "This module defines a common base data model for a collection
      of nodes in a network.  Node definitions are further used

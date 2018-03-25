@@ -148,7 +148,6 @@ module ietf-interfaces {
 
            If the device allows arbitrarily named user-controlled
            interfaces, the 'arbitrary-names' feature is advertised.
-
            When a configured user-controlled interface is created by
            the system, it is instantiated with the same name in the
            operational state.
@@ -430,8 +429,6 @@ module ietf-interfaces {
             "The total number of octets received on the interface,
              including framing characters.
 
-
-
              Discontinuities in the value of this counter can occur
              at re-initialization of the management system and at
              other times as indicated by the value of
@@ -546,7 +543,6 @@ module ietf-interfaces {
           reference
             "RFC 2863: The Interfaces Group MIB - ifInUnknownProtos";
         }
-
 
         leaf out-octets {
           type yang:counter64;
@@ -958,8 +954,6 @@ module ietf-interfaces {
         leaf in-discards {
           type yang:counter32;
           status deprecated;
-
-
           description
             "The number of inbound packets that were chosen to be
              discarded even though no errors had been detected to
@@ -1015,7 +1009,6 @@ module ietf-interfaces {
           reference
             "RFC 2863: The Interfaces Group MIB - ifInUnknownProtos";
         }
-
 
         leaf out-octets {
           type yang:counter64;
