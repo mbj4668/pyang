@@ -14,7 +14,7 @@ else:
 
 def attrsearch(tag, attr, list):
     for x in list:
-        if x.__dict__[attr] == tag:
+        if getattr(x, attr) == tag:
             return x
     return None
 
