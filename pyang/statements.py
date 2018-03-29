@@ -2787,6 +2787,127 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 ## Each statement in YANG is represented as an instance of Statement.
 
 class Statement(object):
+
+    # https://docs.python.org/3/reference/datamodel.html#slots
+    # Fun to see in one place just how many *possible* attributes
+    # a Statement can have!
+    __slots__ = (
+        # Baseline instance attributes, documented in __init__ below
+        'top', 'parent', 'pos', 'raw_keyword', 'keyword',
+        'ext_mod', 'arg', 'substmts',
+
+        # Applicable to most (all?) Statements, widely used
+        'is_grammatically_valid',    # True or False
+        'i_is_validated',            # True, False, or 'in_progress'
+        'i_config',
+
+        # "module" and "submodule" statements - see v_init_module()
+        'i_version',                 # Module stmt YANG version ('1', etc.)
+        'i_prefix',
+        'i_prefixes',
+        'i_unused_prefixes',
+        'i_missing_prefixes',
+        'i_modulename',
+        'i_features',
+        'i_identities',
+        'i_extensions',
+        'i_prune',
+        'i_including_modulename',
+        'i_ctx',
+        'i_undefined_augment_nodes',
+        'i_module',
+        'i_orig_module',
+
+        # "extension" statement - see v_init_extension()
+        'i_extension_modulename',
+        'i_extension_revision',
+        'i_extension',
+
+        # see v_init_has_children()
+        'i_children',
+
+        # Applicable to most (all?) statements - see v_init_stmt()
+        'i_typedefs',
+        'i_groupings',
+        'i_uniques',
+
+        # "import" statement - See v_init_import()
+        'i_is_safe_import',
+
+        # "module" and "submodule" statements - see v_grammar_module()
+        'i_latest_revision',
+
+        # "grouping" statement - see v_type_grouping()
+        'i_is_unused',                # Is there a "uses" using this grouping?
+        'i_has_i_children',           # also used in "augment" statements
+
+        # "augment" statement - see v_type_augment()
+        'i_target_node',              # Statement augmented by self
+        # 'i_has_i_children',         # also used in "grouping" statements
+
+        # "uses" statement - see v_type_uses()
+        'i_grouping',                 # "grouping" statement being used
+
+        # "if-feature" statement - see v_type_if_feature()
+        'i_feature',
+
+        # "base" statement - see v_type_base()
+        'i_identity',
+
+        # "type" statement - see v_type_type()
+        'i_is_derived',
+        'i_type_spec',
+        'i_typedef',
+        'i_ranges',
+        'i_lengths',
+
+        # "typedef" statement - see v_type_typedef()
+        'i_is_circular',
+        'i_default',                    # also in "leaf"/"leaf-list" statements
+        'i_default_str',                # also in "leaf" statements
+        'i_leafref',
+        'i_leafref_ptr',
+        'i_leafref_expanded',
+        # 'i_is_unused',                # also in "grouping" statements
+
+        # "leaf" statement - see v_type_leaf()
+        # 'i_default',                  # also in "typedef"/"leaf-list" stmts
+        # 'i_default_str',              # also in "typedef" statements
+
+        # "leaf-list" statement - see v_type_leaf_list()
+        # 'i_default',                  # also in "typedef"/"leaf" statements
+
+        # "module"/"submodule"/etc. - see v_expand_1_children()
+        'i_expanded',
+
+        # see v_reference_list()
+        'i_key',                      # List of Statements that're keys to self
+        'i_is_key',                   # True if self is a list key
+
+        # Only on copied Statements - see copy()
+        'i_uses',
+        'i_uses_pos',
+        'i_uses_top',
+
+        # "enum" statement - see types.validate_enums()
+        'i_value',
+
+        # "bits" statement - see types.validate_bits()
+        'i_position',
+
+        # see v_unique()
+        'i_unique',
+
+        # see v_expand_2_augment()
+        'i_augment',
+
+        # see follow_path()
+        'i_derefed_leaf',
+
+        # for plugins, etc.
+        '__dict__',
+    )
+
     def __init__(self, top, parent, pos, keyword, arg=None):
         self.top = top
         """pointer to the top-level Statement"""
