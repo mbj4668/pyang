@@ -3,11 +3,19 @@ import copy
 ### struct to keep track of position for error messages
 
 class Position(object):
+    __slots__ = (
+        'ref',
+        'line',
+        'top',
+        'uses_pos',
+    )
+
     def __init__(self, ref):
         self.ref = ref
         self.line = 0
         self.top = None
         self.uses_pos = None
+
     def __str__(self):
         s = self.ref + ':' + str(self.line)
         if self.uses_pos is None:
