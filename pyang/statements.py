@@ -2327,7 +2327,7 @@ def has_type(type, names):
 def is_mandatory_node(stmt):
     if hasattr(stmt, 'i_config') and stmt.i_config == False:
         return False
-    if stmt.keyword == 'leaf':
+    if stmt.keyword in ('leaf', 'choice', 'anyxml', 'anydata'):
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
             return True
