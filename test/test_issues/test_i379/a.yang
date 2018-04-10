@@ -1,0 +1,16 @@
+module a {
+  namespace "urn:a";
+  prefix test;
+
+  identity bar;
+  identity 1bar {
+    base bar;
+  }
+
+  leaf foo {
+    type identityref {
+      base bar;
+    }
+    default 1bar;
+  }
+}

@@ -264,11 +264,12 @@ def is_derived_from_or_self(a, b, visited):
     if a == b:
         return True
     for p in a.search('base'):
-        val = p.i_identity
-        if val not in visited:
-            visited.append(val)
-            if is_derived_from_or_self(val, b, visited):
-                return True
+        if hasattr(p, 'i_identity'):
+            val = p.i_identity
+            if val not in visited:
+                visited.append(val)
+                if is_derived_from_or_self(val, b, visited):
+                    return True
     return False
 
 ## type restrictions
