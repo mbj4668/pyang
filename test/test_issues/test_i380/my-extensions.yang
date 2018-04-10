@@ -1,0 +1,10 @@
+module my-extensions {
+  namespace "urn:myx";
+  prefix "myx";
+
+  extension version {
+    argument "semver" {
+      yin-element false;
+    }
+  }
+}

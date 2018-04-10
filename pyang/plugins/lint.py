@@ -285,10 +285,11 @@ def v_chk_mandatory_top_level(ctx, stmt):
             err_add(ctx.errors, s.pos, 'LINT_TOP_MANDATORY', s.arg)
 
 def v_chk_hyphenated_names(ctx, stmt):
-    (arg_type, subspec) = grammar.stmt_map[stmt.keyword]
-    if ((arg_type == 'identifier' or arg_type == 'enum-arg') and
-        not_hyphenated(stmt.arg)):
-        error.err_add(ctx.errors, stmt.pos, 'LINT_NOT_HYPHENATED', stmt.arg)
+    if stmt.keyword in grammar.stmt_map:
+        (arg_type, subspec) = grammar.stmt_map[stmt.keyword]
+        if ((arg_type == 'identifier' or arg_type == 'enum-arg') and
+            not_hyphenated(stmt.arg)):
+            error.err_add(ctx.errors, stmt.pos, 'LINT_NOT_HYPHENATED', stmt.arg)
 
 def not_hyphenated(name):
     ''' Returns True if name is not hyphenated '''
