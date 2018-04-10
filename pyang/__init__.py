@@ -449,6 +449,7 @@ class FileRepository(Repository):
     # FIXME: bad strategy; when revisions are not used in the filename
     # this code parses all modules :(  need to do this lazily
     def _peek_revision(self, absfilename, format, ctx):
+        fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
@@ -456,6 +457,10 @@ class FileRepository(Repository):
             return None
         except UnicodeDecodeError as ex:
             return None
+        finally:
+            if fd is not None:
+                fd.close()
+
         if format == 'yin':
             p = yin_parser.YinParser()
         else:
@@ -475,6 +480,7 @@ class FileRepository(Repository):
 
     def get_module_from_handle(self, handle):
         (format, absfilename) = handle
+        fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
@@ -484,7 +490,8 @@ class FileRepository(Repository):
             s = str(ex).replace('utf-8', 'utf8')
             raise self.ReadError(absfilename + ": unicode error: " + s)
         finally:
-            fd.close()
+            if fd is not None:
+                fd.close()
 
         if format is None:
             format = util.guess_format(text)
