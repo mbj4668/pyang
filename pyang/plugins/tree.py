@@ -1,5 +1,7 @@
 """Tree output plugin
 
+Compatible with RFC 8340.
+
 Idea copied from libsmi.
 """
 
