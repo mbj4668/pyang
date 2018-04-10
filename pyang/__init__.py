@@ -483,6 +483,8 @@ class FileRepository(Repository):
         except UnicodeDecodeError as ex:
             s = str(ex).replace('utf-8', 'utf8')
             raise self.ReadError(absfilename + ": unicode error: " + s)
+        finally:
+            fd.close()
 
         if format is None:
             format = util.guess_format(text)
