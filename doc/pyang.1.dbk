@@ -1163,6 +1163,21 @@ $ osascript foo.scpt</screen>
     <para>The <emphasis>name</emphasis> output prints the name of each
     module in the input data model. For submodules, it also shows the
     name of the main module to which the submodule belongs.</para>
+    <para>
+	name output specific option:
+    </para>
+    <variablelist>
+	<varlistentry>
+	    <term>
+		<option>--name-print-revision</option>
+	    </term>
+	    <listitem>
+		<para>
+		    Print the name and revision in name@revision format.
+		</para>
+	    </listitem>
+	</varlistentry>
+    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.sample-xml-skeleton_output">
