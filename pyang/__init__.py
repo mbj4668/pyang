@@ -414,10 +414,21 @@ class FileRepository(Repository):
             if not pkgutil.find_loader('pip'):
                 return  # abort search if pip is not installed
 
-            import pip
-            location = pip.locations.distutils_scheme('pyang')
-            self.dirs.append(os.path.join(location['data'],
-                                          'share','yang','modules'))
+            # hack below to handle pip 10 internals
+            # if someone knows pip and how to fix this, it would be great!
+            location = None
+            try:
+                import pip.locations as locations
+                location = locations.distutils_scheme('pyang')
+            except:
+                try:
+                    import pip._internal.locations as locations
+                    location = locations.distutils_scheme('pyang')
+                except:
+                    pass
+            if location is not None:
+                self.dirs.append(os.path.join(location['data'],
+                                              'share','yang','modules'))
 
 
 
