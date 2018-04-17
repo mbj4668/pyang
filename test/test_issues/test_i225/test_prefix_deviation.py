@@ -8,7 +8,11 @@ import os
 import sys
 from os.path import abspath, dirname
 
-import pip
+# hack to handle pip 10 internals
+try:
+    import pip.locations as locations
+except:
+    import pip._internal.locations as locations
 
 from pyang import Context, FileRepository
 
@@ -93,9 +97,9 @@ def test_can_find_modules_when_prefix_differ(monkeypatch):
 
     # store pip location.
     # monkeypatching sys.prefix will side_effect scheme.
-    scheme = pip.locations.distutils_scheme('pyang')
+    scheme = locations.distutils_scheme('pyang')
     monkeypatch.setattr(
-        pip.locations, 'distutils_scheme', lambda *_: scheme)
+        locations, 'distutils_scheme', lambda *_: scheme)
 
     # simulate #225 description
     monkeypatch.setattr(sys, 'prefix', '/usr')
