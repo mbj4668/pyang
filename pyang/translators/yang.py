@@ -164,11 +164,8 @@ def emit_arg(stmt, fd, indent, indentstep):
             fd.write(' "' + arg + '"')
     else:
         fd.write('\n')
-        line = lines[0]
-        line = line.strip() + '\n'
-        fd.write(indent + indentstep + '"' + line)
+        fd.write(indent + indentstep + '"' + lines[0])
         for line in lines[1:-1]:
-            line = line.rstrip() + '\n'
             if line[0] == '\n':
                 fd.write('\n')
             else:
