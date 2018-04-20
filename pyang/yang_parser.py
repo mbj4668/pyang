@@ -213,8 +213,21 @@ class YangTokenizer(object):
                             i = i + 1
                             start = i + 1
                     i = i + 1
-                # end-of-line, keep going
-                strs.append(self.buf[start:i])
+                # end-of-line
+                # first strip trailing whitespace in double quoted strings
+                # pre: self.buf[i-1] == '\n'
+                if i > 2 and self.buf[i-2] == '\r':
+                    j = i - 3
+                else:
+                    j = i - 2
+                k = j
+                while j >= 0 and self.buf[j].isspace():
+                    j = j - 1
+                if j != k: # we found trailing whitespace
+                    s = self.buf[start:j+1] + self.buf[k+1:i]
+                else:
+                    s = self.buf[start:i]
+                strs.append(s)
                 self.readline()
                 i = 0
                 if quote_char == '"':
