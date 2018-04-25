@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2018-02-23
+.\"      Date: 2018-04-25
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.7.4
+.\"    Source: pyang-1.7.5
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2018\-02\-23" "pyang\-1\&.7\&.4" "pyang manual"
+.TH "PYANG" "1" "2018\-04\-25" "pyang\-1\&.7\&.5" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -749,6 +749,13 @@ is a slash ("/") separated path to a subtree to print\&. For example "/nacm/grou
 The
 \fIname\fR
 output prints the name of each module in the input data model\&. For submodules, it also shows the name of the main module to which the submodule belongs\&.
+.PP
+name output specific option:
+.PP
+\fB\-\-name\-print\-revision\fR
+.RS 4
+Print the name and revision in name@revision format\&.
+.RE
 .SH "SAMPLE-XML-SKELETON OUTPUT"
 .PP
 The
