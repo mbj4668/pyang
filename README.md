@@ -5,6 +5,12 @@
 **2018-04-25 - Version 1.7.5 released**
   * tree plugin updated to align with RFC 8340
 
+  * better formatting of YANG modules with -f yang
+
+  * reduced memory usage
+
+  * ... and various other enhancements and bug fixes, see CHANGES.
+
 **2018-02-23 - Version 1.7.4 released**
 
   * tree plugin updated to align with draft-ietf-netmod-yang-tree-diagrams-05
