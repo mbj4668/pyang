@@ -2692,8 +2692,11 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             if ptr.keyword in _keyword_with_children:
                 ptr = search_data_node(ptr.i_children, module_name, name,
                                        last_skipped)
-                if not is_submodule_included(path, ptr):
-                    ptr = None
+
+                ## comment out following 2 lines to fix issue #396
+                ##if not is_submodule_included(path, ptr):
+                ##    ptr = None
+
                 if ptr is None:
                     err_add(ctx.errors, pathpos, 'LEAFREF_IDENTIFIER_NOT_FOUND',
                             (module_name, name, stmt.arg, stmt.pos))
