@@ -107,10 +107,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             "choice": self.process_children,
             "case": self.process_children,
             "list": self.list,
-            "leaf-list": self.leaf_list,
-            "rpc": self.ignore,
-            "action": self.ignore,
-            "notification": self.ignore
+            "leaf-list": self.leaf_list
         }
         self.ns_uri = {}
         for yam in modules:
@@ -139,7 +136,8 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch not in omit and (ch.i_config or self.doctype == "data"):
-                self.node_handler[ch.keyword](ch, elem, module, path)
+                self.node_handler.get(ch.keyword, self.ignore)(
+                    ch, elem, module, path)
 
     def container(self, node, elem, module, path):
         """Create a sample container element and proceed with its children."""
@@ -181,7 +179,8 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         if path is None:
             return
         for kn in node.i_key:
-            self.node_handler[kn.keyword](kn, nel, newm, path)
+            self.node_handler.get(kn.keyword, self.ignore)(
+                kn, nel, newm, path)
         self.process_children(node, nel, newm, path, node.i_key)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
