@@ -153,8 +153,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             subm = ctx.get_module(i.arg)
             if subm is not None:
                 mods.append(subm)
+        section_delimiter_printed=False
         for m in mods:
-            section_delimiter_printed=False
             for augment in m.search('augment'):
                 if (hasattr(augment.i_target_node, 'i_module') and
                     augment.i_target_node.i_module not in modules + mods):
