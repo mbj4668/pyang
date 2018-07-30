@@ -126,6 +126,8 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
 
 def check_update(ctx, oldfilename, newmod):
     oldpath = os.pathsep.join(ctx.opts.old_path)
+    oldfilenames = oldfilename.split()
+    oldfilename = oldfilenames[0]
     olddir = os.path.dirname(oldfilename)
     if olddir == '':
         olddir = '.'
@@ -145,14 +147,17 @@ def check_update(ctx, oldfilename, newmod):
     for p in plugin.plugins:
         p.setup_ctx(oldctx)
 
-    oldfilename = ctx.opts.check_update_from
-    try:
-        fd = io.open(oldfilename, "r", encoding="utf-8")
-        text = fd.read()
-    except IOError as ex:
-        sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
-        sys.exit(1)
-    oldmod = oldctx.add_module(oldfilename, text)
+    for oldfilename in oldfilenames:
+        try:
+            fd = io.open(oldfilename, "r", encoding="utf-8")
+            text = fd.read()
+        except IOError as ex:
+            sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
+            sys.exit(1)
+        if 'oldmod' in locals():
+            oldctx.add_module(oldfilename, text)
+        else:
+            oldmod = oldctx.add_module(oldfilename, text)
     ctx.errors.extend(oldctx.errors)
 
     if oldmod is None:
