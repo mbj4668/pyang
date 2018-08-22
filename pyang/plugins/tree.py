@@ -343,7 +343,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
     if s.i_module.i_modulename == module.i_modulename:
         name = s.arg
     else:
-        name = s.i_module.i_prefix + ':' + s.arg
+        name = s.i_module.i_modulename + ':' + s.arg
     flags = get_flags_str(s, mode)
     if s.keyword == 'list':
         name += '*'
