@@ -34,7 +34,7 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  help=os.pathsep + "-separated search path" \
                                      " for yin and yang modules used by" \
                                      " OLDMODULE"),
-            optparse.make_option("-D", "--check-update-from-deviation",
+            optparse.make_option("-D", "--check-update-from-deviation-module",
                                  dest="old_deviation",
                                  default=[],
                                  action="append",
