@@ -34,6 +34,13 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  help=os.pathsep + "-separated search path" \
                                      " for yin and yang modules used by" \
                                      " OLDMODULE"),
+            optparse.make_option("-D", "--check-update-from-deviation",
+                                 dest="old_deviation",
+                                 default=[],
+                                 action="append",
+                                 help="Deviation module of the OLDMODULE, or" \
+                                      " module augmenting the OLDMODULE. This" \
+                                      " option can be given multiple times."),
             ]
         optparser.add_options(optlist)
 
@@ -126,8 +133,6 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
 
 def check_update(ctx, oldfilename, newmod):
     oldpath = os.pathsep.join(ctx.opts.old_path)
-    oldfilenames = oldfilename.split()
-    oldfilename = oldfilenames[0]
     olddir = os.path.dirname(oldfilename)
     if olddir == '':
         olddir = '.'
@@ -147,14 +152,14 @@ def check_update(ctx, oldfilename, newmod):
     for p in plugin.plugins:
         p.setup_ctx(oldctx)
 
-    for oldfilename in oldfilenames:
+    for oldfilename in [ctx.opts.check_update_from] + ctx.opts.old_deviation:
         try:
             fd = io.open(oldfilename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
             sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
             sys.exit(1)
-        if 'oldmod' in locals():
+        if oldfilename in ctx.opts.old_deviation:
             oldctx.add_module(oldfilename, text)
         else:
             oldmod = oldctx.add_module(oldfilename, text)
