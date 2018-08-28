@@ -5,7 +5,7 @@ python:
   # - "3.2" # error: coverage doesn't work
   # - "3.3" # error: pytest doesn't work
   - "3.4"
-  - "3.5"
+  # - "3.5" # error: coverage doesn't work
   - "3.6"
 addons:
   apt:
