@@ -150,7 +150,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_header()
                 printed_header = True
             print_children(chs, module, fd, '', chpath, 'data', depth, llen,
-                           ctx.opts.tree_no_expand_uses, ctx.opts.module_name_prefix)
+                           ctx.opts.tree_no_expand_uses, 
+                           use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         mods = [module]
         for i in module.search('include'):
@@ -180,7 +181,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                     print_children(augment.i_children, m, fd,
                                    '  ', path, mode, depth, llen,
                                    ctx.opts.tree_no_expand_uses, 
-                                   ctx.opts.module_name_prefix)
+                                   use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -197,7 +198,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 printed_header = True
             fd.write("\n  rpcs:\n")
             print_children(rpcs, module, fd, '  ', rpath, 'rpc', depth, llen,
-                           ctx.opts.tree_no_expand_uses, ctx.opts.module_name_prefix)
+                           ctx.opts.tree_no_expand_uses, 
+                           use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -216,7 +218,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             print_children(notifs, module, fd, '  ', npath,
                            'notification', depth, llen,
                            ctx.opts.tree_no_expand_uses,
-                           ctx.opts.module_name_prefix)
+                           use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
             if not printed_header:
@@ -232,7 +234,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_children(g.i_children, module, fd,
                                '  ', path, 'grouping', depth, llen,
                                ctx.opts.tree_no_expand_uses,
-                               ctx.opts.module_name_prefix)
+                               use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
@@ -249,7 +251,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                     print_children(yd.i_children, module, fd, '  ', path,
                                    'yang-data', depth, llen,
                                    ctx.opts.tree_no_expand_uses,
-                                   ctx.opts.module_name_prefix)
+                                   use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
 def unexpand_uses(i_children):
     res = []
@@ -340,7 +342,8 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
             elif ch.keyword == 'output':
                 mode = 'output'
             print_node(ch, module, fd, newprefix, path, mode, depth, llen,
-                       no_expand_uses, width, use_module_name_for_prefix)
+                       no_expand_uses, width, 
+                       use_module_name_for_prefix=use_module_name_for_prefix)
 
 def print_node(s, module, fd, prefix, path, mode, depth, llen,
                no_expand_uses, width, use_module_name_for_prefix=False):
@@ -434,10 +437,12 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             path = path[1:]
         if s.keyword in ['choice', 'case']:
             print_children(chs, module, fd, prefix, path, mode, depth,
-                           llen, no_expand_uses, width - 3, use_module_name_for_prefix)
+                           llen, no_expand_uses, width - 3, 
+                           use_module_name_for_prefix=use_module_name_for_prefix)
         else:
             print_children(chs, module, fd, prefix, path, mode, depth, llen,
-                           no_expand_uses, use_module_name_for_prefix)
+                           no_expand_uses, 
+                           use_module_name_for_prefix=use_module_name_for_prefix)
 
 def get_status_str(s):
     status = s.search_one('status')
