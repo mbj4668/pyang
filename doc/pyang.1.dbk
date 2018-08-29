@@ -1346,6 +1346,18 @@ $ osascript foo.scpt</screen>
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-module-name-prefix</option>
+          <replaceable>maxlen</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Use the module name (instead of the prefix) to prefix 
+            parameters and types.
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
