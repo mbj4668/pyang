@@ -31,6 +31,7 @@ module: ietf-interfaces
   |     |  +--ro out-errors?           yang:counter32
   |     +--rw ifext:extended-parameters
   |        +--rw ifext:extended-parameter?   string
+  |        +--rw ifext:leafref-parameter?    -> /if:interfaces/interface/name
   x--ro interfaces-state
      x--ro interface* [name]
         x--ro name               string
