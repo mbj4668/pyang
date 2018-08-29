@@ -384,7 +384,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
-        t = get_typename(s)
+        t = get_typename(s, use_module_name_for_prefix)
         if t == '':
             line += "%s %s" % (flags, name)
         elif (llen is not None and
@@ -477,7 +477,7 @@ def get_leafref_path(s):
     else:
         return None
 
-def get_typename(s):
+def get_typename(s, use_module_name_for_prefix=False):
     t = s.search_one('type')
     if t is not None:
         if t.arg == 'leafref':
@@ -496,13 +496,57 @@ def get_typename(s):
                     if prefix == curprefix:
                         target.append(name)
                     else:
-                        target.append(prefix + ':' + name)
+                        if use_module_name_for_prefix:
+                            if prefix in s.i_module.i_prefixes:
+                                # Try to map the prefix to the module name
+                                (module_name, _) = s.i_module.i_prefixes[prefix]
+                            else:
+                                # If we can't then fall back to the prefix
+                                module_name = prefix
+                            target.append(module_name + ':' + name)
+                        else:
+                            target.append(prefix + ':' + name)
                         curprefix = prefix
                 return "-> %s" % "/".join(target)
             else:
-                return t.arg
+                # This should never be reached. Path MUST be present for 
+                # leafref type. See RFC6020 section 9.9.2
+                # (https://tools.ietf.org/html/rfc6020#section-9.9.2)
+                if use_module_name_for_prefix:
+                    if t.arg.find(":") == -1:
+                        # No prefix specified. Leave as is
+                        return t.arg
+                    else:
+                        # Prefix found. Replace it with the module name
+                        [prefix, name] = t.arg.split(':', 1)
+                        #return s.i_module.i_modulename + ':' + name
+                        if prefix in s.i_module.i_prefixes:
+                            # Try to map the prefix to the module name
+                            (module_name, _) = s.i_module.i_prefixes[prefix]
+                        else:
+                            # If we can't then fall back to the prefix
+                            module_name = prefix
+                        return module_name + ':' + name
+                else:
+                    return t.arg
         else:
-            return t.arg
+            if use_module_name_for_prefix:
+                if t.arg.find(":") == -1:
+                    # No prefix specified. Leave as is
+                    return t.arg
+                else:
+                    # Prefix found. Replace it with the module name
+                    [prefix, name] = t.arg.split(':', 1)
+                    #return s.i_module.i_modulename + ':' + name
+                    if prefix in s.i_module.i_prefixes:
+                        # Try to map the prefix to the module name
+                        (module_name, _) = s.i_module.i_prefixes[prefix]
+                    else:
+                        # If we can't then fall back to the prefix
+                        module_name = prefix
+                    return module_name + ':' + name
+            else:
+                return t.arg
     elif s.keyword == 'anydata':
         return '<anydata>'
     elif s.keyword == 'anyxml':
