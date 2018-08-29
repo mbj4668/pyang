@@ -12,10 +12,17 @@ module interfaces-ext {
       description "extended interface";
 
       container extended-parameters {
-         leaf extended-parameter {
+        leaf extended-parameter {
             type string;
             description "An extra parameter";
-         }
+        }
+        leaf leafref-parameter {
+          type leafref {
+            path "/if:interfaces/if:interface/if:name";
+          }
+          description
+            "An example leafref";
+        }
       }
    }
 }
