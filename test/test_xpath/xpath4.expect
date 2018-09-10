@@ -1,0 +1,12 @@
+ietf-ipv6-unicast-routing.yang:132: error: XPath syntax error: xPath for "derived-from-or-self(../rt:address-family, 'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:149: error: XPath syntax error: xPath for "derived-from-or-self(../../rt:address-family, 'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:167: error: XPath syntax error: xPath for "derived-from-or-self(../../../rt:address-family, 'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:185: error: XPath syntax error: xPath for "derived-from-or-self(../../../../../rt:address-family, 'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:316: error: XPath syntax error: xPath for "derived-from-or-self(../rt:address-family,
+  'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:334: error: XPath syntax error: xPath for "derived-from-or-self(../../rt:address-family,
+  'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:353: error: XPath syntax error: xPath for "derived-from-or-self(../../../rt:address-family,
+  'v6ur:ipv6-unicast')" does not exist
+ietf-ipv6-unicast-routing.yang:372: error: XPath syntax error: xPath for "derived-from-or-self(../../../../../rt:address-family,
+  'v6ur:ipv6-unicast')" does not exist

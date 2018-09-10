@@ -1,5 +1,6 @@
 import copy
 import re
+import sys
 
 from . import util
 from .util import attrsearch, keysearch, prefix_to_module, \
@@ -2066,8 +2067,12 @@ def v_xpath(ctx, stmt):
 
         args.update(re.split(r'(?<!-)\band\b|\bor\b(?!-)', no_new_line))
         for arg in args:
-            for key, val in dict_to_return.iteritems():
-                arg = arg.replace(key, val)
+            if sys.version < '3':
+                for key, val in dict_to_return.iteritems():
+                    arg = arg.replace(key, val)
+            else:
+                for key, val in dict_to_return.items():
+                    arg = arg.replace(key, val)
             toks = xpath.tokens(arg)
             checked = False
             for (x, (tokname, s)) in enumerate(toks):
@@ -2209,15 +2214,27 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
             paths_right[path] = 'path'
 
     comparing_value = ''
-    for value, path_or_literal in paths_left.iteritems():
-        if path_or_literal == 'path':
-            comparing_value = value
-            break
-    if comparing_value == '':
-        for value, path_or_literal in paths_right.iteritems():
+    if sys.version < '3':
+        for value, path_or_literal in paths_left.iteritems():
             if path_or_literal == 'path':
                 comparing_value = value
                 break
+    else:
+        for value, path_or_literal in paths_left.items():
+            if path_or_literal == 'path':
+                comparing_value = value
+                break
+    if comparing_value == '':
+        if sys.version < '3':
+            for value, path_or_literal in paths_right.iteritems():
+                if path_or_literal == 'path':
+                    comparing_value = value
+                    break
+        else:
+            for value, path_or_literal in paths_right.items():
+                if path_or_literal == 'path':
+                    comparing_value = value
+                    break
         del paths_right[comparing_value]
     else:
         del paths_left[comparing_value]
@@ -2231,22 +2248,40 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
 
     else:
         paths_left.update(paths_right)
-        for value, path_or_literal in paths_left.iteritems():
-            if path_or_literal == 'literal':
-                value = value.replace("'", '').replace('"', '').strip()
-                for path_stmt in path_stmts:
-                    type = get_type_of_typedef(path_stmt, ctx)
-                    check_type(path_stmt.search_one('type'), type, value, ctx)
-            else:
-                path_stmts2 = check_path(value, stmt, ctx)
-                for path_stmt in path_stmts:
-                    for path_stmt2 in path_stmts2:
+        if sys.version < '3':
+            for value, path_or_literal in paths_left.iteritems():
+                if path_or_literal == 'literal':
+                    value = value.replace("'", '').replace('"', '').strip()
+                    for path_stmt in path_stmts:
                         type = get_type_of_typedef(path_stmt, ctx)
-                        type2 = get_type_of_typedef(path_stmt2, ctx)
-                        if type != type2:
-                            if not ((type.startswith('uint') and type2.startswith('uint')) or
-                                    (type.startswith('int') and type2.startswith('int'))):
-                                raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
+                        check_type(path_stmt.search_one('type'), type, value, ctx)
+                else:
+                    path_stmts2 = check_path(value, stmt, ctx)
+                    for path_stmt in path_stmts:
+                        for path_stmt2 in path_stmts2:
+                            type = get_type_of_typedef(path_stmt, ctx)
+                            type2 = get_type_of_typedef(path_stmt2, ctx)
+                            if type != type2:
+                                if not ((type.startswith('uint') and type2.startswith('uint')) or
+                                        (type.startswith('int') and type2.startswith('int'))):
+                                    raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
+        else:
+            for value, path_or_literal in paths_left.items():
+                if path_or_literal == 'literal':
+                    value = value.replace("'", '').replace('"', '').strip()
+                    for path_stmt in path_stmts:
+                        type = get_type_of_typedef(path_stmt, ctx)
+                        check_type(path_stmt.search_one('type'), type, value, ctx)
+                else:
+                    path_stmts2 = check_path(value, stmt, ctx)
+                    for path_stmt in path_stmts:
+                        for path_stmt2 in path_stmts2:
+                            type = get_type_of_typedef(path_stmt, ctx)
+                            type2 = get_type_of_typedef(path_stmt2, ctx)
+                            if type != type2:
+                                if not ((type.startswith('uint') and type2.startswith('uint')) or
+                                        (type.startswith('int') and type2.startswith('int'))):
+                                    raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
 
 
 def get_type_of_typedef(path_stmt, ctx):
@@ -2456,10 +2491,16 @@ def check_path(path, stmt, ctx):
         if ':' in parts[1]:
             prefix = parts[1].split(':')[0]
             name = stmt.i_module.i_prefixes.get(prefix)[0]
-            for key, val in ctx.modules.iteritems():
-                if val.arg == name and val.keyword == 'module':
-                    data_holding_stmts = val
-                    break
+            if sys.version < '3':
+                for key, val in ctx.modules.iteritems():
+                    if val.arg == name and val.keyword == 'module':
+                        data_holding_stmts = val
+                        break
+            else:
+                for key, val in ctx.modules.items():
+                    if val.arg == name and val.keyword == 'module':
+                        data_holding_stmts = val
+                        break
             if data_holding_stmts is None:
                 raise SyntaxError('Can`t resolve xpath "{}" because module of prefix "{}" is not found'.format(path, prefix))
         else:
@@ -2478,17 +2519,28 @@ def check_path(path, stmt, ctx):
         if ':' in parts[0]:
             prefix = parts[0].split(':')[0]
             name = stmt.i_module.i_prefixes.get(prefix)[0]
-            for key, val in ctx.modules.iteritems():
-                if val.arg == name and val.keyword == 'module':
-                    modules.append(val)
-                    break
+            if sys.version < '3':
+                for key, val in ctx.modules.iteritems():
+                    if val.arg == name and val.keyword == 'module':
+                        modules.append(val)
+                        break
+            else:
+                for key, val in ctx.modules.items():
+                    if val.arg == name and val.keyword == 'module':
+                        modules.append(val)
+                        break
             if data_holding_stmts is None:
                 raise SyntaxError('Can`t resolve xpath "{}" because module of prefix "{}" is not found'.format(path, prefix))
         else:
             modules.append(stmt.i_module)
-            for key, val in ctx.modules.iteritems():
-                if val.keyword == 'submodule':
-                    modules.append(val)
+            if sys.version < '3':
+                for key, val in ctx.modules.iteritems():
+                    if val.keyword == 'submodule':
+                        modules.append(val)
+            else:
+                for key, val in ctx.modules.items():
+                    if val.keyword == 'submodule':
+                        modules.append(val)
         for mod in modules:
             list_indentity_ref = mod.search('identity')
             for id_ref in list_indentity_ref:
@@ -2582,17 +2634,27 @@ def check_identity(instance_id, stmt, ctx):
     if len(prefix_name) == 2:
         name = prefix_name[1]
         prefix = prefix_name[0]
-        for key, val in ctx.modules.iteritems():
-            if val.i_prefix == prefix:
-                search_stmts.append(val)
+        if sys.version < '3':
+            for key, val in ctx.modules.iteritems():
+                if val.i_prefix == prefix:
+                    search_stmts.append(val)
+        else:
+            for key, val in ctx.modules.items():
+                if val.i_prefix == prefix:
+                    search_stmts.append(val)
         if len(search_stmts) == 0:
             err_add(ctx.errors, stmt.pos, 'WPREFIX_NOT_DEFINED', (prefix))
             return
     else:
         search_stmts.append(stmt.i_module)
-        for key, val in ctx.modules.iteritems():
-            if val.keyword == 'submodule':
-                search_stmts.append(val)
+        if sys.version < '3':
+            for key, val in ctx.modules.iteritems():
+                if val.keyword == 'submodule':
+                    search_stmts.append(val)
+        else:
+            for key, val in ctx.modules.items():
+                if val.keyword == 'submodule':
+                    search_stmts.append(val)
         name = prefix_name[0]
 
     exist = False
