@@ -2126,7 +2126,10 @@ def check_deref(func_toks, stmt, ctx):
     path = ''
     for tok in func_toks[2:-1]:
         path += tok[1]
-    return check_path(path, stmt, ctx)[0]
+    stmts = check_path(path, stmt, ctx)
+    if stmts is None:
+        return None
+    return stmts[0]
 
 
 def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
@@ -2161,9 +2164,12 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
             if left_bracket == 0:
                 if is_deref:
                     stmt = check_deref(func_toks, stmt, ctx)
+                    if stmt is None:
+                        return None
                     path += '.'
                 else:
-                    check_function(func_toks, 0, stmt, ctx, False)
+                    if check_function(func_toks, 0, stmt, ctx, False) is None:
+                        return None
                 in_func = False
             continue
         if predicate:
@@ -2240,6 +2246,8 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
         del paths_left[comparing_value]
 
     path_stmts = check_path(comparing_value, stmt, ctx)
+    if path_stmts is None:
+        return None
     if len(paths_left) == 0 and len(paths_right) == 0:
         # In case of single path in substatement path was already checked
         # so we can skip this
@@ -2257,6 +2265,8 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
                         check_type(path_stmt.search_one('type'), type, value, ctx)
                 else:
                     path_stmts2 = check_path(value, stmt, ctx)
+                    if path_stmts2 is None:
+                        return None
                     for path_stmt in path_stmts:
                         for path_stmt2 in path_stmts2:
                             type = get_type_of_typedef(path_stmt, ctx)
@@ -2274,6 +2284,8 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
                         check_type(path_stmt.search_one('type'), type, value, ctx)
                 else:
                     path_stmts2 = check_path(value, stmt, ctx)
+                    if path_stmts2 is None:
+                        return None
                     for path_stmt in path_stmts:
                         for path_stmt2 in path_stmts2:
                             type = get_type_of_typedef(path_stmt, ctx)
@@ -2288,7 +2300,11 @@ def get_type_of_typedef(path_stmt, ctx):
     if path_stmt.keyword == 'identity':
         return 'identityref'
     elif path_stmt.keyword == 'refine':
-        path_stmt = check_path(path_stmt.arg, path_stmt.parent, ctx)[0]
+        path_stmt = check_path(path_stmt.arg, path_stmt.parent, ctx)
+        if path_stmt is None:
+            return None
+        else:
+            path_stmt = path_stmt[0]
     try:
         type_stmt = path_stmt.search_one('type')
         name = type_stmt.i_type_spec.name
@@ -2386,6 +2402,8 @@ def check_function(tokens, pos, stmt, ctx, checked):
         instance_id = parameters[1].replace('\"', '').replace('\'', '').strip()
         check_identity(instance_id, stmt, ctx)
         path_stmts = check_basic_path(stmt, xpath.tokens(parameters[0].strip()), ctx, 0, True)
+        if path_stmts is None:
+            return True
         for path_stmt in path_stmts:
             if get_type_of_typedef(path_stmt, ctx) != 'identityref':
                 raise SyntaxError('Resolved xPath "{}" is not of type identity-ref'.format(stmt.arg))
@@ -2396,6 +2414,8 @@ def check_function(tokens, pos, stmt, ctx, checked):
             path += value[1]
         path += '/' + parameters[0]
         enum_stmts = check_path(path, stmt, ctx)
+        if enum_stmts is None:
+            return None
         for enum_stmt in enum_stmts:
             enum = enum_stmt.search_one('type')
             enum = enum.i_type_spec
@@ -2420,6 +2440,8 @@ def check_function(tokens, pos, stmt, ctx, checked):
         parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
         path = parameters[0].strip()
         path_stmts = check_path(path, stmt, ctx)
+        if path_stmts is None:
+            return None
         for path_stmt in path_stmts:
             type = get_type_of_typedef(path_stmt, ctx)
             if type != 'string':
@@ -2431,6 +2453,8 @@ def check_function(tokens, pos, stmt, ctx, checked):
             path += value[1]
         path += '/' + parameters[0].strip()
         bit_stmts = check_path(path, stmt, ctx)
+        if bit_stmts is None:
+            return None
         for bit_stmt in bit_stmts:
             bits = bit_stmt.search_one('type')
             bits = bits.i_type_spec
@@ -2486,22 +2510,12 @@ def check_path(path, stmt, ctx):
             break
         path = path[:-1]
     parts = path.split('/')
-    data_holding_stmts = None
     if parts[0] == '':
         if ':' in parts[1]:
             prefix = parts[1].split(':')[0]
-            name = stmt.i_module.i_prefixes.get(prefix)[0]
-            if sys.version < '3':
-                for key, val in ctx.modules.iteritems():
-                    if val.arg == name and val.keyword == 'module':
-                        data_holding_stmts = val
-                        break
-            else:
-                for key, val in ctx.modules.items():
-                    if val.arg == name and val.keyword == 'module':
-                        data_holding_stmts = val
-                        break
+            data_holding_stmts = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
             if data_holding_stmts is None:
+                return None
                 raise SyntaxError('Can`t resolve xpath "{}" because module of prefix "{}" is not found'.format(path, prefix))
         else:
             data_holding_stmts = stmt.i_module
