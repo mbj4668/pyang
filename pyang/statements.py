@@ -2141,7 +2141,7 @@ def check_deref(func_toks, stmt, ctx):
 
 def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
     comparator = ['=', '<', '>', '!=', '>=', '<=']
-    special_toks = ['+', '-', '*', ' / ', ' mod ', ' div ']
+    special_toks = ['+', '-', '*', ' / ', ' mod ', ' div ', '|']
 
     predicate = False
     paths_left = {}
@@ -2620,24 +2620,10 @@ def check_path(path, stmt, ctx):
                         raise SyntaxError('Refine node not found')
 
                 for child_stmt in data_holding_stmt.i_children:
-                    if child_stmt.keyword == 'choice':
-                        for choice_child_stmt in child_stmt.i_children:
-                            if choice_child_stmt.keyword == 'case':
-                                for case_child_stmt in choice_child_stmt.i_children:
-                                    if case_child_stmt.arg == part:
-                                        child_found = True
-                                        data_holding_stmts[x] = case_child_stmt
-                                        break
-                            else:
-                                if choice_child_stmt.arg == part:
-                                    child_found = True
-                                    data_holding_stmts[x] = choice_child_stmt
-                            if child_found:
-                                break
-                    if child_stmt.arg == part:
+                    child_received = check_choice(child_stmt, part)
+                    if child_received is not None:
+                        data_holding_stmts[x] = child_received
                         child_found = True
-                        data_holding_stmts[x] = child_stmt
-                    if child_found:
                         break
                 if not child_found:
                     stmts_to_remove.add(x)
@@ -2650,6 +2636,23 @@ def check_path(path, stmt, ctx):
     if len(data_holding_stmts) == 0:
         raise SyntaxError('xPath for "{}" does not exist'.format(stmt.arg))
     return data_holding_stmts
+
+
+def check_choice(child_stmt, part):
+    if child_stmt.keyword == 'choice':
+        for choice_child_stmt in child_stmt.i_children:
+            if choice_child_stmt.keyword == 'case':
+                for case_child_stmt in choice_child_stmt.i_children:
+                    ret = check_choice(case_child_stmt, part)
+                    if ret is not None:
+                        return ret
+            else:
+                if choice_child_stmt.arg == part:
+                    return choice_child_stmt
+    elif child_stmt.arg == part:
+        return child_stmt
+    else:
+        return None
 
 
 def check_identity(instance_id, stmt, ctx):
