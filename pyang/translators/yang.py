@@ -80,6 +80,8 @@ _keyword_with_trailing_newline = (
     'identity',
     'feature',
     'extension',
+    'rpc',
+    'notification',
     )
 
 _keyword_prefer_squote_arg = (
