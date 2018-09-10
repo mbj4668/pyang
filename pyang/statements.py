@@ -2397,6 +2397,11 @@ def check_function(tokens, pos, stmt, ctx, checked):
         for param in parameters:
             if '/' in param:
                 check_basic_path(stmt, xpath.tokens(param.strip()), ctx, 0)
+    elif tokens[pos][1] in ['contains']:
+        parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
+        for param in parameters:
+            if '/' in param:
+                check_basic_path(stmt, xpath.tokens(param.strip()), ctx, 0)
     elif tokens[pos][1] in ['derived-from-or-self', 'derived-from']:
         parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
         instance_id = parameters[1].replace('\"', '').replace('\'', '').strip()
@@ -2516,7 +2521,6 @@ def check_path(path, stmt, ctx):
             data_holding_stmts = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
             if data_holding_stmts is None:
                 return None
-                raise SyntaxError('Can`t resolve xpath "{}" because module of prefix "{}" is not found'.format(path, prefix))
         else:
             data_holding_stmts = stmt.i_module
         parts.remove(parts[0])
@@ -2532,19 +2536,11 @@ def check_path(path, stmt, ctx):
         modules = []
         if ':' in parts[0]:
             prefix = parts[0].split(':')[0]
-            name = stmt.i_module.i_prefixes.get(prefix)[0]
-            if sys.version < '3':
-                for key, val in ctx.modules.iteritems():
-                    if val.arg == name and val.keyword == 'module':
-                        modules.append(val)
-                        break
+            m = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+            if m is None:
+                return None
             else:
-                for key, val in ctx.modules.items():
-                    if val.arg == name and val.keyword == 'module':
-                        modules.append(val)
-                        break
-            if data_holding_stmts is None:
-                raise SyntaxError('Can`t resolve xpath "{}" because module of prefix "{}" is not found'.format(path, prefix))
+                modules.append(m)
         else:
             modules.append(stmt.i_module)
             if sys.version < '3':
@@ -2569,7 +2565,7 @@ def check_path(path, stmt, ctx):
                 resolve_special_once = True
 
             if '..' == part:
-                if data_holding_stmt.parent.keyword in ['module', 'submodule']:
+                if data_holding_stmt.parent is None:
                     raise SyntaxError('too many ".." in xpath "{}"'.format(stmt.arg))
                 else:
                     data_holding_stmts[x] = data_holding_stmt.parent
@@ -2639,6 +2635,10 @@ def resolve_special_keywords(data_holding_stmt, data_holding_stmts, x):
             data_holding_stmts[x] = data_holding_stmt.i_target_node
             data_holding_stmt = data_holding_stmts[x]
             data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+    elif data_holding_stmt.keyword == 'deviate':
+        data_holding_stmts[x] = data_holding_stmt.parent.i_target_node
+        data_holding_stmt = data_holding_stmts[x]
+        data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
     return data_holding_stmt
 
 
