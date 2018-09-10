@@ -2074,6 +2074,12 @@ def v_xpath(ctx, stmt):
                 for key, val in dict_to_return.items():
                     arg = arg.replace(key, val)
             toks = xpath.tokens(arg)
+            axis = False
+            for tok in toks:
+                if tok[0] == 'axis':
+                    # TODO resolve xpath axis
+                    axis = True
+                    break
             checked = False
             for (x, (tokname, s)) in enumerate(toks):
                 if tokname == 'name' or tokname == 'prefix-match':
@@ -2113,9 +2119,10 @@ def v_xpath(ctx, stmt):
                         err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
                         checked = True
                     else:
-                        checked = check_function(toks, x, stmt.copy(), ctx, checked)
+                        if not axis:
+                            checked = check_function(toks, x, stmt.copy(), ctx, checked)
                 if not checked and 'enum-value' not in arg and 'bit-is-set' not in arg:
-                    if tokname in ['.', '..', '/', 'current', 'deref', 'name']:
+                    if tokname in ['.', '..', '/', 'current', 'deref', 'name'] and not axis:
                         checked = True
                         check_basic_path(stmt.copy(), toks, ctx, x)
     except SyntaxError as e:
