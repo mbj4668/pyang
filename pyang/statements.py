@@ -2481,6 +2481,33 @@ def check_function(tokens, pos, stmt, ctx, checked):
 
 def check_path(path, stmt, ctx):
 
+    def resolve_special_keywords(data_holding_stmt, data_holding_stmts, x):
+        if data_holding_stmt.keyword in ['case', 'choice', 'uses']:
+            data_holding_stmts[x] = data_holding_stmt.parent
+            data_holding_stmt = data_holding_stmts[x]
+            data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+        elif data_holding_stmt.keyword == 'grouping':
+            root_children = data_holding_stmt.i_module.substmts
+            if len(root_children) > 0:
+                data_holding_stmts.extend(list(find_grouping_uses(set(), root_children, data_holding_stmt.arg)))
+                if len(data_holding_stmts) > 1:
+                    data_holding_stmts.remove(data_holding_stmt)
+                    data_holding_stmt = data_holding_stmts[x]
+                    data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+        elif data_holding_stmt.keyword == 'augment':
+            if data_holding_stmt.i_target_node is None:
+                raise SyntaxError('Can not resolve xPath because target node for augment {} does not exist'.format(
+                    data_holding_stmt.arg))
+            else:
+                data_holding_stmts[x] = data_holding_stmt.i_target_node
+                data_holding_stmt = data_holding_stmts[x]
+                data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+        elif data_holding_stmt.keyword == 'deviate':
+            data_holding_stmts[x] = data_holding_stmt.parent.i_target_node
+            data_holding_stmt = data_holding_stmts[x]
+            data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+        return data_holding_stmt
+
     def find_refine_node(refinement, stmt_copy):
         # parse the path into a list of two-tuples of (prefix,identifier)
         pstr = '/' + refinement.arg
@@ -2565,6 +2592,9 @@ def check_path(path, stmt, ctx):
                 resolve_special_once = True
 
             if '..' == part:
+                if data_holding_stmt.keyword == 'refine':
+                    # TODO implement refine
+                    return None
                 if data_holding_stmt.parent is None:
                     raise SyntaxError('too many ".." in xpath "{}"'.format(stmt.arg))
                 else:
@@ -2613,33 +2643,6 @@ def check_path(path, stmt, ctx):
     if len(data_holding_stmts) == 0:
         raise SyntaxError('xPath for "{}" does not exist'.format(stmt.arg))
     return data_holding_stmts
-
-
-def resolve_special_keywords(data_holding_stmt, data_holding_stmts, x):
-    if data_holding_stmt.keyword in ['case', 'choice', 'uses']:
-        data_holding_stmts[x] = data_holding_stmt.parent
-        data_holding_stmt = data_holding_stmts[x]
-        data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
-    elif data_holding_stmt.keyword == 'grouping':
-        root_children = data_holding_stmt.i_module.substmts
-        if len(root_children) > 0:
-            data_holding_stmts.extend(list(find_grouping_uses(set(), root_children, data_holding_stmt.arg)))
-            if len(data_holding_stmts) > 1:
-                data_holding_stmts.remove(data_holding_stmt)
-                data_holding_stmt = data_holding_stmts[x]
-                data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
-    elif data_holding_stmt.keyword == 'augment':
-        if data_holding_stmt.i_target_node is None:
-            raise SyntaxError('Can not resolve xPath because target node for augment {} does not exist'.format(data_holding_stmt.arg))
-        else:
-            data_holding_stmts[x] = data_holding_stmt.i_target_node
-            data_holding_stmt = data_holding_stmts[x]
-            data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
-    elif data_holding_stmt.keyword == 'deviate':
-        data_holding_stmts[x] = data_holding_stmt.parent.i_target_node
-        data_holding_stmt = data_holding_stmts[x]
-        data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
-    return data_holding_stmt
 
 
 def check_identity(instance_id, stmt, ctx):
