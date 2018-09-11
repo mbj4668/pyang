@@ -2424,7 +2424,7 @@ def check_function(tokens, pos, stmt, ctx, checked):
             return True
         for path_stmt in path_stmts:
             if get_type_of_typedef(path_stmt, ctx) != 'identityref':
-                raise SyntaxError('Resolved xPath "{}" is not of type identity-ref'.format(stmt.arg))
+                raise SyntaxError('Resolved XPath "{}" is not of type identity-ref'.format(stmt.arg))
     elif tokens[pos][1] == 'enum-value':
         parameters = check_and_return_parameters(1, tokens[pos + 2:], tokens[pos][1])
         path = ''
@@ -2442,7 +2442,7 @@ def check_function(tokens, pos, stmt, ctx, checked):
         for enum_stmt in enum_stmts:
             enum = enum_stmt.search_one('type')
             if enum is None:
-                SyntaxError('Resolved xPath statement "{}" is not of type enum'.format(stmt.arg))
+                SyntaxError('Resolved XPath statement "{}" is not of type enum'.format(stmt.arg))
             enum = enum.i_type_spec
             if enum.name == 'enumeration':
                 found = False
@@ -2452,16 +2452,16 @@ def check_function(tokens, pos, stmt, ctx, checked):
                         param = int(t[1])
                         break
                     elif t[0] == ']':
-                        raise SyntaxError('End bracket "]" found before enum number value in xPath'.format(stmt.arg))
+                        raise SyntaxError('End bracket "]" found before enum number value in XPath'.format(stmt.arg))
                 if param is not None:
                     for enum_tuple in enum.enums:
                         if enum_tuple[1] == param:
                             found = True
                             break
                     if not found:
-                        raise SyntaxError('Not existing enum in xPath {}'.format(stmt.arg))
+                        raise SyntaxError('Not existing enum in XPath {}'.format(stmt.arg))
             else:
-                SyntaxError('Resolved xPath statement "{}" is not of type enum'.format(stmt.arg))
+                SyntaxError('Resolved XPath statement "{}" is not of type enum'.format(stmt.arg))
     elif tokens[pos][1] == 're-match':
         parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
         path = parameters[0].strip()
@@ -2473,7 +2473,7 @@ def check_function(tokens, pos, stmt, ctx, checked):
         for path_stmt in path_stmts:
             type = get_type_of_typedef(path_stmt, ctx)
             if type != 'string':
-                raise SyntaxError('xPath "{}" must be resolved with a node of type string'.format(stmt.arg))
+                raise SyntaxError('XPath "{}" must be resolved with a node of type string'.format(stmt.arg))
     elif tokens[pos][1] == 'bit-is-set':
         parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
         path = ''
@@ -2499,9 +2499,9 @@ def check_function(tokens, pos, stmt, ctx, checked):
                         found = True
                         break
                 if not found:
-                    raise SyntaxError('Not existing bit in xPath "{}"'.format(stmt.arg))
+                    raise SyntaxError('Not existing bit in XPath "{}"'.format(stmt.arg))
             else:
-                raise SyntaxError('Resolved xPath statement "{}" is not of type bit'.format(stmt.arg))
+                raise SyntaxError('Resolved XPath statement "{}" is not of type bit'.format(stmt.arg))
     else:
         return checked
     return True
@@ -2525,7 +2525,7 @@ def check_path(path, stmt, ctx):
         elif data_holding_stmt.keyword == 'augment':
             try:
                 if data_holding_stmt.i_target_node is None:
-                    raise SyntaxError('Can not resolve xPath because target node for augment {} does not exist'.format(
+                    raise SyntaxError('Can not resolve XPath because target node for augment {} does not exist'.format(
                         data_holding_stmt.arg))
                 else:
                     data_holding_stmts[x] = data_holding_stmt.i_target_node
@@ -2588,7 +2588,7 @@ def check_path(path, stmt, ctx):
     else:
         data_holding_stmts = stmt.copy()
     if data_holding_stmts is None:
-        raise SyntaxError('Wrong xpath "{}"'.format(stmt.arg))
+        raise SyntaxError('Wrong XPath "{}"'.format(stmt.arg))
     data_holding_stmts = [data_holding_stmts]
     stmts_to_remove = set()
     if(len(parts) == 1):
@@ -2630,7 +2630,7 @@ def check_path(path, stmt, ctx):
                     # TODO implement refine
                     return None
                 if data_holding_stmt.parent is None:
-                    raise SyntaxError('too many ".." in xpath "{}"'.format(stmt.arg))
+                    raise SyntaxError('too many ".." in XPath "{}"'.format(stmt.arg))
                 else:
                     data_holding_stmts[x] = data_holding_stmt.parent
                     continue
@@ -2661,7 +2661,7 @@ def check_path(path, stmt, ctx):
         for stmt_to_remove in stmts_to_remove:
             del data_holding_stmts[stmt_to_remove]
     if len(data_holding_stmts) == 0:
-        raise SyntaxError('xPath for "{}" does not exist'.format(stmt.arg))
+        raise SyntaxError('XPath for "{}" does not exist'.format(stmt.arg))
     return data_holding_stmts
 
 
