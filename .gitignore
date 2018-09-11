@@ -12,6 +12,7 @@ pyang.egg-info
 schemas.xml
 *.pyc
 *.egg-info
+*.idea
 .coverage*
 /test/test_*/*.dsrl
 /test/test_*/*.rng
