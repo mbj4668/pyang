@@ -235,27 +235,39 @@ def chk_identity(olds, newmod, ctx):
     # make sure the base isn't changed (other than syntactically)
     oldbase = olds.search('base')
     newbase = news.search('base')
-    if len(oldbase) == 0 and len(newbase) != 0:
-        pass
-    elif len(newbase) < len(oldbase):
-        new_args = []
-        for new in newbase:
-            new_args.append(new.arg.split(':')[-1])
-        for old in oldbase:
-            if old.arg.split(':')[-1] not in new_args:
-                err_def_removed(old, news, ctx)
-    elif len(oldbase) == 0 and len(newbase) == 0:
-        pass
-    else:
-        for old in oldbase:
-            identity_found = False
+    if newmod.i_version == '1.1':
+        if len(oldbase) == 0 and len(newbase) != 0:
+            pass
+        elif len(newbase) < len(oldbase):
+            new_args = []
             for new in newbase:
-                if old.i_identity.arg.split(':')[-1] == new.i_identity.arg.split(':')[-1]:
-                    identity_found = True
-                    if old.i_identity.i_module.i_modulename != new.i_identity.i_module.i_modulename:
-                        err_def_changed(new, old, ctx)
-            if not identity_found:
-                err_def_removed(old, news, ctx)
+                new_args.append(new.arg.split(':')[-1])
+            for old in oldbase:
+                if old.arg.split(':')[-1] not in new_args:
+                    err_def_removed(old, news, ctx)
+        elif len(oldbase) == 0 and len(newbase) == 0:
+            pass
+        else:
+            for old in oldbase:
+                identity_found = False
+                for new in newbase:
+                    if old.i_identity.arg.split(':')[-1] == new.i_identity.arg.split(':')[-1]:
+                        identity_found = True
+                        if old.i_identity.i_module.i_modulename != new.i_identity.i_module.i_modulename:
+                            err_def_changed(new, old, ctx)
+                if not identity_found:
+                    err_def_removed(old, news, ctx)
+    else:
+        if oldbase is None and newbase is not None:
+            err_def_added(newbase, ctx)
+        elif newbase is None and oldbase is not None:
+            err_def_removed(oldbase, news, ctx)
+        elif oldbase is None and newbase is None:
+            pass
+        elif ((oldbase.i_identity.i_module.i_modulename !=
+               newbase.i_identity.i_module.i_modulename)
+              or (oldbase.i_identity.arg != newbase.i_identity.arg)):
+            err_def_changed(oldbase, newbase, ctx)
 
 def chk_typedef(olds, newmod, ctx):
     news = chk_stmt(olds, newmod, ctx)
@@ -416,7 +428,11 @@ def chk_when(old, new, ctx):
         if neww is not None:
             newwhen.remove(neww)
             oldwhen.remove(oldw)
-    if len(oldwhen) == 0:
+    if new.i_module.i_version == '1.1':
+        if len(newwhen) == 0:
+            # this is good; maybe some old whens were removed
+            return
+    elif len(oldwhen) == 0:
         for neww in newwhen:
             err_add(ctx.errors, neww.pos, 'CHK_NEW_WHEN', ())
     else:
