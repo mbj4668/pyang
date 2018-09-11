@@ -64,7 +64,7 @@ module a {
       mandatory true;
       if-feature foo;
       type string;
-      must "foo and baz";
+      must "../arne/foo and ../baz";
     }
     uses gg {
       if-feature foo;
