@@ -2081,6 +2081,9 @@ def v_xpath(ctx, stmt):
                     axis = True
                     break
             checked = False
+            # Do not compare function types if function exists
+            # TODO compare function types
+            function_exists = False
             for (x, (tokname, s)) in enumerate(toks):
                 if tokname == 'name' or tokname == 'prefix-match':
                     i = s.find(':')
@@ -2111,6 +2114,7 @@ def v_xpath(ctx, stmt):
                 elif tokname == 'variable':
                     err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
                 elif tokname == 'function':
+                    function_exists = True
                     if not (s in xpath.core_functions or
                             s in yang_xpath_functions or
                             (stmt.i_module.i_version != '1' and
@@ -2124,7 +2128,7 @@ def v_xpath(ctx, stmt):
                 if not checked and 'enum-value' not in arg and 'bit-is-set' not in arg:
                     if tokname in ['.', '..', '/', 'current', 'deref', 'name'] and not axis:
                         checked = True
-                        check_basic_path(stmt.copy(), toks, ctx, x)
+                        check_basic_path(stmt.copy(), toks, ctx, x, function_exists=function_exists)
     except SyntaxError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
@@ -2139,7 +2143,7 @@ def check_deref(func_toks, stmt, ctx):
     return stmts[0]
 
 
-def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
+def check_basic_path(stmt, toks, ctx, x, return_stmt=False, function_exists=False):
     comparator = ['=', '<', '>', '!=', '>=', '<=']
     special_toks = ['+', '-', '*', ' / ', ' mod ', ' div ', '|']
 
@@ -2156,6 +2160,7 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
     left_bracket = 0
     for y, tok in enumerate(toks[x:]):
         if tok[0] == 'function' and tok[1] != 'current':
+            function_exists = True
             left_bracket = 0
             in_func = True
             func_toks.append(tok)
@@ -2278,7 +2283,7 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
                         for path_stmt2 in path_stmts2:
                             type = get_type_of_typedef(path_stmt, ctx)
                             type2 = get_type_of_typedef(path_stmt2, ctx)
-                            if type != type2:
+                            if type != type2 and not function_exists:
                                 if not ((type.startswith('uint') and type2.startswith('uint')) or
                                         (type.startswith('int') and type2.startswith('int'))):
                                     raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
@@ -2297,7 +2302,7 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False):
                         for path_stmt2 in path_stmts2:
                             type = get_type_of_typedef(path_stmt, ctx)
                             type2 = get_type_of_typedef(path_stmt2, ctx)
-                            if type != type2:
+                            if type != type2 and not function_exists:
                                 if not ((type.startswith('uint') and type2.startswith('uint')) or
                                         (type.startswith('int') and type2.startswith('int'))):
                                     raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
