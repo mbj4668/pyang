@@ -2510,7 +2510,7 @@ def check_function(tokens, pos, stmt, ctx, checked):
 def check_path(path, stmt, ctx):
 
     def resolve_special_keywords(data_holding_stmt, data_holding_stmts, x):
-        if data_holding_stmt.keyword in ['case', 'choice', 'uses']:
+        if data_holding_stmt.keyword in ['case', 'choice', 'uses', 'action']:
             data_holding_stmts[x] = data_holding_stmt.parent
             data_holding_stmt = data_holding_stmts[x]
             data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
