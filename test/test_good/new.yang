@@ -28,6 +28,9 @@ module new {
     }
   }
   container yy {
+    leaf foo {
+      type empty;
+    }
     if-feature "f or g"; // error: 1.1 synatx
   }
   grouping g {
@@ -74,10 +77,29 @@ module new {
   container t {
     must 're-match("hej", "dsop")'; // new 1.1 syntax
     must 'deref(.)'; // new 1.1 syntax
-    must 'derived-from(., "a", "b")'; // new 1.1 syntax
-    must 'derived-from-or-self(., "a", "b")'; // new 1.1 syntax
-    must 'enum-value(.)'; // new 1.1 syntax
-    must 'bit-is-set(., "hej")'; // new 1.1 syntax
+    leaf idleafderrived {
+    type identityref {
+      base id2;
+      base id5; // new 1.1 syntax
+    }
+    default id7;
+  }
+    must 'derived-from(idleafderrived, "id2")'; // new 1.1 syntax
+    must 'derived-from-or-self(idleafderrived, "id2")'; // new 1.1 syntax
+    leaf ofenum {
+     type e1;
+    }
+
+    leaf ofbit {
+         type bits {
+          bit hej {
+            if-feature f; // new 1.1 syntax
+          }
+        }
+    }
+
+    must 'enum-value(./ofenum)'; // new 1.1 syntax
+    must 'bit-is-set(./ofbit, "hej")'; // new 1.1 syntax
   }
   identity id1;
   identity id2;
