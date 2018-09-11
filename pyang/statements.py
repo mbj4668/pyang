@@ -2330,8 +2330,9 @@ def get_type_of_typedef(path_stmt, ctx):
 
 def check_type(stmt, type, literal, ctx):
     try:
-        if stmt.arg == 'leafref':
-            stmt = stmt.i_type_spec.i_target_node.search_one('type')
+        if stmt is not None:
+            if stmt.arg == 'leafref':
+                stmt = stmt.i_type_spec.i_target_node.search_one('type')
         if type.startswith('int'):
             # int can be compared with decimal value
             float(literal)
@@ -2427,14 +2428,21 @@ def check_function(tokens, pos, stmt, ctx, checked):
     elif tokens[pos][1] == 'enum-value':
         parameters = check_and_return_parameters(1, tokens[pos + 2:], tokens[pos][1])
         path = ''
-        for value in tokens[:pos - 1]:
+        add_before_enum = pos - 1
+        separator = '/'
+        if add_before_enum < 0:
+            add_before_enum = 0
+            separator = ''
+        for value in tokens[:add_before_enum]:
             path += value[1]
-        path += '/' + parameters[0]
+        path += separator + parameters[0]
         enum_stmts = check_path(path, stmt, ctx)
         if enum_stmts is None:
             return None
         for enum_stmt in enum_stmts:
             enum = enum_stmt.search_one('type')
+            if enum is None:
+                SyntaxError('Resolved xPath statement "{}" is not of type enum'.format(stmt.arg))
             enum = enum.i_type_spec
             if enum.name == 'enumeration':
                 found = False
@@ -2445,17 +2453,20 @@ def check_function(tokens, pos, stmt, ctx, checked):
                         break
                     elif t[0] == ']':
                         raise SyntaxError('End bracket "]" found before enum number value in xPath'.format(stmt.arg))
-                for enum_tuple in enum.enums:
-                    if enum_tuple[1] == param:
-                        found = True
-                        break
-                if not found:
-                    raise SyntaxError('Not existing enum in xPath {}'.format(stmt.arg))
+                if param is not None:
+                    for enum_tuple in enum.enums:
+                        if enum_tuple[1] == param:
+                            found = True
+                            break
+                    if not found:
+                        raise SyntaxError('Not existing enum in xPath {}'.format(stmt.arg))
             else:
                 SyntaxError('Resolved xPath statement "{}" is not of type enum'.format(stmt.arg))
     elif tokens[pos][1] == 're-match':
         parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
         path = parameters[0].strip()
+        if path[0] in ['"', "'"]:
+            return None
         path_stmts = check_path(path, stmt, ctx)
         if path_stmts is None:
             return None
@@ -2466,9 +2477,14 @@ def check_function(tokens, pos, stmt, ctx, checked):
     elif tokens[pos][1] == 'bit-is-set':
         parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
         path = ''
-        for value in tokens[:pos - 1]:
+        add_before_bit = pos - 1
+        separator = '/'
+        if add_before_bit < 0:
+            add_before_bit = 0
+            separator = ''
+        for value in tokens[:add_before_bit]:
             path += value[1]
-        path += '/' + parameters[0].strip()
+        path += separator + parameters[0]
         bit_stmts = check_path(path, stmt, ctx)
         if bit_stmts is None:
             return None
@@ -2507,13 +2523,17 @@ def check_path(path, stmt, ctx):
                     data_holding_stmt = data_holding_stmts[x]
                     data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
         elif data_holding_stmt.keyword == 'augment':
-            if data_holding_stmt.i_target_node is None:
-                raise SyntaxError('Can not resolve xPath because target node for augment {} does not exist'.format(
-                    data_holding_stmt.arg))
-            else:
-                data_holding_stmts[x] = data_holding_stmt.i_target_node
-                data_holding_stmt = data_holding_stmts[x]
-                data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+            try:
+                if data_holding_stmt.i_target_node is None:
+                    raise SyntaxError('Can not resolve xPath because target node for augment {} does not exist'.format(
+                        data_holding_stmt.arg))
+                else:
+                    data_holding_stmts[x] = data_holding_stmt.i_target_node
+                    data_holding_stmt = data_holding_stmts[x]
+                    data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+            except AttributeError:
+                # TODO investigate why augmentation`s target node is not set at all
+                return None
         elif data_holding_stmt.keyword == 'deviate':
             data_holding_stmts[x] = data_holding_stmt.parent.i_target_node
             data_holding_stmt = data_holding_stmts[x]
@@ -2601,6 +2621,8 @@ def check_path(path, stmt, ctx):
         for x, data_holding_stmt in enumerate(data_holding_stmts):
             if not resolve_special_once:
                 data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+                if data_holding_stmt is None:
+                    return None
                 resolve_special_once = True
 
             if '..' == part:

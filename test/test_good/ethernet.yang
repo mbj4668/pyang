@@ -561,7 +561,7 @@ module ethernet {
    * Operational State.
    */
   augment "/if:interfaces-state/if:interface/if:statistics" {
-    when "if:type = 'ianaift:ethernetCsmacd'" {
+    when "../if:type = 'ianaift:ethernetCsmacd'" {
       description "Applies to all IEEE Std 802.3 Ethernet interfaces";
     }
     description "Augments 'statistics' container in ietf-interfaces/interfaces-state model for IEEE Std 802.3 Ethernet interfaces";
