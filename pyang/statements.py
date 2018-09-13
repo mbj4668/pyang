@@ -2,6 +2,7 @@ import copy
 import re
 import sys
 
+from pyang.error import add_error_code
 from . import util
 from .util import attrsearch, keysearch, prefix_to_module, \
     prefix_to_modulename_and_revision
@@ -2131,6 +2132,8 @@ def v_xpath(ctx, stmt):
                         check_basic_path(stmt.copy(), toks, ctx, x, function_exists=function_exists)
     except SyntaxError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
+    except AttributeError as e:
+        err_add(ctx.errors, stmt.pos, 'XPATH_MISSING_NODE', stmt.arg)
 
 
 def check_deref(func_toks, stmt, ctx):
@@ -2525,8 +2528,9 @@ def check_path(path, stmt, ctx):
         elif data_holding_stmt.keyword == 'augment':
             try:
                 if data_holding_stmt.i_target_node is None:
-                    raise SyntaxError('Can not resolve XPath because target node for augment {} does not exist'.format(
-                        data_holding_stmt.arg))
+                    err_add(ctx.errors, data_holding_stmt.pos, 'NODE_NOT_FOUND',
+                            (data_holding_stmt.i_modulename, data_holding_stmt.arg))
+                    return None
                 else:
                     data_holding_stmts[x] = data_holding_stmt.i_target_node
                     data_holding_stmt = data_holding_stmts[x]
@@ -2588,7 +2592,7 @@ def check_path(path, stmt, ctx):
     else:
         data_holding_stmts = stmt.copy()
     if data_holding_stmts is None:
-        raise SyntaxError('Wrong XPath "{}"'.format(stmt.arg))
+        raise AttributeError('Wrong XPath "{}"'.format(stmt.arg))
     data_holding_stmts = [data_holding_stmts]
     stmts_to_remove = set()
     if(len(parts) == 1):
@@ -2630,7 +2634,7 @@ def check_path(path, stmt, ctx):
                     # TODO implement refine
                     return None
                 if data_holding_stmt.parent is None:
-                    raise SyntaxError('too many ".." in XPath "{}"'.format(stmt.arg))
+                    raise AttributeError('Too many ".." in XPath "{}"'.format(stmt.arg))
                 else:
                     data_holding_stmts[x] = data_holding_stmt.parent
                     continue
@@ -2639,13 +2643,14 @@ def check_path(path, stmt, ctx):
             else:
                 child_found = False
                 if data_holding_stmt.keyword in ['leaf', 'leaf-list']:
-                    raise SyntaxError('Searching for "{}" in leaf or leaf-list statement "{}". Leaf or leaf-list statement does not contain any children'
+                    raise AttributeError('Searching for "{}" in leaf or leaf-list statement "{}". Leaf or leaf-list statement does not contain any children'
                                       .format(part, data_holding_stmt.arg))
                 elif data_holding_stmt.keyword == 'refine':
                     data_holding_stmt = find_refine_node(data_holding_stmt, data_holding_stmt.parent)
                     if data_holding_stmt is None:
-                        raise SyntaxError('Refine node not found')
-
+                        err_add(ctx.errors, data_holding_stmt.pos, 'BAD_NODE_IN_REFINE',
+                                (data_holding_stmt.i_modulename, data_holding_stmt.arg))
+                        return None
                 for child_stmt in data_holding_stmt.i_children:
                     child_received = check_choice(child_stmt, part)
                     if child_received is not None:
@@ -2661,7 +2666,7 @@ def check_path(path, stmt, ctx):
         for stmt_to_remove in stmts_to_remove:
             del data_holding_stmts[stmt_to_remove]
     if len(data_holding_stmts) == 0:
-        raise SyntaxError('XPath for "{}" does not exist'.format(stmt.arg))
+        raise AttributeError('XPath for "{}" does not exist'.format(stmt.arg))
     return data_holding_stmts
 
 
