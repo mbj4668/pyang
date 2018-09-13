@@ -467,7 +467,7 @@ error_codes = \
 
     'XPATH_MISSING_NODE':
       (4,
-       'XPath node %s is missing'),
+       '%s'),
 
     'STRICT_XPATH_FUNCTION':
       (2,

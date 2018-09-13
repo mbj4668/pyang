@@ -2125,15 +2125,19 @@ def v_xpath(ctx, stmt):
                         checked = True
                     else:
                         if not axis:
-                            checked = check_function(toks, x, stmt.copy(), ctx, checked)
-                if not checked and 'enum-value' not in arg and 'bit-is-set' not in arg:
-                    if tokname in ['.', '..', '/', 'current', 'deref', 'name'] and not axis:
+                            checked = check_function(toks, x, stmt.copy(),
+                                                     ctx, checked)
+                if (not checked and 'enum-value' not in arg and
+                    'bit-is-set' not in arg):
+                    if (tokname in ['.', '..', '/', 'current', 'deref', 'name']
+                        and not axis):
                         checked = True
-                        check_basic_path(stmt.copy(), toks, ctx, x, function_exists=function_exists)
+                        check_basic_path(stmt.copy(), toks, ctx, x,
+                                         function_exists=function_exists)
     except SyntaxError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
     except AttributeError as e:
-        err_add(ctx.errors, stmt.pos, 'XPATH_MISSING_NODE', stmt.arg)
+        err_add(ctx.errors, stmt.pos, 'XPATH_MISSING_NODE', e)
 
 
 def check_deref(func_toks, stmt, ctx):
@@ -2146,7 +2150,8 @@ def check_deref(func_toks, stmt, ctx):
     return stmts[0]
 
 
-def check_basic_path(stmt, toks, ctx, x, return_stmt=False, function_exists=False):
+def check_basic_path(stmt, toks, ctx, x,
+                     return_stmt=False, function_exists=False):
     comparator = ['=', '<', '>', '!=', '>=', '<=']
     special_toks = ['+', '-', '*', ' / ', ' mod ', ' div ', '|']
 
@@ -2277,7 +2282,8 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False, function_exists=Fals
                     value = value.replace("'", '').replace('"', '').strip()
                     for path_stmt in path_stmts:
                         type = get_type_of_typedef(path_stmt, ctx)
-                        check_type(path_stmt.search_one('type'), type, value, ctx)
+                        check_type(path_stmt.search_one('type'), type,
+                                   value, ctx)
                 else:
                     path_stmts2 = check_path(value, stmt, ctx)
                     if path_stmts2 is None:
@@ -2287,16 +2293,21 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False, function_exists=Fals
                             type = get_type_of_typedef(path_stmt, ctx)
                             type2 = get_type_of_typedef(path_stmt2, ctx)
                             if type != type2 and not function_exists:
-                                if not ((type.startswith('uint') and type2.startswith('uint')) or
-                                        (type.startswith('int') and type2.startswith('int'))):
-                                    raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
+                                if not ((type.startswith('uint') and
+                                         type2.startswith('uint')) or
+                                        (type.startswith('int') and
+                                         type2.startswith('int'))):
+                                    raise SyntaxError(
+                                        'Types in path condition "{}" does ' +
+                                        'not equal'.format(stmt.arg))
         else:
             for value, path_or_literal in paths_left.items():
                 if path_or_literal == 'literal':
                     value = value.replace("'", '').replace('"', '').strip()
                     for path_stmt in path_stmts:
                         type = get_type_of_typedef(path_stmt, ctx)
-                        check_type(path_stmt.search_one('type'), type, value, ctx)
+                        check_type(path_stmt.search_one('type'), type,
+                                   value, ctx)
                 else:
                     path_stmts2 = check_path(value, stmt, ctx)
                     if path_stmts2 is None:
@@ -2306,9 +2317,13 @@ def check_basic_path(stmt, toks, ctx, x, return_stmt=False, function_exists=Fals
                             type = get_type_of_typedef(path_stmt, ctx)
                             type2 = get_type_of_typedef(path_stmt2, ctx)
                             if type != type2 and not function_exists:
-                                if not ((type.startswith('uint') and type2.startswith('uint')) or
-                                        (type.startswith('int') and type2.startswith('int'))):
-                                    raise SyntaxError('Types in path condition "{}" does not equal'.format(stmt.arg))
+                                if not ((type.startswith('uint') and
+                                         type2.startswith('uint')) or
+                                        (type.startswith('int') and
+                                         type2.startswith('int'))):
+                                    raise SyntaxError(
+                                        'Types in path condition "{}" does ' +
+                                        'not equal'.format(stmt.arg))
 
 
 def get_type_of_typedef(path_stmt, ctx):
@@ -2389,19 +2404,26 @@ def check_type(stmt, type, literal, ctx):
                 type = ' or '.join(type_list)
                 raise Exception
     except Exception:
-        raise SyntaxError('Literal {} from path is not of type {}'.format(literal, type))
+        raise SyntaxError('Literal {} from path is not of type {}'.\
+                          format(literal, type))
 
 
-def find_grouping_uses(containers_lists, substmts, uses_name, container_list=None):
+def find_grouping_uses(containers_lists, substmts, uses_name,
+                       container_list=None):
     for substmt in substmts:
         try:
             if substmt.keyword in ['list', 'container', 'augment', 'grouping']:
-                containers_lists = find_grouping_uses(containers_lists, substmt.substmts, uses_name, substmt)
+                containers_lists = find_grouping_uses(containers_lists,
+                                                      substmt.substmts,
+                                                      uses_name, substmt)
             elif substmt.keyword == 'uses':
                 if substmt.arg == uses_name:
                     containers_lists.add(container_list)
                 else:
-                    containers_lists = find_grouping_uses(containers_lists, substmt.i_grouping.substmts, uses_name, container_list)
+                    containers_lists = find_grouping_uses(
+                        containers_lists,
+                        substmt.i_grouping.substmts, uses_name,
+                        container_list)
         except:
             pass
     return containers_lists
@@ -2409,27 +2431,33 @@ def find_grouping_uses(containers_lists, substmts, uses_name, container_list=Non
 
 def check_function(tokens, pos, stmt, ctx, checked):
     if tokens[pos][1] in ['name', 'count', 'local-name']:
-        parameters = check_and_return_parameters(0, tokens[pos + 2:], tokens[pos][1])
+        parameters = check_and_return_parameters(0, tokens[pos + 2:],
+                                                 tokens[pos][1])
         for param in parameters:
             if '/' in param:
                 check_basic_path(stmt, xpath.tokens(param.strip()), ctx, 0)
     elif tokens[pos][1] in ['contains']:
-        parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
+        parameters = check_and_return_parameters(2, tokens[pos + 2:],
+                                                 tokens[pos][1])
         for param in parameters:
             if '/' in param:
                 check_basic_path(stmt, xpath.tokens(param.strip()), ctx, 0)
     elif tokens[pos][1] in ['derived-from-or-self', 'derived-from']:
-        parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
+        parameters = check_and_return_parameters(2, tokens[pos + 2:],
+                                                 tokens[pos][1])
         instance_id = parameters[1].replace('\"', '').replace('\'', '').strip()
         check_identity(instance_id, stmt, ctx)
-        path_stmts = check_basic_path(stmt, xpath.tokens(parameters[0].strip()), ctx, 0, True)
+        path_stmts = check_basic_path(stmt, xpath.tokens(parameters[0].strip()),
+                                      ctx, 0, True)
         if path_stmts is None:
             return True
         for path_stmt in path_stmts:
             if get_type_of_typedef(path_stmt, ctx) != 'identityref':
-                raise SyntaxError('Resolved XPath "{}" is not of type identity-ref'.format(stmt.arg))
+                raise SyntaxError('Resolved XPath "{}" is not of type ' +
+                                  'identity-ref'.format(stmt.arg))
     elif tokens[pos][1] == 'enum-value':
-        parameters = check_and_return_parameters(1, tokens[pos + 2:], tokens[pos][1])
+        parameters = check_and_return_parameters(1, tokens[pos + 2:],
+                                                 tokens[pos][1])
         path = ''
         add_before_enum = pos - 1
         separator = '/'
@@ -2445,7 +2473,8 @@ def check_function(tokens, pos, stmt, ctx, checked):
         for enum_stmt in enum_stmts:
             enum = enum_stmt.search_one('type')
             if enum is None:
-                SyntaxError('Resolved XPath statement "{}" is not of type enum'.format(stmt.arg))
+                SyntaxError('Resolved XPath statement "{}" is not of type ' +
+                            'enum'.format(stmt.arg))
             enum = enum.i_type_spec
             if enum.name == 'enumeration':
                 found = False
@@ -2455,18 +2484,23 @@ def check_function(tokens, pos, stmt, ctx, checked):
                         param = int(t[1])
                         break
                     elif t[0] == ']':
-                        raise SyntaxError('End bracket "]" found before enum number value in XPath'.format(stmt.arg))
+                        raise SyntaxError('End bracket "]" found before ' +
+                                          'enum number value in XPath'.\
+                                          format(stmt.arg))
                 if param is not None:
                     for enum_tuple in enum.enums:
                         if enum_tuple[1] == param:
                             found = True
                             break
                     if not found:
-                        raise SyntaxError('Not existing enum in XPath {}'.format(stmt.arg))
+                        raise SyntaxError('Not existing enum in XPath {}'.\
+                                          format(stmt.arg))
             else:
-                SyntaxError('Resolved XPath statement "{}" is not of type enum'.format(stmt.arg))
+                SyntaxError('Resolved XPath statement "{}" is not of ' +
+                            'type enum'.format(stmt.arg))
     elif tokens[pos][1] == 're-match':
-        parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
+        parameters = check_and_return_parameters(2, tokens[pos + 2:],
+                                                 tokens[pos][1])
         path = parameters[0].strip()
         if path[0] in ['"', "'"]:
             return None
@@ -2476,9 +2510,11 @@ def check_function(tokens, pos, stmt, ctx, checked):
         for path_stmt in path_stmts:
             type = get_type_of_typedef(path_stmt, ctx)
             if type != 'string':
-                raise SyntaxError('XPath "{}" must be resolved with a node of type string'.format(stmt.arg))
+                raise SyntaxError('XPath "{}" must be resolved with a ' +
+                                  'node of type string'.format(stmt.arg))
     elif tokens[pos][1] == 'bit-is-set':
-        parameters = check_and_return_parameters(2, tokens[pos + 2:], tokens[pos][1])
+        parameters = check_and_return_parameters(2, tokens[pos + 2:],
+                                                 tokens[pos][1])
         path = ''
         add_before_bit = pos - 1
         separator = '/'
@@ -2496,15 +2532,18 @@ def check_function(tokens, pos, stmt, ctx, checked):
             bits = bits.i_type_spec
             if bits.name == 'bits':
                 found = False
-                param = parameters[1].replace('\"', '').replace('\'', '').strip()
+                param = parameters[1].replace('\"', '').\
+                        replace('\'', '').strip()
                 for bits_tuple in bits.bits:
                     if bits_tuple[0] == param:
                         found = True
                         break
                 if not found:
-                    raise SyntaxError('Not existing bit in XPath "{}"'.format(stmt.arg))
+                    raise SyntaxError('Not existing bit in XPath "{}"'.\
+                                      format(stmt.arg))
             else:
-                raise SyntaxError('Resolved XPath statement "{}" is not of type bit'.format(stmt.arg))
+                raise SyntaxError('Resolved XPath statement "{}" is not ' +
+                                  'of type bit'.format(stmt.arg))
     else:
         return checked
     return True
@@ -2516,32 +2555,40 @@ def check_path(path, stmt, ctx):
         if data_holding_stmt.keyword in ['case', 'choice', 'uses', 'action']:
             data_holding_stmts[x] = data_holding_stmt.parent
             data_holding_stmt = data_holding_stmts[x]
-            data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+            data_holding_stmt = resolve_special_keywords(data_holding_stmt,
+                                                         data_holding_stmts, x)
         elif data_holding_stmt.keyword == 'grouping':
             root_children = data_holding_stmt.i_module.substmts
             if len(root_children) > 0:
-                data_holding_stmts.extend(list(find_grouping_uses(set(), root_children, data_holding_stmt.arg)))
+                data_holding_stmts.extend(
+                    list(find_grouping_uses(set(), root_children,
+                                            data_holding_stmt.arg)))
                 if len(data_holding_stmts) > 1:
                     data_holding_stmts.remove(data_holding_stmt)
                     data_holding_stmt = data_holding_stmts[x]
-                    data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+                    data_holding_stmt = resolve_special_keywords(
+                        data_holding_stmt, data_holding_stmts, x)
         elif data_holding_stmt.keyword == 'augment':
             try:
                 if data_holding_stmt.i_target_node is None:
                     err_add(ctx.errors, data_holding_stmt.pos, 'NODE_NOT_FOUND',
-                            (data_holding_stmt.i_modulename, data_holding_stmt.arg))
+                            (data_holding_stmt.i_modulename,
+                             data_holding_stmt.arg))
                     return None
                 else:
                     data_holding_stmts[x] = data_holding_stmt.i_target_node
                     data_holding_stmt = data_holding_stmts[x]
-                    data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+                    data_holding_stmt = resolve_special_keywords(
+                        data_holding_stmt, data_holding_stmts, x)
             except AttributeError:
-                # TODO investigate why augmentation`s target node is not set at all
+                # TODO investigate why augmentation`s target node
+                # is not set at all
                 return None
         elif data_holding_stmt.keyword == 'deviate':
             data_holding_stmts[x] = data_holding_stmt.parent.i_target_node
             data_holding_stmt = data_holding_stmts[x]
-            data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+            data_holding_stmt = resolve_special_keywords(
+                data_holding_stmt, data_holding_stmts, x)
         return data_holding_stmt
 
     def find_refine_node(refinement, stmt_copy):
@@ -2552,8 +2599,8 @@ def check_path(path, stmt, ctx):
         node = stmt_copy.parent
         # recurse down the path
         for (prefix, identifier) in path:
-            module = prefix_to_module(stmt_copy.i_module, prefix, refinement.pos,
-                                      ctx.errors)
+            module = prefix_to_module(stmt_copy.i_module, prefix,
+                                      refinement.pos, ctx.errors)
             if hasattr(node, 'i_children'):
                 if module is None:
                     return None
@@ -2581,7 +2628,8 @@ def check_path(path, stmt, ctx):
     if parts[0] == '':
         if ':' in parts[1]:
             prefix = parts[1].split(':')[0]
-            data_holding_stmts = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+            data_holding_stmts = prefix_to_module(stmt.i_module,
+                                                  prefix, stmt.pos, ctx.errors)
             if data_holding_stmts is None:
                 return None
         else:
@@ -2624,7 +2672,8 @@ def check_path(path, stmt, ctx):
         resolve_special_once = False
         for x, data_holding_stmt in enumerate(data_holding_stmts):
             if not resolve_special_once:
-                data_holding_stmt = resolve_special_keywords(data_holding_stmt, data_holding_stmts, x)
+                data_holding_stmt = resolve_special_keywords(
+                    data_holding_stmt, data_holding_stmts, x)
                 if data_holding_stmt is None:
                     return None
                 resolve_special_once = True
@@ -2634,7 +2683,8 @@ def check_path(path, stmt, ctx):
                     # TODO implement refine
                     return None
                 if data_holding_stmt.parent is None:
-                    raise AttributeError('Too many ".." in XPath "{}"'.format(stmt.arg))
+                    raise AttributeError('Too many ".." in XPath "{}"'.\
+                                         format(stmt.arg))
                 else:
                     data_holding_stmts[x] = data_holding_stmt.parent
                     continue
@@ -2643,13 +2693,19 @@ def check_path(path, stmt, ctx):
             else:
                 child_found = False
                 if data_holding_stmt.keyword in ['leaf', 'leaf-list']:
-                    raise AttributeError('Searching for "{}" in leaf or leaf-list statement "{}". Leaf or leaf-list statement does not contain any children'
+                    raise AttributeError('Searching for "{}" in leaf or ' +
+                                         'leaf-list statement "{}". ' +
+                                         'Leaf or leaf-list statement does ' +
+                                         'not contain any children'
                                       .format(part, data_holding_stmt.arg))
                 elif data_holding_stmt.keyword == 'refine':
-                    data_holding_stmt = find_refine_node(data_holding_stmt, data_holding_stmt.parent)
+                    data_holding_stmt = find_refine_node(
+                        data_holding_stmt, data_holding_stmt.parent)
                     if data_holding_stmt is None:
-                        err_add(ctx.errors, data_holding_stmt.pos, 'BAD_NODE_IN_REFINE',
-                                (data_holding_stmt.i_modulename, data_holding_stmt.arg))
+                        err_add(ctx.errors, data_holding_stmt.pos,
+                                'BAD_NODE_IN_REFINE',
+                                (data_holding_stmt.i_modulename,
+                                 data_holding_stmt.arg))
                         return None
                 for child_stmt in data_holding_stmt.i_children:
                     child_received = check_choice(child_stmt, part)
@@ -2724,7 +2780,8 @@ def check_identity(instance_id, stmt, ctx):
             if id_ref.arg == name:
                 exist = True
     if not exist:
-        err_add(ctx.errors, stmt.pos, 'IDENTITY_NOT_FOUND', (name, stmt.i_module.arg))
+        err_add(ctx.errors, stmt.pos, 'IDENTITY_NOT_FOUND',
+                (name, stmt.i_module.arg))
 
 
 def check_and_return_parameters(expected_count, tokens, func_name):
@@ -2753,8 +2810,10 @@ def check_and_return_parameters(expected_count, tokens, func_name):
         parameters.append(''.join(parameter[:-1]))
     if expected_count > 0:
         if len(parameters) != expected_count:
-            raise SyntaxError('Expected {} arguments in function "{}", but received {}'.format(expected_count, func_name,
-                                                                                               len(parameters)))
+            raise SyntaxError('Expected {} arguments in function "{}", ' +
+                              'but received {}'.format(expected_count,
+                                                       func_name,
+                                                       len(parameters)))
     return parameters
 
 def v_reference_when(ctx, stmt):

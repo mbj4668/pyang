@@ -1,15 +1,13 @@
-test: test1 test2 clean
+test: test1 test2
 
 test1:
-	-pyang ietf-netconf-notifications@2012-02-06.yang > temp.txt 2>&1
-	diff temp.txt xpath.expect
+	pyang --print-error-code ietf-netconf-notifications@2012-02-06.yang \
+	  2>&1 | diff xpath.expect -
 
 test2:
-	-pyang ietf-snmp-community@2014-12-10.yang > temp.txt 2>&1
-	diff temp.txt xpath2.expect
+	pyang --print-error-code ietf-snmp-community@2014-12-10.yang \
+	  2>&1 | diff xpath2.expect -
 
-clean:
-	rm temp.txt
 
 
 
