@@ -2277,56 +2277,45 @@ def check_basic_path(stmt, toks, ctx, x,
     else:
         paths_left.update(paths_right)
         if sys.version < '3':
-            for value, path_or_literal in paths_left.iteritems():
-                if path_or_literal == 'literal':
-                    value = value.replace("'", '').replace('"', '').strip()
-                    for path_stmt in path_stmts:
-                        type = get_type_of_typedef(path_stmt, ctx)
-                        check_type(path_stmt.search_one('type'), type,
-                                   value, ctx)
-                else:
-                    path_stmts2 = check_path(value, stmt, ctx)
-                    if path_stmts2 is None:
-                        return None
-                    for path_stmt in path_stmts:
-                        for path_stmt2 in path_stmts2:
-                            type = get_type_of_typedef(path_stmt, ctx)
-                            type2 = get_type_of_typedef(path_stmt2, ctx)
-                            if type != type2 and not function_exists:
-                                if not ((type.startswith('uint') and
-                                         type2.startswith('uint')) or
-                                        (type.startswith('int') and
-                                         type2.startswith('int'))):
-                                    raise SyntaxError(
-                                        'Types in path condition "{}" does ' +
-                                        'not equal'.format(stmt.arg))
+            iteritems = paths_left.iteritems()
         else:
-            for value, path_or_literal in paths_left.items():
-                if path_or_literal == 'literal':
-                    value = value.replace("'", '').replace('"', '').strip()
-                    for path_stmt in path_stmts:
-                        type = get_type_of_typedef(path_stmt, ctx)
-                        check_type(path_stmt.search_one('type'), type,
-                                   value, ctx)
-                else:
-                    path_stmts2 = check_path(value, stmt, ctx)
-                    if path_stmts2 is None:
-                        return None
-                    for path_stmt in path_stmts:
-                        for path_stmt2 in path_stmts2:
-                            type = get_type_of_typedef(path_stmt, ctx)
-                            type2 = get_type_of_typedef(path_stmt2, ctx)
-                            if type != type2 and not function_exists:
-                                if not ((type.startswith('uint') and
-                                         type2.startswith('uint')) or
-                                        (type.startswith('int') and
-                                         type2.startswith('int'))):
-                                    raise SyntaxError(
-                                        'Types in path condition "{}" does ' +
-                                        'not equal'.format(stmt.arg))
+            iteritems = paths_left.items()
+        for value, path_or_literal in iteritems:
+            if path_or_literal == 'literal':
+                value = value.replace("'", '').replace('"', '').strip()
+                for path_stmt in path_stmts:
+                    type = get_type_of_typedef(path_stmt, ctx)
+                    check_type(path_stmt.search_one('type'), type,
+                               value, ctx)
+            else:
+                path_stmts2 = check_path(value, stmt, ctx)
+                if path_stmts2 is None:
+                    return None
+                for path_stmt in path_stmts:
+                    for path_stmt2 in path_stmts2:
+                        types = get_type_of_typedef(path_stmt, ctx, True)
+                        types2 = get_type_of_typedef(path_stmt2, ctx, True)
+                        if not isinstance(types, list):
+                            types = [types]
+                        if not isinstance(types2, list):
+                            types2 = [types2]
+                        found = False
+                        for type in types:
+                            for type2 in types2:
+                                if type == type2 or function_exists:
+                                    found = True
+                                elif ((type.startswith('uint') and
+                                       type2.startswith('uint')) or
+                                      (type.startswith('int') and
+                                       type2.startswith('int'))):
+                                    found = True
+                        if not found:
+                            raise SyntaxError(
+                                'Types in path condition "{}" does '.format(stmt.arg) +
+                                'not equal')
 
 
-def get_type_of_typedef(path_stmt, ctx):
+def get_type_of_typedef(path_stmt, ctx, check_union=False):
     if path_stmt.keyword == 'identity':
         return 'identityref'
     elif path_stmt.keyword == 'refine':
@@ -2339,7 +2328,12 @@ def get_type_of_typedef(path_stmt, ctx):
         type_stmt = path_stmt.search_one('type')
         name = type_stmt.i_type_spec.name
         if name == 'leafref':
-            return get_type_of_typedef(type_stmt.i_type_spec.i_target_node, ctx)
+            return get_type_of_typedef(type_stmt.i_type_spec.i_target_node, ctx, check_union)
+        elif name == 'union' and check_union:
+            ret = []
+            for t in type_stmt.search('type'):
+                ret.append(t.arg)
+            return ret
         else:
             return name
     except AttributeError:
@@ -2376,10 +2370,13 @@ def check_type(stmt, type, literal, ctx):
         elif type == 'bits':
             bits = stmt.i_type_spec.bits
             found = False
-            for bit in bits:
-                if bit[0] == literal:
-                    found = True
-                    break
+            if len(literal) == 0:
+                found = True
+            else:
+                for bit in bits:
+                    if bit[0] == literal:
+                        found = True
+                        break
             if not found:
                 raise Exception
         elif type == 'empty':
