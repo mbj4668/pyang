@@ -1,6 +1,6 @@
 """YANG module update check tool
 This plugin checks if an updated version of a module follows
-the rules defined in Section 10 of RFC 6020.
+the rules defined in Section 10 of RFC 6020 and Section 11 of RFC 7950.
 """
 
 import optparse
@@ -26,7 +26,7 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  metavar="OLDMODULE",
                                  dest="check_update_from",
                                  help="Verify that upgrade from OLDMODULE" \
-                                      " follows RFC 6020 rules."),
+                                      " follows RFC 6020 and 7950 rules."),
             optparse.make_option("-P", "--check-update-from-path",
                                  dest="old_path",
                                  default=[],
@@ -197,6 +197,9 @@ def check_update(ctx, oldfilename, newmod):
     for olds in oldmod.search('extension'):
         chk_extension(olds, newmod, ctx)
 
+    for olds in oldmod.search('augment'):
+        chk_augment(olds, newmod, ctx)
+
     chk_i_children(oldmod, newmod, ctx)
 
 def chk_modulename(oldmod, newmod, ctx):
@@ -251,9 +254,11 @@ def chk_identity(olds, newmod, ctx):
             for old in oldbase:
                 identity_found = False
                 for new in newbase:
-                    if old.i_identity.arg.split(':')[-1] == new.i_identity.arg.split(':')[-1]:
+                    if old.i_identity.arg.split(':')[-1] == \
+                       new.i_identity.arg.split(':')[-1]:
                         identity_found = True
-                        if old.i_identity.i_module.i_modulename != new.i_identity.i_module.i_modulename:
+                        if old.i_identity.i_module.i_modulename != \
+                           new.i_identity.i_module.i_modulename:
                             err_def_changed(new, old, ctx)
                 if not identity_found:
                     err_def_removed(old, news, ctx)
@@ -313,6 +318,16 @@ def chk_extension(olds, newmod, ctx):
         elif (oldyin is not None and newyin is not None and
               newyin.arg != oldyin.arg):
             err_def_changed(oldyin, newyin, ctx)
+
+def chk_augment(olds, newmod, ctx):
+    ## this is not quite correct; it should be ok to change the
+    ## prefix, so augmenting /x:a in the old module, but /y:a in the
+    ## new module, if x and y are prefixes to the same module, should
+    ## be ok.
+    news = chk_stmt(olds, newmod, ctx)
+    if news is None:
+        return
+    chk_i_children(olds, news, ctx)
 
 def chk_stmt(olds, newp, ctx):
     news = newp.search_one(olds.keyword, arg = olds.arg)
