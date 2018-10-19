@@ -38,9 +38,9 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  dest="old_deviation",
                                  default=[],
                                  action="append",
-                                 help="Deviation module of the OLDMODULE, or" \
-                                      " module augmenting the OLDMODULE. This" \
-                                      " option can be given multiple times."),
+                                 help="Old deviation module of the OLDMODULE." \
+                                      " This option can be given multiple" \
+                                      " times."),
             ]
         optparser.add_options(optlist)
 
