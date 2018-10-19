@@ -33,9 +33,9 @@ pyang \- validate and convert YANG modules to various formats
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR \-h | \-\-help 
+\fBpyang\fR \-h | \-\-help
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR \-v | \-\-version 
+\fBpyang\fR \-v | \-\-version
 .PP
 One or more
 \fIfile\fR
@@ -438,6 +438,25 @@ to control this path\&.
 .RS 4
 \fIoldpath\fR
 is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
+.RE
+.PP
+\fB\-D\fR \fB\-\-check\-update\-from\-deviation\-module\fR \fIolddeviation\fR
+.RS 4
+\fIolddeviation\fR
+is an old deviation module of the old module\&. This option may be given multiple times\&.
+.sp
+For example, to check updates of a module with some deviations applied, do:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-check\-update\-from\-deviation\-module oldmod\-devs\&.yang \-\-check\-update\-from oldmod\&.yang
+  \-\-deviation\-module newmod\-devs\&.yang newmod\&.yang
+.fi
+.if n \{\
+.RE
+.\}
 .RE
 .PP
 \fIfile\&.\&.\&.\fR
@@ -1049,7 +1068,7 @@ leaf my\-port {
     path "deref(\&.\&./my\-ip)/\&.\&./port";
   }
 }
-      
+
 .fi
 .if n \{\
 .RE
@@ -1090,7 +1109,7 @@ The following example converts the ietf\-netconf\-monitoring module into a UML d
         ietf\-netconf\-monitoring\&.uml
         $ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
         $ open img/ietf\-netconf\-monitoring\&.png
-      
+
 .fi
 .if n \{\
 .RE

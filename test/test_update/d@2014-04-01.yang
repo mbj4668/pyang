@@ -1,0 +1,17 @@
+module d {
+  namespace urn:d;
+  prefix d;
+
+  import b {
+    prefix b;
+    revision-date 2014-04-01;
+  }
+
+  revision 2014-04-01;
+
+  deviation /b:b/b:q {
+    deviate add {
+      default 'smarty';
+    }
+  }
+}

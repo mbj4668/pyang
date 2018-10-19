@@ -1,0 +1,16 @@
+module c {
+  namespace urn:c;
+  prefix c;
+
+  import b {
+    prefix b;
+  }
+
+  revision 2014-03-01;
+
+  deviation /b:b/b:q {
+    deviate add {
+      default 'dummy';
+    }
+  }
+}
