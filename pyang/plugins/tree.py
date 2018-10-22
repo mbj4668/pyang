@@ -48,6 +48,10 @@ class TreePlugin(plugin.PyangPlugin):
                                  dest="tree_no_expand_uses",
                                  action="store_true",
                                  help="Do not expand uses of groupings"),
+            optparse.make_option("--tree-module-name-prefix",
+                                 dest="module_name_prefix",
+                                 action="store_true",
+                                 help="Prefix with module names instead of prefixes"),
             ]
         if plugin.is_plugin_registered('restconf'):
             optlist.append(
@@ -146,7 +150,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 print_header()
                 printed_header = True
             print_children(chs, module, fd, '', chpath, 'data', depth, llen,
-                           ctx.opts.tree_no_expand_uses)
+                           ctx.opts.tree_no_expand_uses, 
+                           use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         mods = [module]
         for i in module.search('include'):
@@ -175,7 +180,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         mode = 'notification'
                     print_children(augment.i_children, m, fd,
                                    '  ', path, mode, depth, llen,
-                                   ctx.opts.tree_no_expand_uses)
+                                   ctx.opts.tree_no_expand_uses, 
+                                   use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         rpcs = [ch for ch in module.i_children
                 if ch.keyword == 'rpc']
@@ -192,7 +198,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 printed_header = True
             fd.write("\n  rpcs:\n")
             print_children(rpcs, module, fd, '  ', rpath, 'rpc', depth, llen,
-                           ctx.opts.tree_no_expand_uses)
+                           ctx.opts.tree_no_expand_uses, 
+                           use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         notifs = [ch for ch in module.i_children
                   if ch.keyword == 'notification']
@@ -210,7 +217,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             fd.write("\n  notifications:\n")
             print_children(notifs, module, fd, '  ', npath,
                            'notification', depth, llen,
-                           ctx.opts.tree_no_expand_uses)
+                           ctx.opts.tree_no_expand_uses,
+                           use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
             if not printed_header:
@@ -225,7 +233,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                 g = module.i_groupings[gname]
                 print_children(g.i_children, module, fd,
                                '  ', path, 'grouping', depth, llen,
-                               ctx.opts.tree_no_expand_uses)
+                               ctx.opts.tree_no_expand_uses,
+                               use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
@@ -241,7 +250,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                     fd.write("  yang-data %s:\n" % yd.arg)
                     print_children(yd.i_children, module, fd, '  ', path,
                                    'yang-data', depth, llen,
-                                   ctx.opts.tree_no_expand_uses)
+                                   ctx.opts.tree_no_expand_uses,
+                                   use_module_name_for_prefix=ctx.opts.module_name_prefix)
 
 def unexpand_uses(i_children):
     res = []
@@ -291,7 +301,7 @@ def print_path(pre, post, path, fd, llen):
         print_comps(pre, p, True)
 
 def print_children(i_children, module, fd, prefix, path, mode, depth,
-                   llen, no_expand_uses, width=0):
+                   llen, no_expand_uses, width=0, use_module_name_for_prefix=False):
     if depth == 0:
         if i_children: fd.write(prefix + '     ...\n')
         return
@@ -332,10 +342,11 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
             elif ch.keyword == 'output':
                 mode = 'output'
             print_node(ch, module, fd, newprefix, path, mode, depth, llen,
-                       no_expand_uses, width)
+                       no_expand_uses, width, 
+                       use_module_name_for_prefix=use_module_name_for_prefix)
 
 def print_node(s, module, fd, prefix, path, mode, depth, llen,
-               no_expand_uses, width):
+               no_expand_uses, width, use_module_name_for_prefix=False):
     line = "%s%s--" % (prefix[0:-1], get_status_str(s))
 
     brcol = len(line) + 4
@@ -343,7 +354,10 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
     if s.i_module.i_modulename == module.i_modulename:
         name = s.arg
     else:
-        name = s.i_module.i_prefix + ':' + s.arg
+        if use_module_name_for_prefix:
+            name = s.i_module.i_modulename + ':' + s.arg
+        else:
+            name = s.i_module.i_prefix + ':' + s.arg
     flags = get_flags_str(s, mode)
     if s.keyword == 'list':
         name += '*'
@@ -370,7 +384,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             m = s.search_one('mandatory')
             if m is None or m.arg == 'false':
                 name += '?'
-        t = get_typename(s)
+        t = get_typename(s, use_module_name_for_prefix)
         if t == '':
             line += "%s %s" % (flags, name)
         elif (llen is not None and
@@ -423,10 +437,12 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             path = path[1:]
         if s.keyword in ['choice', 'case']:
             print_children(chs, module, fd, prefix, path, mode, depth,
-                           llen, no_expand_uses, width - 3)
+                           llen, no_expand_uses, width - 3, 
+                           use_module_name_for_prefix=use_module_name_for_prefix)
         else:
             print_children(chs, module, fd, prefix, path, mode, depth, llen,
-                           no_expand_uses)
+                           no_expand_uses, 
+                           use_module_name_for_prefix=use_module_name_for_prefix)
 
 def get_status_str(s):
     status = s.search_one('status')
@@ -461,7 +477,7 @@ def get_leafref_path(s):
     else:
         return None
 
-def get_typename(s):
+def get_typename(s, use_module_name_for_prefix=False):
     t = s.search_one('type')
     if t is not None:
         if t.arg == 'leafref':
@@ -480,13 +496,57 @@ def get_typename(s):
                     if prefix == curprefix:
                         target.append(name)
                     else:
-                        target.append(prefix + ':' + name)
+                        if use_module_name_for_prefix:
+                            if prefix in s.i_module.i_prefixes:
+                                # Try to map the prefix to the module name
+                                (module_name, _) = s.i_module.i_prefixes[prefix]
+                            else:
+                                # If we can't then fall back to the prefix
+                                module_name = prefix
+                            target.append(module_name + ':' + name)
+                        else:
+                            target.append(prefix + ':' + name)
                         curprefix = prefix
                 return "-> %s" % "/".join(target)
             else:
-                return t.arg
+                # This should never be reached. Path MUST be present for 
+                # leafref type. See RFC6020 section 9.9.2
+                # (https://tools.ietf.org/html/rfc6020#section-9.9.2)
+                if use_module_name_for_prefix:
+                    if t.arg.find(":") == -1:
+                        # No prefix specified. Leave as is
+                        return t.arg
+                    else:
+                        # Prefix found. Replace it with the module name
+                        [prefix, name] = t.arg.split(':', 1)
+                        #return s.i_module.i_modulename + ':' + name
+                        if prefix in s.i_module.i_prefixes:
+                            # Try to map the prefix to the module name
+                            (module_name, _) = s.i_module.i_prefixes[prefix]
+                        else:
+                            # If we can't then fall back to the prefix
+                            module_name = prefix
+                        return module_name + ':' + name
+                else:
+                    return t.arg
         else:
-            return t.arg
+            if use_module_name_for_prefix:
+                if t.arg.find(":") == -1:
+                    # No prefix specified. Leave as is
+                    return t.arg
+                else:
+                    # Prefix found. Replace it with the module name
+                    [prefix, name] = t.arg.split(':', 1)
+                    #return s.i_module.i_modulename + ':' + name
+                    if prefix in s.i_module.i_prefixes:
+                        # Try to map the prefix to the module name
+                        (module_name, _) = s.i_module.i_prefixes[prefix]
+                    else:
+                        # If we can't then fall back to the prefix
+                        module_name = prefix
+                    return module_name + ':' + name
+            else:
+                return t.arg
     elif s.keyword == 'anydata':
         return '<anydata>'
     elif s.keyword == 'anyxml':

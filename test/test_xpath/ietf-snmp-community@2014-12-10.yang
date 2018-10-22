@@ -217,6 +217,7 @@ submodule ietf-snmp-community {
   }
 
   augment /snmp:snmp/snmp:target {
+    when "snmp:v1 or snmp:v2c";
     leaf mms {
       type union {
         type enumeration {

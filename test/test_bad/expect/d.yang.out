@@ -12,6 +12,7 @@ d.yang:73: error: DEFAULT_AND_MANDATORY
 d.yang:79: error: UNEXPECTED_KEYWORD
 e.yang:14: warning: UNUSED_TYPEDEF
 e.yang:17: warning: UNUSED_GROUPING
+e.yang:28: warning: XPATH_MISSING_NODE
 e.yang:64: error: INVALID_CONFIG
 e.yang:69: error: BAD_NODE_IN_AUGMENT
 e.yang:76: error: BAD_NODE_IN_AUGMENT

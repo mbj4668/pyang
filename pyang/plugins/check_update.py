@@ -1,6 +1,6 @@
 """YANG module update check tool
 This plugin checks if an updated version of a module follows
-the rules defined in Section 10 of RFC 6020.
+the rules defined in Section 10 of RFC 6020 and Section 11 of RFC 7950.
 """
 
 import optparse
@@ -26,7 +26,7 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  metavar="OLDMODULE",
                                  dest="check_update_from",
                                  help="Verify that upgrade from OLDMODULE" \
-                                      " follows RFC 6020 rules."),
+                                      " follows RFC 6020 and 7950 rules."),
             optparse.make_option("-P", "--check-update-from-path",
                                  dest="old_path",
                                  default=[],
@@ -207,6 +207,9 @@ def check_update(ctx, oldfilename, newmod):
     for olds in oldmod.search('extension'):
         chk_extension(olds, newmod, ctx)
 
+    for olds in oldmod.search('augment'):
+        chk_augment(olds, newmod, ctx)
+
     chk_i_children(oldmod, newmod, ctx)
 
 def chk_modulename(oldmod, newmod, ctx):
@@ -243,18 +246,43 @@ def chk_identity(olds, newmod, ctx):
     if news is None:
         return
     # make sure the base isn't changed (other than syntactically)
-    oldbase = olds.search_one('base')
-    newbase = news.search_one('base')
-    if oldbase is None and newbase is not None:
-        err_def_added(newbase, ctx)
-    elif newbase is None and oldbase is not None:
-        err_def_removed(oldbase, news, ctx)
-    elif oldbase is None and newbase is None:
-        pass
-    elif ((oldbase.i_identity.i_module.i_modulename !=
-           newbase.i_identity.i_module.i_modulename)
-          or (oldbase.i_identity.arg != newbase.i_identity.arg)):
-        err_def_changed(oldbase, newbase, ctx)
+    oldbase = olds.search('base')
+    newbase = news.search('base')
+    if newmod.i_version == '1.1':
+        if len(oldbase) == 0 and len(newbase) != 0:
+            pass
+        elif len(newbase) < len(oldbase):
+            new_args = []
+            for new in newbase:
+                new_args.append(new.arg.split(':')[-1])
+            for old in oldbase:
+                if old.arg.split(':')[-1] not in new_args:
+                    err_def_removed(old, news, ctx)
+        elif len(oldbase) == 0 and len(newbase) == 0:
+            pass
+        else:
+            for old in oldbase:
+                identity_found = False
+                for new in newbase:
+                    if old.i_identity.arg.split(':')[-1] == \
+                       new.i_identity.arg.split(':')[-1]:
+                        identity_found = True
+                        if old.i_identity.i_module.i_modulename != \
+                           new.i_identity.i_module.i_modulename:
+                            err_def_changed(new, old, ctx)
+                if not identity_found:
+                    err_def_removed(old, news, ctx)
+    else:
+        if oldbase is None and newbase is not None:
+            err_def_added(newbase, ctx)
+        elif newbase is None and oldbase is not None:
+            err_def_removed(oldbase, news, ctx)
+        elif oldbase is None and newbase is None:
+            pass
+        elif ((oldbase.i_identity.i_module.i_modulename !=
+               newbase.i_identity.i_module.i_modulename)
+              or (oldbase.i_identity.arg != newbase.i_identity.arg)):
+            err_def_changed(oldbase, newbase, ctx)
 
 def chk_typedef(olds, newmod, ctx):
     news = chk_stmt(olds, newmod, ctx)
@@ -300,6 +328,16 @@ def chk_extension(olds, newmod, ctx):
         elif (oldyin is not None and newyin is not None and
               newyin.arg != oldyin.arg):
             err_def_changed(oldyin, newyin, ctx)
+
+def chk_augment(olds, newmod, ctx):
+    ## this is not quite correct; it should be ok to change the
+    ## prefix, so augmenting /x:a in the old module, but /y:a in the
+    ## new module, if x and y are prefixes to the same module, should
+    ## be ok.
+    news = chk_stmt(olds, newmod, ctx)
+    if news is None:
+        return
+    chk_i_children(olds, news, ctx)
 
 def chk_stmt(olds, newp, ctx):
     news = newp.search_one(olds.keyword, arg = olds.arg)
@@ -369,15 +407,21 @@ def chk_status(old, new, ctx):
                 (newstatus.arg, oldstatus.arg))
 
 def chk_if_feature(old, new, ctx):
+    # make sure no if-features are removed if node is mandatory
+    for s in old.search('if-feature'):
+        if new.search_one('if-feature', arg=s.arg) is None:
+            if statements.is_mandatory_node(new):
+                err_def_removed(s, new, ctx)
+
     # make sure no if-features are added
     for s in new.search('if-feature'):
-        if old.search_one('if-feature', arg = s.arg) is None:
+        if old.search_one('if-feature', arg=s.arg) is None:
             err_def_added(s, ctx)
 
 def chk_config(old, new, ctx):
     if old.i_config == False and new.i_config == True:
         if statements.is_mandatory_node(new):
-            err_add(ctx.errors, newch.pos, 'CHK_MANDATORY_CONFIG', new.arg)
+            err_add(ctx.errors, new.pos, 'CHK_MANDATORY_CONFIG', new.arg)
     elif old.i_config == True and new.i_config == False:
         err_add(ctx.errors, new.pos, 'CHK_BAD_CONFIG', new.arg)
 
@@ -409,7 +453,11 @@ def chk_when(old, new, ctx):
         if neww is not None:
             newwhen.remove(neww)
             oldwhen.remove(oldw)
-    if len(oldwhen) == 0:
+    if new.i_module.i_version == '1.1':
+        if len(newwhen) == 0:
+            # this is good; maybe some old whens were removed
+            return
+    elif len(oldwhen) == 0:
         for neww in newwhen:
             err_add(ctx.errors, neww.pos, 'CHK_NEW_WHEN', ())
     else:
@@ -467,7 +515,7 @@ def chk_min_max(old, new, ctx):
     if oldmax is None:
         pass
     elif newmax is None:
-        err_def_removed(oldmax, new, ctx)
+        pass
     elif int(newmax.arg) < int(oldmax.arg):
         err_def_changed(oldmax, newmax, ctx)
 
@@ -654,16 +702,11 @@ def chk_identityref(old, new, oldts, newts, ctx):
     # verify that the bases are the same
     extra = [n for n in newts.idbases]
     for oidbase in oldts.idbases:
-        found = False
         for nidbase in newts.idbases:
             if (nidbase.i_module.i_modulename ==
-                oidbase.i_module.i_modulename and
-                nidbase.arg == oidbase.arg):
-                found = True
+                    oidbase.i_module.i_modulename and
+                    nidbase.arg.split(':')[-1] == oidbase.arg.split(':')[-1]):
                 extra.remove(nidbase)
-        if not found:
-            err_add(ctx.errors, new.pos, 'CHK_DEF_REMOVED',
-                    ('base', oidbase.arg, old.pos))
     for n in extra:
         err_add(ctx.errors, n.pos, 'CHK_DEF_ADDED',
                 ('base', n.arg))

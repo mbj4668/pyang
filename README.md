@@ -94,6 +94,15 @@ YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling languag
 
 pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
 
+## Installation ##
+
+As of version 6.0, pyang can be installed from
+[PyPI](https://pypi.python.org/pypi):
+
+```
+# pip install pyang
+```
+
 ### Compatibility ###
 
 pyang is compatible with the following IETF RFCs:

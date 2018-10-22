@@ -700,6 +700,26 @@
 
       <varlistentry>
         <term>
+          <option>-D</option>
+          <option>--check-update-from-deviation-module</option>
+          <replaceable>olddeviation</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <emphasis>olddeviation</emphasis> is an old deviation module
+            of the old module <emphasis>oldfile</emphasis>. This option
+            may be given multiple times. For example, to check updates of
+            a module with some deviations applied, do:
+          </para>
+          <informalexample>
+            <screen>$ pyang --check-update-from-deviation-module oldmod-devs.yang --check-update-from oldmod.yang \
+  --deviation-module newmod-devs.yang newmod.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <replaceable>file...</replaceable>
         </term>
         <listitem>
@@ -1343,6 +1363,18 @@ $ osascript foo.scpt</screen>
             Try to break lines so they are no longer than
             <replaceable>maxlen</replaceable>.  This is a best effort
             algorithm.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-module-name-prefix</option>
+          <replaceable>maxlen</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Use the module name (instead of the prefix) to prefix
+            parameters and types.
           </para>
         </listitem>
       </varlistentry>

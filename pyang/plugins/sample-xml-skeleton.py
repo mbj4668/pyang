@@ -163,7 +163,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             nel, newm, path = self.sample_element(node, elem, module, path)
             if path is None:
                 return
-            nel.text = str(node.i_default)
+            nel.text = str(node.i_default_str)
 
     def anyxml(self, node, elem, module, path):
         """Create a sample anyxml element."""

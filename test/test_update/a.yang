@@ -61,14 +61,16 @@ module a {
   container x {
     presence foo;
     leaf bar {
+      mandatory true;
       if-feature foo;
       type string;
-      must "foo and baz";
+      must "../arne/foo and ../baz";
     }
     uses gg {
       if-feature foo;
     }
     leaf-list baz {
+      when "../bar = 'bar'";
       type string;
       max-elements 2;
     }

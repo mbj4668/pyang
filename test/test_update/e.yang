@@ -1,14 +1,15 @@
-module c {
-  namespace urn:c;
-  prefix c;
+module e {
+  namespace urn:e;
+  prefix e;
 
-  import b {
-    prefix b;
+  import c {
+    prefix c;
+    revision-date 2014-03-01;
   }
 
   revision 2014-03-01;
 
-  deviation /b:b/b:q {
+  deviation /c:c/c:q {
     deviate add {
       default 'dummy';
     }

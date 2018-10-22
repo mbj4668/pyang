@@ -465,6 +465,10 @@ error_codes = \
       (4,
        'line length %s exceeds %s characters'),
 
+    'XPATH_MISSING_NODE':
+      (4,
+       '%s'),
+
     'STRICT_XPATH_FUNCTION':
       (2,
        'XPath function "%s" is not allowed for strict YANG compliance'),
