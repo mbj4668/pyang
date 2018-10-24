@@ -236,33 +236,22 @@ def chk_identity(olds, newmod, ctx):
     if news is None:
         return
     # make sure the base isn't changed (other than syntactically)
-    oldbase = olds.search('base')
-    newbase = news.search('base')
+    oldbases = olds.search('base')
+    newbases = news.search('base')
     if newmod.i_version == '1.1':
-        if len(oldbase) == 0 and len(newbase) != 0:
-            pass
-        elif len(newbase) < len(oldbase):
-            new_args = []
-            for new in newbase:
-                new_args.append(new.arg.split(':')[-1])
-            for old in oldbase:
-                if old.arg.split(':')[-1] not in new_args:
-                    err_def_removed(old, news, ctx)
-        elif len(oldbase) == 0 and len(newbase) == 0:
-            pass
-        else:
-            for old in oldbase:
-                identity_found = False
-                for new in newbase:
-                    if old.i_identity.arg.split(':')[-1] == \
-                       new.i_identity.arg.split(':')[-1]:
-                        identity_found = True
-                        if old.i_identity.i_module.i_modulename != \
-                           new.i_identity.i_module.i_modulename:
-                            err_def_changed(new, old, ctx)
-                if not identity_found:
-                    err_def_removed(old, news, ctx)
+        old_ids = [oldbase.i_identity.arg for oldbase in oldbases]
+        new_ids = [newbase.i_identity.arg for newbase in newbases]
+        for old_id in set(old_ids) - set(new_ids):
+            err_def_removed(oldbases[old_ids.index(old_id)], news, ctx)
+        for old_id in set(old_ids) & set(new_ids):
+            oldbase = oldbases[old_ids.index(old_id)]
+            newbase = newbases[new_ids.index(old_id)]
+            if oldbase.i_identity.i_module.i_modulename != \
+               newbase.i_identity.i_module.i_modulename:
+                err_def_changed(oldbase, newbase, ctx)
     else:
+        oldbase = next(iter(oldbases), None)
+        newbase = next(iter(newbases), None)
         if oldbase is None and newbase is not None:
             err_def_added(newbase, ctx)
         elif newbase is None and oldbase is not None:
