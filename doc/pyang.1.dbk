@@ -700,6 +700,26 @@
 
       <varlistentry>
         <term>
+          <option>-D</option>
+          <option>--check-update-from-deviation-module</option>
+          <replaceable>olddeviation</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <emphasis>olddeviation</emphasis> is an old deviation module
+            of the old module <emphasis>oldfile</emphasis>. This option
+            may be given multiple times. For example, to check updates of
+            a module with some deviations applied, do:
+          </para>
+          <informalexample>
+            <screen>$ pyang --check-update-from-deviation-module oldmod-devs.yang --check-update-from oldmod.yang \
+  --deviation-module newmod-devs.yang newmod.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <replaceable>file...</replaceable>
         </term>
         <listitem>
@@ -1353,7 +1373,7 @@ $ osascript foo.scpt</screen>
         </term>
         <listitem>
           <para>
-            Use the module name (instead of the prefix) to prefix 
+            Use the module name (instead of the prefix) to prefix
             parameters and types.
           </para>
         </listitem>

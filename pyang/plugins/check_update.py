@@ -34,6 +34,13 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  help=os.pathsep + "-separated search path" \
                                      " for yin and yang modules used by" \
                                      " OLDMODULE"),
+            optparse.make_option("-D", "--check-update-from-deviation-module",
+                                 dest="old_deviation",
+                                 default=[],
+                                 action="append",
+                                 help="Old deviation module of the OLDMODULE." \
+                                      " This option can be given multiple" \
+                                      " times."),
             ]
         optparser.add_options(optlist)
 
@@ -145,14 +152,17 @@ def check_update(ctx, oldfilename, newmod):
     for p in plugin.plugins:
         p.setup_ctx(oldctx)
 
-    oldfilename = ctx.opts.check_update_from
-    try:
-        fd = io.open(oldfilename, "r", encoding="utf-8")
-        text = fd.read()
-    except IOError as ex:
-        sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
-        sys.exit(1)
-    oldmod = oldctx.add_module(oldfilename, text)
+    for oldfilename in [ctx.opts.check_update_from] + ctx.opts.old_deviation:
+        try:
+            fd = io.open(oldfilename, "r", encoding="utf-8")
+            text = fd.read()
+        except IOError as ex:
+            sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
+            sys.exit(1)
+        if oldfilename in ctx.opts.old_deviation:
+            oldctx.add_module(oldfilename, text)
+        else:
+            oldmod = oldctx.add_module(oldfilename, text)
     ctx.errors.extend(oldctx.errors)
 
     if oldmod is None:

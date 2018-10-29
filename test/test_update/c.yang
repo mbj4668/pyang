@@ -14,4 +14,9 @@ module c {
     }
   }
 
+  container c {
+    leaf q {
+      type string;
+    }
+  }
 }
