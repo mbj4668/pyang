@@ -1,6 +1,6 @@
 PYANG = pyang --print-error-code --check-update-from
 
-MODULES = a c
+MODULES = a c d
 
 test:
 	@for m in $(MODULES); do					\
