@@ -1,6 +1,6 @@
-module d {
-  namespace "urn:d";
-  prefix d;
+module f {
+  namespace "urn:f";
+  prefix f;
 
   revision 2014-04-01;
 
