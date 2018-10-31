@@ -1152,8 +1152,16 @@ class HybridDSDLSchema(object):
 
     def unique_stmt(self, stmt, p_elem, pset):
         def addpref(nid):
-            return "/".join([self.add_prefix(c, stmt)
-                             for c in nid.split("/")])
+            xpath_nodes = []
+            child = stmt.parent
+            for node in nid.split("/"):
+                child = statements.search_child(child.substmts,
+                                                child.i_module.i_modulename,
+                                                node)
+                if (child is not None and
+                    child.keyword not in ["choice", "case"]):
+                    xpath_nodes.append(self.add_prefix(node, stmt))
+            return "/".join(xpath_nodes)
         uel = SchemaNode("nma:unique")
         p_elem.annot(uel)
         uel.attr["tag"] = " ".join(
