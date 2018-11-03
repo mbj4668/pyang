@@ -21,8 +21,9 @@ def init(plugindirs=[]):
         plugin_init = ep.load()
         plugin_init()
 
-    # search for plugins in std directory
+    # search for plugins in std directories (plugins directory first)
     basedir = os.path.split(sys.modules['pyang'].__file__)[0]
+    plugindirs.insert(0, basedir + "/transforms")
     plugindirs.insert(0, basedir + "/plugins")
 
     # add paths from env
@@ -91,6 +92,17 @@ class PyangPlugin(object):
         name.
         """
         return
+
+    def add_transform(self, xforms):
+        """Add a transform to the pyang program.
+
+        `xforms` is a dict which maps the transform name string to a plugin
+        instance.
+
+        Override this method and update `xforms` with the transform name.
+        """
+        return
+
     def add_opts(self, optparser):
         """Add command line options to the pyang program.
 
@@ -116,6 +128,9 @@ class PyangPlugin(object):
         repository is accessed.
         """
         return
+
+    # setup_xform is preferred to setup_fmt for transform plugins
+    setup_xform = setup_fmt
 
     def pre_load_modules(self, ctx):
         """Called for the selected plugin, before any modules are loaded"""

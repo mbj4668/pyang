@@ -31,8 +31,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     plugin.init(plugindirs)
 
     fmts = {}
+    xforms = {}
     for p in plugin.plugins:
         p.add_output_format(fmts)
+        p.add_transform(xforms)
 
     optlist = [
         # use capitalized versions of std options help and version
@@ -92,6 +94,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--max-identifier-length",
                              type="int",
                              dest="max_identifier_len"),
+        optparse.make_option("-t", "--transform", dest="transforms",
+                             default=[], action="append",
+                             help="Apply transform TRANSFORM.  Supported " \
+                                  "transforms are: " + ', '.join(list(
+                                     xforms.keys()))),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
@@ -246,6 +253,17 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
+
+    xform_objs = []
+    for transform in o.transforms:
+        if transform not in xforms:
+            sys.stderr.write("unsupported transform '%s'\n" % transform)
+        else:
+            xform_obj = xforms[transform]
+            xform_obj.setup_xform(ctx)
+            xform_objs.append(xform_obj)
+    if len(xform_objs) != len(o.transforms):
+        sys.exit(1)
 
     if o.format != None:
         if o.format not in fmts:
