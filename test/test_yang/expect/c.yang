@@ -12,6 +12,10 @@ module a {
 
   container x {
     container y;
-    container bar;
+    container bar {
+      leaf z {
+        type string;
+      }
+    }
   }
 }

@@ -1,0 +1,21 @@
+module a {
+  prefix a;
+  namespace "urn:a";
+  import ietf-interfaces {
+    prefix if;
+  }
+  typedef foo {
+    type string;
+  }
+  container x {
+    container y;
+    container bar {
+      leaf z {
+        type string;
+      }
+    }
+  }
+  typedef bar {
+    type int32;
+  }
+}

@@ -1,7 +1,6 @@
 """YANG output plugin"""
 
 import optparse
-import re
 
 from .. import plugin
 from .. import util
@@ -16,6 +15,7 @@ class YANGPlugin(plugin.PyangPlugin):
         self.handle_comments = True
 
     def add_opts(self, optparser):
+        newline_policies = ('pyang', 'verbose')
         optlist = [
             optparse.make_option("--yang-canonical",
                                  dest="yang_canonical",
@@ -24,9 +24,20 @@ class YANGPlugin(plugin.PyangPlugin):
             optparse.make_option("--yang-remove-unused-imports",
                                  dest="yang_remove_unused_imports",
                                  action="store_true"),
+            optparse.make_option("--yang-newline-policy",
+                                 dest="yang_newline_policy",
+                                 choices=newline_policies,
+                                 default="pyang",
+                                 help="Newline policy POLICY.  "
+                                      "Default 'pyang'. Supported "
+                                      "policies are: " + ', '.join(
+                                         list(newline_policies))),
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
+
+    def setup_fmt(self, ctx):
+        ctx.implicit_errors = False
 
     def emit(self, ctx, modules, fd):
         module = modules[0]
@@ -35,7 +46,14 @@ class YANGPlugin(plugin.PyangPlugin):
 def emit_yang(ctx, module, fd):
     emit_stmt(ctx, module, fd, 0, None, '', '  ')
 
-_force_newline_arg = ('description', 'contact', 'organization')
+
+_force_newline_arg_base = ('description', 'contact', 'organization',)
+_force_newline_arg_dict = {'pyang': _force_newline_arg_base,
+                           'verbose': _force_newline_arg_base + (
+                               'reference', 'error-message',)}
+def _force_newline_arg(ctx):
+    return _force_newline_arg_dict[ctx.opts.yang_newline_policy]
+
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'non-negative-integer', 'max-value',
                        'date', 'ordered-by-arg',
@@ -74,7 +92,18 @@ def get_kwd_class(keyword):
         except KeyError:
             return 'body'
 
-_keyword_with_trailing_newline = (
+_keyword_with_trailing_newline_toplevel_base = tuple()
+_keyword_with_trailing_newline_toplevel_dict = {
+    'pyang': _keyword_with_trailing_newline_toplevel_base,
+    'verbose': _keyword_with_trailing_newline_toplevel_base + (
+        'description',
+    )
+}
+def _keyword_with_trailing_newline_toplevel(ctx):
+    return _keyword_with_trailing_newline_toplevel_dict[
+        ctx.opts.yang_newline_policy]
+
+_keyword_with_trailing_newline_base = (
     'typedef',
     'grouping',
     'identity',
@@ -83,12 +112,36 @@ _keyword_with_trailing_newline = (
     'rpc',
     'notification',
     )
+_keyword_with_trailing_newline_dict = {
+    'pyang': _keyword_with_trailing_newline_base,
+    'verbose': _keyword_with_trailing_newline_base + (
+        'organization',
+        'contact',
+        'container',
+        'augment',
+        'list',
+        'leaf',
+        'leaf-list',
+        'choice',
+        'case',
+        'uses',)
+}
+def _keyword_with_trailing_newline(ctx):
+    return _keyword_with_trailing_newline_dict[ctx.opts.yang_newline_policy]
 
-_keyword_prefer_squote_arg = (
+_keyword_prefer_squote_arg_base = (
     'must',
     'when',
     'pattern',
     )
+_keyword_prefer_squote_arg_dict = {
+    'pyang': _keyword_prefer_squote_arg_base,
+    'verbose': _keyword_prefer_squote_arg_base + (
+        'augment',
+        'path',)
+}
+def _keyword_prefer_squote_arg(ctx):
+    return _keyword_prefer_squote_arg_dict[ctx.opts.yang_newline_policy]
 
 _need_quote = (
     " ", "}", "{", ";", '"', "'",
@@ -110,7 +163,9 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
     kwd_class = get_kwd_class(stmt.keyword)
     if ((level == 1 and
          kwd_class != prev_kwd_class and kwd_class != 'extension') or
-        stmt.keyword in _keyword_with_trailing_newline):
+        (level == 1 and stmt.keyword in
+         _keyword_with_trailing_newline_toplevel(ctx)) or
+        stmt.keyword in _keyword_with_trailing_newline(ctx)):
         fd.write('\n')
 
     if stmt.keyword == '_comment':
@@ -118,10 +173,13 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
         return
 
     fd.write(indent + keywordstr)
-    if stmt.arg != None:
-        if (stmt.keyword in _keyword_prefer_squote_arg and
-            stmt.arg.find("'") == -1):
-            fd.write(" '" + stmt.arg + "'")
+    if stmt.arg is not None:
+        forcenlarg = _force_newline_arg(ctx)
+        if '\n' in stmt.arg:
+            emit_arg(stmt, fd, indent, indentstep, forcenlarg)
+        elif stmt.keyword in _keyword_prefer_squote_arg(ctx):
+            emit_arg_squote(stmt.keyword, stmt.arg, fd, indent,
+                            ctx.max_line_len)
         elif stmt.keyword in grammar.stmt_map:
             (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
             if arg_type in _non_quote_arg_type:
@@ -130,9 +188,9 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
                   not need_quote(stmt.arg)):
                 fd.write(' ' + stmt.arg)
             else:
-                emit_arg(stmt, fd, indent, indentstep)
+                emit_arg(stmt, fd, indent, indentstep, forcenlarg)
         else:
-            emit_arg(stmt, fd, indent, indentstep)
+            emit_arg(stmt, fd, indent, indentstep, forcenlarg)
     if len(stmt.substmts) == 0:
         fd.write(';\n')
     else:
@@ -149,7 +207,47 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
             kwd_class = get_kwd_class(s.keyword)
         fd.write(indent + '}\n')
 
-def emit_arg(stmt, fd, indent, indentstep):
+
+def emit_arg_squote(keyword, arg, fd, indent, max_line_len):
+    """Heuristically pretty print the argument with smart quotes"""
+
+    # use single quotes unless the arg contains a single quote
+    quote = "'" if arg.find("'") == -1 else '"'
+
+    # if using double quotes, replace special characters
+    if quote == '"':
+        arg = arg.replace('\\', r'\\')
+        arg = arg.replace('"', r'\"')
+        arg = arg.replace('\t', r'\t')
+
+    # allow for " {" even though the statement might not have sub-statements
+    term = " {"
+
+    line_len = len(
+        "%s%s %s%s%s%s" % (indent, keyword, quote, arg, quote, term))
+    if max_line_len is None or line_len <= max_line_len:
+        fd.write(" " + quote + arg + quote)
+        return
+
+    # strictly num_chars could be negative, e.g. if max_line_len is VERY
+    # small; should check for this
+    num_chars = len(arg) - (line_len - max_line_len)
+    while num_chars > 2 and arg[num_chars - 1:num_chars].isalnum():
+        num_chars -= 1
+    fd.write(" " + quote + arg[:num_chars] + quote)
+    arg = arg[num_chars:]
+    while arg != '':
+        keyword_cont = ((len(keyword) - 1) * ' ') + '+'
+        line_len = len(
+            "%s%s %s%s%s%s" % (indent, keyword_cont, quote, arg, quote, term))
+        num_chars = len(arg) - (line_len - max_line_len)
+        while num_chars > 2 and arg[num_chars - 1:num_chars].isalnum():
+            num_chars -= 1
+        fd.write('\n' + indent + keyword_cont + " " +
+                 quote + arg[:num_chars] + quote)
+        arg = arg[num_chars:]
+
+def emit_arg(stmt, fd, indent, indentstep, forcenlarg):
     """Heuristically pretty print the argument string"""
     # current alg. always print a double quoted string
     arg = stmt.arg
@@ -160,7 +258,7 @@ def emit_arg(stmt, fd, indent, indentstep):
     if len(lines) <= 1:
         if len(arg) > 0 and arg[-1] == '\n':
             arg = arg[:-1] + r'\n'
-        if stmt.keyword in _force_newline_arg:
+        if stmt.keyword in forcenlarg:
             fd.write('\n' + indent + indentstep + '"' + arg + '"')
         else:
             fd.write(' "' + arg + '"')
