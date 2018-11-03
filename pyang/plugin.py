@@ -154,6 +154,9 @@ class PyangPlugin(object):
         """
         return
 
+    # setup_xform is preferred to setup_fmt for transform plugins
+    setup_xform = setup_fmt
+
     def pre_load_modules(self, ctx):
         """Called for the selected plugin, before any modules are loaded"""
         return
