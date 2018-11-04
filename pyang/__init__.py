@@ -167,7 +167,7 @@ class Context(object):
             if rev is None:
                 # now we must read the revision from the module
                 try:
-                    r = self.repository.get_module_from_handle(handle)
+                    r = self.repository.get_module_from_handle(handle, self)
                 except self.repository.ReadError as ex:
                     i += 1
                     continue
@@ -250,7 +250,7 @@ class Context(object):
         else:
             # get it from the repos
             try:
-                r = self.repository.get_module_from_handle(handle)
+                r = self.repository.get_module_from_handle(handle, self)
                 (ref, format, text) = r
                 module = self.add_module(ref, text, format,
                                          modulename, revision)
@@ -312,7 +312,7 @@ class Context(object):
         else:
             # get it from the repos
             try:
-                r = self.repository.get_module_from_handle(handle)
+                r = self.repository.get_module_from_handle(handle, self)
                 (ref, format, text) = r
                 if format == None:
                     format = util.guess_format(text)
@@ -356,7 +356,7 @@ class Repository(object):
         retrieve the module.
         """
 
-    def get_module_from_handle(self, handle):
+    def get_module_from_handle(self, handle, ctx):
         """Return the raw module text from the repository
 
         Returns (`ref`, `format`, `text`) if found, or None if not found.
@@ -490,15 +490,14 @@ class FileRepository(Repository):
             self._setup(ctx)
         return self.modules
 
-    def get_module_from_handle(self, handle):
+    def get_module_from_handle(self, handle, ctx):
         (format, absfilename) = handle
         fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
-            # FIXME: use an option (verbose?) to control this; the trouble
-            #        that ctx is not always available where it's needed
-            util.report_file_read(absfilename)
+            if ctx.opts.verbose:
+                util.report_file_read(absfilename)
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
         except UnicodeDecodeError as ex:
