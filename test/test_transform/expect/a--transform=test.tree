@@ -1,0 +1,4 @@
+module: a
+  +--rw x
+     +--rw y?     string
+     +--rw foo?   string
