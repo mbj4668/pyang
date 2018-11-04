@@ -55,6 +55,7 @@
       <arg choice="opt">--hello</arg>
       <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
+      <arg choice="opt">-t <replaceable>transform</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
       <arg choice="opt">-p <replaceable>path</replaceable></arg>
       <arg choice="opt">-W <replaceable>warning</replaceable></arg>
@@ -446,6 +447,24 @@
 
       <varlistentry>
         <term>
+          <option>-t</option>
+          <option>--transform</option>
+          <replaceable>transform</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Transform the module(s) after parsing them but before outputting
+            them.  Multiple transformations can be given, and will be performed
+            in the order that they were specified. The supported
+            transformations are listed in <xref
+            linkend="man.1.pyang.transformations"
+            endterm="man.1.pyang.transformations_title"/> below.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>-f</option>
           <option>--format</option>
           <replaceable>format</replaceable>
@@ -710,6 +729,24 @@
         </listitem>
       </varlistentry>
 
+    </variablelist>
+  </refsect1>
+
+
+  <refsect1 xml:id="man.1.pyang.transformations">
+    <title xml:id="man.1.pyang.transformations_title">
+      Transformations
+    </title>
+
+    <para>
+      Installed <command>pyang</command> transformations are (like output
+      formats) plugins and therefore may define their own options, or add new
+      transformations to the <option>-t</option> option. These options and
+      transformations are listed in <userinput>pyang -h</userinput>.
+    </para>
+
+    <variablelist>
+      <para>No standard transformations are currently supported.</para>
     </variablelist>
   </refsect1>
 
@@ -1353,7 +1390,7 @@ $ osascript foo.scpt</screen>
         </term>
         <listitem>
           <para>
-            Use the module name (instead of the prefix) to prefix 
+            Use the module name (instead of the prefix) to prefix
             parameters and types.
           </para>
         </listitem>
