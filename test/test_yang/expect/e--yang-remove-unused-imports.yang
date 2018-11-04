@@ -1,6 +1,6 @@
-module a {
-  prefix a;
-  namespace "urn:a";
+module e {
+  prefix e;
+  namespace "urn:e";
 
   typedef foo {
     type string;
