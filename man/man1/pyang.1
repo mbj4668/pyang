@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help
 .HP \w'\fBpyang\fR\ 'u
@@ -237,6 +237,13 @@ Give a warning if any line is longer than
 .RS 4
 Give a error if any identifier is longer than
 \fImaxlen\fR\&.
+.RE
+.PP
+\fB\-t\fR \fB\-\-transform\fR \fItransform\fR
+.RS 4
+Transform the module(s) after parsing them but before outputting them\&. Multiple transformations can be given, and will be performed in the order that they were specified\&. The supported transformations are listed in
+TRANSFORMATIONS
+below\&.
 .RE
 .PP
 \fB\-f\fR \fB\-\-format\fR \fIformat\fR
@@ -463,6 +470,16 @@ $ pyang \-\-check\-update\-from\-deviation\-module oldmod\-devs\&.yang \-\-check
 .RS 4
 These are the names of the files containing the modules to be validated, or the module to be converted\&.
 .RE
+.SH "TRANSFORMATIONS"
+.PP
+Installed
+\fBpyang\fR
+transformations are (like output formats) plugins and therefore may define their own options, or add new transformations to the
+\fB\-t\fR
+option\&. These options and transformations are listed in
+\fBpyang \-h\fR\&.
+.PP
+No standard transformations are currently supported\&.
 .SH "OUTPUT FORMATS"
 .PP
 Installed
@@ -901,6 +918,11 @@ Print the ietf\-restconf:yang\-data structures defined in the module\&.
 .RS 4
 Try to break lines so they are no longer than
 \fImaxlen\fR\&. This is a best effort algorithm\&.
+.RE
+.PP
+\fB\-\-tree\-module\-name\-prefix\fR \fImaxlen\fR
+.RS 4
+Use the module name (instead of the prefix) to prefix parameters and types\&.
 .RE
 .SH "UML OUTPUT"
 .PP
