@@ -15,7 +15,7 @@ from . import util
 from . import statements
 from . import syntax
 
-__version__ = '1.7.5'
+__version__ = '1.7.6-devel'
 __date__ = '2018-04-25'
 
 class Context(object):
