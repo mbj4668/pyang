@@ -1,14 +1,13 @@
-import sys
-
 from pyang import plugin
 from pyang import statements
 
-plugin_name = 'test'
+plugin_name = 'add-foo'
 
 def pyang_plugin_init():
-    plugin.register_plugin(TestPlugin())
+    plugin.register_plugin(AddFoo())
 
-class TestPlugin(plugin.PyangPlugin):
+
+class AddFoo(plugin.PyangPlugin):
     def add_opts(self, optparser):
         pass
 
@@ -32,6 +31,7 @@ class TestPlugin(plugin.PyangPlugin):
             # processing relies on it having been validated, e.g. uses
             # i_children (as does the tree output format)
             statements.validate_module(ctx, module)
+
 
 def add_leaf(parent, name, type_name):
     leaf = statements.Statement(parent.top, parent, parent.pos, 'leaf', name)

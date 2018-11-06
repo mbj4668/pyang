@@ -8,7 +8,7 @@ test: clean out
 	@for m in $(MODULES); do 					\
 	  echo "trying $$m..." | tr -d '\012';				\
 	  x=`echo $$m | $(SEDSCRIPT)`;					\
-	  t=`echo $$m | sed -e 's/\.yang/.tree/'`;			\
+	  t=`echo $$m | sed -e 's/\.yang/.out/'`;			\
 	  $(PYANG) --plugindir . -f tree $$x $$m -o out/$$t		\
 	    || exit 1;							\
 	  diff expect/$$t out/$$t > $$t.diff 				\
