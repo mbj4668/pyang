@@ -1,0 +1,17 @@
+module a {
+  namespace "urn:a";
+  prefix a;
+
+  description
+    "module -- I added this!";
+
+  container x {
+    description
+      "container -- I added this!";
+    leaf y {
+      type string;
+      description
+        "-- I added this!";
+    }
+  }
+}
