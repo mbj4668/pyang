@@ -146,7 +146,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
         elif stmt.keyword in _keyword_prefer_squote_arg:
             # FIXME: separate line break alg from single quote preference
             emit_arg_squote(stmt.keyword, stmt.arg, fd, indent,
-                            ctx.yang_line_len)
+                            ctx.opts.yang_line_length)
         elif stmt.keyword in grammar.stmt_map:
             (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
             if arg_type in _non_quote_arg_type:
