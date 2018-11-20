@@ -1,6 +1,6 @@
-module a {
-  namespace "urn:a";
-  prefix a;
+module d {
+  namespace "urn:d";
+  prefix d;
 
   typedef foo {
     type string;
@@ -12,6 +12,10 @@ module a {
 
   container x {
     container y;
-    container bar;
+    container bar {
+      leaf z {
+        type string;
+      }
+    }
   }
 }
