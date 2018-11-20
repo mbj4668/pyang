@@ -15,7 +15,6 @@ class YANGPlugin(plugin.PyangPlugin):
         self.handle_comments = True
 
     def add_opts(self, optparser):
-        newline_policies = ('pyang', 'verbose')
         optlist = [
             optparse.make_option("--yang-canonical",
                                  dest="yang_canonical",
@@ -24,14 +23,10 @@ class YANGPlugin(plugin.PyangPlugin):
             optparse.make_option("--yang-remove-unused-imports",
                                  dest="yang_remove_unused_imports",
                                  action="store_true"),
-            optparse.make_option("--yang-newline-policy",
-                                 dest="yang_newline_policy",
-                                 choices=newline_policies,
-                                 default="pyang",
-                                 help="Newline policy POLICY.  "
-                                      "Default 'pyang'. Supported "
-                                      "policies are: " + ', '.join(
-                                         list(newline_policies))),
+            optparse.make_option("--yang-line-length",
+                                 type="int",
+                                 dest="yang_line_length",
+                                 help="Maximum line length"),
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
@@ -46,14 +41,10 @@ class YANGPlugin(plugin.PyangPlugin):
 def emit_yang(ctx, module, fd):
     emit_stmt(ctx, module, fd, 0, None, '', '  ')
 
+# always add newline between keyword and argument
+_force_newline_arg = ('description', 'contact', 'organization')
 
-_force_newline_arg_base = ('description', 'contact', 'organization',)
-_force_newline_arg_dict = {'pyang': _force_newline_arg_base,
-                           'verbose': _force_newline_arg_base + (
-                               'reference', 'error-message',)}
-def _force_newline_arg(ctx):
-    return _force_newline_arg_dict[ctx.opts.yang_newline_policy]
-
+# do not quote these arguments
 _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'non-negative-integer', 'max-value',
                        'date', 'ordered-by-arg',
@@ -61,6 +52,32 @@ _non_quote_arg_type = ('identifier', 'identifier-ref', 'boolean', 'integer',
                        'status-arg')
 
 _maybe_quote_arg_type = ('enum-arg', )
+
+# add extra blank line after these, when they occur on the top level
+_keyword_with_trailing_blank_line_toplevel = (
+    'description',
+    'identity',
+    'feature',
+    'extension',
+    'rpc',
+    )
+
+# always add extra blank line after these
+_keyword_with_trailing_blank_line = (
+    'typedef',
+    'grouping',
+    'notification',
+    'action',
+    )
+
+# use single quote for the arguments to these keywords (if possible)
+_keyword_prefer_squote_arg = (
+    'must',
+    'when',
+    'pattern',
+    'augment',
+    'path',
+)
 
 _kwd_class = {
     'yang-version': 'header',
@@ -92,57 +109,6 @@ def get_kwd_class(keyword):
         except KeyError:
             return 'body'
 
-_keyword_with_trailing_newline_toplevel_base = tuple()
-_keyword_with_trailing_newline_toplevel_dict = {
-    'pyang': _keyword_with_trailing_newline_toplevel_base,
-    'verbose': _keyword_with_trailing_newline_toplevel_base + (
-        'description',
-    )
-}
-def _keyword_with_trailing_newline_toplevel(ctx):
-    return _keyword_with_trailing_newline_toplevel_dict[
-        ctx.opts.yang_newline_policy]
-
-_keyword_with_trailing_newline_base = (
-    'typedef',
-    'grouping',
-    'identity',
-    'feature',
-    'extension',
-    'rpc',
-    'notification',
-    )
-_keyword_with_trailing_newline_dict = {
-    'pyang': _keyword_with_trailing_newline_base,
-    'verbose': _keyword_with_trailing_newline_base + (
-        'organization',
-        'contact',
-        'container',
-        'augment',
-        'list',
-        'leaf',
-        'leaf-list',
-        'choice',
-        'case',
-        'uses',)
-}
-def _keyword_with_trailing_newline(ctx):
-    return _keyword_with_trailing_newline_dict[ctx.opts.yang_newline_policy]
-
-_keyword_prefer_squote_arg_base = (
-    'must',
-    'when',
-    'pattern',
-    )
-_keyword_prefer_squote_arg_dict = {
-    'pyang': _keyword_prefer_squote_arg_base,
-    'verbose': _keyword_prefer_squote_arg_base + (
-        'augment',
-        'path',)
-}
-def _keyword_prefer_squote_arg(ctx):
-    return _keyword_prefer_squote_arg_dict[ctx.opts.yang_newline_policy]
-
 _need_quote = (
     " ", "}", "{", ";", '"', "'",
     "\n", "\t", "\r", "//", "/*", "*/",
@@ -164,8 +130,8 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
     if ((level == 1 and
          kwd_class != prev_kwd_class and kwd_class != 'extension') or
         (level == 1 and stmt.keyword in
-         _keyword_with_trailing_newline_toplevel(ctx)) or
-        stmt.keyword in _keyword_with_trailing_newline(ctx)):
+         _keyword_with_trailing_blank_line_toplevel) or
+        stmt.keyword in _keyword_with_trailing_blank_line):
         fd.write('\n')
 
     if stmt.keyword == '_comment':
@@ -174,12 +140,13 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
 
     fd.write(indent + keywordstr)
     if stmt.arg is not None:
-        forcenlarg = _force_newline_arg(ctx)
+        forcenlarg = _force_newline_arg
         if '\n' in stmt.arg:
             emit_arg(stmt, fd, indent, indentstep, forcenlarg)
-        elif stmt.keyword in _keyword_prefer_squote_arg(ctx):
+        elif stmt.keyword in _keyword_prefer_squote_arg:
+            # FIXME: separate line break alg from single quote preference
             emit_arg_squote(stmt.keyword, stmt.arg, fd, indent,
-                            ctx.max_line_len)
+                            ctx.yang_line_len)
         elif stmt.keyword in grammar.stmt_map:
             (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
             if arg_type in _non_quote_arg_type:
