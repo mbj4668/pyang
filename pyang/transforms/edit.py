@@ -100,10 +100,7 @@ class EditPlugin(plugin.PyangPlugin):
     def add_transform(self, xforms):
         xforms[plugin_name] = self
 
-    def post_validate_ctx(self, ctx, modules):
-        if plugin_name not in ctx.opts.transforms:
-            return
-
+    def transform(self, ctx, modules):
         edit_tree(ctx, modules)
 
 
