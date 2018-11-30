@@ -21,6 +21,6 @@ out:
 	mkdir out
 
 clean:
-	rm -rf out *diff
+	rm -rf out *.diff
 
 

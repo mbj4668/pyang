@@ -1,26 +1,18 @@
 from pyang import plugin
 from pyang import statements
 
-plugin_name = 'mod-desc'
 
 def pyang_plugin_init():
     plugin.register_plugin(ModDescPlugin())
 
 
 class ModDescPlugin(plugin.PyangPlugin):
-    def add_opts(self, optparser):
-        pass
-
     def add_transform(self, xforms):
-        xforms[plugin_name] = self
+        xforms['mod-desc'] = self
 
-    def pre_validate_ctx(self, ctx, modules):
-        if plugin_name not in ctx.opts.transforms:
-            return
-
+    def transform(self, ctx, modules):
         for module in modules:
             mod_desc(module, '-- I added this!')
-            statements.validate_module(ctx, module)
 
 
 def mod_desc(stmt, text):

@@ -13,6 +13,7 @@ from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
+from pyang import statements
 from pyang import syntax
 
 def run():
@@ -276,6 +277,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         emit_obj = None
 
+    xform_and_emit_objs = xform_objs[:]
+    if emit_obj is not None:
+        xform_and_emit_objs.append(emit_obj)
+
     for p in plugin.plugins:
         p.pre_load_modules(ctx)
 
@@ -354,14 +359,26 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         if m is not None:
             ctx.deviation_modules.append(m)
 
-
     for p in plugin.plugins:
         p.pre_validate_ctx(ctx, modules)
 
-    if emit_obj is not None and len(modules) > 0:
-        emit_obj.pre_validate(ctx, modules)
+    if len(xform_and_emit_objs) > 0 and len(modules) > 0:
+        for obj in xform_and_emit_objs:
+            obj.pre_validate(ctx, modules)
 
     ctx.validate()
+
+    # transform modules
+    if len(xform_objs) > 0 and len(modules) > 0:
+        for xform_obj in xform_objs:
+            try:
+                if not xform_obj.transform(ctx, modules):
+                    for module in modules:
+                        statements.validate_module(ctx, module)
+            except error.TransformError as e:
+                if e.msg != "":
+                    sys.stderr.write(e.msg + '\n')
+                sys.exit(e.exit_code)
 
     # verify the given features
     for m in modules:
@@ -372,8 +389,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                                      (f, m.arg))
                     sys.exit(1)
 
-    if emit_obj is not None and len(modules) > 0:
-        emit_obj.post_validate(ctx, modules)
+    if len(xform_and_emit_objs) > 0 and len(modules) > 0:
+        for obj in xform_and_emit_objs:
+            obj.post_validate(ctx, modules)
 
     for p in plugin.plugins:
         p.post_validate_ctx(ctx, modules)

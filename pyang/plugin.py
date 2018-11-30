@@ -163,3 +163,13 @@ class PyangPlugin(object):
         Raise error.EmitError on failure.
         """
         return
+
+    def transform(self, ctx, modules):
+        """Transform the modules (called after modules have been validated).
+
+        Override this method to modify the modules.
+        Return `True` to indicate either that none of the modifications
+        require modules to be re-validated or that the modules have already
+        been re-validated.
+
+        Raise error.TransformError on failure."""
