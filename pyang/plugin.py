@@ -39,7 +39,7 @@ def init(plugindirs=[]):
             continue
         for fname in fnames:
             if not fname.startswith(".#") and fname.endswith(".py") and \
-               fname != '__init__.py':
+               fname != '__init__.py' and not fname.endswith("_flymake.py"):
                 pluginmod = __import__(fname[:-3])
                 try:
                     pluginmod.pyang_plugin_init()
