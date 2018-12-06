@@ -2789,7 +2789,7 @@ def check_and_return_parameters(expected_count, tokens, func_name):
     if tokens[x][1] == '(':
         x += 1
 
-    while brackets:
+    while brackets and x < len(tokens):
         if tokens[x][1] == ')':
             parameter.append(tokens[x][1])
             brackets -= 1
