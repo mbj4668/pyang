@@ -2623,7 +2623,7 @@ def check_path(path, stmt, ctx):
         path = path[:-1]
     parts = path.split('/')
     if parts[0] == '':
-        if ':' in parts[1]:
+        if len(parts) > 1 and ':' in parts[1]:
             prefix = parts[1].split(':')[0]
             data_holding_stmts = prefix_to_module(stmt.i_module,
                                                   prefix, stmt.pos, ctx.errors)
