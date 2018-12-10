@@ -88,6 +88,9 @@ error_codes = \
       (1,
        'keyword "%s" not in canonical order,'
        'expected "%s" (see RFC 6020, Section 12)'),
+    'UNEXPECTED_KEYWORD_USES':
+      (1,
+       'unexpected keyword "%s" under "%s", defined at %s'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),

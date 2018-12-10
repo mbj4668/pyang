@@ -1544,8 +1544,17 @@ def v_expand_1_uses(ctx, stmt):
                          target.arg, keyword))
                 return
 
+    (_arg_type, subspec) = grammar.stmt_map[stmt.parent.keyword]
+    subspec = grammar.flatten_spec(subspec)
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
+        if util.keysearch(g.keyword, 0, subspec) == None:
+            err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_USES',
+                    (util.keyword_to_str(g.raw_keyword),
+                     util.keyword_to_str(stmt.parent.raw_keyword),
+                     g.pos))
+            continue
+
         # don't copy the type since it cannot be modified anyway.
         # not copying the type also works better for some plugins that
         # generate output from the i_children list, e.g. the XSD plugin.

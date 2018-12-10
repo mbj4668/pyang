@@ -782,23 +782,27 @@ def spec_del_kwd(keywd, spec):
         i = i + 1
     return spec
 
+def flatten_spec(spec):
+    res = []
+    for (kw, s) in spec:
+        if kw == '$interleave':
+            res.extend(flatten_spec(s))
+        elif kw == '$1.1':
+            res.append((s))
+        elif kw == '$choice':
+            for branch in s:
+                res.extend(flatten_spec(branch))
+        else:
+            res.append((kw,s))
+    return res
+
+
 def sort_canonical(keyword, stmts):
     """Sort all `stmts` in the canonical order defined by `keyword`.
     Return the sorted list.  The `stmt` list is not modified.
     If `keyword` does not have a canonical order, the list is returned
     as is.
     """
-    def flatten_spec(spec):
-        res = []
-        for (kw, s) in spec:
-            if kw == '$interleave':
-                res.extend(flatten_spec(s))
-            elif kw == '$choice':
-                for branch in s:
-                    res.extend(flatten_spec(branch))
-            else:
-                res.append((kw,s))
-        return res
 
     try:
         (_arg_type, subspec) = stmt_map[keyword]
