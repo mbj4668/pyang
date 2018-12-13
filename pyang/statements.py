@@ -2075,7 +2075,7 @@ def v_xpath(ctx, stmt):
             no_new_line = no_new_line.replace(func, replace_and_or)
             dict_to_return[replace_and_or] = func
 
-        args.update(re.split(r'(?<!-)\band\b|\bor\b(?!-)', no_new_line))
+        args.update(re.split(r'(?<!-)\band\b(?!-)|(?<!-)\bor\b(?!-)', no_new_line))
         for arg in args:
             if sys.version < '3':
                 for key, val in dict_to_return.iteritems():
