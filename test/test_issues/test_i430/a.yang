@@ -1,0 +1,10 @@
+module a {
+    namespace urn:a;
+    prefix a;
+
+    container a {
+        must "e-band != 'and-2'";
+        leaf e-band {type string;}
+        leaf earfcn {type int32;}
+    }
+}
