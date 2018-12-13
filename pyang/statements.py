@@ -2630,6 +2630,8 @@ def check_path(path, stmt, ctx):
         if path.endswith('current()'):
             break
         path = path[:-1]
+    if path == '':
+        return None
     parts = path.split('/')
     if parts[0] == '':
         if ':' in parts[1]:
