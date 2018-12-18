@@ -122,15 +122,22 @@ class PyangPlugin(object):
         return
 
     def setup_fmt(self, ctx):
-        """Modify the Context at setup time.  Called for the selected plugin.
+        """Modify the Context at setup time.  Called for the selected
+        output format plugin.
 
         Override this method to modify the Context before the module
         repository is accessed.
         """
         return
 
-    # setup_xform is preferred to setup_fmt for transform plugins
-    setup_xform = setup_fmt
+    def setup_xform(self, ctx):
+        """Modify the Context at setup time.  Called for the selected
+        transform plugin.
+
+        Override this method to modify the Context before the module
+        repository is accessed.
+        """
+        return
 
     def pre_load_modules(self, ctx):
         """Called for the selected plugin, before any modules are loaded"""
