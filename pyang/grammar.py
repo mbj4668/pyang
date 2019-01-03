@@ -382,7 +382,6 @@ stmt_map = {
          [('when', '?'),
           ('if-feature', '*'),
           ('default', '?'),
-          ('must', '*'),
           ('config', '?'),
           ('mandatory', '?'),
           ('status', '?'),
