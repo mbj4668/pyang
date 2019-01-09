@@ -1,0 +1,24 @@
+module r {
+  namespace urn:r;
+  prefix r;
+
+  import ietf-restconf {
+    prefix rc;
+  }
+
+  rc:yang-data foo {
+    choice c {
+      container x;
+      case a {
+        container y;
+      }
+      case b {
+        choice q {
+          case z {
+            container foo;
+          }
+        }
+      }
+    }
+  }
+}
