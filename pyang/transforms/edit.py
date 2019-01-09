@@ -304,8 +304,9 @@ def get_arg_summary(arg):
     return summary if summary else 'TBD'
 
 
-# XXX need proper insertion in canonical order; currently just appending
-#     (apart from hack noted below)
+# XXX should insert in canonical order; currently (apart from the hack noted
+#     below) just appending; should look into doing the same as yang.py, which
+#     does: substmts = grammar.sort_canonical(stmt.keyword, stmt.substmts)
 def update_or_add_stmt(stmt, keyword, arg, index=None):
     child = stmt.search_one(keyword)
     currarg = child.arg if child else None
@@ -330,7 +331,6 @@ def update_or_add_stmt(stmt, keyword, arg, index=None):
     return child
 
 
-# XXX is there a proper function for this?
 def delete_stmt(parent, stmt):
     if stmt in parent.substmts:
         idx = parent.substmts.index(stmt)
