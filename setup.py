@@ -56,7 +56,7 @@ script_files = []
 if os.name == "nt":
     pyang_bat_file = "{}/{}.bat".format(tempfile.gettempdir(), "pyang")
     with open(pyang_bat_file, 'w') as script:
-        script.write('@echo off\npython %cd%\pyang %*\n')
+        script.write('@echo off\npython %~dp0pyang %*\n')
     script_files = ['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml', pyang_bat_file]
 else:
     script_files = ['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml']
