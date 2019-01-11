@@ -1,0 +1,43 @@
+module g {
+  namespace "urn:g";
+  prefix g;
+
+  container x {
+    leaf q {
+      type string {
+        pattern 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+              + 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+              + 'cccc';
+      }
+    }
+    leaf z {
+      type string {
+        pattern "keep dquote '";
+      }
+    }
+    description
+      "first line
+          second line";
+    container aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa {
+      description
+        "first line \"
+            second line";
+      container bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb {
+        container cccccccccccccccccccccccccccccccccccccc {
+          leaf x {
+            type string;
+          }
+        }
+      }
+    }
+    leaf foo {
+      type leafref {
+        path "/x/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccccccccccccc/x";
+      }
+      description
+        "first line
+         second line
+           - third line";
+    }
+  }
+}

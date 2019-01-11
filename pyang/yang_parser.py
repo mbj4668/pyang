@@ -148,7 +148,7 @@ class YangTokenizer(object):
         self.skip()
         self.set_buf(1)
 
-    def get_string(self, need_quote=False):
+    def get_strings(self, need_quote=False):
         """ret: string"""
         self.skip()
 
@@ -164,6 +164,7 @@ class YangTokenizer(object):
             quote_char = self.buf[0]
             # collect output in strs (list of strings)
             strs = []
+            res = []
             # remember position of " character
             indentpos = self.offset
             i = 1
@@ -173,7 +174,8 @@ class YangTokenizer(object):
                 while i < buflen:
                     if self.buf[i] == quote_char:
                         # end-of-string; copy the buf to output
-                        strs.append(self.buf[start:i])
+                        res.append(self.buf[start:i])
+                        strs.append((u''.join(res), quote_char))
                         # and trim buf
                         self.set_buf(i+1)
                         # check for '+' operator
@@ -181,13 +183,9 @@ class YangTokenizer(object):
                         if self.buf[0] == '+':
                             self.set_buf(1)
                             self.skip()
-                            nstr = self.get_string(need_quote=True)
-                            if (type(nstr) != type(u'')):
-                                error.err_add(self.errors, self.pos,
-                                              'EXPECTED_QUOTED_STRING', ())
-                                raise error.Abort
-                            strs.append(nstr)
-                        return u''.join(strs)
+                            nstrs = self.get_strings(need_quote=True)
+                            strs.extend(nstrs)
+                        return strs
                     elif (quote_char == '"' and
                           self.buf[i] == '\\' and i < (buflen-1)):
                         # check for special characters
@@ -208,8 +206,8 @@ class YangTokenizer(object):
                             error.err_add(self.errors, self.pos,
                                           'ILLEGAL_ESCAPE_WARN', self.buf[i+1])
                         if special != None:
-                            strs.append(self.buf[start:i])
-                            strs.append(special)
+                            res.append(self.buf[start:i])
+                            res.append(special)
                             i = i + 1
                             start = i + 1
                     i = i + 1
@@ -227,7 +225,7 @@ class YangTokenizer(object):
                     s = self.buf[start:j+1] + self.buf[k+1:i]
                 else:
                     s = self.buf[start:i]
-                strs.append(s)
+                res.append(s)
                 self.readline()
                 i = 0
                 if quote_char == '"':
@@ -253,7 +251,7 @@ class YangTokenizer(object):
                     self.buf[i:i+2] == '*/'):
                     res = self.buf[:i]
                     self.set_buf(i)
-                    return res
+                    return [(res, '')]
                 i = i + 1
 
 class YangParser(object):
@@ -308,13 +306,17 @@ class YangParser(object):
         tok = self.tokenizer.peek()
         if tok == '{' or tok == ';':
             arg = None
+            argstrs = None
         else:
-            arg = self.tokenizer.get_string()
+            argstrs = self.tokenizer.get_strings()
+            arg = u''.join([a[0] for a in argstrs])
         # check for YANG 1.1
         if keywd == 'yang-version' and arg == '1.1':
             self.tokenizer.is_1_1 = True;
             self.tokenizer.strict_quoting = True
         stmt = statements.Statement(self.top, parent, self.pos, keywd, arg)
+        if self.ctx.keep_arg_substrings and argstrs is not None:
+            stmt.arg_substrings = argstrs
         if self.top is None:
             self.pos.top = stmt
             self.top = stmt

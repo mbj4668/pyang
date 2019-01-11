@@ -45,6 +45,7 @@ class Context(object):
         self.features = {}
         self.max_status = None
         self.keep_comments = False
+        self.keep_arg_substrings = False
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:
