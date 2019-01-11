@@ -17,13 +17,15 @@ python3_test: python3/python
 itest:
 	@echo "selftest... " | tr -d '\012'; \
 		./selftest.py || exit 1; echo "ok";	\
-	echo "validate all modules... " | tr -d '\012';			\
+	echo "validate all modules...";					\
 	for d in ../modules/*; do					\
 		( cd $$d;						\
 		for m in *.yang; do					\
+			echo "  $${m}... " | tr -d '\012';		\
 			pyang $$m || exit 1;				\
+			echo "ok";					\
 		done ) || exit 1;					\
-	done || exit 1; echo "ok";					\
+	done || exit 1; 						\
 	for d in $(DIRS); do 						\
 		( cd $$d && $(MAKE) test ) || exit 1;			\
 	done

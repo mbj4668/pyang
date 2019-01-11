@@ -18,8 +18,10 @@ do
   if [ "${answer}" = "y" -o "${answer}" = "" ]
   then
     mv -f "$output" "$expectFileName"
+    rm $f
   elif [ "${answer}" = "q" ]
   then
     exit 0
   fi
 done
+

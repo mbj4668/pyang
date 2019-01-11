@@ -142,3 +142,33 @@ def report_file_read(filename, extra=None):
     extra = (" " + extra) if extra else ""
     sys.stderr.write("# %s %s%s\n" % (read, filename, extra))
     files_read[realpath] = True
+
+
+def search_data_node(children, modulename, identifier, last_skipped = None):
+    skip = ['choice', 'case', 'input', 'output']
+    if last_skipped is not None:
+        skip.append(last_skipped)
+    for child in children:
+        if child.keyword in skip:
+            r = search_data_node(child.i_children,
+                                 modulename, identifier)
+            if r is not None:
+                return r
+        elif ((child.arg == identifier) and
+              (child.i_module.i_modulename == modulename)):
+            return child
+    return None
+
+def closes_ancestor_data_node(node):
+    if node.keyword in ['choice', 'case']:
+        return closes_ancestor_data_node(node.parent)
+    return node
+
+def data_node_up(node):
+    skip = ['choice', 'case', 'input', 'output']
+    p = node.parent
+    if node.keyword in skip:
+        return data_node_up(p)
+    if p and p.keyword in skip:
+        return closes_ancestor_data_node(p)
+    return p

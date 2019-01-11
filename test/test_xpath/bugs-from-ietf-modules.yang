@@ -1,0 +1,32 @@
+module bugs-from-ietf-modules {
+  namespace urn:example:bugs;
+  prefix i;
+
+  grouping common-session-parms {
+    container x;
+  }
+
+  // bug from RFC 6470
+  notification netconf-confirmed-commit {
+    uses common-session-parms {
+      when "../confirm-event != 'timeout'";
+    }
+
+    leaf confirm-event {
+      type string;
+    }
+  }
+
+  container snmp {
+    container target {
+    }
+  }
+
+  // bug from RFC 7407
+  augment /snmp/target {
+    when "v1 or v2c";
+    leaf mms {
+      type string;
+    }
+  }
+}

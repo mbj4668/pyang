@@ -1,0 +1,55 @@
+module a {
+  yang-version 1.1;
+  namespace "urn:a";
+  prefix a;
+
+  include as;
+  import b {
+    prefix b;
+  }
+
+  container x {
+    uses b:foo {
+      when "foo"; // FIXME: should be error, 'foo' is in the grouping!
+    }
+    action doit {
+      input {
+        must "../doit/now or ../bar";
+        container now {
+          when "../../bar";
+        }
+      }
+    }
+    container bar {
+      leaf q {
+        type string;
+      }
+      must "position()/foo"; // error, bad func ret
+      must "current()/foox"; // error, foox not defined
+      must "q[current()/q]"; // ok
+    }
+    container y {
+      when '/bar'; // error, /bar doesn't exist
+    }
+    choice c1 {
+      case c2 {
+        container c {
+          when '../d';
+        }
+        container d {
+          when '../e'; // FIXME: should be error, e defined in other case!
+        }
+      }
+      container e {
+        when '../y'; // ok to refer to node outside the choice
+      }
+      case c3 {
+        choice c4 {
+          when 'y'; // ok to refer to node outside the case
+          case c5;
+        }
+      }
+    }
+  }
+
+}

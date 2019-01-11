@@ -1,0 +1,14 @@
+module b {
+  namespace urn:b;
+  prefix b;
+
+  grouping foo {
+    leaf foo {
+      when '../bar';
+      type string;
+    }
+  }
+  container b {
+  }
+
+}

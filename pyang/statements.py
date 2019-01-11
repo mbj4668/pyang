@@ -81,7 +81,7 @@ def add_copy_augment_keyword(keyword):
     _copy_augment_keywords.append(keyword)
 
 def add_xpath_function(name):
-    extra_xpath_functions.append(name)
+    xpath.extra_xpath_functions.append(name)
 
 def add_refinement_element(keyword, element, merge = False, v_fun=None):
     """Add an element to the <keyword>'s list of refinements"""
@@ -116,23 +116,6 @@ class Abort(Exception):
 re_path = re.compile('(.*)/(.*)')
 re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 re_and_or = re.compile(r'\band\b|\bor\b')
-
-yang_xpath_functions = [
-    'current',
-    ]
-
-yang_1_1_xpath_functions = [
-    'bit-is-set',
-    'enum-value',
-    'deref',
-    'derived-from',
-    'derived-from-or-self',
-    're-match',
-    ]
-
-extra_xpath_functions = [
-    'deref', # pyang extension for 1.0
-    ]
 
 data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
                             'choice', 'anyxml', 'anydata', 'uses', 'augment']
@@ -249,9 +232,14 @@ _validation_map = {
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
+    ('reference_2', 'must'):lambda ctx, s:v_reference_must(ctx, s),
+    ('reference_2', 'when'):lambda ctx, s:v_reference_when(ctx, s),
+## since we just check in reference_2, it means that we won't check
+## xpaths in unused groupings.  the xpath is checked when the grouping is
+## used.  the same is true for leafrefs
+#    ('reference_3', 'must'):lambda ctx, s:v_reference_must(ctx, s),
+#    ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
     ('reference_3', 'typedef'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
-    ('reference_3', 'must'):lambda ctx, s:v_reference_must(ctx, s),
-    ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
     ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
     ('reference_3', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
     ('reference_4', 'deviation'):lambda ctx, s:v_reference_deviation_4(ctx, s),
@@ -260,10 +248,6 @@ _validation_map = {
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'typedef'):lambda ctx, s: v_unused_typedef(ctx, s),
     ('unused', 'grouping'):lambda ctx, s: v_unused_grouping(ctx, s),
-
-    ('strict', 'path'):lambda ctx, s: v_strict_xpath(ctx, s),
-    ('strict', 'must'):lambda ctx, s: v_strict_xpath(ctx, s),
-    ('strict', 'when'):lambda ctx, s: v_strict_xpath(ctx, s),
 
     }
 
@@ -277,6 +261,8 @@ _v_i_children = {
 Note that the tests are not run in grouping definitions."""
 
 _v_i_children_keywords = {
+    ('reference_2', 'when'): True,
+    ('reference_2', 'must'): True,
 }
 """Keywords in this dict are iterated over in a phase in _v_i_children."""
 
@@ -1545,6 +1531,12 @@ def v_expand_1_uses(ctx, stmt):
 
     (_arg_type, subspec) = grammar.stmt_map[stmt.parent.keyword]
     subspec = grammar.flatten_spec(subspec)
+    whens = list(stmt.search('when'))
+    for s in whens:
+        s.parent = stmt.parent
+    iffeatures = list(stmt.search('if-feature'))
+    for s in iffeatures:
+        s.parent = stmt.parent
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
         if util.keysearch(g.keyword, 0, subspec) == None:
@@ -1556,7 +1548,7 @@ def v_expand_1_uses(ctx, stmt):
 
         # don't copy the type since it cannot be modified anyway.
         # not copying the type also works better for some plugins that
-        # generate output from the i_children list, e.g. the XSD plugin.
+        # generate output from the i_children list.
         def post_copy(old, new):
             # inline the definition into our module
             new.i_module = stmt.i_module
@@ -1581,6 +1573,8 @@ def v_expand_1_uses(ctx, stmt):
         newg = g.copy(stmt.parent, stmt,
                       nocopy=['type','uses','unique','typedef','grouping'],
                       copyf=post_copy)
+        newg.substmts.extend(whens)
+        newg.substmts.extend(iffeatures)
         stmt.parent.i_children.append(newg)
 
     # copy plain statements from the grouping
@@ -2045,57 +2039,21 @@ def v_reference_leaf_leafref(ctx, stmt):
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
 
 def v_reference_must(ctx, stmt):
-    # verify that the xpath expression is correct, and that
-    # each prefix is defined
-    # NOTE: currently only primitive tokenization is done; we should
-    # also parse the expression to detect more errors
     v_xpath(ctx, stmt)
-
-def v_xpath(ctx, stmt):
-    try:
-        toks = xpath.tokens(stmt.arg)
-        for (tokname, s) in toks:
-            if tokname == 'name' or tokname == 'prefix-match':
-                i = s.find(':')
-                if i != -1:
-                    prefix = s[:i]
-                    prefix_to_module(stmt.i_module, prefix, stmt.pos,
-                                     ctx.errors)
-            elif tokname == 'literal':
-                # kind of hack to detect qnames, and mark the prefixes
-                # as being used in order to avoid warnings.
-                if s[0] == s[-1] and s[0] in ("'", '"'):
-                    s = s[1:-1]
-                    i = s.find(':')
-                    # make sure there is just one : present
-                    if i != -1 and s[i+1:].find(':') == -1:
-                        prefix = s[:i]
-                        # we don't want to report an error; just mark the
-                        # prefix as being used.
-                        my_errors = []
-                        prefix_to_module(stmt.i_module, prefix, stmt.pos,
-                                         my_errors)
-                        for (pos, code, arg) in my_errors:
-                            if code == 'PREFIX_NOT_DEFINED':
-                                err_add(ctx.errors, pos,
-                                        'WPREFIX_NOT_DEFINED', arg)
-            elif ctx.lax_xpath_checks == True:
-                pass
-            elif tokname == 'variable':
-                err_add(ctx.errors, stmt.pos, 'XPATH_VARIABLE', s)
-            elif tokname == 'function':
-                if not (s in xpath.core_functions or
-                        s in yang_xpath_functions or
-                        (stmt.i_module.i_version != '1' and
-                         s in yang_1_1_xpath_functions) or
-                        s in extra_xpath_functions):
-                    err_add(ctx.errors, stmt.pos, 'XPATH_FUNCTION', s)
-
-    except SyntaxError as e:
-        err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e)
 
 def v_reference_when(ctx, stmt):
     v_xpath(ctx, stmt)
+
+def v_xpath(ctx, stmt):
+    # verify that the xpath expression is correct, and that
+    # each prefix is defined
+    if stmt.parent.keyword == 'augment':
+        node = stmt.parent.i_target_node
+    else:
+        node = stmt.parent
+    if node is not None:
+        node = util.closes_ancestor_data_node(node)
+    xpath.v_xpath(ctx, stmt, node)
 
 def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
@@ -2272,7 +2230,7 @@ def v_unused_module(ctx, module):
 
 def v_unused_typedef(ctx, stmt):
     if stmt.parent.parent is not None:
-        # this is a locallay scoped typedef
+        # this is a locally scoped typedef
         if stmt.i_is_unused == True:
             err_add(ctx.errors, stmt.pos,
                     'UNUSED_TYPEDEF', stmt.arg)
@@ -2285,21 +2243,6 @@ def v_unused_grouping(ctx, stmt):
                     'UNUSED_GROUPING', stmt.arg)
 
 ### Strict phase
-
-def v_strict_xpath(ctx, stmt):
-    if not ctx.strict:
-        return
-    if stmt.i_module.i_version != '1':
-        # deref is valid in 1.1
-        return
-    try:
-        toks = xpath.tokens(stmt.arg)
-        for (tokname, s) in toks:
-            if tokname == 'function' and s == 'deref':
-                err_add(ctx.errors, stmt.pos, 'STRICT_XPATH_FUNCTION', s)
-    except SyntaxError as e:
-        # already reported
-        pass
 
 ### Utility functions
 
@@ -2364,19 +2307,7 @@ def search_child(children, modulename, identifier):
     return None
 
 def search_data_node(children, modulename, identifier, last_skipped = None):
-    skip = ['choice', 'case']
-    if last_skipped is not None:
-        skip.append(last_skipped)
-    for child in children:
-        if child.keyword in skip:
-            r = search_data_node(child.i_children,
-                                 modulename, identifier)
-            if r is not None:
-                return r
-        elif ((child.arg == identifier) and
-              (child.i_module.i_modulename == modulename)):
-            return child
-    return None
+    return util.search_data_node(children, modulename, identifier, last_skipped)
 
 def search_typedef(stmt, name):
     """Search for a typedef in scope

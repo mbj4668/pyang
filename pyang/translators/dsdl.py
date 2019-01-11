@@ -47,7 +47,7 @@ import optparse
 import time
 
 
-from pyang import plugin, error, xpath, util, statements, types
+from pyang import plugin, error, xpath_lexer, util, statements, types
 
 from .schemanode import SchemaNode
 
@@ -460,17 +460,18 @@ class HybridDSDLSchema(object):
             pref = "$pref:"
         else:
             pref = self.prefix_stack[-1] + ":"
-        toks = xpath.tokens(xpe)
+        toks = xpath_lexer.scan(xpe)
         prev = None
         res = ""
         for tok in toks:
-            if tok[0] == "/" and prev not in (".", "..", ")", "]", "name",
-                                              "wildcard", "prefix-test"):
+            if (tok.type == "SLASH" and
+                prev not in ("DOT", "DOTDOT", "RPAREN", "RBRACKET", "name",
+                             "wildcard", "prefix_test")):
                 res += "$root"
-            elif tok[0] == "name" and ":" not in tok[1]:
+            elif tok.type == "name" and ":" not in tok.value:
                 res += pref
-            res += tok[1]
-            if tok[0] != "whitespace": prev = tok[0]
+            res += tok.value
+            if tok.type != "_whitespace": prev = tok.type
         return res
 
     def add_namespace(self, module):

@@ -68,6 +68,9 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
             'CHK_DEF_ADDED', 1,
             "the %s '%s' is illegally added")
         error.add_error_code(
+            'CHK_DEF_ADDED2', 1,
+            "the %s '%s' is illegally added in %s %s")
+        error.add_error_code(
             'CHK_DEF_CHANGED', 1,
             "the %s '%s' is illegally changed from '%s'")
         error.add_error_code(
@@ -434,7 +437,7 @@ def chk_if_feature(old, new, ctx):
     # make sure no if-features are added
     for s in new.search('if-feature'):
         if old.search_one('if-feature', arg=s.arg) is None:
-            err_def_added(s, ctx)
+            err_def_added2(s, new, ctx)
 
 def chk_config(old, new, ctx):
     if old.i_config == False and new.i_config == True:
@@ -770,6 +773,10 @@ chk_type_func = \
 
 def err_def_added(new, ctx):
     err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED', (new.keyword, new.arg))
+
+def err_def_added2(new, node, ctx):
+    err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED2',
+            (new.keyword, new.arg, node.keyword, node.arg))
 
 def err_def_removed(old, newp, ctx):
     err_add(ctx.errors, newp.pos, 'CHK_DEF_REMOVED',
