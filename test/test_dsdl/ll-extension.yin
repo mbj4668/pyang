@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-extension"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/extension">
+  <namespace uri="http://example.com/ll/extension"/>
+  <prefix value="ext"/>
+  <extension name="metadata">
+    <description>
+      <text>Some arbitrary model metadata</text>
+    </description>
+    <argument name="data">
+      <yin-element value="true"/>
+    </argument>
+  </extension>
+</module>

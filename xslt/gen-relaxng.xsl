@@ -373,6 +373,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match="*">
+    <!-- Do nothing for elements in namespaces other than rng, to prevent the
+    outputting of text nodes defined by extensions -->
+  </xsl:template>
+
   <xsl:template match="rng:oneOrMore" mode="process">
     <xsl:choose>
       <xsl:when test="$target='edit-config'">
