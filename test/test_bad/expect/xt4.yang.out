@@ -6,4 +6,3 @@ xt4.yang:66: error: TYPE_VALUE
 xt4.yang:72: error: BAD_DEVIATE_ADD
 xt4.yang:78: error: BAD_DEVIATE_TYPE
 xt4.yang:84: error: BAD_DEVIATE_DEL
-xt4.yang:84: warning: XPATH_MISSING_NODE

@@ -52,6 +52,8 @@ submodule ietf-snmp-community {
        Version 3 of the Internet-standard Network
        Management Framework";
 
+  // Applied RFC Errata 4240
+
   revision 2014-12-10 {
     description
       "Initial revision.";
