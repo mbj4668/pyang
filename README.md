@@ -3,6 +3,12 @@
 
 ## News ##
 
+**2019-01-17 - Version 1.7.7 released**
+
+  * fixed a bug in -f yang formatting
+
+See below for previous releases.
+
 **2019-01-17 - Version 1.7.6 released**
 
   * better formatting of YANG modules with -f yang
