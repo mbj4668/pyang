@@ -40,7 +40,7 @@ class YANGPlugin(plugin.PyangPlugin):
         emit_yang(ctx, module, fd)
 
 def emit_yang(ctx, module, fd):
-    emit_stmt(ctx, module, fd, 0, None, '', '  ')
+    emit_stmt(ctx, module, fd, 0, None, None, False, '', '  ')
 
 # always add newline between keyword and argument
 _force_newline_arg = ('description', 'reference', 'contact', 'organization')
@@ -56,11 +56,11 @@ _maybe_quote_arg_type = ('enum-arg', )
 
 # add extra blank line after these, when they occur on the top level
 _keyword_with_trailing_blank_line_toplevel = (
-    'description',
     'identity',
     'feature',
     'extension',
     'rpc',
+    'notification',
     'augment',
     'deviation',
     )
@@ -69,8 +69,6 @@ _keyword_with_trailing_blank_line_toplevel = (
 _keyword_with_trailing_blank_line = (
     'typedef',
     'grouping',
-    'notification',
-    'action',
     )
 
 # use single quote for the arguments to these keywords (if possible)
@@ -125,7 +123,8 @@ _need_quote = (
     "\n", "\t", "\r", "//", "/*", "*/",
     )
 
-def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
+def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
+              indent, indentstep):
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
@@ -140,10 +139,10 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
 
     kwd_class = get_kwd_class(stmt.keyword)
     if ((level == 1 and
-         kwd_class != prev_kwd_class and kwd_class != 'extension') or
-        (level == 1 and stmt.keyword in
-         _keyword_with_trailing_blank_line_toplevel) or
-        stmt.keyword in _keyword_with_trailing_blank_line):
+         kwd_class != prev_kwd_class and kwd_class != 'extension') and
+        not ((level == 1 and prev_kwd in
+              _keyword_with_trailing_blank_line_toplevel) or
+             prev_kwd in _keyword_with_trailing_blank_line)):
         fd.write('\n')
 
     if stmt.keyword == '_comment':
@@ -216,15 +215,24 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd_class, indent, indentstep):
             substmts = stmt.substmts
         if level == 0:
             kwd_class = 'header'
-        for s in substmts:
+        prev_kwd = None
+        for i, s in enumerate(substmts, start=1):
             n = 1
             if arg_on_new_line:
                 # arg was printed on a new line, increase indentation
                 n = 2
-            emit_stmt(ctx, s, fd, level + 1, kwd_class,
+            emit_stmt(ctx, s, fd, level + 1, prev_kwd, kwd_class,
+                      i == len(substmts),
                       indent + (indentstep * n), indentstep)
             kwd_class = get_kwd_class(s.keyword)
+            prev_kwd = s.keyword
         fd.write(indent + '}\n')
+
+    if (not(islast) and
+        ((level == 1 and stmt.keyword in
+          _keyword_with_trailing_blank_line_toplevel) or
+         stmt.keyword in _keyword_with_trailing_blank_line)):
+        fd.write('\n')
 
 def need_new_line(max_line_len, line_len, arg):
     eol = arg.find('\n')
