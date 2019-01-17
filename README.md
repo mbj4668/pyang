@@ -12,6 +12,72 @@
 
   * ... and various other enhancements and bug fixes, see CHANGES.
 
+See below for previous releases.
+
+---
+
+
+## Overview ##
+
+YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
+
+pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
+
+## Installation ##
+
+Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
+
+```
+# pip install pyang
+```
+
+### Compatibility ###
+
+pyang is compatible with the following IETF RFCs:
+
+  * [RFC 6020](http://tools.ietf.org/html/rfc6020)
+  * [RFC 6087](http://tools.ietf.org/html/rfc6087)
+  * [RFC 6110](http://tools.ietf.org/html/rfc6110)
+  * [RFC 6643](http://tools.ietf.org/html/rfc6643)
+  * [RFC 7950](http://tools.ietf.org/html/rfc7950)
+  * [RFC 7952](http://tools.ietf.org/html/rfc7952)
+  * [RFC 8040](http://tools.ietf.org/html/rfc8040)
+
+## Features ##
+
+  * Validate YANG modules.
+  * Convert YANG modules to YIN, and YIN to YANG.
+  * Translate YANG data models to DSDL schemas, which can be used for
+    validating various XML instance documents. See
+    [InstanceValidation](https://github.com/mbj4668/pyang/wiki/InstanceValidation).
+  * Translate YANG data models to XSD.
+  * Generate UML diagrams from YANG models. See
+    [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
+    an example.
+  * Generate compact tree representation of YANG models for quick
+  visualization. See
+  [TreeOutput](https://github.com/mbj4668/pyang/wiki/TreeOutput) for
+  an example.
+  * Generate a skeleton XML instance document from the data model.
+  * Schema-aware translation of instance documents encoded in XML to
+    JSON and vice-versa. See
+    [XmlJson](https://github.com/mbj4668/pyang/wiki/XmlJson).
+  * Plugin framework for simple development of other outputs, such as
+    code generation.
+
+
+---
+
+
+## Documentation ##
+
+See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
+
+
+---
+
+## Previous releases ##
+
 **2018-04-25 - Version 1.7.5 released**
 
   * tree plugin updated to align with RFC 8340
@@ -94,63 +160,3 @@
     an example.
   * The DSDL plugin is updated to [RFC 6110](http://tools.ietf.org/html/rfc6110)
   * ... and various bug fixes.
-
-
----
-
-
-## Overview ##
-
-YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
-
-pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
-
-## Installation ##
-
-As of version 6.0, pyang can be installed from
-[PyPI](https://pypi.python.org/pypi):
-
-```
-# pip install pyang
-```
-
-### Compatibility ###
-
-pyang is compatible with the following IETF RFCs:
-
-  * [RFC 6020](http://tools.ietf.org/html/rfc6020)
-  * [RFC 6087](http://tools.ietf.org/html/rfc6087)
-  * [RFC 6110](http://tools.ietf.org/html/rfc6110)
-  * [RFC 6643](http://tools.ietf.org/html/rfc6643)
-  * [RFC 7950](http://tools.ietf.org/html/rfc7950)
-  * [RFC 7952](http://tools.ietf.org/html/rfc7952)
-
-## Features ##
-
-  * Validate YANG modules.
-  * Convert YANG modules to YIN, and YIN to YANG.
-  * Translate YANG data models to DSDL schemas, which can be used for
-    validating various XML instance documents. See
-    [InstanceValidation](https://github.com/mbj4668/pyang/wiki/InstanceValidation).
-  * Translate YANG data models to XSD.
-  * Generate UML diagrams from YANG models. See
-    [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
-    an example.
-  * Generate compact tree representation of YANG models for quick
-  visualization. See
-  [TreeOutput](https://github.com/mbj4668/pyang/wiki/TreeOutput) for
-  an example.
-  * Generate a skeleton XML instance document from the data model.
-  * Schema-aware translation of instance documents encoded in XML to
-    JSON and vice-versa. See
-    [XmlJson](https://github.com/mbj4668/pyang/wiki/XmlJson).
-  * Plugin framework for simple development of other outputs, such as
-    code generation.
-
-
----
-
-
-## Documentation ##
-
-See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
