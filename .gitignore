@@ -29,4 +29,4 @@ schemas.xml
 /test/test_json/test-data-new.json
 /test/test_json/test-data.xml
 /test/test_xsd/*.xsd
-/test/test_yang/out/
+/test/test_*/out/
