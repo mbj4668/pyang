@@ -1,3 +1,33 @@
+   1.7.6 - 2019-01-17
+         fixed grammar; do not allow "must" in "choice"
+         added --yang-line-length to try to format lines with max length
+         various fixes to -f yang for consistency in the output
+         -f yang now keeps concatenated strings from the input and use them
+           in the output (properly indented)
+
+         pr:403 - fix json config validation error message
+                  thanks to Ganesh Nalawade
+         pr:417 - added --check-update-from-deviation-module
+                  thanks to Jonathan Yang
+         pr:420 - emit module name for augmented nodes in tree format
+                  thanks to Mark Farrell
+         pr:424 - update check-update-from option according to RFC 7950
+                  thanks to Miroslav Kovac
+         pr:434 - unique statement now checked for nodes inside choice in dsdl
+                  thanks to Norbert Varkonyi
+         pr:435 - added new "transform" generic plugin type and -t option
+                  thanks to William Lupton
+         pr:439 - print files read with --verbose
+                  thanks to William Lupton
+         pr:444 - do not treat flymake temp files as plugins
+                  thanks to Martin Volf
+         pr:454 - fix pyang.bat for windows
+                  thanks to Jozef Janitor
+
+         #397 - fix crash in sample-xml-skeleton format
+         #418 - properly handle identityref defaults in sample-xml-skeleton
+         #450 - allow choice of containers in rc:yang-data
+
    1.7.5 - 2018-04-25
          the tree output is now aligned with RFC 8340
          remove trailing whitespace from double quoted strings

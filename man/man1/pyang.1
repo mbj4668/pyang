@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2018-04-25
+.\"      Date: 2019-01-17
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.7.5
+.\"    Source: pyang-1.7.6
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2018\-04\-25" "pyang\-1\&.7\&.5" "pyang manual"
+.TH "PYANG" "1" "2019\-01\-17" "pyang\-1\&.7\&.6" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -33,9 +33,9 @@ pyang \- validate and convert YANG modules to various formats
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR \-h | \-\-help
+\fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR \-v | \-\-version
+\fBpyang\fR \-v | \-\-version 
 .PP
 One or more
 \fIfile\fR
@@ -450,15 +450,14 @@ is a colon (:) separated list of directories to search for imported modules\&. T
 \fB\-D\fR \fB\-\-check\-update\-from\-deviation\-module\fR \fIolddeviation\fR
 .RS 4
 \fIolddeviation\fR
-is an old deviation module of the old module\&. This option may be given multiple times\&.
-.sp
-For example, to check updates of a module with some deviations applied, do:
+is an old deviation module of the old module
+\fIoldfile\fR\&. This option may be given multiple times\&. For example, to check updates of a module with some deviations applied, do:
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ pyang \-\-check\-update\-from\-deviation\-module oldmod\-devs\&.yang \-\-check\-update\-from oldmod\&.yang
+$ pyang \-\-check\-update\-from\-deviation\-module oldmod\-devs\&.yang \-\-check\-update\-from oldmod\&.yang \e
   \-\-deviation\-module newmod\-devs\&.yang newmod\&.yang
 .fi
 .if n \{\
@@ -1090,7 +1089,7 @@ leaf my\-port {
     path "deref(\&.\&./my\-ip)/\&.\&./port";
   }
 }
-
+      
 .fi
 .if n \{\
 .RE
@@ -1131,7 +1130,7 @@ The following example converts the ietf\-netconf\-monitoring module into a UML d
         ietf\-netconf\-monitoring\&.uml
         $ java \-jar plantuml\&.jar ietf\-netconf\-monitoring\&.uml
         $ open img/ietf\-netconf\-monitoring\&.png
-
+      
 .fi
 .if n \{\
 .RE

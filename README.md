@@ -2,7 +2,18 @@
 [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## News ##
+
+**2019-01-17 - Version 1.7.6 released**
+
+  * better formatting of YANG modules with -f yang
+
+  * new type of plugin ("transform") to make transformations on the
+    representation of the YANG module
+
+  * ... and various other enhancements and bug fixes, see CHANGES.
+
 **2018-04-25 - Version 1.7.5 released**
+
   * tree plugin updated to align with RFC 8340
 
   * better formatting of YANG modules with -f yang
