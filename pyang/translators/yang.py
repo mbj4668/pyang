@@ -106,6 +106,10 @@ _kwd_class = {
     'feature': 'defs',
     'extension': 'defs',
     '_comment': 'comment',
+    'augment': 'augment',
+    'rpc': 'rpc',
+    'notification': 'notification',
+    'deviation': 'deviation',
     'module': None,
     'submodule': None,
 }
