@@ -230,7 +230,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse)
+    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse,
+                                 verbose=o.verbose)
 
     ctx = pyang.Context(repos)
 

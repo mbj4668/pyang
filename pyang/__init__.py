@@ -79,7 +79,8 @@ class Context(object):
 
         if expect_modulename is not None:
             if not re.match(syntax.re_identifier, expect_modulename):
-                error.err_add(self.errors, module.pos, 'FILENAME_BAD_MODULE_NAME',
+                error.err_add(self.errors, module.pos,
+                              'FILENAME_BAD_MODULE_NAME',
                               (ref, expect_modulename, syntax.identifier))
             elif expect_modulename != module.arg:
                 if expect_failure_error:
@@ -168,7 +169,7 @@ class Context(object):
             if rev is None:
                 # now we must read the revision from the module
                 try:
-                    r = self.repository.get_module_from_handle(handle, self)
+                    r = self.repository.get_module_from_handle(handle)
                 except self.repository.ReadError as ex:
                     i += 1
                     continue
@@ -251,7 +252,7 @@ class Context(object):
         else:
             # get it from the repos
             try:
-                r = self.repository.get_module_from_handle(handle, self)
+                r = self.repository.get_module_from_handle(handle)
                 (ref, format, text) = r
                 module = self.add_module(ref, text, format,
                                          modulename, revision)
@@ -313,7 +314,7 @@ class Context(object):
         else:
             # get it from the repos
             try:
-                r = self.repository.get_module_from_handle(handle, self)
+                r = self.repository.get_module_from_handle(handle)
                 (ref, format, text) = r
                 if format == None:
                     format = util.guess_format(text)
@@ -357,7 +358,7 @@ class Repository(object):
         retrieve the module.
         """
 
-    def get_module_from_handle(self, handle, ctx):
+    def get_module_from_handle(self, handle):
         """Return the raw module text from the repository
 
         Returns (`ref`, `format`, `text`) if found, or None if not found.
@@ -376,7 +377,8 @@ class Repository(object):
             Exception.__init__(self, str)
 
 class FileRepository(Repository):
-    def __init__(self, path="", use_env=True, no_path_recurse=False):
+    def __init__(self, path="", use_env=True, no_path_recurse=False,
+                 verbose=False):
         """Create a Repository which searches the filesystem for modules
 
         `path` is a `os.pathsep`-separated string of directories
@@ -386,6 +388,7 @@ class FileRepository(Repository):
         self.dirs = path.split(os.pathsep)
         self.no_path_recurse = no_path_recurse
         self.modules = None
+        self.verbose = verbose
 
         if use_env:
             modpath = os.getenv('YANG_MODPATH')
@@ -491,13 +494,13 @@ class FileRepository(Repository):
             self._setup(ctx)
         return self.modules
 
-    def get_module_from_handle(self, handle, ctx):
+    def get_module_from_handle(self, handle):
         (format, absfilename) = handle
         fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
-            if ctx.opts.verbose:
+            if self.verbose:
                 util.report_file_read(absfilename)
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
