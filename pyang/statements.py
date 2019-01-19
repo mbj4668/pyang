@@ -2948,12 +2948,14 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
-    def search(self, keyword, children=None):
+    def search(self, keyword, children=None, arg=None):
         """Return list of receiver's substmts with `keyword`.
         """
         if children is None:
             children = self.substmts
-        return [ ch for ch in children if ch.keyword == keyword ]
+        return [ ch for ch in children
+                 if (ch.keyword == keyword and
+                     (arg is None or ch.arg == arg))]
 
     def search_one(self, keyword, arg=None, children=None):
         """Return receiver's substmt with `keyword` and optionally `arg`.

@@ -207,8 +207,7 @@ def check_update(ctx, oldfilename, newmod):
     for olds in oldmod.search('extension'):
         chk_extension(olds, newmod, ctx)
 
-    for olds in oldmod.search('augment'):
-        chk_augment(olds, newmod, ctx)
+    chk_augment(oldmod, newmod, ctx)
 
     chk_i_children(oldmod, newmod, ctx)
 
@@ -318,15 +317,31 @@ def chk_extension(olds, newmod, ctx):
               newyin.arg != oldyin.arg):
             err_def_changed(oldyin, newyin, ctx)
 
-def chk_augment(olds, newmod, ctx):
-    ## this is not quite correct; it should be ok to change the
-    ## prefix, so augmenting /x:a in the old module, but /y:a in the
-    ## new module, if x and y are prefixes to the same module, should
-    ## be ok.
-    news = chk_stmt(olds, newmod, ctx)
-    if news is None:
-        return
-    chk_i_children(olds, news, ctx)
+
+def chk_augment(oldmod, newmod, ctx):
+    # group augment of same target together, and compare with all
+    # augment of same target in newmod
+    targets = {}
+    for olds in oldmod.search('augment'):
+        if olds.arg in targets:
+            targets[olds.arg].extend(olds.i_children)
+        else:
+            targets[olds.arg] = list(olds.i_children) # copy
+    for t in targets:
+        newchs = []
+        # this is not quite correct; it should be ok to change the
+        # prefix, so augmenting /x:a in the old module, but /y:a in the
+        # new module, if x and y are prefixes to the same module, should
+        # be ok.
+        for news in newmod.search('augment', arg=t):
+            newchs.extend(news.i_children)
+
+        if len(newchs) == 0:
+            for olds in oldmod.search('augment', arg=t):
+                err_def_removed(olds, newmod, ctx)
+        else:
+            for oldch in targets[t]:
+                chk_children(oldch, newchs, newmod, ctx)
 
 def chk_stmt(olds, newp, ctx):
     news = newp.search_one(olds.keyword, arg = olds.arg)
@@ -346,15 +361,18 @@ def chk_i_children(old, new, ctx):
             err_add(ctx.errors, newch.pos, 'CHK_NEW_MANDATORY', newch.arg)
 
 def chk_child(oldch, newp, ctx):
+    chk_children(oldch, newp.i_children, newp, ctx)
+
+def chk_children(oldch, newchs, newp, ctx):
     newch = None
-    for ch in newp.i_children:
+    for ch in newchs:
         if ch.arg == oldch.arg:
             newch = ch
             break
     if newch is None:
         err_def_removed(oldch, newp, ctx)
         return
-    newp.i_children.remove(newch)
+    newchs.remove(newch)
     if newch.keyword != oldch.keyword:
         err_add(ctx.errors, newch.pos, 'CHK_CHILD_KEYWORD_CHANGED',
                 (oldch.keyword, newch.arg, newch.keyword))

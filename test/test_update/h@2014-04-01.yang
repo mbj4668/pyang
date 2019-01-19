@@ -1,0 +1,33 @@
+module h {
+  namespace urn:h;
+  prefix h;
+
+  import g {
+    prefix g;
+  }
+
+  revision 2014-04-01;
+
+  grouping g1 {
+    container foo;
+  }
+
+  grouping g2 {
+    container bar;
+  }
+
+  augment /g:a { // same as in old
+    uses g2;
+  }
+
+  augment /g:a { // same as in old
+    uses g1;
+  }
+
+  // error: removed 2 augments
+
+  augment /g:c { // error: different than in old
+    uses g2;
+  }
+
+}
