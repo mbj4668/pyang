@@ -3,6 +3,14 @@
 
 ## News ##
 
+**2019-01-21 - Version 1.7.8 released**
+
+  * reverted method signature change for Repository.get_module_from_handle().
+    it now has the same signature as in 1.7.5.
+
+  * fixed bug in check_update when there were more than one augment for
+    the same target node.
+
 **2019-01-17 - Version 1.7.7 released**
 
   * fixed a bug in -f yang formatting
