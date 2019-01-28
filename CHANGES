@@ -1,3 +1,14 @@
+   1.7.8 - 2019-01-21
+         for python coders: reverted method signature change for
+         Repository.get_module_from_handle().  it now has the same
+         signature as in 1.7.5.
+
+         fixed bug in check_update when there were more than one
+         augment for the same target node.
+
+   1.7.7 - 2019-01-17
+         fixed a bug in -f yang formatting
+
    1.7.6 - 2019-01-17
          fixed grammar; do not allow "must" in "choice"
          added --yang-line-length to try to format lines with max length
