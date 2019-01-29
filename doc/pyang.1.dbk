@@ -621,6 +621,18 @@
           </para>
         </listitem>
       </varlistentry>
+      
+      <varlistentry>
+        <term>
+          <option>--ignore-default-path</option>
+        </term>
+        <listitem>
+          <para>
+            If this parameter is given, yang models in the default paths
+            are ignored.
+          </para>
+        </listitem>
+      </varlistentry>
 
       <varlistentry>
         <term>
