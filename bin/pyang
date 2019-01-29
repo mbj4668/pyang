@@ -164,8 +164,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="ensure_hyphenated_names",
                              action="store_true",
                              help="No upper case and underscore in names."),
-        optparse.make_option("--ignore-system-yangs",
-                             dest="ignore_system_yangs",
+        optparse.make_option("--ignore-default-path",
+                             dest="ignore-default-path",
                              action="store_true",
                              help="Do not use the default system-wide " \
                                   "yang paths."),
@@ -232,7 +232,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         path += os.pathsep + "."
 
     repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse,
-        use_env=not o.ignore_system_yangs)
+        use_env=not o.ignore-default-path)
 
     ctx = pyang.Context(repos)
 
