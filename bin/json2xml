@@ -184,7 +184,7 @@ class Translator (object):
                         knode = el.find(self.et_qname(*k))
                         try:
                             el.remove(knode)
-                        except ValueError:
+                        except (ValueError, TypeError):
                             raise MissingKeyError(ent_path, k)
                         el.insert(0,knode)
                     i += 1

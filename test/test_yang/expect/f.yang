@@ -1,0 +1,27 @@
+module f {
+  prefix f;
+  namespace "urn:f";
+
+  import ietf-interfaces {
+    prefix if;
+  }
+
+  typedef foo {
+    type string;
+  }
+
+  container x {
+    description
+      "This line has trailing spaces.";
+    container y;
+    container bar {
+      leaf z {
+        type string;
+      }
+    }
+  }
+
+  typedef bar {
+    type int32;
+  }
+}

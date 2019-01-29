@@ -3,11 +3,19 @@ import copy
 ### struct to keep track of position for error messages
 
 class Position(object):
+    __slots__ = (
+        'ref',
+        'line',
+        'top',
+        'uses_pos',
+    )
+
     def __init__(self, ref):
         self.ref = ref
         self.line = 0
         self.top = None
         self.uses_pos = None
+
     def __str__(self):
         s = self.ref + ':' + str(self.line)
         if self.uses_pos is None:
@@ -24,6 +32,13 @@ class Abort(Exception):
 class Eof(Exception):
     """raised by tokenizer when end of file is detected"""
     pass
+
+class TransformError(Exception):
+    """raised by plugins to fail the transform() function"""
+
+    def __init__(self, msg="", exit_code=1):
+        self.msg = msg
+        self.exit_code = exit_code
 
 class EmitError(Exception):
     """raised by plugins to fail the emit() function"""
@@ -75,11 +90,14 @@ error_codes = \
        'unexpected keyword "%s", expected one of %s'),
     'UNEXPECTED_KEYWORD_CANONICAL':
       (1,
-       'keyword "%s" not in canonical order, (See RFC 6020, Section 12)'),
+       'keyword "%s" not in canonical order (see RFC 6020, Section 12)'),
     'UNEXPECTED_KEYWORD_CANONICAL_1':
       (1,
        'keyword "%s" not in canonical order,'
-       'expected "%s", (See RFC 6020, Section 12)'),
+       'expected "%s" (see RFC 6020, Section 12)'),
+    'UNEXPECTED_KEYWORD_USES':
+      (1,
+       'unexpected keyword "%s" under "%s", defined at %s'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),
@@ -88,7 +106,8 @@ error_codes = \
        'did not expect an argument, got "%s"'),
     'XML_IDENTIFIER':
       (3,
-       'illegal identifier "%s", must not start with [xX][mM][lL]'),
+       'illegal identifier "%s", must not start with [xX][mM][lL] in'
+       'YANG version 1 (see RFC 6020, Section 12)'),
     'TRAILING_GARBAGE':
       (2,
        'trailing garbage after module'),
@@ -459,9 +478,6 @@ error_codes = \
     'STRICT_XPATH_FUNCTION':
       (2,
        'XPath function "%s" is not allowed for strict YANG compliance'),
-    'NOT_HYPHENATED':
-      (4,
-       'name is not hyphenated, e.g using upper-case or underscore: %s'),
     }
 
 def add_error_code(tag, level, fmt):

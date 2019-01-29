@@ -56,7 +56,7 @@ script_files = []
 if os.name == "nt":
     pyang_bat_file = "{}/{}.bat".format(tempfile.gettempdir(), "pyang")
     with open(pyang_bat_file, 'w') as script:
-        script.write('@echo off\npython %cd%\pyang %*\n')
+        script.write('@echo off\npython %~dp0pyang %*\n')
     script_files = ['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml', pyang_bat_file]
 else:
     script_files = ['bin/pyang', 'bin/yang2html', 'bin/yang2dsdl', 'bin/json2xml']
@@ -65,9 +65,10 @@ setup(name='pyang',
       version=pyang.__version__,
       author='Martin Bjorklund',
       author_email='mbj@tail-f.com',
-      description="A YANG (RFC 6020) validator and converter",
-      long_description="An extensible  YANG (RFC 6020) validator.  Provides a framwork for plugins that can convert YANG modules to other formats.",
+      description="A YANG (RFC 6020/7950) validator and converter",
+      long_description="An extensible  YANG (RFC 6020/7950) validator.  Provides a framework for plugins that can convert YANG modules to other formats.",
       url='https://github.com/mbj4668/pyang',
+      install_requires = ["lxml"],
       license='BSD',
       classifiers=[
             'Development Status :: 5 - Production/Stable',

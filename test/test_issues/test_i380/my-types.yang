@@ -1,0 +1,26 @@
+module my-types {
+  namespace "urn:myt";
+  prefix "myt";
+
+  import my-extensions {
+    prefix "myx";
+  }
+
+  organization
+    "";
+
+  contact
+    "";
+
+  description
+    "";
+
+  revision "2018-03-19" {
+    description
+      "";
+    reference
+      "";
+  }
+
+  myx:version "0.1.2";
+}

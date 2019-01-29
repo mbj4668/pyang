@@ -55,7 +55,6 @@ module a {
     leaf-list baz {
       type string;
       units fo;
-      max-elements 2;
     }
     leaf ggg {
       type string;
@@ -71,9 +70,9 @@ module a {
       }
     }
     leaf bar {
-      if-feature foo;
+      mandatory true;
       type string;
-      must "foo and baz";
+      must "../arne/foo and ../baz";
     }
     uses gg {
       status obsolete;
@@ -122,11 +121,11 @@ module a {
   identity xx;
   identity yy {
     base xx;
+    base x;
   }
 
 
   rpc foo {
-    if-feature foo;
     input {
       leaf foo {
         type string;

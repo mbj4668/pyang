@@ -15,8 +15,8 @@ from . import util
 from . import statements
 from . import syntax
 
-__version__ = '1.7.3'
-__date__ = '2017-06-27'
+__version__ = '1.7.8'
+__date__ = '2019-01-21'
 
 class Context(object):
     """Class which encapsulates a parse session"""
@@ -45,7 +45,7 @@ class Context(object):
         self.features = {}
         self.max_status = None
         self.keep_comments = False
-        self.ensure_hyphenated_names = False
+        self.keep_arg_substrings = False
 
         for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:
@@ -79,7 +79,8 @@ class Context(object):
 
         if expect_modulename is not None:
             if not re.match(syntax.re_identifier, expect_modulename):
-                error.err_add(self.errors, module.pos, 'FILENAME_BAD_MODULE_NAME',
+                error.err_add(self.errors, module.pos,
+                              'FILENAME_BAD_MODULE_NAME',
                               (ref, expect_modulename, syntax.identifier))
             elif expect_modulename != module.arg:
                 if expect_failure_error:
@@ -376,7 +377,8 @@ class Repository(object):
             Exception.__init__(self, str)
 
 class FileRepository(Repository):
-    def __init__(self, path="", use_env=True, no_path_recurse=False):
+    def __init__(self, path="", use_env=True, no_path_recurse=False,
+                 verbose=False):
         """Create a Repository which searches the filesystem for modules
 
         `path` is a `os.pathsep`-separated string of directories
@@ -386,6 +388,7 @@ class FileRepository(Repository):
         self.dirs = path.split(os.pathsep)
         self.no_path_recurse = no_path_recurse
         self.modules = None
+        self.verbose = verbose
 
         if use_env:
             modpath = os.getenv('YANG_MODPATH')
@@ -415,10 +418,21 @@ class FileRepository(Repository):
             if not pkgutil.find_loader('pip'):
                 return  # abort search if pip is not installed
 
-            import pip
-            location = pip.locations.distutils_scheme('pyang')
-            self.dirs.append(os.path.join(location['data'],
-                                          'share','yang','modules'))
+            # hack below to handle pip 10 internals
+            # if someone knows pip and how to fix this, it would be great!
+            location = None
+            try:
+                import pip.locations as locations
+                location = locations.distutils_scheme('pyang')
+            except:
+                try:
+                    import pip._internal.locations as locations
+                    location = locations.distutils_scheme('pyang')
+                except:
+                    pass
+            if location is not None:
+                self.dirs.append(os.path.join(location['data'],
+                                              'share','yang','modules'))
 
 
 
@@ -449,7 +463,9 @@ class FileRepository(Repository):
 
     # FIXME: bad strategy; when revisions are not used in the filename
     # this code parses all modules :(  need to do this lazily
+    # FIXME: actually this function is never called and can be deleted
     def _peek_revision(self, absfilename, format, ctx):
+        fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
@@ -457,6 +473,10 @@ class FileRepository(Repository):
             return None
         except UnicodeDecodeError as ex:
             return None
+        finally:
+            if fd is not None:
+                fd.close()
+
         if format == 'yin':
             p = yin_parser.YinParser()
         else:
@@ -476,14 +496,20 @@ class FileRepository(Repository):
 
     def get_module_from_handle(self, handle):
         (format, absfilename) = handle
+        fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
             text = fd.read()
+            if self.verbose:
+                util.report_file_read(absfilename)
         except IOError as ex:
             raise self.ReadError(absfilename + ": " + str(ex))
         except UnicodeDecodeError as ex:
             s = str(ex).replace('utf-8', 'utf8')
             raise self.ReadError(absfilename + ": unicode error: " + s)
+        finally:
+            if fd is not None:
+                fd.close()
 
         if format is None:
             format = util.guess_format(text)

@@ -20,9 +20,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		xmlns:rng="http://relaxng.org/ns/structure/1.0"
-		xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-		version="1.0">
+                xmlns:rng="http://relaxng.org/ns/structure/1.0"
+                xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+                version="1.0">
 
   <!-- String parameters -->
 
@@ -36,10 +36,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <!-- Base name of the output schemas -->
   <xsl:param name="basename">
     <xsl:for-each
-	select="//rng:grammar/@nma:module">
+        select="//rng:grammar/@nma:module">
       <xsl:value-of select="."/>
       <xsl:if test="position()!=last()">
-	<xsl:text>_</xsl:text>
+        <xsl:text>_</xsl:text>
       </xsl:if>
     </xsl:for-each>
   </xsl:param>
@@ -55,67 +55,73 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       name="nc-uri">urn:ietf:params:xml:ns:netconf:base:1.0</xsl:param>
   <xsl:param name="yang-uri">urn:ietf:params:xml:ns:yang:1</xsl:param>
   <xsl:param name="en-uri">urn:ietf:params:xml:ns:netconf:notification:1.0</xsl:param>
+  <xsl:param name="ncds-uri">urn:ietf:params:xml:ns:yang:ietf-netconf-datastores</xsl:param>
 
   <xsl:variable name="netconf-part">
     <xsl:choose>
       <xsl:when test="$target='config'">
-	<xsl:text>/nc:config</xsl:text>
+        <xsl:text>/nc:config</xsl:text>
       </xsl:when>
       <xsl:when
-	  test="$target='get-config-reply' or
-		$target='get-reply'">
-	<xsl:text>/nc:rpc-reply/nc:data</xsl:text>
+          test="$target='get-config-reply' or
+                $target='get-reply'">
+        <xsl:text>/nc:rpc-reply/nc:data</xsl:text>
+      </xsl:when>
+      <xsl:when
+          test="$target='get-data-reply'">
+        <xsl:text>/nc:rpc-reply/ncds:data</xsl:text>
       </xsl:when>
       <xsl:when test="$target='edit-config'">
-	<xsl:text>/nc:rpc/nc:edit-config/nc:config</xsl:text>
+        <xsl:text>/nc:rpc/nc:edit-config/nc:config</xsl:text>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-	<xsl:text>/nc:rpc</xsl:text>
+        <xsl:text>/nc:rpc</xsl:text>
       </xsl:when>
       <xsl:when test="$target='rpc-reply'">
-	<xsl:text>/nc:rpc-reply</xsl:text>
+        <xsl:text>/nc:rpc-reply</xsl:text>
       </xsl:when>
       <xsl:when test="$target='notification'">
-	<xsl:text>/en:notification</xsl:text>
+        <xsl:text>/en:notification</xsl:text>
       </xsl:when>
       <xsl:when test="$target='data'">
-	<xsl:text>/nc:data</xsl:text>
+        <xsl:text>/nc:data</xsl:text>
       </xsl:when>
     </xsl:choose>
   </xsl:variable>
 
   <xsl:template name="check-input-pars">
     <xsl:if test="not($target='get-reply' or $target='data' or
-		  $target='rpc' or $target='rpc-reply' or
-		  $target='get-config-reply' or $target='edit-config' or
-		  $target='notification' or $target='config')">
+                  $target='rpc' or $target='rpc-reply' or
+                  $target='get-data-reply' or
+                  $target='get-config-reply' or $target='edit-config' or
+                  $target='notification' or $target='config')">
       <xsl:message terminate="yes">
-	<xsl:text>Bad 'target' parameter: </xsl:text>
-	<xsl:value-of select="$target"/>
+        <xsl:text>Bad 'target' parameter: </xsl:text>
+        <xsl:value-of select="$target"/>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='data' or $target='config' or
-		  $target='edit-config' or starts-with($target,'get'))
-		  and not(//nma:data/rng:*)">
+                  $target='edit-config' or starts-with($target,'get'))
+                  and not(//nma:data/rng:*)">
       <xsl:message terminate="yes">
-	<xsl:text>Data model defines no data.</xsl:text>
+        <xsl:text>Data model defines no data.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="($target='rpc' or $target='rpc-reply') and
-		  not(//nma:rpc)">
+                  not(//nma:rpc)">
       <xsl:message terminate="yes">
-	<xsl:text>Data model defines no RPC methods.</xsl:text>
+        <xsl:text>Data model defines no RPC methods.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="$target='notification' and not(//nma:notification)">
       <xsl:message terminate="yes">
-	<xsl:text>Data model defines no notifications.</xsl:text>
+        <xsl:text>Data model defines no notifications.</xsl:text>
       </xsl:message>
     </xsl:if>
     <xsl:if test="not($gdefs-only='0' or $gdefs-only='1')">
       <xsl:message terminate="yes">
-	<xsl:text>Bad 'gdefs-only' parameter value: </xsl:text>
-	<xsl:value-of select="$gdefs-only"/>
+        <xsl:text>Bad 'gdefs-only' parameter value: </xsl:text>
+        <xsl:value-of select="$gdefs-only"/>
       </xsl:message>
     </xsl:if>
   </xsl:template>

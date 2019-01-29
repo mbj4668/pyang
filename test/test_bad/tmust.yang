@@ -1,0 +1,20 @@
+module tmust {
+
+  namespace "http://netconfcentral.org/ns/tmust";
+
+  prefix tm;
+
+  revision "2015-10-08" {
+  }
+
+  leaf A { type int8; }
+
+  container X {
+    choice Y {
+      must "/A=4";
+      case YY {
+        leaf ZZ { type string; }
+      }
+    }
+  }
+}

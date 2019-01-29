@@ -47,7 +47,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   <xsl:template name="ns-attribute">
     <xsl:attribute name="ns">
       <xsl:choose>
-        <xsl:when test="$target='get-reply' or $target='config' or
+        <xsl:when test="$target='get-reply' or
+                        $target='get-data-reply' or
+                        $target='config' or
                         $target='edit-config' or
                         $target='data' or $target='get-config-reply'
                         or $target='rpc' or $target='rpc-reply'">
@@ -136,17 +138,39 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
           </xsl:element>
         </xsl:when>
         <xsl:when test="$target='get-reply' or
+                        $target='get-data-reply' or
                         $target='get-config-reply'">
           <xsl:element name="element" namespace="{$rng-uri}">
             <xsl:attribute name="name">rpc-reply</xsl:attribute>
             <xsl:call-template name="message-id"/>
-            <xsl:element name="element" namespace="{$rng-uri}">
-              <xsl:attribute name="name">data</xsl:attribute>
-              <xsl:element name="interleave" namespace="{$rng-uri}">
-                <xsl:apply-templates
-                    select="rng:grammar[descendant::nma:data]"/>
-              </xsl:element>
-            </xsl:element>
+            <xsl:choose>
+              <xsl:when test="$target='get-reply' or
+                              $target='get-config-reply'">
+                <xsl:element name="element" namespace="{$rng-uri}">
+                  <xsl:attribute name="name">data</xsl:attribute>
+                  <xsl:element name="interleave" namespace="{$rng-uri}">
+                    <xsl:apply-templates
+                        select="rng:grammar[descendant::nma:data]"/>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:when>
+              <xsl:when test="$target='get-data-reply'">
+                <xsl:element name="grammar" namespace="{$rng-uri}">
+                  <xsl:attribute name="ns">
+                    <xsl:text>urn:ietf:params:xml:ns:yang:ietf-netconf-datastores</xsl:text>
+                  </xsl:attribute>
+                  <xsl:element name="start" namespace="{$rng-uri}">
+                    <xsl:element name="element" namespace="{$rng-uri}">
+                      <xsl:attribute name="name">data</xsl:attribute>
+                      <xsl:element name="interleave" namespace="{$rng-uri}">
+                        <xsl:apply-templates
+                            select="rng:grammar[descendant::nma:data]"/>
+                      </xsl:element>
+                    </xsl:element>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:when>
+            </xsl:choose>
           </xsl:element>
         </xsl:when>
         <xsl:when test="$target='edit-config'">
@@ -215,6 +239,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         select="descendant::nma:data[
                 $target='data' or $target='config' or
                 $target='edit-config' or $target='get-reply'
+                or $target='get-data-reply'
                 or $target='get-config-reply']
                 |descendant::nma:rpcs[$target='rpc' or
                 $target='rpc-reply']
@@ -227,8 +252,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         <xsl:if test="$target='edit-config'">
           <xsl:call-template name="include-grammar">
             <xsl:with-param
-		name="file-name"
-		select="concat($schema-dir,'/edit-config-attributes.rng')"/>
+                name="file-name"
+                select="concat($schema-dir,'/edit-config-attributes.rng')"/>
           </xsl:call-template>
         </xsl:if>
         <xsl:if test="/rng:grammar/rng:define">

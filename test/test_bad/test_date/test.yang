@@ -1,0 +1,11 @@
+module test {
+
+  namespace "http://example.com/test";
+
+  prefix "t";
+
+  revision 2018-02-29 {
+      description
+        "This is a out-of-bounds date.";
+  }
+}

@@ -2,3 +2,5 @@ yt2.yang:76: error: XML_IDENTIFIER
 yt2.yang:78: error: XML_IDENTIFIER
 yt1.yang:22: error: TYPE_VALUE
 yt1.yang:38: error: TYPE_VALUE
+yt1.yang:74: error: TYPE_VALUE
+yt1.yang:82: error: TYPE_VALUE

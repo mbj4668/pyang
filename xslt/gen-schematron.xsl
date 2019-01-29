@@ -74,10 +74,10 @@ The stylesheet uses the following modes:
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		xmlns:rng="http://relaxng.org/ns/structure/1.0"
-		xmlns:sch="http://purl.oclc.org/dsdl/schematron"
-		xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
-		version="1.0">
+                xmlns:rng="http://relaxng.org/ns/structure/1.0"
+                xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+                xmlns:nma="urn:ietf:params:xml:ns:netmod:dsdl-annotations:1"
+                version="1.0">
 
   <xsl:output method="xml" encoding="utf-8"/>
   <xsl:strip-space elements="*"/>
@@ -93,7 +93,7 @@ The stylesheet uses the following modes:
     <xsl:param name="message"/>
     <xsl:element name="sch:assert">
       <xsl:attribute name="test">
-	<xsl:value-of select="$test"/>
+        <xsl:value-of select="$test"/>
       </xsl:attribute>
       <xsl:value-of select="$message"/>
     </xsl:element>
@@ -105,7 +105,7 @@ The stylesheet uses the following modes:
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:value-of select="$test"/>
+        <xsl:value-of select="$test"/>
       </xsl:attribute>
       <xsl:value-of select="$message"/>
     </xsl:element>
@@ -115,12 +115,16 @@ The stylesheet uses the following modes:
   <xsl:template name="nc-namespace">
     <xsl:choose>
       <xsl:when test="$target='config' or $target='get-reply' or
-		      $target='get-config-reply' or $target='data'
-		      or $target='rpc' or $target='rpc-reply'">
-	  <sch:ns uri="{$nc-uri}" prefix="nc"/>
+                      $target='get-config-reply' or $target='data'
+                      or $target='rpc' or $target='rpc-reply'">
+          <sch:ns uri="{$nc-uri}" prefix="nc"/>
+      </xsl:when>
+      <xsl:when test="$target='get-data-reply'">
+          <sch:ns uri="{$nc-uri}" prefix="nc"/>
+          <sch:ns uri="{$ncds-uri}" prefix="ncds"/>
       </xsl:when>
       <xsl:when test="$target='notification'">
-	  <sch:ns uri="{$en-uri}" prefix="en"/>
+          <sch:ns uri="{$en-uri}" prefix="en"/>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -139,18 +143,18 @@ The stylesheet uses the following modes:
     <xsl:param name="path"/>
     <xsl:choose>
       <xsl:when test="contains($path, '/')">
-	<xsl:call-template name="qname">
-	  <xsl:with-param name="name" select="substring-before($path, '/')"/>
-	</xsl:call-template>
-	<xsl:text>/</xsl:text>
-	<xsl:call-template name="qpath">
-	  <xsl:with-param name="path" select="substring-after($path, '/')"/>
-	</xsl:call-template>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="substring-before($path, '/')"/>
+        </xsl:call-template>
+        <xsl:text>/</xsl:text>
+        <xsl:call-template name="qpath">
+          <xsl:with-param name="path" select="substring-after($path, '/')"/>
+        </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:call-template name="qname">
-	  <xsl:with-param name="name" select="$path"/>
-	</xsl:call-template>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="$path"/>
+        </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -161,11 +165,11 @@ The stylesheet uses the following modes:
     <xsl:param name="path" select="."/>
     <xsl:choose>
       <xsl:when test="starts-with($path,'$root')">
-	<xsl:value-of select="concat($netconf-part,'/',
-			      substring-after($path,'/'))"/>
+        <xsl:value-of select="concat($netconf-part,'/',
+                              substring-after($path,'/'))"/>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:value-of select="$path"/>
+        <xsl:value-of select="$path"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -174,8 +178,8 @@ The stylesheet uses the following modes:
        in the input hybrid schema -->
   <xsl:template name="yam-namespaces">
     <xsl:for-each
-	select="namespace::*[not(name()='xml' or .=$rng-uri or
-		.=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
+        select="namespace::*[not(name()='xml' or .=$rng-uri or
+                .=$dtdc-uri or .=$dc-uri or .=$nma-uri)]">
       <sch:ns uri="{.}" prefix="{name()}"/>
     </xsl:for-each>
   </xsl:template>
@@ -186,21 +190,21 @@ The stylesheet uses the following modes:
     <xsl:param name="nodelist"/>
     <xsl:choose>
       <xsl:when test="contains($nodelist,' ')">
-	<xsl:call-template name="uniq-expr-comp">
-	  <xsl:with-param name="key"
-			  select="substring-before($nodelist, ' ')"/>
-	</xsl:call-template>
-	<xsl:text> and </xsl:text>
-	<xsl:call-template name="check-dup-expr">
-	  <xsl:with-param name="nodelist"
-			  select="substring-after($nodelist,' ')"/>
-	</xsl:call-template>
+        <xsl:call-template name="uniq-expr-comp">
+          <xsl:with-param name="key"
+                          select="substring-before($nodelist, ' ')"/>
+        </xsl:call-template>
+        <xsl:text> and </xsl:text>
+        <xsl:call-template name="check-dup-expr">
+          <xsl:with-param name="nodelist"
+                          select="substring-after($nodelist,' ')"/>
+        </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>  <!-- just one node -->
-	<xsl:call-template name="uniq-expr-comp">
-	  <xsl:with-param name="key"
-			  select="$nodelist"/>
-	</xsl:call-template>
+        <xsl:call-template name="uniq-expr-comp">
+          <xsl:with-param name="key"
+                          select="$nodelist"/>
+        </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -211,7 +215,7 @@ The stylesheet uses the following modes:
     <xsl:param name="key"/>
     <xsl:variable name="qkey">
       <xsl:call-template name="qpath">
-	<xsl:with-param name="path" select="$key"/>
+        <xsl:with-param name="path" select="$key"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:value-of select="concat($qkey,'=current()/',$qkey)"/>
@@ -225,18 +229,18 @@ The stylesheet uses the following modes:
     <!-- Get all annotated non-element patterns that are not inside a
     "rng:element" pattern. -->
     <xsl:variable
-	name="todo"
-	select="(descendant::rng:choice[@nma:when or @nma:mandatory]
-		|descendant::rng:ref[@nma:when])
-		[not(ancestor::rng:element)]"/>
+        name="todo"
+        select="(descendant::rng:choice[@nma:when or @nma:mandatory]
+                |descendant::rng:ref[@nma:when])
+                [not(ancestor::rng:element)]"/>
     <xsl:if test="count($todo) &gt; 0">
       <xsl:element name="sch:rule">
-	<xsl:attribute name="context">
-	  <xsl:value-of select="$ctx"/>
-	</xsl:attribute>
-	<xsl:apply-templates select="$todo">
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:apply-templates>
+        <xsl:attribute name="context">
+          <xsl:value-of select="$ctx"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="$todo">
+          <xsl:with-param name="prefix" select="$prefix"/>
+        </xsl:apply-templates>
       </xsl:element>
     </xsl:if>
   </xsl:template>
@@ -247,23 +251,23 @@ The stylesheet uses the following modes:
     <xsl:param name="ord">&lt;</xsl:param>
     <xsl:variable name="qn">
       <xsl:call-template name="qname">
-	<xsl:with-param name="name" select="../@name"/>
+        <xsl:with-param name="name" select="../@name"/>
       </xsl:call-template>
     </xsl:variable>
     <xsl:call-template name="assert-element">
       <xsl:with-param
-	  name="test"
-	  select="concat('preceding-sibling::',$qn,
-		  ' or count(../',$qn,')',$ord,'=',.)"/>
+          name="test"
+          select="concat('preceding-sibling::',$qn,
+                  ' or count(../',$qn,')',$ord,'=',.)"/>
       <xsl:with-param name="message">
-	<xsl:text>Number of </xsl:text>
-	<xsl:if test="../@nma:leaf-list">leaf-</xsl:if>
-	<xsl:text>list entries must be at </xsl:text>
-	<xsl:choose>
-	  <xsl:when test="$ord='&lt;'">most </xsl:when>
-	  <xsl:otherwise>least </xsl:otherwise>
-	</xsl:choose>
-	<xsl:value-of select="."/>
+        <xsl:text>Number of </xsl:text>
+        <xsl:if test="../@nma:leaf-list">leaf-</xsl:if>
+        <xsl:text>list entries must be at </xsl:text>
+        <xsl:choose>
+          <xsl:when test="$ord='&lt;'">most </xsl:when>
+          <xsl:otherwise>least </xsl:otherwise>
+        </xsl:choose>
+        <xsl:value-of select="."/>
       </xsl:with-param>
     </xsl:call-template>
   </xsl:template>
@@ -274,10 +278,10 @@ The stylesheet uses the following modes:
     <xsl:element name="sch:schema">
       <xsl:attribute name="queryBinding">exslt</xsl:attribute>
       <xsl:element name="sch:ns">
-	<xsl:attribute name="uri">
-	  <xsl:text>http://exslt.org/dynamic</xsl:text>
-	</xsl:attribute>
-	<xsl:attribute name="prefix">dyn</xsl:attribute>
+        <xsl:attribute name="uri">
+          <xsl:text>http://exslt.org/dynamic</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="prefix">dyn</xsl:attribute>
       </xsl:element>
       <xsl:apply-templates select="rng:grammar"/>
     </xsl:element>
@@ -287,16 +291,16 @@ The stylesheet uses the following modes:
     <xsl:call-template name="yam-namespaces"/>
     <xsl:call-template name="nc-namespace"/>
     <!-- Schematron variable 'root' contains the target-dependent
-	 prefix of every absolute path. -->
+         prefix of every absolute path. -->
     <xsl:element name="sch:let">
       <xsl:attribute name="name">root</xsl:attribute>
       <xsl:attribute name="value">
-	<xsl:value-of select="$netconf-part"/>
+        <xsl:value-of select="$netconf-part"/>
       </xsl:attribute>
     </xsl:element>
     <xsl:apply-templates
-	select="rng:define[@nma:leafref|nma:instance-identifier
-		|descendant::rng:*[&annots;]]"/>
+        select="rng:define[@nma:leafref|nma:instance-identifier
+                |descendant::rng:*[&annots;]]"/>
     <xsl:apply-templates select="descendant::rng:grammar"/>
   </xsl:template>
 
@@ -304,46 +308,46 @@ The stylesheet uses the following modes:
     <xsl:element name="sch:pattern">
       <xsl:attribute name="abstract">true</xsl:attribute>
       <xsl:attribute name="id">
-	<xsl:value-of select="@name"/>
+        <xsl:value-of select="@name"/>
       </xsl:attribute>
       <!-- Handle descendant top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule"/>
       <!-- Handle all descendant element patterns with annots. -->
       <xsl:choose>
-	<xsl:when test="@nma:leafref|nma:instance-identifier">
-	  <xsl:element name="sch:rule">
-	    <xsl:attribute name="context">$start</xsl:attribute>
-	    <xsl:apply-templates select="@nma:leafref|nma:instance-identifier">
-	      <xsl:with-param name="prefix">$pref</xsl:with-param>
-	    </xsl:apply-templates>
-	  </xsl:element>
-	</xsl:when>
-	<xsl:otherwise>
-	  <xsl:apply-templates select="descendant::rng:element">
-	    <xsl:with-param name="prefix">$pref</xsl:with-param>
-	  </xsl:apply-templates>
-	</xsl:otherwise>
+        <xsl:when test="@nma:leafref|nma:instance-identifier">
+          <xsl:element name="sch:rule">
+            <xsl:attribute name="context">$start</xsl:attribute>
+            <xsl:apply-templates select="@nma:leafref|nma:instance-identifier">
+              <xsl:with-param name="prefix">$pref</xsl:with-param>
+            </xsl:apply-templates>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="descendant::rng:element">
+            <xsl:with-param name="prefix">$pref</xsl:with-param>
+          </xsl:apply-templates>
+        </xsl:otherwise>
       </xsl:choose>
     </xsl:element>
   </xsl:template>
 
   <xsl:template match="rng:grammar">
     <xsl:apply-templates
-	select="rng:define[@nma:leafref|nma:instance-identifier
-		|descendant::rng:*[&annots;]]"/>
+        select="rng:define[@nma:leafref|nma:instance-identifier
+                |descendant::rng:*[&annots;]]"/>
     <xsl:choose>
       <xsl:when test="$target='data' or $target='config' or
-		      $target='get-reply' or $target='get-config-reply'">
-	<xsl:apply-templates select="descendant::nma:data"/>
+                      $target='get-reply' or $target='get-config-reply'">
+        <xsl:apply-templates select="descendant::nma:data"/>
       </xsl:when>
       <xsl:when test="$target='rpc'">
-	<xsl:apply-templates select="descendant::nma:input"/>
+        <xsl:apply-templates select="descendant::nma:input"/>
       </xsl:when>
       <xsl:when test="$target='rpc-reply'">
-	<xsl:apply-templates select="descendant::nma:output"/>
+        <xsl:apply-templates select="descendant::nma:output"/>
       </xsl:when>
       <xsl:when test="$target='notification'">
-	<xsl:apply-templates select="descendant::nma:notification"/>
+        <xsl:apply-templates select="descendant::nma:notification"/>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
@@ -351,27 +355,27 @@ The stylesheet uses the following modes:
   <xsl:template match="nma:data|nma:input|nma:output|nma:notification">
     <!-- The namespace prefix of the current module. -->
     <xsl:variable
-	name="prefix"
-	select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
+        name="prefix"
+        select="name(namespace::*[.=ancestor::rng:grammar[1]/@ns])"/>
     <xsl:element name="sch:pattern">
       <xsl:attribute name="id">
-	<xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
+        <xsl:value-of select="ancestor::rng:grammar[1]/@nma:module"/>
       </xsl:attribute>
       <!-- Handle top-level non-element patterns with annots. -->
       <xsl:call-template name="top-rule">
-	<xsl:with-param name="ctx" select="$netconf-part"/>
-	<xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="ctx" select="$netconf-part"/>
+        <xsl:with-param name="prefix" select="$prefix"/>
       </xsl:call-template>
       <!-- Handle all descendant element patterns with annots. -->
       <xsl:apply-templates select="descendant::rng:element">
-	<xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="prefix" select="$prefix"/>
       </xsl:apply-templates>
     </xsl:element>
     <!-- Generate instantiations of abstract patterns. -->
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$netconf-part"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -382,27 +386,27 @@ The stylesheet uses the following modes:
     <!-- Get all non-element patterns with annotations that belong to
     the current element (i.e. there is no "rng:element" in between). -->
     <xsl:variable
-	name="todo"
-	select="&annots;|(descendant::rng:choice[@nma:when or @nma:mandatory]
-		|(descendant::rng:interleave|descendant::rng:group|descendant::rng:ref)
-		[@nma:when])[count(ancestor::rng:element[1]|current())=1]"/>
+        name="todo"
+        select="&annots;|(descendant::rng:choice[@nma:when or @nma:mandatory]
+                |(descendant::rng:interleave|descendant::rng:group|descendant::rng:ref)
+                [@nma:when])[count(ancestor::rng:element[1]|current())=1]"/>
     <xsl:if test="count($todo) &gt; 0">
       <xsl:element name="sch:rule">
-	<xsl:attribute name="context">
-	  <xsl:choose>
-	    <xsl:when test="ancestor::rng:define">$start</xsl:when>
-	    <xsl:otherwise>
-	      <xsl:value-of select="$netconf-part"/>
-	    </xsl:otherwise>
-	  </xsl:choose>
-	  <xsl:for-each select="ancestor-or-self::rng:element">
-	    <xsl:text>/</xsl:text>
-	    <xsl:call-template name="qname"/>
-	  </xsl:for-each>
-	</xsl:attribute>
-	<xsl:apply-templates select="$todo">
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:apply-templates>
+        <xsl:attribute name="context">
+          <xsl:choose>
+            <xsl:when test="ancestor::rng:define">$start</xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$netconf-part"/>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:for-each select="ancestor-or-self::rng:element">
+            <xsl:text>/</xsl:text>
+            <xsl:call-template name="qname"/>
+          </xsl:for-each>
+        </xsl:attribute>
+        <xsl:apply-templates select="$todo">
+          <xsl:with-param name="prefix" select="$prefix"/>
+        </xsl:apply-templates>
       </xsl:element>
     </xsl:if>
   </xsl:template>
@@ -419,15 +423,15 @@ The stylesheet uses the following modes:
     <xsl:param name="prefix"/>
     <xsl:call-template name="assert-element">
       <xsl:with-param name="test">
-	<xsl:apply-templates select=".." mode="lookup-subel">
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:apply-templates>
-	<xsl:text>false()</xsl:text>
+        <xsl:apply-templates select=".." mode="lookup-subel">
+          <xsl:with-param name="prefix" select="$prefix"/>
+        </xsl:apply-templates>
+        <xsl:text>false()</xsl:text>
       </xsl:with-param>
       <xsl:with-param
-	  name="message"
-	  select="concat('Node(s) from one case of mandatory choice &quot;',
-		  ../@nma:name,'&quot; must exist')"/>
+          name="message"
+          select="concat('Node(s) from one case of mandatory choice &quot;',
+                  ../@nma:name,'&quot; must exist')"/>
     </xsl:call-template>
   </xsl:template>
 
@@ -435,32 +439,32 @@ The stylesheet uses the following modes:
        false. -->
   <xsl:template
       match="rng:choice/@nma:when|rng:group/@nma:when|
-	     rng:interleave/@nma:when|rng:ref/@nma:when">
+             rng:interleave/@nma:when|rng:ref/@nma:when">
     <xsl:param name="prefix"/>
     <xsl:call-template name="report-element">
       <xsl:with-param name="test">
-	<xsl:value-of select="concat('not(', ., ') and (')"/>
-	<xsl:apply-templates select=".." mode="lookup-subel">
-	  <xsl:with-param name="prefix" select="$prefix"/>
-	</xsl:apply-templates>
-	<!-- This terminates the sequence of or-ed subelements. -->
-	<xsl:text>false())</xsl:text>
+        <xsl:value-of select="concat('not(', ., ') and (')"/>
+        <xsl:apply-templates select=".." mode="lookup-subel">
+          <xsl:with-param name="prefix" select="$prefix"/>
+        </xsl:apply-templates>
+        <!-- This terminates the sequence of or-ed subelements. -->
+        <xsl:text>false())</xsl:text>
       </xsl:with-param>
       <xsl:with-param
-	  name="message"
-	  select="concat('Found nodes that are valid only when &quot;',
-		  .,'&quot;')"/>
+          name="message"
+          select="concat('Found nodes that are valid only when &quot;',
+                  .,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
-  
+
   <xsl:template match="rng:element" mode="lookup-subel">
     <xsl:param name="prefix"/>
     <xsl:choose>
       <xsl:when test="contains(@name, ':')">
-	<xsl:value-of select="@name"/>
+        <xsl:value-of select="@name"/>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:value-of select="concat($prefix, ':', @name)"/>
+        <xsl:value-of select="concat($prefix, ':', @name)"/>
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text>[not(processing-instruction('dsrl'))] or </xsl:text>
@@ -470,7 +474,7 @@ The stylesheet uses the following modes:
     <xsl:param name="prefix"/>
     <!-- Just follow the reference. -->
     <xsl:apply-templates select="key('refdef', @name)"
-			 mode="lookup-subel">
+                         mode="lookup-subel">
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
@@ -478,9 +482,9 @@ The stylesheet uses the following modes:
   <xsl:template match="rng:*" mode="lookup-subel">
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="lookup-subel"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="lookup-subel"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
   </xsl:template>
@@ -489,29 +493,29 @@ The stylesheet uses the following modes:
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:if
-	test="key('refdef',@name)[@nma:leafref|nma:instance-identifier
-	      |descendant::rng:*[&annots;]]">
+        test="key('refdef',@name)[@nma:leafref|nma:instance-identifier
+              |descendant::rng:*[&annots;]]">
       <!-- A "rng:define" with annotations: instantiate the
-	   corresponding abstract pattern.-->
+           corresponding abstract pattern.-->
       <xsl:element name="sch:pattern">
-	<xsl:attribute name="id">
-	  <xsl:value-of select="generate-id()"/>
-	</xsl:attribute>
-	<xsl:attribute name="is-a">
-	  <xsl:value-of select="@name"/>
-	</xsl:attribute>
-	<xsl:element name="sch:param">
-	  <xsl:attribute name="name">start</xsl:attribute>
-	  <xsl:attribute name="value">
-	    <xsl:value-of select="$prevpath"/>
-	  </xsl:attribute>
-	</xsl:element>
-	<xsl:element name="sch:param">
-	  <xsl:attribute name="name">pref</xsl:attribute>
-	  <xsl:attribute name="value">
-	    <xsl:value-of select="$prefix"/>
-	  </xsl:attribute>
-	</xsl:element>
+        <xsl:attribute name="id">
+          <xsl:value-of select="generate-id()"/>
+        </xsl:attribute>
+        <xsl:attribute name="is-a">
+          <xsl:value-of select="@name"/>
+        </xsl:attribute>
+        <xsl:element name="sch:param">
+          <xsl:attribute name="name">start</xsl:attribute>
+          <xsl:attribute name="value">
+            <xsl:value-of select="$prevpath"/>
+          </xsl:attribute>
+        </xsl:element>
+        <xsl:element name="sch:param">
+          <xsl:attribute name="name">pref</xsl:attribute>
+          <xsl:attribute name="value">
+            <xsl:value-of select="$prefix"/>
+          </xsl:attribute>
+        </xsl:element>
       </xsl:element>
     </xsl:if>
     <xsl:apply-templates select="key('refdef',@name)" mode="ref">
@@ -524,16 +528,16 @@ The stylesheet uses the following modes:
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath">
-	<!-- Update the path. -->
-	<xsl:value-of select="concat($prevpath,'/')"/>
-	<xsl:if test="not(contains(@name,':'))">
-	  <xsl:value-of select="concat($prefix,':')"/>
-	</xsl:if>
-	<xsl:value-of select="@name"/>
+        <!-- Update the path. -->
+        <xsl:value-of select="concat($prevpath,'/')"/>
+        <xsl:if test="not(contains(@name,':'))">
+          <xsl:value-of select="concat($prefix,':')"/>
+        </xsl:if>
+        <xsl:value-of select="@name"/>
       </xsl:with-param>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -543,9 +547,9 @@ The stylesheet uses the following modes:
     <xsl:param name="prevpath"/>
     <xsl:param name="prefix"/>
     <xsl:apply-templates
-	mode="ref"
-	select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
-		rng:interleave|rng:zeroOrMore|rng:oneOrMore">
+        mode="ref"
+        select="rng:element|rng:optional|rng:choice|rng:group|rng:ref|
+                rng:interleave|rng:zeroOrMore|rng:oneOrMore">
       <xsl:with-param name="prevpath" select="$prevpath"/>
       <xsl:with-param name="prefix" select="$prefix"/>
     </xsl:apply-templates>
@@ -557,15 +561,15 @@ The stylesheet uses the following modes:
     <xsl:call-template name="assert-element">
       <xsl:with-param name="test" select="@assert"/>
       <xsl:with-param name="message">
-	<xsl:choose>
-	  <xsl:when test="nma:error-message">
-	    <xsl:value-of select="nma:error-message"/>
-	  </xsl:when>
-	  <xsl:otherwise>
-	    <xsl:value-of
-		select="concat('Condition &quot;', @assert, '&quot; must be true')"/>
-	  </xsl:otherwise>
-	</xsl:choose>
+        <xsl:choose>
+          <xsl:when test="nma:error-message">
+            <xsl:value-of select="nma:error-message"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of
+                select="concat('Condition &quot;', @assert, '&quot; must be true')"/>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:with-param>
     </xsl:call-template>
   </xsl:template>
@@ -573,20 +577,20 @@ The stylesheet uses the following modes:
   <xsl:template match="nma:instance-identifier">
     <xsl:if test="not(@require-instance='false')">
       <xsl:element name="sch:let">
-	<xsl:attribute name="name">pth</xsl:attribute>
-	<xsl:attribute name="value">
-	  <xsl:text>concat('</xsl:text>
-	  <xsl:value-of select="$netconf-part"/>
-	  <xsl:text>', .)</xsl:text>
-	</xsl:attribute>
+        <xsl:attribute name="name">pth</xsl:attribute>
+        <xsl:attribute name="value">
+          <xsl:text>concat('</xsl:text>
+          <xsl:value-of select="$netconf-part"/>
+          <xsl:text>', .)</xsl:text>
+        </xsl:attribute>
       </xsl:element>
       <xsl:element name="sch:assert">
-	<xsl:attribute name="test">dyn:evaluate($pth)</xsl:attribute>
-	<xsl:text>The instance "</xsl:text>
-	<xsl:element name="sch:value-of">
-	  <xsl:attribute name="select">$pth</xsl:attribute>
-	</xsl:element>
-	<xsl:text>" must exist.</xsl:text>
+        <xsl:attribute name="test">dyn:evaluate($pth)</xsl:attribute>
+        <xsl:text>The instance "</xsl:text>
+        <xsl:element name="sch:value-of">
+          <xsl:attribute name="select">$pth</xsl:attribute>
+        </xsl:element>
+        <xsl:text>" must exist.</xsl:text>
       </xsl:element>
     </xsl:if>
   </xsl:template>
@@ -595,7 +599,7 @@ The stylesheet uses the following modes:
     <xsl:call-template name="list-unique">
       <xsl:with-param name="tag" select="."/>
       <xsl:with-param
-	  name="message">Duplicate key</xsl:with-param>
+          name="message">Duplicate key</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
@@ -603,7 +607,7 @@ The stylesheet uses the following modes:
     <xsl:call-template name="list-unique">
       <xsl:with-param name="tag" select="@tag"/>
       <xsl:with-param
-	  name="message">Violated uniqueness for</xsl:with-param>
+          name="message">Violated uniqueness for</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
 
@@ -612,15 +616,15 @@ The stylesheet uses the following modes:
     <xsl:param name="message"/>
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:text>preceding-sibling::</xsl:text>
-	<xsl:call-template name="qname">
-	  <xsl:with-param name="name" select="../@name"/>
-	</xsl:call-template>
-	<xsl:text>[</xsl:text>
-	<xsl:call-template name="check-dup-expr">
-	  <xsl:with-param name="nodelist" select="$tag"/>
-	</xsl:call-template>
-	<xsl:text>]</xsl:text>
+        <xsl:text>preceding-sibling::</xsl:text>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="../@name"/>
+        </xsl:call-template>
+        <xsl:text>[</xsl:text>
+        <xsl:call-template name="check-dup-expr">
+          <xsl:with-param name="nodelist" select="$tag"/>
+        </xsl:call-template>
+        <xsl:text>]</xsl:text>
       </xsl:attribute>
       <xsl:value-of select="concat($message, ' &quot;',$tag,'&quot;')"/>
     </xsl:element>
@@ -639,26 +643,26 @@ The stylesheet uses the following modes:
   <xsl:template match="@nma:when">
     <xsl:call-template name="assert-element">
       <xsl:with-param name="test">
-	<xsl:text>ancestor-or-self::*[processing-instruction('dsrl')] or </xsl:text>
-	<xsl:value-of select="concat('(',.,')')"/>
+        <xsl:text>ancestor-or-self::*[processing-instruction('dsrl')] or </xsl:text>
+        <xsl:value-of select="concat('(',.,')')"/>
       </xsl:with-param>
       <xsl:with-param
-	  name="message"
-	  select="concat('Node &quot;', ../@name,
-		  '&quot; is only valid when &quot;',.,'&quot;')"/>
+          name="message"
+          select="concat('Node &quot;', ../@name,
+                  '&quot; is only valid when &quot;',.,'&quot;')"/>
     </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="@nma:leafref">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:value-of select="concat('not(',.,'=.)')"/>
+        <xsl:value-of select="concat('not(',.,'=.)')"/>
       </xsl:attribute>
       <xsl:text>Leaf &quot;</xsl:text>
       <xsl:call-template name="uproot"/>
       <xsl:text>&quot; does not exist for leafref value &quot;</xsl:text>
       <xsl:element name="sch:value-of">
-	<xsl:attribute name="select">.</xsl:attribute>
+        <xsl:attribute name="select">.</xsl:attribute>
       </xsl:element>
       <xsl:text>&quot;</xsl:text>
     </xsl:element>
@@ -667,14 +671,14 @@ The stylesheet uses the following modes:
   <xsl:template match="@nma:leaf-list[.='true']">
     <xsl:element name="sch:report">
       <xsl:attribute name="test">
-	<xsl:text>. = preceding-sibling::</xsl:text>
-	<xsl:call-template name="qname">
-	  <xsl:with-param name="name" select="../@name"/>
-	</xsl:call-template>
+        <xsl:text>. = preceding-sibling::</xsl:text>
+        <xsl:call-template name="qname">
+          <xsl:with-param name="name" select="../@name"/>
+        </xsl:call-template>
       </xsl:attribute>
       <xsl:text>Duplicate leaf-list entry &quot;</xsl:text>
       <xsl:element name="sch:value-of">
-	<xsl:attribute name="select">.</xsl:attribute>
+        <xsl:attribute name="select">.</xsl:attribute>
       </xsl:element>
       <xsl:text>&quot;.</xsl:text>
     </xsl:element>

@@ -1,0 +1,6 @@
+module b {
+  namespace urn:b;
+  prefix b;
+
+  rpc xml-foo;
+}

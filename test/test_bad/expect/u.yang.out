@@ -20,3 +20,5 @@ u.yang:175: error: BAD_BIT_POSITION
 u.yang:187: error: BAD_BIT_POSITION
 u.yang:203: error: TYPE_VALUE
 u.yang:212: error: TYPE_VALUE
+u.yang:222: error: UNEXPECTED_KEYWORD_USES
+u.yang:226: error: UNEXPECTED_KEYWORD_USES

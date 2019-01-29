@@ -1,5 +1,6 @@
 import copy
 import re
+import sys
 
 from . import util
 from .util import attrsearch, keysearch, prefix_to_module, \
@@ -62,7 +63,7 @@ def add_keyword_phase_i_children(phase, keyword):
 
 def add_data_keyword(keyword):
     """Can be used by plugins to register extensions as data keywords."""
-    _data_keywords.append(keyword)
+    data_keywords.append(keyword)
 
 def add_keyword_with_children(keyword):
     _keyword_with_children[keyword] = True
@@ -114,6 +115,7 @@ class Abort(Exception):
 
 re_path = re.compile('(.*)/(.*)')
 re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
+re_and_or = re.compile(r'\band\b|\bor\b')
 
 yang_xpath_functions = [
     'current',
@@ -203,7 +205,7 @@ _validation_map = {
     ('grammar', 'module'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'submodule'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'typedef'):lambda ctx, s: v_grammar_typedef(ctx, s),
-    ('grammar', '*'):lambda ctx, s: v_grammar_unique_defs(ctx, s),
+    ('grammar', '*'):lambda ctx, s: v_grammar_all(ctx, s),
 
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
@@ -300,8 +302,8 @@ _validation_variables = [
     ('$extension', lambda keyword: util.is_prefixed(keyword)),
     ]
 
-_data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
-                  'anyxml', 'anydata', 'action', 'rpc', 'notification']
+data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
+                 'anyxml', 'anydata', 'action', 'rpc', 'notification']
 
 _keywords_with_no_explicit_config = ['action', 'rpc', 'notification']
 
@@ -539,6 +541,10 @@ def v_grammar_typedef(ctx, stmt):
     if types.is_base_type(stmt.arg):
         err_add(ctx.errors, stmt.pos, 'BAD_TYPE_NAME', stmt.arg)
 
+def v_grammar_all(ctx, stmt):
+    v_grammar_unique_defs(ctx, stmt)
+    v_grammar_identifier(ctx, stmt)
+
 def v_grammar_unique_defs(ctx, stmt):
     """Verify that all typedefs and groupings are unique
     Called for every statement.
@@ -559,6 +565,20 @@ def v_grammar_unique_defs(ctx, stmt):
                         errcode, (definition.arg, other.pos))
             else:
                 dict[definition.arg] = definition
+
+def v_grammar_identifier(ctx, stmt):
+    try:
+        (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
+    except KeyError:
+        return
+    if (arg_type == 'identifier' and
+        grammar.re_identifier_illegal_prefix.search(stmt.arg) is not None):
+        if stmt.keyword == 'module' or stmt.keyword == 'submodule':
+            mod = stmt
+        else:
+            mod = stmt.i_module
+        if mod.i_version == '1':
+            err_add(ctx.errors, stmt.pos, 'XML_IDENTIFIER', stmt.arg)
 
 ### import and include phase
 
@@ -1429,7 +1449,7 @@ def v_expand_1_children(ctx, stmt):
             for a in s.search('augment'):
                 v_expand_2_augment(ctx, a)
 
-        elif s.keyword in _data_keywords and hasattr(stmt, 'i_children'):
+        elif s.keyword in data_keywords and hasattr(stmt, 'i_children'):
             stmt.i_children.append(s)
             v_expand_1_children(ctx, s)
         elif s.keyword in _keyword_with_children:
@@ -1523,8 +1543,17 @@ def v_expand_1_uses(ctx, stmt):
                          target.arg, keyword))
                 return
 
+    (_arg_type, subspec) = grammar.stmt_map[stmt.parent.keyword]
+    subspec = grammar.flatten_spec(subspec)
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
+        if util.keysearch(g.keyword, 0, subspec) == None:
+            err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_USES',
+                    (util.keyword_to_str(g.raw_keyword),
+                     util.keyword_to_str(stmt.parent.raw_keyword),
+                     g.pos))
+            continue
+
         # don't copy the type since it cannot be modified anyway.
         # not copying the type also works better for some plugins that
         # generate output from the i_children list, e.g. the XSD plugin.
@@ -2309,7 +2338,7 @@ def has_type(type, names):
 def is_mandatory_node(stmt):
     if hasattr(stmt, 'i_config') and stmt.i_config == False:
         return False
-    if stmt.keyword == 'leaf':
+    if stmt.keyword in ('leaf', 'choice', 'anyxml', 'anydata'):
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
             return True
@@ -2387,7 +2416,7 @@ def search_data_keyword_child(children, modulename, identifier):
     for child in children:
         if ((child.arg == identifier) and
             (child.i_module.i_modulename == modulename) and
-            child.keyword in _data_keywords):
+            child.keyword in data_keywords):
             return child
     return None
 
@@ -2769,6 +2798,127 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 ## Each statement in YANG is represented as an instance of Statement.
 
 class Statement(object):
+
+    # https://docs.python.org/3/reference/datamodel.html#slots
+    # Fun to see in one place just how many *possible* attributes
+    # a Statement can have!
+    __slots__ = (
+        # Baseline instance attributes, documented in __init__ below
+        'top', 'parent', 'pos', 'raw_keyword', 'keyword',
+        'ext_mod', 'arg', 'substmts',
+
+        # Applicable to most (all?) Statements, widely used
+        'is_grammatically_valid',    # True or False
+        'i_is_validated',            # True, False, or 'in_progress'
+        'i_config',
+
+        # "module" and "submodule" statements - see v_init_module()
+        'i_version',                 # Module stmt YANG version ('1', etc.)
+        'i_prefix',
+        'i_prefixes',
+        'i_unused_prefixes',
+        'i_missing_prefixes',
+        'i_modulename',
+        'i_features',
+        'i_identities',
+        'i_extensions',
+        'i_prune',
+        'i_including_modulename',
+        'i_ctx',
+        'i_undefined_augment_nodes',
+        'i_module',
+        'i_orig_module',
+
+        # "extension" statement - see v_init_extension()
+        'i_extension_modulename',
+        'i_extension_revision',
+        'i_extension',
+
+        # see v_init_has_children()
+        'i_children',
+
+        # Applicable to most (all?) statements - see v_init_stmt()
+        'i_typedefs',
+        'i_groupings',
+        'i_uniques',
+
+        # "import" statement - See v_init_import()
+        'i_is_safe_import',
+
+        # "module" and "submodule" statements - see v_grammar_module()
+        'i_latest_revision',
+
+        # "grouping" statement - see v_type_grouping()
+        'i_is_unused',                # Is there a "uses" using this grouping?
+        'i_has_i_children',           # also used in "augment" statements
+
+        # "augment" statement - see v_type_augment()
+        'i_target_node',              # Statement augmented by self
+        # 'i_has_i_children',         # also used in "grouping" statements
+
+        # "uses" statement - see v_type_uses()
+        'i_grouping',                 # "grouping" statement being used
+
+        # "if-feature" statement - see v_type_if_feature()
+        'i_feature',
+
+        # "base" statement - see v_type_base()
+        'i_identity',
+
+        # "type" statement - see v_type_type()
+        'i_is_derived',
+        'i_type_spec',
+        'i_typedef',
+        'i_ranges',
+        'i_lengths',
+
+        # "typedef" statement - see v_type_typedef()
+        'i_is_circular',
+        'i_default',                    # also in "leaf"/"leaf-list" statements
+        'i_default_str',                # also in "leaf" statements
+        'i_leafref',
+        'i_leafref_ptr',
+        'i_leafref_expanded',
+        # 'i_is_unused',                # also in "grouping" statements
+
+        # "leaf" statement - see v_type_leaf()
+        # 'i_default',                  # also in "typedef"/"leaf-list" stmts
+        # 'i_default_str',              # also in "typedef" statements
+
+        # "leaf-list" statement - see v_type_leaf_list()
+        # 'i_default',                  # also in "typedef"/"leaf" statements
+
+        # "module"/"submodule"/etc. - see v_expand_1_children()
+        'i_expanded',
+
+        # see v_reference_list()
+        'i_key',                      # List of Statements that're keys to self
+        'i_is_key',                   # True if self is a list key
+
+        # Only on copied Statements - see copy()
+        'i_uses',
+        'i_uses_pos',
+        'i_uses_top',
+
+        # "enum" statement - see types.validate_enums()
+        'i_value',
+
+        # "bits" statement - see types.validate_bits()
+        'i_position',
+
+        # see v_unique()
+        'i_unique',
+
+        # see v_expand_2_augment()
+        'i_augment',
+
+        # see follow_path()
+        'i_derefed_leaf',
+
+        # for plugins, etc.
+        '__dict__',
+    )
+
     def __init__(self, top, parent, pos, keyword, arg=None):
         self.top = top
         """pointer to the top-level Statement"""
@@ -2798,12 +2948,14 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
-    def search(self, keyword, children=None):
+    def search(self, keyword, children=None, arg=None):
         """Return list of receiver's substmts with `keyword`.
         """
         if children is None:
             children = self.substmts
-        return [ ch for ch in children if ch.keyword == keyword ]
+        return [ ch for ch in children
+                 if (ch.keyword == keyword and
+                     (arg is None or ch.arg == arg))]
 
     def search_one(self, keyword, arg=None, children=None):
         """Return receiver's substmt with `keyword` and optionally `arg`.
@@ -2882,7 +3034,7 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
 def mk_path_str(s, with_prefixes=False):
     """Returns the XPath path of the node"""
     if s.keyword in ['choice', 'case']:
-        return mk_path_str(s.parent)
+        return mk_path_str(s.parent, with_prefixes)
     def name(s):
         if with_prefixes:
             return s.i_module.i_prefix + ":" + s.arg

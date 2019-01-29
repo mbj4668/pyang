@@ -2,13 +2,17 @@ MANIFEST
 TAGS
 build
 dist
-pyang.egg-info  # created during build
-.cache  # created during build
+# created during build:
+pyang.egg-info
+.cache
+# created during test:
+.pytest_cache
 .python-version
 *.rnc
 schemas.xml
 *.pyc
 *.egg-info
+*.idea
 .coverage*
 /test/test_*/*.dsrl
 /test/test_*/*.rng
@@ -25,4 +29,4 @@ schemas.xml
 /test/test_json/test-data-new.json
 /test/test_json/test-data.xml
 /test/test_xsd/*.xsd
-/test/test_yang/out/
+/test/test_*/out/

@@ -61,6 +61,18 @@ restconf_stmts = [
 ]
 
 def v_yang_data(ctx, stmt):
-    if (len(stmt.i_children) != 1 or
-        stmt.i_children[0].keyword != 'container'):
+
+    def ensure_container(s):
+        if len(s.i_children) != 1:
+            return False
+        ch = s.i_children[0]
+        if ch.keyword == 'choice':
+            for c in ch.i_children:
+                if not ensure_container(c):
+                    return False
+        elif ch.keyword != 'container':
+            return False
+        return True
+
+    if not ensure_container(stmt):
         err_add(ctx.errors, stmt.pos, 'RESTCONF_YANG_DATA_CHILD', ())

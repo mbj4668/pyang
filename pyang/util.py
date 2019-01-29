@@ -14,7 +14,7 @@ else:
 
 def attrsearch(tag, attr, list):
     for x in list:
-        if x.__dict__[attr] == tag:
+        if getattr(x, attr) == tag:
             return x
     return None
 
@@ -134,9 +134,11 @@ def unique_prefixes(context):
         res[m] = new
     return res
 
-def not_hyphenated(name):
-    ''' Returns True if name is not hyphenated '''
-    if name == None:
-        return False
-    # Check for upper-case and underscore
-    return (name != name.lower() or "_" in name)
+files_read = {}
+def report_file_read(filename, extra=None):
+    import os.path
+    realpath = os.path.realpath(filename)
+    read = "READ" if realpath in files_read else "read"
+    extra = (" " + extra) if extra else ""
+    sys.stderr.write("# %s %s%s\n" % (read, filename, extra))
+    files_read[realpath] = True

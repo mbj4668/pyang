@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2017-06-27
+.\"      Date: 2019-01-21
 .\"    Manual: pyang manual
-.\"    Source: pyang-1.7.3
+.\"    Source: pyang-1.7.8
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2017\-06\-27" "pyang\-1\&.7\&.3" "pyang manual"
+.TH "PYANG" "1" "2019\-01\-21" "pyang\-1\&.7\&.8" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
@@ -239,6 +239,13 @@ Give a error if any identifier is longer than
 \fImaxlen\fR\&.
 .RE
 .PP
+\fB\-t\fR \fB\-\-transform\fR \fItransform\fR
+.RS 4
+Transform the module(s) after parsing them but before outputting them\&. Multiple transformations can be given, and will be performed in the order that they were specified\&. The supported transformations are listed in
+TRANSFORMATIONS
+below\&.
+.RE
+.PP
 \fB\-f\fR \fB\-\-format\fR \fIformat\fR
 .RS 4
 Convert the module(s) into
@@ -440,10 +447,38 @@ to control this path\&.
 is a colon (:) separated list of directories to search for imported modules\&. This option may be given multiple times\&.
 .RE
 .PP
+\fB\-D\fR \fB\-\-check\-update\-from\-deviation\-module\fR \fIolddeviation\fR
+.RS 4
+\fIolddeviation\fR
+is an old deviation module of the old module
+\fIoldfile\fR\&. This option may be given multiple times\&. For example, to check updates of a module with some deviations applied, do:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-check\-update\-from\-deviation\-module oldmod\-devs\&.yang \-\-check\-update\-from oldmod\&.yang \e
+  \-\-deviation\-module newmod\-devs\&.yang newmod\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
 \fIfile\&.\&.\&.\fR
 .RS 4
 These are the names of the files containing the modules to be validated, or the module to be converted\&.
 .RE
+.SH "TRANSFORMATIONS"
+.PP
+Installed
+\fBpyang\fR
+transformations are (like output formats) plugins and therefore may define their own options, or add new transformations to the
+\fB\-t\fR
+option\&. These options and transformations are listed in
+\fBpyang \-h\fR\&.
+.PP
+No standard transformations are currently supported\&.
 .SH "OUTPUT FORMATS"
 .PP
 Installed
@@ -467,6 +502,11 @@ Makefile dependency rule for the module\&.
 .RS 4
 Hybrid DSDL schema, see
 \m[blue]\fBRFC 6110\fR\m[]\&\s-2\u[4]\d\s+2\&.
+.RE
+.PP
+\fIidentifiers\fR
+.RS 4
+All identifiers in the module\&.
 .RE
 .PP
 \fIjsonxsl\fR
@@ -541,6 +581,11 @@ Validate that the module\*(Aqs namespace is on the form: "<prefix><modulename>"\
 .RS 4
 Validate that the module\*(Aqs name starts with
 \fIprefix\fR\&.
+.RE
+.PP
+\fB\-\-lint\-ensure\-hyphenated\-names\fR
+.RS 4
+Validate that all identifiers use hyphenated style, i\&.e\&., no uppercase letters or underscores\&.
 .RE
 .SH "CAPABILITY OUTPUT"
 .PP
@@ -739,6 +784,13 @@ is a slash ("/") separated path to a subtree to print\&. For example "/nacm/grou
 The
 \fIname\fR
 output prints the name of each module in the input data model\&. For submodules, it also shows the name of the main module to which the submodule belongs\&.
+.PP
+name output specific option:
+.PP
+\fB\-\-name\-print\-revision\fR
+.RS 4
+Print the name and revision in name@revision format\&.
+.RE
 .SH "SAMPLE-XML-SKELETON OUTPUT"
 .PP
 The
@@ -865,6 +917,11 @@ Print the ietf\-restconf:yang\-data structures defined in the module\&.
 .RS 4
 Try to break lines so they are no longer than
 \fImaxlen\fR\&. This is a best effort algorithm\&.
+.RE
+.PP
+\fB\-\-tree\-module\-name\-prefix\fR \fImaxlen\fR
+.RS 4
+Use the module name (instead of the prefix) to prefix parameters and types\&.
 .RE
 .SH "UML OUTPUT"
 .PP

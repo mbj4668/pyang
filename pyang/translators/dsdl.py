@@ -230,7 +230,7 @@ class HybridDSDLSchema(object):
     """Mapping of simple datatypes from YANG to W3C datatype library"""
 
     data_nodes = ("leaf", "container", "leaf-list", "list",
-                  "anyxml", "rpc", "notification")
+                  "anydata", "anyxml", "rpc", "notification")
     """Keywords of YANG data nodes."""
 
     schema_nodes = data_nodes + ("choice", "case")
@@ -241,6 +241,7 @@ class HybridDSDLSchema(object):
         self.stmt_handler = {
             "action": self.noop,
             "anyxml": self.anyxml_stmt,
+            "anydata": self.anyxml_stmt,
             "argument": self.noop,
             "augment": self.noop,
             "base": self.noop,
@@ -582,7 +583,8 @@ class HybridDSDLSchema(object):
         module = stmt.main_module()
         name = ""
         while True:
-            name = "__" + stmt.arg + name
+            pref = stmt.arg if stmt.arg else stmt.keyword
+            name = "__" + pref + name
             if stmt.keyword == "grouping": name = "_" + name
             if stmt.parent.parent is None: break
             stmt = stmt.parent
@@ -1150,8 +1152,16 @@ class HybridDSDLSchema(object):
 
     def unique_stmt(self, stmt, p_elem, pset):
         def addpref(nid):
-            return "/".join([self.add_prefix(c, stmt)
-                             for c in nid.split("/")])
+            xpath_nodes = []
+            child = stmt.parent
+            for node in nid.split("/"):
+                ns, node_name = self.add_prefix(node, stmt).split(":")
+                child = statements.search_child(child.substmts,
+                                                child.i_module.i_modulename,
+                                                node_name)
+                if child is None or child.keyword not in ["choice", "case"]:
+                    xpath_nodes.append(ns + ":" + node_name)
+            return "/".join(xpath_nodes)
         uel = SchemaNode("nma:unique")
         p_elem.annot(uel)
         uel.attr["tag"] = " ".join(

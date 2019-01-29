@@ -1,8 +1,99 @@
-   1.7.4 - ?????
+   1.7.8 - 2019-01-21
+         for python coders: reverted method signature change for
+         Repository.get_module_from_handle().  it now has the same
+         signature as in 1.7.5.
+
+         fixed bug in check_update when there were more than one
+         augment for the same target node.
+
+   1.7.7 - 2019-01-17
+         fixed a bug in -f yang formatting
+
+   1.7.6 - 2019-01-17
+         fixed grammar; do not allow "must" in "choice"
+         added --yang-line-length to try to format lines with max length
+         various fixes to -f yang for consistency in the output
+         -f yang now keeps concatenated strings from the input and use them
+           in the output (properly indented)
+
+         pr:403 - fix json config validation error message
+                  thanks to Ganesh Nalawade
+         pr:417 - added --check-update-from-deviation-module
+                  thanks to Jonathan Yang
+         pr:420 - emit module name for augmented nodes in tree format
+                  thanks to Mark Farrell
+         pr:424 - update check-update-from option according to RFC 7950
+                  thanks to Miroslav Kovac
+         pr:434 - unique statement now checked for nodes inside choice in dsdl
+                  thanks to Norbert Varkonyi
+         pr:435 - added new "transform" generic plugin type and -t option
+                  thanks to William Lupton
+         pr:439 - print files read with --verbose
+                  thanks to William Lupton
+         pr:444 - do not treat flymake temp files as plugins
+                  thanks to Martin Volf
+         pr:454 - fix pyang.bat for windows
+                  thanks to Jozef Janitor
+
+         #397 - fix crash in sample-xml-skeleton format
+         #418 - properly handle identityref defaults in sample-xml-skeleton
+         #450 - allow choice of containers in rc:yang-data
+
+   1.7.5 - 2018-04-25
+         the tree output is now aligned with RFC 8340
+         remove trailing whitespace from double quoted strings
+         -f yang formatting fixes
+         added proper validation of revision date
+         handle comments properly when --yang-canonical is given
+         leaf-list with sample-xml-skeleton would crash
+
+         pr:351 - mk_path_str now handles prefixes in choice/case
+                  thanks to Glenn Matthews
+         pr:354 - store original pattern string in typespec
+                  thanks to immibis
+         pr:382 - reduce memory usage
+                  thanks to Glenn Matthews
+         pr:385 - close open files
+                  thanks to Robin Jarry
+         pr:386 - document --name-print-revision
+                  thanks to Joe Clark
+
+         #369 - fix install dependency to lxml
+         #374 - don't warn for identifers starting with [xX][mM][lL] in 1.1
+         #375 - --keep-comments now handle long block comments
+         #379 - detect incorrect identities in the default statement
+         #380 - --lint-ensure-hyphenated-name bug fix
+         #383 - correctly identify chocie and anyxml as mandatory nodes
+                thanks to Glenn Matthews
+
+   1.7.4 - 2018-02-23
+         the tree output is now aligned with
+           draft-ietf-netmod-yang-tree-diagrams-05
+         added --tree-no-expand-uses to not expang groupings in uses
          added --max-status to prune old definitions
          added yang2dsdl -x to try to translate 1.1 modules
+         added yang2dsdl -c to use current definitions only
+         added target get-data-reply to yang2dsdl
          check that a current/deprecated node does not reference a node
            with "lesser" status.
+         added 'identifiers' plugin
+         the yang output plugin no longer quotes enums, unless required
+           b/c the argument contains a character that needs quotes
+
+         pr:319 - added --name-print-revision option,
+                  thanks to Joe Clarke
+         pr:321 - added --lint-ensure-hyphenated-names option,
+                  thanks to Reshad Rahman
+         pr:331 - avoid misinterpreting malformed filenames,
+                  thanks to Glenn Matthews
+
+         #309 - legal if-feature expressions gave error in python3
+         #324 - better handling of min/max
+         #329 - hexadecimal and octal formats now accepted as default value
+                for integer types
+         #358 - translator dsdl bug with groupings fixed
+         #360 - bug when xsltproc failing with "undefined namespace prefix"
+                for identityref when prefix defined in tag of text fixed
 
    1.7.3 - 2017-06-27
          #318 - handle multiple rc:yang-data statements.
