@@ -1155,12 +1155,16 @@ class HybridDSDLSchema(object):
             xpath_nodes = []
             child = stmt.parent
             for node in nid.split("/"):
-                ns, node_name = self.add_prefix(node, stmt).split(":")
-                child = statements.search_child(child.substmts,
-                                                child.i_module.i_modulename,
-                                                node_name)
+                prefixed_name = self.add_prefix(node, stmt)
+                node_name = prefixed_name
+                if ":" in prefixed_name:
+                    node_name = prefixed_name.split(":")[1]
+                if child is not None:
+                    child = statements.search_child(child.substmts,
+                                                    child.i_module.i_modulename,
+                                                    node_name)
                 if child is None or child.keyword not in ["choice", "case"]:
-                    xpath_nodes.append(ns + ":" + node_name)
+                    xpath_nodes.append(prefixed_name)
             return "/".join(xpath_nodes)
         uel = SchemaNode("nma:unique")
         p_elem.annot(uel)
