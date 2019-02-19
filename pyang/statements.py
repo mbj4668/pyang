@@ -2948,6 +2948,13 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
+    def internal_reset(self):
+        for s in self.__slots__:
+            if s.startswith('i_') and hasattr(self, s):
+                delattr(self, s)
+        for s in self.substmts:
+            s.internal_reset()
+
     def search(self, keyword, children=None, arg=None):
         """Return list of receiver's substmts with `keyword`.
         """
