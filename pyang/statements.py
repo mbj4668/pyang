@@ -3018,6 +3018,13 @@ class Statement(object):
                x.pprint(indent + ' ', f)
            print(indent + '--- END i_children ---')
 
+    def __str__(self):
+        return '%s %s' % (self.keyword, self.arg)
+
+    def __repr__(self):
+        return '<pyang.%s \'%s\' at %#x>' % (self.__class__.__name__,
+                                             self.__str__(), id(self))
+
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "
     print("%s%s %s      %s %s" % (indent * istr, stmt.keyword,
