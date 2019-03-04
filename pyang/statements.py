@@ -2902,18 +2902,17 @@ def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_p
     """Returns the XPath path of the node."""
     resolved_names = mk_path_list(stmt)
     xpath_elements = []
-    if not with_prefixes:
-        last_prefix = None
-        for index, resolved_name in enumerate(resolved_names):
-            module_name, prefix, node_name = resolved_name
-            if prefix == last_prefix:
-                xpath_elements.append(node_name)
-            else:
-                new_prefix = prefix
-                if prefix_to_module or (resolve_top_prefix_to_module and index == 0):
-                    new_prefix = module_name
-                xpath_elements.append('%s:%s' % (new_prefix, node_name))
-            last_prefix = prefix
+    last_prefix = None
+    for index, resolved_name in enumerate(resolved_names):
+        module_name, prefix, node_name = resolved_name
+        xpath_element = node_name
+        if with_prefixes or prefix != last_prefix:
+            new_prefix = prefix
+            if prefix_to_module or (index == 0 and resolve_top_prefix_to_module):
+                new_prefix = module_name
+            xpath_element = '%s:%s' % (new_prefix, node_name)
+        xpath_elements.append(xpath_element)
+        last_prefix = prefix
     return '/%s' % '/'.join(xpath_elements)
 
 def get_xpath(stmt, prefix_to_module=False):
