@@ -2879,22 +2879,25 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)
 
-def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_prefix_to_module=True):
+def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_prefix_to_module=False):
     """Returns the XPath path of the node."""
     resolved_names = []
     def resolve_stmt(stmt, resolved_names):
         if stmt.keyword in ['choice', 'case']:
             resolve_stmt(stmt.parent, resolved_names)
+            return
         def name(stmt, prefix_to_module):
             if prefix_to_module:
                 return (stmt.i_module.arg, stmt.arg)
             else:
                 return (stmt.i_module.i_prefix, stmt.arg)
         if stmt.parent.keyword in ['module', 'submodule']:
-            resolved_names.append(name(stmt, prefix_to_module=resolve_top_prefix_to_module))
+            resolved_names.append(name(stmt, prefix_to_module=prefix_to_module or resolve_top_prefix_to_module))
+            return
         else:
             resolve_stmt(stmt.parent, resolved_names)
             resolved_names.append(name(stmt, prefix_to_module))
+            return
     resolve_stmt(stmt, resolved_names)
     xpath_elements = []
     if not with_prefixes:
@@ -2907,7 +2910,14 @@ def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_p
             last_prefix = resolved_name[0]
     return '/%s' % '/'.join(xpath_elements)
 
-get_xpath = mk_path_str
+def get_rfc8040_xpath(stmt):
+    return mk_path_str(stmt, resolve_top_prefix_to_module=True)
+
+def get_fully_qualified_xpath(stmt):
+    return mk_path_str(with_prefixes=True, prefix_to_module=True)
+
+def get_prefixed_xpath(stmt):
+    return mk_path_str(with_prefixes=True)
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
