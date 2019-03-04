@@ -2879,23 +2879,33 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)
 
-def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False):
+def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_prefix_to_module=True):
     """Returns the XPath path of the node."""
-    if stmt.keyword in ['choice', 'case']:
-        return mk_path_str(stmt.parent, with_prefixes, prefix_to_module)
-    def name(stmt):
-        if with_prefixes:
+    resolved_names = []
+    def resolve_stmt(stmt, resolved_names):
+        if stmt.keyword in ['choice', 'case']:
+            resolve_stmt(stmt.parent, resolved_names)
+        def name(stmt, prefix_to_module):
             if prefix_to_module:
-                return '%s:%s' % (stmt.i_module.arg, stmt.arg)
+                return (stmt.i_module.arg, stmt.arg)
             else:
-                return '%s:%s' % (stmt.i_module.i_prefix, stmt.arg)
+                return (stmt.i_module.i_prefix, stmt.arg)
+        if stmt.parent.keyword in ['module', 'submodule']:
+            resolved_names.append(name(stmt, prefix_to_module=resolve_top_prefix_to_module))
         else:
-            return stmt.arg
-    if stmt.parent.keyword in ['module', 'submodule']:
-        return '/%s' % name(stmt)
-    else:
-        xpath = mk_path_str(stmt.parent, with_prefixes, prefix_to_module)
-        return '%s/%s' % (xpath, name(stmt))
+            resolve_stmt(stmt.parent, resolved_names)
+            resolved_names.append(name(stmt, prefix_to_module))
+    resolve_stmt(stmt, resolved_names)
+    xpath_elements = []
+    if not with_prefixes:
+        last_prefix = None
+        for resolved_name in reversed(resolved_names):
+            if resolved_name[0] == last_prefix:
+                xpath_elements.append(resolved_name[1])
+            else:
+                xpath_elements.append(':'.join(resolved_name))
+            last_prefix = resolved_name[0]
+    return '/%s' % '/'.join(xpath_elements)
 
 get_xpath = mk_path_str
 
