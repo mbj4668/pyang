@@ -2914,10 +2914,10 @@ def get_rfc8040_xpath(stmt):
     return mk_path_str(stmt, resolve_top_prefix_to_module=True)
 
 def get_fully_qualified_xpath(stmt):
-    return mk_path_str(with_prefixes=True, prefix_to_module=True)
+    return mk_path_str(stmt, with_prefixes=True, prefix_to_module=True)
 
 def get_prefixed_xpath(stmt):
-    return mk_path_str(with_prefixes=True)
+    return mk_path_str(stmt, with_prefixes=True)
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
