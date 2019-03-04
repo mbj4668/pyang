@@ -2886,28 +2886,30 @@ def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_p
         if stmt.keyword in ['choice', 'case']:
             resolve_stmt(stmt.parent, resolved_names)
             return
-        def name(stmt, prefix_to_module):
-            if prefix_to_module:
-                return (stmt.i_module.arg, stmt.arg)
-            else:
-                return (stmt.i_module.i_prefix, stmt.arg)
+        def qualified_name_elements(stmt):
+            """(module name, prefix, name)"""
+            return (stmt.i_module.arg, stmt.i_module.i_prefix, stmt.arg)
         if stmt.parent.keyword in ['module', 'submodule']:
-            resolved_names.append(name(stmt, prefix_to_module=prefix_to_module or resolve_top_prefix_to_module))
+            resolved_names.append(qualified_name_elements(stmt))
             return
         else:
             resolve_stmt(stmt.parent, resolved_names)
-            resolved_names.append(name(stmt, prefix_to_module))
+            resolved_names.append(qualified_name_elements(stmt))
             return
     resolve_stmt(stmt, resolved_names)
     xpath_elements = []
     if not with_prefixes:
         last_prefix = None
-        for resolved_name in reversed(resolved_names):
-            if resolved_name[0] == last_prefix:
-                xpath_elements.append(resolved_name[1])
+        for index, resolved_name in enumerate(resolved_names):
+            module_name, prefix, node_name = resolved_name
+            if prefix == last_prefix:
+                xpath_elements.append(node_name)
             else:
-                xpath_elements.append(':'.join(resolved_name))
-            last_prefix = resolved_name[0]
+                new_prefix = prefix
+                if prefix_to_module or (resolve_top_prefix_to_module and index == 0):
+                    new_prefix = module_name
+                xpath_elements.append('%s:%s' % (new_prefix, node_name))
+            last_prefix = prefix
     return '/%s' % '/'.join(xpath_elements)
 
 def get_rfc8040_xpath(stmt):
