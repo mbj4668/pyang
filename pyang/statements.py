@@ -2912,6 +2912,9 @@ def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_p
             last_prefix = prefix
     return '/%s' % '/'.join(xpath_elements)
 
+def get_xpath(stmt, prefix_to_module=False):
+    return mk_path_str(stmt, prefix_to_module=prefix_to_module)
+
 def get_rfc8040_xpath(stmt):
     return mk_path_str(stmt, resolve_top_prefix_to_module=True)
 
