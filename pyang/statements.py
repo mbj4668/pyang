@@ -2879,8 +2879,7 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)
 
-def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_prefix_to_module=False):
-    """Returns the XPath path of the node."""
+def mk_path_list(stmt):
     resolved_names = []
     def resolve_stmt(stmt, resolved_names):
         if stmt.keyword in ['choice', 'case']:
@@ -2897,6 +2896,11 @@ def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_p
             resolved_names.append(qualified_name_elements(stmt))
             return
     resolve_stmt(stmt, resolved_names)
+    return resolved_names
+
+def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False, resolve_top_prefix_to_module=False):
+    """Returns the XPath path of the node."""
+    resolved_names = mk_path_list(stmt)
     xpath_elements = []
     if not with_prefixes:
         last_prefix = None
