@@ -2879,25 +2879,25 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
         for s in stmt.i_children:
             print_tree(s, substmts, i_children, indent+1)
 
-def mk_path_str(stmt, with_prefixes=False):
-    """Returns the XPath path of the node"""
+def mk_path_str(stmt, with_prefixes=False, prefix_to_module=False):
+    """Returns the XPath path of the node."""
     if stmt.keyword in ['choice', 'case']:
-        return mk_path_str(stmt.parent, with_prefixes)
+        return mk_path_str(stmt.parent, with_prefixes, prefix_to_module)
     def name(stmt):
         if with_prefixes:
-            return '%s:%s' % (stmt.i_module.i_prefix, stmt.arg)
+            if prefix_to_module:
+                return '%s:%s' % (stmt.i_module.arg, stmt.arg)
+            else:
+                return '%s:%s' % (stmt.i_module.i_prefix, stmt.arg)
         else:
             return stmt.arg
     if stmt.parent.keyword in ['module', 'submodule']:
         return '/%s' % name(stmt)
     else:
-        xpath = mk_path_str(stmt.parent, with_prefixes)
+        xpath = mk_path_str(stmt.parent, with_prefixes, prefix_to_module)
         return '%s/%s' % (xpath, name(stmt))
 
-def get_xpath(stmt, with_prefixes=False):
-    """Equivalent to mk_path_str.
-    """
-    return mk_path_str(stmt, with_prefixes)
+get_xpath = mk_path_str
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
