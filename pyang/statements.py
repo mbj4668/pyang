@@ -2866,6 +2866,13 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
+    def __str__(self):
+        return '%s %s' % (self.keyword, self.arg)
+
+    def __repr__(self):
+        return '<pyang.%s \'%s\' at %#x>' % (self.__class__.__name__,
+                                             self.__str__(), id(self))
+        
     def search(self, keyword, children=None, arg=None):
         """Return list of receiver's substmts with `keyword`.
         """
@@ -2935,7 +2942,6 @@ class Statement(object):
            for x in self.i_children:
                x.pprint(indent + ' ', f)
            print(indent + '--- END i_children ---')
-
 
 class ModSubmodStatement(Statement):
     __slots__ = (
@@ -3114,7 +3120,6 @@ STMT_CLASS_FOR_KEYWD = {
     'uses': UsesStatement,
     # all other keywords can use generic Statement class
 }
-
 
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "
