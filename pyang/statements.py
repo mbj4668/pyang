@@ -2925,23 +2925,18 @@ def mk_path_str(stmt, with_prefixes=False, prefix_onchange=False, prefix_to_modu
         last_prefix = prefix
     return '/%s' % '/'.join(xpath_elements)
 
-def get_xpath(stmt, prefix_to_module=False):
+def get_xpath(stmt, qualified=False, prefix_to_module=False):
     """Gets the XPath of the statement.
-    Does not include prefixes unless the prefix changes mid-XPath.
+    Unless qualified=True, does not include prefixes unless the prefix changes mid-XPath.
+    qualified will add a prefix to each node.
     prefix_to_module will resolve prefixes to module names instead.
     For RFC 8040, set prefix_to_module=True.
     /prefix:root/node/prefix:node/...
-    /module:root/node/module:node/...
+    qualified=True: /prefix:root/prefix:node/prefix:node/...
+    qualified=True, prefix_to_module=True: /module:root/module:node/module:node/...
+    prefix_to_module=True: /module:root/node/module:node/...
     """
-    return mk_path_str(stmt, prefix_onchange=True, prefix_to_module=prefix_to_module)
-
-def get_qualified_xpath(stmt, prefix_to_module=False):
-    """Gets the XPath of the statement with the prefix at every node.
-    prefix_to_module resolves prefixes to modules.
-    /prefix:root/prefix:node/...
-    /module:root/module:node/...
-    """
-    return mk_path_str(stmt, with_prefixes=True, prefix_to_module=prefix_to_module)
+    return mk_path_str(stmt, with_prefixes=qualified, prefix_onchange=True, prefix_to_module=prefix_to_module)
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
