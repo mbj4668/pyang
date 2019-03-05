@@ -314,7 +314,11 @@ class YangParser(object):
         if keywd == 'yang-version' and arg == '1.1':
             self.tokenizer.is_1_1 = True;
             self.tokenizer.strict_quoting = True
-        stmt = statements.Statement(self.top, parent, self.pos, keywd, arg)
+
+        stmt_class = statements.STMT_CLASS_FOR_KEYWD.get(keywd,
+                                                         statements.Statement)
+        stmt = stmt_class(self.top, parent, self.pos, keywd, arg)
+
         if self.ctx.keep_arg_substrings and argstrs is not None:
             stmt.arg_substrings = argstrs
         if self.top is None:
