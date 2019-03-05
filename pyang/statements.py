@@ -1,5 +1,6 @@
 import copy
 import re
+import sys
 
 from . import util
 from .util import attrsearch, keysearch, prefix_to_module, \
@@ -114,6 +115,7 @@ class Abort(Exception):
 
 re_path = re.compile('(.*)/(.*)')
 re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
+re_and_or = re.compile(r'\band\b|\bor\b')
 
 yang_xpath_functions = [
     'current',
@@ -203,7 +205,7 @@ _validation_map = {
     ('grammar', 'module'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'submodule'):lambda ctx, s: v_grammar_module(ctx, s),
     ('grammar', 'typedef'):lambda ctx, s: v_grammar_typedef(ctx, s),
-    ('grammar', '*'):lambda ctx, s: v_grammar_unique_defs(ctx, s),
+    ('grammar', '*'):lambda ctx, s: v_grammar_all(ctx, s),
 
     ('import', 'module'):lambda ctx, s: v_import_module(ctx, s),
     ('import', 'submodule'):lambda ctx, s: v_import_module(ctx, s),
@@ -539,6 +541,10 @@ def v_grammar_typedef(ctx, stmt):
     if types.is_base_type(stmt.arg):
         err_add(ctx.errors, stmt.pos, 'BAD_TYPE_NAME', stmt.arg)
 
+def v_grammar_all(ctx, stmt):
+    v_grammar_unique_defs(ctx, stmt)
+    v_grammar_identifier(ctx, stmt)
+
 def v_grammar_unique_defs(ctx, stmt):
     """Verify that all typedefs and groupings are unique
     Called for every statement.
@@ -559,6 +565,20 @@ def v_grammar_unique_defs(ctx, stmt):
                         errcode, (definition.arg, other.pos))
             else:
                 dict[definition.arg] = definition
+
+def v_grammar_identifier(ctx, stmt):
+    try:
+        (arg_type, _subspec) = grammar.stmt_map[stmt.keyword]
+    except KeyError:
+        return
+    if (arg_type == 'identifier' and
+        grammar.re_identifier_illegal_prefix.search(stmt.arg) is not None):
+        if stmt.keyword == 'module' or stmt.keyword == 'submodule':
+            mod = stmt
+        else:
+            mod = stmt.i_module
+        if mod.i_version == '1':
+            err_add(ctx.errors, stmt.pos, 'XML_IDENTIFIER', stmt.arg)
 
 ### import and include phase
 
@@ -1523,8 +1543,17 @@ def v_expand_1_uses(ctx, stmt):
                          target.arg, keyword))
                 return
 
+    (_arg_type, subspec) = grammar.stmt_map[stmt.parent.keyword]
+    subspec = grammar.flatten_spec(subspec)
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
+        if util.keysearch(g.keyword, 0, subspec) == None:
+            err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_USES',
+                    (util.keyword_to_str(g.raw_keyword),
+                     util.keyword_to_str(stmt.parent.raw_keyword),
+                     g.pos))
+            continue
+
         # don't copy the type since it cannot be modified anyway.
         # not copying the type also works better for some plugins that
         # generate output from the i_children list, e.g. the XSD plugin.
@@ -2309,7 +2338,7 @@ def has_type(type, names):
 def is_mandatory_node(stmt):
     if hasattr(stmt, 'i_config') and stmt.i_config == False:
         return False
-    if stmt.keyword == 'leaf':
+    if stmt.keyword in ('leaf', 'choice', 'anyxml', 'anydata'):
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
             return True
@@ -2766,9 +2795,48 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 
 ### structs used to represent a YANG module
 
-## Each statement in YANG is represented as an instance of Statement.
+## Each statement in YANG is represented as an instance of Statement or
+## one of its subclasses below.
 
 class Statement(object):
+
+    # https://docs.python.org/3/reference/datamodel.html#slots
+    # Fun to see in one place just how many *possible* attributes
+    # a Statement can have! Subclasses can add additional slots as needed.
+    __slots__ = (
+        # Baseline instance attributes, documented in __init__ below
+        'top', 'parent', 'pos', 'raw_keyword', 'keyword',
+        'ext_mod', 'arg', 'substmts',
+
+        # Applicable to most (all?) Statements, widely used
+        'is_grammatically_valid',    # True or False
+        'i_is_validated',            # True, False, or 'in_progress'
+        'i_config',                  # True or False
+        'i_module',
+        'i_orig_module',
+
+        # see v_init_has_children()
+        'i_children',
+
+        # Applicable to most (all?) statements - see v_init_stmt()
+        'i_typedefs',
+        'i_groupings',
+        'i_uniques',
+
+        # Only on copied Statements - see copy()
+        'i_uses',
+        'i_uses_pos',
+        'i_uses_top',
+
+        # YANG language extensions
+        'i_extension_modulename',
+        'i_extension_revision',
+        'i_extension',
+
+        # for plugins, etc.
+        '__dict__',
+    )
+
     def __init__(self, top, parent, pos, keyword, arg=None):
         self.top = top
         """pointer to the top-level Statement"""
@@ -2798,12 +2866,21 @@ class Statement(object):
         self.substmts = []
         """the statement's substatements; a list of Statements"""
 
-    def search(self, keyword, children=None):
+    def __str__(self):
+        return '%s %s' % (self.keyword, self.arg)
+
+    def __repr__(self):
+        return '<pyang.%s \'%s\' at %#x>' % (self.__class__.__name__,
+                                             self.__str__(), id(self))
+
+    def search(self, keyword, children=None, arg=None):
         """Return list of receiver's substmts with `keyword`.
         """
         if children is None:
             children = self.substmts
-        return [ ch for ch in children if ch.keyword == keyword ]
+        return [ ch for ch in children
+                 if (ch.keyword == keyword and
+                     (arg is None or ch.arg == arg))]
 
     def search_one(self, keyword, arg=None, children=None):
         """Return receiver's substmt with `keyword` and optionally `arg`.
@@ -2865,6 +2942,184 @@ class Statement(object):
            for x in self.i_children:
                x.pprint(indent + ' ', f)
            print(indent + '--- END i_children ---')
+
+class ModSubmodStatement(Statement):
+    __slots__ = (
+        # see v_init_module()
+        'i_version',                 # Module stmt YANG version ('1', etc.)
+        'i_prefix',
+        'i_prefixes',
+        'i_unused_prefixes',
+        'i_missing_prefixes',
+        'i_modulename',
+        'i_features',
+        'i_identities',
+        'i_extensions',
+        'i_prune',
+        'i_including_modulename',
+        'i_ctx',
+        'i_undefined_augment_nodes',
+
+        # see v_grammar_module()
+        'i_latest_revision',
+    )
+
+
+class AugmentStatement(Statement):
+    __slots__ = (
+        # see v_type_augment()
+        'i_target_node',              # Statement augmented by self
+                                      # also present in DeviationStatement
+        'i_has_i_children',           # also present in GroupingStatement
+    )
+
+
+class BaseStatement(Statement):
+    __slots__ = (
+        # see v_type_base()
+        'i_identity',
+    )
+
+
+class BitStatement(Statement):
+    __slots__ = (
+        'i_position',
+    )
+
+
+class ChoiceStatement(Statement):
+    __slots__ = (
+        'i_augment',
+    )
+
+
+class ContainerStatement(Statement):
+    __slots__ = (
+        'i_augment',
+        'i_not_supported',
+        'i_this_not_supported',
+    )
+
+
+class DeviationStatement(Statement):
+    __slots__ = (
+        'i_target_node',               # Statement deviated by self
+                                       # also present in AugmentStatement
+    )
+
+
+class EnumStatement(Statement):
+    __slots__ = (
+        'i_value',
+    )
+
+
+class GroupingStatement(Statement):
+    __slots__ = (
+        'i_expanded',                 # True or False, have we expanded already
+        'i_has_i_children',           # also present in AugmentStatement
+        'i_is_unused',
+    )
+
+
+class IfFeatureStatement(Statement):
+    __slots__ = (
+        # see v_type_if_feature()
+        'i_feature',
+    )
+
+
+class ImportStatement(Statement):
+    __slots__ = (
+        # see v_init_import()
+        'i_is_safe_import',
+    )
+
+
+class LeafLeaflistStatement(Statement):
+    __slots__ = (
+        'i_augment',
+        'i_default',                    # also in TypedefStatement
+        'i_default_str',                # also in TypedefStatement
+        'i_leafref',                    # also in TypedefStatement
+        'i_leafref_ptr',                # also in TypedefStatement
+        'i_leafref_expanded',           # also in TypedefStatement
+        'i_is_key',                     # True if self is a list key
+        # see follow_path()
+        'i_derefed_leaf',
+        'i_this_not_supported',
+    )
+
+
+class ListStatement(Statement):
+    __slots__ = (
+        'i_augment',
+        'i_key',                      # List of Statements that're keys to self
+        'i_unique',
+        'i_not_supported',
+        'i_this_not_supported',
+    )
+
+
+class TypeStatement(Statement):
+    __slots__ = (
+        # see v_type_type()
+        'i_is_derived',
+        'i_type_spec',
+        'i_typedef',
+        'i_ranges',
+        'i_lengths',
+    )
+
+
+class TypedefStatement(Statement):
+    __slots__ = (
+        'i_is_circular',
+        'i_is_unused',
+        'i_default',                    # also in LeafLeaflistStatement
+        'i_default_str',                # also in LeafLeaflistStatement
+        'i_leafref',                    # also in LeafLeaflistStatement
+        'i_leafref_ptr',                # also in LeafLeaflistStatement
+        'i_leafref_expanded',           # also in LeafLeaflistStatement
+    )
+
+
+class UniqueStatement(Statement):
+    __slots__ = (
+        'i_leafs',
+    )
+
+
+class UsesStatement(Statement):
+    __slots__ = (
+        # see v_type_uses()
+        'i_grouping',                 # "grouping" statement being used
+    )
+
+
+STMT_CLASS_FOR_KEYWD = {
+    'module': ModSubmodStatement,
+    'submodule': ModSubmodStatement,
+
+    'augment': AugmentStatement,
+    'base': BaseStatement,
+    'bit': BitStatement,
+    'choice': ChoiceStatement,
+    'container': ContainerStatement,
+    'deviation': DeviationStatement,
+    'enum': EnumStatement,
+    'grouping': GroupingStatement,
+    'if-feature': IfFeatureStatement,
+    'import': ImportStatement,
+    'leaf': LeafLeaflistStatement,
+    'leaf-list': LeafLeaflistStatement,
+    'list': ListStatement,
+    'type': TypeStatement,
+    'typedef': TypedefStatement,
+    'unique': UniqueStatement,
+    'uses': UsesStatement,
+    # all other keywords can use generic Statement class
+}
 
 def print_tree(stmt, substmts=True, i_children=True, indent=0):
     istr = "  "

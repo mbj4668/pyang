@@ -13,6 +13,7 @@ from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
+from pyang import statements
 from pyang import syntax
 
 def run():
@@ -31,8 +32,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     plugin.init(plugindirs)
 
     fmts = {}
+    xforms = {}
     for p in plugin.plugins:
         p.add_output_format(fmts)
+        p.add_transform(xforms)
 
     optlist = [
         # use capitalized versions of std options help and version
@@ -92,6 +95,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--max-identifier-length",
                              type="int",
                              dest="max_identifier_len"),
+        optparse.make_option("-t", "--transform", dest="transforms",
+                             default=[], action="append",
+                             help="Apply transform TRANSFORM.  Supported " \
+                                  "transforms are: " + ', '.join(list(
+                                     xforms.keys()))),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
@@ -222,7 +230,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse)
+    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse,
+                                 verbose=o.verbose)
 
     ctx = pyang.Context(repos)
 
@@ -247,6 +256,17 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     for p in plugin.plugins:
         p.setup_ctx(ctx)
 
+    xform_objs = []
+    for transform in o.transforms:
+        if transform not in xforms:
+            sys.stderr.write("unsupported transform '%s'\n" % transform)
+        else:
+            xform_obj = xforms[transform]
+            xform_obj.setup_xform(ctx)
+            xform_objs.append(xform_obj)
+    if len(xform_objs) != len(o.transforms):
+        sys.exit(1)
+
     if o.format != None:
         if o.format not in fmts:
             sys.stderr.write("unsupported format '%s'\n" % o.format)
@@ -257,6 +277,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         emit_obj.setup_fmt(ctx)
     else:
         emit_obj = None
+
+    xform_and_emit_objs = xform_objs[:]
+    if emit_obj is not None:
+        xform_and_emit_objs.append(emit_obj)
 
     for p in plugin.plugins:
         p.pre_load_modules(ctx)
@@ -293,6 +317,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             try:
                 fd = io.open(filename, "r", encoding="utf-8")
                 text = fd.read()
+                if o.verbose:
+                    util.report_file_read(filename, "(CL)")
             except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
                 sys.exit(1)
@@ -336,14 +362,26 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         if m is not None:
             ctx.deviation_modules.append(m)
 
-
     for p in plugin.plugins:
         p.pre_validate_ctx(ctx, modules)
 
-    if emit_obj is not None and len(modules) > 0:
-        emit_obj.pre_validate(ctx, modules)
+    if len(xform_and_emit_objs) > 0 and len(modules) > 0:
+        for obj in xform_and_emit_objs:
+            obj.pre_validate(ctx, modules)
 
     ctx.validate()
+
+    # transform modules
+    if len(xform_objs) > 0 and len(modules) > 0:
+        for xform_obj in xform_objs:
+            try:
+                if not xform_obj.transform(ctx, modules):
+                    for module in modules:
+                        statements.validate_module(ctx, module)
+            except error.TransformError as e:
+                if e.msg != "":
+                    sys.stderr.write(e.msg + '\n')
+                sys.exit(e.exit_code)
 
     # verify the given features
     for m in modules:
@@ -354,8 +392,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                                      (f, m.arg))
                     sys.exit(1)
 
-    if emit_obj is not None and len(modules) > 0:
-        emit_obj.post_validate(ctx, modules)
+    if len(xform_and_emit_objs) > 0 and len(modules) > 0:
+        for obj in xform_and_emit_objs:
+            obj.post_validate(ctx, modules)
 
     for p in plugin.plugins:
         p.post_validate_ctx(ctx, modules)

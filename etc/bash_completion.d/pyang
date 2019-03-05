@@ -71,7 +71,10 @@ _pyang()
         --tree-help
         --tree-depth
         --tree-line-length
-        --tree-path"
+        --tree-path
+        --tree-print-groupings
+        --tree-print-yang-data
+        --tree-module-name-prefix"
 
     local opts_uml="
         --uml-classes-only

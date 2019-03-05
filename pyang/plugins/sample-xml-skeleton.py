@@ -30,17 +30,17 @@ document containing sample elements for all data nodes.
   --sample-xml-skeleton-defaults option).
 """
 
-import os
 import sys
 import optparse
 from lxml import etree
 import copy
 
-from pyang import plugin, statements, error
-from pyang.util import unique_prefixes
+from pyang import plugin, error
+
 
 def pyang_plugin_init():
     plugin.register_plugin(SampleXMLSkeletonPlugin())
+
 
 class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
 
@@ -64,10 +64,11 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             optparse.make_option("--sample-xml-skeleton-path",
                                  dest="sample_path",
                                  help="Subtree to print"),
-            ]
+        ]
         g = optparser.add_option_group(
             "Sample-xml-skeleton output specific options")
         g.add_options(optlist)
+
     def add_output_format(self, fmts):
         self.multiple_modules = True
         fmts['sample-xml-skeleton'] = self
@@ -106,16 +107,14 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             "choice": self.process_children,
             "case": self.process_children,
             "list": self.list,
-            "leaf-list": self.leaf_list,
-            "rpc": self.ignore,
-            "action": self.ignore,
-            "notification": self.ignore
-            }
+            "leaf-list": self.leaf_list
+        }
         self.ns_uri = {}
         for yam in modules:
             self.ns_uri[yam] = yam.search_one("namespace").arg
-        self.top = etree.Element(self.doctype,
-                                 {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
+        self.top = etree.Element(
+            self.doctype,
+            {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
         tree = etree.ElementTree(self.top)
         for yam in modules:
             self.process_children(yam, self.top, None, path)
@@ -137,7 +136,8 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch not in omit and (ch.i_config or self.doctype == "data"):
-                self.node_handler[ch.keyword](ch, elem, module, path)
+                self.node_handler.get(ch.keyword, self.ignore)(
+                    ch, elem, module, path)
 
     def container(self, node, elem, module, path):
         """Create a sample container element and proceed with its children."""
@@ -157,12 +157,13 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
             if path is None:
                 return
             if self.annots:
-                nel.append(etree.Comment(" type: %s " % node.search_one("type").arg))
+                nel.append(etree.Comment(
+                    " type: %s " % node.search_one("type").arg))
         elif self.defaults:
             nel, newm, path = self.sample_element(node, elem, module, path)
             if path is None:
                 return
-            nel.text = str(node.i_default)
+            nel.text = str(node.i_default_str)
 
     def anyxml(self, node, elem, module, path):
         """Create a sample anyxml element."""
@@ -175,13 +176,16 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
     def list(self, node, elem, module, path):
         """Create sample entries of a list."""
         nel, newm, path = self.sample_element(node, elem, module, path)
-        if path is None: return
+        if path is None:
+            return
         for kn in node.i_key:
-            self.node_handler[kn.keyword](kn, nel, newm, path)
+            self.node_handler.get(kn.keyword, self.ignore)(
+                kn, nel, newm, path)
         self.process_children(node, nel, newm, path, node.i_key)
         minel = node.search_one("min-elements")
         self.add_copies(node, elem, nel, minel)
-        if self.annots: self.list_comment(node, nel, minel)
+        if self.annots:
+            self.list_comment(node, nel, minel)
 
     def leaf_list(self, node, elem, module, path):
         """Create sample entries of a leaf-list."""
@@ -226,8 +230,8 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         lo = "0" if minel is None else minel.arg
         maxel = node.search_one("max-elements")
         hi = "" if maxel is None else maxel.arg
-        elem.insert(0, etree.Comment(" # entries: %s..%s " % (lo,hi)))
+        elem.insert(0, etree.Comment(
+            " # entries: %s..%s " % (lo, hi)))
         if node.keyword == 'list':
-            elem.insert(0, etree.Comment(" # keys: " +
-                                         ",".join([k.arg for k in node.i_key])))
-
+            elem.insert(0, etree.Comment(
+                " # keys: " + ",".join([k.arg for k in node.i_key])))

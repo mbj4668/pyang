@@ -55,6 +55,7 @@
       <arg choice="opt">--hello</arg>
       <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
+      <arg choice="opt">-t <replaceable>transform</replaceable></arg>
       <arg choice="opt">-f <replaceable>format</replaceable></arg>
       <arg choice="opt">-p <replaceable>path</replaceable></arg>
       <arg choice="opt">-W <replaceable>warning</replaceable></arg>
@@ -446,6 +447,24 @@
 
       <varlistentry>
         <term>
+          <option>-t</option>
+          <option>--transform</option>
+          <replaceable>transform</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Transform the module(s) after parsing them but before outputting
+            them.  Multiple transformations can be given, and will be performed
+            in the order that they were specified. The supported
+            transformations are listed in <xref
+            linkend="man.1.pyang.transformations"
+            endterm="man.1.pyang.transformations_title"/> below.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>-f</option>
           <option>--format</option>
           <replaceable>format</replaceable>
@@ -700,6 +719,26 @@
 
       <varlistentry>
         <term>
+          <option>-D</option>
+          <option>--check-update-from-deviation-module</option>
+          <replaceable>olddeviation</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <emphasis>olddeviation</emphasis> is an old deviation module
+            of the old module <emphasis>oldfile</emphasis>. This option
+            may be given multiple times. For example, to check updates of
+            a module with some deviations applied, do:
+          </para>
+          <informalexample>
+            <screen>$ pyang --check-update-from-deviation-module oldmod-devs.yang --check-update-from oldmod.yang \
+  --deviation-module newmod-devs.yang newmod.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <replaceable>file...</replaceable>
         </term>
         <listitem>
@@ -710,6 +749,24 @@
         </listitem>
       </varlistentry>
 
+    </variablelist>
+  </refsect1>
+
+
+  <refsect1 xml:id="man.1.pyang.transformations">
+    <title xml:id="man.1.pyang.transformations_title">
+      Transformations
+    </title>
+
+    <para>
+      Installed <command>pyang</command> transformations are (like output
+      formats) plugins and therefore may define their own options, or add new
+      transformations to the <option>-t</option> option. These options and
+      transformations are listed in <userinput>pyang -h</userinput>.
+    </para>
+
+    <variablelist>
+      <para>No standard transformations are currently supported.</para>
     </variablelist>
   </refsect1>
 
@@ -1163,6 +1220,21 @@ $ osascript foo.scpt</screen>
     <para>The <emphasis>name</emphasis> output prints the name of each
     module in the input data model. For submodules, it also shows the
     name of the main module to which the submodule belongs.</para>
+    <para>
+	name output specific option:
+    </para>
+    <variablelist>
+	<varlistentry>
+	    <term>
+		<option>--name-print-revision</option>
+	    </term>
+	    <listitem>
+		<para>
+		    Print the name and revision in name@revision format.
+		</para>
+	    </listitem>
+	</varlistentry>
+    </variablelist>
   </refsect1>
 
   <refsect1 xml:id="man.1.pyang.sample-xml-skeleton_output">
@@ -1328,6 +1400,18 @@ $ osascript foo.scpt</screen>
             Try to break lines so they are no longer than
             <replaceable>maxlen</replaceable>.  This is a best effort
             algorithm.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--tree-module-name-prefix</option>
+          <replaceable>maxlen</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Use the module name (instead of the prefix) to prefix
+            parameters and types.
           </para>
         </listitem>
       </varlistentry>

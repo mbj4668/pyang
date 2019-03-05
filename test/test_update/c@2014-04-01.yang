@@ -1,0 +1,22 @@
+module c {
+  namespace urn:c;
+  prefix c;
+
+  import b {
+    prefix b;
+  }
+
+  revision 2014-04-01;
+
+  augment /b:b {
+    leaf foo {
+      type int64;
+    }
+  }
+
+  container c {
+    leaf q {
+      type string;
+    }
+  }
+}

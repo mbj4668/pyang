@@ -1,0 +1,61 @@
+module: ietf-interfaces
+  +--rw interfaces
+  |  +--rw interface* [name]
+  |     +--rw name                         string
+  |     +--rw description?                 string
+  |     +--rw type                         identityref
+  |     +--rw enabled?                     boolean
+  |     +--rw link-up-down-trap-enable?    enumeration {if-mib}?
+  |     +--ro admin-status                 enumeration {if-mib}?
+  |     +--ro oper-status                  enumeration
+  |     +--ro last-change?                 ietf-yang-types:date-and-time
+  |     +--ro if-index                     int32 {if-mib}?
+  |     +--ro phys-address?                ietf-yang-types:phys-address
+  |     +--ro higher-layer-if*             interface-ref
+  |     +--ro lower-layer-if*              interface-ref
+  |     +--ro speed?                       ietf-yang-types:gauge64
+  |     +--ro statistics
+  |     |  +--ro discontinuity-time    ietf-yang-types:date-and-time
+  |     |  +--ro in-octets?            ietf-yang-types:counter64
+  |     |  +--ro in-unicast-pkts?      ietf-yang-types:counter64
+  |     |  +--ro in-broadcast-pkts?    ietf-yang-types:counter64
+  |     |  +--ro in-multicast-pkts?    ietf-yang-types:counter64
+  |     |  +--ro in-discards?          ietf-yang-types:counter32
+  |     |  +--ro in-errors?            ietf-yang-types:counter32
+  |     |  +--ro in-unknown-protos?    ietf-yang-types:counter32
+  |     |  +--ro out-octets?           ietf-yang-types:counter64
+  |     |  +--ro out-unicast-pkts?     ietf-yang-types:counter64
+  |     |  +--ro out-broadcast-pkts?   ietf-yang-types:counter64
+  |     |  +--ro out-multicast-pkts?   ietf-yang-types:counter64
+  |     |  +--ro out-discards?         ietf-yang-types:counter32
+  |     |  +--ro out-errors?           ietf-yang-types:counter32
+  |     +--rw interfaces-ext:extended-parameters
+  |        +--rw interfaces-ext:extended-parameter?   string
+  |        +--rw interfaces-ext:leafref-parameter?   -> /ietf-interfaces:interfaces/interface/name
+  x--ro interfaces-state
+     x--ro interface* [name]
+        x--ro name               string
+        x--ro type               identityref
+        x--ro admin-status       enumeration {if-mib}?
+        x--ro oper-status        enumeration
+        x--ro last-change?       ietf-yang-types:date-and-time
+        x--ro if-index           int32 {if-mib}?
+        x--ro phys-address?      ietf-yang-types:phys-address
+        x--ro higher-layer-if*   interface-state-ref
+        x--ro lower-layer-if*    interface-state-ref
+        x--ro speed?             ietf-yang-types:gauge64
+        x--ro statistics
+           x--ro discontinuity-time    ietf-yang-types:date-and-time
+           x--ro in-octets?            ietf-yang-types:counter64
+           x--ro in-unicast-pkts?      ietf-yang-types:counter64
+           x--ro in-broadcast-pkts?    ietf-yang-types:counter64
+           x--ro in-multicast-pkts?    ietf-yang-types:counter64
+           x--ro in-discards?          ietf-yang-types:counter32
+           x--ro in-errors?            ietf-yang-types:counter32
+           x--ro in-unknown-protos?    ietf-yang-types:counter32
+           x--ro out-octets?           ietf-yang-types:counter64
+           x--ro out-unicast-pkts?     ietf-yang-types:counter64
+           x--ro out-broadcast-pkts?   ietf-yang-types:counter64
+           x--ro out-multicast-pkts?   ietf-yang-types:counter64
+           x--ro out-discards?         ietf-yang-types:counter32
+           x--ro out-errors?           ietf-yang-types:counter32

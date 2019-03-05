@@ -5,6 +5,7 @@ module x {
   feature x;
 
   container foo;
+
   augment "/foo" {
     if-feature "x";
     container bar;

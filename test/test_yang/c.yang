@@ -1,0 +1,18 @@
+module c {
+  namespace "urn:c";
+  prefix c;
+  typedef foo {
+    type string;
+  }
+  typedef bar {
+    type int32;
+  }
+  container x {
+    container y;
+    container bar {
+      leaf z {
+        type string;
+      }
+    }
+  }
+}

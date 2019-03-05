@@ -2,7 +2,7 @@ module ietf-netconf-acm {
 
   namespace "urn:ietf:params:xml:ns:yang:ietf-netconf-acm";
 
-  prefix "nacm";
+  prefix nacm;
 
   import ietf-yang-types {
     prefix yang;
@@ -12,40 +12,43 @@ module ietf-netconf-acm {
     "IETF NETCONF (Network Configuration) Working Group";
 
   contact
-    "WG Web:   <http://tools.ietf.org/wg/netconf/>
+    "WG Web:   <https://datatracker.ietf.org/wg/netconf/>
      WG List:  <mailto:netconf@ietf.org>
 
-     WG Chair: Mehmet Ersue
-               <mailto:mehmet.ersue@nsn.com>
-
-     WG Chair: Bert Wijnen
-               <mailto:bertietf@bwijnen.net>
-
-     Editor:   Andy Bierman
+     Author:   Andy Bierman
                <mailto:andy@yumaworks.com>
 
-     Editor:   Martin Bjorklund
+     Author:   Martin Bjorklund
                <mailto:mbj@tail-f.com>";
 
   description
-    "NETCONF Access Control Model.
+    "Network Configuration Access Control Model.
 
-     Copyright (c) 2012 IETF Trust and the persons identified as
-     authors of the code.  All rights reserved.
+     Copyright (c) 2012 - 2018 IETF Trust and the persons
+     identified as authors of the code.  All rights reserved.
 
      Redistribution and use in source and binary forms, with or
      without modification, is permitted pursuant to, and subject
      to the license terms contained in, the Simplified BSD
      License set forth in Section 4.c of the IETF Trust's
      Legal Provisions Relating to IETF Documents
-     (http://trustee.ietf.org/license-info).
+     (https://trustee.ietf.org/license-info).
 
-     This version of this YANG module is part of RFC 6536; see
+     This version of this YANG module is part of RFC 8341; see
      the RFC itself for full legal notices.";
+
+  revision "2018-02-14" {
+    description
+      "Added support for YANG 1.1 actions and notifications tied to
+       data nodes.  Clarified how NACM extensions can be used by
+       other data models.";
+    reference
+      "RFC 8341: Network Configuration Access Control Model";
+  }
 
   revision "2012-02-22" {
     description
-      "Initial version";
+      "Initial version.";
     reference
       "RFC 6536: Network Configuration Protocol (NETCONF)
                  Access Control Model";
@@ -60,11 +63,13 @@ module ietf-netconf-acm {
       "Used to indicate that the data model node
        represents a sensitive security system parameter.
 
-       If present, and the NACM module is enabled (i.e.,
-       /nacm/enable-nacm object equals 'true'), the NETCONF server
-       will only allow the designated 'recovery session' to have
-       write access to the node.  An explicit access control rule is
-       required for all other users.
+       If present, the NETCONF server will only allow the designated
+       'recovery session' to have write access to the node.  An
+       explicit access control rule is required for all other users.
+
+       If the NACM module is used, then it must be enabled (i.e.,
+       /nacm/enable-nacm object equals 'true'), or this extension
+       is ignored.
 
        The 'default-deny-write' extension MAY appear within a data
        definition statement.  It is ignored otherwise.";
@@ -75,11 +80,14 @@ module ietf-netconf-acm {
       "Used to indicate that the data model node
        controls a very sensitive security system parameter.
 
-       If present, and the NACM module is enabled (i.e.,
-       /nacm/enable-nacm object equals 'true'), the NETCONF server
-       will only allow the designated 'recovery session' to have
-       read, write, or execute access to the node.  An explicit
-       access control rule is required for all other users.
+       If present, the NETCONF server will only allow the designated
+       'recovery session' to have read, write, or execute access to
+       the node.  An explicit access control rule is required for all
+       other users.
+
+       If the NACM module is used, then it must be enabled (i.e.,
+       /nacm/enable-nacm object equals 'true'), or this extension
+       is ignored.
 
        The 'default-deny-all' extension MAY appear within a data
        definition statement, 'rpc' statement, or 'notification'
@@ -95,7 +103,7 @@ module ietf-netconf-acm {
       length "1..max";
     }
     description
-      "General Purpose Username string.";
+      "General-purpose username string.";
   }
 
   typedef matchall-string-type {
@@ -135,7 +143,7 @@ module ietf-netconf-acm {
       }
     }
     description
-      "NETCONF Access Operation.";
+      "Access operation.";
   }
 
   typedef group-name-type {
@@ -168,29 +176,34 @@ module ietf-netconf-acm {
     type yang:xpath1.0;
     description
       "Path expression used to represent a special
-       data node instance identifier string.
+       data node, action, or notification instance-identifier
+       string.
 
        A node-instance-identifier value is an
        unrestricted YANG instance-identifier expression.
-       All the same rules as an instance-identifier apply
-       except predicates for keys are optional.  If a key
+       All the same rules as an instance-identifier apply,
+       except that predicates for keys are optional.  If a key
        predicate is missing, then the node-instance-identifier
        represents all possible server instances for that key.
 
-       This XPath expression is evaluated in the following context:
+       This XML Path Language (XPath) expression is evaluated in the
+       following context:
 
-        o  The set of namespace declarations are those in scope on
-           the leaf element where this type is used.
+          o  The set of namespace declarations are those in scope on
+             the leaf element where this type is used.
 
-        o  The set of variable bindings contains one variable,
-           'USER', which contains the name of the user of the current
-            session.
+          o  The set of variable bindings contains one variable,
+             'USER', which contains the name of the user of the
+             current session.
 
-        o  The function library is the core function library, but
-           note that due to the syntax restrictions of an
-           instance-identifier, no functions are allowed.
+          o  The function library is the core function library, but
+             note that due to the syntax restrictions of an
+             instance-identifier, no functions are allowed.
 
-        o  The context node is the root node in the data tree.";
+          o  The context node is the root node in the data tree.
+
+       The accessible tree includes actions and notifications tied
+       to data nodes.";
   }
 
   /*
@@ -201,11 +214,11 @@ module ietf-netconf-acm {
     nacm:default-deny-all;
 
     description
-      "Parameters for NETCONF Access Control Model.";
+      "Parameters for NETCONF access control model.";
 
     leaf enable-nacm {
       type boolean;
-      default true;
+      default "true";
       description
         "Enables or disables all NETCONF access control
          enforcement.  If 'true', then enforcement
@@ -241,7 +254,7 @@ module ietf-netconf-acm {
 
     leaf enable-external-groups {
       type boolean;
-      default true;
+      default "true";
       description
         "Controls whether the server uses the groups reported by the
          NETCONF transport layer when it assigns the user to a set of
@@ -281,13 +294,13 @@ module ietf-netconf-acm {
 
     container groups {
       description
-        "NETCONF Access Control Groups.";
+        "NETCONF access control groups.";
 
       list group {
         key name;
 
         description
-          "One NACM Group Entry.  This list will only contain
+          "One NACM group entry.  This list will only contain
            configured entries, not any entries learned from
            any transport protocols.";
 
@@ -308,7 +321,7 @@ module ietf-netconf-acm {
     }
 
     list rule-list {
-      key "name";
+      key name;
       ordered-by user;
       description
         "An ordered collection of access control rules.";
@@ -335,7 +348,7 @@ module ietf-netconf-acm {
       }
 
       list rule {
-        key "name";
+        key name;
         ordered-by user;
         description
           "One access control rule.
@@ -343,8 +356,8 @@ module ietf-netconf-acm {
            Rules are processed in user-defined order until a match is
            found.  A rule matches if 'module-name', 'rule-type', and
            'access-operations' match the request.  If a rule
-           matches, the 'action' leaf determines if access is granted
-           or not.";
+           matches, the 'action' leaf determines whether or not
+           access is granted.";
 
         leaf name {
           type string {
@@ -400,13 +413,14 @@ module ietf-netconf-acm {
               type node-instance-identifier;
               mandatory true;
               description
-                "Data Node Instance Identifier associated with the
-                 data node controlled by this rule.
+                "Data node instance-identifier associated with the
+                 data node, action, or notification controlled by
+                 this rule.
 
-                 Configuration data or state data instance
-                 identifiers start with a top-level data node.  A
-                 complete instance identifier is required for this
-                 type of path value.
+                 Configuration data or state data
+                 instance-identifiers start with a top-level
+                 data node.  A complete instance-identifier is
+                 required for this type of path value.
 
                  The special value '/' refers to all possible
                  datastore contents.";
@@ -432,7 +446,7 @@ module ietf-netconf-acm {
           mandatory true;
           description
             "The access control action associated with the
-             rule.  If a rule is determined to match a
+             rule.  If a rule has been determined to match a
              particular request, then this object is used
              to determine whether to permit or deny the
              request.";

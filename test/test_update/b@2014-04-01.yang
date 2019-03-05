@@ -1,0 +1,26 @@
+module b {
+  namespace "urn:b";
+  prefix b;
+
+  revision 2014-04-01;
+
+  identity b;
+  identity b2;
+
+  container b {
+    leaf q {
+      type string;
+    }
+    leaf q3 {
+      type string;
+    }
+  }
+  container c {
+    leaf q {
+      type string;
+    }
+  }
+  feature foo {
+    status obsolete;
+  }
+}

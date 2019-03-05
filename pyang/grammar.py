@@ -382,7 +382,6 @@ stmt_map = {
          [('when', '?'),
           ('if-feature', '*'),
           ('default', '?'),
-          ('must', '*'),
           ('config', '?'),
           ('mandatory', '?'),
           ('status', '?'),
@@ -644,12 +643,6 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                 error.err_add(ctx.errors, stmt.pos,
                               'BAD_VALUE', (stmt.arg, arg_type))
             elif (arg_type == 'identifier' and
-                  re_identifier_illegal_prefix.search(stmt.arg) is not None):
-                error.err_add(ctx.errors, stmt.pos, 'XML_IDENTIFIER',
-                              stmt.arg)
-                # recoverable error
-                stmt.is_grammatically_valid = True
-            elif (arg_type == 'identifier' and
                   ctx.max_identifier_len is not None
                   and len(stmt.arg) > ctx.max_identifier_len):
                 error.err_add(ctx.errors, stmt.pos, 'LONG_IDENTIFIER',
@@ -788,23 +781,27 @@ def spec_del_kwd(keywd, spec):
         i = i + 1
     return spec
 
+def flatten_spec(spec):
+    res = []
+    for (kw, s) in spec:
+        if kw == '$interleave':
+            res.extend(flatten_spec(s))
+        elif kw == '$1.1':
+            res.append((s))
+        elif kw == '$choice':
+            for branch in s:
+                res.extend(flatten_spec(branch))
+        else:
+            res.append((kw,s))
+    return res
+
+
 def sort_canonical(keyword, stmts):
     """Sort all `stmts` in the canonical order defined by `keyword`.
     Return the sorted list.  The `stmt` list is not modified.
     If `keyword` does not have a canonical order, the list is returned
     as is.
     """
-    def flatten_spec(spec):
-        res = []
-        for (kw, s) in spec:
-            if kw == '$interleave':
-                res.extend(flatten_spec(s))
-            elif kw == '$choice':
-                for branch in s:
-                    res.extend(flatten_spec(branch))
-            else:
-                res.append((kw,s))
-        return res
 
     try:
         (_arg_type, subspec) = stmt_map[keyword]

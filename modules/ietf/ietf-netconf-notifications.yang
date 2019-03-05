@@ -1,8 +1,6 @@
 module ietf-netconf-notifications {
-
    namespace
      "urn:ietf:params:xml:ns:yang:ietf-netconf-notifications";
-
    prefix ncn;
 
    import ietf-inet-types { prefix inet; }
@@ -41,6 +39,8 @@ module ietf-netconf-notifications {
 
       This version of this YANG module is part of RFC 6470; see
       the RFC itself for full legal notices.";
+
+   // Applied RFC Errata 3957
 
    revision "2012-02-06" {
      description
