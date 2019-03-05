@@ -2929,20 +2929,17 @@ def get_xpath(stmt, prefix_to_module=False):
     """Gets the XPath of the statement.
     Does not include prefixes unless the prefix changes mid-XPath.
     prefix_to_module will resolve prefixes to module names instead.
+    For RFC 8040, set prefix_to_module=True.
+    /prefix:root/node/prefix:node/...
+    /module:root/node/module:node/...
     """
     return mk_path_str(stmt, prefix_onchange=True, prefix_to_module=prefix_to_module)
-
-def get_rfc8040_xpath(stmt):
-    """Gets the XPath of the statement in the format RFC 8040 desires.
-    /module:node/node/prefix:node/...
-    """
-    return mk_path_str(stmt, prefix_onchange=True, resolve_top_prefix_to_module=True)
 
 def get_qualified_xpath(stmt, prefix_to_module=False):
     """Gets the XPath of the statement with the prefix at every node.
     prefix_to_module resolves prefixes to modules.
-    /prefix:node/prefix:node/...
-    /module:node/module:node/...
+    /prefix:root/prefix:node/...
+    /module:root/module:node/...
     """
     return mk_path_str(stmt, with_prefixes=True, prefix_to_module=prefix_to_module)
 
