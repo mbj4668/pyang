@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module name="ll-obu"
         xmlns="urn:ietf:params:xml:ns:yang:yin:1"
-        xmlns:test="http://example.com/ll/obu">
+        xmlns:test="http://example.com/ll/obu"
+	xmlns:ext="http://example.com/ll/extensions">
   <namespace uri="http://example.com/ll/obu"/>
   <prefix value="obu"/>
+  <import module="ll-extensions">
+    <prefix value="ext"/>
+  </import>
   <container name="users">
     <list name="user">
       <key value="uid"/>
@@ -18,6 +22,10 @@
     </list>
   </container>
   <container name="admins">
+    <ext:metadata>
+      <ext:data>fake metadata</ext:data>
+      <ext:author name="ll"/>
+    </ext:metadata>
     <leaf-list name="admin">
       <ordered-by value="user"/>
       <type name="string"/>

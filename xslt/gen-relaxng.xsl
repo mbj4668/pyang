@@ -373,6 +373,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match="*">
+    <xsl:copy-of select="."/>
+  </xsl:template>
+
   <xsl:template match="rng:oneOrMore" mode="process">
     <xsl:choose>
       <xsl:when test="$target='edit-config'">

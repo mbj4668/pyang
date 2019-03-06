@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ll-extensions"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:test="http://example.com/ll/extensions">
+  <namespace uri="http://example.com/ll/extensions"/>
+  <prefix value="ext"/>
+  <extension name="metadata">
+    <description>
+      <text>Extension with YIN element argument.</text>
+    </description>
+    <argument name="data">
+      <yin-element value="true"/>
+    </argument>
+  </extension>
+  <extension name="author">
+    <description>
+      <text>Extension with YIN attribute argument.</text>
+    </description>
+    <argument name="name"/>
+  </extension>
+</module>
