@@ -640,6 +640,9 @@ def chk_range(old, new, oldts, newts, ctx):
         if tmperrors != []:
             err_add(ctx.errors, new.pos, 'CHK_RESTRICTION_CHANGED',
                     'range')
+    elif type(nts) == types.RangeTypeSpec:
+        err_add(ctx.errors, nts.ranges_pos, 'CHK_DEF_ADDED',
+                ('range', str(nts.ranges)))
 
 def chk_decimal64(old, new, oldts, newts, ctx):
     oldbasets = get_base_type(oldts)

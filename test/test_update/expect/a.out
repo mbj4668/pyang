@@ -4,3 +4,4 @@ a@2014-04-01.yang:66: error: CHK_NEW_MANDATORY
 a@2014-04-01.yang:72: error: CHK_DEF_REMOVED
 a@2014-04-01.yang:83: error: CHK_DEF_ADDED
 a@2014-04-01.yang:109: error: CHK_DEF_ADDED
+a@2014-04-01.yang:144: error: CHK_DEF_ADDED
