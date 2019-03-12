@@ -1,0 +1,16 @@
+module i {
+  namespace urn:i;
+  prefix i;
+
+  include i_sub;
+
+  revision 2014-04-01;
+
+  grouping i-grouping-1 {
+     container one {
+     }
+  }
+ 
+  container a {
+  }
+}

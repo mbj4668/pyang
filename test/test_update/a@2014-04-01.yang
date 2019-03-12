@@ -139,4 +139,9 @@ module a {
     }
   }
 
+  leaf bbb {
+    type uint16 {
+      range "5..5000 | 5500..6000";
+    }
+  }
 }

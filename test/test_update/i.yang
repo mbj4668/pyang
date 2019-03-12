@@ -1,0 +1,45 @@
+module i {
+  namespace urn:i;
+  prefix i;
+
+  revision 2014-03-01;
+
+  identity my_identity_1;
+  identity my_identity_2;
+
+  extension my_ext_1;
+  extension my_ext_2;
+
+  feature my_new_feature_1;
+  feature my_new_feature_2;
+
+  typedef new_type_1 {
+     type boolean;
+  }
+
+  typedef new_type_2 {
+     type boolean;
+  }
+ 
+  grouping i-grouping-1 {
+     container one {
+     }
+  }
+ 
+  grouping i-grouping-2 {
+     container two {
+        leaf l1 {
+           type boolean;
+        }
+        leaf l2 { 
+           type empty;
+        }
+     }
+  }
+
+  container a {
+  }
+
+  container b {
+  }
+}

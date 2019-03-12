@@ -1,0 +1,5 @@
+i@2014-04-01.yang:1: error: CHK_DEF_REMOVED
+i@2014-04-01.yang:1: error: CHK_DEF_REMOVED
+i@2014-04-01.yang:1: error: CHK_DEF_REMOVED
+i@2014-04-01.yang:1: error: CHK_DEF_REMOVED
+i_sub.yang:21: error: CHK_BASE_TYPE_CHANGED

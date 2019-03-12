@@ -111,4 +111,7 @@ module a {
     if-feature foo;
   }
 
+  leaf bbb {
+    type uint16;
+  } 
 }
