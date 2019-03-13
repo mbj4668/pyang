@@ -682,8 +682,6 @@ def v_import_module(ctx, stmt):
                                         errcode, (name, subdefinition.pos))
                         else:
                             dict[name] = subdefinition
-                            if subdefinition not in stmt.substmts:
-                                stmt.substmts.append(subdefinition)
 
 ### type phase
 
