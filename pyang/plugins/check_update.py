@@ -238,10 +238,10 @@ def get_latest_revision(m):
         return None
 
 def chk_feature(olds, newmod, ctx):
-    chk_stmt(olds, newmod, ctx)
+    chk_stmt_definitions(olds, newmod, ctx, newmod.i_features)
 
 def chk_identity(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_identities)
     if news is None:
         return
     # make sure the base isn't changed (other than syntactically)
@@ -273,13 +273,13 @@ def chk_identity(olds, newmod, ctx):
             err_def_changed(oldbase, newbase, ctx)
 
 def chk_typedef(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_typedefs)
     if news is None:
         return
     chk_type(olds.search_one('type'), news.search_one('type'), ctx)
 
 def chk_grouping(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_groupings)
     if news is None:
         return
     chk_i_children(olds, news, ctx)
@@ -297,7 +297,7 @@ def chk_notification(olds, newmod, ctx):
     chk_i_children(olds, news, ctx)
 
 def chk_extension(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_extensions)
     if news is None:
         return
     oldarg = olds.search_one('argument')
@@ -342,6 +342,17 @@ def chk_augment(oldmod, newmod, ctx):
         else:
             for oldch in targets[t]:
                 chk_children(oldch, newchs, newmod, ctx)
+
+def chk_stmt_definitions(olds, newp, ctx, definitions):
+    news = None;
+    if olds.arg in definitions:
+        news = definitions[olds.arg]
+    if news is None:
+        err_def_removed(olds, newp, ctx)
+        return None
+    chk_status(olds, news, ctx)
+    chk_if_feature(olds, news, ctx)
+    return news
 
 def chk_stmt(olds, newp, ctx):
     news = newp.search_one(olds.keyword, arg = olds.arg)
@@ -640,6 +651,9 @@ def chk_range(old, new, oldts, newts, ctx):
         if tmperrors != []:
             err_add(ctx.errors, new.pos, 'CHK_RESTRICTION_CHANGED',
                     'range')
+    elif type(nts) == types.RangeTypeSpec:
+        err_add(ctx.errors, nts.ranges_pos, 'CHK_DEF_ADDED',
+                ('range', str(nts.ranges)))
 
 def chk_decimal64(old, new, oldts, newts, ctx):
     oldbasets = get_base_type(oldts)
