@@ -17,25 +17,33 @@ module i {
   identity my_identity_3;
 
   typedef my-type1 {
-    status obsolete;
-    type string;
+    type enumeration {
+       enum a;
+       enum b;
+    }
   }
 
   typedef my-type2 {
     status deprecated;
     type uint32;
   }
-  
+
   typedef my-type3 {
-    type uint16;
+    type bits {
+       bit a { position 1; }
+       bit b { position 3; }
+    }
   }
-  
+
   grouping my-grouping-1 {
      leaf g1-a {
+        status obsolete;
         type string;
      }
      leaf g1-b {
-        type string;
+        type decimal64 {
+           fraction-digits 4;
+        }
      }
   }
   

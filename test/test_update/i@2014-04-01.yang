@@ -13,15 +13,21 @@ module i {
   identity my_identity_1;
 
   typedef my-type1 {
-    type string;
+    type enumeration {
+       enum a;
+       enum b;
+    }
   }
 
   grouping my-grouping-1 {
      leaf g1-a {
+        status current;
         type string;
      }
      leaf g1-b {
-        type string;
+        type decimal64 {
+           fraction-digits 4;
+        }
      }
   }
 }
