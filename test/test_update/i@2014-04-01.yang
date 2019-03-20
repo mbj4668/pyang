@@ -24,8 +24,5 @@ module i {
         type string;
      }
   }
-  
-  container x {
-  }
 }
 

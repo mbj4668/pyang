@@ -17,6 +17,7 @@ module i {
   identity my_identity_3;
 
   typedef my-type1 {
+    status obsolete;
     type string;
   }
 

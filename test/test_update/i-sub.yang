@@ -22,7 +22,7 @@ submodule i-sub {
      }
      leaf g2-b {
         type uint16 {
-           range "1..500";
+           range "1..400";
         }
      }
   }
