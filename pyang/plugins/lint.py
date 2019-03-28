@@ -1,5 +1,5 @@
 """YANG usage guidelines plugin
-See RFC 6087
+See RFC 8407
 Other plugins can derive from this and make it more specific, e.g.,
 ietf.py derives from this and sets the namespace and module name prefixes
 to IETF-specific values.
@@ -43,7 +43,7 @@ class LintPlugin(plugin.PyangPlugin):
                                  dest="lint",
                                  action="store_true",
                                  help="Validate the module(s) according to " \
-                                 "RFC 6087 rules."),
+                                 "RFC 8407rules."),
             optparse.make_option("--lint-namespace-prefix",
                                  dest="lint_namespace_prefixes",
                                  default=[],
@@ -127,7 +127,7 @@ class LintPlugin(plugin.PyangPlugin):
         # register our error codes
         error.add_error_code(
             'LINT_EXPLICIT_DEFAULT', 4,
-            'RFC 6087: 4.3: '
+            'RFC 8407: 4.4: '
             + 'statement "%s" is given with its default value "%s"')
         error.add_error_code(
             'LINT_MISSING_REQUIRED_SUBSTMT', 3,
@@ -139,27 +139,27 @@ class LintPlugin(plugin.PyangPlugin):
             + 'statement "%s" should have a "%s" substatement')
         error.add_error_code(
             'LINT_BAD_NAMESPACE_VALUE', 4,
-            'RFC 6087: 4.8: namespace value should be "%s"')
+            'RFC 8407: 4.9: namespace value should be "%s"')
         error.add_error_code(
             'LINT_BAD_MODULENAME_PREFIX_1', 4,
-            'RFC 6087: 4.1: '
+            'RFC 8407: 4.1: '
             + 'the module name should start with the string %s')
         error.add_error_code(
             'LINT_BAD_MODULENAME_PREFIX_N', 4,
-            'RFC 6087: 4.1: '
+            'RFC 8407: 4.1: '
             + 'the module name should start with one of the strings %s')
         error.add_error_code(
             'LINT_NO_MODULENAME_PREFIX', 4,
-            'RFC 6087: 4.1: '
+            'RFC 8407: 4.1: '
             + 'no module name prefix string used')
         error.add_error_code(
             'LINT_BAD_REVISION', 3,
-            'RFC 6087: 4.6: '
+            'RFC 8407: 4.7: '
             + 'the module\'s revision %s is older than '
             + 'submodule %s\'s revision %s')
         error.add_error_code(
             'LINT_TOP_MANDATORY', 3,
-            'RFC 6087: 4.9: '
+            'RFC 8407: 4.10: '
             + 'top-level node %s must not be mandatory')
         error.add_error_code(
             'LINT_NOT_HYPHENATED', 4,
@@ -168,7 +168,7 @@ class LintPlugin(plugin.PyangPlugin):
         # override std error string
         error.add_error_code(
             'LONG_IDENTIFIER', 3,
-            'RFC 6087: 4.2: identifier %s exceeds %s characters')
+            'RFC 8407: 4.3: identifier %s exceeds %s characters')
 
 _keyword_with_default = {
     'status': 'current',
@@ -181,29 +181,29 @@ _keyword_with_default = {
 
 _required_substatements = {
     'module': (('contact', 'organization', 'description', 'revision'),
-               "RFC 6087: 4.7"),
+               "RFC 8407: 4.8"),
     'submodule': (('contact', 'organization', 'description', 'revision'),
-                  "RFC 6087: 4.7"),
-    'revision':(('reference',), "RFC 6087: 4.7"),
-    'extension':(('description',), "RFC 6087: 4.12"),
-    'feature':(('description',), "RFC 6087: 4.12"),
-    'identity':(('description',), "RFC 6087: 4.12"),
-    'typedef':(('description',), "RFC 6087: 4.11,4.12"),
-    'grouping':(('description',), "RFC 6087: 4.12"),
-    'augment':(('description',), "RFC 6087: 4.12"),
-    'rpc':(('description',), "RFC 6087: 4.12"),
-    'notification':(('description',), "RFC 6087: 4.12,4.14"),
-    'container':(('description',), "RFC 6087: 4.12"),
-    'leaf':(('description',), "RFC 6087: 4.12"),
-    'leaf-list':(('description',), "RFC 6087: 4.12"),
-    'list':(('description',), "RFC 6087: 4.12"),
-    'choice':(('description',), "RFC 6087: 4.12"),
-    'anyxml':(('description',), "RFC 6087: 4.12"),
+                  "RFC 8407: 4.8"),
+    'revision':(('reference',), "RFC 8407: 4.8"),
+    'extension':(('description',), "RFC 8407: 4.14"),
+    'feature':(('description',), "RFC 8407: 4.14"),
+    'identity':(('description',), "RFC 8407: 4.14"),
+    'typedef':(('description',), "RFC 8407: 4.13,4.14"),
+    'grouping':(('description',), "RFC 8407: 4.14"),
+    'augment':(('description',), "RFC 8407: 4.14"),
+    'rpc':(('description',), "RFC 8407: 4.14"),
+    'notification':(('description',), "RFC 8407: 4.14,4.16"),
+    'container':(('description',), "RFC 8407: 4.14"),
+    'leaf':(('description',), "RFC 8407: 4.14"),
+    'leaf-list':(('description',), "RFC 8407: 4.14"),
+    'list':(('description',), "RFC 8407: 4.14"),
+    'choice':(('description',), "RFC 8407: 4.14"),
+    'anyxml':(('description',), "RFC 8407: 4.14"),
     }
 
 _recommended_substatements = {
-    'enum':(('description',), "RFC 6087: 4.10,4.12"),
-    'bit':(('description',), "RFC 6087: 4.10,4.12"),
+    'enum':(('description',), "RFC 8407: 4.11.3,4.14"),
+    'bit':(('description',), "RFC 8407: 4.11.3,4.14"),
     }
 
 _ietf_namespace_prefix = 'urn:ietf:params:xml:ns:yang:'
