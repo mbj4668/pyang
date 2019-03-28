@@ -16,7 +16,7 @@ module iana-if-type {
              United States
 
      Tel:    +1 310 301 5800
-     <mailto:iana&iana.org>";
+     <mailto:iana@iana.org>";
   description
     "This YANG module defines YANG identities for IANA-registered
      interface types.
@@ -28,7 +28,7 @@ module iana-if-type {
      the IANA web site.
 
      Requests for new values should be made to IANA via
-     email (iana&iana.org).
+     email (iana@iana.org).
 
      Copyright (c) 2014 IETF Trust and the persons identified as
      authors of the code.  All rights reserved.
@@ -46,10 +46,73 @@ module iana-if-type {
     "IANA 'ifType definitions' registry.
      <http://www.iana.org/assignments/smi-numbers>";
 
+  revision 2019-02-08 {
+    description
+      "Corrected formatting issue.";
+  }
+
+  revision 2019-01-31 {
+    description
+      "Registered ifTypes 295-296.";
+  }
+
+  revision 2018-07-03 {
+    description
+      "Corrected revision date.";
+  }
+
+  revision 2018-06-29 {
+    description
+      "Corrected formatting issue.";
+  }
+
+  revision 2018-06-28 {
+    description
+      "Registered ifType 294.";
+  }
+
+  revision 2018-06-28 {
+    description
+      "Registered ifType 293.";
+  }
+
+  revision 2018-06-22 {
+    description
+      "Registered ifType 292.";
+  }
+
+  revision 2018-06-21 {
+    description
+      "Registered ifType 291.";
+  }
+
+  revision 2017-03-30 {
+    description
+      "Registered ifType 290.";
+  }
+
+  revision 2017-01-19 {
+    description
+      "Registered ifType 289.";
+  }
+
+  revision 2016-11-23 {
+    description
+      "Registered ifTypes 283-288.";
+  }
+
+  revision 2016-06-09 {
+    description
+      "Registered ifType 282.";
+  }
+  revision 2016-05-03 {
+    description
+      "Registered ifType 281.";
+  }
   revision 2015-06-12 {
     description
       "Corrected formatting issue.";
-  }  
+  }
   revision 2014-09-24 {
     description
       "Registered ifType 280.";
@@ -1550,5 +1613,99 @@ module iana-if-type {
       "SDCI (IO-Link).";
     reference
       "IEC 61131-9 Edition 1.0 2013-09";
+  }
+  identity xboxWireless {
+    base iana-interface-type;
+    description
+      "Xbox wireless.";
+  }
+  identity fastdsl {
+    base iana-interface-type;
+    description
+      "FastDSL.";
+    reference
+      "BBF TR-355";
+  }
+  identity docsCableScte55d1FwdOob {
+    base iana-interface-type;
+    description
+      "Cable SCTE 55-1 OOB Forward Channel.";
+  }
+  identity docsCableScte55d1RetOob {
+    base iana-interface-type;
+    description
+      "Cable SCTE 55-1 OOB Return Channel.";
+  }
+  identity docsCableScte55d2DsOob {
+    base iana-interface-type;
+    description
+      "Cable SCTE 55-2 OOB Downstream Channel.";
+  }
+  identity docsCableScte55d2UsOob {
+    base iana-interface-type;
+    description
+      "Cable SCTE 55-2 OOB Upstream Channel.";
+  }
+  identity docsCableNdf {
+    base iana-interface-type;
+    description
+      "Cable Narrowband Digital Forward.";
+  }
+  identity docsCableNdr {
+    base iana-interface-type;
+    description
+      "Cable Narrowband Digital Return.";
+  }
+  identity ptm {
+    base iana-interface-type;
+    description
+      "Packet Transfer Mode.";
+  }
+  identity ghn {
+    base iana-interface-type;
+    description
+      "G.hn port.";
+  }
+  identity otnOtsi {
+    base iana-interface-type;
+    description
+      "Optical Tributary Signal.";
+    reference
+      "ITU-T G.959.1";
+  }
+  identity otnOtuc {
+    base iana-interface-type;
+    description
+      "OTN OTUCn.";
+    reference
+      "ITU-T G.709/Y.1331";
+  }
+  identity otnOduc {
+    base iana-interface-type;
+    description
+      "OTN ODUC.";
+    reference
+      "ITU-T G.709";
+  }
+  identity otnOtsig {
+    base iana-interface-type;
+    description
+      "OTN OTUC Signal.";
+    reference
+      "ITU-T G.709";
+  }
+  identity microwaveCarrierTermination {
+    base iana-interface-type;
+    description
+      "air interface of a single microwave carrier.";
+    reference
+      "RFC-ietf-ccamp-mw-yang-13";
+  }
+  identity microwaveRadioLinkTerminal {
+    base iana-interface-type;
+    description
+      "radio link interface for one or several aggregated microwave carriers.";
+    reference
+      "RFC-ietf-ccamp-mw-yang-13";
   }
 }

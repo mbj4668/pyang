@@ -54,6 +54,7 @@ pyang is compatible with the following IETF RFCs:
   * [RFC 7950](http://tools.ietf.org/html/rfc7950)
   * [RFC 7952](http://tools.ietf.org/html/rfc7952)
   * [RFC 8040](http://tools.ietf.org/html/rfc8040)
+  * [RFC 8407](http://tools.ietf.org/html/rfc8407)
 
 ## Features ##
 
