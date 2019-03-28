@@ -1,3 +1,21 @@
+   1.8 - 2019-??-??
+         pyang -f yang now keeps comments by default.  use
+           the parameter --yang-remove-comments to remove them.
+         updated the IETF plugin to RFC 8407
+         updated the IETF plugin to check for the license text and
+           RFC 2119/8174 boilerplate text
+
+         pr:471 - fixes #468, #469, check_update now handles submodule better,
+                  and checks ranges
+                  thanks to Paul Merlo
+         pr:464 - added __str__() and __repr__() methods to Statement
+                  thanks to William Lupton
+         pr:463 - more memory usage reductions
+                  thanks to Glenn Matthews
+         pr:461 - fixes #458, unique stmt inside global grouping causes
+                  dsdl parsing error
+                  thanks to Norbert Varkonyi
+
    1.7.8 - 2019-01-21
          for python coders: reverted method signature change for
          Repository.get_module_from_handle().  it now has the same
