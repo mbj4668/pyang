@@ -1,4 +1,4 @@
-   1.8 - 2019-??-??
+   2.0 - 2019-??-??
          pyang now has a proper XPath 1.0 parser, which means that it will
            detect more XPath errors, and produce warnings for XPath expressions
            that for example refer to unknown nodes
