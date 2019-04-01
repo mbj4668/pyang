@@ -50,6 +50,9 @@ extra_xpath_functions = {
     'deref': (['node-set'], 'node-set'), # pyang extension for 1.0
     }
 
+def add_extra_xpath_function(name, input_params, output_param):
+    extra_xpath_functions[name] = (input_params, output_param)
+
 def add_prefix(prefix, s):
     "Add `prefix` to all unprefixed names in `s`"
     # tokenize the XPath expression

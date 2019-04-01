@@ -80,8 +80,8 @@ def add_copy_uses_keyword(keyword):
 def add_copy_augment_keyword(keyword):
     _copy_augment_keywords.append(keyword)
 
-def add_xpath_function(name):
-    xpath.extra_xpath_functions.append(name)
+def add_xpath_function(name, input_params, output_param):
+    xpath.add_extra_xpath_function(name, input_params, output_param)
 
 def add_refinement_element(keyword, element, merge = False, v_fun=None):
     """Add an element to the <keyword>'s list of refinements"""
