@@ -1,0 +1,30 @@
+submodule i-sub {
+  belongs-to i {
+     prefix i;
+  }
+
+  revision 2014-04-01;
+
+  feature my_feature_2;
+
+  extension my_extension_2;
+
+  identity my_identity_2;
+
+  typedef my-type2 {
+    type uint32;
+  }
+  
+  grouping my-grouping-2 {
+     leaf g2-a {
+        mandatory true;
+        type string;
+     }
+     leaf g2-b {
+        type uint16 {
+           range "1..400";
+        }
+     }
+  }
+}
+

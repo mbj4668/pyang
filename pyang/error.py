@@ -174,6 +174,12 @@ error_codes = \
     'NODE_NOT_FOUND':
       (1,
        'node %s::%s is not found'),
+    'NODE_NOT_FOUND1':
+      (1,
+       'node %s::%s is not found in %s::%s'),
+    'NODE_NOT_FOUND2':
+      (1,
+       'node %s::%s is not found in module %s'),
     'BAD_NODE_IN_AUGMENT':
       (1,
        'node %s::%s of type %s cannot be augmented'),
@@ -439,6 +445,22 @@ error_codes = \
     'XPATH_FUNCTION':
       (2,
        'XPath function "%s" is not defined in the XPath context'),
+    'XPATH_FUNC_ARGS':
+      (2,
+       'XPath function "%s" takes %s arguments but called with %s.'),
+    'XPATH_NODE_NOT_FOUND1':
+      (4,
+       'node %s::%s is not found in %s::%s'),
+    'XPATH_NODE_NOT_FOUND2':
+      (4,
+       'node %s::%s is not found in module %s'),
+    'XPATH_PATH_TOO_MANY_UP':
+      (2,
+       'the path has too many "..."'),
+
+#    'XPATH_FUNCTION_RET_VAL':
+#      (2,
+#       'XPath function "%s" does not return a %s'),
     'AUGMENT_MANDATORY':
       (1,
        'cannot augment with mandatory node %s'),

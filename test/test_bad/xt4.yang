@@ -80,11 +80,9 @@ module xt4 {
   }
 
   deviation /a {
-    deviate delete {
-      must "foo";
+    deviate add {
+      must "foo"; // warning, node foo not found
     }
   }
-
 }
-  
 

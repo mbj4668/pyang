@@ -1,0 +1,75 @@
+module i {
+  namespace urn:i;
+  prefix i;
+
+  revision 2014-03-01;
+
+  feature my_feature_1;
+  feature my_feature_2;
+  feature my_feature_3;
+
+  extension my_extension_1;
+  extension my_extension_2;
+  extension my_extension_3;
+
+  identity my_identity_1;
+  identity my_identity_2;
+  identity my_identity_3;
+
+  typedef my-type1 {
+    type enumeration {
+       enum a;
+       enum b;
+    }
+  }
+
+  typedef my-type2 {
+    status deprecated;
+    type uint32;
+  }
+
+  typedef my-type3 {
+    type bits {
+       bit a { position 1; }
+       bit b { position 3; }
+    }
+  }
+
+  grouping my-grouping-1 {
+     leaf g1-a {
+        status obsolete;
+        type string;
+     }
+     leaf g1-b {
+        type decimal64 {
+           fraction-digits 4;
+        }
+     }
+  }
+  
+  grouping my-grouping-2 {
+     leaf g2-a {
+        mandatory true;
+        if-feature my_feature_2;
+        type string;
+     }
+     leaf g2-b {
+        type uint16 {
+           range "1..500";
+        }
+     }
+  }
+
+  grouping my-grouping-3 {
+     leaf g3-a {
+        type string;
+     }
+     leaf g3-b {
+        type uint32;
+     }
+  }
+
+  container x {
+  }
+}
+

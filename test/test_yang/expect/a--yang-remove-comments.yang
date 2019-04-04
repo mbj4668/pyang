@@ -1,0 +1,17 @@
+module a {
+  namespace "urn:a";
+  prefix a;
+
+  typedef foo {
+    type string;
+  }
+
+  typedef bar {
+    type int32;
+  }
+
+  container x {
+    container y;
+    container bar;
+  }
+}

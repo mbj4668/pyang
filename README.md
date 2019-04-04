@@ -3,6 +3,19 @@
 
 ## News ##
 
+<!--
+**2019-??-?? - Version 2.0 released**
+
+  * pyang now has a proper XPath 1.0 parser, which means that it will
+    detect more XPath errors, and produce warnings for XPath
+    expressions that for example refer to unknown nodes.
+
+  * for python coders: non backwards compatible change in the
+    pyang.xpath module.  the function xpath.tokens() has been replaced
+    by pyang.xpath_lexer.scan(), but it also return tokens in a new
+    format.
+-->
+
 **2019-01-21 - Version 1.7.8 released**
 
   * reverted method signature change for Repository.get_module_from_handle().
@@ -10,21 +23,6 @@
 
   * fixed bug in check_update when there were more than one augment for
     the same target node.
-
-**2019-01-17 - Version 1.7.7 released**
-
-  * fixed a bug in -f yang formatting
-
-See below for previous releases.
-
-**2019-01-17 - Version 1.7.6 released**
-
-  * better formatting of YANG modules with -f yang
-
-  * new type of plugin ("transform") to make transformations on the
-    representation of the YANG module
-
-  * ... and various other enhancements and bug fixes, see CHANGES.
 
 See below for previous releases.
 
@@ -56,6 +54,7 @@ pyang is compatible with the following IETF RFCs:
   * [RFC 7950](http://tools.ietf.org/html/rfc7950)
   * [RFC 7952](http://tools.ietf.org/html/rfc7952)
   * [RFC 8040](http://tools.ietf.org/html/rfc8040)
+  * [RFC 8407](http://tools.ietf.org/html/rfc8407)
 
 ## Features ##
 
@@ -69,9 +68,9 @@ pyang is compatible with the following IETF RFCs:
     [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
     an example.
   * Generate compact tree representation of YANG models for quick
-  visualization. See
-  [TreeOutput](https://github.com/mbj4668/pyang/wiki/TreeOutput) for
-  an example.
+    visualization. See
+    [TreeOutput](https://github.com/mbj4668/pyang/wiki/TreeOutput) for
+    an example.
   * Generate a skeleton XML instance document from the data model.
   * Schema-aware translation of instance documents encoded in XML to
     JSON and vice-versa. See
@@ -91,6 +90,21 @@ See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
 ---
 
 ## Previous releases ##
+
+**2019-01-17 - Version 1.7.7 released**
+
+  * fixed a bug in -f yang formatting
+
+See below for previous releases.
+
+**2019-01-17 - Version 1.7.6 released**
+
+  * better formatting of YANG modules with -f yang
+
+  * new type of plugin ("transform") to make transformations on the
+    representation of the YANG module
+
+  * ... and various other enhancements and bug fixes, see CHANGES.
 
 **2018-04-25 - Version 1.7.5 released**
 

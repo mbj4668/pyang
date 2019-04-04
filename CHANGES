@@ -1,3 +1,31 @@
+   2.0 - 2019-??-??
+         pyang now has a proper XPath 1.0 parser, which means that it will
+           detect more XPath errors, and produce warnings for XPath expressions
+           that for example refer to unknown nodes
+         for python coders: non backwards compatible change in the
+           pyang.xpath module.  the function xpath.tokens() has been
+           replaced by pyang.xpath_lexer.scan(), but it also return
+           tokens in a new format.
+         for python coders: non backwards compatible change in
+           statements.add_xpath_function().  thsis function now takes
+           three parameters, instead of just one.
+         pyang -f yang now keeps comments by default.  use
+           the parameter --yang-remove-comments to remove them.
+         updated the IETF plugin to RFC 8407
+         updated the IETF plugin to check for the license text and
+           RFC 2119/8174 boilerplate text
+
+         pr:471 - fixes #468, #469, check_update now handles submodule better,
+                  and checks ranges
+                  thanks to Paul Merlo
+         pr:464 - added __str__() and __repr__() methods to Statement
+                  thanks to William Lupton
+         pr:463 - more memory usage reductions
+                  thanks to Glenn Matthews
+         pr:461 - fixes #458, unique stmt inside global grouping causes
+                  dsdl parsing error
+                  thanks to Norbert Varkonyi
+
    1.7.8 - 2019-01-21
          for python coders: reverted method signature change for
          Repository.get_module_from_handle().  it now has the same

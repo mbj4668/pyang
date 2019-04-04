@@ -1,0 +1,34 @@
+module i {
+  namespace urn:i;
+  prefix i;
+
+  include i-sub;
+
+  revision 2014-04-01;
+
+  feature my_feature_1;
+
+  extension my_extension_1;
+
+  identity my_identity_1;
+
+  typedef my-type1 {
+    type enumeration {
+       enum a;
+       enum b;
+    }
+  }
+
+  grouping my-grouping-1 {
+     leaf g1-a {
+        status current;
+        type string;
+     }
+     leaf g1-b {
+        type decimal64 {
+           fraction-digits 4;
+        }
+     }
+  }
+}
+

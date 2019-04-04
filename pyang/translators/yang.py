@@ -23,6 +23,9 @@ class YANGPlugin(plugin.PyangPlugin):
             optparse.make_option("--yang-remove-unused-imports",
                                  dest="yang_remove_unused_imports",
                                  action="store_true"),
+            optparse.make_option("--yang-remove-comments",
+                                 dest="yang_remove_comments",
+                                 action="store_true"),
             optparse.make_option("--yang-line-length",
                                  type="int",
                                  dest="yang_line_length",
@@ -34,6 +37,9 @@ class YANGPlugin(plugin.PyangPlugin):
     def setup_fmt(self, ctx):
         ctx.implicit_errors = False
         ctx.keep_arg_substrings = True
+        ctx.keep_comments = True
+        if ctx.opts.yang_remove_comments:
+            ctx.keep_comments = False
 
     def emit(self, ctx, modules, fd):
         module = modules[0]

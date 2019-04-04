@@ -1,0 +1,14 @@
+submodule as {
+  yang-version 1.1;
+  belongs-to a {
+    prefix s;
+  }
+  import b {
+    prefix bb;
+  }
+  uses bb:foo;
+  container goo {
+    must "/bb:b";
+  }
+}
+

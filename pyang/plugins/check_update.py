@@ -68,6 +68,9 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
             'CHK_DEF_ADDED', 1,
             "the %s '%s' is illegally added")
         error.add_error_code(
+            'CHK_DEF_ADDED2', 1,
+            "the %s '%s' is illegally added in %s %s")
+        error.add_error_code(
             'CHK_DEF_CHANGED', 1,
             "the %s '%s' is illegally changed from '%s'")
         error.add_error_code(
@@ -238,10 +241,10 @@ def get_latest_revision(m):
         return None
 
 def chk_feature(olds, newmod, ctx):
-    chk_stmt(olds, newmod, ctx)
+    chk_stmt_definitions(olds, newmod, ctx, newmod.i_features)
 
 def chk_identity(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_identities)
     if news is None:
         return
     # make sure the base isn't changed (other than syntactically)
@@ -273,13 +276,13 @@ def chk_identity(olds, newmod, ctx):
             err_def_changed(oldbase, newbase, ctx)
 
 def chk_typedef(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_typedefs)
     if news is None:
         return
     chk_type(olds.search_one('type'), news.search_one('type'), ctx)
 
 def chk_grouping(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_groupings)
     if news is None:
         return
     chk_i_children(olds, news, ctx)
@@ -297,7 +300,7 @@ def chk_notification(olds, newmod, ctx):
     chk_i_children(olds, news, ctx)
 
 def chk_extension(olds, newmod, ctx):
-    news = chk_stmt(olds, newmod, ctx)
+    news = chk_stmt_definitions(olds, newmod, ctx, newmod.i_extensions)
     if news is None:
         return
     oldarg = olds.search_one('argument')
@@ -342,6 +345,17 @@ def chk_augment(oldmod, newmod, ctx):
         else:
             for oldch in targets[t]:
                 chk_children(oldch, newchs, newmod, ctx)
+
+def chk_stmt_definitions(olds, newp, ctx, definitions):
+    news = None;
+    if olds.arg in definitions:
+        news = definitions[olds.arg]
+    if news is None:
+        err_def_removed(olds, newp, ctx)
+        return None
+    chk_status(olds, news, ctx)
+    chk_if_feature(olds, news, ctx)
+    return news
 
 def chk_stmt(olds, newp, ctx):
     news = newp.search_one(olds.keyword, arg = olds.arg)
@@ -423,7 +437,7 @@ def chk_if_feature(old, new, ctx):
     # make sure no if-features are added
     for s in new.search('if-feature'):
         if old.search_one('if-feature', arg=s.arg) is None:
-            err_def_added(s, ctx)
+            err_def_added2(s, new, ctx)
 
 def chk_config(old, new, ctx):
     if old.i_config == False and new.i_config == True:
@@ -759,6 +773,10 @@ chk_type_func = \
 
 def err_def_added(new, ctx):
     err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED', (new.keyword, new.arg))
+
+def err_def_added2(new, node, ctx):
+    err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED2',
+            (new.keyword, new.arg, node.keyword, node.arg))
 
 def err_def_removed(old, newp, ctx):
     err_add(ctx.errors, newp.pos, 'CHK_DEF_REMOVED',

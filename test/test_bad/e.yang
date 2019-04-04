@@ -1,7 +1,7 @@
 module e {
     namespace "urn:e";
     prefix e;
-    
+
     import f { // note that prefix f is used in must expression
         prefix f;
     }
@@ -97,7 +97,7 @@ module e {
 
   leaf xx {
     type string;
-    must "/a:bar[[";  // error: prefix a not defined
+    must "/a:bar";  // error: prefix a not defined
   }
 
 }
