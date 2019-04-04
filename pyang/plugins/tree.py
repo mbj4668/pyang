@@ -63,6 +63,14 @@ class TreePlugin(plugin.PyangPlugin):
                                      help="Print ietf-restconf:yang-data " +
                                      "structures")
             )
+        if plugin.is_plugin_registered('structure'):
+            optlist.append(
+                optparse.make_option("--tree-print-structures",
+                                     dest="tree_print_structures",
+                                     action="store_true",
+                                     help="Print ietf-yang-structure-ext" +
+                                     ":strcuture")
+            )
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
 
@@ -247,6 +255,41 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                                    'yang-data', depth, llen,
                                    ctx.opts.tree_no_expand_uses,
                                    prefix_with_modname=ctx.opts.modname_prefix)
+
+        if ctx.opts.tree_print_structures:
+            sxs = module.search(('ietf-yang-structure-ext', 'structure'))
+            if len(sxs) > 0:
+                if not printed_header:
+                    print_header()
+                    printed_header = True
+                section_delimiter_printed = False
+                for sx in sxs:
+                    if not section_delimiter_printed:
+                        fd.write('\n')
+                        section_delimiter_printed = True
+                    fd.write("  structure %s:\n" % sx.arg)
+                    print_children(sx.i_children, module, fd, '  ', path,
+                                   'structure', depth, llen,
+                                   ctx.opts.tree_no_expand_uses,
+                                   prefix_with_modname=ctx.opts.modname_prefix)
+
+            sxs = module.search(('ietf-yang-structure-ext',
+                                 'augment-structure'))
+            if len(sxs) > 0:
+                if not printed_header:
+                    print_header()
+                    printed_header = True
+                section_delimiter_printed = False
+                for sx in sxs:
+                    if not section_delimiter_printed:
+                        fd.write('\n')
+                        section_delimiter_printed = True
+                    fd.write("  augment-structure %s:\n" % sx.arg)
+                    print_children(sx.i_children, module, fd, '  ', path,
+                                   'structure', depth, llen,
+                                   ctx.opts.tree_no_expand_uses,
+                                   prefix_with_modname=ctx.opts.modname_prefix)
+
 
 def unexpand_uses(i_children):
     res = []
