@@ -117,7 +117,7 @@ rfc8174_str = \
 """The key words 'MUST', 'MUST NOT', 'REQUIRED', 'SHALL', 'SHALL
 NOT', 'SHOULD', 'SHOULD NOT', 'RECOMMENDED', 'NOT RECOMMENDED',
 'MAY', and 'OPTIONAL' in this document are to be interpreted as
-described in BCP 14 (RFC 2119) (RFC 8174) when, and only when,
+described in BCP 14 \(RFC 2119\) \(RFC 8174\) when, and only when,
 they appear in all capitals, as shown here."""
 
 re_rfc8174 = re.compile(re.sub(r'\s+', ' ', rfc8174_str))
@@ -134,7 +134,7 @@ Relating to IETF Documents
 \(https?://trustee.ietf.org/license-info\)\.
 
 This version of this YANG module is part of
-RFC [0-9]+(\s+\(https?://www.rfc-editor.org/info/rfc[0-9]+\))?; see
+RFC .+(\s+\(https?://www.rfc-editor.org/info/rfc.+\))?; see
 the RFC itself for full legal notices\."""
 
 re_tlp = re.compile(re.sub(r'\s+', ' ', tlp_str))
