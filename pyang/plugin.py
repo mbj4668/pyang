@@ -38,15 +38,28 @@ def init(plugindirs=[]):
             fnames = os.listdir(plugindir)
         except OSError:
             continue
+        modnames = []
         for fname in fnames:
-            if not fname.startswith(".#") and fname.endswith(".py") and \
-               fname != '__init__.py' and not fname.endswith("_flymake.py"):
-                pluginmod = __import__(fname[:-3])
-                try:
-                    pluginmod.pyang_plugin_init()
-                except AttributeError as s:
-                    print(pluginmod.__dict__)
-                    raise AttributeError(pluginmod.__file__ + ': ' + str(s))
+            if (fname.startswith(".#") or
+                fname.startswith("__init__.py") or
+                fname.endswith("_flymake.py") or
+                fname.endswith("_flymake.pyc")):
+                pass
+            elif fname.endswith(".py"):
+                modname = fname[:-3]
+                if modname not in modnames:
+                    modnames.append(modname)
+            elif fname.endswith(".pyc"):
+                modname = fname[:-4]
+                if modname not in modnames:
+                    modnames.append(modname)
+        for modname in modnames:
+            pluginmod = __import__(modname)
+            try:
+                pluginmod.pyang_plugin_init()
+            except AttributeError as s:
+                print(pluginmod.__dict__)
+                raise AttributeError(pluginmod.__file__ + ': ' + str(s))
         sys.path = syspath
 
 def register_plugin(plugin):
