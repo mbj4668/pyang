@@ -704,6 +704,7 @@ def v_type_typedef(ctx, stmt):
     type_ = stmt.search_one('type')
     if type_ is None or type_.is_grammatically_valid == False:
         # error is already reported by grammar check
+        stmt.i_is_validated = True
         return
     # ensure our type is validated
     v_type_type(ctx, type_)
