@@ -126,8 +126,8 @@ class YinParser(object):
                 arg = e.find_attribute(argname)
                 # create and save the top-level statement here, so
                 # we get a correct Statement in pos.
-                stmt = statements.Statement(None, None,
-                                            e.pos, e.local_name, arg)
+                stmt = statements.new_statement(None, None,
+                                                e.pos, e.local_name, arg)
                 self.top = stmt
                 self.pos.top = stmt
             except:
@@ -209,7 +209,7 @@ class YinParser(object):
         self.check_attr(e.pos, e.attrs)
 
         if parent is not None:
-            stmt = statements.Statement(self.top, parent, e.pos, keywd, arg)
+            stmt = statements.new_statement(self.top, parent, e.pos, keywd, arg)
             parent.substmts.append(stmt)
         else:
             stmt = self.top
@@ -382,7 +382,7 @@ class YinParser(object):
             return r
         for i in module.search('include'):
             modulename = i.arg
-            m = module.i_ctx.get_module(modulename)
+            m = self.ctx.search_module(i.pos, modulename)
             if m is not None:
                 r = m.search_one(keyword, arg)
                 if r is not None:

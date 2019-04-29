@@ -166,6 +166,8 @@ def check_update(ctx, oldfilename, newmod):
             oldctx.add_module(oldfilename, text)
         else:
             oldmod = oldctx.add_module(oldfilename, text)
+    oldctx.validate()
+
     ctx.errors.extend(oldctx.errors)
 
     if oldmod is None:

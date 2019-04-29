@@ -294,11 +294,11 @@ class YangParser(object):
         if self.ctx.keep_comments:
            cmt = self.tokenizer.get_comment()
            if cmt != None:
-              stmt = statements.Statement(self.top,
-                                          parent,
-                                          self.pos,
-                                          '_comment',
-                                          cmt)
+              stmt = statements.new_statement(self.top,
+                                              parent,
+                                              self.pos,
+                                              '_comment',
+                                              cmt)
               return stmt
 
         keywd = self.tokenizer.get_keyword()
@@ -315,9 +315,7 @@ class YangParser(object):
             self.tokenizer.is_1_1 = True;
             self.tokenizer.strict_quoting = True
 
-        stmt_class = statements.STMT_CLASS_FOR_KEYWD.get(keywd,
-                                                         statements.Statement)
-        stmt = stmt_class(self.top, parent, self.pos, keywd, arg)
+        stmt = statements.new_statement(self.top, parent, self.pos, keywd, arg)
 
         if self.ctx.keep_arg_substrings and argstrs is not None:
             stmt.arg_substrings = argstrs

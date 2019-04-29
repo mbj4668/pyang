@@ -377,6 +377,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             try:
                 if not xform_obj.transform(ctx, modules):
                     for module in modules:
+                        module.i_is_validated = False
                         statements.validate_module(ctx, module)
             except error.TransformError as e:
                 if e.msg != "":

@@ -352,6 +352,9 @@ _valid_deviations = {
 def validate_module(ctx, module):
     """Validate `module`, which is a Statement representing a (sub)module"""
 
+    if module.i_is_validated:
+        return
+
     def iterate(stmt, phase):
         # if the grammar is not yet checked or if it is checked and
         # valid, then we continue.
@@ -594,6 +597,8 @@ def v_import_module(ctx, stmt):
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
         m = ctx.search_module(i.pos, modulename, rev)
+        if m is not None:
+            validate_module(ctx, m)
         if (m is not None and r is not None and
             stmt.i_version == '1' and m.i_version == '1.1'):
             err_add(ctx.errors, i.pos,
@@ -1384,7 +1389,7 @@ def v_expand_1_children(ctx, stmt):
         input_ = stmt.search_one('input')
         if input_ is None:
             # create the implicitly defined input node
-            input_ = Statement(stmt.top, stmt, stmt.pos, 'input', 'input')
+            input_ = new_statement(stmt.top, stmt, stmt.pos, 'input', 'input')
             v_init_stmt(ctx, input_)
             input_.i_children = []
             input_.i_module = stmt.i_module
@@ -1401,7 +1406,7 @@ def v_expand_1_children(ctx, stmt):
         output = stmt.search_one('output')
         if output is None:
             # create the implicitly defined output node
-            output = Statement(stmt.top, stmt, stmt.pos, 'output', 'output')
+            output = new_statement(stmt.top, stmt, stmt.pos, 'output', 'output')
             v_init_stmt(ctx, output)
             output.i_children = []
             output.i_module = stmt.i_module
@@ -1782,7 +1787,7 @@ def v_expand_2_augment(ctx, stmt):
             s.parent = stmt.i_target_node
 
 def create_new_case(ctx, choice, child, expand=True):
-    new_case = Statement(child.top, choice, child.pos, 'case', child.arg)
+    new_case = new_statement(child.top, choice, child.pos, 'case', child.arg)
     v_init_stmt(ctx, new_case)
     child.parent = new_case
     new_case.i_children = [child]
@@ -2727,6 +2732,10 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
 
 ### structs used to represent a YANG module
 
+def new_statement(top, parent, pos, keyword, arg=None):
+    stmt_class = STMT_CLASS_FOR_KEYWD.get(keyword, Statement)
+    return stmt_class(top, parent, pos, keyword, arg)
+
 ## Each statement in YANG is represented as an instance of Statement or
 ## one of its subclasses below.
 
@@ -2769,6 +2778,8 @@ class Statement(object):
         '__dict__',
     )
 
+    # NOTE: don't use this function directly; instead use
+    # statements.new_statement()
     def __init__(self, top, parent, pos, keyword, arg=None):
         self.top = top
         """pointer to the top-level Statement"""
@@ -2895,6 +2906,10 @@ class ModSubmodStatement(Statement):
         # see v_grammar_module()
         'i_latest_revision',
     )
+
+    def __init__(self, top, parent, pos, keyword, arg=None):
+        Statement.__init__(self, top, parent, pos, keyword, arg)
+        self.i_is_validated = False
 
 
 class AugmentStatement(Statement):

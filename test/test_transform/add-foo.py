@@ -21,13 +21,15 @@ class AddFoo(plugin.PyangPlugin):
 
 
 def add_leaf(parent, name, type_name):
-    leaf = statements.Statement(parent.top, parent, parent.pos, 'leaf', name)
+    leaf = statements.new_statement(parent.top, parent, parent.pos,
+                                    'leaf', name)
     parent.substmts.append(leaf)
     add_type(leaf, type_name)
     return leaf
 
 
 def add_type(leaf, type_name):
-    type_ = statements.Statement(leaf.top, leaf, leaf.pos, 'type', type_name)
+    type_ = statements.new_statement(leaf.top, leaf, leaf.pos,
+                                     'type', type_name)
     leaf.substmts.append(type_)
     return type_

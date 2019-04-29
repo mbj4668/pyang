@@ -132,7 +132,6 @@ class Context(object):
             return other
 
         self.modules[(module.arg, rev)] = module
-        statements.validate_module(self, module)
 
         return module
 
@@ -330,19 +329,23 @@ class Context(object):
 
     def validate(self):
         uris = {}
+        modules = []
         for k in self.modules:
             m = self.modules[k]
             if m != None:
-                namespace = m.search_one('namespace')
-                if namespace != None:
-                    uri = namespace.arg
-                    if uri in uris:
-                        if uris[uri] != m.arg:
-                            error.err_add(self.errors, namespace.pos,
-                                          'DUPLICATE_NAMESPACE',
-                                          (uri, uris[uri]))
-                    else:
-                        uris[uri] = m.arg
+                modules.append(m)
+        for m in modules:
+            statements.validate_module(self, m)
+            namespace = m.search_one('namespace')
+            if namespace != None:
+                uri = namespace.arg
+                if uri in uris:
+                    if uris[uri] != m.arg:
+                        error.err_add(self.errors, namespace.pos,
+                                      'DUPLICATE_NAMESPACE',
+                                      (uri, uris[uri]))
+                else:
+                    uris[uri] = m.arg
 
 class Repository(object):
     """Abstract base class that represents a module repository"""
