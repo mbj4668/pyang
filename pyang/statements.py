@@ -3104,12 +3104,22 @@ def mk_path_list(stmt):
     resolve_stmt(stmt, resolved_names)
     return resolved_names
 
-def mk_path_str(stmt, with_prefixes=False, prefix_onchange=False, prefix_to_module=False, resolve_top_prefix_to_module=False):
+def mk_path_str(stmt,
+                with_prefixes=False,
+                prefix_onchange=False,
+                prefix_to_module=False,
+                resolve_top_prefix_to_module=False):
     """Returns the XPath path of the node.
     with_prefixes indicates whether or not to prefix every node.
-    prefix_onchange modifies the behavior of with_prefixes and only adds prefixes when the prefix changes mid-XPath.
+
+    prefix_onchange modifies the behavior of with_prefixes and
+      only adds prefixes when the prefix changes mid-XPath.
+
     prefix_to_module replaces prefixes with the module name of the prefix.
-    resolve_top_prefix_to_module resolves the module-level prefix to the module name.
+
+    resolve_top_prefix_to_module resolves the module-level prefix
+      to the module name.
+
     Prefixes may be included in the path if the prefix changes mid-path.
     """
     resolved_names = mk_path_list(stmt)
@@ -3120,7 +3130,8 @@ def mk_path_str(stmt, with_prefixes=False, prefix_onchange=False, prefix_to_modu
         xpath_element = node_name
         if with_prefixes or (prefix_onchange and prefix != last_prefix):
             new_prefix = prefix
-            if prefix_to_module or (index == 0 and resolve_top_prefix_to_module):
+            if (prefix_to_module or
+                (index == 0 and resolve_top_prefix_to_module)):
                 new_prefix = module_name
             xpath_element = '%s:%s' % (new_prefix, node_name)
         xpath_elements.append(xpath_element)
@@ -3129,16 +3140,25 @@ def mk_path_str(stmt, with_prefixes=False, prefix_onchange=False, prefix_to_modu
 
 def get_xpath(stmt, qualified=False, prefix_to_module=False):
     """Gets the XPath of the statement.
-    Unless qualified=True, does not include prefixes unless the prefix changes mid-XPath.
+    Unless qualified=True, does not include prefixes unless the prefix
+      changes mid-XPath.
+
     qualified will add a prefix to each node.
+
     prefix_to_module will resolve prefixes to module names instead.
-    For RFC 8040, set prefix_to_module=True.
-    /prefix:root/node/prefix:node/...
-    qualified=True: /prefix:root/prefix:node/prefix:node/...
-    qualified=True, prefix_to_module=True: /module:root/module:node/module:node/...
+
+    For RFC 8040, set prefix_to_module=True:
+      /prefix:root/node/prefix:node/...
+
+    qualified=True:
+      /prefix:root/prefix:node/prefix:node/...
+
+    qualified=True, prefix_to_module=True:
+      /module:root/module:node/module:node/...
     prefix_to_module=True: /module:root/node/module:node/...
     """
-    return mk_path_str(stmt, with_prefixes=qualified, prefix_onchange=True, prefix_to_module=prefix_to_module)
+    return mk_path_str(stmt, with_prefixes=qualified,
+                       prefix_onchange=True, prefix_to_module=prefix_to_module)
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
@@ -3179,7 +3199,8 @@ def get_primitive_type(stmt):
     if typedef_obj:
         type_name = get_primitive_type(typedef_obj)
     elif type_obj and not check_primitive_type(type_obj):
-        raise Exception('%s is not a primitive! Incomplete parse tree?' % type_name)
+        raise Exception('%s is not a primitive! Incomplete parse tree?' %
+                        type_name)
     return type_name
 
 def check_primitive_type(stmt):
