@@ -25,6 +25,16 @@
          pr:461 - fixes #458, unique stmt inside global grouping causes
                   dsdl parsing error
                   thanks to Norbert Varkonyi
+         pr:377 - added statement utility functions, e.g. more options to
+                  mk_path_str() to construct paths with various formats
+                  thanks to Remington Campbell
+
+         #465 - plugin.pre_validate_ctx is now called at correct time
+                for python coders: previously modules were validated as
+                they were added to the context; now there are validated
+                when ctx.validate() is called.
+         #306 - support plugins available as .pyc files
+         #183 - canonical checks lead to false 'circular definition' error
 
    1.7.8 - 2019-01-21
          for python coders: reverted method signature change for
