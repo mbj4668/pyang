@@ -1223,7 +1223,6 @@ def v_type_feature(ctx, stmt):
 
 def v_type_if_feature(ctx, stmt, no_error_report=False):
     """verify that the referenced feature exists."""
-    stmt.i_feature = None
     # Verify the argument type
     expr = syntax.parse_if_feature_expr(stmt.arg)
     if stmt.i_module.i_version == '1':
@@ -2969,13 +2968,6 @@ class GroupingStatement(Statement):
     )
 
 
-class IfFeatureStatement(Statement):
-    __slots__ = (
-        # see v_type_if_feature()
-        'i_feature',
-    )
-
-
 class ImportStatement(Statement):
     __slots__ = (
         # see v_init_import()
@@ -3056,7 +3048,6 @@ STMT_CLASS_FOR_KEYWD = {
     'deviation': DeviationStatement,
     'enum': EnumStatement,
     'grouping': GroupingStatement,
-    'if-feature': IfFeatureStatement,
     'import': ImportStatement,
     'leaf': LeafLeaflistStatement,
     'leaf-list': LeafLeaflistStatement,
