@@ -259,6 +259,7 @@ def unexpand_uses(i_children):
     uses = []
     for ch in i_children:
         if hasattr(ch, 'i_uses'):
+            # take first from i_uses, which means "closest" grouping
             g = ch.i_uses[0].arg
             if g not in uses:
                 # first node from this uses

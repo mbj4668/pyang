@@ -2835,6 +2835,8 @@ class Statement(object):
         new.pos = copy.copy(new.pos)
         if uses is not None:
             if hasattr(new, 'i_uses'):
+                # make a copy of i_uses before modifying it
+                new.i_uses = list(new.i_uses)
                 new.i_uses.insert(0, uses)
             else:
                 new.i_uses = [uses]
