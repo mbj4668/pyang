@@ -29,6 +29,10 @@
                   mk_path_str() to construct paths with various formats
                   thanks to Remington Campbell
 
+         #482 - groupings are now printed correctly in -f tree, when
+                --tree-no-expand-uses is used.
+         #481 - nodes that are not implemented due to false "if-feature"
+                statements are now properly pruned.
          #465 - plugin.pre_validate_ctx is now called at correct time
                 for python coders: previously modules were validated as
                 they were added to the context; now there are validated
