@@ -1,0 +1,24 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  feature x;
+
+  grouping a {
+    container a {
+      choice b {
+        case c {
+          leaf cc {
+            type string;
+          }
+        }
+        case d {
+          if-feature x;
+          leaf dd {
+            type string;
+          }
+        }
+      }
+    }
+  }
+}
