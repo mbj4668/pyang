@@ -221,21 +221,21 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                            ctx.opts.tree_no_expand_uses,
                            prefix_with_modname=ctx.opts.modname_prefix)
 
-        if ctx.opts.tree_print_groupings and len(module.i_groupings) > 0:
-            if not printed_header:
-                print_header()
-                printed_header = True
+        if ctx.opts.tree_print_groupings:
             section_delimiter_printed = False
-            for gname in module.i_groupings:
-                if not section_delimiter_printed:
-                    fd.write('\n')
-                    section_delimiter_printed = True
-                fd.write("  grouping %s\n" % gname)
-                g = module.i_groupings[gname]
-                print_children(g.i_children, module, fd,
-                               '  ', path, 'grouping', depth, llen,
-                               ctx.opts.tree_no_expand_uses,
-                               prefix_with_modname=ctx.opts.modname_prefix)
+            for m in mods:
+                for g in m.search('grouping'):
+                    if not printed_header:
+                        print_header()
+                        printed_header = True
+                    if not section_delimiter_printed:
+                        fd.write('\n')
+                        section_delimiter_printed = True
+                    fd.write("  grouping %s\n" % g.arg)
+                    print_children(g.i_children, m, fd,
+                                   '  ', path, 'grouping', depth, llen,
+                                   ctx.opts.tree_no_expand_uses,
+                                   prefix_with_modname=ctx.opts.modname_prefix)
 
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
