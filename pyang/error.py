@@ -353,6 +353,9 @@ error_codes = \
     'LEAFREF_DEREF_NOT_LEAFREF':
       (1,
        'the deref argument for %s at %s does not refer to a leafref leaf'),
+    'LEAFREF_TO_NOT_IMPLEMENTED':
+      (1,
+       'the leafref refer to a node that is not implemented'),
     'DUPLICATE_CHILD_NAME':
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '

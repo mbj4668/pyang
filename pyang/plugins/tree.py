@@ -348,6 +348,7 @@ def print_children(i_children, module, fd, prefix, path, mode, depth,
 
 def print_node(s, module, fd, prefix, path, mode, depth, llen,
                no_expand_uses, width, prefix_with_modname=False):
+
     line = "%s%s--" % (prefix[0:-1], get_status_str(s))
 
     brcol = len(line) + 4

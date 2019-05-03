@@ -146,8 +146,6 @@ _validation_phases = [
     'type',
     'type_2',
 
-    'prune',
-
     # expansion phases:
     #   first expansion: copy data definition stmts into i_children
     'expand_1',
@@ -207,9 +205,6 @@ _validation_map = {
     ('type_2', 'typedef'):lambda ctx, s: v_type_typedef(ctx, s),
     ('type_2', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
     ('type_2', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
-
-    ('prune', 'module'):lambda ctx, s: v_prune_module(ctx, s),
-    ('prune', 'submodule'):lambda ctx, s: v_prune_module(ctx, s),
 
     ('expand_1', 'module'):lambda ctx, s: v_expand_1_children(ctx, s),
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
@@ -470,7 +465,6 @@ def v_init_module(ctx, stmt):
     stmt.i_features = {}
     stmt.i_identities = {}
     stmt.i_extensions = {}
-    stmt.i_prune = []
 
     stmt.i_including_modulename = None
 
@@ -1283,12 +1277,7 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
     # referenced features exist.
     try:
         if eval(expr) == False:
-            # prune the parent.
-            # since the parent can have more than one if-feature
-            # statement, we must check if the parent
-            # already has been scheduled for removal
-            if stmt.parent not in stmt.i_module.i_prune:
-                stmt.i_module.i_prune.append(stmt.parent)
+            stmt.parent.i_not_implemented = True
     except Abort:
         pass
 
@@ -1299,9 +1288,7 @@ def v_type_status(ctx, stmt):
             if s == 'deprecated': return 1;
             if s == 'obsolete':   return 2;
         if n(stmt.arg) > n(ctx.max_status):
-            # prune the parent
-            if stmt.parent not in stmt.i_module.i_prune:
-                stmt.i_module.i_prune.append(stmt.parent)
+            stmt.parent.i_not_implemented = True
 
 def v_type_identity(ctx, stmt):
     if hasattr(stmt, 'i_is_validated'):
@@ -1356,13 +1343,6 @@ def v_type_base(ctx, stmt, no_error_report=False):
     if stmt.i_identity is None and no_error_report == False:
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
-
-### Prune phase
-
-def v_prune_module(ctx, stmt):
-    for s in stmt.i_prune:
-        idx = s.parent.substmts.index(s)
-        del s.parent.substmts[idx]
 
 ### Expand phases
 
@@ -1557,6 +1537,8 @@ def v_expand_1_uses(ctx, stmt):
         def post_copy(old, new):
             # inline the definition into our module
             new.i_module = stmt.i_module
+            if hasattr(old, 'i_not_implemented'):
+                new.i_not_implemented = old.i_not_implemented
             new.i_children = []
             new.i_uniques = []
             new.pos.uses_pos = stmt.pos
@@ -1580,6 +1562,10 @@ def v_expand_1_uses(ctx, stmt):
                       copyf=post_copy)
         newg.substmts.extend(whens)
         newg.substmts.extend(iffeatures)
+
+        if hasattr(stmt, 'i_not_implemented'):
+            newg.i_not_implemented = stmt.i_not_implemented
+
         stmt.parent.i_children.append(newg)
 
     # copy plain statements from the grouping
@@ -1747,6 +1733,8 @@ def v_expand_2_augment(ctx, stmt):
 
     for c in stmt.i_children:
         c.i_augment = stmt
+        if hasattr(stmt, 'i_not_implemented'):
+            c.i_not_implemented = stmt.i_not_implemented
 
         ch = search_child(stmt.i_target_node.i_children,
                           stmt.i_module.i_modulename, c.arg)
@@ -2030,8 +2018,7 @@ def v_reference_leaf_leafref(ctx, stmt):
         x = validate_leafref_path(ctx, stmt,
                                   path_type_spec.path_spec,
                                   path_type_spec.path_,
-                                  accept_non_config_target=not_req_inst
-        )
+                                  accept_non_config_target=not_req_inst)
         if x is None:
             return
         ptr, expanded_path, path_list = x
@@ -2041,6 +2028,10 @@ def v_reference_leaf_leafref(ctx, stmt):
         stmt.i_leafref_expanded = True
         if ptr is not None:
             chk_status(ctx, stmt, ptr)
+            if (not hasattr(stmt, 'i_not_implemented') and
+                hasattr(ptr, 'i_not_implemented')):
+                err_add(ctx.errors, stmt.pos,
+                        'LEAFREF_TO_NOT_IMPLEMENTED', ())
             stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
 
 def v_reference_must(ctx, stmt):
@@ -2755,6 +2746,10 @@ class Statement(object):
         'i_module',
         'i_orig_module',
 
+        'i_not_implemented', # if set (True) this statement is not implemented,
+                             # either a false if-feature or status
+                             # deprecated/obsolete
+
         # see v_init_has_children()
         'i_children',
 
@@ -2897,7 +2892,6 @@ class ModSubmodStatement(Statement):
         'i_features',
         'i_identities',
         'i_extensions',
-        'i_prune',
         'i_including_modulename',
         'i_ctx',
         'i_undefined_augment_nodes',
@@ -2910,6 +2904,21 @@ class ModSubmodStatement(Statement):
         Statement.__init__(self, top, parent, pos, keyword, arg)
         self.i_is_validated = False
 
+
+    def prune(self):
+        def p(n):
+            if hasattr(n, 'i_children'):
+                deletes = []
+                for ch in n.i_children:
+                    if hasattr(ch, 'i_not_implemented'):
+                        deletes.append(ch)
+                    else:
+                        p(ch)
+                if len(deletes) > 0:
+                    for d in deletes:
+                        idx = n.i_children.index(d)
+                        del n.i_children[idx]
+        p(self)
 
 class AugmentStatement(Statement):
     __slots__ = (

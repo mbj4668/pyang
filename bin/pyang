@@ -371,6 +371,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     ctx.validate()
 
+    for m in modules:
+        m.prune()
+
     # transform modules
     if len(xform_objs) > 0 and len(modules) > 0:
         for xform_obj in xform_objs:

@@ -30,4 +30,10 @@ module b {
     if-feature "not bar and a:foz";
   }
 
+  leaf ref-to-not-implemented {
+    type leafref {
+      path "/a:x/a:bar-gggg";
+    }
+  }
+
 }
