@@ -174,8 +174,8 @@ def check_update(ctx, oldfilename, newmod):
         return
 
     for (epos, etag, eargs) in ctx.errors:
-        if (epos.ref in (newmod.pos.ref, oldmod.pos.ref) and
-            error.is_error(error.err_level(etag))):
+        if (epos.ref in (newmod.pos.ref, oldmod.pos.ref) and \
+                error.is_error(error.err_level(etag))):
             return
 
     if ctx.opts.verbose:
@@ -184,6 +184,11 @@ def check_update(ctx, oldfilename, newmod):
             (m, r, (fmt, filename)) = x
             print("  %s" % filename)
         print("")
+
+    chk_module(ctx, oldmod, newmod)
+
+
+def chk_module(ctx, oldmod, newmod):
 
     chk_modulename(oldmod, newmod, ctx)
 
@@ -371,8 +376,10 @@ def chk_stmt(olds, newp, ctx):
 def chk_i_children(old, new, ctx):
     for oldch in old.i_children:
         chk_child(oldch, new, ctx)
-    # chk_child removes all old children
-    for newch in new.i_children:
+
+    old_child_args = [oldch.arg for oldch in old.i_children]
+    added_new_children = [new_child for new_child in new.i_children if new_child.arg not in old_child_args]
+    for newch in added_new_children:
         if statements.is_mandatory_node(newch):
             err_add(ctx.errors, newch.pos, 'CHK_NEW_MANDATORY', newch.arg)
 
@@ -388,7 +395,7 @@ def chk_children(oldch, newchs, newp, ctx):
     if newch is None:
         err_def_removed(oldch, newp, ctx)
         return
-    newchs.remove(newch)
+
     if newch.keyword != oldch.keyword:
         err_add(ctx.errors, newch.pos, 'CHK_CHILD_KEYWORD_CHANGED',
                 (oldch.keyword, newch.arg, newch.keyword))
