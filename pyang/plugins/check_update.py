@@ -781,15 +781,21 @@ chk_type_func = \
 
 
 def err_def_added(new, ctx):
-    err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED', (new.keyword, new.arg))
+    new_arg = new.arg
+    if new.keyword == 'presence':
+        new_arg = new.parent.arg
+    err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED', (new.keyword, new_arg))
 
 def err_def_added2(new, node, ctx):
     err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED2',
             (new.keyword, new.arg, node.keyword, node.arg))
 
 def err_def_removed(old, newp, ctx):
+    old_arg = old.arg
+    if old.keyword == 'presence':
+        old_arg = old.parent.arg
     err_add(ctx.errors, newp.pos, 'CHK_DEF_REMOVED',
-            (old.keyword, old.arg, old.pos))
+            (old.keyword, old_arg, old.pos))
 
 def err_def_changed(old, new, ctx):
     err_add(ctx.errors, new.pos, 'CHK_DEF_CHANGED',
