@@ -1503,6 +1503,7 @@ def v_expand_1_uses(ctx, stmt):
                 target.substmts.remove(old)
             if v_fun is not None:
                 v_fun(ctx, target, new)
+            new.parent = target
             target.substmts.append(new)
         elif new is not None:
             err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
@@ -1517,6 +1518,7 @@ def v_expand_1_uses(ctx, stmt):
             if target.keyword in valid_keywords:
                 if v_fun is not None:
                     v_fun(ctx, target, new)
+                new.parent = target
                 target.substmts.append(new)
             else:
                 err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
@@ -2207,6 +2209,8 @@ def v_reference_deviation_4(ctx, stmt):
     v_recheck_target(ctx, stmt.i_target_node, reference=True)
 
 def v_recheck_target(ctx, t, reference=False):
+    for s in t.search('if-feature'):
+        v_type_if_feature(ctx, s)
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
         if reference:
