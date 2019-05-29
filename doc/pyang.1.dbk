@@ -328,8 +328,8 @@
           <para>
             Validate the module(s) according to the generic YANG guideline as
             specified in <link
-            xlink:href="http://tools.ietf.org/html/rfc6087">RFC
-            6087</link>.  In addition, it checks that the module is in
+            xlink:href="http://tools.ietf.org/html/rfc8407">RFC
+            8407</link>.  In addition, it checks that the module is in
             canonical order.
           </para>
         </listitem>
@@ -343,7 +343,12 @@
           <para>
             Validate the module(s) like <option>--lint</option>, and
             in addition verifies that the namespace and module name
-            follow the IETF conventions.
+            follow the IETF conventions, and that the module has the
+            correct license text and <link
+            xlink:href="http://tools.ietf.org/html/rfc2119">RFC
+            2119</link> / <link
+            xlink:href="http://tools.ietf.org/html/rfc8174">RFC
+            8274</link> boilerplate text.
           </para>
         </listitem>
       </varlistentry>
@@ -883,7 +888,7 @@
     <para>
       The <emphasis>lint</emphasis> option validates that the module
       follows the generic conventions and rules given in <link
-      xlink:href="http://tools.ietf.org/html/rfc6087">RFC 6087</link>.
+      xlink:href="http://tools.ietf.org/html/rfc8407">RFC 8407</link>.
       In addition, it checks that the module is in canonical order.
     </para>
     <para>

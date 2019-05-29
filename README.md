@@ -3,26 +3,30 @@
 
 ## News ##
 
-<!--
-**2019-??-?? - Version 2.0 released**
+**2019-05-29 - Version 2.0 released**
 
   * pyang now has a proper XPath 1.0 parser, which means that it will
     detect more XPath errors, and produce warnings for XPath
     expressions that for example refer to unknown nodes.
 
+  * pyang -f yang now keeps comments by default.  use
+    the parameter --yang-remove-comments to remove them.
+
+  * updated the IETF plugin to check RFC 8407 guidelines.
+
+  * updated the IETF plugin to check for the license text and
+    RFC 2119/8174 boilerplate text.
+
   * for python coders: non backwards compatible change in the
     pyang.xpath module.  the function xpath.tokens() has been replaced
     by pyang.xpath_lexer.scan(), but it also return tokens in a new
     format.
--->
 
-**2019-01-21 - Version 1.7.8 released**
+  * or python coders: non backwards compatible change in
+    statements.add_xpath_function().  this function now takes
+    three parameters, instead of just one.
 
-  * reverted method signature change for Repository.get_module_from_handle().
-    it now has the same signature as in 1.7.5.
-
-  * fixed bug in check_update when there were more than one augment for
-    the same target node.
+  * ... and various other enhancements and bug fixes, see CHANGES.
 
 See below for previous releases.
 
@@ -90,6 +94,14 @@ See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
 ---
 
 ## Previous releases ##
+
+**2019-01-21 - Version 1.7.8 released**
+
+  * reverted method signature change for Repository.get_module_from_handle().
+    it now has the same signature as in 1.7.5.
+
+  * fixed bug in check_update when there were more than one augment for
+    the same target node.
 
 **2019-01-17 - Version 1.7.7 released**
 

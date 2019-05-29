@@ -1,20 +1,27 @@
-   2.0 - 2019-??-??
+   2.0 - 2019-05-29
          pyang now has a proper XPath 1.0 parser, which means that it will
            detect more XPath errors, and produce warnings for XPath expressions
            that for example refer to unknown nodes
          for python coders: non backwards compatible change in the
            pyang.xpath module.  the function xpath.tokens() has been
            replaced by pyang.xpath_lexer.scan(), but it also return
-           tokens in a new format.
+           tokens in a new format
          for python coders: non backwards compatible change in
-           statements.add_xpath_function().  thsis function now takes
-           three parameters, instead of just one.
+           statements.add_xpath_function().  this function now takes
+           three parameters, instead of just one
          pyang -f yang now keeps comments by default.  use
-           the parameter --yang-remove-comments to remove them.
-         updated the IETF plugin to RFC 8407
+           the parameter --yang-remove-comments to remove them
+         updated the IETF plugin to check RFC 8407 guidelines
          updated the IETF plugin to check for the license text and
            RFC 2119/8174 boilerplate text
 
+         pr:489 - avoid sample-xml-skeleton crash for submodules
+                  thanks to William Lupton
+         pr:484 - fixes #483, #487, check_update can now be used
+                  to check compatibility on multiple modules with one time
+                  model context initialization; fixed error message for
+                  added presence containers
+                  thanks to Yan Gorelik
          pr:471 - fixes #468, #469, check_update now handles submodule better,
                   and checks ranges
                   thanks to Paul Merlo
@@ -29,6 +36,9 @@
                   mk_path_str() to construct paths with various formats
                   thanks to Remington Campbell
 
+         #490 - handle refinement of if-feature
+         #486 - validate xpath syntax in groupings
+         #485 - ensure all identifiers in error messages are within quotes
          #482 - groupings are now printed correctly in -f tree, when
                 --tree-no-expand-uses is used.
          #481 - nodes that are not implemented due to false "if-feature"
