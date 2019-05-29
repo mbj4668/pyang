@@ -72,16 +72,22 @@ def _add_prefix(prefix, tok):
 
 ## TODO: validate must/when after deviate
 
-# node is the initial context node
+# node is the initial context node or None if it is not known
 def v_xpath(ctx, stmt, node):
     try:
-        q = xpath_parser.parse(stmt.arg)
-        #print "** q", q
-        chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q)
+        if hasattr(stmt, 'i_xpath') and stmt.i_xpath is not None:
+            q = stmt.i_xpath
+        else:
+            q = xpath_parser.parse(stmt.arg)
+            stmt.i_xpath = q
+        if node is not None:
+            chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q)
     except xpath_lexer.XPathError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e.msg)
+        stmt.i_xpath = None
     except SyntaxError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e.msg)
+        stmt.i_xpath = None
 
 # mod is the (sub)module where the stmt is defined, which we use to
 # resolve prefixes.

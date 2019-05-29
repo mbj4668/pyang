@@ -52,4 +52,14 @@ module a {
     }
   }
 
+  grouping foo {
+    leaf a {
+      type int32;
+      must "current( = 'xpdr'"; // syntax error
+      must "foo"; // syntax ok
+      when "current( = 'xpdr'"; // syntax error
+    }
+  }
+  uses foo; // ensure we don't get xpath errors again, but a warning for 'foo'
+
 }
