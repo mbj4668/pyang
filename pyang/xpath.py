@@ -12,7 +12,7 @@ core_functions = {
     'namespace-uri': (['node-set', '?'], 'string'),
     'name': (['node-set', '?'], 'string'),
     'string': (['object'], 'string'),
-    'concat': (['string', 'string', 'string', '*'], 'string'),
+    'concat': (['string', 'string', '*'], 'string'),
     'starts-with': (['string', 'string'], 'boolean'),
     'contains': (['string', 'string'], 'boolean'),
     'substring-before': (['string', 'string'], 'string'),
