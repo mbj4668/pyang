@@ -105,8 +105,13 @@ class Translator (object):
         self.uri = {}
         self.node_modules = set()
         for m in jtox["modules"]:
-            self.prefix[m], self.uri[m] = jtox["modules"][m]
-            ET.register_namespace(self.prefix[m], self.uri[m])
+            # The namespace urn:ietf:params:xml:ns:netconf:base:1.0 is added by the default. 
+            # Don't add it twice as this will cause the generated XML to be invalid
+            prefix, uri = jtox["modules"][m]
+            if uri != "urn:ietf:params:xml:ns:netconf:base:1.0":
+                self.prefix[m] = prefix
+                self.uri[m] = uri
+                ET.register_namespace(self.prefix[m], self.uri[m])
         ident = "[a-zA-Z_][-_.a-zA-Z0-9]*"
         self.qn_re = re.compile(r"^\s*(%s(?::%s)?)\s*(.*)$" % ((ident,)*2))
         self.num_re = re.compile(r"^\s*([0-9]+)\s*\]\s*(.*)$")

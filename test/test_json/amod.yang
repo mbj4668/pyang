@@ -2,6 +2,10 @@ module amod {
   namespace "http://example.com/a";
   prefix a;
 
+  import ietf-netconf {
+    prefix nc;
+  }
+
   include asub;
 
   feature abc;
@@ -39,6 +43,14 @@ module amod {
     leaf foo {
       type int64;
       default "-1";
+    }
+    leaf session-id {
+      type nc:session-id-or-zero-type;
+      mandatory false;
+      description
+        "Identifier of the session.
+         A NETCONF session MUST be identified by a non-zero value.
+         A non-NETCONF session MAY be identified by the value zero.";
     }
     leaf-list pac {
       type bool;
