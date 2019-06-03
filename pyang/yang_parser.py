@@ -22,6 +22,10 @@ class YangTokenizer(object):
         self.max_line_len = max_line_len
         if self.max_line_len == 0:
             self.max_line_len = None
+        # if keep_comments is True, we return comments as separate statements.
+        # we currently only keep comments between statement, i.e., we always
+        # ignore comments between a keyword and its argument, and within
+        # concatenated strings.
         self.keep_comments = keep_comments
         self.errors = errors
         self.is_1_1 = False
@@ -48,7 +52,7 @@ class YangTokenizer(object):
         self.offset = self.offset + i
         self.buf = self.buf[i:]
 
-    def skip(self):
+    def skip(self, keep_comments=False):
         """Skip whitespace and count position"""
         buflen = len(self.buf)
 
@@ -62,12 +66,12 @@ class YangTokenizer(object):
                 break
 
         # do not keep comments in the syntax tree
-        if not self.keep_comments:
+        if not keep_comments:
             # skip line comment
             if self.buf[0] == '/':
                 if self.buf[1] == '/':
                     self.readline()
-                    return self.skip()
+                    return self.skip(keep_comments=keep_comments)
             # skip block comment
                 elif self.buf[1] == '*':
                     i = self.buf.find('*/')
@@ -75,11 +79,11 @@ class YangTokenizer(object):
                         self.readline()
                         i = self.buf.find('*/')
                     self.set_buf(i+2)
-                    return self.skip()
+                    return self.skip(keep_comments=keep_comments)
 
     def get_comment(self):
         """ret: string()"""
-        self.skip()
+        self.skip(keep_comments=True)
         offset = self.offset
         m = syntax.re_comment.match(self.buf)
         if m == None:
@@ -102,7 +106,6 @@ class YangTokenizer(object):
                     cmt += '\n'+self.buf.replace('\n','')
                     i = self.buf.find('*/')
                 self.set_buf(i+2)
-            self.skip()
             return cmt
 
     def get_keyword(self):
@@ -138,14 +141,14 @@ class YangTokenizer(object):
         Skips whitespace and comments, and returns next character
         without consuming it.  Use skip_tok() to consume the characater.
         """
-        self.skip()
+        self.skip(self.keep_comments)
         try:
             return self.buf[0]
         except:
             raise error.Eof
 
     def skip_tok(self):
-        self.skip()
+        self.skip(self.keep_comments)
         self.set_buf(1)
 
     def get_strings(self, need_quote=False):

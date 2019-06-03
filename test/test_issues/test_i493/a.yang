@@ -1,0 +1,28 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  container part-one {
+    description //asdfasdfasf
+      "asdfsadf asdfasdfs";
+    leaf param-1 {
+      type string;
+    }
+    must
+      "param-1 = concat(../part-two/param-2,.." +
+      //asdfasfd
+      "/part-two/param-3,'')";
+  }
+  container part-two {
+    description /*asdfasdfasf
+
+                 */
+        "asdfsadf asdfasdfs";
+    leaf param-2 {
+      description "sadkalsk" +
+        /* hej */
+        "sdad";
+      type string;
+    }
+  }
+}
