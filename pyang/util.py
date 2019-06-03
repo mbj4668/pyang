@@ -159,9 +159,9 @@ def search_data_node(children, modulename, identifier, last_skipped = None):
             return child
     return None
 
-def closes_ancestor_data_node(node):
+def closest_ancestor_data_node(node):
     if node.keyword in ['choice', 'case']:
-        return closes_ancestor_data_node(node.parent)
+        return closest_ancestor_data_node(node.parent)
     return node
 
 def data_node_up(node):
@@ -170,5 +170,5 @@ def data_node_up(node):
     if node.keyword in skip:
         return data_node_up(p)
     if p and p.keyword in skip:
-        return closes_ancestor_data_node(p)
+        return closest_ancestor_data_node(p)
     return p

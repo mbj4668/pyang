@@ -199,6 +199,8 @@ _validation_map = {
     ('type', 'identity'):lambda ctx, s: v_type_identity(ctx, s),
     ('type', 'status'):lambda ctx, s: v_type_status(ctx, s),
     ('type', 'base'):lambda ctx, s: v_type_base(ctx, s),
+    ('type', 'must'):lambda ctx, s: v_type_must(ctx, s),
+    ('type', 'when'):lambda ctx, s: v_type_when(ctx, s),
     ('type', '$extension'): lambda ctx, s: v_type_extension(ctx, s),
 
     ('type_2', 'type'):lambda ctx, s: v_type_type(ctx, s),
@@ -1344,6 +1346,14 @@ def v_type_base(ctx, stmt, no_error_report=False):
         err_add(ctx.errors, stmt.pos,
                 'IDENTITY_NOT_FOUND', (name, pmodule.arg))
 
+def v_type_must(ctx, stmt):
+    # check syntax only here
+    xpath.v_xpath(ctx, stmt, None)
+
+def v_type_when(ctx, stmt):
+    # check syntax only here
+    xpath.v_xpath(ctx, stmt, None)
+
 ### Expand phases
 
 def v_expand_1_children(ctx, stmt):
@@ -1493,6 +1503,7 @@ def v_expand_1_uses(ctx, stmt):
                 target.substmts.remove(old)
             if v_fun is not None:
                 v_fun(ctx, target, new)
+            new.parent = target
             target.substmts.append(new)
         elif new is not None:
             err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
@@ -1507,6 +1518,7 @@ def v_expand_1_uses(ctx, stmt):
             if target.keyword in valid_keywords:
                 if v_fun is not None:
                     v_fun(ctx, target, new)
+                new.parent = target
                 target.substmts.append(new)
             else:
                 err_add(ctx.errors, refinement.pos, 'BAD_REFINEMENT',
@@ -2041,14 +2053,12 @@ def v_reference_when(ctx, stmt):
     v_xpath(ctx, stmt)
 
 def v_xpath(ctx, stmt):
-    # verify that the xpath expression is correct, and that
-    # each prefix is defined
     if stmt.parent.keyword == 'augment':
         node = stmt.parent.i_target_node
     else:
         node = stmt.parent
     if node is not None:
-        node = util.closes_ancestor_data_node(node)
+        node = util.closest_ancestor_data_node(node)
     xpath.v_xpath(ctx, stmt, node)
 
 def v_reference_deviation(ctx, stmt):
@@ -2199,6 +2209,8 @@ def v_reference_deviation_4(ctx, stmt):
     v_recheck_target(ctx, stmt.i_target_node, reference=True)
 
 def v_recheck_target(ctx, t, reference=False):
+    for s in t.search('if-feature'):
+        v_type_if_feature(ctx, s)
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
         if reference:
@@ -3047,6 +3059,17 @@ class UsesStatement(Statement):
     )
 
 
+class MustStatement(Statement):
+    __slots__ = (
+        'i_xpath',                    # parsed xpath expression | None
+    )
+
+class WhenStatement(Statement):
+    __slots__ = (
+        'i_xpath',                    # parsed xpath expression | None
+    )
+
+
 STMT_CLASS_FOR_KEYWD = {
     'module': ModSubmodStatement,
     'submodule': ModSubmodStatement,
@@ -3067,6 +3090,8 @@ STMT_CLASS_FOR_KEYWD = {
     'typedef': TypedefStatement,
     'unique': UniqueStatement,
     'uses': UsesStatement,
+    'must': MustStatement,
+    'when': WhenStatement,
     # all other keywords can use generic Statement class
 }
 

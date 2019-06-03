@@ -93,7 +93,7 @@ error_codes = \
        'keyword "%s" not in canonical order (see RFC 6020, Section 12)'),
     'UNEXPECTED_KEYWORD_CANONICAL_1':
       (1,
-       'keyword "%s" not in canonical order,'
+       'keyword "%s" not in canonical order, ' \
        'expected "%s" (see RFC 6020, Section 12)'),
     'UNEXPECTED_KEYWORD_USES':
       (1,
@@ -106,8 +106,8 @@ error_codes = \
        'did not expect an argument, got "%s"'),
     'XML_IDENTIFIER':
       (3,
-       'illegal identifier "%s", must not start with [xX][mM][lL] in'
-       'YANG version 1 (see RFC 6020, Section 12)'),
+       'illegal identifier "%s", must not start with [xX][mM][lL] in' \
+       ' YANG version 1 (see RFC 6020, Section 12)'),
     'TRAILING_GARBAGE':
       (2,
        'trailing garbage after module'),
@@ -140,25 +140,26 @@ error_codes = \
        'cannot include a version %s submodule in a version %s module'),
     'BAD_MODULE_NAME':
       (2,
-       'unexpected modulename "%s" in %s, should be %s'),
+       'unexpected modulename "%s" in %s, should be "%s"'),
     'WBAD_MODULE_NAME':
       (4,
-       'unexpected modulename "%s" in %s, should be %s'),
+       'unexpected modulename "%s" in %s, should be "%s"'),
     'FILENAME_BAD_MODULE_NAME':
       (4,
        'filename "%s" suggests invalid module name "%s", should match "%s"'),
     'BAD_REVISION':
       (3,
-       'unexpected latest revision "%s" in %s, should be %s'),
+       'unexpected latest revision "%s" in %s, should be "%s"'),
     'WBAD_REVISION':
       (4,
-       'unexpected latest revision "%s" in %s, should be %s'),
+       'unexpected latest revision "%s" in %s, should be "%s"'),
     'FILENAME_BAD_REVISION':
       (4,
        'filename "%s" suggests invalid revision "%s", should match "%s"'),
     'BAD_SUB_BELONGS_TO':
       (1,
-       'module %s includes %s, but %s does not specify a correct belongs-to'),
+       'module "%s" includes "%s", but "%s" does not specify a ' \
+       'correct belongs-to'),
     'MISSING_INCLUDE':
       (1,
        'submodule %s is included by %s, but not by the module %s'),
@@ -194,13 +195,13 @@ error_codes = \
        'key node "%s::%s" cannot be deviated with "not-supported"'),
     'BAD_DEVIATE_ADD':
       (2,
-       'the %s property already exists in node "%s::%s"'),
+       'the "%s" property already exists in node "%s::%s"'),
     'BAD_DEVIATE_DEL':
       (2,
-       'the %s property does not exist in node "%s::%s"'),
+       'the "%s" property does not exist in node "%s::%s"'),
     'BAD_DEVIATE_TYPE':
       (2,
-       'the %s property cannot be added'),
+       'the "%s" property cannot be added'),
     'BAD_DEVIATE_WITH_NOT_SUPPORTED':
       (2,
        'cannot have other deviate statement together with "not-supported"'),
@@ -209,16 +210,16 @@ error_codes = \
        'extension "%s" is not defined in module %s'),
     'TYPE_NOT_FOUND':
       (1,
-       'type "%s" not found in module %s'),
+       'type "%s" not found in module "%s"'),
     'FEATURE_NOT_FOUND':
       (1,
-       'feature "%s" not found in module %s'),
+       'feature "%s" not found in module "%s"'),
     'IDENTITY_NOT_FOUND':
       (1,
-       'identity "%s" not found in module %s'),
+       'identity "%s" not found in module "%s"'),
     'GROUPING_NOT_FOUND':
       (1,
-       'grouping "%s" not found in module %s'),
+       'grouping "%s" not found in module "%s"'),
     'DEFAULT_CASE_NOT_FOUND':
       (1,
        'the default case "%s" is not found"'),
@@ -317,42 +318,42 @@ error_codes = \
        'the path for %s at %s has too many ".."'),
     'LEAFREF_IDENTIFIER_NOT_FOUND':
       (1,
-       '%s:%s in the path for %s at %s is not found'),
+       '"%s:%s" in the path for %s at %s is not found'),
     'LEAFREF_IDENTIFIER_BAD_NODE':
       (1,
-       '%s:%s in the path for %s at %s references a %s node'),
+       '"%s:%s" in the path for %s at %s references a %s node'),
     'LEAFREF_BAD_PREDICATE':
       (1,
-       '%s:%s in the path for %s at %s has a predicate, '
+       '"%s:%s" in the path for %s at %s has a predicate, '
        'but is not a list'),
     'LEAFREF_BAD_PREDICATE_PTR':
       (1,
-       '%s:%s in the path\'s predicate for %s at %s is compared '
+       '"%s:%s" in the path\'s predicate for %s at %s is compared '
        'with a node that is not a leaf'),
     'LEAFREF_NOT_LEAF':
       (1,
        'the path for %s at %s does not refer to a leaf'),
     'LEAFREF_NO_KEY':
       (1,
-       '%s:%s in the path for %s at %s is not the name of a key leaf'),
+       '"%s:%s" in the path for %s at %s is not the name of a key leaf'),
     'LEAFREF_MULTIPLE_KEYS':
       (1,
-       '%s:%s in the path for %s at %s is referenced more than once'),
+       '"%s:%s" in the path for %s at %s is referenced more than once'),
     'LEAFREF_BAD_CONFIG':
       (1,
        'the path for %s is config but refers to a '
-       'non-config leaf %s defined at %s'),
+       'non-config leaf "%s" defined at %s'),
     'LEAFREF_DEREF_NOT_LEAFREF':
       (1,
-       'the deref argument refers to node %s at %s which is'
+       'the deref argument refers to node "%s" at %s which is'
        ' not a leafref leaf'),
     'LEAFREF_DEREF_NOT_KEY':
       (1,
-       'the deref argument refers to node %s at %s which'
+       'the deref argument refers to node "%s" at %s which'
        ' does not refer to a key (%s at %s)'),
     'LEAFREF_DEREF_NOT_LEAFREF':
       (1,
-       'the deref argument for %s at %s does not refer to a leafref leaf'),
+       'the deref argument for "%s" at %s does not refer to a leafref leaf'),
     'LEAFREF_TO_NOT_IMPLEMENTED':
       (1,
        'the leafref refer to a node that is not implemented'),
@@ -380,25 +381,25 @@ error_codes = \
        'extension name "%s" is already defined at %s'),
     'BAD_RESTRICTION':
       (1,
-       'restriction %s not allowed for this base type'),
+       'restriction "%s" not allowed for this base type'),
     'BAD_DEFAULT_VALUE':
       (1,
        'the type "%s" cannot have a default value'),
     'MISSING_TYPE_SPEC':
       (1,
-       'a type %s must have at least one %s statement'),
+       'a type "%s" must have at least one "%s" statement'),
     'MISSING_TYPE_SPEC_1':
       (1,
-       'a type %s must have a %s statement'),
+       'a type "%s" must have a "%s" statement'),
     'BAD_TYPE_IN_UNION':
       (1,
-       'the type %s (defined at %s) cannot be part of a union'),
+       'the type "%s" (defined at %s) cannot be part of a union'),
     'BAD_TYPE_IN_KEY':
       (1,
-       'the type %s cannot be part of a key, used by leaf %s'),
+       'the type "%s" cannot be part of a key, used by leaf "%s"'),
     'KEY_BAD_SUBSTMT':
       (1,
-       'the statement %s cannot be given for a key'),
+       'the statement "%s" cannot be given for a key'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
@@ -408,7 +409,7 @@ error_codes = \
        ' greater than 0'),
     'DUPLICATE_DEFAULT':
         (1,
-         'the default value %s is given twice in the leaf list'),
+         'the default value "%s" is given twice in the leaf list'),
     'BAD_STATUS_REFERENCE':
       (2,
        'the "%s" definition is %s, but the "%s" it references is %s'),
@@ -417,16 +418,16 @@ error_codes = \
        'the revision statements are not given in reverse chronological order'),
     'EXTENSION_ARGUMENT_PRESENT':
       (1,
-       'unexpected argument for extension %s'),
+       'unexpected argument for extension "%s"'),
     'EXTENSION_NO_ARGUMENT_PRESENT':
       (1,
-       'expected argument for extension %s'),
+       'expected argument for extension "%s"'),
     'SYNTAX_ERROR':
       (1,
        'syntax error: %s'),
     'DUPLICATE_NAMESPACE':
       (1,
-       'duplicate namespace uri %s found in module %s'),
+       'duplicate namespace uri "%s" found in module "%s"'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
        'missing argument attribute "%s" for "%s"'),
@@ -453,10 +454,10 @@ error_codes = \
        'XPath function "%s" takes %s arguments but called with %s.'),
     'XPATH_NODE_NOT_FOUND1':
       (4,
-       'node %s::%s is not found in %s::%s'),
+       'node "%s::%s" is not found in "%s::%s"'),
     'XPATH_NODE_NOT_FOUND2':
       (4,
-       'node %s::%s is not found in module %s'),
+       'node "%s::%s" is not found in module "%s"'),
     'XPATH_PATH_TOO_MANY_UP':
       (2,
        'the path has too many "..."'),
@@ -466,11 +467,11 @@ error_codes = \
 #       'XPath function "%s" does not return a %s'),
     'AUGMENT_MANDATORY':
       (1,
-       'cannot augment with mandatory node %s'),
+       'cannot augment with mandatory node "%s"'),
 
     'LONG_IDENTIFIER':
       (3,
-       'identifier %s exceeds %s characters'),
+       'identifier "%s" exceeds %s characters'),
 
     'CONFIG_IGNORED':
       (4,
@@ -478,15 +479,15 @@ error_codes = \
 
     'UNUSED_IMPORT':
       (4,
-       'imported module %s not used'),
+       'imported module "%s" not used'),
 
     'UNUSED_TYPEDEF':
       (4,
-       'locally scoped typedef %s not used'),
+       'locally scoped typedef "%s" not used'),
 
     'UNUSED_GROUPING':
       (4,
-       'locally scoped grouping %s not used'),
+       'locally scoped grouping "%s" not used'),
 
     'KEY_HAS_DEFAULT':
       (4,
