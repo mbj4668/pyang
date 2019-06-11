@@ -1,3 +1,10 @@
+   2.0.1 - 2019-06-11
+         pr:492 - ensure the ietf-netconf namespace isn't added multiple times
+                  in json2xml
+         #493 - fixed crash with --keep-comments where comments were present
+                between a statement keyword and the argument
+         #491 - fixed incorrect prototype for XPath "concat" function
+
    2.0 - 2019-05-29
          pyang now has a proper XPath 1.0 parser, which means that it will
            detect more XPath errors, and produce warnings for XPath expressions

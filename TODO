@@ -1,5 +1,3 @@
-  o  add validation of XPath (lower prio) (when, must)
-
   o  add validation of instance-identifier defaults
 
   o  move all plugin API functions to plugin.py

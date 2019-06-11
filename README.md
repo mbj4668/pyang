@@ -3,6 +3,11 @@
 
 ## News ##
 
+**2019-06-11 - Version 2.0.1 released**
+
+  * this is a pure bug fix release
+
+
 **2019-05-29 - Version 2.0 released**
 
   * pyang now has a proper XPath 1.0 parser, which means that it will
