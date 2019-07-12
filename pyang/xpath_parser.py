@@ -320,17 +320,17 @@ def _mk_union(a, b):
     if a[0] == 'union' and b[0] == 'union':
         v = list(a[1])
         v.extend(b[1])
-        ('union', v)
+        return ('union', v)
     elif a[0] == 'union':
         v = list(a[1])
         v.append(b[1])
-        ('union', v)
+        return ('union', v)
     elif b[0] == 'union':
         v = [b]
         v.extend(a[1])
-        ('union', v)
+        return ('union', v)
     else:
-        ('union', [a, b])
+        return ('union', [a, b])
 
 def _expand_double_slash():
     return ('step', 'descendant-or-self', ('node_type', 'node'), [])
