@@ -4,9 +4,10 @@ python:
   - "2.7"
   # - "3.2" # error: coverage doesn't work
   # - "3.3" # error: pytest doesn't work
-  - "3.4"
+  # - "3.4" # error: lxml doesn't work
   # - "3.5" # error: coverage doesn't work
   - "3.6"
+  - "3.7"
 addons:
   apt:
     packages:
@@ -26,7 +27,8 @@ script:
   - export USE_VIRTUALENV=true
   - make test
   - find . -name '.coverage*' -exec mv -t . {} +
-  - coverage combine
+  # tmp ignore no coverage files
+  - coverage combine || true
   # Test .gitignore for tests:
   - TMP=$(tempfile)
   - git ls-files . --exclude-standard --others | tee "$TMP"
