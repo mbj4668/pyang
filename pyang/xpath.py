@@ -65,7 +65,7 @@ def add_prefix(prefix, s):
 
 def _add_prefix(prefix, tok):
     if tok.type == 'name':
-        m = re_ncname.match(tok.value)
+        m = xpath_lexer.re_ncname.match(tok.value)
         if m.group(2) == None:
             tok.value = prefix + ':' + tok.value
     return tok
@@ -197,7 +197,7 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
     if head[0] == 'var':
         # check if the variable is known as a node-set
         # currently we don't have any variables, so this fails
-        err_add(ctx.errors, pos, 'XPATH_VARIABLE', q[1])
+        err_add(ctx.errors, pos, 'XPATH_VARIABLE', head[1])
     elif head[0] == 'function_call':
         func = head[1]
         args = head[2]
