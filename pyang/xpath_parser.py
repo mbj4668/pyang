@@ -173,7 +173,7 @@ def p_fun_call_2(p):
 def p_arg_list_1(p):
     'ArgumentList : ArgumentList COMMA Argument'
     p[0] = list(p[1])
-    p[0].append(p[2])
+    p[0].append(p[3])
 def p_arg_list_2(p):
     'ArgumentList : Argument'
     p[0] = [p[1]]
