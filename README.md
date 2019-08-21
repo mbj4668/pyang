@@ -3,6 +3,11 @@
 
 ## News ##
 
+**2019-08-21 - Version 2.0.2 released**
+
+  * this is a pure bug fix release
+
+
 **2019-06-11 - Version 2.0.1 released**
 
   * this is a pure bug fix release

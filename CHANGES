@@ -1,3 +1,16 @@
+   2.0.2 - 2019-08-21
+         pr:497 - fixed crash when parsing an xpath union with three or
+                  more terms
+                  thanks to Stuart Bayley
+
+         #503 - fixed crash in add_prefix() function
+         #496 - fixed bug in xpath parser when a function had more
+                than one argument.  this bug lead to false warnings
+                that imported modules were not used, when they in fact
+                were used in xpath expressions.
+
+
+
    2.0.1 - 2019-06-11
          pr:492 - ensure the ietf-netconf namespace isn't added multiple times
                   in json2xml
