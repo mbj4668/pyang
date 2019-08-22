@@ -290,8 +290,7 @@
         <listitem>
           <para>
             This parameter has effect only if a plugin can handle
-            comments.  One example of such a plugin is the 'yang'
-            output format plugin.
+            comments.
           </para>
         </listitem>
       </varlistentry>
@@ -1616,6 +1615,25 @@ $ osascript foo.scpt</screen>
         <listitem>
           <para>
             Remove unused import statements from the output.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--yang-remove-comments</option></term>
+        <listitem>
+          <para>
+            Remove all comments from the output.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--yang-line-length</option>
+        <replaceable>len</replaceable></term>
+        <listitem>
+          <para>
+            Try to format each line with a maximum line length of
+            <replaceable>len</replaceable>.  Does not reformat long
+            lines within strings.
           </para>
         </listitem>
       </varlistentry>
