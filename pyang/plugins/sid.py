@@ -1,6 +1,9 @@
 """sid plugin
 
 Plugin used to generate or update .sid files.
+Please refer to [I-D.ietf-core-sid], [I-D.ietf-core-comi], [I-D.ietf-core-yang-cbor]
+and [I-D.ietf-core-yang-library] for more information.
+
 """
 
 import optparse
@@ -130,56 +133,76 @@ class SidPlugin(plugin.PyangPlugin):
 
 def print_help():
     print("""
-Structure IDentifier (SID) are used to map YANG definitions to
-CBOR encoding. These SIDs can be automatically generated
-for a YANG module using the pyang sid plugin.
+YANG Schema Item iDentifiers (SID) are globally unique unsigned integers
+used to identify YANG items. SIDs are used instead of names to save space
+in constrained applications such as COREconf. This plugin is used to
+automatically generate and updated .sid files used to persist and
+distribute SID assignments
 
-   pyang --generate-sid-file <entry-point:size> <yang-module>
+COMMANDS
 
-For example:
-   pyang --generate-sid-file 20000:100 toaster@2009-11-20.yang
+pyang [--list_sid] --generate-sid-file {count | entry-point:size} yang-filename
+pyang [--list_sid] --update-sid-file sid-filename yang-filename
+      [--extra-sid-range {count | entry-point:size}]
+pyang [--list_sid] --check-sid-file sid-filename yang-filename
 
-The name of the .sid file generated is:
 
-   <module-name>@<module-revision>.sid
+OPTIONS
 
-Each time new items(s) are added to a YANG module by the
-introduction of a new revision of this module, its included
-sub-module(s) or imported module(s), the .sid file need to be
-updated. This is done by providing the name of the previous
-.sid file as argument.
+--generate-sid-file
 
-   pyang --update-sid-file <file-name> <yang-module>
+  This option is used to generate a new .sid file from a YANG module.
+   
+  pyang --generate-sid-file <entry-point:size> <yang-filename>
+  
+  For example, this command generates the file toaster@2009-11-20.sid.
+  
+  pyang --generate-sid-file 20000:100 toaster@2009-11-20.yang
+  
+--update-sid-file
 
-For example:
-   pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+  Each time new items are added to a YANG module by the introduction of
+  a new revision of this module, its included sub-modules or imported
+  modules, the .sid file need to be updated. This is done by using the
+  --update-sid-file option and providing the previous
+  .sid file as argument. For example, this command generates the file
+  toaster@2009-12-28.sid.
 
-If needed, am extra SID range can be assigned to an existing YANg module
-with the --extra-sid-range option.
+  pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+  
+-- check-sid-file
 
-For example:
-   pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
-         --extra-sid-range 20100:100
+  The --check-sid-file option can be used at any time to verify if the
+  .sid file need to be updated.
 
-The --check-sid-file option can be used at any time to verify
-if the .sid file need to be updated.
+  pyang --check-sid-file <sid-filename> <yang-filename>
+  
+--list_sid
 
-   pyang --check-sid-file <file-name> <yang-module>
+  The --list_sid option can be included before any of the previous option
+  to obtains the list of SIDs assigned or validated. For example:
 
-The --list_sid option can be included before any of the previous
-option to obtains the list of SIDs assigned or validated.
+  pyang --list-sid --generate-sid-file 20000:100 toaster@2009-11-20.yang
+  
+--extra-sid-range
 
-For example:
-   pyang --list-sid --generate-sid-file 20000:100 toaster@2009-11-20.yang
+  If needed, an extra SID range can be assigned to an existing YANG module
+  with the --extra-sid-range option. For example, this command generates
+  the file toaster@2009-12-28.sid using the initial range specified in
+  toaster@2009-11-20.sid and the extra range specified in the command line.
+  
+  pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+        --extra-sid-range 20100:100
+  
+count
 
-The number of SID required when generating or updating a .sid file can be
-computed by specifying 'count' as SID range.
-
-For example:
-   pyang --generate-sid-file count toaster@2009-11-20.yang
-or:
-   pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
-         --extra-sid-range count
+  The number of SID required when generating or updating a .sid file can
+  be computed by specifying 'count' as SID range. For example:
+  
+  pyang --generate-sid-file count toaster@2009-11-20.yang
+  or:
+  pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+        --extra-sid-range count
 """
 )
 
@@ -415,13 +438,13 @@ class SidFile:
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
                     continue
 
-                if key == 'identifier':
+                elif key == 'identifier':
                     identifier_absent = False
                     if type(item[key]) != str:
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
                     continue
 
-                if key == 'sid':
+                elif key == 'sid':
                     sid_absent = False
                     if type(item[key]) != int:
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
@@ -493,20 +516,20 @@ class SidFile:
             if children.keyword == 'leaf' or children.keyword == 'leaf-list' or children.keyword == 'anyxml' or children.keyword == 'anydata':
                 self.merge_item('data', self.getPath(children))
 
-            if children.keyword == 'container' or children.keyword == 'list':
+            elif children.keyword == 'container' or children.keyword == 'list':
                 self.merge_item('data', self.getPath(children))
                 self.collect_inner_data_nodes(children.i_children)
 
-            if children.keyword == 'choice' or children.keyword == 'case':
+            elif children.keyword == 'choice' or children.keyword == 'case':
                 self.collect_inner_data_nodes(children.i_children)
 
-            if children.keyword == 'rpc':
+            elif children.keyword == 'rpc':
                 self.merge_item('data', "/%s:%s" % (self.module_name ,children.arg) )
                 for statement in children.i_children:
                     if statement.keyword == 'input' or statement.keyword == 'output':
                         self.collect_inner_data_nodes(statement.i_children)
 
-            if children.keyword == 'notification':
+            elif children.keyword == 'notification':
                 self.merge_item('data', "/%s:%s" % (self.module_name ,children.arg))
                 self.collect_inner_data_nodes(children.i_children)
 
@@ -515,35 +538,52 @@ class SidFile:
 
         for substmt in module.substmts:
             if substmt.keyword == 'augment':
-                self.collect_inner_data_nodes(substmt.substmts)
+                self.collect_in_substmts(substmt.substmts)
+            elif hasattr(substmt, 'i_extension') and substmt.i_extension.arg ==  'yang-data':
+                self.collect_in_substmts(substmt.substmts)
 
     def collect_inner_data_nodes(self, children):
         for statement in children:
             if statement.keyword == 'leaf' or statement.keyword == 'leaf-list' or statement.keyword == 'anyxml' or statement.keyword == 'anydata':
                 self.merge_item('data', self.getPath(statement))
 
-            if statement.keyword == 'container' or statement.keyword == 'list':
+            elif statement.keyword == 'container' or statement.keyword == 'list':
                 self.merge_item('data', self.getPath(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
-            if statement.keyword == 'action':
+            elif statement.keyword == 'action':
                 self.merge_item('data', self.getPath(statement))
                 for children in statement.i_children:
                     if children.keyword == 'input' or children.keyword == 'output':
                         self.collect_inner_data_nodes(children.i_children)
 
-            if statement.keyword == 'notification':
+            elif statement.keyword == 'notification':
                 self.merge_item('data', self.getPath(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
-            if statement.keyword == 'choice' or statement.keyword == 'case':
+            elif statement.keyword == 'choice' or statement.keyword == 'case':
                 self.collect_inner_data_nodes(statement.i_children)
+
+    def collect_in_substmts(self, substmts):
+        for statement in substmts:
+            if statement.keyword == 'leaf' or statement.keyword == 'leaf-list' or statement.keyword == 'anyxml' or statement.keyword == 'anydata':
+                self.merge_item('data', self.getPath(statement))
+
+            elif statement.keyword == 'container' or statement.keyword == 'list':
+                self.merge_item('data', self.getPath(statement))
+                self.collect_in_substmts(statement.substmts)
+
+            elif statement.keyword == 'choice' or statement.keyword == 'case':
+                self.collect_in_substmts(statement.substmts)
+
+            elif statement.keyword == 'uses':
+                self.collect_inner_data_nodes(statement.i_grouping.i_children)
 
     def getPath(self, statement):
         path = ""
 
         while statement.i_module != None:
-            if statement.keyword != "case" and statement.keyword != "choice":
+            if statement.keyword != "case" and statement.keyword != "choice" and statement.keyword != "grouping" and not (hasattr(statement, 'i_extension') and statement.i_extension.arg ==  'yang-data'):
                 # Locate the data node parent
                 parent = statement.parent
                 while parent.i_module != None:

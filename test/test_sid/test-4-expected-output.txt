@@ -1,0 +1,24 @@
+Checking consistency of 'toaster@2009-11-20.sid'
+
+SID        Assigned to
+---------  --------------------------------------------------
+20000      module toaster
+20001      identity frozen-bagel
+20002      identity frozen-waffle
+20003      identity hash-brown
+20004      identity toast-type
+20005      identity wheat-bread
+20006      identity white-bread
+20007      identity wonder-bread
+20008      data /toaster:cancel-toast
+20009      data /toaster:make-toast
+20010      data /toaster:make-toast/input/toasterDoneness
+20011      data /toaster:make-toast/input/toasterToastType
+20012      data /toaster:toastDone
+20013      data /toaster:toastDone/toastStatus
+20014      data /toaster:toaster
+20015      data /toaster:toaster/toasterManufacturer
+20016      data /toaster:toaster/toasterModelNumber
+20017      data /toaster:toaster/toasterStatus
+
+Check completed successfully
