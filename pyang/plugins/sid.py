@@ -434,13 +434,13 @@ class SidFile:
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if type(item[key]) != str or not re.match(r'module$|identity$|feature$|data$', item[key]):
+                    if (type(item[key]) != str and type(item[key]) != unicode) or not re.match(r'module$|identity$|feature$|data$', item[key]):
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
                     continue
 
                 elif key == 'identifier':
                     identifier_absent = False
-                    if type(item[key]) != str:
+                    if type(item[key]) != str and type(item[key]) != unicode:
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
                     continue
 
