@@ -12,8 +12,8 @@ import json
 import collections
 import re
 import os
-
 from pyang import plugin
+from pyang import util
 from collections import OrderedDict
 
 def pyang_plugin_init():
@@ -118,7 +118,7 @@ class SidPlugin(plugin.PyangPlugin):
         try:
             sid_file.process_sid_file(modules[0])
 
-        except SidParcingError as e:
+        except SidParsingError as e:
             sys.stderr.write("ERROR, %s\n" % e.msg)
             sys.exit(1)
         except SidFileError as e:
@@ -212,7 +212,7 @@ class SidFileError(Exception):
     def __init__(self, msg=""):
         self.msg = msg
 
-class SidParcingError(Exception):
+class SidParsingError(Exception):
     """raised by plugins to fail the emit() function"""
     def __init__(self, msg=""):
         self.msg = msg
@@ -234,7 +234,7 @@ class SidFile:
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
-        self.module_revision = self.get_module_revision(module)
+        self.module_revision = util.get_latest_revision(module)
         self.output_file_name = '%s@%s.sid' % (self.module_name, self.module_revision)
 
         if self.range is not None:
@@ -245,7 +245,7 @@ class SidFile:
 
         if self.input_file_name is not None:
             if self.input_file_name[-4:] != ".sid":
-                raise SidParcingError("File '%s' is not a .sid file" % self.input_file_name)
+                raise SidParsingError("File '%s' is not a .sid file" % self.input_file_name)
 
             with open(self.input_file_name) as f:
                 self.content = json.load(f, object_pairs_hook=collections.OrderedDict)
@@ -317,27 +317,11 @@ class SidFile:
     def set_sid_range(self, range):
         components = range.split(':')
         if len(components) != 2 or not re.match(r'\d+:\d+', range):
-            raise SidParcingError("invalid range in argument, must be '<entry-point>:<size>'.")
+            raise SidParsingError("invalid range in argument, must be '<entry-point>:<size>'.")
 
         if not 'assignment-ranges' in self.content:
             self.content['assignment-ranges'] = []
         self.content['assignment-ranges'].append(OrderedDict([('entry-point', int(components[0])), ('size', int(components[1]))]))
-
-    ########################################################
-    # Retrieve the module revision from the pyang context
-    def get_module_revision(self, module):
-        revision = None
-        for substmt in module.substmts:
-            if substmt.keyword == 'revision':
-                if revision == None:
-                    revision = substmt.arg
-                else:
-                    if revision < substmt.arg:
-                        revision = substmt.arg
-
-        if revision == None:
-            raise SidParcingError("no revision found in YANG definition file.")
-        return revision
 
     ########################################################
     # Set the 'module-name' and/or 'module-revision' in the .sid file if require
@@ -430,18 +414,19 @@ class SidFile:
         namespace_absent = True
         identifier_absent  = True
         sid_absent  = True
-
         for item in items:
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if (type(item[key]) != str and type(item[key]) != unicode) or not re.match(r'module$|identity$|feature$|data$', item[key]):
+                    # Verify (type(item[key]) != str on both python 2 and 3
+                    if not isinstance(item[key], ("".__class__, u"".__class__)) or not re.match(r'module$|identity$|feature$|data$', item[key]):
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
                     continue
 
                 elif key == 'identifier':
                     identifier_absent = False
-                    if type(item[key]) != str and type(item[key]) != unicode:
+                    # Verify (type(item[key]) != str on both python 2 and 3
+                    if not isinstance(item[key], ("".__class__, u"".__class__)):
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
                     continue
 
@@ -647,7 +632,7 @@ class SidFile:
             return self.content['assignment-ranges'][range_idx]['entry-point']
 
         unassigned_yang_items = self.number_of_unassigned_yang_items()
-        raise SidParcingError("The current SID range(s) are exhausted, %d extra SID(s) are required, use the --extra-sid-range option to add a SID range to this YANG module." % unassigned_yang_items)
+        raise SidParsingError("The current SID range(s) are exhausted, %d extra SID(s) are required, use the --extra-sid-range option to add a SID range to this YANG module." % unassigned_yang_items)
 
     ########################################################
     def list_all_items(self):
