@@ -971,6 +971,108 @@
     </variablelist>
   </refsect1>
 
+  <refsect1 xml:id="man.1.pyang.sid_options">
+    <title>YANG Schema Item iDentifiers (SID)</title>
+    <para>
+      YANG Schema Item iDentifiers (SID) are globally unique unsigned integers
+      used to identify YANG items. SIDs are used instead of names to save space
+      in constrained applications such as COREconf. This plugin is used to
+      automatically generate and updated .sid files used to persist and
+      distribute SID assignments.
+    </para>
+    <para>
+      Options for generating, updating and checking .sid files:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--generate-sid-file</option></term>
+        <listitem>
+          <para>
+            This option is used to generate a new .sid file from a YANG module. This example
+            shows how to generate the file <emphasis>toaster@2009-11-20.sid</emphasis>.
+          </para>
+          <informalexample>
+            <screen>pyang --generate-sid-file 20000:100 toaster@2009-11-20.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--update-sid-file</option></term>
+        <listitem>
+          <para>
+            Each time new items are added to a YANG module by the introduction of
+            a new revision of this module, its included sub-modules or imported
+            modules, the associated .sid file need to be updated. This is done
+            by using the <option>--update-sid-file</option> option and providing
+            the previous .sid file as argument. This example, this command shows
+            how to generate the file <emphasis>toaster@2009-12-28.sid</emphasis> based
+            on the SIDs already present in <emphasis>toaster@2009-11-20.sid</emphasis>.
+          </para>
+          <informalexample>
+            <screen>pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--check-sid-file</option></term>
+        <listitem>
+          <para>
+            The <option>--check-sid-file</option> option can be used at any time
+            to verify if a .sid file need to be updated. For example:
+          </para>
+          <informalexample>
+            <screen>pyang --check-sid-file toaster@2009-12-28.sid toaster@2009-12-28.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--list_sid</option></term>
+        <listitem>
+          <para>
+            The <option>--list_sid</option> option can be used before any of the
+            previous options to obtains the list of SIDs assigned or validated. For example:
+          </para>
+          <informalexample>
+            <screen>pyang --list-sid --generate-sid-file 20000:100 toaster@2009-11-20.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--extra-sid-range</option></term>
+        <listitem>
+          <para>
+            If needed, an extra SID range can be assigned to an existing YANG module
+            during its update with the <option>--extra-sid-range</option> option. For example,
+            this command generates the file <emphasis>toaster@2009-12-28.sid</emphasis>
+            using the initial range(s) present in <emphasis>toaster@2009-11-20.sid</emphasis>
+            and the extra range specified in the command line.
+          </para>
+          <informalexample>
+            <screen>pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang --extra-sid-range 20100:100</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>count</option></term>
+        <listitem>
+          <para>
+            The number of SID required when generating or updating a .sid file can
+            be computed by specifying <option>count</option> as SID range. For example:
+          </para>
+          <informalexample>
+            <screen>pyang --generate-sid-file count toaster@2009-11-20.yang</screen>
+          </informalexample>
+          <para>
+            or:
+          </para>
+          <informalexample>
+            <screen>pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang --extra-sid-range count</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
   <refsect1 xml:id="man.1.pyang.capability_output">
     <title>Capability Output</title>
     <para>The <emphasis>capability</emphasis> output prints a
@@ -1362,108 +1464,6 @@ $ osascript foo.scpt</screen>
     </variablelist>
   </refsect1>
 
-  <refsect1 xml:id="man.1.pyang.sid_file_output">
-    <para>
-      YANG Schema Item iDentifiers (SID) are globally unique unsigned integers
-      used to identify YANG items. SIDs are used instead of names to save space
-      in constrained applications such as COREconf. This plugin is used to
-      automatically generate and updated .sid files used to persist and
-      distribute SID assignments.
-    </para>
-    <variablelist>
-      <varlistentry>
-        <term><option>--generate-sid-file</option></term>
-        <listitem>
-          <para>
-            This option is used to generate a new .sid file from a YANG module.
-          </para>
-          <informalexample>
-            <screen>pyang --generate-sid-file entry-point:size yang-filename</screen>
-          </informalexample>
-          <para>
-            For example, this command generates the file <emphasis>toaster@2009-11-20.sid.</emphasis>.
-          </para>
-          <informalexample>
-            <screen>pyang --generate-sid-file 20000:100 toaster@2009-11-20.yang</screen>
-          </informalexample>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--update-sid-file</option></term>
-        <listitem>
-          <para>
-            Each time new items are added to a YANG module by the introduction of
-            a new revision of this module, its included sub-modules or imported
-            modules, the .sid file need to be updated. This is done by using the
-            <option>--update-sid-file</option> option and providing the previous
-            .sid file as argument. For example, this command generates the file
-            <emphasis>toaster@2009-12-28.sid</emphasis>.
-          </para>
-          <informalexample>
-            <screen>pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang</screen>
-          </informalexample>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--check-sid-file</option></term>
-        <listitem>
-          <para>
-            The <option>--check-sid-file</option> option can be used at any time
-            to verify if the .sid file need to be updated.
-          </para>
-          <informalexample>
-            <screen>pyang --check-sid-file sid-filename yang-filename</screen>
-          </informalexample>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--list_sid</option></term>
-        <listitem>
-          <para>
-            The <option>--list_sid</option> option can be included before any of the
-            previous options to obtains the list of SIDs assigned or validated. For example:
-          </para>
-          <informalexample>
-            <screen>pyang --list-sid --generate-sid-file 20000:100 toaster@2009-11-20.yang</screen>
-          </informalexample>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>--extra-sid-range</option></term>
-        <listitem>
-          <para>
-            If needed, an extra SID range can be assigned to an existing YANG module
-            with the <option>--extra-sid-range</option> option. For example, this command
-            generates the file <emphasis>toaster@2009-12-28.sid</emphasis> using the initial
-            range defined by <emphasis>toaster@2009-11-20.sid</emphasis> and the extra range
-            specified in the command line.
-          </para>
-          <informalexample>
-            <screen>pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang --extra-sid-range 20100:100</screen>
-          </informalexample>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>count</option></term>
-        <listitem>
-          <para>
-            The number of SID required when generating or updating a .sid file
-            can be computed by specifying <option>count</option> as SID range. For example:
-          </para>
-          <informalexample>
-            <screen>pyang --generate-sid-file count toaster@2009-11-20.yang</screen>
-          </informalexample>
-          <para>
-            or:
-          </para>
-          <informalexample>
-            <screen>pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang --extra-sid-range count</screen>
-          </informalexample>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-  </refsect1>
-  
   <refsect1 xml:id="man.1.pyang.tree_output">
     <title>Tree Output</title>
     <para>

@@ -33,6 +33,12 @@ pyang \- validate and convert YANG modules to various formats
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
+\fBpyang\fR [\-\-list_sid] \-\-generate\-sid\-file [count | \fIentry\-point:size\fR] \fIyang\-filename\fR
+.HP \w'\fBpyang\fR\ 'u
+\fBpyang\fR [\-\-list_sid] \-\-update\-sid\-file \fIsid\-filename\fR \fIyang\-filename\fR [\-\-extra\-sid\-range\ [count\ |\ \fIentry\-point:size\fR]]
+.HP \w'\fBpyang\fR\ 'u
+\fBpyang\fR [\-\-list_sid] \-\-check\-sid\-file \fIsid\-filename\fR \fIyang\-filename\fR
+.HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-h | \-\-help 
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR \-v | \-\-version 
@@ -175,7 +181,7 @@ Ignore all errors\&. Use with care\&. Plugins that don\*(Aqt expect to be invoke
 .PP
 \fB\-\-keep\-comments\fR
 .RS 4
-This parameter has effect only if a plugin can handle comments\&. One example of such a plugin is the \*(Aqyang\*(Aq output format plugin\&.
+This parameter has effect only if a plugin can handle comments\&.
 .RE
 .PP
 \fB\-\-canonical\fR
@@ -590,6 +596,130 @@ Validate that the module\*(Aqs name starts with
 \fB\-\-lint\-ensure\-hyphenated\-names\fR
 .RS 4
 Validate that all identifiers use hyphenated style, i\&.e\&., no uppercase letters or underscores\&.
+.RE
+.SH "YANG SCHEMA ITEM IDENTIFIERS (SID)"
+.PP
+YANG Schema Item iDentifiers (SID) are globally unique unsigned integers used to identify YANG items\&. SIDs are used instead of names to save space in constrained applications such as COREconf\&. This plugin is used to automatically generate and updated \&.sid files used to persist and distribute SID assignments\&.
+.PP
+Options for generating, updating and checking \&.sid files:
+.PP
+\fB\-\-generate\-sid\-file\fR
+.RS 4
+This option is used to generate a new \&.sid file from a YANG module\&. This example shows how to generate the file
+\fItoaster@2009\-11\-20\&.sid\fR\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-generate\-sid\-file 20000:100 toaster@2009\-11\-20\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-\-update\-sid\-file\fR
+.RS 4
+Each time new items are added to a YANG module by the introduction of a new revision of this module, its included sub\-modules or imported modules, the associated \&.sid file need to be updated\&. This is done by using the
+\fB\-\-update\-sid\-file\fR
+option and providing the previous \&.sid file as argument\&. This example, this command shows how to generate the file
+\fItoaster@2009\-12\-28\&.sid\fR
+based on the SIDs already present in
+\fItoaster@2009\-11\-20\&.sid\fR\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-update\-sid\-file toaster@2009\-11\-20\&.sid toaster@2009\-12\-28\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-\-check\-sid\-file\fR
+.RS 4
+The
+\fB\-\-check\-sid\-file\fR
+option can be used at any time to verify if a \&.sid file need to be updated\&. For example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-check\-sid\-file toaster@2009\-12\-28\&.sid toaster@2009\-12\-28\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-\-list_sid\fR
+.RS 4
+The
+\fB\-\-list_sid\fR
+option can be used before any of the previous options to obtains the list of SIDs assigned or validated\&. For example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-list\-sid \-\-generate\-sid\-file 20000:100 toaster@2009\-11\-20\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-\-extra\-sid\-range\fR
+.RS 4
+If needed, an extra SID range can be assigned to an existing YANG module during its update with the
+\fB\-\-extra\-sid\-range\fR
+option\&. For example, this command generates the file
+\fItoaster@2009\-12\-28\&.sid\fR
+using the initial range(s) present in
+\fItoaster@2009\-11\-20\&.sid\fR
+and the extra range specified in the command line\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-update\-sid\-file toaster@2009\-11\-20\&.sid toaster@2009\-12\-28\&.yang \-\-extra\-sid\-range 20100:100
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fBcount\fR
+.RS 4
+The number of SID required when generating or updating a \&.sid file can be computed by specifying
+\fBcount\fR
+as SID range\&. For example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-generate\-sid\-file count toaster@2009\-11\-20\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+or:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+pyang \-\-update\-sid\-file toaster@2009\-11\-20\&.sid toaster@2009\-12\-28\&.yang \-\-extra\-sid\-range count
+.fi
+.if n \{\
+.RE
+.\}
 .RE
 .SH "CAPABILITY OUTPUT"
 .PP
@@ -1022,6 +1152,17 @@ Generate all statements in the canonical order\&.
 \fB\-\-yang\-remove\-unused\-imports\fR
 .RS 4
 Remove unused import statements from the output\&.
+.RE
+.PP
+\fB\-\-yang\-remove\-comments\fR
+.RS 4
+Remove all comments from the output\&.
+.RE
+.PP
+\fB\-\-yang\-line\-length\fR \fIlen\fR
+.RS 4
+Try to format each line with a maximum line length of
+\fIlen\fR\&. Does not reformat long lines within strings\&.
 .RE
 .SH "YIN OUTPUT"
 .PP

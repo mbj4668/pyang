@@ -133,11 +133,12 @@ class SidPlugin(plugin.PyangPlugin):
 
 def print_help():
     print("""
-YANG Schema Item iDentifiers (SID) are globally unique unsigned integers
-used to identify YANG items. SIDs are used instead of names to save space
-in constrained applications such as COREconf. This plugin is used to
-automatically generate and updated .sid files used to persist and
-distribute SID assignments
+YANG Schema Item iDentifiers (SID) are globally unique unsigned
+integers used to identify YANG items. SIDs are used instead of names to
+save space in constrained applications such as COREconf. This plugin is
+used to automatically generate and updated .sid files used to persist
+and distribute SID assignments.
+
 
 COMMANDS
 
@@ -152,52 +153,52 @@ OPTIONS
 --generate-sid-file
 
   This option is used to generate a new .sid file from a YANG module.
-   
-  pyang --generate-sid-file <entry-point:size> <yang-filename>
-  
-  For example, this command generates the file toaster@2009-11-20.sid.
-  
+  This example shows how to generate the file toaster@2009-11-20.sid.
+
   pyang --generate-sid-file 20000:100 toaster@2009-11-20.yang
   
 --update-sid-file
 
-  Each time new items are added to a YANG module by the introduction of
-  a new revision of this module, its included sub-modules or imported
-  modules, the .sid file need to be updated. This is done by using the
-  --update-sid-file option and providing the previous
-  .sid file as argument. For example, this command generates the file
-  toaster@2009-12-28.sid.
+  Each time new items are added to a YANG module by the introduction
+  of a new revision of this module, its included sub-modules or
+  imported modules, the associated .sid file need to be updated. This
+  is done by using the --update-sid-file option and providing the
+  previous .sid file as argument. This example, this command shows
+  how to generate the file toaster@2009-12-28.sid based on the SIDs
+  already present in toaster@2009-11-20.sid.
 
   pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
   
 -- check-sid-file
 
-  The --check-sid-file option can be used at any time to verify if the
-  .sid file need to be updated.
+  The --check-sid-file option can be used at any time to verify if a
+  .sid file need to be updated. For example:
 
-  pyang --check-sid-file <sid-filename> <yang-filename>
+  pyang --check-sid-file toaster@2009-12-28.sid toaster@2009-12-28.yang
   
 --list_sid
 
-  The --list_sid option can be included before any of the previous option
-  to obtains the list of SIDs assigned or validated. For example:
+  The --list_sid option can be used before any of the previous
+  options to obtains the list of SIDs assigned or validated. For
+  example:
 
   pyang --list-sid --generate-sid-file 20000:100 toaster@2009-11-20.yang
   
 --extra-sid-range
 
-  If needed, an extra SID range can be assigned to an existing YANG module
-  with the --extra-sid-range option. For example, this command generates
-  the file toaster@2009-12-28.sid using the initial range specified in
-  toaster@2009-11-20.sid and the extra range specified in the command line.
+  If needed, an extra SID range can be assigned to an existing YANG
+  module during its update with the --extra-sid-range option. For
+  example, this command generates the file toaster@2009-12-28.sid
+  using the initial range(s) present in toaster@2009-11-20.sid and
+  the extra range specified in the command line.
   
   pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
         --extra-sid-range 20100:100
   
 count
 
-  The number of SID required when generating or updating a .sid file can
-  be computed by specifying 'count' as SID range. For example:
+  The number of SID required when generating or updating a .sid file
+  can be computed by specifying count as SID range. For example:
   
   pyang --generate-sid-file count toaster@2009-11-20.yang
   or:
