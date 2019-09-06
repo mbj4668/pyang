@@ -1,4 +1,4 @@
-test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test13 test14 test15 test16 test17 test18 test19
+test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19
 test1:
 	# Test help
 	pyang --sid-help 2>&1 | diff -b test-1-expected-output.txt -
@@ -51,9 +51,7 @@ test9:
 
 test10:
 	# In generate sid file, test invalid yang filename
-	cp toaster@2009-11-20.yang toast.yang
-	pyang --sid-list --sid-generate-file 20000:25 toast.yang 2>&1 | diff -b test-10-expected-output.txt -
-	rm toast.yang
+	pyang --sid-list --sid-generate-file 20000:25 test10-bad-toaster@2009-11-20.yang 2>&1 | diff -b test-10-expected-output.txt -
 
 test11:
 	# In generate sid file, test yang file not found
@@ -64,12 +62,6 @@ test12:
 	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
 	pyang --sid-update-file toaster@2009-12-28.sid toaster@2019-01-01.yang --sid-extra-range count 2>&1 | diff -b test-12-expected-output.txt -
 	rm toaster@2009-12-28.sid
-
-test13:
-	# In update sid file, test invalid yang filename
-	cp toaster@2009-12-28.yang toaster2009-12-28.yang 
-	pyang --sid-update-file toaster@2009-11-20.sid toaster2009-12-28.yang 2>&1 | diff -b test-13-expected-output.txt -
-	rm toaster2009-12-28.yang
 
 test14:
 	# In update sid file, test yang file not found
@@ -92,5 +84,5 @@ test18:
 	pyang --sid-check-file toaster@2009-11-20.sid toaster.yang 2>&1 | diff -b test-18-expected-output.txt -
 
 test19:
-	# In checksid file, test sid file not found
+	# In checksid file, test test sid file not found
 	pyang --sid-check-file toaster@2009-11-20.sid toaster@2009-11-20.yang 2>&1 | diff -b test-19-expected-output.txt -
