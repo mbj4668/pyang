@@ -6,12 +6,17 @@
     }
   ],
   "module-name": "toaster",
-  "module-revision": "2009-11-20",
+  "module-revision": "2009-12-28",
   "items": [
     {
-      "namespace": "module",
+      "namespace: "module",
       "identifier": "toaster",
       "sid": 20000
+    },
+    {
+      "namespace": "identity",
+      "identifier": "croissant",
+      "sid": 20018
     },
     {
       "namespace": "identity",
@@ -82,6 +87,11 @@
       "namespace": "data",
       "identifier": "/toaster:toaster",
       "sid": 20014
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toaster/darknessFactor",
+      "sid": 20019
     },
     {
       "namespace": "data",

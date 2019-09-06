@@ -1,0 +1,2 @@
+Invalid YANG module
+toast.yang:1: warning: unexpected modulename "toaster" in toast.yang, should be "toast"
