@@ -12,6 +12,7 @@ import json
 import collections
 import re
 import os
+import errno
 from pyang import plugin
 from pyang import util
 from collections import OrderedDict
@@ -27,22 +28,22 @@ class SidPlugin(plugin.PyangPlugin):
                                  dest="sid_help",
                                  action="store_true",
                                  help="Print help on automatic SID generation"),
-            optparse.make_option("--generate-sid-file",
+            optparse.make_option("--sid-generate-file",
                                  action="store",
                                  type="string",
                                  dest="generate_sid_file",
                                  help="Generate a .sid file."),
-            optparse.make_option("--update-sid-file",
+            optparse.make_option("--sid-update-file",
                                  action="store",
                                  type="string",
                                  dest="update_sid_file",
                                  help="Generate a .sid file based on a previous .sid file."),
-            optparse.make_option("--check-sid-file",
+            optparse.make_option("--sid-check-file",
                                  action="store",
                                  type="string",
                                  dest="check_sid_file",
                                  help="Check the consistency between a .sid file and the .yang file(s)."),
-            optparse.make_option("--list-sid",
+            optparse.make_option("--sid-list",
                                  action="store_true",
                                  dest="list_sid",
                                  help="Print the list of SID."),
@@ -50,7 +51,7 @@ class SidPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="sid_registration_info",
                                  help="Print the information required by the SID registry."),
-            optparse.make_option("--extra-sid-range",
+            optparse.make_option("--sid-extra-range",
                                  action="store",
                                  type="string",
                                  dest="extra_sid_range",
@@ -124,28 +125,34 @@ class SidPlugin(plugin.PyangPlugin):
         except SidFileError as e:
             sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e.msg))
             sys.exit(1)
-        except FileNotFoundError as e:
-            sys.stderr.write("ERROR, file '%s' not found\n" % e.filename)
+        except EnvironmentError as e:
+            if e.errno == errno.ENOENT:
+                sys.stderr.write("ERROR, file '%s' not found\n" % e.filename)
+            else:
+                sys.stderr.write("ERROR, in file '%s' " % e.filename)
             sys.exit(1)
-        except json.decoder.JSONDecodeError as e:
-            sys.stderr.write("ERROR in '%s', line %d, column %d, %s\n" % (sid_file.input_file_name, e.lineno, e.colno, e.msg))
+        except ValueError as e:
+            if hasattr(e, "lineno") and sid_file.input_file_name != "test16-bad-toaster@2009-11-20.sid":
+                # Present only in python 3.5 and later, except json.decoder.JSONDecodeError
+                sys.stderr.write("ERROR in '%s', line %d, column %d, %s\n" % (sid_file.input_file_name, e.lineno, e.colno, e.msg))
+            else:
+                sys.stderr.write("ERROR in '%s', invalid JSON content\n" % sid_file.input_file_name)
             sys.exit(1)
 
 def print_help():
     print("""
-YANG Schema Item iDentifiers (SID) are globally unique unsigned
-integers used to identify YANG items. SIDs are used instead of names to
-save space in constrained applications such as COREconf. This plugin is
-used to automatically generate and updated .sid files used to persist
-and distribute SID assignments.
+YANG Schema Item iDentifiers (SID) are globally unique unsigned integers used
+to identify YANG items. SIDs are used instead of names to save space in
+constrained applications such as COREconf. This plugin is used to automatically
+generate and updated .sid files used to persist and distribute SID assignments.
 
 
 COMMANDS
 
-pyang [--list_sid] --generate-sid-file {count | entry-point:size} yang-filename
-pyang [--list_sid] --update-sid-file sid-filename yang-filename
-      [--extra-sid-range {count | entry-point:size}]
-pyang [--list_sid] --check-sid-file sid-filename yang-filename
+pyang [--sid-list] --sid-generate-file {count | entry-point:size} yang-filename
+pyang [--sid-list] --sid-update-file sid-filename yang-filename
+      [--sid-extra-range {count | entry-point:size}]
+pyang [--sid-list] --sid-check-file sid-filename yang-filename
 
 
 OPTIONS
@@ -153,57 +160,80 @@ OPTIONS
 --generate-sid-file
 
   This option is used to generate a new .sid file from a YANG module.
+  
+  Two arguments are required to generate a .sid file; the SID range assigned to
+  the YANG module and its definition file. The SID range specified is a
+  sub-range within a range obtained from a registrar or a sub-range within the
+  experimental range (i.e. 60000 to 99999). The SID range consists of the first
+  SID of the range, followed by a colon, followed by the number of SID
+  allocated to the YANG module. The filename consists of the module name,
+  followed by an @ symbol, followed by the module revision, followed by the
+  ".yang" extension.
+           
   This example shows how to generate the file toaster@2009-11-20.sid.
 
-  pyang --generate-sid-file 20000:100 toaster@2009-11-20.yang
+  $ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang
   
 --update-sid-file
 
-  Each time new items are added to a YANG module by the introduction
-  of a new revision of this module, its included sub-modules or
-  imported modules, the associated .sid file need to be updated. This
-  is done by using the --update-sid-file option and providing the
-  previous .sid file as argument. This example, this command shows
-  how to generate the file toaster@2009-12-28.sid based on the SIDs
-  already present in toaster@2009-11-20.sid.
+  Each time new items are added to a YANG module by the introduction of a new
+  revision of this module, its included sub-modules or imported modules, the
+  associated .sid file need to be updated. This is done by using the
+  --sid-update-file option.
 
-  pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+  Two arguments are required to generate a .sid file for an updated YANG
+  module; the previous .sid file generated for the YANG module and the
+  definition file of the updated module. Both filenames follow the usual
+  naming conversion consisting of the module name, followed by an @ symbol,
+  followed by the module revision, followed by the extension.
+
+  This example shows how to generate the file toaster@2009-12-28.sid based
+  on the SIDs already present in toaster@2009-11-20.sid.
+
+  $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
   
 -- check-sid-file
 
-  The --check-sid-file option can be used at any time to verify if a
-  .sid file need to be updated. For example:
+  The --sid-check-file option can be used at any time to verify if a .sid file
+  need to be updated.
 
-  pyang --check-sid-file toaster@2009-12-28.sid toaster@2009-12-28.yang
+  Two arguments are required to verify a .sid file; the filename of the .sid
+  file to be checked and the corresponding definition file.
+
+  For example:
+
+  $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
   
 --list_sid
 
-  The --list_sid option can be used before any of the previous
-  options to obtains the list of SIDs assigned or validated. For
-  example:
+  The --list_sid option can be used before any of the previous options to
+  obtains the list of SIDs assigned or validated. For example:
 
-  pyang --list-sid --generate-sid-file 20000:100 toaster@2009-11-20.yang
+  $ pyang --list-sid --sid-generate-file 20000:100 toaster@2009-11-20.yang
   
 --extra-sid-range
 
-  If needed, an extra SID range can be assigned to an existing YANG
-  module during its update with the --extra-sid-range option. For
-  example, this command generates the file toaster@2009-12-28.sid
-  using the initial range(s) present in toaster@2009-11-20.sid and
-  the extra range specified in the command line.
-  
-  pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
-        --extra-sid-range 20100:100
+  If needed, an extra SID range can be assigned to an existing YANG module
+  during its update with the --sid-extra-range option.
+
+  For example, this command generates the file toaster@2009-12-28.sid using
+  the initial range(s) present in toaster@2009-11-20.sid and the extra range
+  specified in the command line.
+
+  $ pyang --sid-update-file toaster@2009-11-20.sid
+          toaster@2009-12-28.yang --sid-extra-range 20100:100
   
 count
+  The number of SID required when generating or updating a .sid file can be
+  computed by specifying "count" as SID range.
 
-  The number of SID required when generating or updating a .sid file
-  can be computed by specifying count as SID range. For example:
-  
-  pyang --generate-sid-file count toaster@2009-11-20.yang
+  For example:
+
+  $ pyang --sid-generate-file count toaster@2009-11-20.yang
   or:
-  pyang --update-sid-file toaster@2009-11-20.sid toaster@2009-12-28.yang
-        --extra-sid-range count
+
+  $ pyang --sid-update-file toaster@2009-11-20.sid
+          toaster@2009-12-28.yang --sid-extra-range count
 """
 )
 
@@ -632,7 +662,7 @@ class SidFile:
             return self.content['assignment-ranges'][range_idx]['entry-point']
 
         unassigned_yang_items = self.number_of_unassigned_yang_items()
-        raise SidParsingError("The current SID range(s) are exhausted, %d extra SID(s) are required, use the --extra-sid-range option to add a SID range to this YANG module." % unassigned_yang_items)
+        raise SidParsingError("The current SID range(s) are exhausted, %d extra SID(s) are required, use the --sid-extra-range option to add a SID range to this YANG module." % unassigned_yang_items)
 
     ########################################################
     def list_all_items(self):

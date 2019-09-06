@@ -1,20 +1,4 @@
 
-SID        Assigned to
----------  --------------------------------------------------
-2500       module ietf-constrained-voucher
-2501       data /ietf-constrained-voucher:voucher
-2502       data /ietf-constrained-voucher:voucher/assertion
-2503       data /ietf-constrained-voucher:voucher/created-on
-2504       data /ietf-constrained-voucher:voucher/domain-cert-revocation-checks
-2505       data /ietf-constrained-voucher:voucher/expires-on
-2506       data /ietf-constrained-voucher:voucher/idevid-issuer
-2507       data /ietf-constrained-voucher:voucher/last-renewal-date
-2508       data /ietf-constrained-voucher:voucher/nonce
-2509       data /ietf-constrained-voucher:voucher/pinned-domain-cert
-2510       data /ietf-constrained-voucher:voucher/pinned-domain-subject-public-key-info
-2511       data /ietf-constrained-voucher:voucher/pinned-sha256-of-subject-public-key-info
-2512       data /ietf-constrained-voucher:voucher/serial-number
-
 File ietf-constrained-voucher@2019-08-01.sid created
 Number of SIDs available : 50
 Number of SIDs used : 13
