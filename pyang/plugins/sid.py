@@ -15,6 +15,7 @@ import os
 import errno
 from pyang import plugin
 from pyang import util
+from pyang import error
 from collections import OrderedDict
 
 def pyang_plugin_init():
@@ -83,7 +84,12 @@ class SidPlugin(plugin.PyangPlugin):
             sys.stderr.write("Invalid option, only one process on .sid file can be requested.\n")
             return
 
-        if ctx.errors != []:
+        fatal_error = False
+        for (epos, etag, eargs) in ctx.errors:
+            if not error.is_warning(error.err_level(etag)):
+                fatal_error = True
+
+        if fatal_error or (ctx.errors != [] and ctx.opts.check_sid_file is not None):
             sys.stderr.write("Invalid YANG module\n")
             return
 
