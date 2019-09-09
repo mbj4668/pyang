@@ -1057,14 +1057,14 @@ toaster@2009-12-28.yang</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--list_sid</option></term>
+        <term><option>--sid-list</option></term>
         <listitem>
           <para>
-            The <option>--list_sid</option> option can be used before any of the
+            The <option>--sid-list</option> option can be used before any of the
             previous options to obtains the list of SIDs assigned or validated. For example:
           </para>
           <informalexample>
-            <screen>$ pyang --list-sid --sid-generate-file 20000:100 \
+            <screen>$ pyang --sid-list --sid-generate-file 20000:100 \
 toaster@2009-11-20.yang</screen>
           </informalexample>
         </listitem>
