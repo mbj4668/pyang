@@ -68,7 +68,7 @@ class UMLPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="uml_inline_augments",
                                  default =False,
-                                 help="Inline groupings where they are used."),
+                                 help="Inline augmentations where they are used."),
             optparse.make_option("--uml-description",
                                  action="store_true",
                                  dest="uml_descr",
