@@ -1,0 +1,13 @@
+module a {
+  yang-version 1.1;
+  namespace "urn:a";
+  prefix a;
+
+  container a {
+    leaf b {
+      type instance-identifier {
+        require-instance true;
+      }
+    }
+  }
+}
