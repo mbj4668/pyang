@@ -1,0 +1,17 @@
+module a {
+  yang-version 1.1;
+  namespace urn:a;
+  prefix a;
+
+  grouping foo {
+    leaf-list bar {
+      type string;
+    }
+  }
+
+  uses foo {
+    refine bar {
+      default x;
+    }
+  }
+}
