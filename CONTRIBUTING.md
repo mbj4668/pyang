@@ -7,6 +7,9 @@ Pull requests are welcome!
 
 * If applicable, update the man page
 
+Contributors
+============
+Joe Gladston
 
 Code style
 ----------
