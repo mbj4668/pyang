@@ -165,7 +165,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
                 self.xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
             if ch.keyword in ["leaf", "leaf-list"]:
                 self.type_param(ch, ct)
-            elif ch.keyword != "anyxml":
+            elif ch.keyword != "anyxml" and ch.keyword != "anydata":
                 offset = 2 if ch.keyword == "list" else 1
                 self.process_children(ch, p, level + offset)
 
