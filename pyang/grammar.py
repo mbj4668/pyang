@@ -185,8 +185,8 @@ stmt_map = {
         ('if-feature-expr', []),
     'identity':
         ('identifier',
-         [('base', '*'), # '?' in yang version 1; checked in statements.py
-          ('$1.1', ('if-feature', '*')),
+         [('$1.1', ('if-feature', '*')),
+          ('base', '*'), # '?' in yang version 1; checked in statements.py
           ('status', '?'),
           ('description', '?'),
           ('reference', '?')]),
