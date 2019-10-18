@@ -3128,7 +3128,7 @@ def mk_path_list(stmt):
     """
     resolved_names = []
     def resolve_stmt(stmt, resolved_names):
-        if stmt.keyword in ['choice', 'case']:
+        if stmt.keyword in ['choice', 'case', 'input', 'output']:
             resolve_stmt(stmt.parent, resolved_names)
             return
         def qualified_name_elements(stmt):
