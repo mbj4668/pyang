@@ -1,3 +1,14 @@
+   2.1 - 2019-10-20
+         added a plugin to generate SID files (see draft-ietf-core-sid)
+           thanks to @lemikev
+         fixed canonical stmt order in 'identity'
+         handle anydata in jsonxsl plugin
+
+         #511 - mk_path_list() now handles "input" and "output" correctly
+                thanks to Joe Gladston
+         #509 - allow refine of default to leaf-list in 1.1
+         #505 - --yang-canonical duplicates require-instance
+
    2.0.2 - 2019-08-21
          pr:497 - fixed crash when parsing an xpath union with three or
                   more terms
@@ -8,8 +19,6 @@
                 than one argument.  this bug lead to false warnings
                 that imported modules were not used, when they in fact
                 were used in xpath expressions.
-
-
 
    2.0.1 - 2019-06-11
          pr:492 - ensure the ietf-netconf namespace isn't added multiple times
