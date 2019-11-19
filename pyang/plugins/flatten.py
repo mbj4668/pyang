@@ -2,9 +2,7 @@
 """
 
 import optparse
-import sys
 import csv
-import pdb
 
 from pyang import plugin
 from pyang import statements
