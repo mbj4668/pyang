@@ -50,12 +50,14 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-filter-permission",
                 dest="flatten_filter_permission",
                 help="Output filter to ro or rw.",
+                choices=["ro", "rw"],
             ),
             optparse.make_option(
                 "--flatten-csv-dialect",
                 dest="flatten_csv_dialect",
                 default="excel",
                 help="CSV dialect for output.",
+                choices=["excel", "excel-tab", "unix"],
             ),
         ]
         g = optparser.add_option_group("Flatten output specific options")
