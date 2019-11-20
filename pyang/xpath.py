@@ -249,11 +249,14 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 else:
                     node1 = child
         elif axis == 'parent' and nodetest == ('node_type', 'node'):
-            p = data_node_up(node)
-            if p is None:
+            if node == 'root':
                 err_add(ctx.errors, pos, 'XPATH_PATH_TOO_MANY_UP', ())
             else:
-                node1 = p
+                p = data_node_up(node)
+                if p is None:
+                    err_add(ctx.errors, pos, 'XPATH_PATH_TOO_MANY_UP', ())
+                else:
+                    node1 = p
         else:
             # we can't validate the steps on other axis, but we can validate
             # functions etc.
