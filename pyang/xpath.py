@@ -222,7 +222,10 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             prefix = nodetest[1]
             name = nodetest[2]
             if prefix is None:
-                pmodule = initial.i_module
+                if initial.keyword == 'module':
+                    pmodule = initial
+                else:
+                    pmodule = initial.i_module
             else:
                 pmodule = prefix_to_module(mod, prefix, pos, ctx.errors)
             if pmodule is not None:

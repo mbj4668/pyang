@@ -1,0 +1,21 @@
+module b {
+  namespace "urn:b";
+  prefix b;
+
+  grouping g1 {
+    leaf l1 {
+      type int8;
+    }
+    uses g2 {
+      when 'l3 > 0';
+    }
+  }
+
+  grouping g2 {
+    leaf l2 {
+      type int8;
+    }
+  }
+
+  uses g1;
+}

@@ -1530,6 +1530,7 @@ def v_expand_1_uses(ctx, stmt):
     subspec = grammar.flatten_spec(subspec)
     whens = list(stmt.search('when'))
     for s in whens:
+        s.i_origin = 'uses'
         s.parent = stmt.parent
     iffeatures = list(stmt.search('if-feature'))
     for s in iffeatures:
@@ -2068,6 +2069,8 @@ def v_reference_when(ctx, stmt):
 def v_xpath(ctx, stmt):
     if stmt.parent.keyword == 'augment':
         node = stmt.parent.i_target_node
+    elif hasattr(stmt, 'i_origin', ) and stmt.i_origin == 'uses':
+        node = util.data_node_up(stmt.parent)
     else:
         node = stmt.parent
     if node is not None:
@@ -3080,6 +3083,7 @@ class MustStatement(Statement):
 class WhenStatement(Statement):
     __slots__ = (
         'i_xpath',                    # parsed xpath expression | None
+        'i_origin',                   # 'uses'
     )
 
 

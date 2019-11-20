@@ -460,7 +460,7 @@ error_codes = \
        'node "%s::%s" is not found in module "%s"'),
     'XPATH_PATH_TOO_MANY_UP':
       (2,
-       'the path has too many "..."'),
+       'the path has too many ".."'),
 
 #    'XPATH_FUNCTION_RET_VAL':
 #      (2,
