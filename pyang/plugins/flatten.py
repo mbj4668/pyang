@@ -1,4 +1,39 @@
-"""Flattens provided YANG schema and outputs XPath attributes as CSV.
+"""Copyright 2019 Cisco Systems
+Flattens provided YANG schema and outputs XPath attributes in CSV format.
+
+Arguments
+---------
+--flatten-no-header
+    Do not emit the CSV header.
+--flatten-type
+    Output the top-level type. This will resolve to a module-prefixed type.
+--flatten-primitive-type
+    Output the primitive type. This resolves to a YANG type such as uint64.
+--flatten-permission
+    Output config property. If config property is set, outputs rw, else ro.
+--flatten-description
+    Output the description.
+--flatten-filter-keyword <choice>
+    Filter output to only desired keywords. Keywords specified are what will be displayed in output.
+    Can be specified more than once.
+--flatten-filter-primitive <choice>
+    Filter output to only desired primitive types. Primitives specified are what will be displayed in output.
+    Can be specified more than once.
+--flatten-filter-permission <choice>
+    Filter output to ro or rw (config property).
+    ["ro", "rw"]
+--flatten-csv-dialect <choice>
+    CSV dialect for output.
+    ["excel", "excel-tab", "unix"]
+
+Examples
+--------
+pyang -f flatten --flatten-no-header *.yang
+    Just emit the xpaths
+pyang -f flatten --flatten-filter-primitive uint64 --flatten-filter-primitive string *.yang
+    Only output uint64 and string typed elements.
+pyang -f flatten --flatten-filter-keyword container *.yang
+    Only output containers.
 """
 
 import optparse
