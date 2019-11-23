@@ -128,7 +128,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 output_content["permission"] = permission
             if ctx.opts.flatten_description:
                 output_content["description"] = statements.get_description(child)
-            if output_content.keys() != self.__field_names_set:
+            if set(output_content.keys()) != self.__field_names_set:
                 raise Exception("Output keys do not match CSV field names!")
             # Filters are specified as a positive in the command line arguments
             # In this case we're negating compared to what we want to output
