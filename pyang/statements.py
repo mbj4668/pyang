@@ -114,7 +114,7 @@ class Abort(Exception):
 ### Constants
 
 re_path = re.compile('(.*)/(.*)')
-re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
+re_deref = re.compile(r'deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 re_and_or = re.compile(r'\band\b|\bor\b')
 
 data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',

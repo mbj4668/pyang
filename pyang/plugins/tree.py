@@ -406,7 +406,7 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
 
     if s.keyword == 'list':
         if s.search_one('key') is not None:
-            keystr = " [%s]" % re.sub('\s+', ' ', s.search_one('key').arg)
+            keystr = " [%s]" % re.sub(r'\s+', ' ', s.search_one('key').arg)
             if (llen is not None and
                 len(line) + len(keystr) > llen):
                 fd.write(line + '\n')
