@@ -136,7 +136,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="schema_from_path",
                              default=False,
                              action="store_true",
-                             help="Automatically load all YANG in path."),
+                             help="Automatically load all YANG modules in path."),
         optparse.make_option("--plugindir",
                              dest="plugindir",
                              help="Load pyang plugins from PLUGINDIR"),
