@@ -293,10 +293,10 @@ error_codes = \
        ' other nodes in the unique expression'),
     'ILLEGAL_ESCAPE':
       (1,
-       'the escape sequence "\%s" is illegal in double quoted strings'),
+       'the escape sequence "\\%s" is illegal in double quoted strings'),
     'ILLEGAL_ESCAPE_WARN':
       (4,
-       'the escape sequence "\%s" is unsafe in double quoted strings' \
+       'the escape sequence "\\%s" is unsafe in double quoted strings' \
        ' - pass the flag --lax-quote-checks to avoid this warning'),
     'UNIQUE_IS_KEY':
       (4,
