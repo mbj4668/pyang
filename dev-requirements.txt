@@ -1,0 +1,5 @@
+coveralls
+virtualenv
+pycodestyle
+pyflakes
+flake8
