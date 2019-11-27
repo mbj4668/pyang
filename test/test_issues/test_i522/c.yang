@@ -1,0 +1,17 @@
+module c {
+  namespace urn:c;
+  prefix c;
+
+  import b {
+    prefix b; // should not get warning for unused prefix
+  }
+
+  grouping h {
+    container x {
+      must 'foo = "b:id1"';
+      leaf foo {
+        type string;
+      }
+    }
+  }
+}
