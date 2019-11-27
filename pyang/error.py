@@ -351,9 +351,6 @@ error_codes = \
       (1,
        'the deref argument refers to node "%s" at %s which'
        ' does not refer to a key (%s at %s)'),
-    'LEAFREF_DEREF_NOT_LEAFREF':
-      (1,
-       'the deref argument for "%s" at %s does not refer to a leafref leaf'),
     'LEAFREF_TO_NOT_IMPLEMENTED':
       (1,
        'the leafref refer to a node that is not implemented'),
