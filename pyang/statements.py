@@ -1531,10 +1531,7 @@ def v_expand_1_uses(ctx, stmt):
     whens = list(stmt.search('when'))
     for s in whens:
         s.i_origin = 'uses'
-        s.parent = stmt.parent
     iffeatures = list(stmt.search('if-feature'))
-    for s in iffeatures:
-        s.parent = stmt.parent
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
         if util.keysearch(g.keyword, 0, subspec) == None:
@@ -1573,8 +1570,12 @@ def v_expand_1_uses(ctx, stmt):
         newg = g.copy(stmt.parent, stmt,
                       nocopy=['type','uses','unique','typedef','grouping'],
                       copyf=post_copy)
-        newg.substmts.extend(whens)
-        newg.substmts.extend(iffeatures)
+        for s in whens:
+            news = s.copy(newg)
+            newg.substmts.append(news)
+        for s in iffeatures:
+            news = s.copy(newg)
+            newg.substmts.append(news)
 
         if hasattr(stmt, 'i_not_implemented'):
             newg.i_not_implemented = stmt.i_not_implemented
