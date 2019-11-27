@@ -2881,6 +2881,7 @@ class Statement(object):
                 pass
             elif s.keyword in nocopy:
                 new.substmts.append(s)
+                s.parent = new
             else:
                 new.substmts.append(s.copy(new, uses, False,
                                            nocopy, ignore, copyf))
