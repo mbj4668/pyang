@@ -1657,6 +1657,14 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-data-keywords</option></term>
+        <listitem>
+          <para>
+            Flatten all data keywords instead of only data definition keywords.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term>
           <option>--flatten-filter-keyword</option>
           <replaceable>keyword</replaceable>
