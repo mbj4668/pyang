@@ -555,6 +555,11 @@ Skeleton of a sample XML instance document\&.
 Tree structure of the module\&.
 .RE
 .PP
+\fIflatten\fR
+.RS 4
+Flatten the module to XPath and attributes in CSV form\&.
+.RE
+.PP
 \fIuml\fR
 .RS 4
 UML file that can be read by
@@ -1075,6 +1080,58 @@ Try to break lines so they are no longer than
 \fB\-\-tree\-module\-name\-prefix\fR \fImaxlen\fR
 .RS 4
 Use the module name (instead of the prefix) to prefix parameters and types\&.
+.RE
+.SH "FLATTEN OUTPUT"
+.PP
+The
+\fIflatten\fR
+output flattens provided YANG schema and outputs XPath attributes in CSV format\&.
+.PP
+Flatten output specific options:
+.PP
+\fB\-\-flatten\-no\-header\fR
+.RS 4
+Do not emit the CSV header\&.
+.RE
+.PP
+\fB\-\-flatten\-type\fR
+.RS 4
+Output the top\-level type\&. This will resolve to a module\-prefixed type\&.
+.RE
+.PP
+\fB\-\-flatten\-primitive\-type\fR
+.RS 4
+Output the primitive type\&. This resolves to a YANG type such as uint64\&.
+.RE
+.PP
+\fB\-\-flatten\-permission\fR
+.RS 4
+Output config property\&. If config property is set, outputs rw, else ro\&.
+.RE
+.PP
+\fB\-\-flatten\-description\fR
+.RS 4
+Output the description\&.
+.RE
+.PP
+\fB\-\-flatten\-filter\-keyword\fR \fIkeyword\fR
+.RS 4
+Filter output to only desired keywords\&. Keywords specified are what will be displayed in output\&. Can be specified more than once\&.
+.RE
+.PP
+\fB\-\-flatten\-filter\-primitive\fR \fIprimitive_type\fR
+.RS 4
+Filter output to only desired primitive types\&. Primitives specified are what will be displayed in output\&. Can be specified more than once\&.
+.RE
+.PP
+\fB\-\-flatten\-filter\-permission\fR \fIchoice\fR
+.RS 4
+Filter output to ro or rw (config property)\&. ro | rw
+.RE
+.PP
+\fB\-\-flatten\-csv\-dialect\fR \fIdialect\fR
+.RS 4
+CSV dialect for output\&. excel | excel\-tab | unix
 .RE
 .SH "UML OUTPUT"
 .PP
