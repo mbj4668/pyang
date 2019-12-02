@@ -13,6 +13,8 @@ Arguments
     Output config property. If config property is set, outputs rw, else ro.
 --flatten-description
     Output the description.
+--flatten-data-keywords
+    Flatten all data keywords instead of only data definition keywords.
 --flatten-filter-keyword <choice>
     Filter output to only desired keywords. Keywords specified are what will be displayed in output.
     Can be specified more than once.
@@ -88,6 +90,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the description.",
             ),
             optparse.make_option(
+                "--flatten-data-keywords",
+                dest="flatten_data_keywords",
+                action="store_true",
+                help="Flatten all data keywords instead of only data definition keywords.",
+            ),
+            optparse.make_option(
                 "--flatten-filter-keyword",
                 dest="flatten_filter_keyword",
                 help="Filter output to only desired keywords.",
@@ -130,6 +138,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
         self.__field_names_set = set(self.__field_names)
+        self.__keywords = statements.data_keywords if ctx.opts.flatten_data_keywords else statements.data_definition_keywords
 
     def emit(self, ctx, modules, fd):
         output_writer = csv.DictWriter(
@@ -146,7 +155,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         module_children = (
             child
             for child in module.i_children
-            if child.keyword in statements.data_definition_keywords
+            if child.keyword in self.__keywords
         )
         for child in module_children:
             # Keys map to self.__field_names for CSV output
