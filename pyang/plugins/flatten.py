@@ -138,7 +138,11 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
         self.__field_names_set = set(self.__field_names)
-        self.__keywords = statements.data_keywords if ctx.opts.flatten_data_keywords else statements.data_definition_keywords
+        self.__keywords = (
+            statements.data_keywords
+            if ctx.opts.flatten_data_keywords
+            else statements.data_definition_keywords
+        )
 
     def emit(self, ctx, modules, fd):
         output_writer = csv.DictWriter(
@@ -153,9 +157,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         if not hasattr(module, "i_children"):
             return
         module_children = (
-            child
-            for child in module.i_children
-            if child.keyword in self.__keywords
+            child for child in module.i_children if child.keyword in self.__keywords
         )
         for child in module_children:
             # Keys map to self.__field_names for CSV output
