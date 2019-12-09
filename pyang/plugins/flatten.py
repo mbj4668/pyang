@@ -90,6 +90,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the description.",
             ),
             optparse.make_option(
+                "--flatten-deviated",
+                dest="flatten_deviated",
+                action="store_true",
+                help="Output deviated nodes.",
+            ),
+            optparse.make_option(
                 "--flatten-data-keywords",
                 dest="flatten_data_keywords",
                 action="store_true",
@@ -137,6 +143,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("type")
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
+        if ctx.opts.flatten_deviated:
+            self.__field_names.append("deviated")
         self.__field_names_set = set(self.__field_names)
         self.__keywords = (
             statements.data_keywords
@@ -153,44 +161,54 @@ class FlattenPlugin(plugin.PyangPlugin):
         for module in modules:
             self.output_module(ctx, module, output_writer)
 
-    def output_module(self, ctx, module, output_writer):
-        if not hasattr(module, "i_children"):
-            return
+    def output_module(self, ctx, module, output_writer, parent_deviated=False):
         module_children = (
-            child for child in module.i_children if child.keyword in self.__keywords
+            child for child in getattr(module, 'i_children', []) if child.keyword in self.__keywords
         )
         for child in module_children:
-            # Keys map to self.__field_names for CSV output
-            output_content = {
-                "xpath": statements.get_xpath(child, prefix_to_module=True)
-            }
-            primitive_type = statements.get_primitive_type(child)
-            permission = "rw" if getattr(child, "i_config", False) else "ro"
-            if ctx.opts.flatten_type:
-                output_content["type"] = statements.get_qualified_type(child)
-            if ctx.opts.flatten_primitive_type:
-                output_content["primitive_type"] = statements.get_primitive_type(child)
-            if ctx.opts.flatten_permission:
-                output_content["permission"] = permission
-            if ctx.opts.flatten_description:
-                output_content["description"] = statements.get_description(child)
-            if set(output_content.keys()) != self.__field_names_set:
-                raise Exception("Output keys do not match CSV field names!")
-            # Filters are specified as a positive in the command line arguments
-            # In this case we're negating compared to what we want to output
-            output_filters = set(
-                [
-                    ctx.opts.flatten_filter_keyword
-                    and child.keyword not in ctx.opts.flatten_filter_keyword,
-                    ctx.opts.flatten_filter_primitive
-                    and primitive_type not in ctx.opts.flatten_filter_primitive,
-                    ctx.opts.flatten_filter_permission
-                    and permission != ctx.opts.flatten_filter_permission,
-                ]
+            self.output_child(ctx, child, output_writer, parent_deviated)
+        if ctx.opts.flatten_deviated:
+            deviated_module_children = (
+                child for child in getattr(module, 'i_not_supported', []) if child.keyword in self.__keywords
             )
-            if not any(output_filters):
-                # We want to traverse the entire tree for output
-                # Simply don't output what we don't want, don't stop processing
-                output_writer.writerow(output_content)
-            if hasattr(child, "i_children"):
-                self.output_module(ctx, child, output_writer)
+            for child in deviated_module_children:
+                self.output_child(ctx, child, output_writer, parent_deviated)
+
+    def output_child(self, ctx, child, output_writer, parent_deviated=False):
+        deviated = getattr(child, "i_this_not_supported", False) or parent_deviated
+        # Keys map to self.__field_names for CSV output
+        output_content = {
+            "xpath": statements.get_xpath(child, prefix_to_module=True)
+        }
+        primitive_type = statements.get_primitive_type(child)
+        permission = "rw" if getattr(child, "i_config", False) else "ro"
+        if ctx.opts.flatten_type:
+            output_content["type"] = statements.get_qualified_type(child)
+        if ctx.opts.flatten_primitive_type:
+            output_content["primitive_type"] = statements.get_primitive_type(child)
+        if ctx.opts.flatten_permission:
+            output_content["permission"] = permission
+        if ctx.opts.flatten_description:
+            output_content["description"] = statements.get_description(child)
+        if ctx.opts.flatten_deviated:
+            output_content["deviated"] = 1 if deviated else 0
+        if set(output_content.keys()) != self.__field_names_set:
+            raise Exception("Output keys do not match CSV field names!")
+        # Filters are specified as a positive in the command line arguments
+        # In this case we're negating compared to what we want to output
+        output_filters = set(
+            [
+                ctx.opts.flatten_filter_keyword
+                and child.keyword not in ctx.opts.flatten_filter_keyword,
+                ctx.opts.flatten_filter_primitive
+                and primitive_type not in ctx.opts.flatten_filter_primitive,
+                ctx.opts.flatten_filter_permission
+                and permission != ctx.opts.flatten_filter_permission,
+            ]
+        )
+        if not any(output_filters):
+            # We want to traverse the entire tree for output
+            # Simply don't output what we don't want, don't stop processing
+            output_writer.writerow(output_content)
+        if hasattr(child, "i_children"):
+            self.output_module(ctx, child, output_writer, deviated)
