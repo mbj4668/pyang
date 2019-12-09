@@ -163,13 +163,17 @@ class FlattenPlugin(plugin.PyangPlugin):
 
     def output_module(self, ctx, module, output_writer, parent_deviated=False):
         module_children = (
-            child for child in getattr(module, 'i_children', []) if child.keyword in self.__keywords
+            child
+            for child in getattr(module, "i_children", [])
+            if child.keyword in self.__keywords
         )
         for child in module_children:
             self.output_child(ctx, child, output_writer, parent_deviated)
         if ctx.opts.flatten_deviated:
             deviated_module_children = (
-                child for child in getattr(module, 'i_not_supported', []) if child.keyword in self.__keywords
+                child
+                for child in getattr(module, "i_not_supported", [])
+                if child.keyword in self.__keywords
             )
             for child in deviated_module_children:
                 self.output_child(ctx, child, output_writer, parent_deviated)
@@ -177,9 +181,7 @@ class FlattenPlugin(plugin.PyangPlugin):
     def output_child(self, ctx, child, output_writer, parent_deviated=False):
         deviated = getattr(child, "i_this_not_supported", False) or parent_deviated
         # Keys map to self.__field_names for CSV output
-        output_content = {
-            "xpath": statements.get_xpath(child, prefix_to_module=True)
-        }
+        output_content = {"xpath": statements.get_xpath(child, prefix_to_module=True)}
         primitive_type = statements.get_primitive_type(child)
         permission = "rw" if getattr(child, "i_config", False) else "ro"
         if ctx.opts.flatten_type:
