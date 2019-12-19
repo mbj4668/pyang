@@ -455,6 +455,9 @@ error_codes = \
     'XPATH_NODE_NOT_FOUND2':
       (4,
        'node "%s::%s" is not found in module "%s"'),
+    'XPATH_REF_CONFIG_FALSE':
+      (4,
+       'node "%s::%s" is config false and is not part of the accessible tree'),
     'XPATH_PATH_TOO_MANY_UP':
       (2,
        'the path has too many ".."'),

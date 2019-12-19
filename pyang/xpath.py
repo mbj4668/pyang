@@ -248,6 +248,10 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 elif child is None:
                     err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
                             (pmodule.i_modulename, name, node.arg))
+                elif (hasattr(initial, 'i_config') and initial.i_config
+                      and hasattr(child, 'i_config') and not child.i_config):
+                    err_add(ctx.errors, pos, 'XPATH_REF_CONFIG_FALSE',
+                            (pmodule.i_modulename, name))
                 else:
                     node1 = child
         elif axis == 'parent' and nodetest == ('node_type', 'node'):
