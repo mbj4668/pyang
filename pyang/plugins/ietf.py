@@ -23,7 +23,7 @@ class IETFPlugin(lint.LintPlugin):
 
         lint.LintPlugin.__init__(self)
         self.namespace_prefixes = ['urn:ietf:params:xml:ns:yang:']
-        self.modulename_prefixes = ['ietf', 'iana']
+        self.modulename_prefixes = ['ietf', 'iana', 'example']
 
     def add_opts(self, optparser):
         optlist = [

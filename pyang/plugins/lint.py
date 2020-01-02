@@ -109,8 +109,8 @@ class LintPlugin(plugin.PyangPlugin):
                 lambda ctx, s: v_chk_hyphenated_names(ctx, s))
 
         statements.add_validation_fun(
-            'grammar', ['namespace'],
-            lambda ctx, s: v_chk_namespace(ctx, s, self.namespace_prefixes))
+            'grammar', ['namespace', 'module'],
+            lambda ctx, s: v_chk_namespace(ctx, s, self.namespace_prefixes, self.modulename_prefixes))
 
         statements.add_validation_fun(
             'grammar', ['module', 'submodule'],
@@ -232,8 +232,10 @@ def v_chk_recommended_substmt(ctx, stmt):
                         'LINT_MISSING_RECOMMENDED_SUBSTMT',
                         (s, stmt.keyword, r))
 
-def v_chk_namespace(ctx, stmt, namespace_prefixes):
+def v_chk_namespace(ctx, stmt, namespace_prefixes, modulename_prefixes):
     if namespace_prefixes != []:
+        if 'example' in modulename_prefixes and 'example' in stmt.arg:
+            return
         for prefix in namespace_prefixes:
             if stmt.arg == prefix + stmt.i_module.arg:
                 return
