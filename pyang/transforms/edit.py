@@ -19,7 +19,7 @@ plugin_name = 'edit'
 
 # noinspection PyUnusedLocal
 def check_date(option, opt, value):
-    if not re.match('^\d{4}-\d{2}-\d{2}$', value):
+    if not re.match(r'^\d{4}-\d{2}-\d{2}$', value):
         raise optparse.OptionValueError(
                 'option %s: invalid yyyy-mm-dd date: %s' % (opt, value))
     return value
