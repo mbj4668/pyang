@@ -2490,6 +2490,11 @@ def is_submodule_included(src, tgt):
     if (tgt.i_orig_module.keyword == 'submodule' and
         src.i_orig_module != tgt.i_orig_module and
         src.i_orig_module.i_modulename == tgt.i_orig_module.i_modulename):
+        if (src.i_orig_module.keyword == 'submodule' and
+            src.i_orig_module.i_version != '1'):
+            # In 1.1, if both src and tgt are submodules, src doesn't
+            # have to include tgt
+            return True
         if src.i_orig_module.search_one('include',
                                         tgt.i_orig_module.arg) is None:
             return False
