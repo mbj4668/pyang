@@ -7,7 +7,7 @@ sdist: build
 dist: build
 	python setup.py sdist
 
-.PHONY:	test tags clean doc build
+.PHONY:	test tags clean doc build lint
 build: doc pyang/xpath_parsetab.py
 
 doc:
@@ -16,8 +16,11 @@ doc:
 pyang/xpath_parsetab.py: pyang/xpath_parser.py
 	python -m pyang.xpath_parser
 
-test:
+test: lint
 	(cd test; $(MAKE) test)
+
+lint:
+	flake8 .
 
 clean:
 	rm -f pyang/parser.out pyang/xpath_parsetab.py

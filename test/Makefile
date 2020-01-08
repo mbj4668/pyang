@@ -15,6 +15,12 @@ python3_test: python3/python
 	env PATH=`pwd`/python3:$(PATH) $(MAKE) itest
 
 itest:
+	$(MAKE) selftest;						\
+	for d in $(DIRS); do 						\
+		( cd $$d && $(MAKE) test ) || exit 1;			\
+	done
+
+selftest:
 	@echo "selftest... " | tr -d '\012'; \
 		./selftest.py || exit 1; echo "ok";	\
 	echo "validate all modules...";					\
@@ -22,13 +28,10 @@ itest:
 		( cd $$d;						\
 		for m in *.yang; do					\
 			echo "  $${m}... " | tr -d '\012';		\
-			pyang $$m || exit 1;				\
+			pyang -Werror $$m || exit 1;			\
 			echo "ok";					\
 		done ) || exit 1;					\
-	done || exit 1; 						\
-	for d in $(DIRS); do 						\
-		( cd $$d && $(MAKE) test ) || exit 1;			\
-	done
+	done || exit 1;
 
 python2/python: python2
 	ln -sf `which python2` $@

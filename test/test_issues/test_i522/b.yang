@@ -1,0 +1,12 @@
+module b {
+  namespace "urn:b";
+  prefix b;
+
+  import a {
+    prefix a;
+  }
+
+  identity id1 {
+    base a:idbase;
+  }
+}

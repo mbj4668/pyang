@@ -114,7 +114,7 @@ class Abort(Exception):
 ### Constants
 
 re_path = re.compile('(.*)/(.*)')
-re_deref = re.compile('deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
+re_deref = re.compile(r'deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 re_and_or = re.compile(r'\band\b|\bor\b')
 
 data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
@@ -1531,10 +1531,7 @@ def v_expand_1_uses(ctx, stmt):
     whens = list(stmt.search('when'))
     for s in whens:
         s.i_origin = 'uses'
-        s.parent = stmt.parent
     iffeatures = list(stmt.search('if-feature'))
-    for s in iffeatures:
-        s.parent = stmt.parent
     # first, copy the grouping into our i_children
     for g in stmt.i_grouping.i_children:
         if util.keysearch(g.keyword, 0, subspec) == None:
@@ -1573,8 +1570,12 @@ def v_expand_1_uses(ctx, stmt):
         newg = g.copy(stmt.parent, stmt,
                       nocopy=['type','uses','unique','typedef','grouping'],
                       copyf=post_copy)
-        newg.substmts.extend(whens)
-        newg.substmts.extend(iffeatures)
+        for s in whens:
+            news = s.copy(newg)
+            newg.substmts.append(news)
+        for s in iffeatures:
+            news = s.copy(newg)
+            newg.substmts.append(news)
 
         if hasattr(stmt, 'i_not_implemented'):
             newg.i_not_implemented = stmt.i_not_implemented
@@ -2489,6 +2490,11 @@ def is_submodule_included(src, tgt):
     if (tgt.i_orig_module.keyword == 'submodule' and
         src.i_orig_module != tgt.i_orig_module and
         src.i_orig_module.i_modulename == tgt.i_orig_module.i_modulename):
+        if (src.i_orig_module.keyword == 'submodule' and
+            src.i_orig_module.i_version != '1'):
+            # In 1.1, if both src and tgt are submodules, src doesn't
+            # have to include tgt
+            return True
         if src.i_orig_module.search_one('include',
                                         tgt.i_orig_module.arg) is None:
             return False

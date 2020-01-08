@@ -1,0 +1,16 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  container a {
+    container x {
+      config false;
+      leaf bar {
+        type int32;
+      }
+    }
+    container y {
+      must "../x/bar"; // error, refers to config false
+    }
+  }
+}

@@ -80,8 +80,7 @@ def v_xpath(ctx, stmt, node):
         else:
             q = xpath_parser.parse(stmt.arg)
             stmt.i_xpath = q
-        if node is not None:
-            chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q)
+        chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q)
     except xpath_lexer.XPathError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e.msg)
         stmt.i_xpath = None
@@ -213,22 +212,25 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
         nodetest = head[2]
         preds = head[3]
         node1 = None
-        if node is None:
-            # we can't check the path
-            pass
-        elif axis == 'self':
+        if axis == 'self':
             pass
         elif axis == 'child' and nodetest[0] == 'name':
             prefix = nodetest[1]
             name = nodetest[2]
             if prefix is None:
-                if initial.keyword == 'module':
+                if initial is None:
+                    pmodule = None
+                elif initial.keyword == 'module':
                     pmodule = initial
                 else:
                     pmodule = initial.i_module
             else:
                 pmodule = prefix_to_module(mod, prefix, pos, ctx.errors)
-            if pmodule is not None:
+            # if node and initial are None, it means we're checking an XPath
+            # expression when it is defined in a grouping or augment, i.e.,
+            # when the full tree is not expanded.  in this case we can't check
+            # the paths
+            if pmodule is not None and node is not None and initial is not None:
                 if node == 'root':
                     children = pmodule.i_children
                 elif hasattr(node, 'i_children'):
@@ -246,10 +248,16 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 elif child is None:
                     err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
                             (pmodule.i_modulename, name, node.arg))
+                elif (hasattr(initial, 'i_config') and initial.i_config
+                      and hasattr(child, 'i_config') and not child.i_config):
+                    err_add(ctx.errors, pos, 'XPATH_REF_CONFIG_FALSE',
+                            (pmodule.i_modulename, name))
                 else:
                     node1 = child
         elif axis == 'parent' and nodetest == ('node_type', 'node'):
-            if node == 'root':
+            if node is None:
+                pass
+            elif node == 'root':
                 err_add(ctx.errors, pos, 'XPATH_PATH_TOO_MANY_UP', ())
             else:
                 p = data_node_up(node)

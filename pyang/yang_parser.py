@@ -343,8 +343,6 @@ class YangParser(object):
         return stmt
 
 # FIXME: tmp debug
-import sys
-
 def ppkeywd(tok):
     if util.is_prefixed(tok):
         return tok[0] + ':' + tok[1]

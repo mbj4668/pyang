@@ -18,4 +18,20 @@ module a {
   }
 
   uses g1;
+
+  grouping y {
+    leaf gg {
+      type string;
+    }
+  }
+
+  container x {
+    uses y {
+      when 'aa > 0';
+    }
+    leaf aa {
+      type int32;
+    }
+  }
+
 }

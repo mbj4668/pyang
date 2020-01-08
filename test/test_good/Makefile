@@ -1,9 +1,7 @@
 PYANG = pyang -Werror -WWBAD_MODULE_NAME
 
-MODULES ?= $(wildcard *.yang)
-
 test: clean utf8-test mef-ieee-test
-	@for m in $(MODULES); do 					\
+	@for m in $(wildcard *.yang); do 				\
 		echo "checking $$m..." | tr -d '\012';			\
 		$(PYANG) $$m || exit 1;					\
 		echo " generating yin...";				\

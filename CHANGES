@@ -1,3 +1,10 @@
+   2.1.1 - 2020-01-03
+         #532 - warn if config true xpath refers to config false node
+         #522 - find prefixes in xpath expressions in groupings
+         #518 - broken xpath check
+         #514 - re-added sample-xml-skeleton plugin (accidentally removed)
+         #495 - "when" xpath context node was not correctly set in "uses"
+
    2.1 - 2019-10-20
          added a plugin to generate SID files (see draft-ietf-core-sid)
            thanks to @lemikev
