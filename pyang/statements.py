@@ -173,7 +173,7 @@ _validation_phases = [
 
     # strict phase: check YANG strictness
     'strict',
-    ]
+]
 
 _validation_map = {
     ('init', 'module'):lambda ctx, s: v_init_module(ctx, s),
@@ -245,8 +245,7 @@ _validation_map = {
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'typedef'):lambda ctx, s: v_unused_typedef(ctx, s),
     ('unused', 'grouping'):lambda ctx, s: v_unused_grouping(ctx, s),
-
-    }
+}
 
 _v_i_children = {
     'unique_name':True,
@@ -278,12 +277,12 @@ _keyword_with_children = {
     'notification':True,
     'rpc':True,
     'action':True,
-    }
+}
 
 _validation_variables = [
     ('$has_children', lambda keyword: keyword in _keyword_with_children),
     ('$extension', lambda keyword: util.is_prefixed(keyword)),
-    ]
+]
 
 data_keywords = ['leaf', 'leaf-list', 'container', 'list', 'choice', 'case',
                  'anyxml', 'anydata', 'action', 'rpc', 'notification']
@@ -330,7 +329,12 @@ _singleton_keywords = {
     'mandatory':True,
     'min-elements':True,
     'max-elements':True
-    }
+}
+
+_deviate_delete_singleton_keywords = {
+    'units':True,
+    'default':True
+}
 
 _valid_deviations = {
     'type':['leaf', 'leaf-list'],
@@ -2157,10 +2161,9 @@ def v_reference_deviate(ctx, stmt):
 
                 else:
                     t.substmts.append(c)
-    else: # delete or replace
+    elif stmt.arg == 'replace':
         for c in stmt.substmts:
             if (c.keyword == 'config'
-                and stmt.arg == 'replace'
                 and hasattr(t, 'i_config')):
                 # config is special: since it is an inherited property
                 # with a default, all nodes has a config property.  this means
@@ -2205,14 +2208,30 @@ def v_reference_deviate(ctx, stmt):
             else:
                 idx = t.substmts.index(old)
                 del t.substmts[idx]
-                if stmt.arg == 'replace':
-                    if (c.keyword == 'type'
-                        and c.i_typedef is not None
-                        and c.arg.find(":") == -1
-                        and t.i_module.i_prefix !=
-                            c.i_module.i_prefix):
-                        c.arg = c.i_module.i_prefix + ':' + c.arg
-                    t.substmts.append(c)
+                if (c.keyword == 'type'
+                    and c.i_typedef is not None
+                    and c.arg.find(":") == -1
+                    and t.i_module.i_prefix !=
+                        c.i_module.i_prefix):
+                    c.arg = c.i_module.i_prefix + ':' + c.arg
+                t.substmts.append(c)
+    else: # delete
+        for c in stmt.substmts:
+            if c.keyword in _singleton_keywords:
+                if c.keyword in _deviate_delete_singleton_keywords:
+                    old = t.search_one(c.keyword)
+                else:
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL2',
+                            (c.keyword, t.i_module.arg, t.arg))
+                    continue
+            else:
+                old = t.search_one(c.keyword, c.arg)
+            if old is None:
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
+                        (c.keyword, t.i_module.arg, t.arg))
+            else:
+                idx = t.substmts.index(old)
+                del t.substmts[idx]
 
 # after deviation, we need to re-run some of the tests, e.g. if
 # the deviation added a default value it needs to be checked.

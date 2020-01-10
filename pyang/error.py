@@ -199,6 +199,9 @@ error_codes = \
     'BAD_DEVIATE_DEL':
       (2,
        'the "%s" property does not exist in node "%s::%s"'),
+    'BAD_DEVIATE_DEL2':
+      (2,
+       'the "%s" property connot be deviate deleted in node "%s::%s"'),
     'BAD_DEVIATE_TYPE':
       (2,
        'the "%s" property cannot be added'),
