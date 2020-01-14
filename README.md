@@ -1,6 +1,6 @@
 # pyang #
 
-[![Release](https://img.shields.io/github/v/tag/mbj4668/pyang)](https://coveralls.io/r/mbj4668/pyang) [![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang) [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
+[![Release](https://img.shields.io/github/v/release/mbj4668/pyang)](https://github.com/mbj4668/pyang/releases) [![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang) [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## Overview ##
 
@@ -15,7 +15,7 @@ See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
 ## Installation ##
 
 - **1 PyPI**
-  
+
 Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
 
 ```sh
@@ -23,7 +23,7 @@ Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
 ```
 
 - **2 Source**
-  
+
 ```sh
   git clone https://github.com/mbj4668/pyang.git
   cd pyang
