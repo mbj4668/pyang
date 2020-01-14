@@ -1,84 +1,84 @@
-[![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang)
-[![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
+# pyang #
 
-## News ##
-
-**2020-01-03 - Version 2.1.1 released**
-
-  * this is a pure bug fix release
-
-**2019-10-20 - Version 2.1 released**
-
-  * added a plugin to generate SID files (see draft-ietf-core-sid)
-
-  * ... and various other bug fixes, see CHANGES.
-
-**2019-08-21 - Version 2.0.2 released**
-
-  * this is a pure bug fix release
-
-
-**2019-06-11 - Version 2.0.1 released**
-
-  * this is a pure bug fix release
-
-
-**2019-05-29 - Version 2.0 released**
-
-  * pyang now has a proper XPath 1.0 parser, which means that it will
-    detect more XPath errors, and produce warnings for XPath
-    expressions that for example refer to unknown nodes.
-
-  * pyang -f yang now keeps comments by default.  use
-    the parameter --yang-remove-comments to remove them.
-
-  * updated the IETF plugin to check RFC 8407 guidelines.
-
-  * updated the IETF plugin to check for the license text and
-    RFC 2119/8174 boilerplate text.
-
-  * for python coders: non backwards compatible change in the
-    pyang.xpath module.  the function xpath.tokens() has been replaced
-    by pyang.xpath_lexer.scan(), but it also return tokens in a new
-    format.
-
-  * or python coders: non backwards compatible change in
-    statements.add_xpath_function().  this function now takes
-    three parameters, instead of just one.
-
-  * ... and various other enhancements and bug fixes, see CHANGES.
-
-See below for previous releases.
-
----
-
+[![Release](https://img.shields.io/github/v/tag/mbj4668/pyang)](https://coveralls.io/r/mbj4668/pyang) [![Build Status](https://travis-ci.org/mbj4668/pyang.svg?branch=master)](https://travis-ci.org/mbj4668/pyang) [![Coverage Status](https://coveralls.io/repos/mbj4668/pyang/badge.svg)](https://coveralls.io/r/mbj4668/pyang)
 
 ## Overview ##
 
+pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
+
 YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
 
-pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
+## Documentation ##
+
+See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
 
 ## Installation ##
 
+- **1 PyPI**
+  
 Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
 
-```
+```sh
 # pip install pyang
 ```
 
-### Compatibility ###
+- **2 Source**
+  
+```sh
+  git clone https://github.com/mbj4668/pyang.git
+  cd pyang
+  python setup.py install
+  (this might require root access)
+```
+
+
+To install in a different location, run:
+
+```sh
+  python setup.py install --prefix=/usr/local
+```
+
+If you do this, it is recommended to set the environment variable
+**YANG_INSTALL** to the prefix directory.  This ensures that pyang will
+find standard YANG modules. In addition, make sure that **PYTHONPATH** is set
+to something as follows:
+
+```sh
+export PYTHONPATH=/usr/local/lib/python2.7/site-packages
+```
+
+or whatever version of python you are running.
+
+
+Run locally without installing
+
+```sh
+export PATH=`pwd`/bin:$PATH
+export MANPATH=`pwd`/man:$MANPATH
+export PYTHONPATH=`pwd`:$PYTHONPATH
+export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
+export PYANG_XSLT_DIR=`pwd`/xslt
+export PYANG_RNG_LIBDIR=`pwd`/schema
+```
+
+or:
+
+```sh
+source ./env.sh
+```
+
+## Compatibility ##
 
 pyang is compatible with the following IETF RFCs:
 
-  * [RFC 6020](http://tools.ietf.org/html/rfc6020)
-  * [RFC 6087](http://tools.ietf.org/html/rfc6087)
-  * [RFC 6110](http://tools.ietf.org/html/rfc6110)
-  * [RFC 6643](http://tools.ietf.org/html/rfc6643)
-  * [RFC 7950](http://tools.ietf.org/html/rfc7950)
-  * [RFC 7952](http://tools.ietf.org/html/rfc7952)
-  * [RFC 8040](http://tools.ietf.org/html/rfc8040)
-  * [RFC 8407](http://tools.ietf.org/html/rfc8407)
+  * [RFC 6020: YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)](http://tools.ietf.org/html/rfc6020)
+  * [RFC 6087: Guidelines for Authors and Reviewers of YANG Data Model Documents](http://tools.ietf.org/html/rfc6087)
+  * [RFC 6110: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content](http://tools.ietf.org/html/rfc6110)
+  * [RFC 6643: Translation of Structure of Management Information Version 2 (SMIv2) MIB Modules to YANG Modules](http://tools.ietf.org/html/rfc6643)
+  * [RFC 7950: The YANG 1.1 Data Modeling Languages](http://tools.ietf.org/html/rfc7950)
+  * [RFC 7952: Defining and Using Metadata with YANGs](http://tools.ietf.org/html/rfc7952)
+  * [RFC 8040: RESTCONF Protocols](http://tools.ietf.org/html/rfc8040)
+  * [RFC 8407: Guidelines for Authors and Reviewers of Documents Containing YANG Data Models](http://tools.ietf.org/html/rfc8407)
 
 ## Features ##
 
@@ -102,121 +102,73 @@ pyang is compatible with the following IETF RFCs:
   * Plugin framework for simple development of other outputs, such as
     code generation.
 
+## Usage ##
 
----
+```sh
+pyang -h
+```
 
+or
 
-## Documentation ##
+```sh
+man pyang
+```
 
-See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
+## Code structure ##
 
+* **bin/**
+  Executable scripts.
 
----
+* **pyang/**
+  Contains the pyang library code.
 
-## Previous releases ##
+* **pyang/__init__.py**
+  Initialization code for the pyang library.
+  Defines the Context and Repository classes.
 
-**2019-01-21 - Version 1.7.8 released**
+* **pyang/syntax.py**
+  Generic syntax checking for YANG and YIN statements.
+  Defines regular expressions for argument checking of core
+  statements.
 
-  * reverted method signature change for Repository.get_module_from_handle().
-    it now has the same signature as in 1.7.5.
+* **pyang/grammar.py**
+  Generic grammar for YANG and YIN.
+  Defines chk_module_statements() which validates a parse tree
+  according to the grammar.
 
-  * fixed bug in check_update when there were more than one augment for
-    the same target node.
+* **pyang/statements.py**
+  Defines the generic Statement class and all validation code.
 
-**2019-01-17 - Version 1.7.7 released**
+* **pyang/yang_parser.py**
+  YANG tokenizer and parser.
 
-  * fixed a bug in -f yang formatting
+* **pyang/yin_parser.py**
+  YIN parser.  Uses the expat library for XML parsing.
 
-See below for previous releases.
+* **pyang/types.py**
+  Contains code for checking built-in types.
 
-**2019-01-17 - Version 1.7.6 released**
+* **pyang/plugin.py**
+  Plugin API.  Defines the class PyangPlugin which all plugins
+  inherits from. All output handlers are written as plugins.
 
-  * better formatting of YANG modules with -f yang
+* **pyang/plugins/**
+  Directory where plugins can be installed.  All plugins in this
+  directory are automatically initialized when the library is
+  initialized.
 
-  * new type of plugin ("transform") to make transformations on the
-    representation of the YANG module
+* **pyang/translators/**
+  Contains output plugins for YANG, YIN, XSD, and DSDL translation.
 
-  * ... and various other enhancements and bug fixes, see CHANGES.
+* **xslt**
+  Contains XSLT style sheets for generating RELAX NG, Schematron and
+  DSRL schemas and validating instance documents. Also included is the
+  free implementation of ISO Schematron by Rick Jelliffe from
+  http://www.schematron.com/ (files iso_schematron_skeleton_for_xslt1.xsl,
+  iso_abstract_expand.xsl and iso_svrl_for_xslt1.xsl).
 
-**2018-04-25 - Version 1.7.5 released**
-
-  * tree plugin updated to align with RFC 8340
-
-  * better formatting of YANG modules with -f yang
-
-  * reduced memory usage
-
-  * ... and various other enhancements and bug fixes, see CHANGES.
-
-**2018-02-23 - Version 1.7.4 released**
-
-  * tree plugin updated to align with draft-ietf-netmod-yang-tree-diagrams-05
-
-  * ... and various other enhancements and bug fixes, see CHANGES.
-
-**2017-06-27 - Version 1.7.3 released**
-
-  * Handle multiple rc:yang-data statements.  This bug caused
-    validation of ietf-restconf, or any module that imported
-    ietf-restconf, to fail.
-
-**2017-06-14 - Version 1.7.2 released**
-
-  * Added support for external plugins, using setuptools entry_points,
-    with the entry point "pyang.plugin".
-
-  * ... and various other enhancements and bug fixes, see CHANGES.
-
-**2016-11-02 - Version 1.7.1 released**
-
-  * This is mainly a bug fix release, see CHANGES for details.
-
-**2016-06-16 - Version 1.7 released**
-  * Support for YANG 1.1, with the exception of the new submodule scoping rules. 
+* **schema**
+  Contains RELAX NG schemas and pattern libraries.
 
 
-**2015-10-06 - Version 1.6 released**
 
-  * pyang can now be installed via [PyPi](https://pypi.python.org/pypi).
-
-  * A new plugin 'lint' has been added. It checks if a module follow
-    the generic guidelines defined in RFC 6087.  The 'ietf' plugin
-    still exists, but is rewritten to use the new 'lint' plugin.
-
-  * By default, pyang now scans the YANG module path recursively,
-    i.e., it searches for YANG modules also in subdirectories to the
-    directories in the load path.  This behavior can be disabled with
-    '--no-path-recurse'.
-
-  * A bash completions file has been added.
-
-  * ... and various other enhancements and bug fixes, see CHANGES.
-
-**2014-11-18 - Version 1.5 released**
-
-  * A new plugin 'check-update' has been added. It can be used to check if a new revision of a module follows the update rules from RFC 6020.
-
-  * A new plugin 'omni' has been added.  It generates an OmniGraffle script file from a model.
-
-  * ... and various other enhancements and bug fixes.
-
-**2013-11-11 - Version 1.4.1 released**
-  * Exactly as 1.4, but fixed to that it works with Python 3.
-
-**2013-10-24 - Version 1.4 released**
-  * lots of bugfixes
-
-**2013-01-31 - Version 1.3 released**
-  * New plugins: hypertree, jstree, jsonxsl, jtox
-  * lots of bugfixes
-
-**2011-07-27 - Version 1.2 released**
-
-**2011-02-16 - Version 1.1 released**
-
-  * A new UML plugin has been added. It is used to generate UML
-    diagrams for visualization of YANG data models.  See
-    [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
-    an example.
-  * The DSDL plugin is updated to [RFC 6110](http://tools.ietf.org/html/rfc6110)
-  * ... and various bug fixes.
