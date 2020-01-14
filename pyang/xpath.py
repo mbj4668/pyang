@@ -2,6 +2,7 @@ from . import xpath_lexer
 from . import xpath_parser
 from .error import err_add
 from .util import prefix_to_module, search_data_node, data_node_up
+from .syntax import re_identifier
 
 core_functions = {
     'last': ([], 'number'),
@@ -41,8 +42,8 @@ yang_1_1_xpath_functions = {
     'bit-is-set': (['node-set', 'string'], 'boolean'),
     'enum-value': (['string'], 'number'),
     'deref': (['node-set'], 'node-set'),
-    'derived-from': (['node-set', 'string'], 'boolean'),
-    'derived-from-or-self': (['node-set', 'string'], 'boolean'),
+    'derived-from': (['node-set', 'qstring'], 'boolean'),
+    'derived-from-or-self': (['node-set', 'qstring'], 'boolean'),
     're-match': (['string', 'string'], 'boolean'),
     }
 
@@ -80,7 +81,7 @@ def v_xpath(ctx, stmt, node):
         else:
             q = xpath_parser.parse(stmt.arg)
             stmt.i_xpath = q
-        chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q)
+        chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q, None)
     except xpath_lexer.XPathError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e.msg)
         stmt.i_xpath = None
@@ -90,7 +91,7 @@ def v_xpath(ctx, stmt, node):
 
 # mod is the (sub)module where the stmt is defined, which we use to
 # resolve prefixes.
-def chk_xpath_expr(ctx, mod, pos, initial, node, q):
+def chk_xpath_expr(ctx, mod, pos, initial, node, q, t):
     if type(q) == type([]):
         chk_xpath_path(ctx, mod, pos, initial, node, q)
     elif type(q) == type(()):
@@ -102,23 +103,23 @@ def chk_xpath_expr(ctx, mod, pos, initial, node, q):
             for qa in q[1]:
                 chk_xpath_path(ctx, mod, pos, initial, node, qa)
         elif q[0] == 'comp':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'arith':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'bool':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'negative':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[1])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[1], None)
         elif q[0] == 'function_call':
             chk_xpath_function(ctx, mod, pos, initial, node, q[1], q[2])
         elif q[0] == 'path_expr':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[1])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[1], t)
         elif q[0] == 'path': # q[1] == 'filter'
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'var':
             # NOTE: check if the variable is known; currently we don't
             # have any variables in YANG xpath expressions
@@ -133,14 +134,24 @@ def chk_xpath_expr(ctx, mod, pos, initial, node, q):
                 # make sure there is just one : present
                 if i != -1 and s[i + 1:].find(':') == -1:
                     prefix = s[:i]
-                    # we don't want to report an error; just mark the
-                    # prefix as being used.
-                    my_errors = []
-                    prefix_to_module(mod, prefix, pos, my_errors)
-                    for (pos0, code, arg) in my_errors:
-                        if code == 'PREFIX_NOT_DEFINED':
-                            err_add(ctx.errors, pos0,
-                                    'WPREFIX_NOT_DEFINED', arg)
+                    tag = s[(i+1):]
+                    if (re_identifier.search(prefix) is not None and
+                        re_identifier.search(tag) is not None):
+                        # we don't want to report an error; just mark the
+                        # prefix as being used.
+                        my_errors = []
+                        prefix_to_module(mod, prefix, pos, my_errors)
+                        for (pos0, code, arg) in my_errors:
+                            if (code == 'PREFIX_NOT_DEFINED' and
+                                t == 'qstring'):
+                                # we know for sure that this is an error
+                                err_add(ctx.errors, pos0,
+                                        'PREFIX_NOT_DEFINED', arg)
+                            else:
+                                # this may or may not be an error;
+                                # report a warning
+                                err_add(ctx.errors, pos0,
+                                        'WPREFIX_NOT_DEFINED', arg)
 
 def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     signature = None
@@ -185,8 +196,10 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     # FIXME implement checks from check_function()
 
     # check the arguments - FIXME check type
+    i = 0;
     for arg in args:
-        chk_xpath_expr(ctx, mod, pos, initial, node, arg)
+        chk_xpath_expr(ctx, mod, pos, initial, node, arg, signature[0][i])
+        i = i + 1
     return signature[1]
 
 def chk_xpath_path(ctx, mod, pos, initial, node, path):
@@ -270,5 +283,5 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             # functions etc.
             pass
         for p in preds:
-            chk_xpath_expr(ctx, mod, pos, initial, node1, p)
+            chk_xpath_expr(ctx, mod, pos, initial, node1, p, None)
         chk_xpath_path(ctx, mod, pos, initial, node1, path[1:])

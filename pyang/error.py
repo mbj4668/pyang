@@ -171,7 +171,7 @@ error_codes = \
        'prefix "%s" is not defined (reported only once)'),
     'WPREFIX_NOT_DEFINED':
       (4,
-       'prefix "%s" is not defined'),
+       '"%s" looks like a prefix but is not defined'),
     'NODE_NOT_FOUND':
       (1,
        'node %s::%s is not found'),

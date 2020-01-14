@@ -1,0 +1,21 @@
+module a {
+  yang-version 1.1;
+  namespace urn:a;
+  prefix a;
+
+  identity x;
+
+  container a {
+    leaf x {
+      type identityref {
+        base x;
+      }
+      must 'derived-from(., "foo:bar")'; // error prefix 'foo' not defined
+      must 'derived-from(., "a:x")'; // ok, 'a' valid prefix
+      must '. != "http://foo/bar"'; // ok, doesn't look like a prefix
+      must '. != "urn:example:a"'; // ok, doesn't look like a prefix
+      must '. != "@urn:example"'; // ok, doesn't look like a prefix
+      must '. != "bar:x"'; // warning, 'bar' looks like a prefix
+    }
+  }
+}
