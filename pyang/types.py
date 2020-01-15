@@ -641,6 +641,8 @@ def validate_bits(errors, bits, stmt):
                 err_add(errors, position.pos, 'BIT_POSITION', position.arg)
         else:
             # auto-assign a value
+            if next > 4294967295:
+                err_add(errors, b.pos, 'BIT_POSITION', str(next))
             values[next] = b.pos
             b.i_position = next
             next = next + 1
