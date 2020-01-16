@@ -28,6 +28,10 @@ class YINPlugin(plugin.PyangPlugin):
                                  dest="yin_pretty_strings",
                                  action="store_true",
                                  help="Pretty print strings"),
+            optparse.make_option("--yin-keep-line-number",
+                                 dest="yin_keep_line_number",
+                                 action="store_true",
+                                 help="Keep YANG file line number in yin file"),
             ]
         g = optparser.add_option_group("YIN output specific options")
         g.add_options(optlist)
@@ -117,14 +121,17 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
         (argname, argiselem) = syntax.yin_map[stmt.raw_keyword]
         tag = stmt.raw_keyword
     if argiselem == False or argname is None:
+        posatt = '' # fix issue#399 to add line number
+        if ctx.opts.yin_keep_line_number is not None:
+            posatt = ' line=' + quoteattr(str(stmt.pos.line))
         if argname is None:
             attr = ''
         else:
             attr = ' ' + argname + '=' + quoteattr(stmt.arg)
         if len(stmt.substmts) == 0:
-            fd.write(indent + '<' + tag + attr + '/>\n')
+            fd.write(indent + '<' + tag + attr + posatt + '/>\n')
         else:
-            fd.write(indent + '<' + tag + attr + '>\n')
+            fd.write(indent + '<' + tag + attr + posatt + '>\n')
             for s in stmt.substmts:
                 emit_stmt(ctx, module, s, fd, indent + indentstep,
                           indentstep)

@@ -223,7 +223,8 @@ class YinParser(object):
         for at in attrs:
             (ns, local_name) = self.split_qname(at)
             if ns is None:
-                error.err_add(self.ctx.errors, pos,
+                if local_name != 'line': # fix issue#399
+                    error.err_add(self.ctx.errors, pos,
                               'UNEXPECTED_ATTRIBUTE', local_name)
             elif ns == yin_namespace:
                 error.err_add(self.ctx.errors, pos,
