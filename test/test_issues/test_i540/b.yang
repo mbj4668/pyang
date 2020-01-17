@@ -1,0 +1,39 @@
+module b {
+  yang-version 1.1;
+  namespace "urn:cesent:b";
+  prefix aa;
+
+  identity id1;
+  identity id4;
+  identity id7;
+
+  identity id2 {
+    base id1;
+  }
+
+  identity id3 {
+    base id2;
+  }
+
+  identity id5 {
+    base id4;
+  }
+
+  identity id6 {
+    base id5;
+  }
+
+  identity id8 {
+    base id7;
+    base id6;
+  }
+
+  leaf le1 {
+    type identityref {
+      base id1;
+      base id2;
+    }
+    default "id8";
+  }
+
+}
