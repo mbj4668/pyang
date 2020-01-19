@@ -231,13 +231,20 @@ class YangTokenizer(object):
                 res.append(s)
                 self.readline()
                 i = 0
+                indent = 0
                 if quote_char == '"':
                     # skip whitespace used for indentation
                     buflen = len(self.buf)
                     while (i < buflen and self.buf[i].isspace() and
-                           i <= indentpos):
+                           indent <= indentpos):
+                        if self.buf[i] == '\t':
+                            indent = indent + 8
+                        else:
+                            indent = indent + 1
                         i = i + 1
-                    if i == buflen:
+                    if indent > indentpos + 1:
+                        res.append(' ' * (indent - indentpos - 1))
+                    elif i == buflen:
                         # whitespace only on this line; keep it as is
                         i = 0
         elif need_quote == True:
