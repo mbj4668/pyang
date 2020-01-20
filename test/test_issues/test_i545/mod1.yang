@@ -1,0 +1,58 @@
+module mod1 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod1";
+
+  feature test1 {
+    status obsolete;
+    reference "hello";
+  }
+  
+  leaf hello {
+    type string;
+    if-feature "test1";
+    description "test if-feature";
+  }
+
+  leaf le1 {
+    type string;
+    if-feature "test1";
+    status current;
+  }
+
+  leaf le2 {
+    type int8;
+    if-feature "test1";
+    status deprecated;
+  }
+
+  leaf-list lst1 {
+    type string;
+    if-feature "test1";
+    status current;
+  }
+
+  leaf-list lst2 {
+    type int16;
+    if-feature "test1";
+    status deprecated;
+  }
+
+  container con {
+    leaf lee1 {
+      type string;
+    }
+    if-feature "test1";
+    status current;
+  }
+
+  container con2 {
+    leaf lee2 {
+      type string;
+    }
+    if-feature "test1";
+    status deprecated;
+  }
+
+
+}

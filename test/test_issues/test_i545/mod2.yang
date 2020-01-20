@@ -1,0 +1,32 @@
+module mod2 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod2";
+
+  leaf hello {
+    type string;
+    status obsolete;
+    if-feature "test1";
+    description "test if-feature";
+  }
+
+  container con {
+    leaf le1 {
+      type string;
+    }
+    status obsolete;
+  }
+
+  leaf-list lst {
+    type string;
+    if-feature "test1";
+    status obsolete;
+  }
+
+  feature test1 {
+    status obsolete;
+    reference "hello";
+  }
+  
+
+}
