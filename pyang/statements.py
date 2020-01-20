@@ -1268,6 +1268,7 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 pass
             else:
                 found = pmodule.i_features[name]
+                chk_status(ctx, stmt.parent, found)
                 v_type_feature(ctx, found)
                 if pmodule.i_modulename in ctx.features:
                     if name not in ctx.features[pmodule.i_modulename]:
