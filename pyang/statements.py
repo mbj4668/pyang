@@ -92,14 +92,14 @@ def add_refinement_element(keyword, element, merge = False, v_fun=None):
     _refinements.append((keyword, [element], merge, v_fun))
 
 def add_deviation_element(keyword, element):
-  """Add an element to the <keyword>'s list of deviations.
+    """Add an element to the <keyword>'s list of deviations.
 
-  Can be used by plugins that add support for specific extension
-  statements."""
-  if keyword in _valid_deviations:
-      _valid_deviations[keyword].append(element)
-  else:
-      _valid_deviations[keyword] = [element]
+    Can be used by plugins that add support for specific extension
+    statements."""
+    if keyword in _valid_deviations:
+        _valid_deviations[keyword].append(element)
+    else:
+        _valid_deviations[keyword] = [element]
 
 ### Exceptions
 
@@ -904,7 +904,7 @@ def v_type_type(ctx, stmt):
         for base in bases:
             v_type_base(ctx, base)
             if base.i_identity is not None:
-               idbases.append(base)
+                idbases.append(base)
         if len(idbases) > 0:
             stmt.i_is_derived = True
             stmt.i_type_spec = types.IdentityrefTypeSpec(idbases)
@@ -1682,9 +1682,9 @@ def v_inherit_properties(ctx, stmt, child=None):
         iter(s, None, True)
     for s in stmt.search('augment'):
         if hasattr(stmt,'i_config'):
-           iter(s, stmt.i_config, True)
+            iter(s, stmt.i_config, True)
         else:
-           iter(s, True, True)
+            iter(s, True, True)
     for s in stmt.i_children:
         if s.keyword in _keywords_with_no_explicit_config:
             iter(s, None, False)
@@ -1928,7 +1928,7 @@ def v_reference_list(ctx, stmt):
                             return
                 default = ptr.search_one('default')
                 if default is not None:
-                        err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
+                    err_add(ctx.errors, default.pos, 'KEY_HAS_DEFAULT', ())
                 for substmt in ['if-feature', 'when']:
                     s = ptr.search_one(substmt)
                     if s is not None:
@@ -2925,18 +2925,18 @@ class Statement(object):
     def pprint(self, indent='', f=None):
         """debug function"""
         if self.arg is not None:
-          print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)
+            print(indent + util.keyword_to_str(self.keyword) + " " + self.arg)
         else:
-          print(indent + util.keyword_to_str(self.keyword))
+            print(indent + util.keyword_to_str(self.keyword))
         if f is not None:
-             f(self, indent)
+            f(self, indent)
         for x in self.substmts:
             x.pprint(indent + ' ', f)
         if hasattr(self, 'i_children') and len(self.i_children) > 0:
-           print(indent + '--- BEGIN i_children ---')
-           for x in self.i_children:
-               x.pprint(indent + ' ', f)
-           print(indent + '--- END i_children ---')
+            print(indent + '--- BEGIN i_children ---')
+            for x in self.i_children:
+                x.pprint(indent + ' ', f)
+            print(indent + '--- END i_children ---')
 
 class ModSubmodStatement(Statement):
     __slots__ = (

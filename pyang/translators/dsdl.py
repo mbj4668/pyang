@@ -566,7 +566,7 @@ class HybridDSDLSchema(object):
         constructed in the `process_patches` method.
         """
         if refd["default"]:
-                return refd["default"]
+            return refd["default"]
         defst = stmt.search_one("default")
         if defst:
             return defst.arg
@@ -710,7 +710,7 @@ class HybridDSDLSchema(object):
 
         `stmt` provides the context in YANG and `elem` is the parent
         element in the output schema. Refinements adding documentation
-        and changing the config status are immediately applied. 
+        and changing the config status are immediately applied.
 
         The returned tuple consists of:
         - a dictionary of refinements, in which keys are the keywords
@@ -976,7 +976,7 @@ class HybridDSDLSchema(object):
                 chelem.occur = 3
         self.handle_substmts(stmt, chelem, new_pset)
         self.apply_augments(augs, chelem, new_pset)
-        
+
     def container_stmt(self, stmt, p_elem, pset):
         celem = SchemaNode.element(self.qname(stmt), p_elem)
         if self.has_meta:
@@ -1028,7 +1028,8 @@ class HybridDSDLSchema(object):
             p_elem.name == "case" and
             p_elem.parent.default_case != stmt.parent.arg and
             len(stmt.parent.i_children) < 2):
-                elem.occur = 3
+
+            elem.occur = 3
         elif refd["mandatory"] or stmt.search_one("mandatory", "true"):
             self.propagate_occur(elem, 2)
         if elem.occur == 0:

@@ -36,7 +36,7 @@ class YINPlugin(plugin.PyangPlugin):
     def emit(self, ctx, modules, fd):
         module = modules[0]
         emit_yin(ctx, module, fd)
-        
+
 def emit_yin(ctx, module, fd):
     fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     fd.write('<%s name="%s"\n' % (module.keyword, module.arg))
@@ -66,7 +66,7 @@ def emit_yin(ctx, module, fd):
                         fd.write(' ' * len(module.keyword))
                         fd.write('  xmlns:' + prefix.arg + '=' +
                                  quoteattr(namespace.arg))
-            
+
     for imp in module.search('import'):
         prefix = imp.search_one('prefix')
         if prefix is not None:
@@ -90,7 +90,7 @@ def emit_yin(ctx, module, fd):
     for s in substmts:
         emit_stmt(ctx, module, s, fd, '  ', '  ')
     fd.write('</%s>\n' % module.keyword)
-    
+
 def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
     if util.is_prefixed(stmt.raw_keyword):
         # this is an extension.  need to find its definition

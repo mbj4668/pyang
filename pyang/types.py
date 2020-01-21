@@ -930,4 +930,3 @@ def is_smaller(lo, hi):
     if hi == 'max':
         return True
     return lo < hi
-
