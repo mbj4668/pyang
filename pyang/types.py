@@ -1,15 +1,7 @@
 """YANG built-in types"""
 
 import base64
-from xml.sax.saxutils import quoteattr
-from xml.sax.saxutils import escape
-
-try:
-    # python 2
-    from StringIO import StringIO
-except ImportError:
-    # python 3
-    from io import StringIO
+import lxml.etree
 
 from . import util
 from . import syntax
@@ -450,59 +442,74 @@ class LengthTypeSpec(TypeSpec):
         return self.base.restrictions()
 
 
-def _validate_pattern_libxml2(errors, stmt, invert_match):
-    try:
-        import libxml2
-        try:
-            re = libxml2.regexpCompile(stmt.arg)
-            return ('libxml2', re, stmt.pos, invert_match, stmt.arg)
-        except libxml2.treeError as v:
-            err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
-            return None
-    except ImportError:
-    ## Do not report a warning in this case.  Maybe we should add some
-    ## flag to turn on this warning...
-    #        err_add(errors, stmt.pos, 'PATTERN_FAILURE',
-    #                "Could not import python module libxml2 "
-    #                    "(see http://xmlsoft.org for installation help)")
-        return False
+class XSDPattern(object):
 
-def _validate_pattern_lxml(errors, stmt, invert_match):
-    try:
-        import lxml.etree
-        doc = StringIO(
-            '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">' \
-            '  <xsd:element name="a" type="x"/>' \
-            '    <xsd:simpleType name="x">' \
-            '      <xsd:restriction base="xsd:string">' \
-            '        <xsd:pattern value=%s/>' \
-            '      </xsd:restriction>' \
-            '     </xsd:simpleType>' \
-            '   </xsd:schema>' % quoteattr(stmt.arg))
+    SCHEMA = '''<?xml version="1.0"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="a">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:pattern value=""/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                </xs:schema>'''
+
+    AVALUE = '<a/>'
+
+    # Shared etree elements initialized with first instance
+    _schema = None
+    _pattern = None
+    _avalue = None
+
+    @classmethod
+    def _prepare_documents(cls):
+        if cls._schema is None:
+            cls._schema = lxml.etree.fromstring(cls.SCHEMA)
+            cls._avalue = lxml.etree.fromstring(cls.AVALUE)
+            cls._pattern = cls._schema[0][0][0][0]
+
+    def __init__(self, spec, pos, invert_match):
+        self._prepare_documents()
+        self.spec = spec
+        self.pos = pos
+        self.invert_match = invert_match
+
+        self._pattern.set('value', spec)
         try:
-            sch = lxml.etree.XMLSchema(lxml.etree.parse(doc))
-            return ('lxml', sch, stmt.pos, invert_match, stmt.arg)
-        except lxml.etree.XMLSchemaParseError as v:
-            err_add(errors, stmt.pos, 'PATTERN_ERROR', str(v))
+            self.schema = lxml.etree.XMLSchema(etree=self._schema)
+        except lxml.etree.XMLSchemaParseError as err:
+            self.schema = None
+            self.error = err
+        else:
+            self.error = None
+
+    def __call__(self, value):
+        if self.schema is None:
             return None
-    except ImportError:
-        return False
+        self._avalue.text = value
+        return self.schema.validate(self._avalue) is not self.invert_match
+
+    def __str__(self):
+        return self.spec
+
+    def __repr__(self):
+        return repr(self.spec)
+
+    def __bool__(self):
+        return self.error is None
+    __nonzero__ = __bool__
+
 
 def validate_pattern_expr(errors, stmt):
-    invert_match = False
-    if stmt.search_one('modifier', arg='invert-match') is not None:
-        invert_match = True
-    ## check that it's syntactically correct
-    # First try with lxml
-    res = _validate_pattern_lxml(errors, stmt, invert_match)
-    if res is not False:
-        return res
-    # Then try with libxml2
-    res = _validate_pattern_libxml2(errors, stmt, invert_match)
-    if res is not False:
-        return res
-    # Otherwise we can't validate patterns :(
-    return ('skip', None, stmt.pos, invert_match, stmt.arg)
+    invert_match = stmt.search_one('modifier', arg='invert-match') is not None
+    pattern = XSDPattern(stmt.arg, stmt.pos, invert_match)
+    if pattern:
+        return pattern
+    else:
+        err_add(errors, stmt.pos, 'PATTERN_ERROR', pattern.error)
+        return None
+
 
 class PatternTypeSpec(TypeSpec):
     def __init__(self, base, pattern_specs):
@@ -516,20 +523,11 @@ class PatternTypeSpec(TypeSpec):
     def validate(self, errors, pos, val, module, errstr=''):
         if self.base.validate(errors, pos, val, module, errstr) is False:
             return False
-        for type_, re, re_pos, invert_match, patstr in self.res:
-            if type_ == 'libxml2':
-                is_valid = re.regexpExec(val) == 1
-            elif type_ == 'lxml':
-                import lxml
-                doc = StringIO('<a>%s</a>' % escape(val))
-                is_valid = re.validate(lxml.etree.parse(doc))
-            elif type_ == 'skip':
-                continue # can't validate patterns
-            if ((not is_valid and not invert_match) or
-                (is_valid and invert_match)):
-                err_add(errors, pos, 'TYPE_VALUE',
-                        (val, self.definition, 'pattern mismatch' + errstr +
-                         ' for pattern defined at ' + str(re_pos)))
+        for pattern in self.res:
+            if pattern(val) is False:
+                msg = ('pattern mismatch {errstr} for pattern defined at {pos}'
+                       .format(errstr=errstr, pos=pattern.pos))
+                err_add(errors, pos, 'TYPE_VALUE', (val, self.definition, msg))
                 return False
         return True
 
