@@ -128,15 +128,15 @@ def emit_modules(modules, fd, path, ctx):
 
 def iterate_children(parent, s, module, fd, path, ctx):
     if hasattr(s, 'i_children'):
-       for ch in s.i_children:
-           print_node(s, ch, module, fd, path, ctx)
+        for ch in s.i_children:
+            print_node(s, ch, module, fd, path, ctx)
 
 def print_class_header(s, fd, ctx, root='false'):
     global servicepoints
     service = ""
     for sub in s.substmts:
-         if sub.keyword[1] in servicepoints:
-             service = "SERVICE\n"
+        if sub.keyword[1] in servicepoints:
+            service = "SERVICE\n"
 
     fd.write("make new shape at end of graphics with properties {autosizing: full, size: {187.500000, 14.000000}, text: {{alignment: center, font: \"Helvetica-Bold\", text: \"%s \"}, {alignment: center, color:%s, font: \"Helvetica-Bold\", text: \"%s \"}}, text placement: top, origin: {150.000000, 11.500000}, vertical padding: 0}\n" %(service + s.keyword, classnamecolor, s.arg))
 
@@ -181,8 +181,8 @@ def print_attributes(s,fd, ctx):
                     index = True
                 print_leaf(ch, str, index, fd, ctx)
         if found_attrs:
-                # close attr section
-                fd.write("}, text placement:top, origin:{150.0, 25.5}, vertical padding:0}\n")
+            # close attr section
+            fd.write("}, text placement:top, origin:{150.0, 25.5}, vertical padding:0}\n")
 
         # Search actions
         for ch in s.i_children:
@@ -232,7 +232,7 @@ def print_associations(s, fd, ctx):
 
 
 def print_aggregation(parent, this, fd, lower, upper, ctx):
-     fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), containsline))
+    fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), containsline))
 
 def print_rpc(rpc, fd, ctx, root='false'):
     fd.write("<UML:Class xmi.id = \'%s\' name = \'%s\' " %(fullpath(rpc), rpc.arg))
@@ -278,39 +278,39 @@ def print_text(t, fd, ctx):
 def get_typename(s):
     t = s.search_one('type')
     if t is not None:
-      s = t.arg
-      # if t.arg == 'enumeration':
-      #   s = s + ' : {'
-      #   for enums in t.substmts[:10]:
-      #       s = s + enums.arg + ','
-      #   if len(t.substmts) > 3:
-      #       s = s + "..."
-      #   s = s + '}'
-      # elif t.arg == 'leafref':
-      #   s = s + ' : '
-      #   p = t.search_one('path')
-      #   if p is not None:
-      #       s = s + p.arg
-      return s
+        s = t.arg
+        # if t.arg == 'enumeration':
+        #   s = s + ' : {'
+        #   for enums in t.substmts[:10]:
+        #       s = s + enums.arg + ','
+        #   if len(t.substmts) > 3:
+        #       s = s + "..."
+        #   s = s + '}'
+        # elif t.arg == 'leafref':
+        #   s = s + ' : '
+        #   p = t.search_one('path')
+        #   if p is not None:
+        #       s = s + p.arg
+        return s
 
 
 def fullpath(stmt):
-        pathsep = "_"
-        path = stmt.arg
-        # for augment paths we need to remove initial /
-        if path.find("/") == 0:
-            path = path[1:len(path)]
-        else:
-            if stmt.keyword == 'case':
-                path = path + '-case'
-            elif stmt.keyword == 'grouping':
-                path = path + '-grouping'
+    pathsep = "_"
+    path = stmt.arg
+    # for augment paths we need to remove initial /
+    if path.find("/") == 0:
+        path = path[1:len(path)]
+    else:
+        if stmt.keyword == 'case':
+            path = path + '-case'
+        elif stmt.keyword == 'grouping':
+            path = path + '-grouping'
 
-            while stmt.parent is not None:
-                stmt = stmt.parent
-                if stmt.arg is not None:
-                    path = stmt.arg + pathsep + path
-        path = path.replace('-', '_')
-        path = path.replace(':', '_')
-        path = path.replace('/', '_')
-        return path
+        while stmt.parent is not None:
+            stmt = stmt.parent
+            if stmt.arg is not None:
+                path = stmt.arg + pathsep + path
+    path = path.replace('-', '_')
+    path = path.replace(':', '_')
+    path = path.replace('/', '_')
+    return path

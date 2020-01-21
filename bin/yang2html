@@ -203,4 +203,3 @@ fd.write(buf)
 
 if not o.scan_document:
     fd.write('</pre>\n')
-

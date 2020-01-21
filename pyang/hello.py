@@ -54,7 +54,7 @@ class HelloParser:
             elif self.state == self.depth == 2 and tag == "capability":
                 self.state = 3
         self.depth += 1
-            
+
     def handleEndElement(self, data):
         ns_uri, tag = data.split()
         if ns_uri == NC_NS_URI:
@@ -100,4 +100,3 @@ class HelloParser:
         """
         return dict ([ (CAPABILITIES[c.id],c) for c in self.capabilities
                  if c.id in CAPABILITIES ])
-

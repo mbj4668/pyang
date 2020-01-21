@@ -75,13 +75,13 @@ class InvalidAnnotationError(Error):
     def __init__(self, path, annot):
         Error.__init__(self, path)
         self.annot = annot
-    
+
     def __str__(self):
         return (Error.__str__(self) + " - invalid annotation " + self.annot)
 
 class JSONError(Error):
     """Exception raised for broken JSON input."""
-    
+
     def __str__(self):
         return (self.path.__str__())
 
@@ -91,7 +91,7 @@ class Translator (object):
     Instance variables:
 
     - `self.prefix`: dictionary mapping module names to prefix
-    
+
     - `self.uri`: dictionary mapping module names to namespace URI
 
     - `self.qn_re`, self.num_re`, `self.bra_re`: compiled regular
@@ -105,7 +105,7 @@ class Translator (object):
         self.uri = {}
         self.node_modules = set()
         for m in jtox["modules"]:
-            # The namespace urn:ietf:params:xml:ns:netconf:base:1.0 is added by the default. 
+            # The namespace urn:ietf:params:xml:ns:netconf:base:1.0 is added by the default.
             # Don't add it twice as this will cause the generated XML to be invalid
             prefix, uri = jtox["modules"][m]
             if uri != "urn:ietf:params:xml:ns:netconf:base:1.0":
@@ -133,7 +133,7 @@ class Translator (object):
         except ValueError as e:
             raise JSONError(e)
         return self.translate_obj(d, None, self.tree, xml_root, "/")
-        
+
     def translate_obj(self, json_obj, ns, node, xml_parent, path):
         """Translate object and attach it to the output XML tree.
 
@@ -148,7 +148,7 @@ class Translator (object):
         - `xml_parent`: parent XML element for the resulting tree
 
         - `path`: JSON pointer of `json_obj` (for error messages)
-        
+
         """
         def check_val(cond, path, ytyp):
             if not cond: raise NodeTypeError(path, ytyp)
@@ -234,7 +234,7 @@ class Translator (object):
             m, a = ann.split(":")
             self.node_modules.add(m)
             elem.attrib[self.et_qname(m, a)] = aval
-                    
+
     def handle_leaf(self, value, ytyp, mod_name, leaf_name,
                     xml_parent, path, annot_obj):
         """
@@ -257,7 +257,7 @@ class Translator (object):
                 el = ET.SubElement(parent, ch)
                 self.handle_anyxml(cobj, el)
             elif isinstance(cobj, list):
-                for eob in cobj:    
+                for eob in cobj:
                     el = ET.SubElement(parent, ch)
                     if isinstance(eob, dict):
                         self.handle_anyxml(eob, el)
@@ -294,7 +294,7 @@ class Translator (object):
         Arguments:
 
         - `value`: leaf value as found in JSON;
-        
+
         - `type_spec`: type specification produced by the "jtox" plugin;
 
         - `mod_name`: module name of the containing leaf
@@ -317,14 +317,14 @@ class Translator (object):
             else:
                 hi = 2 ** (bits-1)
                 lo = -hi
-            return "%d" % val if lo <= val < hi else None  
-        t = type_spec[0] if isinstance(type_spec, list) else type_spec 
+            return "%d" % val if lo <= val < hi else None
+        t = type_spec[0] if isinstance(type_spec, list) else type_spec
         if t == 'empty':
             return "" if value == [None] else None
         if t[0:3] == "int":
-            return handle_int(value, int(t[3:]), False) 
+            return handle_int(value, int(t[3:]), False)
         if t[0:4] == "uint":
-            return handle_int(value, int(t[4:]), True) 
+            return handle_int(value, int(t[4:]), True)
         if t == "decimal64":
             if not isinstance(value, basestring): return None
             ip, dp, fp = value.partition('.')
@@ -408,7 +408,7 @@ def main():
     parser.add_argument("-t", "--target", action="store", default="data",
                         help="type of the resulting XML document (default: data)")
     parser.add_argument("-o", "--output", action="store",
-                        help="output file (default: standard output)") 
+                        help="output file (default: standard output)")
     args = parser.parse_args()
     if args.target not in ["data", "config"]:
         sys.stderr.write("%s: error: unknown target '%s'\n" % (parser.prog, args.target))

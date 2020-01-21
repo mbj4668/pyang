@@ -302,14 +302,14 @@ class YangParser(object):
         # we would like to see if a statement is a comment, and if so
         # treat it differently than we treat keywords further down
         if self.ctx.keep_comments:
-           cmt = self.tokenizer.get_comment()
-           if cmt != None:
-              stmt = statements.new_statement(self.top,
-                                              parent,
-                                              self.pos,
-                                              '_comment',
-                                              cmt)
-              return stmt
+            cmt = self.tokenizer.get_comment()
+            if cmt != None:
+                stmt = statements.new_statement(self.top,
+                                                parent,
+                                                self.pos,
+                                                '_comment',
+                                                cmt)
+                return stmt
 
         keywd = self.tokenizer.get_keyword()
         # check for argument

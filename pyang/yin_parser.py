@@ -388,4 +388,3 @@ class YinParser(object):
                 if r is not None:
                     return r
         return None
-

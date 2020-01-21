@@ -166,7 +166,7 @@ OPTIONS
 --generate-sid-file
 
   This option is used to generate a new .sid file from a YANG module.
-  
+
   Two arguments are required to generate a .sid file; the SID range assigned to
   the YANG module and its definition file. The SID range specified is a
   sub-range within a range obtained from a registrar or a sub-range within the
@@ -175,11 +175,11 @@ OPTIONS
   allocated to the YANG module. The filename consists of the module name,
   followed by an @ symbol, followed by the module revision, followed by the
   ".yang" extension.
-           
+
   This example shows how to generate the file toaster@2009-11-20.sid.
 
   $ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang
-  
+
 --update-sid-file
 
   Each time new items are added to a YANG module by the introduction of a new
@@ -197,7 +197,7 @@ OPTIONS
   on the SIDs already present in toaster@2009-11-20.sid.
 
   $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
-  
+
 -- check-sid-file
 
   The --sid-check-file option can be used at any time to verify if a .sid file
@@ -209,14 +209,14 @@ OPTIONS
   For example:
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
-  
+
 --list_sid
 
   The --list_sid option can be used before any of the previous options to
   obtains the list of SIDs assigned or validated. For example:
 
   $ pyang --list-sid --sid-generate-file 20000:100 toaster@2009-11-20.yang
-  
+
 --extra-sid-range
 
   If needed, an extra SID range can be assigned to an existing YANG module
@@ -228,7 +228,7 @@ OPTIONS
 
   $ pyang --sid-update-file toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range 20100:100
-  
+
 count
   The number of SID required when generating or updating a .sid file can be
   computed by specifying "count" as SID range.
@@ -532,7 +532,7 @@ class SidFile:
                 self.merge_item('module', module.i_ctx.modules[name].arg)
 
         for feature in module.i_features:
-                self.merge_item('feature', feature)
+            self.merge_item('feature', feature)
 
         for children in module.i_children:
             if children.keyword == 'leaf' or children.keyword == 'leaf-list' or children.keyword == 'anyxml' or children.keyword == 'anydata':
@@ -556,7 +556,7 @@ class SidFile:
                 self.collect_inner_data_nodes(children.i_children)
 
         for identity in module.i_identities:
-                self.merge_item('identity', identity)
+            self.merge_item('identity', identity)
 
         for substmt in module.substmts:
             if substmt.keyword == 'augment':
@@ -745,7 +745,7 @@ class SidFile:
         for i in range(len(self.content['items'])):
             sid = self.content['items'][i]['sid']
             if sid >= entry_point and sid < next_entry_point:
-                 sid_used += 1
+                sid_used += 1
 
         return sid_used
 

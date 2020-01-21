@@ -140,4 +140,3 @@ the RFC itself for full legal notices\."""
 re_tlp = re.compile(re.sub(r'\s+', ' ', tlp_str))
 
 re_2119_keywords = re.compile(r"MUST|SHOULD|SHALL|RECOMMENDED|MAY|OPTIONAL")
-

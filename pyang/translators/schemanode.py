@@ -5,7 +5,7 @@
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -153,7 +153,7 @@ class SchemaNode(object):
         """Add `node` as an annotation of the receiver."""
         self.annots.append(node)
         node.parent = self
-        
+
     def set_attr(self, key, value):
         """Set attribute `key` to `value` and return the receiver."""
         self.attr[key] = value
@@ -189,7 +189,7 @@ class SchemaNode(object):
                                    self.serialize_children())
 
     def _default_format(self, occur):
-        """Return the default serialization format.""" 
+        """Return the default serialization format."""
         if self.text or self.children:
             return self.start_tag() + "%s" + self.end_tag()
         return self.start_tag(empty=True)
@@ -197,9 +197,9 @@ class SchemaNode(object):
     def _wrapper_format(self, occur):
         """Return the serializatiopn format for <start>."""
         return self.start_tag() + self._chorder() + self.end_tag()
-        
+
     def _define_format(self, occur):
-        """Return the serialization format for a define node.""" 
+        """Return the serialization format for a define node."""
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
         middle = self._chorder() if self.rng_children() else "<empty/>%s"
@@ -207,7 +207,7 @@ class SchemaNode(object):
                 + middle + self.end_tag())
 
     def _element_format(self, occur):
-        """Return the serialization format for an element node.""" 
+        """Return the serialization format for an element node."""
         if occur:
             occ = occur
         else:
@@ -234,7 +234,7 @@ class SchemaNode(object):
         return "%s"
 
     def _list_format(self, occur):
-        """Return the serialization format for a _list_ node.""" 
+        """Return the serialization format for a _list_ node."""
         if self.keys:
             self.attr["nma:key"] = " ".join(self.keys)
             keys = ''.join([self.keymap[k].serialize(occur=2)
@@ -255,7 +255,7 @@ class SchemaNode(object):
                 middle + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self, occur):
-        """Return the serialization format for a choice node.""" 
+        """Return the serialization format for a choice node."""
         middle = "%s" if self.rng_children() else "<empty/>%s"
         fmt = self.start_tag() + middle + self.end_tag()
         if self.occur != 2:
@@ -264,7 +264,7 @@ class SchemaNode(object):
             return fmt
 
     def _case_format(self, occur):
-        """Return the serialization format for a case node.""" 
+        """Return the serialization format for a case node."""
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
         ccnt = len(self.rng_children())
