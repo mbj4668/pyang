@@ -70,8 +70,12 @@ class Decimal64Value(object):
         # must set s (string repr) OR fd (fraction-digits)
         self.value = value
         self.s = s
-        if s == None and fd is not None:
+        if s is None:
+            if fd is None:
+                raise ValueError(
+                    'Decimal64 must set s (string) OR fd (fraction-digits)')
             s = str(value)
+            fd = int(fd)
             self.s = s[:-fd] + "." + s[-fd:]
 
     def __str__(self):
@@ -252,8 +256,7 @@ class IdentityrefTypeSpec(TypeSpec):
                          'identityref not derived from %s' % \
                          my_identity.arg))
                 return None
-        else:
-            return val
+        return val
 
 def is_derived_from(a, b):
     if a == b:
@@ -278,30 +281,26 @@ def is_derived_from_or_self(a, b, visited):
 ## type restrictions
 
 def validate_range_expr(errors, stmt, type_):
-    def maybe_ensure_base10(s):
-        if hasattr(type_.i_type_spec, 'is_int'):
-            if s not in ['min', 'max'] and syntax.re_integer.search(s) is None:
-                err_add(errors, stmt.pos, 'TYPE_VALUE',
-                        (s, type_.i_type_spec.definition, 'not an integer'))
+
+    is_int = hasattr(type_.i_type_spec, 'is_int')
 
     # break the expression apart
-    def f(lostr, histr):
-        maybe_ensure_base10(lostr),
-        if lostr in ('min', 'max'):
-            loval = lostr
-        else:
-            loval = type_.i_type_spec.str_to_val(errors, stmt.pos, lostr)
-        if histr == '':
+    def convert(str_):
+        if not str_:
             # this means that a single number was in the range, e.g.
-            # "4 | 5..6".
-            return (loval, None)
-        maybe_ensure_base10(histr),
-        if histr in ('min', 'max'):
-            hival = histr
+            # "4 | 5..6" - the high value match group is empty.
+            val = None
+        elif str_ in ('min', 'max'):
+            val = str_
         else:
-            hival = type_.i_type_spec.str_to_val(errors, stmt.pos, histr)
-        return (loval, hival)
-    ranges = [f(m[1], m[6]) for m in syntax.re_range_part.findall(stmt.arg)]
+            if is_int and syntax.re_integer.search(str_) is None:
+                err_add(errors, stmt.pos, 'TYPE_VALUE',
+                        (str_, type_.i_type_spec.definition, 'not an integer'))
+            val = type_.i_type_spec.str_to_val(errors, stmt.pos, str_)
+        return val
+
+    ranges = [(convert(m[1]), convert(m[6]))
+              for m in syntax.re_range_part.findall(stmt.arg)]
     return validate_ranges(errors, stmt.pos, ranges, type_)
 
 def validate_ranges(errors, pos, ranges, type_):
