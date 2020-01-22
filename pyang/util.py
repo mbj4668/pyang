@@ -1,9 +1,8 @@
-import datetime
+import sys
 
 from .error import err_add
 
 ## unicode literal support
-import sys
 if sys.version < '3':
     import codecs
     def u(x):

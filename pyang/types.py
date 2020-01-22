@@ -1,8 +1,5 @@
 """YANG built-in types"""
 
-from .error import err_add
-from . import util
-from . import syntax
 import base64
 from xml.sax.saxutils import quoteattr
 from xml.sax.saxutils import escape
@@ -13,6 +10,10 @@ try:
 except ImportError:
     # python 3
     from io import StringIO
+
+from . import util
+from . import syntax
+from .error import err_add
 
 class Abort(Exception):
     pass

@@ -19,13 +19,11 @@ import datetime
 import re
 
 from pyang import plugin
-from pyang import util
-from pyang import grammar
 from pyang import error
 from pyang import syntax
 from pyang import statements
+from pyang import util
 from pyang.error import err_add
-from pyang.statements import find_target_node
 
 
 def pyang_plugin_init():
@@ -292,7 +290,7 @@ class uml_emitter:
             else:
                 prefix = stmt.arg[1:stmt.arg.find(':')]
 
-            node = find_target_node(self._ctx, stmt, True)
+            node = statements.find_target_node(self._ctx, stmt, True)
             if node is not None and prefix in self.module_prefixes and not self.ctx_inline_augments:
                 # sys.stderr.write("Found augment target : %s , %s \n" %(stmt.arg, self.full_path(node)))
                 self.augments.append(self.full_path(stmt) + '-->' + self.full_path(node) + ' : augments' + '\n')
@@ -1006,8 +1004,8 @@ class uml_emitter:
         else:
             inthismod = (prefix == self.thismod_prefix);
         # sys.stderr.write("prefix for %s : %s \n" %(path, prefix))
-        module = statements.prefix_to_module(stmt.i_module, prefix,
-                                             stmt.pos, self._ctx.errors)
+        module = util.prefix_to_module(
+            stmt.i_module, prefix, stmt.pos, self._ctx.errors)
         if module is None:
             # error is reported by prefix_to_module
             return inthismod, None
@@ -1041,8 +1039,8 @@ class uml_emitter:
 
         # then recurse down the path
         for (prefix, identifier) in path:
-            module = statements.prefix_to_module(stmt.i_module, prefix, stmt.pos,
-                                                 self._ctx.errors)
+            module = util.prefix_to_module(
+                stmt.i_module, prefix, stmt.pos, self._ctx.errors)
             if module is None:
                 return None
             if hasattr(node, 'i_children'):

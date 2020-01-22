@@ -1,8 +1,6 @@
 """Identifiers output plugin
 """
 
-import optparse
-
 from pyang import plugin
 from pyang import statements
 

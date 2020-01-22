@@ -6,7 +6,6 @@ to IETF-specific values.
 """
 
 import optparse
-import sys
 
 from pyang import plugin
 from pyang import statements

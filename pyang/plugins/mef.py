@@ -3,12 +3,8 @@ See MEF Assigned Names and Numbers (MANN) at https://wiki.mef.net/display/MANN/M
 """
 
 import optparse
-import sys
 
 from pyang import plugin
-from pyang import statements
-from pyang import error
-from pyang.error import err_add
 from pyang.plugins import lint
 
 def pyang_plugin_init():

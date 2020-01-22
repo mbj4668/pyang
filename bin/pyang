@@ -3,10 +3,8 @@
 import sys
 import os
 import optparse
-import re
 import io
-if sys.version < '3':
-    import codecs
+import codecs
 
 import pyang
 from pyang import plugin

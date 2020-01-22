@@ -3,15 +3,8 @@
 Verifies metadata YANG statements as defined in RFC 7952
 """
 
-import re
-
-import pyang
 from pyang import plugin
-from pyang import syntax
 from pyang import grammar
-from pyang import statements
-from pyang import error
-from pyang.error import err_add
 
 md_module_name = 'ietf-yang-metadata'
 
