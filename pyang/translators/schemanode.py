@@ -60,14 +60,15 @@ class SchemaNode(object):
     * `self.text` - text content.
     """
 
+    @classmethod
     def element(cls, name, parent=None, interleave=None, occur=0):
         """Create an element node."""
         node = cls("element", parent, interleave=interleave)
         node.attr["name"] = name
         node.occur = occur
         return node
-    element = classmethod(element)
 
+    @classmethod
     def leaf_list(cls, name, parent=None, interleave=None):
         """Create _list_ node for a leaf-list."""
         node = cls("_list_", parent, interleave=interleave)
@@ -77,38 +78,37 @@ class SchemaNode(object):
         node.maxEl = None
         node.occur = 3
         return node
-    leaf_list = classmethod(leaf_list)
 
+    @classmethod
     def list(cls, name, parent=None, interleave=None):
         """Create _list_ node for a list."""
         node = cls.leaf_list(name, parent, interleave=interleave)
         node.keys = []
         node.keymap = {}
         return node
-    list = classmethod(list)
 
+    @classmethod
     def choice(cls, parent=None, occur=0):
         """Create choice node."""
         node = cls("choice", parent)
         node.occur = occur
         node.default_case = None
         return node
-    choice = classmethod(choice)
 
+    @classmethod
     def case(cls, parent=None):
         """Create case node."""
         node = cls("case", parent)
         node.occur = 0
         return node
-    case = classmethod(case)
 
+    @classmethod
     def define(cls, name, parent=None, interleave=False):
         """Create define node."""
         node = cls("define", parent, interleave=interleave)
         node.occur = 0
         node.attr["name"] = name
         return node
-    define = classmethod(define)
 
     def __init__(self, name, parent=None, text="", interleave=None):
         """Initialize the object under `parent`.
