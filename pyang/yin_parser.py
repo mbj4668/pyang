@@ -50,17 +50,16 @@ class YinParser(object):
         self.parser.EndElementHandler = self.end_element
         self.extra = extra
 
+    @staticmethod
     def split_qname(qname):
         """Split `qname` into namespace URI and local name
 
-        Return namespace and local name as a tuple. This is a static
-        method."""
+        Return namespace and local name as a tuple."""
         res = qname.split(YinParser.ns_sep)
         if len(res) == 1:       # no namespace
             return None, res[0]
         else:
             return res
-    split_qname = staticmethod(split_qname)
 
     def parse(self, ctx, ref, text):
         """Parse the string `text` containing a YIN (sub)module.
