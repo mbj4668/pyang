@@ -322,7 +322,7 @@ class YangParser(object):
             arg = u''.join([a[0] for a in argstrs])
         # check for YANG 1.1
         if keywd == 'yang-version' and arg == '1.1':
-            self.tokenizer.is_1_1 = True;
+            self.tokenizer.is_1_1 = True
             self.tokenizer.strict_quoting = True
 
         stmt = statements.new_statement(self.top, parent, self.pos, keywd, arg)

@@ -292,7 +292,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             mod = ctx.search_module(0, mn, rev)
             if mod is None:
                 emarg = mn
-                if rev: emarg += "@" + rev
+                if rev:
+                    emarg += "@" + rev
                 sys.stderr.write(
                     "module '%s' specified in hello not found.\n" % emarg)
                 sys.exit(1)

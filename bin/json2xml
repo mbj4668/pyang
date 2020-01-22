@@ -150,7 +150,8 @@ class Translator (object):
 
         """
         def check_val(cond, path, ytyp):
-            if not cond: raise NodeTypeError(path, ytyp)
+            if not cond:
+                raise NodeTypeError(path, ytyp)
 
         def is_array(val):
             return isinstance(val, list) and val != [None]
@@ -325,7 +326,8 @@ class Translator (object):
         if t[0:4] == "uint":
             return handle_int(value, int(t[4:]), True)
         if t == "decimal64":
-            if not isinstance(value, basestring): return None
+            if not isinstance(value, basestring):
+                return None
             ip, dp, fp = value.partition('.')
             try:
                 if dp:
@@ -350,7 +352,8 @@ class Translator (object):
         if t == "union":
             for memb in type_spec[1]:
                 tval = self.text_value(value, memb, mod_name, path)
-                if tval is not None: return tval
+                if tval is not None:
+                    return tval
             return None
         if t == "identityref":
             try:

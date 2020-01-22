@@ -354,7 +354,7 @@ def chk_augment(oldmod, newmod, ctx):
                 chk_children(oldch, newchs, newmod, ctx)
 
 def chk_stmt_definitions(olds, newp, ctx, definitions):
-    news = None;
+    news = None
     if olds.arg in definitions:
         news = definitions[olds.arg]
     if news is None:

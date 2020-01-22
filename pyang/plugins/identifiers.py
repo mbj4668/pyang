@@ -90,4 +90,4 @@ def print_identifiers(fd, title, modules, names):
     if len(r) > 0:
         fd.write(title + ':\n')
         for name in sorted(r):
-            fd.write('  %s\n' % name);
+            fd.write('  %s\n' % name)

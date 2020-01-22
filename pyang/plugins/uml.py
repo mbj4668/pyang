@@ -236,7 +236,7 @@ class uml_emitter:
             title = title[:len(title)-1]
             title = title[:32]
         for m in modules:
-            prefix = m.search_one('prefix');
+            prefix = m.search_one('prefix')
             if prefix is not None:
                 self.module_prefixes.append(prefix.arg)
 
@@ -415,7 +415,7 @@ class uml_emitter:
                     # sys.stderr.write('Found  target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
                     for children in grouping_node.substmts:
                         # make the inlined parent to parent rather then the grouping to make full path unique
-                        children.parent = parent;
+                        children.parent = parent
                         self.emit_child_stmt(parent, children, fd)
 
         # moved stuff below here in order to include annotations for classes-only
@@ -700,9 +700,9 @@ class uml_emitter:
             for u in use:
                 self.emit_uses(parent, u)
                # fd.write('%s --> %s : uses \n' %(full_path(parent), full_path(u)))
-               # p = full_path(parent);
-               # us =  make_plantuml_keyword(u.arg);
-               # uses.append([p,us]);
+               # p = full_path(parent)
+               # us =  make_plantuml_keyword(u.arg)
+               # uses.append([p,us])
 
     def emit_typedef(self, m, t, fd):
         if self.ctx_typedefs:
@@ -748,9 +748,9 @@ class uml_emitter:
         if (not self.ctx_filterfile):
             # MEF
             # When referenced from this module
-            self.groupings[self.make_plantuml_keyword(self.grouping_name(stmt.arg))] = (self.full_path(stmt));
+            self.groupings[self.make_plantuml_keyword(self.grouping_name(stmt.arg))] = (self.full_path(stmt))
             # when reference from this other modules
-            self.groupings[self.make_plantuml_keyword(self.grouping_name(self.thismod_prefix + ':' + stmt.arg))] = (self.full_path(stmt));
+            self.groupings[self.make_plantuml_keyword(self.grouping_name(self.thismod_prefix + ':' + stmt.arg))] = (self.full_path(stmt))
             # sys.stderr.write('Grouping : %s %s \n' %(self.make_plantuml_keyword(self.grouping_name(stmt.arg)),  self.full_path(stmt)))
             if (glob == True): # indicate grouping visible outside module
                 fd.write('class \"%s\" as %s <<(G,Lime) grouping>> \n' %(self.full_display_path(stmt), self.full_path(stmt)))
@@ -766,7 +766,7 @@ class uml_emitter:
 
     def attribs(self, node):
         # use UML attribute properties for various YANG leaf elements
-        attribs = '';
+        attribs = ''
 
         default = node.search_one('default')
         if default is not None:
@@ -988,7 +988,7 @@ class uml_emitter:
 
 
     def find_target_node(self, stmt):
-        inthismod = True;
+        inthismod = True
         if stmt.arg.startswith('/'):
             is_absolute = True
             arg = stmt.arg
@@ -1002,7 +1002,7 @@ class uml_emitter:
         if prefix == '':
             inthismod = True
         else:
-            inthismod = (prefix == self.thismod_prefix);
+            inthismod = (prefix == self.thismod_prefix)
         # sys.stderr.write("prefix for %s : %s \n" %(path, prefix))
         module = util.prefix_to_module(
             stmt.i_module, prefix, stmt.pos, self._ctx.errors)

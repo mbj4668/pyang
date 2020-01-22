@@ -1288,11 +1288,8 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
 
 def v_type_status(ctx, stmt):
     if ctx.max_status is not None:
-        def n(s):
-            if s == 'current':    return 0;
-            if s == 'deprecated': return 1;
-            if s == 'obsolete':   return 2;
-        if n(stmt.arg) > n(ctx.max_status):
+        order = ['current', 'deprecated', 'obsolete']
+        if order.index(stmt.arg) > order.index(ctx.max_status):
             stmt.parent.i_not_implemented = True
 
 def v_type_identity(ctx, stmt):

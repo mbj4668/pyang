@@ -81,7 +81,8 @@ class HelloParser:
         res = {}
         for c in self.capabilities:
             m = c.parameters.get("module")
-            if m is None or m in res: continue
+            if m is None or m in res:
+                continue
             res[m] = c.parameters.get("revision")
         return res.items()
 
@@ -89,8 +90,8 @@ class HelloParser:
         """Return list of features declared for module `yam`."""
         mcap = [ c for c in self.capabilities
                  if c.parameters.get("module", None) == yam ][0]
-        if not mcap.parameters.get("features"): return []
-        return mcap.parameters["features"].split(",")
+        features = mcap.parameters.get("features")
+        return features.split(",") if features else []
 
     def registered_capabilities(self):
         """Return dictionary of non-YANG capabilities.

@@ -305,7 +305,8 @@ def print_path(pre, post, path, fd, llen):
 def print_children(i_children, module, fd, prefix, path, mode, depth,
                    llen, no_expand_uses, width=0, prefix_with_modname=False):
     if depth == 0:
-        if i_children: fd.write(prefix + '     ...\n')
+        if i_children:
+            fd.write(prefix + '     ...\n')
         return
     def get_width(w, chs):
         for ch in chs:

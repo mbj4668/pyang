@@ -124,7 +124,8 @@ def unique_prefixes(context):
     """
     res = {}
     for m in context.modules.values():
-        if m.keyword == "submodule": continue
+        if m.keyword == "submodule":
+            continue
         prf = new = m.i_prefix
         suff = 0
         while new in res.values():

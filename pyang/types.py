@@ -25,10 +25,10 @@ class TypeSpec(object):
         self.base = None
 
     def str_to_val(self, errors, pos, str):
-        return str;
+        return str
 
     def validate(self, errors, pos, val, errstr=''):
-        return True;
+        return True
 
     def restrictions(self):
         return []
@@ -81,9 +81,9 @@ class Decimal64Value(object):
         if not isinstance(other, Decimal64Value):
             return -1
         if self.value < other.value:
-            return -1;
+            return -1
         elif self.value == other.value:
-            return 0;
+            return 0
         else:
             return 1
 
@@ -181,8 +181,10 @@ class BooleanTypeSpec(TypeSpec):
         TypeSpec.__init__(self, 'boolean')
 
     def str_to_val(self, errors, pos, str):
-        if str == 'true': return True;
-        elif str == 'false': return False
+        if str == 'true':
+            return True
+        elif str == 'false':
+            return False
         else:
             err_add(errors, pos, 'TYPE_VALUE',
                     (str, self.definition, 'not a boolean'))
@@ -887,7 +889,7 @@ class UnionTypeSpec(TypeSpec):
                 val = t.i_type_spec.str_to_val([], pos, str)
                 if val != None:
                     if t.i_type_spec.validate([], pos, val):
-                        return True;
+                        return True
         err_add(errors, pos, 'TYPE_VALUE',
                 (str, self.definition, 'no member type matched' + errstr))
         return False
@@ -919,9 +921,9 @@ def is_base_type(typename):
 
 def is_smaller(lo, hi):
     if lo == None:
-        return True;
+        return True
     if lo == 'min' and hi != 'min':
-        return True;
+        return True
     if lo == 'max' and hi != None:
         return False
     if hi == 'min':
