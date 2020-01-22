@@ -177,29 +177,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     (o, args) = optparser.parse_args()
 
-    if o.list_errors == True:
-        for tag in error.error_codes:
-            (level, fmt) = error.error_codes[tag]
-            if error.is_warning(level):
-                print("Warning: %s" % tag)
-            elif error.allow_warning(level):
-                print("Minor Error:   %s" % tag)
-            else:
-                print("Error:   %s" % tag)
-            print("Message: %s" % fmt)
-            print("")
-        sys.exit(0)
-
     if o.outfile != None and o.format == None:
         sys.stderr.write("no format specified\n")
         sys.exit(1)
-
-    # patch the error spec so that -W errors are treated as warnings
-    for w in o.warnings:
-        if w in error.error_codes:
-            (level, wstr) = error.error_codes[w]
-            if error.allow_warning(level):
-                error.error_codes[w] = (4, wstr)
 
     filenames = args
 
@@ -253,6 +233,26 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
+
+    if o.list_errors == True:
+        for tag in error.error_codes:
+            (level, fmt) = error.error_codes[tag]
+            if error.is_warning(level):
+                print("Warning: %s" % tag)
+            elif error.allow_warning(level):
+                print("Minor Error:   %s" % tag)
+            else:
+                print("Error:   %s" % tag)
+            print("Message: %s" % fmt)
+            print("")
+        sys.exit(0)
+
+    # patch the error spec so that -W errors are treated as warnings
+    for w in o.warnings:
+        if w in error.error_codes:
+            (level, wstr) = error.error_codes[w]
+            if error.allow_warning(level):
+                error.error_codes[w] = (4, wstr)
 
     xform_objs = []
     for transform in o.transforms:
