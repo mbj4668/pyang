@@ -26,21 +26,23 @@ def add_validation_phase(phase, before=None, after=None):
     # otherwise append at the end
     _validation_phases.append(phase)
 
-def add_validation_fun(phase, keywords, f):
+def _sequence(one, two):
+    """Return function calling two functions in order"""
+    if one is None:
+        return two
+    elif two is None:
+        return one
+    return lambda *args, **kargs: (one(*args, **kargs), two(*args, **kargs))[1]
+
+def add_validation_fun(phase, keywords, fun):
     """Add a validation function to some phase in the framework.
 
-    Function `f` is called for each valid occurance of each keyword in
+    Function `fun` is called for each valid occurance of each keyword in
     `keywords`.
     Can be used by plugins to do special validation of extensions."""
     for keyword in keywords:
-        if (phase, keyword) in _validation_map:
-            oldf = _validation_map[(phase, keyword)]
-            def newf(ctx, s):
-                oldf(ctx, s)
-                f(ctx, s)
-            _validation_map[(phase, keyword)] = newf
-        else:
-            _validation_map[(phase, keyword)] = f
+        _validation_map[phase, keyword] = _sequence(
+            _validation_map.get((phase, keyword)), fun)
 
 def add_validation_var(var_name, var_fun):
     """Add a validation variable to the framework.
