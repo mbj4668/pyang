@@ -1,11 +1,12 @@
 # This pyang plugin generates a random XML instance document adhering
 # to a YANG module.
 
+import sys
+from random import randint, random
+
 from pyang import plugin
 from pyang import types
 from pyang import statements
-import sys
-from random import randint, random
 
 def pyang_plugin_init():
     plugin.register_plugin(YANGXMLPlugin())

@@ -53,4 +53,3 @@ chk_error_codes()
 chk_stmts()
 if found_error:
     sys.exit(1)
-
