@@ -127,16 +127,20 @@ Each node is printed as:
 """)
 
 def emit_tree(ctx, modules, fd, depth, llen, path):
-    for module in modules:
-        printed_header = False
 
-        def print_header():
+    def print_header(module):
+        if not printed_header:
             bstr = ""
             b = module.search_one('belongs-to')
             if b is not None:
                 bstr = " (belongs-to %s)" % b.arg
             fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
-            printed_header = True
+            printed_header.append(None)
+
+    printed_header = []
+
+    for module in modules:
+        del printed_header[:]
 
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
@@ -147,9 +151,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             chpath = path
 
         if len(chs) > 0:
-            if not printed_header:
-                print_header()
-                printed_header = True
+            print_header(module)
             print_children(chs, module, fd, '', chpath, 'data', depth, llen,
                            ctx.opts.tree_no_expand_uses,
                            prefix_with_modname=ctx.opts.modname_prefix)
@@ -168,9 +170,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                         fd.write('\n')
                         section_delimiter_printed = True
                     # this augment has not been printed; print it
-                    if not printed_header:
-                        print_header()
-                        printed_header = True
+                    print_header(module)
                     print_path("  augment", ":", augment.arg, fd, llen)
                     mode = 'augment'
                     if augment.i_target_node.keyword == 'input':
@@ -194,9 +194,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             else:
                 rpcs = []
         if len(rpcs) > 0:
-            if not printed_header:
-                print_header()
-                printed_header = True
+            print_header(module)
             fd.write("\n  rpcs:\n")
             print_children(rpcs, module, fd, '  ', rpath, 'rpc', depth, llen,
                            ctx.opts.tree_no_expand_uses,
@@ -212,9 +210,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             else:
                 notifs = []
         if len(notifs) > 0:
-            if not printed_header:
-                print_header()
-                printed_header = True
+            print_header(module)
             fd.write("\n  notifications:\n")
             print_children(notifs, module, fd, '  ', npath,
                            'notification', depth, llen,
@@ -225,9 +221,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             section_delimiter_printed = False
             for m in mods:
                 for g in m.search('grouping'):
-                    if not printed_header:
-                        print_header()
-                        printed_header = True
+                    print_header(module)
                     if not section_delimiter_printed:
                         fd.write('\n')
                         section_delimiter_printed = True
@@ -240,9 +234,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
         if ctx.opts.tree_print_yang_data:
             yds = module.search(('ietf-restconf', 'yang-data'))
             if len(yds) > 0:
-                if not printed_header:
-                    print_header()
-                    printed_header = True
+                print_header(module)
                 section_delimiter_printed = False
                 for yd in yds:
                     if not section_delimiter_printed:

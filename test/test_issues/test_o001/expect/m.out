@@ -1,0 +1,4 @@
+m.yang:1: warning: Check module issued for module m
+m.yang:1: warning: Check both issued for module m
+s.yang:1: warning: Check submodule issued for submodule s
+s.yang:1: warning: Check both issued for submodule s
