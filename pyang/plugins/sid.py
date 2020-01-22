@@ -16,7 +16,6 @@ import errno
 from pyang import plugin
 from pyang import util
 from pyang import error
-from collections import OrderedDict
 
 def pyang_plugin_init():
     plugin.register_plugin(SidPlugin())
@@ -266,7 +265,7 @@ class SidFile:
         self.extra_range = None
         self.count = False
         self.node_highest = 0
-        self.content = OrderedDict()
+        self.content = collections.OrderedDict()
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
@@ -357,7 +356,8 @@ class SidFile:
 
         if not 'assignment-ranges' in self.content:
             self.content['assignment-ranges'] = []
-        self.content['assignment-ranges'].append(OrderedDict([('entry-point', int(components[0])), ('size', int(components[1]))]))
+        self.content['assignment-ranges'].append(collections.OrderedDict(
+            [('entry-point', int(components[0])), ('size', int(components[1]))]))
 
     ########################################################
     # Set the 'module-name' and/or 'module-revision' in the .sid file if require
@@ -626,7 +626,8 @@ class SidFile:
             if (namespace == item['namespace'] and identifier == item['identifier']):
                 item['status'] = 'o' # Item already assigned
                 return
-        self.content['items'].append(OrderedDict([('namespace', namespace), ('identifier', identifier), ('sid', -1), ('status', 'n')]))
+        self.content['items'].append(collections.OrderedDict(
+            [('namespace', namespace), ('identifier', identifier), ('sid', -1), ('status', 'n')]))
         self.is_consistent = False
 
     ########################################################

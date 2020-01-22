@@ -1,15 +1,12 @@
 import copy
 import re
-import sys
 
 from . import util
-from .util import attrsearch, keysearch, prefix_to_module, \
-    prefix_to_modulename_and_revision
-from .error import err_add
 from . import types
 from . import syntax
 from . import grammar
 from . import xpath
+from .error import err_add
 
 ### Functions that plugins can use
 
@@ -491,9 +488,8 @@ def v_init_module(ctx, stmt):
 def v_init_extension(ctx, stmt):
     """find the modulename of the prefix, and set `stmt.keyword`"""
     (prefix, identifier) = stmt.raw_keyword
-    (modname, revision) = \
-        prefix_to_modulename_and_revision(stmt.i_module, prefix,
-                                          stmt.pos, ctx.errors)
+    (modname, revision) = util.prefix_to_modulename_and_revision(
+        stmt.i_module, prefix, stmt.pos, ctx.errors)
     stmt.keyword = (modname, identifier)
     stmt.i_extension_modulename = modname
     stmt.i_extension_revision = revision
@@ -796,7 +792,8 @@ def v_type_type(ctx, stmt):
             stmt.i_typedef.i_is_unused = False
     else:
         # this is a prefixed name, check the imported modules
-        pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+        pmodule = util.prefix_to_module(
+            stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
         stmt.i_typedef = search_typedef(pmodule, name)
@@ -1127,8 +1124,8 @@ def v_type_uses(ctx, stmt, no_error_report=False):
                 # check local groupings
                 pmodule = stmt.i_module
             else:
-                pmodule = prefix_to_module(stmt.i_module, prefix,
-                                           stmt.pos, ctx.errors)
+                pmodule = util.prefix_to_module(
+                    stmt.i_module, prefix, stmt.pos, ctx.errors)
                 if pmodule is None:
                     return
             err_add(ctx.errors, stmt.pos,
@@ -1146,7 +1143,8 @@ def v_type_uses(ctx, stmt, no_error_report=False):
 
     else:
         # this is a prefixed name, check the imported modules
-        pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+        pmodule = util.prefix_to_module(
+            stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
         stmt.i_grouping = search_grouping(pmodule, name)
@@ -1258,8 +1256,8 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
             pmodule = stmt.i_module
         else:
             # this is a prefixed name, check the imported modules
-            pmodule = prefix_to_module(stmt.i_module, prefix,
-                                       stmt.pos, ctx.errors)
+            pmodule = util.prefix_to_module(
+                stmt.i_module, prefix, stmt.pos, ctx.errors)
             if pmodule is None:
                 raise Abort
         if name in pmodule.i_features:
@@ -1337,7 +1335,8 @@ def v_type_base(ctx, stmt, no_error_report=False):
         pmodule = stmt.i_module
     else:
         # this is a prefixed name, check the imported modules
-        pmodule = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+        pmodule = util.prefix_to_module(
+            stmt.i_module, prefix, stmt.pos, ctx.errors)
         if pmodule is None:
             return
     if name in pmodule.i_identities:
@@ -1480,8 +1479,8 @@ def v_expand_1_uses(ctx, stmt):
         node = stmt.parent
         # recurse down the path
         for (prefix, identifier) in path:
-            module = prefix_to_module(stmt.i_module, prefix, refinement.pos,
-                                      ctx.errors)
+            module = util.prefix_to_module(
+                stmt.i_module, prefix, refinement.pos, ctx.errors)
             if hasattr(node, 'i_children'):
                 if module is None:
                     return None
@@ -1911,7 +1910,7 @@ def v_reference_list(ctx, stmt):
                     if prefix != stmt.i_module.i_prefix:
                         err_add(ctx.errors, key.pos, 'BAD_KEY', x)
                         return
-                ptr = attrsearch(name, 'arg', stmt.i_children)
+                ptr = util.attrsearch(name, 'arg', stmt.i_children)
                 if x in found:
                     err_add(ctx.errors, key.pos, 'DUPLICATE_KEY', x)
                     return
@@ -1973,7 +1972,7 @@ def v_reference_list(ctx, stmt):
                         if prefix != stmt.i_module.i_prefix:
                             err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
                             return
-                    ptr = attrsearch(name, 'arg', ptr.i_children)
+                    ptr = util.attrsearch(name, 'arg', ptr.i_children)
                     if ptr is None:
                         err_add(ctx.errors, u.pos, 'BAD_UNIQUE_PART', x)
                         return
@@ -2018,7 +2017,7 @@ def v_reference_choice(ctx, stmt):
         m = stmt.search_one('mandatory')
         if m is not None and m.arg == 'true':
             err_add(ctx.errors, stmt.pos, 'DEFAULT_AND_MANDATORY', ())
-        ptr = attrsearch(d.arg, 'arg', stmt.i_children)
+        ptr = util.attrsearch(d.arg, 'arg', stmt.i_children)
         if ptr is None:
             err_add(ctx.errors, d.pos, 'DEFAULT_CASE_NOT_FOUND', d.arg)
         else:
@@ -2144,8 +2143,8 @@ def v_reference_deviate(ctx, stmt):
                 if (c.keyword not in _valid_deviations):
                     if util.is_prefixed(c.keyword):
                         (prefix, name) = c.keyword
-                        pmodule = prefix_to_module(c.i_module, prefix, c.pos,
-                                                   [])
+                        pmodule = util.prefix_to_module(
+                            c.i_module, prefix, c.pos, [])
                         if (pmodule is not None and
                             pmodule.modulename in grammar.extension_modules):
                             err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
@@ -2412,7 +2411,7 @@ def find_target_node(ctx, stmt, is_augment=False):
     path = [(m[1], m[2]) for m in syntax.re_schema_node_id_part.findall(arg)]
     # find the module of the first node in the path
     (prefix, identifier) = path[0]
-    module = prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
+    module = util.prefix_to_module(stmt.i_module, prefix, stmt.pos, ctx.errors)
     if module is None:
         # error is reported by prefix_to_module
         return None
@@ -2441,8 +2440,8 @@ def find_target_node(ctx, stmt, is_augment=False):
     # then recurse down the path
     for (prefix, identifier) in path[1:]:
         if hasattr(node, 'i_children'):
-            module = prefix_to_module(stmt.i_module, prefix, stmt.pos,
-                                      ctx.errors)
+            module = util.prefix_to_module(
+                stmt.i_module, prefix, stmt.pos, ctx.errors)
             if module is None:
                 return None
             child = search_child(node.i_children, module.i_modulename,
@@ -2556,8 +2555,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
-            pmodule = prefix_to_module(path.i_module, prefix, stmt.pos,
-                                       ctx.errors)
+            pmodule = util.prefix_to_module(
+                path.i_module, prefix, stmt.pos, ctx.errors)
             if pmodule is None:
                 raise NotFound
             return (pmodule, name)

@@ -3,12 +3,8 @@ See BBF Assigned Names and Numbers at https://wiki.broadband-forum.org/display/B
 """
 
 import optparse
-import sys
 
 from pyang import plugin
-from pyang import statements
-from pyang import error
-from pyang.error import err_add
 from pyang.plugins import lint
 
 def pyang_plugin_init():
