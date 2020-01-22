@@ -508,7 +508,7 @@ class SidFile:
                 raise SidFileError("'sid' %d not within 'assignment-ranges'" % item['sid'])
             if item['sid'] == last_sid:
                 raise SidFileError("duplicated 'sid' value %d " % item['sid'])
-                last_sid = item['sid']
+            last_sid = item['sid']
 
     def out_of_ranges(self, sid):
         for range in self.content['assignment-ranges']:
