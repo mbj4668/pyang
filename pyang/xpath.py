@@ -196,7 +196,7 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     # FIXME implement checks from check_function()
 
     # check the arguments - FIXME check type
-    i = 0;
+    i = 0
     for arg in args:
         chk_xpath_expr(ctx, mod, pos, initial, node, arg, signature[0][i])
         i = i + 1

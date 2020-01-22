@@ -136,7 +136,7 @@ while i < len(buf):
         no_yang = True
         continue
     if q == '"' and buf[i] == '\\':
-        i = i + 2;
+        i = i + 2
         continue
     if q != None and buf[i] == q:
         fd.write("<span class='str'>")

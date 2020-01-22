@@ -115,7 +115,8 @@ class SchemaNode(object):
         """
         self.name = name
         self.parent = parent
-        if parent is not None: parent.children.append(self)
+        if parent is not None:
+            parent.children.append(self)
         self.text = text
         self.adjust_interleave(interleave)
         self.children = []
@@ -268,7 +269,8 @@ class SchemaNode(object):
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
         ccnt = len(self.rng_children())
-        if ccnt == 0: return "<empty/>%s"
+        if ccnt == 0:
+            return "<empty/>%s"
         if ccnt == 1 or not self.interleave:
             return self.start_tag("group") + "%s" + self.end_tag("group")
         return (self.start_tag("interleave") + "%s" +

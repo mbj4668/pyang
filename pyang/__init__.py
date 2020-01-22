@@ -453,7 +453,8 @@ class FileRepository(Repository):
                     m = syntax.re_filename.search(fname)
                     if m is not None:
                         (name, rev, format) = m.groups()
-                        if not os.access(absfilename, os.R_OK): continue
+                        if not os.access(absfilename, os.R_OK):
+                            continue
                         if absfilename.startswith("./"):
                             absfilename = absfilename[2:]
                         handle = (format, absfilename)

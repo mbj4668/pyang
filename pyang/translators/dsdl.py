@@ -356,8 +356,10 @@ class HybridDSDLSchema(object):
         self.namespaces = {
             "urn:ietf:params:xml:ns:netmod:dsdl-annotations:1" : "nma",
         }
-        if not no_dc: self.namespaces[self.dc_uri] = "dc"
-        if not no_a: self.namespaces[self.a_uri] = "a"
+        if not no_dc:
+            self.namespaces[self.dc_uri] = "dc"
+        if not no_a:
+            self.namespaces[self.a_uri] = "a"
         self.global_defs = {}
         self.all_defs = {}
         self.identity_deps = {}
@@ -406,7 +408,8 @@ class HybridDSDLSchema(object):
         for module in modules:
             self.module = module
             self.local_defs = {}
-            if record_defs: self.preload_defs()
+            if record_defs:
+                self.preload_defs()
             self.prefix_stack = [self.module_prefixes[module.arg]]
             self.create_roots(module)
             self.lookup_expand(module, list(gpset.keys()))
@@ -469,7 +472,8 @@ class HybridDSDLSchema(object):
             elif tok.type == "name" and ":" not in tok.value:
                 res += pref
             res += tok.value
-            if tok.type != "_whitespace": prev = tok.type
+            if tok.type != "_whitespace":
+                prev = tok.type
         return res
 
     def add_namespace(self, module):
@@ -481,7 +485,8 @@ class HybridDSDLSchema(object):
         """
         uri = module.search_one("namespace").arg
         prefix = module.search_one("prefix").arg
-        if uri in self.namespaces: return self.namespaces[uri]
+        if uri in self.namespaces:
+            return self.namespaces[uri]
         end = 1
         new = prefix
         while new in list(self.namespaces.values()):
@@ -535,7 +540,8 @@ class HybridDSDLSchema(object):
         to the value obtained from `self.module_prefixes`.  Unmodified
         `name` is returned if we are inside a global grouping.
         """
-        if self.gg_level: return name
+        if self.gg_level:
+            return name
         pref, colon, local = name.partition(":")
         if colon:
             return (self.module_prefixes[stmt.i_module.i_prefixes[pref][0]]
@@ -549,7 +555,8 @@ class HybridDSDLSchema(object):
         The result is prefixed with the local prefix unless we are
         inside a global grouping.
         """
-        if self.gg_level: return stmt.arg
+        if self.gg_level:
+            return stmt.arg
         return self.prefix_stack[-1] + ":" + stmt.arg
 
     def dc_element(self, parent, name, text):
@@ -584,13 +591,16 @@ class HybridDSDLSchema(object):
         while True:
             pref = stmt.arg if stmt.arg else stmt.keyword
             name = "__" + pref + name
-            if stmt.keyword == "grouping": name = "_" + name
-            if stmt.parent.parent is None: break
+            if stmt.keyword == "grouping":
+                name = "_" + name
+            if stmt.parent.parent is None:
+                break
             stmt = stmt.parent
         defs = (self.global_defs
                 if stmt.keyword in ("grouping", "typedef")
                 else self.local_defs)
-        if inrpc: name += "__rpc"
+        if inrpc:
+            name += "__rpc"
         return (module.arg + name, defs)
 
     def add_patch(self, pset, augref):
@@ -673,9 +683,11 @@ class HybridDSDLSchema(object):
         delem = SchemaNode.define(name, interleave=interleave)
         delem.attr["name"] = name
         def_map[name] = delem
-        if def_map is self.global_defs: self.gg_level += 1
+        if def_map is self.global_defs:
+            self.gg_level += 1
         self.handle_substmts(dstmt, delem)
-        if def_map is self.global_defs: self.gg_level -= 1
+        if def_map is self.global_defs:
+            self.gg_level -= 1
 
     def rng_annotation(self, stmt, p_elem):
         """Append YIN representation of extension statement `stmt`."""
@@ -772,7 +784,8 @@ class HybridDSDLSchema(object):
             maxst = stmt.search_one("max-elements")
             if maxst:
                 maxel = maxst.arg
-        if maxel == "unbounded": maxel = None
+        if maxel == "unbounded":
+            maxel = None
         return (minel, maxel)
 
     def lookup_expand(self, stmt, names):
@@ -782,7 +795,8 @@ class HybridDSDLSchema(object):
         look up. All 'uses'/'grouping' pairs between `stmt` and found
         schema nodes are marked for expansion.
         """
-        if not names: return []
+        if not names:
+            return []
         todo = [stmt]
         while todo:
             pst = todo.pop()
@@ -795,7 +809,8 @@ class HybridDSDLSchema(object):
                         while hasattr(par,"d_ref"): # par must be grouping
                             par.d_ref.d_expand = True
                             par = par.d_ref.parent
-                        if not names: return [] # all found
+                        if not names:
+                            return [] # all found
                 elif sub.keyword == "uses":
                     g = sub.i_grouping
                     g.d_ref = sub
@@ -812,7 +827,8 @@ class HybridDSDLSchema(object):
         output schema node (a RELAX NG <data> pattern).
         """
         ranges = self.get_ranges(tchain, rangekw)
-        if not ranges: return p_elem.subnode(gen_data())
+        if not ranges:
+            return p_elem.subnode(gen_data())
         if len(ranges) > 1:
             p_elem = SchemaNode.choice(p_elem)
             p_elem.occur = 2
@@ -836,12 +852,16 @@ class HybridDSDLSchema(object):
         ran = None
         for t in tchain:
             rstmt = t.search_one(kw)
-            if rstmt is None: continue
+            if rstmt is None:
+                continue
             parts = [ p.strip() for p in rstmt.arg.split("|") ]
             ran = [ [ i.strip() for i in p.split("..") ] for p in parts ]
-            if ran[0][0] != 'min': lo = ran[0][0]
-            if ran[-1][-1] != 'max': hi = ran[-1][-1]
-        if ran is None: return None
+            if ran[0][0] != 'min':
+                lo = ran[0][0]
+            if ran[-1][-1] != 'max':
+                hi = ran[-1][-1]
+        if ran is None:
+            return None
         if len(ran) == 1:
             return [(lo, hi)]
         else:
@@ -863,7 +883,8 @@ class HybridDSDLSchema(object):
             min_ = SchemaNode("param").set_attr("name","minLength")
             max_ = SchemaNode("param").set_attr("name","maxLength")
         else:
-            if len(ran) == 1: ran *= 2 # duplicating the value
+            if len(ran) == 1:
+                ran *= 2  # duplicating the value
             min_ = SchemaNode("param").set_attr("name","minInclusive")
             max_ = SchemaNode("param").set_attr("name","maxInclusive")
         res = []
@@ -1047,7 +1068,8 @@ class HybridDSDLSchema(object):
                 SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         refd = self.process_patches(pset, stmt, lelem)[0]
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
-        if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
+        if int(lelem.minEl) > 0:
+            self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, lelem)
 
     def list_stmt(self, stmt, p_elem, pset):
@@ -1056,14 +1078,15 @@ class HybridDSDLSchema(object):
             lelem.annot(
                 SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         keyst = stmt.search_one("key")
-        if keyst: lelem.keys = [self.add_prefix(k, stmt)
-                                for k in keyst.arg.split()]
+        if keyst:
+            lelem.keys = [self.add_prefix(k, stmt) for k in keyst.arg.split()]
         refd, augs, new_pset = self.process_patches(pset, stmt, lelem)
         left = self.lookup_expand(stmt, list(new_pset.keys()) + lelem.keys)
         for a in augs:
             left = self.lookup_expand(a, left)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
-        if int(lelem.minEl) > 0: self.propagate_occur(p_elem, 2)
+        if int(lelem.minEl) > 0:
+            self.propagate_occur(p_elem, 2)
         self.handle_substmts(stmt, lelem, new_pset)
         self.apply_augments(augs, lelem, new_pset)
 
@@ -1111,7 +1134,8 @@ class HybridDSDLSchema(object):
         if oust or augs:
             outel = SchemaNode("nma:output", rpcel)
             outel.occur = 2
-            if oust: self.handle_substmts(oust, outel, pset)
+            if oust:
+                self.handle_substmts(oust, outel, pset)
             self.apply_augments(augs, outel, pset)
         self.handle_substmts(stmt, rpcel, r_pset)
 
@@ -1133,7 +1157,8 @@ class HybridDSDLSchema(object):
                 occur = 1
             else:
                 occur = dic[uname].occur
-            if occur > 0: self.propagate_occur(p_elem, occur)
+            if occur > 0:
+                self.propagate_occur(p_elem, occur)
             return
         chain = [stmt]
         tdefault = None
@@ -1188,7 +1213,8 @@ class HybridDSDLSchema(object):
                                  p_elem.interleave)
             elem = SchemaNode("ref", p_elem).set_attr("name", uname)
             occur = dic[uname].occur
-            if occur > 0: self.propagate_occur(p_elem, occur)
+            if occur > 0:
+                self.propagate_occur(p_elem, occur)
             self.handle_substmts(stmt, elem)
             return
         self.handle_substmts(grp, p_elem, pset)
@@ -1246,7 +1272,8 @@ class HybridDSDLSchema(object):
         ii = SchemaNode("nma:instance-identifier")
         p_elem.annot(ii)
         rinst = tchain[0].search_one("require-instance")
-        if rinst: ii.attr["require-instance"] = rinst.arg
+        if rinst:
+            ii.attr["require-instance"] = rinst.arg
 
     def leafref_type(self, tchain, p_elem):
         typ = tchain[0]
@@ -1256,7 +1283,8 @@ class HybridDSDLSchema(object):
         while type(typ.i_type_spec) == types.PathTypeSpec:
             typ = typ.i_type_spec.i_target_node.search_one("type")
         self.handle_stmt(typ, p_elem)
-        if occur == 0: p_elem.occur = 0
+        if occur == 0:
+            p_elem.occur = 0
 
     def mapped_type(self, tchain, p_elem):
         """Handle types that are simply mapped to RELAX NG."""
@@ -1283,6 +1311,7 @@ class HybridDSDLSchema(object):
                                        text=pst.arg).set_attr("name","pattern"))
         def get_data():
             elem = SchemaNode("data").set_attr("type", "string")
-            for p in pels: elem.subnode(p)
+            for p in pels:
+                elem.subnode(p)
             return elem
         self.type_with_ranges(tchain, p_elem, "length", get_data)

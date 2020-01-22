@@ -61,7 +61,8 @@ class JtoXPlugin(plugin.PyangPlugin):
         """Process all children of `node`, except "rpc" and "notification".
         """
         for ch in node.i_children:
-            if ch.keyword in ["rpc", "notification"]: continue
+            if ch.keyword in ["rpc", "notification"]:
+                continue
             if ch.keyword in ["choice", "case"]:
                 self.process_children(ch, parent, pmod)
                 continue

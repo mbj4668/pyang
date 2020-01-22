@@ -194,7 +194,8 @@ class JsonXslPlugin(plugin.PyangPlugin):
                     ut = "other"
                 if ut not in opts:
                     opts.append(ut)
-                    if ut == "other": break
+                    if ut == "other":
+                        break
                     if ut == "decimal" and "integer" not in opts:
                         opts.append("integer")
             self.xsl_withparam("type", "union", ct)
@@ -204,7 +205,8 @@ class JsonXslPlugin(plugin.PyangPlugin):
         res = []
         def resolve(typ):
             if typ.arg == "union":
-                for ut in typ.i_type_spec.types: resolve(ut)
+                for ut in typ.i_type_spec.types:
+                    resolve(ut)
             elif typ.arg == "decimal64":
                 res.append("decimal@" +
                            typ.search_one("fraction-digits").arg)
