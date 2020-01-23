@@ -24,24 +24,10 @@ def keysearch(tag, n, list):
     return None
 
 def dictsearch(val, dict):
-    if sys.version < '3':
-        n = dict.iteritems()
-        try:
-            while True:
-                (k,v) = n.next()
-                if v == val:
-                    return k
-        except StopIteration:
-            return None
-    else:
-        n = iter(dict.items())
-        try:
-            while True:
-                (k,v) = next(n)
-                if v == val:
-                    return k
-        except StopIteration:
-            return None
+    for key in dict:
+        if dict[key] == val:
+            return key
+    return None
 
 def is_prefixed(identifier):
     return type(identifier) == type(()) and len(identifier) == 2
