@@ -410,7 +410,7 @@ def validate_length_expr(errors, stmt):
             cur_lo = lo
         else:
             cur_lo = hi
-        if type(cur_lo) == type(0) and cur_lo > 18446744073709551615:
+        if isinstance(cur_lo, util.int_types) and cur_lo > 18446744073709551615:
             err_add(errors, stmt.pos, 'LENGTH_VALUE', str(cur_lo))
             return None
     return (lengths, stmt.pos)

@@ -385,7 +385,7 @@ class SidFile:
         for key in self.content:
             if key == 'assignment-ranges':
                 assignment_ranges_absent = False
-                if type(self.content[key]) != list:
+                if not isinstance(self.content[key], list):
                     raise SidFileError("key 'assignment-ranges', invalid  value.")
                 self.validate_ranges(self.content[key])
                 continue
@@ -400,7 +400,7 @@ class SidFile:
 
             if key == 'items':
                 items_absent = False
-                if type(self.content[key]) != list:
+                if not isinstance(self.content[key], list):
                     raise SidFileError("key 'items', invalid value.")
                 self.validate_items(self.content[key])
                 continue
@@ -427,13 +427,13 @@ class SidFile:
             for key in range:
                 if key == 'entry-point':
                     entry_point_absent = False
-                    if type(range[key]) != int:
+                    if not isinstance(range[key], util.int_types):
                         raise SidFileError("invalid 'entry-point' value '%s'." % range[key])
                     continue
 
                 if key == 'size':
                     size_absent = False
-                    if type(range[key]) != int:
+                    if not isinstance(range[key], util.int_types):
                         raise SidFileError("invalid 'size' value '%s'." % range[key])
                     continue
 
@@ -454,21 +454,19 @@ class SidFile:
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    # Verify (type(item[key]) != str on both python 2 and 3
-                    if not isinstance(item[key], ("".__class__, u"".__class__)) or not re.match(r'module$|identity$|feature$|data$', item[key]):
+                    if not isinstance(item[key], util.str_types) or not re.match(r'module$|identity$|feature$|data$', item[key]):
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
                     continue
 
                 elif key == 'identifier':
                     identifier_absent = False
-                    # Verify (type(item[key]) != str on both python 2 and 3
-                    if not isinstance(item[key], ("".__class__, u"".__class__)):
+                    if not isinstance(item[key], util.str_types):
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
                     continue
 
                 elif key == 'sid':
                     sid_absent = False
-                    if type(item[key]) != int:
+                    if not isinstance(item[key], util.int_types):
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
                     continue
 

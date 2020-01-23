@@ -92,9 +92,9 @@ def v_xpath(ctx, stmt, node):
 # mod is the (sub)module where the stmt is defined, which we use to
 # resolve prefixes.
 def chk_xpath_expr(ctx, mod, pos, initial, node, q, t):
-    if type(q) == type([]):
+    if isinstance(q, list):
         chk_xpath_path(ctx, mod, pos, initial, node, q)
-    elif type(q) == type(()):
+    elif isinstance(q, tuple):
         if q[0] == 'absolute':
             chk_xpath_path(ctx, mod, pos, initial, 'root', q[1])
         elif q[0] == 'relative':

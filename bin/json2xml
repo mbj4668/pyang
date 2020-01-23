@@ -8,8 +8,10 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-if sys.version >= "3":
-    basestring = unicode = str
+
+str_type = type(u'')
+str_types = str if str_type is str else (str_type, str)
+
 
 class Error(Exception):
     """Abstract base class for exceptions in this program."""
@@ -217,7 +219,7 @@ class Translator (object):
                 if isinstance(job, dict):
                     self.handle_anyxml(job, el)
                 else:
-                    el.text = unicode(job)
+                    el.text = str_type(job)
 
     def handle_annotations(self, annot_obj, elem, mod_name, path):
         if not isinstance(annot_obj, dict):
@@ -262,10 +264,10 @@ class Translator (object):
                     if isinstance(eob, dict):
                         self.handle_anyxml(eob, el)
                     else:
-                        el.text = unicode(eob)
+                        el.text = str_type(eob)
             else:
                 el = ET.SubElement(parent, ch)
-                el.text = unicode(cobj)
+                el.text = str_type(cobj)
 
     def node_lookup(self, name, ns, parent, path):
         """Return tag, module name and node specification for `name`."""
@@ -302,14 +304,15 @@ class Translator (object):
         - `path`: path of the node containing `value` (for error reporting)
         """
         def handle_int(value, bits, unsigned):
-            try:
-                if (bits == 64 and isinstance(value, basestring)
-                    or isinstance(value, int) and not isinstance(value, bool)
-                    or isinstance(value, numbers.Real) and value.is_integer()):
+            if (bits == 64 and isinstance(value, str_types)
+                or isinstance(value, numbers.Integral)
+                or isinstance(value, numbers.Real) and value.is_integer()):
+
+                try:
                     val = int(value)
-                else:
+                except ValueError:
                     return None
-            except:
+            else:
                 return None
             if unsigned:
                 lo = 0
@@ -318,15 +321,16 @@ class Translator (object):
                 hi = 2 ** (bits-1)
                 lo = -hi
             return "%d" % val if lo <= val < hi else None
+
         t = type_spec[0] if isinstance(type_spec, list) else type_spec
         if t == 'empty':
             return "" if value == [None] else None
-        if t[0:3] == "int":
+        if t.startswith("int"):
             return handle_int(value, int(t[3:]), False)
-        if t[0:4] == "uint":
+        if t.startswith("uint"):
             return handle_int(value, int(t[4:]), True)
         if t == "decimal64":
-            if not isinstance(value, basestring):
+            if not isinstance(value, str_types):
                 return None
             ip, dp, fp = value.partition('.')
             try:
@@ -397,7 +401,7 @@ class Translator (object):
             except:
                 return None
             return result
-        return unicode(value)
+        return str_type(value)
 
 def main():
     """Parse arguments, open files, create and run the translator."""
@@ -439,7 +443,7 @@ def main():
     except Error as e:
         sys.stderr.write(parser.prog + ": " + str(e) + "\n")
         return e.return_value
-    for m in set(trans.prefix.keys()) - trans.node_modules:
+    for m in set(trans.prefix) - trans.node_modules:
         root_el.attrib["xmlns:" + trans.prefix[m]] = trans.uri[m]
     ET.ElementTree(root_el).write(outfile, encoding="utf-8", xml_declaration=True)
     return 0

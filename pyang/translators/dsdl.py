@@ -412,7 +412,7 @@ class HybridDSDLSchema(object):
                 self.preload_defs()
             self.prefix_stack = [self.module_prefixes[module.arg]]
             self.create_roots(module)
-            self.lookup_expand(module, list(gpset.keys()))
+            self.lookup_expand(module, list(gpset))
             self.handle_substmts(module, self.data, gpset)
             for d in list(self.local_defs.values()):
                 self.local_grammar.subnode(d)
@@ -973,7 +973,7 @@ class HybridDSDLSchema(object):
         if p_elem.default_case != stmt.arg:
             celem.occur = 3
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
-        left = self.lookup_expand(stmt, list(new_pset.keys()))
+        left = self.lookup_expand(stmt, list(new_pset))
         for a in augs:
             left = self.lookup_expand(a, left)
         self.handle_substmts(stmt, celem, new_pset)
@@ -983,7 +983,7 @@ class HybridDSDLSchema(object):
         chelem = SchemaNode.choice(p_elem)
         chelem.attr["nma:name"] = stmt.arg
         refd, augs, new_pset = self.process_patches(pset, stmt, chelem)
-        left = self.lookup_expand(stmt, list(new_pset.keys()))
+        left = self.lookup_expand(stmt, list(new_pset))
         for a in augs:
             left = self.lookup_expand(a, left)
         if refd["mandatory"] or stmt.search_one("mandatory", "true"):
@@ -1004,7 +1004,7 @@ class HybridDSDLSchema(object):
             celem.annot(
                 SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         refd, augs, new_pset = self.process_patches(pset, stmt, celem)
-        left = self.lookup_expand(stmt, list(new_pset.keys()))
+        left = self.lookup_expand(stmt, list(new_pset))
         for a in augs:
             left = self.lookup_expand(a, left)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg
@@ -1081,7 +1081,7 @@ class HybridDSDLSchema(object):
         if keyst:
             lelem.keys = [self.add_prefix(k, stmt) for k in keyst.arg.split()]
         refd, augs, new_pset = self.process_patches(pset, stmt, lelem)
-        left = self.lookup_expand(stmt, list(new_pset.keys()) + lelem.keys)
+        left = self.lookup_expand(stmt, list(new_pset) + lelem.keys)
         for a in augs:
             left = self.lookup_expand(a, left)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
@@ -1204,7 +1204,7 @@ class HybridDSDLSchema(object):
                 expand = True
                 self.add_patch(pset, sub)
         if expand:
-            self.lookup_expand(grp, list(pset.keys()))
+            self.lookup_expand(grp, list(pset))
         elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
             uname, dic = self.unique_def_name(stmt.i_grouping,
                                               not(p_elem.interleave))
@@ -1280,7 +1280,7 @@ class HybridDSDLSchema(object):
         occur = p_elem.occur
         pathstr = typ.parent.i_leafref.i_expanded_path
         p_elem.attr["nma:leafref"] = self.yang_to_xpath(pathstr)
-        while type(typ.i_type_spec) == types.PathTypeSpec:
+        while isinstance(typ.i_type_spec, types.PathTypeSpec):
             typ = typ.i_type_spec.i_target_node.search_one("type")
         self.handle_stmt(typ, p_elem)
         if occur == 0:
