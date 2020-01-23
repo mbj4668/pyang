@@ -1,0 +1,14 @@
+module c {
+  namespace urn:c;
+  prefix c;
+
+  import b {
+    prefix b;
+  }
+
+  uses b:b {
+    refine "b/a" {
+      description "foo";
+    }
+  }
+}

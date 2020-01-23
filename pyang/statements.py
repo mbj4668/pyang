@@ -1569,11 +1569,13 @@ def v_expand_1_uses(ctx, stmt):
                         # otherwise, copy the i_child
                         newx = x.copy(new, stmt,
                                       nocopy=['type','uses', 'unique',
+                                              'if-feature',
                                               'typedef','grouping'],
                                       copyf=post_copy)
                         new.i_children.append(newx)
         newg = g.copy(stmt.parent, stmt,
-                      nocopy=['type','uses','unique','typedef','grouping'],
+                      nocopy=['type','uses','unique', 'if-feature',
+                              'typedef','grouping'],
                       copyf=post_copy)
         for s in whens:
             news = s.copy(newg)

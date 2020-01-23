@@ -1,0 +1,3 @@
+test:
+	pyang c.yang
+
