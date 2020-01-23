@@ -96,12 +96,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("-t", "--transform", dest="transforms",
                              default=[], action="append",
                              help="Apply transform TRANSFORM.  Supported " \
-                                  "transforms are: " + ', '.join(list(
-                                     xforms.keys()))),
+                                  "transforms are: " + ', '.join(xforms)),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
-                             "are: " +  ', '.join(list(fmts.keys()))),
+                             "are: " +  ', '.join(fmts)),
         optparse.make_option("-o", "--output",
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \

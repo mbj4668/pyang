@@ -656,14 +656,15 @@ def chk_integer(old, new, oldts, newts, ctx):
 def chk_range(old, new, oldts, newts, ctx):
     ots = old.i_type_spec
     nts = new.i_type_spec
-    if (type(ots) == types.RangeTypeSpec and
-        type(nts) == types.RangeTypeSpec):
+    if not isinstance(nts, types.RangeTypeSpec):
+        return
+    if isinstance(ots, types.RangeTypeSpec):
         tmperrors = []
         types.validate_ranges(tmperrors, new.pos, ots.ranges, new)
         if tmperrors != []:
             err_add(ctx.errors, new.pos, 'CHK_RESTRICTION_CHANGED',
                     'range')
-    elif type(nts) == types.RangeTypeSpec:
+    else:
         err_add(ctx.errors, nts.ranges_pos, 'CHK_DEF_ADDED',
                 ('range', str(nts.ranges)))
 

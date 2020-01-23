@@ -254,13 +254,13 @@ class YinParser(object):
             # read the parent module in order to find the namespace uri
             res = self.ctx.read_module(modname, extra={'no_include':True,
                                                        'no_extensions':True})
-            if res == 'not_found':
+            if not res:
+                pass
+            elif res == 'not_found':
                 error.err_add(self.ctx.errors, p.pos,
                               'MODULE_NOT_FOUND', modname)
-            elif type(res) == type(()) and res[0] == 'read_error':
+            elif isinstance(res, tuple) and res[0] == 'read_error':
                 error.err_add(self.ctx.errors, p.pos, 'READ_ERROR', res[1])
-            elif res == None:
-                pass
             else:
                 namespace = res.search_one('namespace')
                 if namespace is None or namespace.arg is None:

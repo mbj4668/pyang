@@ -1,15 +1,9 @@
 import sys
+from numbers import Integral as int_types
 
 from .error import err_add
 
-## unicode literal support
-if sys.version < '3':
-    import codecs
-    def u(x):
-        return codecs.unicode_escape_decode(x)[0]
-else:
-    def u(x):
-        return x
+str_types = str if isinstance(u'', str) else (str, type(u''))
 
 def attrsearch(tag, attr, list):
     for x in list:
@@ -30,10 +24,10 @@ def dictsearch(val, dict):
     return None
 
 def is_prefixed(identifier):
-    return type(identifier) == type(()) and len(identifier) == 2
+    return isinstance(identifier, tuple) and len(identifier) == 2
 
 def is_local(identifier):
-    return type(identifier) == type('') or type(identifier) == type(u(''))
+    return isinstance(identifier, str_types)
 
 def keyword_to_str(keyword):
     if keyword == '__tmp_augment__':

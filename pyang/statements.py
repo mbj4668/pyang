@@ -714,7 +714,7 @@ def v_type_typedef(ctx, stmt):
 
     # keep track of our leafref
     type_spec = type_.i_type_spec
-    if type(type_spec) == types.PathTypeSpec:
+    if isinstance(type_spec, types.PathTypeSpec):
         stmt.i_leafref = type_spec
 
     def check_circular_typedef(ctx, type_):
@@ -1061,7 +1061,7 @@ def _v_type_common_leaf(ctx, stmt):
 
     # keep track of our leafref
     type_spec = type_.i_type_spec
-    if type(type_spec) == types.PathTypeSpec:
+    if isinstance(type_spec, types.PathTypeSpec):
         stmt.i_leafref = type_spec
 
 def chk_status(ctx, x, y):
@@ -1227,13 +1227,13 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
     expr = syntax.parse_if_feature_expr(stmt.arg)
     if stmt.i_module.i_version == '1':
         # version 1 allows only a single value as if-feature
-        if type(expr) != type(''):
+        if not isinstance(expr, util.str_types):
             err_add(ctx.errors, stmt.pos,
                     'BAD_VALUE', (stmt.arg, 'identifier-ref'))
             return
 
     def eval(expr):
-        if type(expr) == type(''):
+        if isinstance(expr, util.str_types):
             return has_feature(expr)
         else:
             (op, op1, op2) = expr
@@ -1633,7 +1633,7 @@ def v_expand_1_uses(ctx, stmt):
 def filter_valid_keywords(keywords, stmt):
     res = []
     for i in keywords:
-        if type(i) == type(()):
+        if isinstance(i, tuple):
             if stmt.i_module.i_version != '1':
                 res.append(i[1])
             else:
@@ -2567,12 +2567,12 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
     def is_identifier(x):
         if util.is_local(x):
             return True
-        if type(x) == type(()) and len(x) == 2:
+        if isinstance(x, tuple) and len(x) == 2:
             return True
         return False
 
     def is_predicate(x):
-        if type(x) == type(()) and len(x) == 4 and x[0] == 'predicate':
+        if isinstance(x, tuple) and len(x) == 4 and x[0] == 'predicate':
             return True
         return False
 
