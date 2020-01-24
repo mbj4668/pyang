@@ -19,6 +19,7 @@ class BBFPlugin(lint.LintPlugin):
         lint.LintPlugin.__init__(self)
         self.namespace_prefixes = ['urn:bbf:yang:']
         self.modulename_prefixes = ['bbf']
+        self.ensure_hyphenated_names = True
 
     def add_opts(self, optparser):
         optlist = [
@@ -34,3 +35,5 @@ class BBFPlugin(lint.LintPlugin):
         if not ctx.opts.bbf:
             return
         self._setup_ctx(ctx)
+        if ctx.max_line_len is None:
+            ctx.max_line_len = 70
