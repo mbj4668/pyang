@@ -36,6 +36,10 @@ class LintPlugin(plugin.PyangPlugin):
         # define its own checks.
         self.modulename_prefixes = []
 
+        # Set this to control whether to check that names are hyphenated
+        # and don't contain any upper-case characters
+        self.ensure_hyphenated_names = None
+
     def add_opts(self, optparser):
         optlist = [
             optparse.make_option("--lint",
@@ -79,6 +83,11 @@ class LintPlugin(plugin.PyangPlugin):
         self.namespace_prefixes.extend(ctx.opts.lint_namespace_prefixes)
         self.modulename_prefixes.extend(ctx.opts.lint_modulename_prefixes)
 
+        # copy other lint options to instance variables, taking care not to
+        # overwrite any settings from derived class constructors
+        if ctx.opts.lint_ensure_hyphenated_names:
+            self.ensure_hyphenated_names = True
+
         # register our grammar validation funs
 
         statements.add_validation_var(
@@ -102,7 +111,7 @@ class LintPlugin(plugin.PyangPlugin):
             'grammar', ['$chk_recommended'],
             lambda ctx, s: v_chk_recommended_substmt(ctx, s))
 
-        if ctx.opts.lint_ensure_hyphenated_names:
+        if self.ensure_hyphenated_names:
             statements.add_validation_fun(
                 'grammar', ['*'],
                 lambda ctx, s: v_chk_hyphenated_names(ctx, s))
