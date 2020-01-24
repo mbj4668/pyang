@@ -132,11 +132,11 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         if not ctx.opts.check_update_from:
             return
 
-        check_update(ctx, ctx.opts.check_update_from, modules[0])
+        check_update(ctx, modules[0])
 
-def check_update(ctx, oldfilename, newmod):
+def check_update(ctx, newmod):
     oldpath = os.pathsep.join(ctx.opts.old_path)
-    olddir = os.path.dirname(oldfilename)
+    olddir = os.path.dirname(ctx.opts.check_update_from)
     if olddir == '':
         olddir = '.'
     oldpath += os.pathsep + olddir
