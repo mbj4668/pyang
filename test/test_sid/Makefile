@@ -36,10 +36,12 @@ test6:
 
 test7:
 	# Test extra SID range
+	cp test-2-expected-toaster@2009-11-20.sid toaster@2009-11-20.sid
+	pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang --sid-extra-range 20010:10 2>&1 | diff -b test-7b-expected-output.txt -
 	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
 	pyang --sid-update-file toaster@2009-12-28.sid toaster@2019-01-01.yang --sid-extra-range 20100:25 2>&1 | diff -b test-7-expected-output.txt -
 	diff -b test-7-expected-toaster@2019-01-01.sid toaster@2019-01-01.sid
-	rm toaster@2009-12-28.sid toaster@2019-01-01.sid
+	rm -f toaster@2009-11-20.sid toaster@2009-12-28.sid toaster@2019-01-01.sid
 
 test8:
 	# In generate sid file, test count 

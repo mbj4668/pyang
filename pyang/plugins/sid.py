@@ -8,11 +8,18 @@ and [I-D.ietf-core-yang-library] for more information.
 
 import optparse
 import sys
-import json
 import collections
 import re
 import os
 import errno
+import json
+
+try:
+    from json.decode import JSONDecodeError
+except ImportError:
+    class JSONDecodeError(ValueError):
+        pass
+
 from pyang import plugin
 from pyang import util
 from pyang import error
@@ -42,7 +49,8 @@ class SidPlugin(plugin.PyangPlugin):
                                  action="store",
                                  type="string",
                                  dest="check_sid_file",
-                                 help="Check the consistency between a .sid file and the .yang file(s)."),
+                                 help="Check the consistency between a .sid file "
+                                 "and the .yang file(s)."),
             optparse.make_option("--sid-list",
                                  action="store_true",
                                  dest="list_sid",
@@ -84,7 +92,7 @@ class SidPlugin(plugin.PyangPlugin):
             return
 
         fatal_error = False
-        for (epos, etag, eargs) in ctx.errors:
+        for _, etag, _ in ctx.errors:
             if not error.is_warning(error.err_level(etag)):
                 fatal_error = True
 
@@ -115,7 +123,8 @@ class SidPlugin(plugin.PyangPlugin):
             if ctx.opts.update_sid_file is not None:
                 sid_file.extra_range = ctx.opts.extra_sid_range
             else:
-                sys.stderr.write("An extra SID range can be specified only during a .sid file update.\n")
+                sys.stderr.write(
+                    "An extra SID range can be specified only during a .sid file update.\n")
                 return
 
         if ctx.opts.list_sid:
@@ -125,24 +134,21 @@ class SidPlugin(plugin.PyangPlugin):
             sid_file.process_sid_file(modules[0])
 
         except SidParsingError as e:
-            sys.stderr.write("ERROR, %s\n" % e.msg)
-            sys.exit(1)
+            sys.stderr.write("ERROR, %s\n" % e)
         except SidFileError as e:
-            sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e.msg))
-            sys.exit(1)
+            sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e))
         except EnvironmentError as e:
             if e.errno == errno.ENOENT:
                 sys.stderr.write("ERROR, file '%s' not found\n" % e.filename)
             else:
                 sys.stderr.write("ERROR, in file '%s' " % e.filename)
-            sys.exit(1)
+        except JSONDecodeError as e:
+            sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e))
         except ValueError as e:
-            if hasattr(e, "lineno") and sid_file.input_file_name != "test16-bad-toaster@2009-11-20.sid":
-                # Present only in python 3.5 and later, except json.decoder.JSONDecodeError
-                sys.stderr.write("ERROR in '%s', line %d, column %d, %s\n" % (sid_file.input_file_name, e.lineno, e.colno, e.msg))
-            else:
-                sys.stderr.write("ERROR in '%s', invalid JSON content\n" % sid_file.input_file_name)
-            sys.exit(1)
+            sys.stderr.write("ERROR in '%s', invalid JSON content\n" % sid_file.input_file_name)
+        else:
+            sys.exit(0)
+        sys.exit(1)
 
 def print_help():
     print("""
@@ -239,18 +245,14 @@ count
 
   $ pyang --sid-update-file toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range count
-"""
-)
+""")
 
 ############################################################
 class SidFileError(Exception):
-    def __init__(self, msg=""):
-        self.msg = msg
+    pass
 
 class SidParsingError(Exception):
     """raised by plugins to fail the emit() function"""
-    def __init__(self, msg=""):
-        self.msg = msg
 
 ############################################################
 class SidFile:
@@ -266,6 +268,9 @@ class SidFile:
         self.count = False
         self.node_highest = 0
         self.content = collections.OrderedDict()
+        self.module_name = ''
+        self.module_revision = ''
+        self.output_file_name = ''
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
@@ -279,14 +284,15 @@ class SidFile:
                 self.set_sid_range(self.range)
 
         if self.input_file_name is not None:
-            if self.input_file_name[-4:] != ".sid":
+            if not self.input_file_name.endswith(".sid"):
                 raise SidParsingError("File '%s' is not a .sid file" % self.input_file_name)
 
             with open(self.input_file_name) as f:
                 self.content = json.load(f, object_pairs_hook=collections.OrderedDict)
-            self.upgrade_sid_file_format() # This function can be removed after a reasonable transition period.
+            # Upgrades can be removed after a reasonable transition period.
+            self.upgrade_sid_file_format()
             self.validate_key_and_value()
-            self.validate_ovelaping_ranges()
+            self.validate_overlapping_ranges()
             self.validate_sid()
 
         if self.extra_range is not None:
@@ -294,7 +300,7 @@ class SidFile:
                 self.count = True
             else:
                 self.set_sid_range(self.extra_range)
-                self.validate_ovelaping_ranges()
+                self.validate_overlapping_ranges()
 
         self.set_module_information()
         self.collect_module_items(module)
@@ -305,17 +311,20 @@ class SidFile:
             return
 
         if self.extra_range == 'count':
-            number_of_SIDs_allocated = self.number_of_SIDs_allocated()
-            number_of_SIDs_used = self.number_of_SIDs_used()
-            number_of_SIDs_available = number_of_SIDs_allocated - number_of_SIDs_used
+            number_of_sids_allocated = self.number_of_sids_allocated()
+            number_of_sids_used = self.number_of_sids_used()
+            number_of_sids_available = number_of_sids_allocated - number_of_sids_used
             number_of_unassigned_yang_items = self.number_of_unassigned_yang_items()
 
-            print("\nNumber of SIDs allocated to this module: %d" % number_of_SIDs_allocated)
-            print("Number of SIDs required by this version: %d" % (number_of_SIDs_used + number_of_unassigned_yang_items))
-            if (number_of_unassigned_yang_items > number_of_SIDs_available):
-                print("\nAn extra range of at least %d SIDs is required to perform this update." % (number_of_unassigned_yang_items - number_of_SIDs_available))
+            print("\nNumber of SIDs allocated to this module: %d" % number_of_sids_allocated)
+            print("Number of SIDs required by this version: %d"
+                  % (number_of_sids_used + number_of_unassigned_yang_items))
+            if number_of_unassigned_yang_items > number_of_sids_available:
+                print("\nAn extra range of at least %d SIDs is required to perform this update."
+                      % (number_of_unassigned_yang_items - number_of_sids_available))
             else:
-                print("\nThe update of the .sid file can be performed using the currently available SIDs.")
+                print("\nThe update of the .sid file can be performed using "
+                      "the currently available SIDs.")
             return
 
         self.sort_items()
@@ -333,7 +342,7 @@ class SidFile:
                 else:
                     print("\nCheck completed successfully")
             else:
-                print("\nThe .sid file need to be updated.")
+                print("\nThe .sid file needs to be updated.")
         else:
             if self.is_consistent:
                 print("No .sid file generated, the current .sid file is already up to date.")
@@ -344,34 +353,38 @@ class SidFile:
                 else:
                     print("\nFile %s updated" % self.output_file_name)
 
-                print ("Number of SIDs available : %d" % self.number_of_SIDs_allocated())
-                print ("Number of SIDs used : %d" % self.number_of_SIDs_used())
+                print("Number of SIDs available : %d" % self.number_of_sids_allocated())
+                print("Number of SIDs used : %d" % self.number_of_sids_used())
 
 
     ########################################################
-    def set_sid_range(self, range):
-        components = range.split(':')
-        if len(components) != 2 or not re.match(r'\d+:\d+', range):
+    def set_sid_range(self, srange):
+        match = re.match(r'^(\d+):(\d+)$', srange)
+        if not match:
             raise SidParsingError("invalid range in argument, must be '<entry-point>:<size>'.")
+        components = match.groups()
 
-        if not 'assignment-ranges' in self.content:
-            self.content['assignment-ranges'] = []
-        self.content['assignment-ranges'].append(collections.OrderedDict(
+        aranges = self.content.get('assignment-ranges')
+        if aranges is None:
+            self.content['assignment-ranges'] = aranges = []
+        aranges.append(collections.OrderedDict(
             [('entry-point', int(components[0])), ('size', int(components[1]))]))
 
     ########################################################
-    # Set the 'module-name' and/or 'module-revision' in the .sid file if require
+    # Set the 'module-name' and/or 'module-revision' in the .sid file if they differ
     def set_module_information(self):
-        if 'module-name' not in self.content or self.module_name != self.content['module-name']:
+        if self.module_name != self.content.get('module-name'):
             self.content['module-name'] = self.module_name
-            if self.check_consistency == True:
-                print("ERROR, Mismatch between the module name defined in the .sid file and the .yang file.")
+            if self.check_consistency:
+                print("ERROR, Mismatch between the module name defined "
+                      "in the .sid file and the .yang file.")
                 self.is_consistent = False
 
-        if 'module-revision' not in self.content or self.module_revision != self.content['module-revision']:
+        if self.module_revision != self.content.get('module-revision'):
             self.content['module-revision'] = self.module_revision
-            if self.check_consistency == True:
-                print("ERROR, Mismatch between the module revision defined in the .sid file and the .yang file.")
+            if self.check_consistency:
+                print("ERROR, Mismatch between the module revision defined "
+                      "in the .sid file and the .yang file.")
                 self.is_consistent = False
 
     ########################################################
@@ -388,24 +401,21 @@ class SidFile:
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'assignment-ranges', invalid  value.")
                 self.validate_ranges(self.content[key])
-                continue
 
-            if key == 'module-name':
+            elif key == 'module-name':
                 module_name_absent = False
-                continue
 
-            if key == 'module-revision':
+            elif key == 'module-revision':
                 module_revision_absent = False
-                continue
 
-            if key == 'items':
+            elif key == 'items':
                 items_absent = False
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'items', invalid value.")
                 self.validate_items(self.content[key])
-                continue
 
-            raise SidFileError("invalid field '%s'." % key)
+            else:
+                raise SidFileError("invalid field '%s'." % key)
 
         if module_name_absent:
             raise SidFileError("mandatory field 'module-name' not present")
@@ -419,25 +429,25 @@ class SidFile:
         if items_absent:
             raise SidFileError("mandatory field 'items' not present")
 
-    def validate_ranges(self, ranges):
+    @staticmethod
+    def validate_ranges(ranges):
         entry_point_absent = True
         size_absent = True
 
-        for range in ranges:
-            for key in range:
+        for arange in ranges:
+            for key in arange:
                 if key == 'entry-point':
                     entry_point_absent = False
-                    if not isinstance(range[key], util.int_types):
-                        raise SidFileError("invalid 'entry-point' value '%s'." % range[key])
-                    continue
+                    if not isinstance(arange[key], util.int_types):
+                        raise SidFileError("invalid 'entry-point' value '%s'." % arange[key])
 
-                if key == 'size':
+                elif key == 'size':
                     size_absent = False
-                    if not isinstance(range[key], util.int_types):
-                        raise SidFileError("invalid 'size' value '%s'." % range[key])
-                    continue
+                    if not isinstance(arange[key], util.int_types):
+                        raise SidFileError("invalid 'size' value '%s'." % arange[key])
 
-                raise SidFileError("invalid key '%s'." % key)
+                else:
+                    raise SidFileError("invalid key '%s'." % key)
 
         if entry_point_absent:
             raise SidFileError("mandatory field 'entry-point' not present")
@@ -445,74 +455,92 @@ class SidFile:
         if size_absent:
             raise SidFileError("mandatory field 'size' not present")
 
+    namespace_ends = ('module', 'identity', 'feature', 'data')
 
     def validate_items(self, items):
         namespace_absent = True
-        identifier_absent  = True
-        sid_absent  = True
+        identifier_absent = True
+        sid_absent = True
         for item in items:
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if not isinstance(item[key], util.str_types) or not re.match(r'module$|identity$|feature$|data$', item[key]):
+                    if not (isinstance(item[key], util.str_types)
+                            and item[key].endswith(self.namespace_ends)):
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
-                    continue
 
                 elif key == 'identifier':
                     identifier_absent = False
                     if not isinstance(item[key], util.str_types):
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
-                    continue
 
                 elif key == 'sid':
                     sid_absent = False
                     if not isinstance(item[key], util.int_types):
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
-                    continue
 
-                raise SidFileError("invalid key '%s'." % key)
+                else:
+                    raise SidFileError("invalid key '%s'." % key)
 
         if namespace_absent:
-            raise SidFileError("mandatory field 'entry-point' not present")
+            raise SidFileError("mandatory field 'namespace' not present")
 
         if identifier_absent:
-            raise SidFileError("mandatory field 'entry-point' not present")
+            raise SidFileError("mandatory field 'identifier' not present")
 
         if sid_absent:
-            raise SidFileError("mandatory field 'entry-point' not present")
+            raise SidFileError("mandatory field 'sid' not present")
 
     ########################################################
     # Verify if each range defined in the .sid file is distinct
-    def validate_ovelaping_ranges(self):
-        if 'assignment-ranges' in self.content:
-            l = len(self.content['assignment-ranges'])
-            if l > 1:
-                for i in range(l-1):
-                    i_first_sid = self.content['assignment-ranges'][i]['entry-point']
-                    i_last_sid = i_first_sid + self.content['assignment-ranges'][i]['size']
-                    for j in range(i+1, l):
-                        j_first_sid = self.content['assignment-ranges'][j]['entry-point']
-                        j_last_sid = j_first_sid + self.content['assignment-ranges'][j]['size']
-                        if (i_first_sid >= j_first_sid and i_first_sid < j_last_sid)  or (i_last_sid > j_first_sid and i_last_sid < j_last_sid):
-                            raise SidFileError("overlapping ranges are not allowed.")
+    def validate_overlapping_ranges(self):
+        assignment_ranges = self.content.get('assignment-ranges')
+        if not assignment_ranges:
+            return
+        used = []
+
+        for arange in assignment_ranges:
+            low = arange['entry-point']
+            high = low + arange['size']
+
+            for used_low, used_high in used:
+                if used_low <= low < used_high or low <= used_low < high:
+                    raise SidFileError("overlapping ranges are not allowed.")
+            used.append((low, high))
 
     ########################################################
     # Verify if each SID listed in items is in range and is not duplicate.
     def validate_sid(self):
-        self.content['items'].sort(key=lambda item:item['sid'])
+        self.content['items'].sort(key=lambda item: item['sid'])
         last_sid = -1
         for item in self.content['items']:
-            if self.out_of_ranges(item['sid']):
-                raise SidFileError("'sid' %d not within 'assignment-ranges'" % item['sid'])
-            if item['sid'] == last_sid:
-                raise SidFileError("duplicated 'sid' value %d " % item['sid'])
-            last_sid = item['sid']
+            sid = item['sid']
+            if self.out_of_ranges(sid):
+                raise SidFileError("'sid' %d not within 'assignment-ranges'" % sid)
+            if sid == last_sid:
+                raise SidFileError("duplicated 'sid' value %d " % sid)
+            last_sid = sid
 
     def out_of_ranges(self, sid):
-        for range in self.content['assignment-ranges']:
-            if sid >= range['entry-point'] and sid < range['entry-point'] + range['size']:
+        for arange in self.content.get('assignment-ranges') or []:
+            if arange['entry-point'] <= sid < arange['entry-point'] + arange['size']:
                 return False
         return True
+
+    # Groups of keywords with same handling in some method below, named after a representative
+    leaf_keywords = ('leaf', 'leaf-list', 'anyxml', 'anydata')
+    container_keywords = ('container', 'list')
+    choice_keywords = ('choice', 'case')
+    inrpc_keywords = ('input', 'output')
+    grouping_keywords = ('grouping', 'choice', 'case')
+    module_keywords = ('module', 'container', 'list', 'notification', 'rpc', 'action')
+
+    @staticmethod
+    def has_yang_data_extension(statement):
+        try:
+            return statement.i_extension.arg == 'yang-data'
+        except AttributeError:
+            return False
 
     ########################################################
     # Collection of items defined in .yang file(s)
@@ -532,26 +560,26 @@ class SidFile:
         for feature in module.i_features:
             self.merge_item('feature', feature)
 
-        for children in module.i_children:
-            if children.keyword == 'leaf' or children.keyword == 'leaf-list' or children.keyword == 'anyxml' or children.keyword == 'anydata':
-                self.merge_item('data', self.getPath(children))
+        for statement in module.i_children:
+            if statement.keyword in self.leaf_keywords:
+                self.merge_item('data', self.get_path(statement))
 
-            elif children.keyword == 'container' or children.keyword == 'list':
-                self.merge_item('data', self.getPath(children))
-                self.collect_inner_data_nodes(children.i_children)
+            elif statement.keyword in self.container_keywords:
+                self.merge_item('data', self.get_path(statement))
+                self.collect_inner_data_nodes(statement.i_children)
 
-            elif children.keyword == 'choice' or children.keyword == 'case':
-                self.collect_inner_data_nodes(children.i_children)
+            elif statement.keyword in self.choice_keywords:
+                self.collect_inner_data_nodes(statement.i_children)
 
-            elif children.keyword == 'rpc':
-                self.merge_item('data', "/%s:%s" % (self.module_name ,children.arg) )
-                for statement in children.i_children:
-                    if statement.keyword == 'input' or statement.keyword == 'output':
-                        self.collect_inner_data_nodes(statement.i_children)
+            elif statement.keyword == 'rpc':
+                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
+                for substmt in statement.i_children:
+                    if substmt.keyword in self.inrpc_keywords:
+                        self.collect_inner_data_nodes(substmt.i_children)
 
-            elif children.keyword == 'notification':
-                self.merge_item('data', "/%s:%s" % (self.module_name ,children.arg))
-                self.collect_inner_data_nodes(children.i_children)
+            elif statement.keyword == 'notification':
+                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
+                self.collect_inner_data_nodes(statement.i_children)
 
         for identity in module.i_identities:
             self.merge_item('identity', identity)
@@ -559,59 +587,60 @@ class SidFile:
         for substmt in module.substmts:
             if substmt.keyword == 'augment':
                 self.collect_in_substmts(substmt.substmts)
-            elif hasattr(substmt, 'i_extension') and substmt.i_extension.arg ==  'yang-data':
+            elif self.has_yang_data_extension(substmt):
                 self.collect_in_substmts(substmt.substmts)
 
-    def collect_inner_data_nodes(self, children):
-        for statement in children:
-            if statement.keyword == 'leaf' or statement.keyword == 'leaf-list' or statement.keyword == 'anyxml' or statement.keyword == 'anydata':
-                self.merge_item('data', self.getPath(statement))
+    def collect_inner_data_nodes(self, statements):
+        for statement in statements:
+            if statement.keyword in self.leaf_keywords:
+                self.merge_item('data', self.get_path(statement))
 
-            elif statement.keyword == 'container' or statement.keyword == 'list':
-                self.merge_item('data', self.getPath(statement))
+            elif statement.keyword in self.container_keywords:
+                self.merge_item('data', self.get_path(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
             elif statement.keyword == 'action':
-                self.merge_item('data', self.getPath(statement))
-                for children in statement.i_children:
-                    if children.keyword == 'input' or children.keyword == 'output':
-                        self.collect_inner_data_nodes(children.i_children)
+                self.merge_item('data', self.get_path(statement))
+                for substmt in statement.i_children:
+                    if substmt.keyword in self.inrpc_keywords:
+                        self.collect_inner_data_nodes(substmt.i_children)
 
             elif statement.keyword == 'notification':
-                self.merge_item('data', self.getPath(statement))
+                self.merge_item('data', self.get_path(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
-            elif statement.keyword == 'choice' or statement.keyword == 'case':
+            elif statement.keyword in self.choice_keywords:
                 self.collect_inner_data_nodes(statement.i_children)
 
     def collect_in_substmts(self, substmts):
         for statement in substmts:
-            if statement.keyword == 'leaf' or statement.keyword == 'leaf-list' or statement.keyword == 'anyxml' or statement.keyword == 'anydata':
-                self.merge_item('data', self.getPath(statement))
+            if statement.keyword in self.leaf_keywords:
+                self.merge_item('data', self.get_path(statement))
 
-            elif statement.keyword == 'container' or statement.keyword == 'list':
-                self.merge_item('data', self.getPath(statement))
+            elif statement.keyword in self.container_keywords:
+                self.merge_item('data', self.get_path(statement))
                 self.collect_in_substmts(statement.substmts)
 
-            elif statement.keyword == 'choice' or statement.keyword == 'case':
+            elif statement.keyword in self.choice_keywords:
                 self.collect_in_substmts(statement.substmts)
 
             elif statement.keyword == 'uses':
                 self.collect_inner_data_nodes(statement.i_grouping.i_children)
 
-    def getPath(self, statement):
+    def get_path(self, statement):
         path = ""
 
-        while statement.i_module != None:
-            if statement.keyword != "case" and statement.keyword != "choice" and statement.keyword != "grouping" and not (hasattr(statement, 'i_extension') and statement.i_extension.arg ==  'yang-data'):
+        while statement.i_module is not None:
+            if (statement.keyword not in self.grouping_keywords
+                    and not self.has_yang_data_extension(statement)):
                 # Locate the data node parent
                 parent = statement.parent
-                while parent.i_module != None:
-                    if parent.keyword == 'module' or parent.keyword == 'container' or parent.keyword == 'list' or parent.keyword == 'notification' or parent.keyword == 'rpc' or parent.keyword == 'action':
+                while parent.i_module is not None:
+                    if parent.keyword in self.module_keywords:
                         break
                     parent = parent.parent
 
-                if parent.i_module == None or parent.i_module != statement.i_module:
+                if parent.i_module is None or parent.i_module != statement.i_module:
                     path = "/" + statement.i_module.arg + ":" + statement.arg + path
                 else:
                     path = "/" + statement.arg + path
@@ -631,43 +660,64 @@ class SidFile:
     ########################################################
     # Sort the items list by 'namespace' and 'identifier'
     def sort_items(self):
-        self.content['items'].sort(key=lambda item:item['identifier'])
-        self.content['items'].sort(key=lambda item:item['namespace'], reverse=True)
+        self.content['items'].sort(key=lambda item: item['identifier'])
+        self.content['items'].sort(key=lambda item: item['namespace'], reverse=True)
 
     ########################################################
     # Identifier assignment
     def assign_sid(self):
-        sid = -1
-        for i in range(len(self.content['items'])):
-            if self.content['items'][i]['sid'] == -1:
-                sid = self.get_next_sid(sid)
-                while self.sid_used(sid):
-                    sid = self.get_next_sid(sid)
-                self.content['items'][i]['sid'] = sid
+        items = self.content['items']
+        unassigned = [item for item in items if item['sid'] == -1]
+        if not unassigned:
+            return
+        used = sorted(item['sid'] for item in items if item['sid'] != -1)
+        needed = len(unassigned)
+        source = self.gen_sids(used)
+
+        for item in unassigned:
+            try:
+                item['sid'] = next(source)
+            except StopIteration:
+                raise SidParsingError(
+                    "The current SID range(s) are exhausted, %d extra SID(s) "
+                    "are required, use the --sid-extra-range option to add "
+                    "a SID range to this YANG module." % needed)
+            needed -= 1
 
     def sid_used(self, sid):
-        for i in range(len(self.content['items'])):
-            if self.content['items'][i]['sid'] == sid:
+        for item in self.content['items']:
+            if item['sid'] == sid:
                 return True
         return False
 
-    def get_next_sid(self, sid):
-        global range_idx
+    def gen_sids(self, used):
+        ranges = sorted((arange['entry-point'], arange['size'])
+                        for arange in self.content.get('assignment-ranges') or [])
+        used_idx = 0
+        used_len = len(used)
+        for sid, size in ranges:
+            high = sid + size
+            while sid < high:
+                # find next upper bound of unused sids above sid
+                while used_idx < used_len:
+                    stop = used[used_idx]
+                    if stop < sid:
+                        used_idx += 1
+                    else:
+                        if stop == sid:
+                            # go past the used sid, recheck sid < high
+                            sid += 1
+                        elif stop > high:
+                            # next used is above current range
+                            stop = high
+                        break
+                else:
+                    # no more used sids
+                    stop = high
 
-        if sid == -1:
-            range_idx = 0
-            return self.content['assignment-ranges'][0]['entry-point']
-
-        sid += 1
-        if sid < self.content['assignment-ranges'][range_idx]['entry-point'] + self.content['assignment-ranges'][range_idx]['size']:
-            return sid
-
-        range_idx += 1
-        if range_idx < len(self.content['assignment-ranges']):
-            return self.content['assignment-ranges'][range_idx]['entry-point']
-
-        unassigned_yang_items = self.number_of_unassigned_yang_items()
-        raise SidParsingError("The current SID range(s) are exhausted, %d extra SID(s) are required, use the --sid-extra-range option to add a SID range to this YANG module." % unassigned_yang_items)
+                while sid < stop:
+                    yield sid
+                    sid += 1
 
     ########################################################
     def list_all_items(self):
@@ -686,19 +736,22 @@ class SidFile:
             print("%-9s  %s %s%s" % (item['sid'], item['namespace'], item['identifier'], status))
 
         if definition_removed:
-            print("\nWARNING, obsolete definitions should be defined as 'deprecated' or 'obsolete'.")
+            print(
+                "\nWARNING, obsolete definitions should be defined as 'deprecated' or 'obsolete'.")
 
     ########################################################
     def list_deleted_items(self):
         definition_removed = False
         for item in self.content['items']:
             if item['status'] == 'd':
-                print("WARNING, item '%s' have been deleted form the .yang files." % item['identifier'])
+                print("WARNING, item '%s' was deleted form the .yang files." % item['identifier'])
                 definition_removed = True
 
         if definition_removed:
-            print("Obsolete definitions MUST NOT be removed from YANG modules, see RFC 6020 section 10.")
-            print("These definition(s) should be reintroduced with a 'deprecated' or 'obsolete' status.")
+            print("Obsolete definitions MUST NOT be removed "
+                  "from YANG modules, see RFC 6020 section 10.\n"
+                  "These definition(s) should be reintroduced "
+                  "with a 'deprecated' or 'obsolete' status.")
 
     ########################################################
     def generate_file(self):
@@ -712,106 +765,77 @@ class SidFile:
             json.dump(self.content, outfile, indent=2)
 
     ########################################################
-    def number_of_SIDs_allocated(self):
+    def number_of_sids_allocated(self):
         size = 0
-        for range in self.content['assignment-ranges']:
-            size += range['size']
+        for arange in self.content.get('assignment-ranges') or []:
+            size += arange['size']
         return size
 
-
     def number_of_unassigned_yang_items(self):
-        yang_item_unassigned = 0
+        return len([0 for item in self.content['items'] if item['sid'] == -1])
 
-        for i in range(len(self.content['items'])):
-            if self.content['items'][i]['sid'] == -1:
-                yang_item_unassigned += 1
+    def number_of_sids_used(self):
+        return len([0 for item in self.content['items'] if item['sid'] != -1])
 
-        return yang_item_unassigned
-
-    def number_of_SIDs_used(self):
-        sid_used = 0
-
-        for i in range(len(self.content['items'])):
-            if self.content['items'][i]['sid'] != -1:
-                sid_used += 1
-
-        return sid_used
-
-    def number_of_SIDs_used_in_range(self, entry_point, size):
-        sid_used = 0
-        next_entry_point = entry_point + size
-
-        for i in range(len(self.content['items'])):
-            sid = self.content['items'][i]['sid']
-            if sid >= entry_point and sid < next_entry_point:
-                sid_used += 1
-
-        return sid_used
+    def number_of_sids_used_in_range(self, entry_point, size):
+        low = entry_point
+        high = low + size
+        return len([0 for item in self.content['items'] if low <= item['sid'] < high])
 
     ########################################################
     def print_registration_information(self, module):
-        info={
+        ranges = []
+        submodules = []
+        info = {
             'module_name' : self.module_name,
             'module_revision' : self.module_revision,
             'yang_file' : '%s@%s.yang' % (self.module_name, self.module_revision),
-            'ranges' : [],
-            'submodules' : []
+            'ranges' : ranges,
+            'submodules' : submodules,
         }
 
-        for range in self.content['assignment-ranges']:
-            info['ranges'].append({
-                'entry_point' : range['entry-point'],
-                'size' : range['size'],
-                'used' : self.number_of_SIDs_used_in_range(range['entry-point'], range['size'])
+        for arange in self.content('assignment-ranges') or []:
+            ranges.append({
+                'entry_point' : arange['entry-point'],
+                'size' : arange['size'],
+                'used' : self.number_of_sids_used_in_range(arange['entry-point'], arange['size'])
             })
 
         for name in module.i_ctx.modules:
-            if module.i_ctx.modules[name].keyword == 'submodule':
-                info['submodules'].append('%s@%s.yang' % (module.i_ctx.modules[name].arg, module.i_ctx.modules[name].i_latest_revision))
+            submodule = module.i_ctx.modules[name]
+            if submodule.keyword == 'submodule':
+                submodules.append('%s@%s.yang' % (submodule.arg, submodule.i_latest_revision))
 
         print(json.dumps(info, indent=2))
 
     ########################################################
     # Perform the conversion to the .sid file fromat introduced by [I-D.ietf-core-sid] version 3.
-    # This method can be remove after the proper transition period.
+    # This method can be removed after the proper transition period.
+
+    node_keywords = ('node', 'notification', 'rpc', 'action')
+
     def upgrade_sid_file_format(self):
-        if not 'items' in self.content or not self.content['items'] or not 'type' in self.content['items'][0]:
+        items = self.content.get('items')
+        if not items:
             return
 
-        for item in self.content['items']:
-            if 'type' in item:
-                if item['type'] == 'Module':
-                    item['namespace'] = 'module'
-                    item['identifier'] = item['label']
+        for item in items:
+            type_ = item.pop('type', None)
+            label = item.pop('label', None)
+            if not type_:
+                pass
+            elif type_ in ('Module', 'Submodule'):
+                item['namespace'] = 'module'
+                item['identifier'] = label
 
-                elif item['type'] == 'Submodule':
-                    item['namespace'] = 'module'
-                    item['identifier'] = item['label']
+            elif type_ == 'feature':
+                item['namespace'] = type_
+                item['identifier'] = label
 
-                elif item['type'] == 'feature':
-                    item['namespace'] = 'feature'
-                    item['identifier'] = item['label']
+            elif type_ == 'identity':
+                item['namespace'] = type_
+                item['identifier'] = label.rsplit('/', 1)[-1]
 
-                elif item['type'] == 'identity':
-                    item['namespace'] = 'identity'
-                    p = item['label'].rfind('/') + 1
-                    item['identifier'] = item['label'][p:]
-
-                elif item['type'] == 'node':
-                    item['namespace'] = 'data'
-                    item['identifier'] = '/' + self.module_name + ':' + item['label'][1:]
-
-                elif item['type'] == 'notification':
-                    item['namespace'] = 'data'
-                    item['identifier'] = '/' + self.module_name + ':' + item['label'][1:]
-
-                elif item['type'] == 'rpc':
-                    item['namespace'] = 'data'
-                    item['identifier'] = '/' + self.module_name + ':' + item['label'][1:]
-
-                elif item['type'] == 'action':
-                    item['namespace'] = 'data'
-                    item['identifier'] = '/' + self.module_name + ':' + item['label'][1:]
-
-            item.pop('type')
-            item.pop('label')
+            elif type_ in self.node_keywords:
+                item['namespace'] = 'data'
+                item['identifier'] = '/' + self.module_name + ':' + label[1:]
