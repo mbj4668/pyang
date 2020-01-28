@@ -116,7 +116,7 @@ def emit_stmt(ctx, module, stmt, fd, indent, indentstep):
     else:
         (argname, argiselem) = syntax.yin_map[stmt.raw_keyword]
         tag = stmt.raw_keyword
-    if argiselem == False or argname is None:
+    if argiselem is False or argname is None:
         if argname is None:
             attr = ''
         else:

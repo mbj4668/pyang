@@ -583,7 +583,7 @@ def chk_statement(ctx, stmt, grammar, canonical=False):
     Return True if stmt is valid, False otherwise.
     """
     n = len(ctx.errors)
-    if canonical == True:
+    if canonical:
         canspec = grammar
     else:
         canspec = []
@@ -603,12 +603,12 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                 chk_grammar = True
             else:
                 chk_grammar = False
-        if chk_grammar == True:
+        if chk_grammar:
             match_res = _match_stmt(ctx, stmt, spec, canonical)
         else:
             match_res = None
-        if match_res is None and chk_grammar == True:
-            if canonical == True:
+        if match_res is None and chk_grammar:
+            if canonical:
                 save_errors = ctx.errors
                 ctx.errors = []
                 if _match_stmt(ctx, stmt, (spec[1], []), False) is not None:
@@ -623,7 +623,7 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
             else:
                 error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD',
                               util.keyword_to_str(stmt.raw_keyword))
-        elif match_res is not None and chk_grammar == True:
+        elif match_res is not None and chk_grammar:
             try:
                 (arg_type, subspec) = stmt_map[stmt.keyword]
             except KeyError:
@@ -639,7 +639,7 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                               'EXPECTED_ARGUMENT',
                               util.keyword_to_str(stmt.keyword))
             elif (arg_type is not None and arg_type != 'string' and
-                  syntax.arg_type_map[arg_type](stmt.arg) == False):
+                  syntax.arg_type_map[arg_type](stmt.arg) is False):
                 error.err_add(ctx.errors, stmt.pos,
                               'BAD_VALUE', (stmt.arg, arg_type))
             elif (arg_type == 'identifier' and
@@ -652,7 +652,7 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
             else:
                 stmt.is_grammatically_valid = True
 
-            if canonical == True:
+            if canonical:
                 cansubspec = subspec
             else:
                 cansubspec = []
@@ -668,7 +668,7 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
         # update last know position
         pos = stmt.pos
     # any non-optional statements left are errors
-    for (keywd, occurance) in spec[0]:
+    for keywd, occurance in spec[0]:
         if occurance == '1' or occurance == '+':
             if parent is None:
                 error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD',
@@ -698,20 +698,20 @@ def _match_stmt(ctx, stmt, specs, canonical):
         if keywd == stmt.keyword:
             if occurance == '1' or occurance == '?':
                 # consume this match
-                if canonical == True:
+                if canonical:
                     return (spec[i+1:], spec_del_kwd(keywd, canspec))
                 else:
                     return (spec[:i] + spec[i+1:], canspec)
             if occurance == '+':
                 # mark that we have found the one that was needed
                 c = (keywd, '*')
-                if canonical == True:
+                if canonical:
                     return ([c] + spec[i+1:], canspec)
                 else:
                     return (spec[:i] + [c] + spec[i+1:], canspec)
             else:
                 # occurane == '*'
-                if canonical == True:
+                if canonical:
                     return (spec[i:], canspec)
                 else:
                     return (spec, canspec)
@@ -727,7 +727,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
                 else:
                     match_res = _match_stmt(ctx, stmt, (cases[j],cases[j]),
                                             canonical)
-                if match_res != None:
+                if match_res is not None:
                     # this case branch matched, use it.
                     # remove the choice and add res to the spec.
                     nspec = spec[:i] + match_res[0] + spec[i+1:]
@@ -738,7 +738,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
         elif keywd == '$interleave':
             cspec = occurance
             match_res = _match_stmt(ctx, stmt, (cspec, cspec), canonical)
-            if match_res != None:
+            if match_res is not None:
                 # we got a match
                 return (spec, canspec)
         elif util.is_prefixed(stmt.keyword):
@@ -746,13 +746,13 @@ def _match_stmt(ctx, stmt, specs, canonical):
             # set canonical to False in this call to just remove the
             # matching stmt from the spec
             match_res = _match_stmt(ctx, stmt, (spec[i+1:], canspec), False)
-            if match_res != None:
+            if match_res is not None:
                 return (spec[:i+1] + match_res[0], canspec)
             else:
                 return None
         elif keywd == '$cut':
             # any non-optional statements left are errors
-            for (keywd, occurance) in spec[:i]:
+            for keywd, occurance in spec[:i]:
                 if occurance == '1' or occurance == '+':
                     error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
                                   (util.keyword_to_str(stmt.raw_keyword),
@@ -760,7 +760,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
             # consume them so we don't report the same error again
             spec = spec[i:]
             i = 0
-        elif canonical == True:
+        elif canonical:
             if occurance == '1' or occurance == '+':
                 error.err_add(ctx.errors, stmt.pos,
                               'UNEXPECTED_KEYWORD_CANONICAL_1',
@@ -775,7 +775,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
 
 def spec_del_kwd(keywd, spec):
     i = 0
-    for (kw, s) in spec:
+    for kw, s in spec:
         if kw == keywd:
             return spec[:i] + spec[i+1:]
         i = i + 1
@@ -783,7 +783,7 @@ def spec_del_kwd(keywd, spec):
 
 def flatten_spec(spec):
     res = []
-    for (kw, s) in spec:
+    for kw, s in spec:
         if kw == '$interleave':
             res.extend(flatten_spec(s))
         elif kw == '$1.1':
@@ -813,7 +813,7 @@ def sort_canonical(keyword, stmts):
     res = []
     # keep the order of data definition statements and case
     keep = [s[0] for s in data_def_stmts] + ['case']
-    for (kw, _spec) in flatten_spec(subspec):
+    for kw, _spec in flatten_spec(subspec):
         # keep comments before a statement together with that statement
         comments = []
         for s in stmts:

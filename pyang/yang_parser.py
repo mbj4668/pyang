@@ -86,7 +86,7 @@ class YangTokenizer(object):
         self.skip(keep_comments=True)
         offset = self.offset
         m = syntax.re_comment.match(self.buf)
-        if m == None:
+        if m is None:
             return None
         else:
             cmt = m.group(0)
@@ -113,7 +113,7 @@ class YangTokenizer(object):
         self.skip()
 
         m = syntax.re_keyword.match(self.buf)
-        if m == None:
+        if m is None:
             error.err_add(self.errors, self.pos,
                           'SYNTAX_ERROR', 'illegal keyword: ' + self.buf)
             raise error.Abort
@@ -130,7 +130,7 @@ class YangTokenizer(object):
                               self.buf[:6] + '..."')
                 raise error.Abort
 
-            if m.group(2) == None: # no prefix
+            if m.group(2) is None: # no prefix
                 return m.group(3)
             else:
                 return (m.group(2), m.group(3))
@@ -208,7 +208,7 @@ class YangTokenizer(object):
                         elif self.strict_quoting:
                             error.err_add(self.errors, self.pos,
                                           'ILLEGAL_ESCAPE_WARN', self.buf[i+1])
-                        if special != None:
+                        if special is not None:
                             res.append(self.buf[start:i])
                             res.append(special)
                             i = i + 1
@@ -247,7 +247,7 @@ class YangTokenizer(object):
                     elif i == buflen:
                         # whitespace only on this line; keep it as is
                         i = 0
-        elif need_quote == True:
+        elif need_quote is True:
             error.err_add(self.errors, self.pos, 'EXPECTED_QUOTED_STRING', ())
             raise error.Abort
         else:
@@ -303,7 +303,7 @@ class YangParser(object):
         # treat it differently than we treat keywords further down
         if self.ctx.keep_comments:
             cmt = self.tokenizer.get_comment()
-            if cmt != None:
+            if cmt is not None:
                 stmt = statements.new_statement(self.top,
                                                 parent,
                                                 self.pos,
@@ -360,7 +360,7 @@ def pp(s, indent=0):
     sys.stdout.write(" " * indent + ppkeywd(s.raw_keyword))
     if s.arg is not None:
         sys.stdout.write(" '" + s.arg + "'")
-    if s.substmts == []:
+    if not s.substmts:
         sys.stdout.write(";\n")
     else:
         sys.stdout.write(" {\n")

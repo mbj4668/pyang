@@ -95,7 +95,7 @@ class DSDLPlugin(plugin.PyangPlugin):
         emit_dsdl(ctx, modules, fd)
 
 def emit_dsdl(ctx, modules, fd):
-    for (epos, etag, eargs) in ctx.errors:
+    for epos, etag, eargs in ctx.errors:
         if error.is_error(error.err_level(etag)):
             raise error.EmitError("DSDL translation needs a valid module")
     schema = HybridDSDLSchema().from_modules(modules,
@@ -1211,9 +1211,9 @@ class HybridDSDLSchema(object):
                 self.add_patch(pset, sub)
         if expand:
             self.lookup_expand(grp, list(pset))
-        elif len(self.prefix_stack) <= 1 and not(hasattr(stmt,"d_expand")):
-            uname, dic = self.unique_def_name(stmt.i_grouping,
-                                              not(p_elem.interleave))
+        elif len(self.prefix_stack) <= 1 and not hasattr(stmt,"d_expand"):
+            uname, dic = self.unique_def_name(
+                stmt.i_grouping, not p_elem.interleave)
             if uname not in dic:
                 self.install_def(uname, stmt.i_grouping, dic,
                                  p_elem.interleave)

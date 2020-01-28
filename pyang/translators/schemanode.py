@@ -139,7 +139,7 @@ class SchemaNode(object):
 
     def adjust_interleave(self, interleave):
         """Inherit interleave status from parent if undefined."""
-        if interleave == None and self.parent:
+        if interleave is None and self.parent:
             self.interleave = self.parent.interleave
         else:
             self.interleave = interleave

@@ -209,7 +209,7 @@ def chk_fraction_digits_arg(s):
         return False
 
 def chk_if_feature_expr(s):
-    return  parse_if_feature_expr(s) != None
+    return parse_if_feature_expr(s) is not None
 
 # if-feature-expr     = "(" if-feature-expr ")" /
 #                      if-feature-expr sep boolean-operator sep
@@ -253,7 +253,7 @@ def parse_if_feature_expr(s):
             y()
             tok = sx.get_token()
         sx.push_token(tok)
-        while operators[-1] != None:
+        while operators[-1] is not None:
             pop_operator()
 
     def y():

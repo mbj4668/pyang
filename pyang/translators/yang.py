@@ -170,13 +170,13 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
         # the arg
         line_len = len(indent) + len(keywordstr) + 1 + 2 + len(eol)
         if (stmt.keyword in _keyword_prefer_single_quote_arg and
-            stmt.arg.find("'") == -1):
+            "'" not in stmt.arg):
             # print with single quotes
             if hasattr(stmt, 'arg_substrings') and len(stmt.arg_substrings) > 1:
                 # the arg was already split into multiple lines, keep them
                 emit_multi_str_arg(keywordstr, stmt.arg_substrings, fd, "'",
                                    indent, indentstep, max_line_len, line_len)
-            elif not(need_new_line(max_line_len, line_len, stmt.arg)):
+            elif not need_new_line(max_line_len, line_len, stmt.arg):
                 # fits into a single line
                 fd.write(" '" + stmt.arg + "'")
             else:
@@ -204,7 +204,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
                 (arg_type in _maybe_quote_arg_type and
                  not need_quote(stmt.arg))):
                 # minus 2 since we don't quote
-                if not(need_new_line(max_line_len, line_len-2, stmt.arg)):
+                if not need_new_line(max_line_len, line_len-2, stmt.arg):
                     fd.write(' ' + stmt.arg)
                 else:
                     fd.write('\n' + indent + indentstep + stmt.arg)
@@ -238,7 +238,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
             prev_kwd = s.keyword
         fd.write(indent + '}\n')
 
-    if (not(islast) and
+    if (not islast and
         ((level == 1 and stmt.keyword in
           _keyword_with_trailing_blank_line_toplevel) or
          stmt.keyword in _keyword_with_trailing_blank_line)):
@@ -248,7 +248,7 @@ def need_new_line(max_line_len, line_len, arg):
     eol = arg.find('\n')
     if eol == -1:
         eol = len(arg)
-    if (max_line_len is not None and line_len + eol > max_line_len):
+    if max_line_len is not None and line_len + eol > max_line_len:
         return True
     else:
         return False
@@ -260,7 +260,7 @@ def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
     # we can print w/o a newline
     need_new_line = False
     if max_line_len is not None:
-        for (s, q) in strs:
+        for s, q in strs:
             q = select_quote(s, q, pref_q)
             if q == '"':
                 s = escape_str(s)
@@ -280,7 +280,7 @@ def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
         s = escape_str(s)
     fd.write("%s%s%s\n" % (q, s, q))
     # then print the rest with the prefix and a newline at the end
-    for (s, q) in strs[1:-1]:
+    for s, q in strs[1:-1]:
         q = select_quote(s, q, pref_q)
         if q == '"':
             s = escape_str(s)
@@ -298,7 +298,7 @@ def select_quote(s, q, pref_q):
     if pref_q == q:
         return q
     elif pref_q == "'":
-        if s.find("'") == -1:
+        if "'" not in s:
             # the string was double quoted, but it wasn't necessary,
             # use preferred single quote
             return "'"
@@ -327,7 +327,7 @@ def emit_path_arg(keywordstr, arg, fd, indent, max_line_len, line_len, eol):
 
     arg = escape_str(arg)
 
-    if not(need_new_line(max_line_len, line_len, arg)):
+    if not need_new_line(max_line_len, line_len, arg):
         fd.write(" " + quote + arg + quote)
         return False
 

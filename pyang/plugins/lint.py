@@ -241,7 +241,7 @@ def v_chk_recommended_substmt(ctx, stmt):
                         (s, stmt.keyword, r))
 
 def v_chk_namespace(ctx, stmt, namespace_prefixes):
-    if namespace_prefixes != []:
+    if namespace_prefixes:
         for prefix in namespace_prefixes:
             if stmt.arg == prefix + stmt.i_module.arg:
                 return
@@ -249,9 +249,9 @@ def v_chk_namespace(ctx, stmt, namespace_prefixes):
                 namespace_prefixes[0] + stmt.i_module.arg)
 
 def v_chk_module_name(ctx, stmt, modulename_prefixes):
-    if modulename_prefixes != []:
+    if modulename_prefixes:
         for prefix in modulename_prefixes:
-            if stmt.arg.find(prefix + '-') == 0:
+            if stmt.arg.startswith(prefix + '-'):
                 return
         if len(modulename_prefixes) == 1:
             err_add(ctx.errors, stmt.pos, 'LINT_BAD_MODULENAME_PREFIX_1',
@@ -263,7 +263,7 @@ def v_chk_module_name(ctx, stmt, modulename_prefixes):
             s = ", ".join(['"' + p + '-"' for p in modulename_prefixes[:-1]]) +\
             ', or "' + modulename_prefixes[-1] + '-"'
             err_add(ctx.errors, stmt.pos, 'LINT_BAD_MODULENAME_PREFIX_N', s)
-    elif stmt.arg.find('-') == -1:
+    elif '-' not in stmt.arg:
         # can't check much, but we can check that a prefix is used
         err_add(ctx.errors, stmt.pos, 'LINT_NO_MODULENAME_PREFIX', ())
 
@@ -294,14 +294,13 @@ def v_chk_mandatory_top_level(ctx, stmt):
 
 def v_chk_hyphenated_names(ctx, stmt):
     if stmt.keyword in grammar.stmt_map:
-        (arg_type, subspec) = grammar.stmt_map[stmt.keyword]
-        if ((arg_type == 'identifier' or arg_type == 'enum-arg') and
-            not_hyphenated(stmt.arg)):
+        arg_type, subspec = grammar.stmt_map[stmt.keyword]
+        if arg_type in ('identifier', 'enum-arg') and not_hyphenated(stmt.arg):
             error.err_add(ctx.errors, stmt.pos, 'LINT_NOT_HYPHENATED', stmt.arg)
 
 def not_hyphenated(name):
     ''' Returns True if name is not hyphenated '''
-    if name == None:
+    if name is None:
         return False
     # Check for upper-case and underscore
-    return (name != name.lower() or "_" in name)
+    return name != name.lower() or "_" in name

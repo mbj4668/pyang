@@ -112,7 +112,7 @@ class YinParser(object):
             error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
                           "unexpected element - mixed content")
         self.data = ''
-        if self.element_stack == []:
+        if not self.element_stack:
             # this is the top-level element
             self.top_element = e
             self.element_stack.append(e)
@@ -177,7 +177,7 @@ class YinParser(object):
             (arg_is_elem, argname)  = res
 
         keywdstr = util.keyword_to_str(keywd)
-        if arg_is_elem == True:
+        if arg_is_elem is True:
             # find the argument element
             arg_elem = e.find_child(e.ns, argname)
             if arg_elem is None:
@@ -192,7 +192,7 @@ class YinParser(object):
                 else:
                     arg = arg_elem.data
                 e.remove_child(arg_elem)
-        elif arg_is_elem == False:
+        elif arg_is_elem is False:
             arg = e.find_attribute(argname)
             if arg is None:
                 error.err_add(self.ctx.errors, e.pos,

@@ -526,7 +526,7 @@ def err_to_str(tag, args):
 def err_add(errors, pos, tag, args):
     error = (copy.copy(pos), tag, args)
     # surely this can be done more elegant??
-    for (p, t, a) in errors:
+    for p, t, a in errors:
         if (p.line == pos.line and p.ref == pos.ref and
             p.top == pos.top and t == tag and a == args):
             return
