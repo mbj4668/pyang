@@ -27,14 +27,15 @@ class Error(Exception):
 class DataTypeError(Error):
     """Exception raised for values with wrong type."""
 
-    def __init__(self, path, type, value):
+    def __init__(self, path, datatype, value):
         Error.__init__(self, path)
-        self.type = type
+        self.datatype = datatype
         self.value = value
 
     def __str__(self):
-        return (Error.__str__(self) +
-                ' - %s is not a valid value of "%s" type' % (repr(self.value), self.type))
+        return Error.__str__(self) + (
+           ' - %r is not a valid value of "%s" type'
+           % (self.value, self.datatype))
 
 class NodeTypeError(Error):
     """Exception raised if the JSON object type doesn't fit the data model."""
@@ -50,7 +51,7 @@ class InvalidNodeError(Error):
     """Exception raised for nodes that are not found in the data model."""
 
     def __str__(self):
-        return (Error.__str__(self) + " - invalid node")
+        return Error.__str__(self) + " - invalid node"
 
 class MissingKeyError(Error):
     """Exception raised if a list entry doesn't have all keys."""
@@ -66,7 +67,7 @@ class InvalidAnnotationObjectError(Error):
     """Exception raise for an invalid annotation object."""
 
     def __str__(self):
-        return (Error.__str__(self) + " - invalid annotation object")
+        return Error.__str__(self) + " - invalid annotation object"
 
 class InvalidAnnotationError(Error):
     """
@@ -78,13 +79,14 @@ class InvalidAnnotationError(Error):
         self.annot = annot
 
     def __str__(self):
-        return (Error.__str__(self) + " - invalid annotation " + self.annot)
+        return Error.__str__(self) + " - invalid annotation " + self.annot
 
 class JSONError(Error):
     """Exception raised for broken JSON input."""
 
     def __str__(self):
-        return (self.path.__str__())
+        return "%s" % self.path
+
 
 class Translator (object):
     """Translate JSON to XML according to a YANG data model.
@@ -284,8 +286,8 @@ class Translator (object):
                 raise InvalidNodeError(path)
         if sep:
             self.node_modules.add(fst)
-            return (snd, fst, spec)
-        return (fst, ns, spec)
+            return snd, fst, spec
+        return fst, ns, spec
 
     def text_value(self, value, type_spec, mod_name, path):
         """Return `value` translated to its XML form.
@@ -428,7 +430,7 @@ def main():
         jtox = json.load(dfile)
     except IOError as e:
         sys.stderr.write("%s: error: %s: '%s'\n" %
-                         (parser.prog, e.strerror,e.filename))
+                         (parser.prog, e.strerror, e.filename))
         return 1
     except ValueError as e:
         sys.stderr.write("%s: error: %s\n" %
@@ -441,7 +443,7 @@ def main():
     try:
         trans.translate(jfile, root_el)
     except Error as e:
-        sys.stderr.write(parser.prog + ": " + str(e) + "\n")
+        sys.stderr.write("%s: %s\n" % (parser.prog, e))
         return e.return_value
     for m in set(trans.prefix) - trans.node_modules:
         root_el.attrib["xmlns:" + trans.prefix[m]] = trans.uri[m]

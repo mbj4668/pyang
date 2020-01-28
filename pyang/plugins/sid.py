@@ -96,7 +96,7 @@ class SidPlugin(plugin.PyangPlugin):
             if not error.is_warning(error.err_level(etag)):
                 fatal_error = True
 
-        if fatal_error or (ctx.errors != [] and ctx.opts.check_sid_file is not None):
+        if fatal_error or ctx.errors and ctx.opts.check_sid_file is not None:
             sys.stderr.write("Invalid YANG module\n")
             return
 

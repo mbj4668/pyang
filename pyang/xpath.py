@@ -67,7 +67,7 @@ def add_prefix(prefix, s):
 def _add_prefix(prefix, tok):
     if tok.type == 'name':
         m = xpath_lexer.re_ncname.match(tok.value)
-        if m.group(2) == None:
+        if m.group(2) is None:
             tok.value = prefix + ':' + tok.value
     return tok
 
@@ -132,18 +132,18 @@ def chk_xpath_expr(ctx, mod, pos, initial, node, q, t):
                 s = s[1:-1]
                 i = s.find(':')
                 # make sure there is just one : present
-                if i != -1 and s[i + 1:].find(':') == -1:
+                # FIXME: more colons should possibly be reported, instead
+                if i != -1 and s.find(':', i + 1) == -1:
                     prefix = s[:i]
-                    tag = s[(i+1):]
+                    tag = s[i + 1:]
                     if (re_identifier.search(prefix) is not None and
                         re_identifier.search(tag) is not None):
                         # we don't want to report an error; just mark the
                         # prefix as being used.
                         my_errors = []
                         prefix_to_module(mod, prefix, pos, my_errors)
-                        for (pos0, code, arg) in my_errors:
-                            if (code == 'PREFIX_NOT_DEFINED' and
-                                t == 'qstring'):
+                        for pos0, code, arg in my_errors:
+                            if code == 'PREFIX_NOT_DEFINED' and t == 'qstring':
                                 # we know for sure that this is an error
                                 err_add(ctx.errors, pos0,
                                         'PREFIX_NOT_DEFINED', arg)
@@ -159,12 +159,12 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
         signature = core_functions[func]
     elif func in yang_xpath_functions:
         signature = yang_xpath_functions[func]
-    elif (mod.i_version != '1' and func in yang_1_1_xpath_functions):
+    elif mod.i_version != '1' and func in yang_1_1_xpath_functions:
         signature = yang_1_1_xpath_functions[func]
     elif ctx.strict and func in extra_xpath_functions:
         err_add(ctx.errors, pos, 'STRICT_XPATH_FUNCTION', func)
         return None
-    elif not(ctx.strict) and func in extra_xpath_functions:
+    elif not ctx.strict and func in extra_xpath_functions:
         signature = extra_xpath_functions[func]
 
     if signature is None:
@@ -174,17 +174,17 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     # check that the number of arguments are correct
     nexp = len(signature[0])
     nargs = len(args)
-    if (nexp == nargs):
+    if nexp == nargs:
         pass
-    elif (nexp == 0 and nargs != 0):
+    elif nexp == 0 and nargs != 0:
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, nexp, nargs))
-    elif (signature[0][-1] == '?' and nargs == (nexp - 1)):
+    elif signature[0][-1] == '?' and nargs == (nexp - 1):
         pass
     elif signature[0][-1] == '?':
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, "%s-%s" % (nexp-1, nexp), nargs))
-    elif (signature[0][-1] == '*' and nargs >= (nexp - 1)):
+    elif signature[0][-1] == '*' and nargs >= (nexp - 1):
         pass
     elif signature[0][-1] == '*':
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
@@ -246,10 +246,8 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             if pmodule is not None and node is not None and initial is not None:
                 if node == 'root':
                     children = pmodule.i_children
-                elif hasattr(node, 'i_children'):
-                    children = node.i_children
                 else:
-                    children = []
+                    children = getattr(node, 'i_children', None) or []
                 child = search_data_node(children, pmodule.i_modulename, name)
                 if child is None and node == 'root':
                     err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
@@ -261,8 +259,8 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 elif child is None:
                     err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
                             (pmodule.i_modulename, name, node.arg))
-                elif (hasattr(initial, 'i_config') and initial.i_config
-                      and hasattr(child, 'i_config') and not child.i_config):
+                elif (getattr(initial, 'i_config', None) is True
+                      and getattr(child, 'i_config', None) is False):
                     err_add(ctx.errors, pos, 'XPATH_REF_CONFIG_FALSE',
                             (pmodule.i_modulename, name))
                 else:

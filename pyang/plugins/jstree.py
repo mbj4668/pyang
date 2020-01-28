@@ -536,7 +536,7 @@ def get_flags_str(s):
         return ''
     elif s.keyword == 'notification':
         return ''
-    elif s.i_config == True:
+    elif s.i_config:
         return 'config'
     else:
         return 'no config'
@@ -605,11 +605,7 @@ def typestring(node):
         # chase typedef
         type_namespace = None
         i_type_name = None
-        name = t.arg
-        if name.find(":") == -1:
-            prefix = None
-        else:
-            [prefix, name] = name.split(':', 1)
+        prefix, name = util.split_identifier(t.arg)
         if prefix is None or t.i_module.i_prefix == prefix:
             # check local typedefs
             pmodule = node.i_module
@@ -621,7 +617,7 @@ def typestring(node):
             if pmodule is None:
                 return
             typedef = statements.search_typedef(pmodule, name)
-        if typedef != None:
+        if typedef is not None:
             s = s + get_nontypedefstring(typedef)
     return s
 

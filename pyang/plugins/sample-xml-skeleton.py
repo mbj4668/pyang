@@ -90,7 +90,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         else:
             path = []
 
-        for (epos, etag, eargs) in ctx.errors:
+        for epos, etag, eargs in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError(
                     "sample-xml-skeleton plugin needs a valid module")
@@ -204,7 +204,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """
         if path is None:
             return parent, module, None
-        elif path == []:
+        elif not path:
             # GO ON
             pass
         else:

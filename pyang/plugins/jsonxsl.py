@@ -68,7 +68,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
         recursively all nodes in all data trees, and finally emit the
         serialized stylesheet.
         """
-        for (epos, etag, eargs) in ctx.errors:
+        for epos, etag, eargs in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError("JSONXSL plugin needs a valid module")
         self.real_prefix = unique_prefixes(ctx)

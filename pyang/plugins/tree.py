@@ -11,6 +11,7 @@ import re
 
 from pyang import plugin
 from pyang import statements
+from pyang import util
 
 def pyang_plugin_init():
     plugin.register_plugin(TreePlugin())
@@ -458,9 +459,9 @@ def get_flags_str(s, mode):
         return '-n'
     elif s.keyword == 'uses':
         return '-u'
-    elif s.i_config == True:
+    elif s.i_config is True:
         return 'rw'
-    elif s.i_config == False or mode == 'output' or mode == 'notification':
+    elif s.i_config is False or mode in ('output', 'notification'):
         return 'ro'
     else:
         return ''
@@ -485,17 +486,14 @@ def get_typename(s, prefix_with_modname=False):
                 target = []
                 curprefix = s.i_module.i_prefix
                 for name in p.arg.split('/'):
-                    if name.find(":") == -1:
-                        prefix = curprefix
-                    else:
-                        [prefix, name] = name.split(':', 1)
-                    if prefix == curprefix:
+                    prefix, name = util.split_identifier(name)
+                    if prefix is None or prefix == curprefix:
                         target.append(name)
                     else:
                         if prefix_with_modname:
                             if prefix in s.i_module.i_prefixes:
                                 # Try to map the prefix to the module name
-                                (module_name, _) = s.i_module.i_prefixes[prefix]
+                                module_name, _ = s.i_module.i_prefixes[prefix]
                             else:
                                 # If we can't then fall back to the prefix
                                 module_name = prefix
@@ -509,16 +507,15 @@ def get_typename(s, prefix_with_modname=False):
                 # leafref type. See RFC6020 section 9.9.2
                 # (https://tools.ietf.org/html/rfc6020#section-9.9.2)
                 if prefix_with_modname:
-                    if t.arg.find(":") == -1:
+                    prefix, name = util.split_identifier(t.arg)
+                    if prefix is None:
                         # No prefix specified. Leave as is
                         return t.arg
                     else:
                         # Prefix found. Replace it with the module name
-                        [prefix, name] = t.arg.split(':', 1)
-                        #return s.i_module.i_modulename + ':' + name
                         if prefix in s.i_module.i_prefixes:
                             # Try to map the prefix to the module name
-                            (module_name, _) = s.i_module.i_prefixes[prefix]
+                            module_name, _ = s.i_module.i_prefixes[prefix]
                         else:
                             # If we can't then fall back to the prefix
                             module_name = prefix
@@ -527,16 +524,15 @@ def get_typename(s, prefix_with_modname=False):
                     return t.arg
         else:
             if prefix_with_modname:
-                if t.arg.find(":") == -1:
+                prefix, name = util.split_identifier(t.arg)
+                if prefix is None:
                     # No prefix specified. Leave as is
                     return t.arg
                 else:
                     # Prefix found. Replace it with the module name
-                    [prefix, name] = t.arg.split(':', 1)
-                    #return s.i_module.i_modulename + ':' + name
                     if prefix in s.i_module.i_prefixes:
                         # Try to map the prefix to the module name
-                        (module_name, _) = s.i_module.i_prefixes[prefix]
+                        module_name, _ = s.i_module.i_prefixes[prefix]
                     else:
                         # If we can't then fall back to the prefix
                         module_name = prefix

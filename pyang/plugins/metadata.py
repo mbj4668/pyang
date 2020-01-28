@@ -22,7 +22,7 @@ def pyang_plugin_init():
     grammar.register_extension_module(md_module_name)
 
     # Register the special grammar
-    for (stmt, occurance, (arg, rules), add_to_stmts) in md_stmts:
+    for stmt, occurance, (arg, rules), add_to_stmts in md_stmts:
         grammar.add_stmt((md_module_name, stmt), (arg, rules))
         grammar.add_to_stmts_rules(add_to_stmts,
                                    [((md_module_name, stmt), occurance)])
