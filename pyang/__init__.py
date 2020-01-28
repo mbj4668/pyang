@@ -275,7 +275,7 @@ class Context(object):
         #     return None
         return module
 
-    def read_module(self, modulename, revision=None, extra={}):
+    def read_module(self, modulename, revision=None, extra=None):
         """Searches for a module named `modulename` in the repository
 
         The module is just read, and not compiled at all.

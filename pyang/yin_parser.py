@@ -43,12 +43,12 @@ class YinParser(object):
     ns_sep = "}"
     """namespace separator"""
 
-    def __init__(self, extra={}):
+    def __init__(self, extra=None):
         self.parser = expat.ParserCreate("UTF-8", self.ns_sep)
         self.parser.CharacterDataHandler = self.char_data
         self.parser.StartElementHandler = self.start_element
         self.parser.EndElementHandler = self.end_element
-        self.extra = extra
+        self.extra = {} if extra is None else extra
 
     @staticmethod
     def split_qname(qname):

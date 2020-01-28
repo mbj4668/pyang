@@ -133,7 +133,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Do nothing for `node`."""
         pass
 
-    def process_children(self, node, elem, module, path, omit=[]):
+    def process_children(self, node, elem, module, path, omit=()):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch not in omit and (ch.i_config or self.doctype == "data"):
