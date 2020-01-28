@@ -37,7 +37,7 @@ def _sequence(one, two):
 def add_validation_fun(phase, keywords, fun):
     """Add a validation function to some phase in the framework.
 
-    Function `fun` is called for each valid occurance of each keyword in
+    Function `fun` is called for each valid occurence of each keyword in
     `keywords`.
     Can be used by plugins to do special validation of extensions."""
     for keyword in keywords:
