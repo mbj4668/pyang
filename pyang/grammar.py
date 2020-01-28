@@ -546,10 +546,10 @@ stmt_map = {
 Maps a statement name to a 2-tuple:
     (<argument type name> | None, <list of substatements> )
 Each substatement is a 2-tuple:
-    (<statement name>, <occurance>) |
+    (<statement name>, <occurence>) |
     ('$interleave', <list of substatements to interleave>)
     ('$choice', <list of <case>>)
-where <occurance> is one of: '?', '1', '+', '*'.
+where <occurence> is one of: '?', '1', '+', '*'.
 and <case> is a list of substatements
 """
 
@@ -668,8 +668,8 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
         # update last know position
         pos = stmt.pos
     # any non-optional statements left are errors
-    for keywd, occurance in spec[0]:
-        if occurance == '1' or occurance == '+':
+    for keywd, occurence in spec[0]:
+        if occurence == '1' or occurence == '+':
             if parent is None:
                 error.err_add(ctx.errors, pos, 'EXPECTED_KEYWORD',
                               util.keyword_to_str(keywd))
@@ -687,22 +687,22 @@ def _match_stmt(ctx, stmt, specs, canonical):
     (spec, canspec) = specs
     i = 0
     while i < len(spec):
-        (keywd, occurance) = spec[i]
+        keywd, occurence = spec[i]
         if keywd == '$any':
             return (spec, canspec)
         if keywd == '$1.1':
-            (keywd, occurance) = occurance
+            (keywd, occurence) = occurence
             if (stmt.i_module.i_version == '1' and
                 keywd == stmt.keyword):
                 return None
         if keywd == stmt.keyword:
-            if occurance == '1' or occurance == '?':
+            if occurence == '1' or occurence == '?':
                 # consume this match
                 if canonical:
                     return (spec[i+1:], spec_del_kwd(keywd, canspec))
                 else:
                     return (spec[:i] + spec[i+1:], canspec)
-            if occurance == '+':
+            if occurence == '+':
                 # mark that we have found the one that was needed
                 c = (keywd, '*')
                 if canonical:
@@ -716,7 +716,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
                 else:
                     return (spec, canspec)
         elif keywd == '$choice':
-            cases = occurance
+            cases = occurence
             j = 0
             while j < len(cases):
                 # check if this alternative matches - check for a
@@ -736,7 +736,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
                 ctx.errors = save_errors
                 j += 1
         elif keywd == '$interleave':
-            cspec = occurance
+            cspec = occurence
             match_res = _match_stmt(ctx, stmt, (cspec, cspec), canonical)
             if match_res is not None:
                 # we got a match
@@ -752,8 +752,8 @@ def _match_stmt(ctx, stmt, specs, canonical):
                 return None
         elif keywd == '$cut':
             # any non-optional statements left are errors
-            for keywd, occurance in spec[:i]:
-                if occurance == '1' or occurance == '+':
+            for keywd, occurence in spec[:i]:
+                if occurence == '1' or occurence == '+':
                     error.err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_1',
                                   (util.keyword_to_str(stmt.raw_keyword),
                                    util.keyword_to_str(keywd)))
@@ -761,7 +761,7 @@ def _match_stmt(ctx, stmt, specs, canonical):
             spec = spec[i:]
             i = 0
         elif canonical:
-            if occurance == '1' or occurance == '+':
+            if occurence == '1' or occurence == '+':
                 error.err_add(ctx.errors, stmt.pos,
                               'UNEXPECTED_KEYWORD_CANONICAL_1',
                               (util.keyword_to_str(stmt.raw_keyword),
