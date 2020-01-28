@@ -741,6 +741,8 @@ class HybridDSDLSchema(object):
         augments = []
         refine_dict = dict.fromkeys(("presence", "default", "mandatory",
                                      "min-elements", "max-elements"))
+        if not isinstance(pset, dict):
+            raise ValueError('pset is of type %s' % type(pset).__name__)
         for p in pset.pop(self.add_prefix(name, stmt), []):
             if p.path:
                 head = p.pop()
@@ -898,7 +900,7 @@ class HybridDSDLSchema(object):
             res.append(elem)
         return res
 
-    def handle_stmt(self, stmt, p_elem, pset={}):
+    def handle_stmt(self, stmt, p_elem, pset=None):
         """
         Run handler method for statement `stmt`.
 
@@ -931,16 +933,20 @@ class HybridDSDLSchema(object):
                 raise error.EmitError(
                     "Unknown keyword %s - this should not happen.\n"
                     % stmt.keyword)
+        if pset is None:
+            pset = {}
         method(stmt, p_elem, pset)
 
-    def handle_substmts(self, stmt, p_elem, pset={}):
+    def handle_substmts(self, stmt, p_elem, pset=None):
         """Handle all substatements of `stmt`."""
+        if pset is None:
+            pset = {}
         for sub in stmt.substmts:
             self.handle_stmt(sub, p_elem, pset)
 
     # Handlers for YANG statements
 
-    def noop(self, stmt, p_elem, pset=''):
+    def noop(self, stmt, p_elem, pset=None):
         """`stmt` is not handled in the regular way."""
         pass
 
@@ -950,7 +956,7 @@ class HybridDSDLSchema(object):
             elem.annot(
                 SchemaNode("ref").set_attr("name", "__yang_metadata__"))
         SchemaNode("parentRef", elem).set_attr("name", "__anyxml__")
-        refd = self.process_patches(pset, stmt, elem)[0]
+        refd, _, _ = self.process_patches(pset, stmt, elem)
         if p_elem.name == "choice":
             elem.occur = 3
         elif refd["mandatory"] or stmt.search_one("mandatory", "true"):
@@ -1044,7 +1050,7 @@ class HybridDSDLSchema(object):
             elem.occur = 2
         else:
             p_elem.subnode(elem)
-        refd = self.process_patches(pset, stmt, elem)[0]
+        refd, _, _ = self.process_patches(pset, stmt, elem)
         if (p_elem.name == "choice" and p_elem.default_case != stmt.arg or
             p_elem.name == "case" and
             p_elem.parent.default_case != stmt.parent.arg and
@@ -1066,7 +1072,7 @@ class HybridDSDLSchema(object):
         if self.has_meta:
             lelem.annot(
                 SchemaNode("ref").set_attr("name", "__yang_metadata__"))
-        refd = self.process_patches(pset, stmt, lelem)[0]
+        refd, _, _ = self.process_patches(pset, stmt, lelem)
         lelem.minEl, lelem.maxEl = self.get_minmax(stmt, refd)
         if int(lelem.minEl) > 0:
             self.propagate_occur(p_elem, 2)
@@ -1106,7 +1112,7 @@ class HybridDSDLSchema(object):
         notel.occur = 2
         elem = SchemaNode.element(self.qname(stmt), notel,
                                   interleave=True, occur=2)
-        augs, new_pset = self.process_patches(pset, stmt, elem)[1:]
+        _, augs, new_pset = self.process_patches(pset, stmt, elem)
         self.handle_substmts(stmt, elem, new_pset)
         self.apply_augments(augs, elem, new_pset)
 
@@ -1119,17 +1125,17 @@ class HybridDSDLSchema(object):
 
     def rpc_stmt(self, stmt, p_elem, pset):
         rpcel = SchemaNode("nma:rpc", self.rpcs)
-        r_pset = self.process_patches(pset, stmt, rpcel)[2]
+        _, _, r_pset = self.process_patches(pset, stmt, rpcel)
         inpel = SchemaNode("nma:input", rpcel)
         elem = SchemaNode.element(self.qname(stmt), inpel, occur=2)
-        augs, pset = self.process_patches(r_pset,stmt,elem,"input")[1:]
+        _, augs, pset = self.process_patches(r_pset, stmt, elem, "input")
         inst = stmt.search_one("input")
         if inst:
             self.handle_substmts(inst, elem, pset)
         else:
             SchemaNode("empty", elem)
         self.apply_augments(augs, elem, pset)
-        augs, pset = self.process_patches(r_pset,stmt,None,"output")[1:]
+        _,  augs, pset = self.process_patches(r_pset, stmt, None, "output")
         oust = stmt.search_one("output")
         if oust or augs:
             outel = SchemaNode("nma:output", rpcel)

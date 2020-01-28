@@ -14,9 +14,9 @@ def pyang_plugin_init():
 class YANGXMLPlugin(plugin.PyangPlugin):
     def add_output_format(self, fmts):
         fmts['xml'] = self
-    def emit(self, ctx, modules, writef):
+    def emit(self, ctx, modules, fd):
         module = modules[0]
-        emit_xml(module, writef)
+        emit_xml(module, fd)
 
 def emit_xml(module, fd):
     # pick one top-level child

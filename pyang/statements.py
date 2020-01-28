@@ -2884,7 +2884,7 @@ class Statement(object):
         return None
 
     def copy(self, parent=None, uses=None, uses_top=True,
-             nocopy=[], ignore=[], copyf=None):
+             nocopy=(), ignore=(), copyf=None):
         new = copy.copy(self)
         new.pos = copy.copy(new.pos)
         if uses is not None:

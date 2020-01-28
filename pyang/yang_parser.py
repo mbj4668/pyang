@@ -265,7 +265,7 @@ class YangTokenizer(object):
                 i = i + 1
 
 class YangParser(object):
-    def __init__(self, extra={}):
+    def __init__(self, extra=None):
         pass
 
     def parse(self, ctx, ref, text):
