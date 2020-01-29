@@ -24,11 +24,11 @@ class TypeSpec(object):
         self.name = name
         self.base = None
 
-    def str_to_val(self, errors, pos, string):
-        return string
+    def str_to_val(self, errors, pos, string, module):
+        return string;
 
-    def validate(self, errors, pos, val, errstr=''):
-        return True
+    def validate(self, errors, pos, val, module, errstr=''):
+        return True;
 
     def restrictions(self):
         return []
@@ -40,12 +40,13 @@ class IntTypeSpec(TypeSpec):
         self.min = minimum
         self.max = maximum
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         try:
             if len(string) > 1 and string[0] == '0' and string[1] != 'x':
                 # positive octal
                 string = string[:1] + 'o' + string[1:]
-            elif len(string) > 2 and string[0] == '-' and string[1] == '0' and string[2] != 'x':
+            elif len(string) > 2 and string[0] == '-' and \
+                 string[1] == '0' and string[2] != 'x':
                 # negative octal
                 string = string[:2] + 'o' + string[2:]
             return int(string, 0)
@@ -54,7 +55,7 @@ class IntTypeSpec(TypeSpec):
                     (string, self.definition, 'not an integer'))
             return None
 
-    def validate(self, errors, pos, val, errstr=''):
+    def validate(self, errors, pos, val, _module, errstr=''):
         if val < self.min or val > self.max:
             err_add(errors, pos, 'TYPE_VALUE',
                     (str(val), self.definition, 'range error' + errstr))
@@ -129,7 +130,7 @@ class Decimal64TypeSpec(TypeSpec):
         self.min = Decimal64Value(-9223372036854775808, fd=self.fraction_digits)
         self.max = Decimal64Value(9223372036854775807, fd=self.fraction_digits)
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         # make sure it is syntactically correct
         if syntax.re_decimal.search(string) is None:
             err_add(errors, pos, 'TYPE_VALUE',
@@ -169,7 +170,7 @@ class Decimal64TypeSpec(TypeSpec):
             v = -v
         return Decimal64Value(v, s=string)
 
-    def validate(self, errors, pos, val, errstr=''):
+    def validate(self, errors, pos, val, _module, errstr=''):
         if val < self.min or val > self.max:
             err_add(errors, pos, 'TYPE_VALUE',
                     (str(val), self.definition, 'range error' + errstr))
@@ -184,7 +185,7 @@ class BooleanTypeSpec(TypeSpec):
     def __init__(self):
         TypeSpec.__init__(self, 'boolean')
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         if string == 'true':
             return True
         elif string == 'false':
@@ -205,7 +206,7 @@ class BinaryTypeSpec(TypeSpec):
     def __init__(self):
         TypeSpec.__init__(self, 'binary')
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         try:
             return base64.b64decode(string)
         except:
@@ -219,7 +220,7 @@ class EmptyTypeSpec(TypeSpec):
     def __init__(self):
         TypeSpec.__init__(self, 'empty')
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         err_add(errors, pos, 'BAD_DEFAULT_VALUE', 'empty')
         return None
 
@@ -228,15 +229,18 @@ class IdentityrefTypeSpec(TypeSpec):
         TypeSpec.__init__(self, 'identityref')
         self.idbases = idbases
 
-    def str_to_val(self, errors, pos, string):
-        prefix, name = util.split_identifier(string)
-        if prefix is None or self.idbases[0].i_module.i_prefix == prefix:
+    def str_to_val(self, errors, pos, string, module):
+        if string.find(":") == -1:
+            prefix = None
+            name = string
+        else:
+            [prefix, name] = string.split(':', 1)
+        if prefix is None or module.i_prefix == prefix:
             # check local identities
-            pmodule = self.idbases[0].i_module
+            pmodule = module
         else:
             # this is a prefixed name, check the imported modules
-            pmodule = util.prefix_to_module(self.idbases[0].i_module, prefix,
-                                            pos, errors)
+            pmodule = util.prefix_to_module(module, prefix, pos, errors)
             if pmodule is None:
                 return None
         if name not in pmodule.i_identities:
@@ -290,8 +294,9 @@ def validate_range_expr(errors, stmt, type_):
         else:
             if is_int and syntax.re_integer.search(string) is None:
                 err_add(errors, stmt.pos, 'TYPE_VALUE',
-                        (string, type_.i_type_spec.definition, 'not an integer'))
-            val = type_.i_type_spec.str_to_val(errors, stmt.pos, string)
+                        (string, type_.i_type_spec.definition,
+                         'not an integer'))
+            val = type_.i_type_spec.str_to_val(errors, stmt.pos, string, None)
         return val
 
     ranges = [(convert(m[1]), convert(m[6]))
@@ -303,9 +308,9 @@ def validate_ranges(errors, pos, ranges, type_):
     cur_lo = None
     for lo, hi in ranges:
         if lo != 'min' and lo != 'max' and lo is not None:
-            type_.i_type_spec.validate(errors, pos, lo)
+            type_.i_type_spec.validate(errors, pos, lo, None)
         if hi != 'min' and hi != 'max' and hi is not None:
-            type_.i_type_spec.validate(errors, pos, hi)
+            type_.i_type_spec.validate(errors, pos, hi, None)
         # check that cur_lo < lo < hi
         if not is_smaller(cur_lo, lo):
             err_add(errors, pos, 'RANGE_BOUNDS', (str(lo), cur_lo))
@@ -341,11 +346,11 @@ class RangeTypeSpec(TypeSpec):
         if hasattr(base, 'fraction_digits'):
             self.fraction_digits = base.fraction_digits
 
-    def str_to_val(self, errors, pos, string):
-        return self.base.str_to_val(errors, pos, string)
+    def str_to_val(self, errors, pos, string, module):
+        return self.base.str_to_val(errors, pos, string, module)
 
-    def validate(self, errors, pos, val, errstr=''):
-        if self.base.validate(errors, pos, val, errstr) is False:
+    def validate(self, errors, pos, val, module, errstr=''):
+        if self.base.validate(errors, pos, val, module, errstr) is False:
             return False
         for lo, hi in self.ranges:
             if ((lo == 'min' or lo == 'max' or val >= lo) and
@@ -419,11 +424,11 @@ class LengthTypeSpec(TypeSpec):
         self.lengths = lengths
         self.length_pos = length_pos
 
-    def str_to_val(self, errors, pos, string):
-        return self.base.str_to_val(errors, pos, string)
+    def str_to_val(self, errors, pos, string, module):
+        return self.base.str_to_val(errors, pos, string, module)
 
-    def validate(self, errors, pos, val, errstr=''):
-        if self.base.validate(errors, pos, val, errstr) is False:
+    def validate(self, errors, pos, val, module, errstr=''):
+        if self.base.validate(errors, pos, val, module, errstr) is False:
             return False
         vallen = len(val)
         for lo, hi in self.lengths:
@@ -500,11 +505,11 @@ class PatternTypeSpec(TypeSpec):
         self.base = base
         self.res = pattern_specs
 
-    def str_to_val(self, errors, pos, string):
-        return self.base.str_to_val(errors, pos, string)
+    def str_to_val(self, errors, pos, string, module):
+        return self.base.str_to_val(errors, pos, string, module)
 
-    def validate(self, errors, pos, val, errstr=''):
-        if self.base.validate(errors, pos, val, errstr) is False:
+    def validate(self, errors, pos, val, module, errstr=''):
+        if self.base.validate(errors, pos, val, module, errstr) is False:
             return False
         for type_, re, re_pos, invert_match, patstr in self.res:
             if type_ == 'libxml2':
@@ -534,7 +539,7 @@ def validate_enums(errors, enums, stmt):
     for e in enums:
         # for derived enumerations, make sure the enum is defined
         # in the base
-        stmt.i_type_spec.validate(errors, e.pos, e.arg)
+        stmt.i_type_spec.validate(errors, e.pos, e.arg, None)
         e.i_value = None
         value = e.search_one('value')
         if value is not None:
@@ -589,7 +594,7 @@ class EnumTypeSpec(TypeSpec):
         self.base = base
         self.enums = [(e.arg, e.i_value) for e in enums]
 
-    def validate(self, errors, pos, val, errstr=''):
+    def validate(self, errors, pos, val, _module, errstr=''):
         if util.keysearch(val, 0, self.enums) is None:
             err_add(errors, pos, 'TYPE_VALUE',
                     (val, self.definition, 'enum not defined' + errstr))
@@ -615,7 +620,7 @@ def validate_bits(errors, bits, stmt):
     for b in bits:
         # for derived bits, make sure the bit is defined
         # in the base
-        stmt.i_type_spec.validate(errors, b.pos, [b.arg])
+        stmt.i_type_spec.validate(errors, b.pos, [b.arg], None)
         position = b.search_one('position')
         if position is not None:
             try:
@@ -668,10 +673,10 @@ class BitTypeSpec(TypeSpec):
         self.base = base
         self.bits = [(b.arg, b.i_position) for b in bits]
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         return string.split()
 
-    def validate(self, errors, pos, val, errstr=''):
+    def validate(self, errors, pos, val, _module, errstr=''):
         for v in val:
             if util.keysearch(v, 0, self.bits) is None:
                 err_add(errors, pos, 'TYPE_VALUE',
@@ -849,18 +854,19 @@ class PathTypeSpec(TypeSpec):
         self.path_ = path
         self.pos = pos
 
-    def str_to_val(self, errors, pos, string):
+
+    def str_to_val(self, errors, pos, string, module):
         if hasattr(self, 'i_target_node'):
             return self.i_target_node.search_one('type').\
-                i_type_spec.str_to_val(errors, pos, string)
+                i_type_spec.str_to_val(errors, pos, string, module)
         else:
             # if a default value is verified
             return string
 
-    def validate(self, errors, pos, val, errstr=''):
+    def validate(self, errors, pos, val, module, errstr=''):
         if hasattr(self, 'i_target_node'):
             return self.i_target_node.search_one('type').\
-                i_type_spec.validate(errors, pos, val)
+                i_type_spec.validate(errors, pos, val, module, errstr)
         else:
             # if a default value is verified
             return True
@@ -874,16 +880,16 @@ class UnionTypeSpec(TypeSpec):
         # no base - no restrictions allowed
         self.types = types
 
-    def str_to_val(self, errors, pos, string):
+    def str_to_val(self, errors, pos, string, _module):
         return string
 
-    def validate(self, errors, pos, val, errstr=''):
+    def validate(self, errors, pos, val, module, errstr=''):
         # try to validate against each membertype
         for t in self.types:
             if t.i_type_spec is not None:
-                t_val = t.i_type_spec.str_to_val([], pos, val)
+                t_val = t.i_type_spec.str_to_val([], pos, val, module)
                 if t_val is not None:
-                    if t.i_type_spec.validate([], pos, t_val):
+                    if t.i_type_spec.validate([], pos, t_val, module):
                         return True
         err_add(errors, pos, 'TYPE_VALUE',
                 (val, self.definition, 'no member type matched' + errstr))

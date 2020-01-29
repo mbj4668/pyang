@@ -748,7 +748,8 @@ def v_type_typedef(ctx, stmt):
           type_.i_type_spec is not None):
         stmt.i_default = type_.i_type_spec.str_to_val(ctx.errors,
                                                       default.pos,
-                                                      default.arg)
+                                                      default.arg,
+                                                      stmt.i_module)
         stmt.i_default_str = default.arg
         if stmt.i_default is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
@@ -980,7 +981,8 @@ def v_type_leaf(ctx, stmt):
     if default is not None and type_.i_type_spec is not None :
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
-                                              default.arg)
+                                              default.arg,
+                                              stmt.i_module)
         stmt.i_default = defval
         stmt.i_default_str = default.arg
         if defval is not None:
@@ -1013,7 +1015,8 @@ def v_type_leaf_list(ctx, stmt):
         if type_.i_type_spec is not None :
             defval = type_.i_type_spec.str_to_val(ctx.errors,
                                                   default.pos,
-                                                  default.arg)
+                                                  default.arg,
+                                                  stmt.i_module)
             if defval is not None:
                 stmt.i_default.append(defval)
                 type_.i_type_spec.validate(ctx.errors, default.pos,
@@ -1435,7 +1438,8 @@ def v_default(ctx, target, default):
 
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
-                                              default.arg)
+                                              default.arg,
+                                              target.i_module)
         target.i_default = defval
         target.i_default_str = default.arg
         if defval is not None:
