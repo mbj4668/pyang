@@ -175,12 +175,6 @@ error_codes = \
     'NODE_NOT_FOUND':
       (1,
        'node %s::%s is not found'),
-    #'NODE_NOT_FOUND1':
-    #  (1,
-    #   'node %s::%s is not found in %s::%s'),
-    #'NODE_NOT_FOUND2':
-    #  (1,
-    #   'node %s::%s is not found in module %s'),
     'BAD_NODE_IN_AUGMENT':
       (1,
        'node %s::%s of type %s cannot be augmented'),
