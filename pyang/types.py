@@ -41,14 +41,20 @@ class IntTypeSpec(TypeSpec):
         self.max = maximum
 
     def str_to_val(self, errors, pos, string):
+        negative = string.startswith('-')
+        base = 10
+        start = 0
+        if len(string) > negative + 1 and string[negative] == '0':
+            second = string[negative + 1]
+            if second == 'x':
+                base = 16
+                start = 2
+            else:
+                base = 8
+                start = 1
         try:
-            if len(string) > 1 and string[0] == '0' and string[1] != 'x':
-                # positive octal
-                string = string[:1] + 'o' + string[1:]
-            elif len(string) > 2 and string[0] == '-' and string[1] == '0' and string[2] != 'x':
-                # negative octal
-                string = string[:2] + 'o' + string[2:]
-            return int(string, 0)
+            absolute = int(string[negative + start:], base)
+            return -absolute if negative else absolute
         except ValueError:
             err_add(errors, pos, 'TYPE_VALUE',
                     (string, self.definition, 'not an integer'))
