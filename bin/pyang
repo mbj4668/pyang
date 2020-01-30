@@ -130,6 +130,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="append",
                              help=os.pathsep + "-separated search path for yin"
                              " and yang modules"),
+        optparse.make_option("--schema-from-path",
+                             dest="schema_from_path",
+                             default=False,
+                             action="store_true",
+                             help="Automatically load all YANG modules in path."),
         optparse.make_option("--plugindir",
                              dest="plugindir",
                              help="Load pyang plugins from PLUGINDIR"),
@@ -289,7 +294,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if o.hello:
         ctx.capabilities = hel.registered_capabilities()
         for (mn,rev) in hel.yang_modules():
-            mod = ctx.search_module(0, mn, rev)
+            mod = ctx.search_module(error.Position(''), mn, rev)
             if mod is None:
                 emarg = mn
                 if rev:
@@ -298,6 +303,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                     "module '%s' specified in hello not found.\n" % emarg)
                 sys.exit(1)
             modules.append(mod)
+    elif o.schema_from_path:
+        for module_name in ctx.revs.keys():
+            module = ctx.search_module(error.Position(''), module_name)
+            if module is None:
+                sys.stderr.write(
+                    "module '%s' failed to load in schema parsing.\n" % module_name)
+                sys.exit(1)
+            modules.append(module)
     else:
         if len(filenames) == 0:
             text = sys.stdin.read()
