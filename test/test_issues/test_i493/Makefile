@@ -1,3 +1,3 @@
 test:
-	pyang -f yang a.yang > /dev/null
+	$(PYANG) -f yang a.yang > /dev/null
 

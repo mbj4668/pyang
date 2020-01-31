@@ -1,4 +1,4 @@
-PYANG = pyang -Wnone
+PYANG := $(PYANG) -Wnone
 
 MODULES = $(wildcard *.yang)
 

@@ -1,7 +1,7 @@
 test: test1 test2
 
 test1:
-	pyang mod1.yang --print-error-code 2>&1 | diff mod1.expect -
+	$(PYANG) mod1.yang --print-error-code 2>&1 | diff mod1.expect -
 
 test2:
-	pyang mod2.yang --print-error-code 2>&1 | diff mod2.expect -
+	$(PYANG) mod2.yang --print-error-code 2>&1 | diff mod2.expect -

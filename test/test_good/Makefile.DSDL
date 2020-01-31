@@ -4,7 +4,7 @@ test: clean
 	@for m in $(MODULES); do 					\
 	  for t in $(TARGETS); do 					\
 		echo "checking $$m - $$t";				\
-		yang2dsdl -t $$t $$m;					\
+		$(YANG2DSDL) -t $$t $$m;				\
 	  done;								\
 	done
 

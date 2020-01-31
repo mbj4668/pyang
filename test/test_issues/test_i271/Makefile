@@ -1,2 +1,2 @@
 test:
-	pyang --lint my-x.yang > /dev/null
+	$(PYANG) --lint my-x.yang > /dev/null

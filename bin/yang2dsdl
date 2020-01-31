@@ -251,7 +251,7 @@ if [ "$noschema" = "0" ] ; then
         pyang_opts="${pyang_opts} --hello"
         printf "\n"
     fi
-    pyang -f dsdl -o $hybs $pyang_opts $infiles
+    ${PYANG:-pyang} -f dsdl -o $hybs $pyang_opts $infiles
     [ $? -eq 0 ] || exit 2
     if [ "$basename" = "" ] ; then
         basename=$(xsltproc $xslt_dir/basename.xsl $hybs)
