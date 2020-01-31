@@ -1,4 +1,4 @@
-PYANG = pyang --features a:foo,fox --features b:foo --deviation-module d.yang
+PYANG := $(PYANG) --features a:foo,fox --features b:foo --deviation-module d.yang
 
 MODULES = a.yang b.yang
 

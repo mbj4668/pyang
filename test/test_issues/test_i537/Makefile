@@ -1,3 +1,3 @@
 test:
-	pyang c.yang
+	$(PYANG) c.yang
 

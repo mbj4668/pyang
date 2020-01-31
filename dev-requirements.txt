@@ -3,3 +3,4 @@ virtualenv
 pycodestyle
 pyflakes
 flake8
+pylint
