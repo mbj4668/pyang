@@ -7,7 +7,7 @@ export YANG2HTML := $(COVERAGE) $(W)/bin/yang2html
 export YANG2DSDL := env PYANG='$(PYANG)' $(W)/bin/yang2dsdl
 
 test:
-	$(MAKE) itest
+	$(MAKE) selftest mtest itest
 
 test_all: python2_test python3_test
 
@@ -19,16 +19,12 @@ python3_test: python3/python
 	$(MAKE) clean
 	env PATH=`pwd`/python3:$(PATH) $(MAKE) itest
 
-itest:
-	$(MAKE) selftest;						\
-	for d in $(DIRS); do 						\
-		( cd $$d && $(MAKE) test ) || exit 1;			\
-	done
-
 selftest:
 	@echo "selftest... " | tr -d '\012'; \
-		./selftest.py || exit 1; echo "ok";	\
-	echo "validate all modules...";					\
+		./selftest.py || exit 1; echo "ok";
+
+mtest:
+	@echo "validate all modules...";				\
 	for d in ../modules/*; do					\
 		( cd $$d;						\
 		for m in *.yang; do					\
@@ -37,6 +33,11 @@ selftest:
 			echo "ok";					\
 		done ) || exit 1;					\
 	done || exit 1;
+
+itest:
+	for d in $(DIRS); do 						\
+		( cd $$d && $(MAKE) test ) || exit 1;			\
+	done
 
 python2/python: python2
 	ln -sf `which python2` $@
