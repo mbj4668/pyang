@@ -81,9 +81,12 @@ class HelloParser:
         res = {}
         for c in self.capabilities:
             m = c.parameters.get("module")
-            if m is None or m in res:
-                continue
-            res[m] = c.parameters.get("revision")
+            if m is not None and m not in res:
+                res[m] = c.parameters.get("revision")
+            d = c.parameters.get("deviations")
+            if d is not None and d not in res:
+                # Revision not included so we don't know...
+                res[d] = None
         return res.items()
 
     def get_features(self, yam):
