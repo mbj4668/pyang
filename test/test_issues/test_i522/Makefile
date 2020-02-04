@@ -1,2 +1,2 @@
 test:
-	pyang -Werror c.yang
+	$(PYANG) -Werror c.yang

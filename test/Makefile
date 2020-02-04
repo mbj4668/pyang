@@ -1,5 +1,10 @@
 DIRS = $(shell for d in test_* ; \
 	do [ -d $$d -a -f $$d/Makefile ] && echo $$d ; done)
+COVERAGE := python -mcoverage run --branch --parallel-mode --source $(W)/pyang,$(W)/bin --omit $(W)/pyang/yacc.py
+export PYANG := $(COVERAGE) $(W)/bin/pyang
+export JSON2XML := $(COVERAGE) $(W)/bin/json2xml
+export YANG2HTML := $(COVERAGE) $(W)/bin/yang2html
+export YANG2DSDL := env PYANG='$(PYANG)' $(W)/bin/yang2dsdl
 
 test:
 	$(MAKE) itest
@@ -28,7 +33,7 @@ selftest:
 		( cd $$d;						\
 		for m in *.yang; do					\
 			echo "  $${m}... " | tr -d '\012';		\
-			pyang -Werror $$m || exit 1;			\
+			$(PYANG) -Werror $$m || exit 1;			\
 			echo "ok";					\
 		done ) || exit 1;					\
 	done || exit 1;
@@ -46,7 +51,8 @@ python3:
 	mkdir $@
 
 clean:
-	@for d in $(DIRS); do 						\
+	@find -name '.coverage*' -delete;				\
+	for d in $(DIRS); do 						\
 		  (cd $$d && $(MAKE) $@)				\
 	done;								\
 	rm -rf python2 python3

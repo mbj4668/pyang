@@ -171,16 +171,10 @@ error_codes = \
        'prefix "%s" is not defined (reported only once)'),
     'WPREFIX_NOT_DEFINED':
       (4,
-       'prefix "%s" is not defined'),
+       '"%s" looks like a prefix but is not defined'),
     'NODE_NOT_FOUND':
       (1,
        'node %s::%s is not found'),
-    'NODE_NOT_FOUND1':
-      (1,
-       'node %s::%s is not found in %s::%s'),
-    'NODE_NOT_FOUND2':
-      (1,
-       'node %s::%s is not found in module %s'),
     'BAD_NODE_IN_AUGMENT':
       (1,
        'node %s::%s of type %s cannot be augmented'),
@@ -199,6 +193,9 @@ error_codes = \
     'BAD_DEVIATE_DEL':
       (2,
        'the "%s" property does not exist in node "%s::%s"'),
+    'BAD_DEVIATE_DEL2':
+      (2,
+       'the "%s" property connot be deviate deleted in node "%s::%s"'),
     'BAD_DEVIATE_TYPE':
       (2,
        'the "%s" property cannot be added'),
@@ -529,7 +526,7 @@ def err_to_str(tag, args):
 def err_add(errors, pos, tag, args):
     error = (copy.copy(pos), tag, args)
     # surely this can be done more elegant??
-    for (p, t, a) in errors:
+    for p, t, a in errors:
         if (p.line == pos.line and p.ref == pos.ref and
             p.top == pos.top and t == tag and a == args):
             return

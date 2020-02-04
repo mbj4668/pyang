@@ -1,0 +1,3 @@
+test:
+	$(PYANG) c.yang
+

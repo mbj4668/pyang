@@ -30,10 +30,10 @@ document containing sample elements for all data nodes.
   --sample-xml-skeleton-defaults option).
 """
 
+import copy
 import sys
 import optparse
 from lxml import etree
-import copy
 
 from pyang import plugin, error
 
@@ -90,7 +90,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         else:
             path = []
 
-        for (epos, etag, eargs) in ctx.errors:
+        for epos, etag, eargs in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError(
                     "sample-xml-skeleton plugin needs a valid module")
@@ -133,7 +133,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Do nothing for `node`."""
         pass
 
-    def process_children(self, node, elem, module, path, omit=[]):
+    def process_children(self, node, elem, module, path, omit=()):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch not in omit and (ch.i_config or self.doctype == "data"):
@@ -204,7 +204,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """
         if path is None:
             return parent, module, None
-        elif path == []:
+        elif not path:
             # GO ON
             pass
         else:

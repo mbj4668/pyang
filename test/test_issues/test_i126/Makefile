@@ -1,2 +1,2 @@
 test:
-	pyang -Werror -L hello.xml
+	$(PYANG) -Werror -L hello.xml

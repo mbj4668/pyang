@@ -18,11 +18,11 @@ class Capability:
     def __init__(self, uri):
         self.parameters = {}
         if "?" in uri:
-            id, pars = uri.split("?")
+            id_, pars = uri.split("?")
             self.parse_pars(pars)
         else:
-            id = uri
-        self.id = id
+            id_ = uri
+        self.id = id_
 
     def parse_pars(self,pars):
         for p in pars.split("&"):
@@ -54,7 +54,7 @@ class HelloParser:
             elif self.state == self.depth == 2 and tag == "capability":
                 self.state = 3
         self.depth += 1
-            
+
     def handleEndElement(self, data):
         ns_uri, tag = data.split()
         if ns_uri == NC_NS_URI:
@@ -81,7 +81,8 @@ class HelloParser:
         res = {}
         for c in self.capabilities:
             m = c.parameters.get("module")
-            if m is None or m in res: continue
+            if m is None or m in res:
+                continue
             res[m] = c.parameters.get("revision")
         return res.items()
 
@@ -89,8 +90,8 @@ class HelloParser:
         """Return list of features declared for module `yam`."""
         mcap = [ c for c in self.capabilities
                  if c.parameters.get("module", None) == yam ][0]
-        if not mcap.parameters.get("features"): return []
-        return mcap.parameters["features"].split(",")
+        features = mcap.parameters.get("features")
+        return features.split(",") if features else []
 
     def registered_capabilities(self):
         """Return dictionary of non-YANG capabilities.
@@ -100,4 +101,3 @@ class HelloParser:
         """
         return dict ([ (CAPABILITIES[c.id],c) for c in self.capabilities
                  if c.id in CAPABILITIES ])
-

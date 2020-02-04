@@ -21,10 +21,9 @@ that can be used by the *json2xml* script for translating a valid JSON
 configuration or state data to XML.
 """
 
-import os
 import json
 
-from pyang import plugin, statements, error
+from pyang import plugin, error
 from pyang.util import unique_prefixes
 
 def pyang_plugin_init():
@@ -41,7 +40,7 @@ class JtoXPlugin(plugin.PyangPlugin):
     def emit(self, ctx, modules, fd):
         """Main control function.
         """
-        for (epos, etag, eargs) in ctx.errors:
+        for epos, etag, eargs in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError("JTOX plugin needs a valid module")
         tree = {}
@@ -62,7 +61,8 @@ class JtoXPlugin(plugin.PyangPlugin):
         """Process all children of `node`, except "rpc" and "notification".
         """
         for ch in node.i_children:
-            if ch.keyword in ["rpc", "notification"]: continue
+            if ch.keyword in ["rpc", "notification"]:
+                continue
             if ch.keyword in ["choice", "case"]:
                 self.process_children(ch, parent, pmod)
                 continue
@@ -86,19 +86,19 @@ class JtoXPlugin(plugin.PyangPlugin):
             modname = ch.i_module.i_modulename
             parent[nodename] = ndata
 
-    def base_type(self, type):
-        """Return the base type of `type`."""
+    def base_type(self, of_type):
+        """Return the base type of `of_type`."""
         while 1:
-            if type.arg == "leafref":
-                node = type.i_type_spec.i_target_node
-            elif type.i_typedef is None:
+            if of_type.arg == "leafref":
+                node = of_type.i_type_spec.i_target_node
+            elif of_type.i_typedef is None:
                 break
             else:
-                node = type.i_typedef
-            type = node.search_one("type")
-        if type.arg == "decimal64":
-            return [type.arg, int(type.search_one("fraction-digits").arg)]
-        elif type.arg == "union":
-            return [type.arg, [self.base_type(x) for x in type.i_type_spec.types]]
+                node = of_type.i_typedef
+            of_type = node.search_one("type")
+        if of_type.arg == "decimal64":
+            return [of_type.arg, int(of_type.search_one("fraction-digits").arg)]
+        elif of_type.arg == "union":
+            return [of_type.arg, [self.base_type(x) for x in of_type.i_type_spec.types]]
         else:
-            return type.arg
+            return of_type.arg

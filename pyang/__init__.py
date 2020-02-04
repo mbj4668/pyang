@@ -53,7 +53,7 @@ class Context(object):
             revs = self.revs[mod]
             revs.append((rev, handle))
 
-    def add_module(self, ref, text, format=None,
+    def add_module(self, ref, text, in_format=None,
                    expect_modulename=None, expect_revision=None,
                    expect_failure_error=True):
         """Parse a module text and add the module data to the context
@@ -61,14 +61,14 @@ class Context(object):
         `ref` is a string which is used to identify the source of
               the text for the user.  used in error messages
         `text` is the raw text data
-        `format` is one of 'yang' or 'yin'.
+        `in_format` is one of 'yang' or 'yin'.
 
         Returns the parsed and validated module on success, and None on error.
         """
-        if format == None:
-            format = util.guess_format(text)
+        if in_format is None:
+            in_format = util.guess_format(text)
 
-        if format == 'yin':
+        if in_format == 'yin':
             p = yin_parser.YinParser()
         else:
             p = yang_parser.YangParser()
@@ -154,33 +154,34 @@ class Context(object):
         self._ensure_revs(revs)
         latest = None
         lhandle = None
-        for (rev, handle) in revs:
+        for rev, handle in revs:
             if rev is not None and (latest is None or rev > latest):
                 latest = rev
                 lhandle = handle
-        return (latest, lhandle)
+        return latest, lhandle
 
     def _ensure_revs(self, revs):
         i = 0
         length = len(revs)
+        repository = self.repository
         while i < length:
-            (rev, handle) = revs[i]
+            rev, handle = revs[i]
             if rev is None:
                 # now we must read the revision from the module
                 try:
-                    r = self.repository.get_module_from_handle(handle)
-                except self.repository.ReadError as ex:
+                    ref, in_format, text = repository.get_module_from_handle(
+                        handle)
+                except repository.ReadError as ex:
                     i += 1
                     continue
-                (ref, format, text) = r
 
-                if format == None:
-                    format = util.guess_format(text)
+                if in_format is None:
+                    in_format = util.guess_format(text)
 
-                if format == 'yin':
+                if in_format == 'yin':
                     yintext = text
-                    p = yin_parser.YinParser({'no_include':True,
-                                              'no_extensions':True})
+                    p = yin_parser.YinParser(
+                        {'no_include': True, 'no_extensions': True})
                 else:
                     yintext = None
                     p = yang_parser.YangParser()
@@ -203,7 +204,7 @@ class Context(object):
             # keep track of this to avoid multiple errors
             self.revs[modulename] = []
             return None
-        elif self.revs[modulename] == []:
+        elif not self.revs[modulename]:
             # this module doesn't exist in the repos at all, error reported
             return None
 
@@ -214,7 +215,7 @@ class Context(object):
             x = util.keysearch(revision, 0, self.revs[modulename])
             if x is not None:
                 (_revision, handle) = x
-                if handle == None:
+                if handle is None:
                     # this revision doesn't exist in the repos, error reported
                     return None
             else:
@@ -251,15 +252,15 @@ class Context(object):
         else:
             # get it from the repos
             try:
-                r = self.repository.get_module_from_handle(handle)
-                (ref, format, text) = r
-                module = self.add_module(ref, text, format,
-                                         modulename, revision)
+                ref, in_format, text = self.repository.get_module_from_handle(
+                    handle)
+                module = self.add_module(
+                    ref, text, in_format, modulename, revision)
             except self.repository.ReadError as ex:
                 error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
                 module = None
 
-        if module == None:
+        if module is None:
             return None
         # if modulename != module.arg:
         #     error.err_add(self.errors, module.pos, 'BAD_MODULE_FILENAME',
@@ -275,7 +276,7 @@ class Context(object):
         #     return None
         return module
 
-    def read_module(self, modulename, revision=None, extra={}):
+    def read_module(self, modulename, revision=None, extra=None):
         """Searches for a module named `modulename` in the repository
 
         The module is just read, and not compiled at all.
@@ -284,7 +285,7 @@ class Context(object):
         if modulename not in self.revs:
             # this module doesn't exist in the repos at all
             return None
-        elif self.revs[modulename] == []:
+        elif not self.revs[modulename]:
             # this module doesn't exist in the repos at all, error reported
             return None
 
@@ -294,8 +295,8 @@ class Context(object):
             self._ensure_revs(self.revs[modulename])
             x = util.keysearch(revision, 1, self.revs[modulename])
             if x is not None:
-                (_revision, handle) = x
-                if handle == None:
+                _revision, handle = x
+                if handle is None:
                     # this revision doesn't exist in the repos, error reported
                     return None
             else:
@@ -313,12 +314,13 @@ class Context(object):
         else:
             # get it from the repos
             try:
-                r = self.repository.get_module_from_handle(handle)
-                (ref, format, text) = r
-                if format == None:
-                    format = util.guess_format(text)
+                ref, in_format, text = self.repository.get_module_from_handle(
+                    handle)
 
-                if format == 'yin':
+                if in_format is None:
+                    in_format = util.guess_format(text)
+
+                if in_format == 'yin':
                     p = yin_parser.YinParser(extra)
                 else:
                     p = yang_parser.YangParser(extra)
@@ -332,12 +334,12 @@ class Context(object):
         modules = []
         for k in self.modules:
             m = self.modules[k]
-            if m != None:
+            if m is not None:
                 modules.append(m)
         for m in modules:
             statements.validate_module(self, m)
             namespace = m.search_one('namespace')
-            if namespace != None:
+            if namespace is not None:
                 uri = namespace.arg
                 if uri in uris:
                     if uris[uri] != m.arg:
@@ -350,9 +352,6 @@ class Context(object):
 class Repository(object):
     """Abstract base class that represents a module repository"""
 
-    def __init__(self):
-        pass
-
     def get_modules_and_revisions(self, ctx):
         """Return a list of all modules and their revisons
 
@@ -364,10 +363,10 @@ class Repository(object):
     def get_module_from_handle(self, handle):
         """Return the raw module text from the repository
 
-        Returns (`ref`, `format`, `text`) if found, or None if not found.
+        Returns (`ref`, `in_format`, `text`) if found, or None if not found.
         `ref` is a string which is used to identify the source of
               the text for the user.  used in error messages
-        `format` is one of 'yang' or 'yin' or None.
+        `in_format` is one of 'yang' or 'yin' or None.
         `text` is the raw text data
 
         Raises `ReadError`
@@ -376,8 +375,6 @@ class Repository(object):
     class ReadError(Exception):
         """Signals that an error occured during module retrieval"""
 
-        def __init__(self, str):
-            Exception.__init__(self, str)
 
 class FileRepository(Repository):
     def __init__(self, path="", use_env=True, no_path_recurse=False,
@@ -452,11 +449,12 @@ class FileRepository(Repository):
                 if os.path.isfile(absfilename):
                     m = syntax.re_filename.search(fname)
                     if m is not None:
-                        (name, rev, format) = m.groups()
-                        if not os.access(absfilename, os.R_OK): continue
+                        name, rev, in_format = m.groups()
+                        if not os.access(absfilename, os.R_OK):
+                            continue
                         if absfilename.startswith("./"):
                             absfilename = absfilename[2:]
-                        handle = (format, absfilename)
+                        handle = in_format, absfilename
                         self.modules.append((name, rev, handle))
                 elif (not self.no_path_recurse
                       and d != '.' and os.path.isdir(absfilename)):
@@ -464,41 +462,13 @@ class FileRepository(Repository):
         for d in self.dirs:
             add_files_from_dir(d)
 
-    # FIXME: bad strategy; when revisions are not used in the filename
-    # this code parses all modules :(  need to do this lazily
-    # FIXME: actually this function is never called and can be deleted
-    def _peek_revision(self, absfilename, format, ctx):
-        fd = None
-        try:
-            fd = io.open(absfilename, "r", encoding="utf-8")
-            text = fd.read()
-        except IOError as ex:
-            return None
-        except UnicodeDecodeError as ex:
-            return None
-        finally:
-            if fd is not None:
-                fd.close()
-
-        if format == 'yin':
-            p = yin_parser.YinParser()
-        else:
-            p = yang_parser.YangParser()
-
-        # FIXME: optimization - do not parse the entire text
-        # just to read the revisions...
-        module = p.parse(ctx, absfilename, text)
-        if module is None:
-            return None
-        return (util.get_latest_revision(module), module)
-
     def get_modules_and_revisions(self, ctx):
         if self.modules is None:
             self._setup(ctx)
         return self.modules
 
     def get_module_from_handle(self, handle):
-        (format, absfilename) = handle
+        in_format, absfilename = handle
         fd = None
         try:
             fd = io.open(absfilename, "r", encoding="utf-8")
@@ -506,14 +476,14 @@ class FileRepository(Repository):
             if self.verbose:
                 util.report_file_read(absfilename)
         except IOError as ex:
-            raise self.ReadError(absfilename + ": " + str(ex))
+            raise self.ReadError("%s: %s" % (absfilename, ex))
         except UnicodeDecodeError as ex:
             s = str(ex).replace('utf-8', 'utf8')
-            raise self.ReadError(absfilename + ": unicode error: " + s)
+            raise self.ReadError("%s: unicode error: %s" % (absfilename, s))
         finally:
             if fd is not None:
                 fd.close()
 
-        if format is None:
-            format = util.guess_format(text)
-        return (absfilename, format, text)
+        if in_format is None:
+            in_format = util.guess_format(text)
+        return absfilename, in_format, text

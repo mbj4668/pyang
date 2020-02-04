@@ -4,13 +4,14 @@ import argparse
 import codecs
 import json
 import numbers
-import os
 import re
 import sys
 import xml.etree.ElementTree as ET
 
-if sys.version >= "3":
-    basestring = unicode = str
+
+str_type = type(u'')
+str_types = str if str_type is str else (str_type, str)
+
 
 class Error(Exception):
     """Abstract base class for exceptions in this program."""
@@ -26,14 +27,15 @@ class Error(Exception):
 class DataTypeError(Error):
     """Exception raised for values with wrong type."""
 
-    def __init__(self, path, type, value):
+    def __init__(self, path, datatype, value):
         Error.__init__(self, path)
-        self.type = type
+        self.datatype = datatype
         self.value = value
 
     def __str__(self):
-        return (Error.__str__(self) +
-                ' - %s is not a valid value of "%s" type' % (repr(self.value), self.type))
+        return Error.__str__(self) + (
+           ' - %r is not a valid value of "%s" type'
+           % (self.value, self.datatype))
 
 class NodeTypeError(Error):
     """Exception raised if the JSON object type doesn't fit the data model."""
@@ -49,7 +51,7 @@ class InvalidNodeError(Error):
     """Exception raised for nodes that are not found in the data model."""
 
     def __str__(self):
-        return (Error.__str__(self) + " - invalid node")
+        return Error.__str__(self) + " - invalid node"
 
 class MissingKeyError(Error):
     """Exception raised if a list entry doesn't have all keys."""
@@ -65,7 +67,7 @@ class InvalidAnnotationObjectError(Error):
     """Exception raise for an invalid annotation object."""
 
     def __str__(self):
-        return (Error.__str__(self) + " - invalid annotation object")
+        return Error.__str__(self) + " - invalid annotation object"
 
 class InvalidAnnotationError(Error):
     """
@@ -75,15 +77,16 @@ class InvalidAnnotationError(Error):
     def __init__(self, path, annot):
         Error.__init__(self, path)
         self.annot = annot
-    
+
     def __str__(self):
-        return (Error.__str__(self) + " - invalid annotation " + self.annot)
+        return Error.__str__(self) + " - invalid annotation " + self.annot
 
 class JSONError(Error):
     """Exception raised for broken JSON input."""
-    
+
     def __str__(self):
-        return (self.path.__str__())
+        return "%s" % self.path
+
 
 class Translator (object):
     """Translate JSON to XML according to a YANG data model.
@@ -91,7 +94,7 @@ class Translator (object):
     Instance variables:
 
     - `self.prefix`: dictionary mapping module names to prefix
-    
+
     - `self.uri`: dictionary mapping module names to namespace URI
 
     - `self.qn_re`, self.num_re`, `self.bra_re`: compiled regular
@@ -105,7 +108,7 @@ class Translator (object):
         self.uri = {}
         self.node_modules = set()
         for m in jtox["modules"]:
-            # The namespace urn:ietf:params:xml:ns:netconf:base:1.0 is added by the default. 
+            # The namespace urn:ietf:params:xml:ns:netconf:base:1.0 is added by the default.
             # Don't add it twice as this will cause the generated XML to be invalid
             prefix, uri = jtox["modules"][m]
             if uri != "urn:ietf:params:xml:ns:netconf:base:1.0":
@@ -133,7 +136,7 @@ class Translator (object):
         except ValueError as e:
             raise JSONError(e)
         return self.translate_obj(d, None, self.tree, xml_root, "/")
-        
+
     def translate_obj(self, json_obj, ns, node, xml_parent, path):
         """Translate object and attach it to the output XML tree.
 
@@ -148,10 +151,11 @@ class Translator (object):
         - `xml_parent`: parent XML element for the resulting tree
 
         - `path`: JSON pointer of `json_obj` (for error messages)
-        
+
         """
         def check_val(cond, path, ytyp):
-            if not cond: raise NodeTypeError(path, ytyp)
+            if not cond:
+                raise NodeTypeError(path, ytyp)
 
         def is_array(val):
             return isinstance(val, list) and val != [None]
@@ -217,7 +221,7 @@ class Translator (object):
                 if isinstance(job, dict):
                     self.handle_anyxml(job, el)
                 else:
-                    el.text = unicode(job)
+                    el.text = str_type(job)
 
     def handle_annotations(self, annot_obj, elem, mod_name, path):
         if not isinstance(annot_obj, dict):
@@ -234,7 +238,7 @@ class Translator (object):
             m, a = ann.split(":")
             self.node_modules.add(m)
             elem.attrib[self.et_qname(m, a)] = aval
-                    
+
     def handle_leaf(self, value, ytyp, mod_name, leaf_name,
                     xml_parent, path, annot_obj):
         """
@@ -257,15 +261,15 @@ class Translator (object):
                 el = ET.SubElement(parent, ch)
                 self.handle_anyxml(cobj, el)
             elif isinstance(cobj, list):
-                for eob in cobj:    
+                for eob in cobj:
                     el = ET.SubElement(parent, ch)
                     if isinstance(eob, dict):
                         self.handle_anyxml(eob, el)
                     else:
-                        el.text = unicode(eob)
+                        el.text = str_type(eob)
             else:
                 el = ET.SubElement(parent, ch)
-                el.text = unicode(cobj)
+                el.text = str_type(cobj)
 
     def node_lookup(self, name, ns, parent, path):
         """Return tag, module name and node specification for `name`."""
@@ -282,8 +286,8 @@ class Translator (object):
                 raise InvalidNodeError(path)
         if sep:
             self.node_modules.add(fst)
-            return (snd, fst, spec)
-        return (fst, ns, spec)
+            return snd, fst, spec
+        return fst, ns, spec
 
     def text_value(self, value, type_spec, mod_name, path):
         """Return `value` translated to its XML form.
@@ -294,7 +298,7 @@ class Translator (object):
         Arguments:
 
         - `value`: leaf value as found in JSON;
-        
+
         - `type_spec`: type specification produced by the "jtox" plugin;
 
         - `mod_name`: module name of the containing leaf
@@ -302,14 +306,15 @@ class Translator (object):
         - `path`: path of the node containing `value` (for error reporting)
         """
         def handle_int(value, bits, unsigned):
-            try:
-                if (bits == 64 and isinstance(value, basestring)
-                    or isinstance(value, int) and not isinstance(value, bool)
-                    or isinstance(value, numbers.Real) and value.is_integer()):
+            if (bits == 64 and isinstance(value, str_types)
+                or isinstance(value, numbers.Integral)
+                or isinstance(value, numbers.Real) and value.is_integer()):
+
+                try:
                     val = int(value)
-                else:
+                except ValueError:
                     return None
-            except:
+            else:
                 return None
             if unsigned:
                 lo = 0
@@ -317,16 +322,18 @@ class Translator (object):
             else:
                 hi = 2 ** (bits-1)
                 lo = -hi
-            return "%d" % val if lo <= val < hi else None  
-        t = type_spec[0] if isinstance(type_spec, list) else type_spec 
+            return "%d" % val if lo <= val < hi else None
+
+        t = type_spec[0] if isinstance(type_spec, list) else type_spec
         if t == 'empty':
             return "" if value == [None] else None
-        if t[0:3] == "int":
-            return handle_int(value, int(t[3:]), False) 
-        if t[0:4] == "uint":
-            return handle_int(value, int(t[4:]), True) 
+        if t.startswith("int"):
+            return handle_int(value, int(t[3:]), False)
+        if t.startswith("uint"):
+            return handle_int(value, int(t[4:]), True)
         if t == "decimal64":
-            if not isinstance(value, basestring): return None
+            if not isinstance(value, str_types):
+                return None
             ip, dp, fp = value.partition('.')
             try:
                 if dp:
@@ -351,7 +358,8 @@ class Translator (object):
         if t == "union":
             for memb in type_spec[1]:
                 tval = self.text_value(value, memb, mod_name, path)
-                if tval is not None: return tval
+                if tval is not None:
+                    return tval
             return None
         if t == "identityref":
             try:
@@ -395,7 +403,7 @@ class Translator (object):
             except:
                 return None
             return result
-        return unicode(value)
+        return str_type(value)
 
 def main():
     """Parse arguments, open files, create and run the translator."""
@@ -408,7 +416,7 @@ def main():
     parser.add_argument("-t", "--target", action="store", default="data",
                         help="type of the resulting XML document (default: data)")
     parser.add_argument("-o", "--output", action="store",
-                        help="output file (default: standard output)") 
+                        help="output file (default: standard output)")
     args = parser.parse_args()
     if args.target not in ["data", "config"]:
         sys.stderr.write("%s: error: unknown target '%s'\n" % (parser.prog, args.target))
@@ -422,7 +430,7 @@ def main():
         jtox = json.load(dfile)
     except IOError as e:
         sys.stderr.write("%s: error: %s: '%s'\n" %
-                         (parser.prog, e.strerror,e.filename))
+                         (parser.prog, e.strerror, e.filename))
         return 1
     except ValueError as e:
         sys.stderr.write("%s: error: %s\n" %
@@ -435,9 +443,9 @@ def main():
     try:
         trans.translate(jfile, root_el)
     except Error as e:
-        sys.stderr.write(parser.prog + ": " + str(e) + "\n")
+        sys.stderr.write("%s: %s\n" % (parser.prog, e))
         return e.return_value
-    for m in set(trans.prefix.keys()) - trans.node_modules:
+    for m in set(trans.prefix) - trans.node_modules:
         root_el.attrib["xmlns:" + trans.prefix[m]] = trans.uri[m]
     ET.ElementTree(root_el).write(outfile, encoding="utf-8", xml_declaration=True)
     return 0

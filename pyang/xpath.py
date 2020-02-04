@@ -2,6 +2,7 @@ from . import xpath_lexer
 from . import xpath_parser
 from .error import err_add
 from .util import prefix_to_module, search_data_node, data_node_up
+from .syntax import re_identifier
 
 core_functions = {
     'last': ([], 'number'),
@@ -41,8 +42,8 @@ yang_1_1_xpath_functions = {
     'bit-is-set': (['node-set', 'string'], 'boolean'),
     'enum-value': (['string'], 'number'),
     'deref': (['node-set'], 'node-set'),
-    'derived-from': (['node-set', 'string'], 'boolean'),
-    'derived-from-or-self': (['node-set', 'string'], 'boolean'),
+    'derived-from': (['node-set', 'qstring'], 'boolean'),
+    'derived-from-or-self': (['node-set', 'qstring'], 'boolean'),
     're-match': (['string', 'string'], 'boolean'),
     }
 
@@ -66,7 +67,7 @@ def add_prefix(prefix, s):
 def _add_prefix(prefix, tok):
     if tok.type == 'name':
         m = xpath_lexer.re_ncname.match(tok.value)
-        if m.group(2) == None:
+        if m.group(2) is None:
             tok.value = prefix + ':' + tok.value
     return tok
 
@@ -80,7 +81,7 @@ def v_xpath(ctx, stmt, node):
         else:
             q = xpath_parser.parse(stmt.arg)
             stmt.i_xpath = q
-        chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q)
+        chk_xpath_expr(ctx, stmt.i_orig_module, stmt.pos, node, node, q, None)
     except xpath_lexer.XPathError as e:
         err_add(ctx.errors, stmt.pos, 'XPATH_SYNTAX_ERROR', e.msg)
         stmt.i_xpath = None
@@ -90,10 +91,10 @@ def v_xpath(ctx, stmt, node):
 
 # mod is the (sub)module where the stmt is defined, which we use to
 # resolve prefixes.
-def chk_xpath_expr(ctx, mod, pos, initial, node, q):
-    if type(q) == type([]):
+def chk_xpath_expr(ctx, mod, pos, initial, node, q, t):
+    if isinstance(q, list):
         chk_xpath_path(ctx, mod, pos, initial, node, q)
-    elif type(q) == type(()):
+    elif isinstance(q, tuple):
         if q[0] == 'absolute':
             chk_xpath_path(ctx, mod, pos, initial, 'root', q[1])
         elif q[0] == 'relative':
@@ -102,23 +103,23 @@ def chk_xpath_expr(ctx, mod, pos, initial, node, q):
             for qa in q[1]:
                 chk_xpath_path(ctx, mod, pos, initial, node, qa)
         elif q[0] == 'comp':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'arith':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'bool':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'negative':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[1])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[1], None)
         elif q[0] == 'function_call':
             chk_xpath_function(ctx, mod, pos, initial, node, q[1], q[2])
         elif q[0] == 'path_expr':
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[1])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[1], t)
         elif q[0] == 'path': # q[1] == 'filter'
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[2])
-            chk_xpath_expr(ctx, mod, pos, initial, node, q[3])
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[2], None)
+            chk_xpath_expr(ctx, mod, pos, initial, node, q[3], None)
         elif q[0] == 'var':
             # NOTE: check if the variable is known; currently we don't
             # have any variables in YANG xpath expressions
@@ -131,16 +132,26 @@ def chk_xpath_expr(ctx, mod, pos, initial, node, q):
                 s = s[1:-1]
                 i = s.find(':')
                 # make sure there is just one : present
-                if i != -1 and s[i + 1:].find(':') == -1:
+                # FIXME: more colons should possibly be reported, instead
+                if i != -1 and s.find(':', i + 1) == -1:
                     prefix = s[:i]
-                    # we don't want to report an error; just mark the
-                    # prefix as being used.
-                    my_errors = []
-                    prefix_to_module(mod, prefix, pos, my_errors)
-                    for (pos0, code, arg) in my_errors:
-                        if code == 'PREFIX_NOT_DEFINED':
-                            err_add(ctx.errors, pos0,
-                                    'WPREFIX_NOT_DEFINED', arg)
+                    tag = s[i + 1:]
+                    if (re_identifier.search(prefix) is not None and
+                        re_identifier.search(tag) is not None):
+                        # we don't want to report an error; just mark the
+                        # prefix as being used.
+                        my_errors = []
+                        prefix_to_module(mod, prefix, pos, my_errors)
+                        for pos0, code, arg in my_errors:
+                            if code == 'PREFIX_NOT_DEFINED' and t == 'qstring':
+                                # we know for sure that this is an error
+                                err_add(ctx.errors, pos0,
+                                        'PREFIX_NOT_DEFINED', arg)
+                            else:
+                                # this may or may not be an error;
+                                # report a warning
+                                err_add(ctx.errors, pos0,
+                                        'WPREFIX_NOT_DEFINED', arg)
 
 def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     signature = None
@@ -148,12 +159,12 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
         signature = core_functions[func]
     elif func in yang_xpath_functions:
         signature = yang_xpath_functions[func]
-    elif (mod.i_version != '1' and func in yang_1_1_xpath_functions):
+    elif mod.i_version != '1' and func in yang_1_1_xpath_functions:
         signature = yang_1_1_xpath_functions[func]
     elif ctx.strict and func in extra_xpath_functions:
         err_add(ctx.errors, pos, 'STRICT_XPATH_FUNCTION', func)
         return None
-    elif not(ctx.strict) and func in extra_xpath_functions:
+    elif not ctx.strict and func in extra_xpath_functions:
         signature = extra_xpath_functions[func]
 
     if signature is None:
@@ -163,17 +174,17 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     # check that the number of arguments are correct
     nexp = len(signature[0])
     nargs = len(args)
-    if (nexp == nargs):
+    if nexp == nargs:
         pass
-    elif (nexp == 0 and nargs != 0):
+    elif nexp == 0 and nargs != 0:
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, nexp, nargs))
-    elif (signature[0][-1] == '?' and nargs == (nexp - 1)):
+    elif signature[0][-1] == '?' and nargs == (nexp - 1):
         pass
     elif signature[0][-1] == '?':
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, "%s-%s" % (nexp-1, nexp), nargs))
-    elif (signature[0][-1] == '*' and nargs >= (nexp - 1)):
+    elif signature[0][-1] == '*' and nargs >= (nexp - 1):
         pass
     elif signature[0][-1] == '*':
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
@@ -185,8 +196,10 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     # FIXME implement checks from check_function()
 
     # check the arguments - FIXME check type
+    i = 0
     for arg in args:
-        chk_xpath_expr(ctx, mod, pos, initial, node, arg)
+        chk_xpath_expr(ctx, mod, pos, initial, node, arg, signature[0][i])
+        i = i + 1
     return signature[1]
 
 def chk_xpath_path(ctx, mod, pos, initial, node, path):
@@ -233,10 +246,8 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             if pmodule is not None and node is not None and initial is not None:
                 if node == 'root':
                     children = pmodule.i_children
-                elif hasattr(node, 'i_children'):
-                    children = node.i_children
                 else:
-                    children = []
+                    children = getattr(node, 'i_children', None) or []
                 child = search_data_node(children, pmodule.i_modulename, name)
                 if child is None and node == 'root':
                     err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
@@ -248,8 +259,8 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 elif child is None:
                     err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
                             (pmodule.i_modulename, name, node.arg))
-                elif (hasattr(initial, 'i_config') and initial.i_config
-                      and hasattr(child, 'i_config') and not child.i_config):
+                elif (getattr(initial, 'i_config', None) is True
+                      and getattr(child, 'i_config', None) is False):
                     err_add(ctx.errors, pos, 'XPATH_REF_CONFIG_FALSE',
                             (pmodule.i_modulename, name))
                 else:
@@ -270,5 +281,5 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             # functions etc.
             pass
         for p in preds:
-            chk_xpath_expr(ctx, mod, pos, initial, node1, p)
+            chk_xpath_expr(ctx, mod, pos, initial, node1, p, None)
         chk_xpath_path(ctx, mod, pos, initial, node1, path[1:])

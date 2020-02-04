@@ -103,7 +103,7 @@ uri = (scheme + ":" + hier_part + r"(\?" + query + ")?" +
        "(#" + fragment + ")?")
 
 # Date
-date = r"[1-2][0-9]{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
+date = r"([1-2][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
 
 re_nonneg_integer = re.compile("^" + nonneg_integer + "$")
 re_integer = re.compile("^" + integer_ + "$")
@@ -175,13 +175,14 @@ def chk_date_arg(s):
     """Checks if the string `s` is a valid date string.
 
     Return True of False."""
-    if re_date.search(s) is None:
+    match = re_date.match(s)
+    if match is None:
         return False
-    comp = s.split('-')
+    comp = match.groups()
     try:
-        dt = datetime.date(int(comp[0]), int(comp[1]), int(comp[2]))
+        datetime.date(int(comp[0]), int(comp[1]), int(comp[2]))
         return True
-    except Exception as e:
+    except ValueError:
         return False
 
 def chk_enum_arg(s):
@@ -208,7 +209,7 @@ def chk_fraction_digits_arg(s):
         return False
 
 def chk_if_feature_expr(s):
-    return  parse_if_feature_expr(s) != None
+    return parse_if_feature_expr(s) is not None
 
 # if-feature-expr     = "(" if-feature-expr ")" /
 #                      if-feature-expr sep boolean-operator sep
@@ -252,7 +253,7 @@ def parse_if_feature_expr(s):
             y()
             tok = sx.get_token()
         sx.push_token(tok)
-        while operators[-1] != None:
+        while operators[-1] is not None:
             pop_operator()
 
     def y():
