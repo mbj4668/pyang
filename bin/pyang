@@ -55,6 +55,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="On errors, print the error code instead " \
                              "of the error message."),
+        optparse.make_option("--msg-template",
+                             dest="msg_template",
+                             type="string",
+                             help="Template used to display error messages. This is a python " \
+                                  "new-style format string used to format the message " \
+                                  "information with keys file, line, code and msg. " \
+                                  "Example: --msg-template='{file} || {line} || {code} || {msg}'"),
         optparse.make_option("-W",
                              dest="warnings",
                              action="append",
@@ -438,7 +445,18 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             kind = "error"
             exit_code = 1
         emsg = etag if o.print_error_code else error.err_to_str(etag, eargs)
-        sys.stderr.write('%s: %s: %s\n' % (epos, kind, emsg))
+
+        if o.msg_template != None:
+            try:
+                sys.stderr.write(str(o.msg_template).format(file=epos.ref,
+                                                            line=epos.line,
+                                                            code=etag,
+                                                            msg=error.err_to_str(etag, eargs)) + '\n')
+            except KeyError as e:
+                sys.stderr.write("unsupported key %s in msg-template\n" % str(e))
+                sys.exit(1)
+        else:
+            sys.stderr.write('%s: %s: %s\n' % (epos, kind, emsg))
 
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
