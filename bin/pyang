@@ -359,6 +359,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         m = ctx.add_module(filename, text)
         if m is not None:
             ctx.deviation_modules.append(m)
+    if o.hello:
+        for deviation_module in hel.yang_deviation_modules():
+            m = ctx.search_module(error.Position(''), deviation_module)
+            if m is not None:
+                ctx.deviation_modules.append(m)
 
     for p in plugin.plugins:
         p.pre_validate_ctx(ctx, modules)

@@ -81,13 +81,21 @@ class HelloParser:
         res = {}
         for c in self.capabilities:
             m = c.parameters.get("module")
-            if m is not None and m not in res:
-                res[m] = c.parameters.get("revision")
-            d = c.parameters.get("deviations")
-            if d is not None and d not in res:
-                # Revision not included so we don't know...
-                res[d] = None
+            if m is None or m in res.keys():
+                continue
+            res[m] = c.parameters.get("revision")
         return res.items()
+    
+    def yang_deviation_modules(self):
+        """
+        Return a list of advertised deviations to YANG mdoules.
+        """
+        deviations = set()
+        for c in self.capabilities:
+            deviation = c.parameters.get("deviations")
+            if deviation:
+                deviations.add(deviation)
+        return deviations
 
     def get_features(self, yam):
         """Return list of features declared for module `yam`."""
