@@ -1,4 +1,3 @@
 test:
-	test `$(PYANG) -f yang --yang-canonical a.yang | grep require-instance | \
-	wc -l` = 1
+	$(PYANG) -f yang --yang-canonical a.yang | grep -c require-instance | grep '^1$$'
 
