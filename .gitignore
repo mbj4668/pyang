@@ -15,6 +15,7 @@ schemas.xml
 *.egg-info
 *.idea
 .coverage*
+.profile*
 /test/test_*/*.dsrl
 /test/test_*/*.rng
 /test/test_*/*.sch
