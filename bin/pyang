@@ -461,9 +461,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 sys.stderr.write(str(o.msg_template).format(file=epos.ref,
                                                             line=epos.line,
                                                             code=etag,
-                                                            msg=error.err_to_str(etag, eargs)) + '\n')
-            except KeyError as e:
-                sys.stderr.write("unsupported key %s in msg-template\n" % str(e))
+                                                            msg=error.err_to_str(etag, eargs)) \
+                                                            + '\n')
+            except KeyError as error_msg:
+                sys.stderr.write("unsupported key %s in msg-template\n" % str(error_msg))
                 sys.exit(1)
         else:
             sys.stderr.write('%s: %s: %s\n' % (epos, kind, emsg))
