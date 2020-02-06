@@ -390,10 +390,11 @@ class FileRepository(Repository):
         self.modules = None
         self.verbose = verbose
 
-        if use_env:
+        while use_env:
+            use_env = False
             modpath = os.getenv('YANG_MODPATH')
             if modpath is not None:
-                self.dirs.extend(modpath.split(os.pathsep))
+                self.dirs.extend(p for p in modpath.split(os.pathsep) if p)
 
             home = os.getenv('HOME')
             if home is not None:
@@ -402,13 +403,13 @@ class FileRepository(Repository):
             inst = os.getenv('YANG_INSTALL')
             if inst is not None:
                 self.dirs.append(os.path.join(inst, 'yang', 'modules'))
-                return  # skip search if install location is indicated
+                break  # skip search if install location is indicated
 
             default_install = os.path.join(sys.prefix,
                                            'share','yang','modules')
             if os.path.exists(default_install):
                 self.dirs.append(default_install)
-                return  # end search if default location exists
+                break  # end search if default location exists
 
             # for some systems, sys.prefix returns `/usr`
             # but the real location is `/usr/local`
@@ -416,7 +417,7 @@ class FileRepository(Repository):
             # this information can be easily retrieved
             import pkgutil
             if not pkgutil.find_loader('pip'):
-                return  # abort search if pip is not installed
+                break  # abort search if pip is not installed
 
             # hack below to handle pip 10 internals
             # if someone knows pip and how to fix this, it would be great!
@@ -434,6 +435,9 @@ class FileRepository(Repository):
                 self.dirs.append(os.path.join(location['data'],
                                               'share','yang','modules'))
 
+        if verbose:
+            sys.stderr.write('# module search path: %s\n'
+                             % os.pathsep.join(self.dirs))
 
 
     def _setup(self, ctx):
