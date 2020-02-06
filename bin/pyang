@@ -446,7 +446,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             exit_code = 1
         emsg = etag if o.print_error_code else error.err_to_str(etag, eargs)
 
-        if o.msg_template != None:
+        if o.msg_template is not None:
             try:
                 sys.stderr.write(str(o.msg_template).format(file=epos.ref,
                                                             line=epos.line,
