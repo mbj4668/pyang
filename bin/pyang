@@ -60,8 +60,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              type="string",
                              help="Template used to display error messages. This is a python " \
                                   "new-style format string used to format the message " \
-                                  "information with keys file, line, code and msg. " \
-                                  "Example: --msg-template='{file} || {line} || {code} || {msg}'"),
+                                  "information with keys file, line, code, type and msg. " \
+                                  "Example: --msg-template='{file} || {line} || " \
+                                  "{code} || {type} || {msg}'"),
         optparse.make_option("-W",
                              dest="warnings",
                              action="append",
@@ -448,9 +449,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
         if o.msg_template is not None:
             try:
-                sys.stderr.write(str(o.msg_template).format(file=epos.ref,
-                                                            line=epos.line,
-                                                            code=etag,
+                sys.stderr.write(str(o.msg_template).format(file=epos.ref, line=epos.line,
+                                                            code=etag, type=kind,
                                                             msg=error.err_to_str(etag, eargs)) \
                                                             + '\n')
             except KeyError as error_msg:
