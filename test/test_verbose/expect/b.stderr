@@ -1,2 +1,2 @@
-# module search path: .:_ROOT_/modules:_ROOT_/modules:_HOME_/yang/modules:_SYS_PREFIX_/share/yang/modules
+# module search path: .:_ROOT_/modules:_HOME_/yang/modules:_SYS_PREFIX_/share/yang/modules
 # read b.yang (CL)
