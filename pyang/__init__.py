@@ -385,30 +385,34 @@ class FileRepository(Repository):
         """
 
         Repository.__init__(self)
-        self.dirs = path.split(os.pathsep)
+        self.dirs = []
         self.no_path_recurse = no_path_recurse
         self.modules = None
         self.verbose = verbose
+
+        for directory in path.split(os.pathsep):
+            self._add_directory(directory)
 
         while use_env:
             use_env = False
             modpath = os.getenv('YANG_MODPATH')
             if modpath is not None:
-                self.dirs.extend(p for p in modpath.split(os.pathsep) if p)
+                for directory in modpath.split(os.pathsep):
+                    self._add_directory(directory)
 
             home = os.getenv('HOME')
             if home is not None:
-                self.dirs.append(os.path.join(home, 'yang', 'modules'))
+                self._add_directory(os.path.join(home, 'yang', 'modules'))
 
             inst = os.getenv('YANG_INSTALL')
             if inst is not None:
-                self.dirs.append(os.path.join(inst, 'yang', 'modules'))
+                self._add_directory(os.path.join(inst, 'yang', 'modules'))
                 break  # skip search if install location is indicated
 
-            default_install = os.path.join(sys.prefix,
-                                           'share','yang','modules')
+            default_install = os.path.join(
+                sys.prefix, 'share', 'yang', 'modules')
             if os.path.exists(default_install):
-                self.dirs.append(default_install)
+                self._add_directory(default_install)
                 break  # end search if default location exists
 
             # for some systems, sys.prefix returns `/usr`
@@ -432,13 +436,18 @@ class FileRepository(Repository):
                 except:
                     pass
             if location is not None:
-                self.dirs.append(os.path.join(location['data'],
-                                              'share','yang','modules'))
+                self._add_directory(
+                    os.path.join(location['data'], 'share', 'yang', 'modules'))
 
         if verbose:
             sys.stderr.write('# module search path: %s\n'
                              % os.pathsep.join(self.dirs))
 
+    def _add_directory(self, directory):
+        if not directory or directory in self.dirs:
+            return False
+        self.dirs.append(directory)
+        return True
 
     def _setup(self, ctx):
         # check all dirs for yang and yin files
