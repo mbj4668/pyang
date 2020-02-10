@@ -86,14 +86,20 @@ class HelloParser:
             res[m] = c.parameters.get("revision")
         return res.items()
     
-    def yang_deviation_modules(self):
+    def yang_implicit_deviation_modules(self):
         """
-        Return a list of advertised deviations to YANG mdoules.
+        Return an iterable of deviations to YANG modules which are referenced
+        but not explicitly advertised as a module.
         """
         deviations = set()
+        advertised_modules = set(dict(self.yang_modules()).keys())
         for c in self.capabilities:
-            deviation = c.parameters.get("deviations")
-            if deviation:
+            deviation_string = c.parameters.get("deviations")
+            if not deviation_string:
+                continue
+            for deviation in deviation_string.split(","):
+                if not deviation or deviation in advertised_modules:
+                    continue
                 deviations.add(deviation)
         return deviations
 
