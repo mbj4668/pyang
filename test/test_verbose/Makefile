@@ -1,17 +1,21 @@
-PYANG = pyang -Wnone
+PYANG := $(PYANG) -Wnone
 
 MODULES ?= $(wildcard *.yang)
 
 SEDSCRIPT = sed -e 's/[^-]*//' -e 's/\.yang//' -e 's/--/ --/g'
+
+HOME := $(shell pwd)/out
+SYSPREF := $(shell python -c 'import sys; print(sys.prefix)')
+SEDEXPR := "s:_HOME_:$(HOME):g;s:_ROOT_:$(W):g;s:_SYS_PREFIX_:$(SYSPREF):g"
 
 test: clean out
 	@for m in $(MODULES); do 					\
 	  echo "trying $$m..." | tr -d '\012';				\
 	  x=`echo $$m | $(SEDSCRIPT)`;					\
 	  o=`echo $$m | sed -e 's/\.yang/.stderr/'`;			\
-	  $(PYANG) --verbose $$x $$m 2>out/$$o				\
+	  HOME=$(HOME) $(PYANG) --verbose $$x $$m 2>out/$$o		\
 	    || exit 1;							\
-	  diff expect/$$o out/$$o > $$o.diff 				\
+	  sed -e $(SEDEXPR) expect/$$o | diff - out/$$o > $$o.diff	\
 	    || { cat $$o.diff; exit 1; };				\
 	  rm -f $$o.diff;						\
 	  echo " ok";							\

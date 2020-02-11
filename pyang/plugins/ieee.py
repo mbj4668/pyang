@@ -3,7 +3,6 @@ See http://standards.ieee.org/develop/regauth/tut/ieeeurn.pdf
 """
 
 import optparse
-import sys
 import re
 
 from pyang import plugin

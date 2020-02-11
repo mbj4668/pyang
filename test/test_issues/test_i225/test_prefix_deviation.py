@@ -6,12 +6,11 @@ tests for PYANG data files
 """
 import os
 import sys
-from os.path import abspath, dirname
 
 # hack to handle pip 10 internals
 try:
     import pip.locations as locations
-except:
+except ImportError:
     import pip._internal.locations as locations
 
 from pyang import Context, FileRepository

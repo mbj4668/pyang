@@ -5,7 +5,7 @@
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -60,14 +60,15 @@ class SchemaNode(object):
     * `self.text` - text content.
     """
 
+    @classmethod
     def element(cls, name, parent=None, interleave=None, occur=0):
         """Create an element node."""
         node = cls("element", parent, interleave=interleave)
         node.attr["name"] = name
         node.occur = occur
         return node
-    element = classmethod(element)
 
+    @classmethod
     def leaf_list(cls, name, parent=None, interleave=None):
         """Create _list_ node for a leaf-list."""
         node = cls("_list_", parent, interleave=interleave)
@@ -77,45 +78,45 @@ class SchemaNode(object):
         node.maxEl = None
         node.occur = 3
         return node
-    leaf_list = classmethod(leaf_list)
 
+    @classmethod
     def list(cls, name, parent=None, interleave=None):
         """Create _list_ node for a list."""
         node = cls.leaf_list(name, parent, interleave=interleave)
         node.keys = []
         node.keymap = {}
         return node
-    list = classmethod(list)
 
+    @classmethod
     def choice(cls, parent=None, occur=0):
         """Create choice node."""
         node = cls("choice", parent)
         node.occur = occur
         node.default_case = None
         return node
-    choice = classmethod(choice)
 
+    @classmethod
     def case(cls, parent=None):
         """Create case node."""
         node = cls("case", parent)
         node.occur = 0
         return node
-    case = classmethod(case)
 
+    @classmethod
     def define(cls, name, parent=None, interleave=False):
         """Create define node."""
         node = cls("define", parent, interleave=interleave)
         node.occur = 0
         node.attr["name"] = name
         return node
-    define = classmethod(define)
 
     def __init__(self, name, parent=None, text="", interleave=None):
         """Initialize the object under `parent`.
         """
         self.name = name
         self.parent = parent
-        if parent is not None: parent.children.append(self)
+        if parent is not None:
+            parent.children.append(self)
         self.text = text
         self.adjust_interleave(interleave)
         self.children = []
@@ -138,7 +139,7 @@ class SchemaNode(object):
 
     def adjust_interleave(self, interleave):
         """Inherit interleave status from parent if undefined."""
-        if interleave == None and self.parent:
+        if interleave is None and self.parent:
             self.interleave = self.parent.interleave
         else:
             self.interleave = interleave
@@ -153,7 +154,7 @@ class SchemaNode(object):
         """Add `node` as an annotation of the receiver."""
         self.annots.append(node)
         node.parent = self
-        
+
     def set_attr(self, key, value):
         """Set attribute `key` to `value` and return the receiver."""
         self.attr[key] = value
@@ -189,7 +190,7 @@ class SchemaNode(object):
                                    self.serialize_children())
 
     def _default_format(self, occur):
-        """Return the default serialization format.""" 
+        """Return the default serialization format."""
         if self.text or self.children:
             return self.start_tag() + "%s" + self.end_tag()
         return self.start_tag(empty=True)
@@ -197,9 +198,9 @@ class SchemaNode(object):
     def _wrapper_format(self, occur):
         """Return the serializatiopn format for <start>."""
         return self.start_tag() + self._chorder() + self.end_tag()
-        
+
     def _define_format(self, occur):
-        """Return the serialization format for a define node.""" 
+        """Return the serialization format for a define node."""
         if hasattr(self, "default"):
             self.attr["nma:default"] = self.default
         middle = self._chorder() if self.rng_children() else "<empty/>%s"
@@ -207,7 +208,7 @@ class SchemaNode(object):
                 + middle + self.end_tag())
 
     def _element_format(self, occur):
-        """Return the serialization format for an element node.""" 
+        """Return the serialization format for an element node."""
         if occur:
             occ = occur
         else:
@@ -234,7 +235,7 @@ class SchemaNode(object):
         return "%s"
 
     def _list_format(self, occur):
-        """Return the serialization format for a _list_ node.""" 
+        """Return the serialization format for a _list_ node."""
         if self.keys:
             self.attr["nma:key"] = " ".join(self.keys)
             keys = ''.join([self.keymap[k].serialize(occur=2)
@@ -255,7 +256,7 @@ class SchemaNode(object):
                 middle + self.end_tag("element") + "</" + ord_ + ">")
 
     def _choice_format(self, occur):
-        """Return the serialization format for a choice node.""" 
+        """Return the serialization format for a choice node."""
         middle = "%s" if self.rng_children() else "<empty/>%s"
         fmt = self.start_tag() + middle + self.end_tag()
         if self.occur != 2:
@@ -264,11 +265,12 @@ class SchemaNode(object):
             return fmt
 
     def _case_format(self, occur):
-        """Return the serialization format for a case node.""" 
+        """Return the serialization format for a case node."""
         if self.occur == 1:
             self.attr["nma:implicit"] = "true"
         ccnt = len(self.rng_children())
-        if ccnt == 0: return "<empty/>%s"
+        if ccnt == 0:
+            return "<empty/>%s"
         if ccnt == 1 or not self.interleave:
             return self.start_tag("group") + "%s" + self.end_tag("group")
         return (self.start_tag("interleave") + "%s" +

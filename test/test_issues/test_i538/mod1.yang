@@ -1,0 +1,22 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:cesnet:mod1";
+  prefix abc;
+
+  typedef my {
+    type bits {
+      bit one {
+        description "test";
+      }
+      bit two {
+        position 555;
+      }
+      bit three;
+      bit four {
+        position 4294967295;
+      }
+      bit five;
+      bit six;
+    }
+  }
+}

@@ -1,0 +1,7 @@
+mod1.yang:11: error: BAD_STATUS_REFERENCE
+mod1.yang:17: error: BAD_STATUS_REFERENCE
+mod1.yang:23: error: BAD_STATUS_REFERENCE
+mod1.yang:29: error: BAD_STATUS_REFERENCE
+mod1.yang:35: error: BAD_STATUS_REFERENCE
+mod1.yang:41: error: BAD_STATUS_REFERENCE
+mod1.yang:49: error: BAD_STATUS_REFERENCE

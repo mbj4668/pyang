@@ -1,4 +1,16 @@
-   2.1 - 2019-10-20
+* 2.1.1 - 2020-01-03
+
+```
+         #532 - warn if config true xpath refers to config false node
+         #522 - find prefixes in xpath expressions in groupings
+         #518 - broken xpath check
+         #514 - re-added sample-xml-skeleton plugin (accidentally removed)
+         #495 - "when" xpath context node was not correctly set in "uses"
+```
+
+* 2.1 - 2019-10-20
+
+```
          added a plugin to generate SID files (see draft-ietf-core-sid)
            thanks to @lemikev
          fixed canonical stmt order in 'identity'
@@ -8,8 +20,11 @@
                 thanks to Joe Gladston
          #509 - allow refine of default to leaf-list in 1.1
          #505 - --yang-canonical duplicates require-instance
+```
 
-   2.0.2 - 2019-08-21
+* 2.0.2 - 2019-08-21
+
+```
          pr:497 - fixed crash when parsing an xpath union with three or
                   more terms
                   thanks to Stuart Bayley
@@ -19,15 +34,21 @@
                 than one argument.  this bug lead to false warnings
                 that imported modules were not used, when they in fact
                 were used in xpath expressions.
+```
 
-   2.0.1 - 2019-06-11
+* 2.0.1 - 2019-06-11
+
+```
          pr:492 - ensure the ietf-netconf namespace isn't added multiple times
                   in json2xml
          #493 - fixed crash with --keep-comments where comments were present
                 between a statement keyword and the argument
          #491 - fixed incorrect prototype for XPath "concat" function
+```
 
-   2.0 - 2019-05-29
+*   2.0 - 2019-05-29
+
+```
          pyang now has a proper XPath 1.0 parser, which means that it will
            detect more XPath errors, and produce warnings for XPath expressions
            that for example refer to unknown nodes
@@ -78,19 +99,28 @@
                 when ctx.validate() is called.
          #306 - support plugins available as .pyc files
          #183 - canonical checks lead to false 'circular definition' error
+```
 
-   1.7.8 - 2019-01-21
+* 1.7.8 - 2019-01-21
+
+```
          for python coders: reverted method signature change for
          Repository.get_module_from_handle().  it now has the same
          signature as in 1.7.5.
 
          fixed bug in check_update when there were more than one
          augment for the same target node.
+```
 
-   1.7.7 - 2019-01-17
+* 1.7.7 - 2019-01-17
+
+```
          fixed a bug in -f yang formatting
+```
 
-   1.7.6 - 2019-01-17
+* 1.7.6 - 2019-01-17
+
+```
          fixed grammar; do not allow "must" in "choice"
          added --yang-line-length to try to format lines with max length
          various fixes to -f yang for consistency in the output
@@ -119,8 +149,11 @@
          #397 - fix crash in sample-xml-skeleton format
          #418 - properly handle identityref defaults in sample-xml-skeleton
          #450 - allow choice of containers in rc:yang-data
+```
 
-   1.7.5 - 2018-04-25
+* 1.7.5 - 2018-04-25
+
+```
          the tree output is now aligned with RFC 8340
          remove trailing whitespace from double quoted strings
          -f yang formatting fixes
@@ -146,8 +179,11 @@
          #380 - --lint-ensure-hyphenated-name bug fix
          #383 - correctly identify chocie and anyxml as mandatory nodes
                 thanks to Glenn Matthews
+```
 
-   1.7.4 - 2018-02-23
+* 1.7.4 - 2018-02-23
+
+```
          the tree output is now aligned with
            draft-ietf-netmod-yang-tree-diagrams-05
          added --tree-no-expand-uses to not expang groupings in uses
@@ -175,13 +211,19 @@
          #358 - translator dsdl bug with groupings fixed
          #360 - bug when xsltproc failing with "undefined namespace prefix"
                 for identityref when prefix defined in tag of text fixed
+```
 
-   1.7.3 - 2017-06-27
+* 1.7.3 - 2017-06-27
+
+```
          #318 - handle multiple rc:yang-data statements.
                 this bug caused validation of ietf-restconf, or any
                 module that imported ietf-restconf, to fail.
+```
 
-   1.7.2 - 2017-06-14
+* 1.7.2 - 2017-06-14
+
+```
          added support for external plugins, using setuptools entry_points
          added a warning for unsafe escape sequences in double quoted
            strings.
@@ -210,9 +252,11 @@
          #301 - fix bug w/ refine of leafref leaf
          #310 - when using the windows command prompt, "pyang" was not
                 found, thanks to Mallikarjunarao Kosuri
+```
 
+* 1.7.1 - 2016-11-02
 
-   1.7.1 - 2016-11-02
+```
          added support for RFC 7952, metadata annotations
          added --tree-max-length option
 
@@ -231,9 +275,11 @@
                 groupings
          #276 - detect enumeration/bits/identityref w/o enum/bit/base
          #277 - handle shorthand choice correctly
+```
 
+* 1.7 - 2016-06-16
 
-   1.7 - 2016-06-16
+```
          added support for YANG 1.1
          added command line flag --ignore-error, thanks to Nick Weeds
          added option --tree-print-groupings to the 'tree' plugin
@@ -251,8 +297,11 @@
          #208 - yang2dsdl now correctly handle must statements in nested
            groupings
          #234 - handling of XPath operator bug fix
+```
 
-   1.6 - 2015-10-06
+* 1.6 - 2015-10-06
+
+```
          removed the deprecated, incomplete and erroneous XSD plugin - use
            the DSDL plugin instead.
          added new plugin: 'lint' to check if a module follow
@@ -296,8 +345,11 @@
 
          implement try/except block for plugin directory listing,
            thanks to Ebben Aries
+```
 
-   1.5 - 2014-11-18
+* 1.5 - 2014-11-18
+
+```
          added new plugin: 'capability' to print the capability string for
            a module
          added new plugin: 'check-update' which can be used to compare
@@ -326,11 +378,17 @@
          #100 - check for prefixes in qname literals in XPath expressions
          #101 - enum fixes in 'uml' output
          #103 - type empty now handled in 'dsdl' output
+```
 
-   1.4.1 - 2013-11-11
+* 1.4.1 - 2013-11-11
+
+```
          #96 - 1.4 doesn't work with Pyhton 3
+```
 
-   1.4 - 2013-10-24
+* 1.4 - 2013-10-24
+
+```
          added option --lax-xpath-checks
          deprecated the xsd output plugin
          tree: now prints augmented nodes
@@ -347,8 +405,11 @@
          #92 - dsdl: handle conditional uses
          #93 - dsdl: fixed problem  with anyxml
          #94 - dsdl: mandatory choice inside a grouping
+```
 
-   1.3 - 2013-01-31
+* 1.3 - 2013-01-31
+
+```
          added new plugins: hypertree and jstree
          added new plugins: jsonxsl and jtox
          added command line flags -W and -E to treat warnings as errors
@@ -380,8 +441,11 @@
          smiv2: fixes in oid regexp
          smiv2: RFC 6643 compatible
          ... and numerous other minor fixes
+```
 
-   1.2 - 2011-07-27
+* 1.2 - 2011-07-27
+
+```
         added edit-config target to yang2dsls
 
         if a submodule A includes submodule B, which includes
@@ -395,8 +459,11 @@
         some xsd output fixes
         removed the --xsd-no-include option.  the xsd ouput never generates
           inlcude anymore
+```
 
-   1.1 - 2011-02-16
+* 1.1 - 2011-02-16
+
+```
         DSDL output compatible with RFC 6110
 
         added uml output format
@@ -413,8 +480,11 @@
         reorganized command-line parameters in yand2dsdl
         fixed bug wit input modules not on module path
         added examples for DSDL Mapping Tutorial
+```
 
-   1.0 - 2010-10-07
+* 1.0 - 2010-10-07
+
+```
         compatible with RFC 6020
 
         added yang2dsdl(1) program
@@ -422,8 +492,11 @@
         added depend output format
 
         too many bugfixes to list them all
+```
 
-   0.9.3 - 2008-12-07
+* 0.9.3 - 2008-12-07
+
+```
         compatible with draft-ietf-netmod-yang-02
         rewrote validation code.  got rid of all the specialized classes
         handle circular defintions
@@ -438,8 +511,11 @@
         added bin/yang2html which can be used to syntax coloring of yang
           modules
         new algorithm for finding standard YANG modules (see pyang(1))
+```
 
-   0.9.2 - 2008-10-13
+* 0.9.2 - 2008-10-13
+
+```
         handle prefixed references to local groupings
         make use of path argument given to pyang
         handle multiple patterns
@@ -473,18 +549,27 @@
           twice via an augment
         known issue: chained derivation of types doesn't work properly
           in the DSDL translator
+```
 
-   0.9.1 - 2008-07-08
+* 0.9.1 - 2008-07-08
+
+```
         rewrote yang parser
         added yin parser
         added dsdl output
         added yang output
         more internal restructuring
+```
 
-   0.9.0b - 2008-05-19
+* 0.9.0b - 2008-05-19
+
+```
         first release of restructured code
+```
 
-   02.2 - 2008-02-21
+* 02.2 - 2008-02-21
+
+```
         fixed some xsd output bugs
         fixed bug in refinmenet, where a valid refinmened would
           generate a duplicate node definition error
@@ -492,14 +577,23 @@
         verify that a list in a grouping which is used from config
           has keys
         internal preparation for major restructure of the code
+```
 
-   02.1 - 2008-02-06
+* 02.1 - 2008-02-06
+
+```
         draft-bjorklund-netconf-yang-02 compliant.
+```
+   
+* 01.3 - 2008-02-01
 
-   01.3 - 2008-02-01
+```
         draft-bjorklund-netconf-yang-01 compliant.
+```
 
-   00.2 - 2008-01-15
+* 00.2 - 2008-01-15
+
+```
         fixed grouping translation in XSD output
         generate YIN appinfo by default in XSD output
         added validation of identifiers
@@ -508,6 +602,10 @@
         handle yin-element in extensions
         handle bits types in XSD generation
         xs:key generation fix in XSD output by John Dickinson
+```
 
-   00.1 - 2007-11-14
+* 00.1 - 2007-11-14
+
+```
         Initial version, draft-bjorklund-netconf-yang-00 compliant.
+```

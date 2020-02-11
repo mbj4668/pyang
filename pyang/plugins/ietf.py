@@ -114,7 +114,7 @@ must contain the following text:
 """)
 
 rfc8174_str = \
-"""The key words 'MUST', 'MUST NOT', 'REQUIRED', 'SHALL', 'SHALL
+r"""The key words 'MUST', 'MUST NOT', 'REQUIRED', 'SHALL', 'SHALL
 NOT', 'SHOULD', 'SHOULD NOT', 'RECOMMENDED', 'NOT RECOMMENDED',
 'MAY', and 'OPTIONAL' in this document are to be interpreted as
 described in BCP 14 \(RFC 2119\) \(RFC 8174\) when, and only when,
@@ -139,5 +139,5 @@ the RFC itself for full legal notices\."""
 
 re_tlp = re.compile(re.sub(r'\s+', ' ', tlp_str))
 
-re_2119_keywords = re.compile(r"MUST|SHOULD|SHALL|RECOMMENDED|MAY|OPTIONAL")
-
+re_2119_keywords = re.compile(
+    r"\b(MUST|REQUIRED|SHOULD|SHALL|RECOMMENDED|MAY|OPTIONAL)\b")

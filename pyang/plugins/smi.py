@@ -13,7 +13,6 @@ i_smi_oid built from the smiv2:oid and smiv2:subid statements.
 
 import re
 
-import pyang
 from pyang import plugin
 from pyang import syntax
 from pyang import grammar
@@ -23,8 +22,8 @@ from pyang.error import err_add
 
 smi_module_name = 'ietf-yang-smiv2'
 
-re_smi_oid = re.compile("^(([0-1](\.[1-3]?[0-9]))|(2\.(0|([1-9]\d*))))"
-                          + "(\.(0|([1-9]\d*)))*$")
+re_smi_oid = re.compile(r"^(([0-1](\.[1-3]?[0-9]))|(2\.(0|([1-9]\d*))))" \
+                        r"(\.(0|([1-9]\d*)))*$")
 
 class SMIPlugin(plugin.PyangPlugin):
     pass
@@ -50,7 +49,7 @@ def pyang_plugin_init():
     grammar.register_extension_module(smi_module_name)
 
     # Register the special grammar
-    for (stmt, occurance, (arg, rules), add_to_stmts) in smi_stmts:
+    for stmt, occurance, (arg, rules), add_to_stmts in smi_stmts:
         grammar.add_stmt((smi_module_name, stmt), (arg, rules))
         grammar.add_to_stmts_rules(add_to_stmts,
                                    [((smi_module_name, stmt), occurance)])

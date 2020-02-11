@@ -1,2 +1,2 @@
 test:
-	pyang a.yang > /dev/null
+	$(PYANG) a.yang > /dev/null

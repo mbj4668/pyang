@@ -1,0 +1,6 @@
+module a {
+  namespace "urn:a";
+  prefix a;
+
+  identity idbase;
+}

@@ -7,8 +7,10 @@ import pkg_resources
 plugins = []
 """List of registered PyangPlugin instances"""
 
-def init(plugindirs=[]):
+def init(plugindirs=None):
     """Initialize the plugin framework"""
+    if plugindirs is None:
+        plugindirs = []
 
     # initialize the builtin plugins
     from .translators import yang,yin,dsdl
@@ -174,11 +176,11 @@ class PyangPlugin(object):
         have been validated"""
         return
 
-    def emit(self, ctx, modules, writef):
+    def emit(self, ctx, modules, fd):
         """Produce the plugin output.
 
         Override this method to perform the output conversion.
-        `writef` is a function that takes one string to print as argument.
+        `fd` is a file-like object open for writing.
 
         Raise error.EmitError on failure.
         """

@@ -3,12 +3,8 @@ See BBF Assigned Names and Numbers at https://wiki.broadband-forum.org/display/B
 """
 
 import optparse
-import sys
 
 from pyang import plugin
-from pyang import statements
-from pyang import error
-from pyang.error import err_add
 from pyang.plugins import lint
 
 def pyang_plugin_init():
@@ -19,6 +15,7 @@ class BBFPlugin(lint.LintPlugin):
         lint.LintPlugin.__init__(self)
         self.namespace_prefixes = ['urn:bbf:yang:']
         self.modulename_prefixes = ['bbf']
+        self.ensure_hyphenated_names = True
 
     def add_opts(self, optparser):
         optlist = [
@@ -34,3 +31,5 @@ class BBFPlugin(lint.LintPlugin):
         if not ctx.opts.bbf:
             return
         self._setup_ctx(ctx)
+        if ctx.max_line_len is None:
+            ctx.max_line_len = 70

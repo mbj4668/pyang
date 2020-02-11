@@ -1,2 +1,3 @@
+# module search path: .:_ROOT_/modules:_HOME_/yang/modules:_SYS_PREFIX_/share/yang/modules
 # read a.yang (CL)
 # read b.yang

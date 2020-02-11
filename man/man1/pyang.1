@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2019-10-20
+.\"      Date: 2020-01-03
 .\"    Manual: pyang manual
-.\"    Source: pyang-2.1
+.\"    Source: pyang-2.1.1
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2019\-10\-20" "pyang\-2\&.1" "pyang manual"
+.TH "PYANG" "1" "2020\-01\-03" "pyang\-2\&.1\&.1" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-implicit\-hello\-deviations] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-sid\-list] \-\-sid\-generate\-file {count | \fIentry\-point:size\fR} \fIyang\-filename\fR
 .HP \w'\fBpyang\fR\ 'u
@@ -230,6 +230,11 @@ Lax checks of XPath expressions\&. Specifically, do not generate an error if an 
 Interpret the input file or standard input as a server <hello> message\&. In this case, no more than one
 \fIfile\fR
 parameter may be given\&.
+.RE
+.PP
+\fB\-\-implicit\-hello\-deviations\fR
+.RS 4
+Attempt to parse all deviations from a supplied <hello> message\&. Not all implementations provide deviations explicitly as modules\&. This flag enables more logic to attempt to derive all deviations from the message\&.
 .RE
 .PP
 \fB\-\-trim\-yin\fR

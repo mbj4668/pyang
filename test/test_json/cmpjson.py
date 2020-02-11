@@ -21,4 +21,3 @@ if a != b:
     sys.exit(2)
 
 sys.exit(0)
-
