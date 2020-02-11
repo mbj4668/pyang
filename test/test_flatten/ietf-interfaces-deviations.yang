@@ -1,0 +1,20 @@
+module ietf-interfaces-deviations {
+  namespace "urn:ietf:params:xml:ns:yang:ietf-interfaces-deviations";
+
+  prefix if-devs;
+
+  import ietf-interfaces {
+    prefix if;
+  }
+
+  revision 2020-02-11 {
+    description
+      "Just a quick deviation test.";
+  }
+
+ deviation "/if:interfaces-state" { 
+        deviate not-supported;
+        description
+            "Deviations are deadly.";
+  }
+}

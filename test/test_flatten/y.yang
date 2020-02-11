@@ -1,0 +1,19 @@
+module y {
+  namespace "urn:y";
+  prefix y;
+
+  container pretty-long-identifier-name {
+    container shorter {
+      container another-long-identifier-name {
+        container also-short {
+          container but-this-is-long-again {
+          }
+        }
+      }
+    }
+  }
+
+  notification my-notif;
+  rpc my-rpc;
+
+}
