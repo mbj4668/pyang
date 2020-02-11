@@ -73,7 +73,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-keyword",
                 dest="flatten_keyword",
                 action="store_true",
-                help="Output the keyword."
+                help="Output the keyword.",
             ),
             optparse.make_option(
                 "--flatten-type",
@@ -142,8 +142,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--ignore-no-primitive",
                 dest="ignore_no_primitive",
                 help="Ignore error if primitive is missing.",
-                action="store_true"
-            )
+                action="store_true",
+            ),
         ]
         g = optparser.add_option_group("Flatten output specific options")
         g.add_options(optlist)
@@ -217,7 +217,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_type:
             output_content["type"] = statements.get_qualified_type(child) or "nil"
         if ctx.opts.flatten_primitive_type:
-            output_content["primitive_type"] = primitive_type    
+            output_content["primitive_type"] = primitive_type
         if ctx.opts.flatten_flag:
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
