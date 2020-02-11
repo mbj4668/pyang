@@ -1622,6 +1622,15 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-keyword</option></term>
+        <listitem>
+          <para>
+            Output the keyword.
+            This will resolve as container, leaf, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-type</option></term>
         <listitem>
           <para>
@@ -1640,11 +1649,11 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--flatten-permission</option></term>
+        <term><option>--flatten-flag</option></term>
         <listitem>
           <para>
-            Output config property.
-            If config property is set, outputs rw, else ro.
+            Output flag property.
+            Derives a flag - for instance rw/ro for config, or x for RPC.
           </para>
         </listitem>
       </varlistentry>
@@ -1692,13 +1701,18 @@ $ osascript foo.scpt</screen>
       </varlistentry>
       <varlistentry>
         <term>
-          <option>--flatten-filter-permission</option>
+          <option>--flatten-filter-flag</option>
           <replaceable>choice</replaceable>
         </term>
         <listitem>
           <para>
-            Filter output to ro or rw (config property).
-            ro | rw
+            Filter output to flag.
+            <emphasis>rw</emphasis> for configuration data.
+            <emphasis>ro</emphasis> for non-configuration data, output parameters to rpcs and actions, and notification parameters.
+            <emphasis>w</emphasis> for input parameters to rpcs and actions.
+            <emphasis>u</emphasis> for uses of a grouping.
+            <emphasis>x</emphasis> for rpcs and actions.
+            <emphasis>n</emphasis> for notifications.
           </para>
         </listitem>
       </varlistentry>
@@ -1711,6 +1725,14 @@ $ osascript foo.scpt</screen>
           <para>
             CSV dialect for output.
             excel | excel-tab | unix
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--ignore-no-primitive</option></term>
+        <listitem>
+          <para>
+            Ignore error if primitive is missing.
           </para>
         </listitem>
       </varlistentry>

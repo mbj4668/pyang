@@ -1094,6 +1094,11 @@ Flatten output specific options:
 Do not emit the CSV header\&.
 .RE
 .PP
+\fB\-\-flatten\-keyword\fR
+.RS 4
+Output the keyword\&. This will resolve as container, leaf, etc\&.
+.RE
+.PP
 \fB\-\-flatten\-type\fR
 .RS 4
 Output the top\-level type\&. This will resolve to a module\-prefixed type\&.
@@ -1104,9 +1109,9 @@ Output the top\-level type\&. This will resolve to a module\-prefixed type\&.
 Output the primitive type\&. This resolves to a YANG type such as uint64\&.
 .RE
 .PP
-\fB\-\-flatten\-permission\fR
+\fB\-\-flatten\-flag\fR
 .RS 4
-Output config property\&. If config property is set, outputs rw, else ro\&.
+Output flag property\&. Derives a flag \- for instance rw/ro for config, or x for RPC\&.
 .RE
 .PP
 \fB\-\-flatten\-description\fR
@@ -1129,14 +1134,31 @@ Filter output to only desired keywords\&. Keywords specified are what will be di
 Filter output to only desired primitive types\&. Primitives specified are what will be displayed in output\&. Can be specified more than once\&.
 .RE
 .PP
-\fB\-\-flatten\-filter\-permission\fR \fIchoice\fR
+\fB\-\-flatten\-filter\-flag\fR \fIchoice\fR
 .RS 4
-Filter output to ro or rw (config property)\&. ro | rw
+Filter output to flag\&.
+\fIrw\fR
+for configuration data\&.
+\fIro\fR
+for non\-configuration data, output parameters to rpcs and actions, and notification parameters\&.
+\fIw\fR
+for input parameters to rpcs and actions\&.
+\fIu\fR
+for uses of a grouping\&.
+\fIx\fR
+for rpcs and actions\&.
+\fIn\fR
+for notifications\&.
 .RE
 .PP
 \fB\-\-flatten\-csv\-dialect\fR \fIdialect\fR
 .RS 4
 CSV dialect for output\&. excel | excel\-tab | unix
+.RE
+.PP
+\fB\-\-ignore\-no\-primitive\fR
+.RS 4
+Ignore error if primitive is missing\&.
 .RE
 .SH "UML OUTPUT"
 .PP
