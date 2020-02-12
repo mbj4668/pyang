@@ -162,6 +162,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Filename of a server's hello message is "
                              "given instead of module filename(s)."),
+        optparse.make_option("--implicit-hello-deviations",
+                             dest="implicit_hello_deviations",
+                             action="store_true",
+                             help="Attempt to parse all deviations from hello "
+                             "message regardless of declaration."),
         optparse.make_option("--keep-comments",
                              dest="keep_comments",
                              action="store_true",
@@ -367,6 +372,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         m = ctx.add_module(filename, text)
         if m is not None:
             ctx.deviation_modules.append(m)
+    if o.hello and o.implicit_hello_deviations:
+        for deviation_module in hel.yang_implicit_deviation_modules():
+            m = ctx.search_module(error.Position(''), deviation_module)
+            if m is not None:
+                ctx.deviation_modules.append(m)
 
     for p in plugin.plugins:
         p.pre_validate_ctx(ctx, modules)

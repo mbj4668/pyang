@@ -53,6 +53,7 @@
       <arg choice="opt">--features <replaceable>features</replaceable></arg>
       <arg choice="opt">--max-status <replaceable>maxstatus</replaceable></arg>
       <arg choice="opt">--hello</arg>
+      <arg choice="opt">--implicit-hello-deviations</arg>
       <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-t <replaceable>transform</replaceable></arg>
@@ -454,6 +455,20 @@
             Interpret the input file or standard input as a server
             &lt;hello&gt; message. In this case, no more than one
             <replaceable>file</replaceable> parameter may be given.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--implicit-hello-deviations</option>
+        </term>
+        <listitem>
+          <para>
+            Attempt to parse all deviations from a supplied &lt;hello&gt;
+            message. Not all implementations provide deviations explicitly
+            as modules. This flag enables more logic to attempt to derive
+            all deviations from the message.
           </para>
         </listitem>
       </varlistentry>

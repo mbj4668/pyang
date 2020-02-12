@@ -9,7 +9,7 @@ sdist: build
 dist: build
 	python setup.py sdist
 
-.PHONY:	test tags clean doc build lint
+.PHONY:	test tags clean doc build lint pylint
 build: doc pyang/xpath_parsetab.py
 
 doc:
@@ -23,6 +23,8 @@ test: lint
 
 lint:
 	flake8 .
+
+pylint:
 	touch bin/__init__.py  # makes pylint tell pyang script apart from pyang package
 	pylint bin/pyang bin/json2xml bin/yang2html pyang $(shell find test -name '*.py') || true
 	rm -f bin/__init__.py
@@ -33,8 +35,8 @@ clean:
 	(cd doc &&  $(MAKE) clean)
 	python setup.py clean --all
 	rm -rf build dist MANIFEST
-	find . -name "*.pyc" -exec rm {} \;
-	find . -name "__pycache__" -exec rm -rf {} \;
+	find . -name "*.pyc" -delete
+	find . -name "__pycache__" -delete
 
 tags:
 	find . -name "*.py" | etags -
