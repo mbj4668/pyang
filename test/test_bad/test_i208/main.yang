@@ -1,6 +1,0 @@
-module main {
-  namespace "http://example.com/main";
-  prefix m;
-
-  container top;
-}
