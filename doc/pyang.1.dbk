@@ -319,7 +319,7 @@
             The following example create a msg template in defined pattern:
           </para>
           <informalexample>
-            <screen>$ pyang --msg-template='{file} || {line} || {type} || {code} || {msg}'</screen>
+            <screen>$ pyang --msg-template='{file} || {line} || {type} || {level} || {code} || {msg}'</screen>
           </informalexample>
         </listitem>
       </varlistentry>

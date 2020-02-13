@@ -62,7 +62,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                                   "new-style format string used to format the message " \
                                   "information with keys file, line, code, type and msg. " \
                                   "Example: --msg-template='{file} || {line} || " \
-                                  "{code} || {type} || {msg}'"),
+                                  "{code} || {type} || {level} || {msg}'"),
         optparse.make_option("-W",
                              dest="warnings",
                              action="append",
@@ -461,8 +461,8 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             try:
                 sys.stderr.write(str(o.msg_template).format(file=epos.ref, line=epos.line,
                                                             code=etag, type=kind,
-                                                            msg=error.err_to_str(etag, eargs)) \
-                                                            + '\n')
+                                                            msg=error.err_to_str(etag, eargs),
+                                                            level=elevel) + '\n')
             except KeyError as error_msg:
                 sys.stderr.write("unsupported key %s in msg-template\n" % str(error_msg))
                 sys.exit(1)
