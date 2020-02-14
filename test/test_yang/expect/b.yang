@@ -33,10 +33,7 @@ module b {
 
   container x {
     // the container is y
-    container y;
-    /* same-line comment */
+    container y;  /* same-line comment */
     container bar;
-  }
-
-  /* trailing comment */
+  }  /* trailing comment */
 }
