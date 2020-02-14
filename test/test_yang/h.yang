@@ -1,0 +1,25 @@
+module h{ // line end 1
+  yang-version 1.1;
+  namespace "urn:if"; // line end 2
+  prefix if;
+
+  feature f1 {
+    // not line end 3
+  } // line end 4
+  feature f2;// line end 5
+
+  // not line end 6
+  leaf l1 {  /* line end 7 */
+    type string; // line end 8
+    // not line end 9
+    if-feature "f1 and f2";
+  }   /* line end10 */  /* line end11 */  /*   multi line 12-1
+    multi line 12-2 */
+
+  leaf l2 {
+    type leafref {
+      path "/l1"; /* line end13 */  // line end 14
+      require-instance false; // line end 15
+    }
+  }// last line end 16
+}

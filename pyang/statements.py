@@ -2963,6 +2963,11 @@ class BitStatement(Statement):
         'i_position',
     )
 
+class CommentStatement(Statement):
+    __slots__ = (
+        'i_line_end',
+        'i_multi_line',
+    )
 
 class ChoiceStatement(Statement):
     __slots__ = (
@@ -3101,6 +3106,7 @@ STMT_CLASS_FOR_KEYWD = {
     'uses': UsesStatement,
     'must': MustStatement,
     'when': WhenStatement,
+    '_comment': CommentStatement,
     # all other keywords can use generic Statement class
 }
 
