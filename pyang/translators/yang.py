@@ -286,7 +286,7 @@ def emit_line_end_comments_after(stmt, last_substmt, link_list, fd, need_same_le
             is_sub_level = last_substmt.parent == stmt
         if (is_line_end_comment(last_substmt) and
                 (last_substmt.parent == stmt.parent or (not need_same_level and is_sub_level))):
-            fd.write('  ' + last_substmt.arg)
+            fd.write(' ' + last_substmt.arg)
             if last_substmt in link_list.keys():
                 last_substmt = link_list[last_substmt]
             else:
