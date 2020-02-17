@@ -316,6 +316,11 @@
             Print out error message in defined <replaceable>msg-template</replaceable>.
           </para>
           <para>
+            Template used to display error messages. This is a python
+            new-style format string used to format the message
+            information with keys file, line, code, type, and msg.
+          </para>
+          <para>
             The following example create a msg template in defined pattern:
           </para>
           <informalexample>
