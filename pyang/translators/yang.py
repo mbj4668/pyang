@@ -1,6 +1,7 @@
 """YANG output plugin"""
 
 import optparse
+import sys
 
 from .. import plugin
 from .. import util
@@ -139,7 +140,7 @@ _need_quote = (
     )
 
 def make_link_list(ctx, stmt, link_list):
-    if 'last' in link_list.keys():
+    if dict_has_key(link_list, 'last'):
         link_list[ link_list['last'] ] = stmt
     link_list['last'] = stmt
 
@@ -240,7 +241,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
                                        max_line_len, line_len)
     fd.write(eol)
     next_stmt = None
-    if stmt in link_list.keys():
+    if dict_has_key(link_list, stmt):
         next_stmt = link_list[stmt]
     emit_line_end_comments_after(stmt, next_stmt, link_list, fd, False)
     fd.write('\n')
@@ -268,7 +269,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
                 prev_kwd = s.keyword
         fd.write(indent + '}')
         last_substmt = link_list['last']
-        if last_substmt in link_list.keys():
+        if dict_has_key(link_list, last_substmt):
             last_substmt = link_list[last_substmt]
         emit_line_end_comments_after(stmt, last_substmt, link_list, fd, True)
         fd.write('\n')
@@ -287,7 +288,7 @@ def emit_line_end_comments_after(stmt, last_substmt, link_list, fd, need_same_le
         if (is_line_end_comment(last_substmt) and
                 (last_substmt.parent == stmt.parent or (not need_same_level and is_sub_level))):
             fd.write(' ' + last_substmt.arg)
-            if last_substmt in link_list.keys():
+            if dict_has_key(link_list, last_substmt):
                 last_substmt = link_list[last_substmt]
             else:
                 return
@@ -296,6 +297,12 @@ def emit_line_end_comments_after(stmt, last_substmt, link_list, fd, need_same_le
 
 def is_line_end_comment(stmt):
     return stmt.keyword == '_comment' and stmt.is_line_end and not stmt.is_multi_line
+
+def dict_has_key(dict, key):
+    if sys.version < '3':
+        return dict.has_key(key)
+    else:
+        return key in dict.keys()
 
 def need_new_line(max_line_len, line_len, arg):
     eol = arg.find('\n')
