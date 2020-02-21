@@ -165,7 +165,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
         section_delimiter_printed=False
         for m in mods:
             for augment in m.search('augment'):
-                if (hasattr(augment.i_target_node, 'i_module') and
+                if (hasattr(augment, 'i_target_node') and
+                    hasattr(augment.i_target_node, 'i_module') and
                     augment.i_target_node.i_module not in modules + mods):
                     if not section_delimiter_printed:
                         fd.write('\n')
