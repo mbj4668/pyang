@@ -1031,7 +1031,7 @@ def v_type_leaf_list(ctx, stmt):
 
     min_value = stmt.search_one('min-elements')
     max_value = stmt.search_one('max-elements')
-    if min_value is not None and max_value is not None:
+    if min_value is not None and max_value is not None and max_value.arg != 'unbounded':
         if int(min_value.arg) > int(max_value.arg):
             err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
             return False
@@ -1994,7 +1994,7 @@ def v_reference_list(ctx, stmt):
     def v_max_min_elements():
         min_value = stmt.search_one('min-elements')
         max_value = stmt.search_one('max-elements')
-        if min_value is not None and max_value is not None:
+        if min_value is not None and max_value is not None and max_value.arg != 'unbounded':
             if int(min_value.arg) > int(max_value.arg):
                 err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
                 return
