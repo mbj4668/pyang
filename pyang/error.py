@@ -400,6 +400,9 @@ error_codes = \
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
+    'MAX_ELEMENTS_AND_MIN_ELEMENTS':
+       (1,
+        'a \'min-elements\' value cannot be greater than  \'max-elements\' value'),
     'DEFAULT_AND_MIN_ELEMENTS':
       (1,
        'a \'default\' value cannot be given when \'min-elements\' is'
