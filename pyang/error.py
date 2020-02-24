@@ -401,6 +401,9 @@ error_codes = \
       (1,
        'a \'default\' value cannot be given when \'min-elements\' is'
        ' greater than 0'),
+    'MAX_ELEMENTS_AND_MIN_ELEMENTS':
+      (1,
+       'a \'min-elements\' value cannot be greater than \'max-elements\' value'),
     'DUPLICATE_DEFAULT':
         (1,
          'the default value "%s" is given twice in the leaf list'),
