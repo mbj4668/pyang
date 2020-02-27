@@ -1,0 +1,42 @@
+submodule sub1 {
+  yang-version 1.1;
+  belongs-to mod1 {
+    prefix ms;
+    prefix ma; // error: too many prefix
+  }
+  belongs-to mod1 { // error: too many belongs-to statements 
+    prefix mm;
+    description "invalid keyword"; // error: not allow in belongs-to's substatement
+  }
+  
+  description "test one";
+  description "test two"; // error: too many description
+
+  contact "contact author xxx first";
+  contact "contact author xxx second"; // error: too many contact
+
+  organization "xxx foundation";
+  organization "xxx foundation"; // error: too many organization
+
+  reference "xxx article once";
+  reference "xxx article twice"; // error: too many reference
+ 
+
+  list lst {
+    key "name le2";
+
+    leaf name {
+      type string;
+    }
+
+    leaf le2 {
+      type uint16;
+    }
+
+    leaf le3 {
+      type int8;
+    }
+  }
+
+  mandatory true; // error: not allow in submodule's substatement
+}

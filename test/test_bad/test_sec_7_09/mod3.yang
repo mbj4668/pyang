@@ -1,0 +1,40 @@
+module mod3 {
+  yang-version 1.1;
+  namespace "urn:mod3";
+  prefix m3;
+
+  grouping gg3 {
+    leaf le3_1 {
+      type boolean;
+    }
+  }
+
+  choice cho1 {
+    default "brow";
+ 
+    container brow {
+      leaf le3_2 {
+        type boolean;
+      }
+      
+      leaf le3_3 {
+        type uint8;
+      }
+
+    }
+    mandatory true; // error: 'mandatory' cannot be existed with 'default'
+  }
+
+  choice cho2 {
+    default "def";
+
+    container def {
+      leaf-list lst3_1 { // error: 'mandatory' cannot be existed with 'default'
+        type string;
+        min-elements 3;
+      }
+    }
+    
+  }
+
+}

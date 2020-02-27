@@ -1,0 +1,4 @@
+mod2.yang:13: error: NEED_KEY
+mod2.yang:21: error: BAD_KEY
+mod2.yang:29: error: DUPLICATE_KEY
+mod2.yang:50: error: KEY_BAD_CONFIG

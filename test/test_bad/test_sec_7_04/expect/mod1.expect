@@ -1,0 +1,7 @@
+mod1.yang:18: error: UNEXPECTED_KEYWORD
+mod1.yang:19: error: UNEXPECTED_KEYWORD
+mod1.yang:19: error: BAD_RESTRICTION
+mod1.yang:20: error: UNEXPECTED_KEYWORD
+mod1.yang:27: error: UNEXPECTED_KEYWORD
+mod1.yang:29: error: UNEXPECTED_KEYWORD
+mod1.yang:31: error: TYPE_VALUE

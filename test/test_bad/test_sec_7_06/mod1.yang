@@ -1,0 +1,26 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  import mod2 {
+    prefix m2;
+  }
+
+  import mod3 {
+    prefix m3;
+  }
+
+  uses m2:gg2;
+  uses m3:gg3;
+  leaf lee1 {
+    type string;
+    type int8; // error: duplicate type
+  }
+
+  leaf lee2 {
+    config true;
+    mandatory flase; // error: flase is not false
+    //type int8; // error: missing type
+  }
+}

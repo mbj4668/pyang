@@ -1,0 +1,31 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  grouping gg2_1 {
+    leaf lle2_1 {
+      type boolean;
+    }
+  }
+
+  uses gg2_1 {
+    description "test description";
+    description "test description"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    status "current";
+    status "obsolete"; // error: duplicated status
+
+    when "/lco = 'admin'";
+    when "/lco = 'password'"; // error: duplicated when
+
+  }
+
+  leaf lco {
+    type string;
+  }
+
+}

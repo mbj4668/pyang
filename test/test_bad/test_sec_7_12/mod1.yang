@@ -1,0 +1,29 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  grouping gg1 {
+    leaf le1_1 {
+      type boolean;
+    }
+
+    status "current";
+    status "obsolete"; // error: duplicated status  
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    description "test description";
+    description "test description"; // error: duplicated description
+
+  }
+
+  container con {
+    uses gg1 {
+      when "le1_1 = 'true'";
+      when "le1_1 = 'false'"; // error: duplicated when
+    }
+  }
+
+}

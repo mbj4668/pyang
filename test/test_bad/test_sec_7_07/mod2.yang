@@ -1,0 +1,39 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  grouping gg2 {
+    leaf le2 {
+      type uint16;
+    }
+  }
+ 
+  leaf-list lle2_1 {
+    type string;
+    min-elements 2;
+    default "test"; // error: default should not be present 
+  }
+ 
+  leaf-list lle2_2 {
+    type string;
+    min-elements -2; // error: bad value "-2"
+    max-elements -1; // error: bad value "-1"
+  }
+
+  leaf-list lle2_3 {
+    type int8;
+    max-elements 0; // error: bad value "0"
+  }
+
+  leaf-list lle2_4 {
+    type int8;
+    //max-elements 50;
+    min-elements 51; // error: bad value "50"
+  }
+  
+  leaf-list lle2_5 {
+    type int8;
+    ordered-by "systems"; // error: bad value ""systems""
+  }
+}
