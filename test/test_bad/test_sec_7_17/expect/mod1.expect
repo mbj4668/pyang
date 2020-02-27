@@ -1,0 +1,5 @@
+mod1.yang:30: error: UNEXPECTED_KEYWORD
+mod1.yang:33: error: UNEXPECTED_KEYWORD
+mod1.yang:36: error: UNEXPECTED_KEYWORD
+mod1.yang:39: error: UNEXPECTED_KEYWORD
+mod1.yang:44: error: DUPLICATE_CHILD_NAME

@@ -1,0 +1,16 @@
+mod1.yang:29: error: UNEXPECTED_KEYWORD
+mod1.yang:32: error: UNEXPECTED_KEYWORD
+mod1.yang:35: error: UNEXPECTED_KEYWORD
+mod1.yang:37: error: UNEXPECTED_KEYWORD
+mod1.yang:40: error: UNEXPECTED_KEYWORD
+mod1.yang:43: error: UNEXPECTED_KEYWORD
+mod1.yang:46: error: UNEXPECTED_KEYWORD
+mod1.yang:49: error: UNEXPECTED_KEYWORD
+mod1.yang:52: error: UNEXPECTED_KEYWORD
+mod2.yang:13: error: NEED_KEY
+mod2.yang:21: error: BAD_KEY
+mod2.yang:29: error: DUPLICATE_KEY
+mod2.yang:50: error: KEY_BAD_CONFIG
+mod3.yang:14: error: BAD_UNIQUE
+mod3.yang:27: error: BAD_UNIQUE_CONFIG
+mod3.yang:42: error: BAD_UNIQUE_PART_LIST

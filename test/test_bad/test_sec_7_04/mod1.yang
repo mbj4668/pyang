@@ -1,0 +1,36 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  leaf le1 {
+    type uint8 { 
+      range "100 .. 200";
+    }
+    default "128";
+  }
+
+  leaf le2 {
+    type string {
+      pattern '[A-Ca-z]+';
+      length "1 .. 10";  
+      pattern '[A-Ba-z]+'; // error: too many pattern
+      length "11 .. 26"; // error: too many length
+      require-instance false;
+      require-instance false; // error: too many require-instance false
+    }
+  }
+  
+  leaf le3 {
+    type decimal64  {
+      range "100 .. 200";
+      range "300 .. 400"; // error: too many range
+      fraction-digits 2;
+      fraction-digits 2; // error: too many fraction-digits
+    }
+    default "250"; // error: bad value
+  }
+
+
+
+}

@@ -1,0 +1,21 @@
+module mod4 {
+  yang-version 1.2; // error: bad value 
+  namespace "urn:mod4";
+  prefix m4;
+
+  revision 2019-12-11 {
+    reference "test revision";
+    contact "invalid keyword"; // error: not allow in revision's substatement
+  }
+
+  grouping gg4 {
+    leaf-list lef4 {
+      type string;
+    }
+  }
+
+}
+
+
+
+

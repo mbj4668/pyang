@@ -1,0 +1,5 @@
+mod1.yang:62 (at mod1.yang:25): error: DEFAULT_AND_MANDATORY
+mod1.yang:55: error: NODE_NOT_FOUND
+mod1.yang:64: error: TYPE_VALUE
+mod1.yang:72: error: NODE_NOT_FOUND
+mod1.yang:81: error: INVALID_CONFIG

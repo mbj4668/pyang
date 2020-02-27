@@ -1,0 +1,45 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  include sub1 {
+    description "include sub1";
+    prefix mm; // error: not allow in include's substatement
+  }
+
+  import mod2 {
+    prefix m2;
+  }
+
+  import mod3 {
+    prefix m3;
+  }
+
+  import mod4 {
+    prefix m4;
+    config true; // error: not allow in import'substatement
+  }
+
+  contact "test1";
+  contact "test2"; //error:too many contact
+ 
+  description "description one";
+  description "description two"; // error:too many description
+
+  organization "organization one";
+  organization "organization two"; // error:too many organization
+
+  reference "reference one";
+  reference "reference two"; // error:too many reference
+
+  mandatory true; // not allow in module's substatement
+  
+  uses m2:gg2;
+  uses m3:gg3; 
+  uses m4:gg4; 
+
+}
+
+
+

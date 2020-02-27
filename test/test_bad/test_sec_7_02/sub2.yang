@@ -1,0 +1,11 @@
+submodule sub2 {
+  yang-version 1.2; // error: bad value
+  belongs-to mod1 {
+    //prefix sb2; // error: no prefix 
+  }
+  
+  leaf-list llst {
+    type string;
+  }
+
+}

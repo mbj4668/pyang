@@ -1,0 +1,84 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  feature feat2;
+
+  feature feat1 {
+    description "test description";
+    description "test description"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    status current;
+    status obsolete; // error: duplicated status
+
+    if-feature feat1; // error: reference itself
+    if-feature ff1; // error: 'ff1' is not found
+
+  }
+
+  container con1 {
+    leaf admin {
+      type string {
+        pattern '[a-zA-Z]+';
+      }
+    }
+
+    leaf password {
+      type string {
+        length "8 .. 64";
+      }
+      mandatory true;
+    }
+    
+    leaf-list llst {
+      type string;
+    }
+  }
+
+  deviation "/con1/admin" {
+    description "test description";
+    description "test description"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+  
+    //deviate not-supported; // error: missing deviate
+
+  }
+
+  deviation "/con1/admin" {
+    deviate add {
+      mandatory true;
+      mandatory true; // error: duplicated mandatory
+ 
+      config true;
+      config false; // error: duplicated config
+
+      units "kg";
+      units "bytes"; // error: duplicated units
+    }
+
+  }
+
+  deviation "/con1/llst" {
+    deviate add {
+      min-elements 3;
+      max-elements 5;
+
+      min-elements 4; // error: duplicated min-elements
+      max-elements 6; // error: duplicated max-elements
+    }
+  }
+
+  deviation "/con1/password" {
+    deviate replace { 
+      type uint8;
+    }
+  }
+
+
+}

@@ -1,0 +1,13 @@
+mod1.yang:18: error: UNEXPECTED_KEYWORD
+mod1.yang:23: error: BAD_VALUE
+mod1.yang:23: error: EXPECTED_KEYWORD_2
+mod2.yang:23: error: UNEXPECTED_KEYWORD
+mod2.yang:24: error: UNEXPECTED_KEYWORD
+mod2.yang:25: error: UNEXPECTED_KEYWORD
+mod2.yang:26: error: UNEXPECTED_KEYWORD
+mod2.yang:27: error: UNEXPECTED_KEYWORD
+mod2.yang:28: error: UNEXPECTED_KEYWORD
+mod2.yang:29: error: UNEXPECTED_KEYWORD
+mod2.yang:30: error: UNEXPECTED_KEYWORD
+mod3.yang:12: error: DEFAULT_AND_MANDATORY
+mod3.yang:24: error: TYPE_VALUE
