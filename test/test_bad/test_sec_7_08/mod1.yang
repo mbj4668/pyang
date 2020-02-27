@@ -1,0 +1,56 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  import mod2 {
+    prefix m2;
+  }
+
+  import mod3 {
+    prefix m3;
+  }
+
+  uses m2:gg2;
+  uses m3:gg3;
+
+  list lst1 {
+    key le1;
+
+    leaf le1 {
+      type string;
+    }
+
+    leaf le2 {
+      type string;
+    }
+
+    description "test description";
+    description "test description1"; // error: duplicate description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicate reference
+
+    config "true";
+    config "false"; // error: duplicate config
+
+    key le2; // error: duplicate key
+
+    max-elements 34;
+    max-elements unbounded; // error: duplicate max-elements
+
+    min-elements 23;
+    min-elements 0; // error: duplicate min-elements
+
+    ordered-by system;
+    ordered-by user; // error: duplicate ordered-by
+
+    status current;
+    status obsolete; // error: duplicate status
+    
+    when "le1 = 'hello'";
+    when "le1 = 'aaa' and le2 != 'bbb'"; // error: duplicate when
+
+  }
+
+}

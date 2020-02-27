@@ -1,0 +1,2 @@
+mod3.yang:12: error: DEFAULT_AND_MANDATORY
+mod3.yang:32: error: MANDATORY_NODE_IN_DEFAULT_CASE

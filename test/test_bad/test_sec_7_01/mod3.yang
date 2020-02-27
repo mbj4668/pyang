@@ -1,0 +1,11 @@
+module mod3 {
+  //namespace "urn:mod3"; // error: namespace/prefix/yang-version  don't exist
+
+  grouping gg3 {
+    leaf le3 {
+      type string;
+    }
+  }
+}
+
+

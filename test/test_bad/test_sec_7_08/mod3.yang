@@ -1,0 +1,64 @@
+module mod3 {
+  yang-version 1.1;
+  namespace "urn:mod3";
+  prefix m3;
+
+  grouping gg3 {
+    leaf nod {
+      type string;
+    }
+  }
+
+  list lst3_1 {
+    key key1;
+    unique "key2"; // error: bad value
+
+    leaf key1 {
+      type uint8;
+    }
+
+    leaf-list key2 {
+      type string;  
+    }
+  }
+
+  list lst3_2 {
+    key key1;
+    unique "key1 key2"; // error: 'key1' and 'key2' have different config property
+
+    leaf key1 {
+      type uint8;
+      config true;
+    }
+
+    leaf key2 {
+      type int8;
+      config false;
+    }
+  }
+  
+  list lst3_3 {
+    key key1;
+    unique "key2 lst/key3"; // error: 'lst/key3"' is bad value
+    
+    leaf key1 {
+      type string;
+    }
+
+    leaf key2 {
+      type uint16;
+    }
+
+    list lst {
+      key le1;
+  
+      leaf le1 {
+        type string;
+      }
+     
+      leaf key3 {
+        type uint16;
+      }
+    }
+  }
+}

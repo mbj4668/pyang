@@ -1,0 +1,63 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  grouping gg2 {
+    leaf lwe {
+      type uint16;
+    }
+  }
+
+  container ccon {
+    list lst2 {
+      // key lle1; // error: missing key
+      leaf lle1 {
+        type string;
+      }
+    }
+
+    list lst3 {
+      key name; // error: 'name' is bad value
+
+      leaf lel {
+        type string;
+      }
+    }
+
+    list lst4 {
+      key "one two one"; // error: repeated key value
+
+      leaf one {
+        type string;
+      }
+
+      leaf two {
+        type string;
+      }
+    } 
+
+    list lst5 {
+      key "aa bb cc"; // error: 'aa' and 'bb' don't have the same config.
+
+      leaf aa {
+        type int8;
+        config true;
+      }
+
+      leaf bb {
+        type uint8;
+        config false;
+      }
+
+      leaf cc {
+        type string;
+      }
+    }
+   
+
+  }
+
+
+
+}

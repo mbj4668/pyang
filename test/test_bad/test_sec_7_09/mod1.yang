@@ -1,0 +1,66 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  import mod2 {
+    prefix m2;
+  }
+
+  import mod3 {
+    prefix m3;
+  }
+
+  uses m2:gg2;
+  uses m3:gg3;
+
+  choice ch1 {
+    case aa {
+      leaf le1 {
+        type string;
+      }
+    }
+
+    case bb {
+      leaf le2 {
+        type int8;
+      }
+    }
+
+    description "test description";
+    description "test description1"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    config true;
+    config false; // error: duplicated config
+
+    default aa;
+    default bb; // error: duplicated default
+
+    status "current";
+    status "obsolete"; // error: duplicated status
+
+    when "/llee = 100";
+    when "/llee = 200"; // error: duplicated when
+
+  }
+
+  choice ch2 {
+    case aa {
+      leaf le3 {
+        type string;
+      }
+    }
+    mandatory true;
+    mandatory true; // error: duplicated mandatory
+
+  }
+
+  leaf llee {
+    type uint16;
+  }
+
+
+}

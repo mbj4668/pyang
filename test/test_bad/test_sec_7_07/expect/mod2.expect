@@ -1,0 +1,5 @@
+mod2.yang:15: error: DEFAULT_AND_MIN_ELEMENTS
+mod2.yang:20: error: BAD_VALUE
+mod2.yang:21: error: BAD_VALUE
+mod2.yang:26: error: BAD_VALUE
+mod2.yang:37: error: BAD_VALUE

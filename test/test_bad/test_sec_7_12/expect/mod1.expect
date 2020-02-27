@@ -1,0 +1,4 @@
+mod1.yang:12: error: UNEXPECTED_KEYWORD
+mod1.yang:15: error: UNEXPECTED_KEYWORD
+mod1.yang:18: error: UNEXPECTED_KEYWORD
+mod1.yang:25: error: UNEXPECTED_KEYWORD
