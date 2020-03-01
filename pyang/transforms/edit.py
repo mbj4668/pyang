@@ -75,10 +75,10 @@ class EditPlugin(plugin.PyangPlugin):
                             "to the supplied value"),
 
             # set revision info
-            EditOption("--edit-previous-revision-date",
-                       dest="edit_previous_revision_date", type="date",
+            EditOption("--edit-delete-revisions-after",
+                       dest="edit_delete_revisions_after", type="date",
                        metavar="PREVDATE",
-                       help="Delete any revisions later than "
+                       help="Delete any revisions after "
                             "the supplied yyyy-mm-dd"),
             EditOption("--edit-revision-date", dest="edit_revision_date",
                        type="date", metavar="DATE",
@@ -177,7 +177,7 @@ def set_revision_details(ctx, stmt, lastrev):
 
     # relevant options
     opts = {
-        'olddate': ctx.opts.edit_previous_revision_date,
+        'olddate': ctx.opts.edit_delete_revisions_after,
         'newdate': ctx.opts.edit_revision_date,
         'description': ctx.opts.edit_revision_description,
         'reference': ctx.opts.edit_revision_reference
