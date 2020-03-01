@@ -58,11 +58,12 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("--msg-template",
                              dest="msg_template",
                              type="string",
-                             help="Template used to display error messages. This is a python " \
-                                  "new-style format string used to format the message " \
-                                  "information with keys file, line, code, type and msg. " \
-                                  "Example: --msg-template='{file} || {line} || " \
-                                  "{code} || {type} || {level} || {msg}'"),
+                             help="Template used to display error messages. " \
+                             "This is a python new-style format string used " \
+                             "to format the message information with keys " \
+                             "file, line, code, type and msg. " \
+                             "Example: --msg-template='{file} || {line} || " \
+                             "{code} || {type} || {level} || {msg}'"),
         optparse.make_option("-W",
                              dest="warnings",
                              action="append",
@@ -459,12 +460,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
         if o.msg_template is not None:
             try:
-                sys.stderr.write(str(o.msg_template).format(file=epos.ref, line=epos.line,
-                                                            code=etag, type=kind,
-                                                            msg=error.err_to_str(etag, eargs),
-                                                            level=elevel) + '\n')
+                sys.stderr.write(str(o.msg_template).format(
+                    file=epos.ref, line=epos.line,
+                    code=etag, type=kind,
+                    msg=error.err_to_str(etag, eargs),
+                    level=elevel) + '\n')
             except KeyError as error_msg:
-                sys.stderr.write("unsupported key %s in msg-template\n" % str(error_msg))
+                sys.stderr.write(
+                    "unsupported key %s in msg-template\n" % str(error_msg))
                 sys.exit(1)
         else:
             sys.stderr.write('%s: %s: %s\n' % (epos, kind, emsg))
