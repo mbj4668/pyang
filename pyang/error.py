@@ -394,6 +394,9 @@ error_codes = \
     'KEY_BAD_SUBSTMT':
       (1,
        'the statement "%s" cannot be given for a key'),
+    'BAD_ANCESTOR':
+      (1,
+       '%s node cannot have a ancestor list without a key'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),

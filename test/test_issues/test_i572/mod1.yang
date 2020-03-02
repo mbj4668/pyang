@@ -1,0 +1,33 @@
+module mod1 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod1";
+
+  list lst1 { // no key
+    config false;
+    leaf name {
+      type string;
+    }
+    action act1 { // error: BAD_ANCESTOR
+      description "test action1";
+    }
+    notification notify1 { // error: BAD_ANCESTOR
+      description "test notify1";
+    }
+  }
+  
+  list lst2 { // no key
+    config false;
+    container cc {
+      leaf name {
+        type string;
+      }
+      action act2 { // error: BAD_ANCESTOR
+        description "test action2";
+      }
+      notification notify2 { // error: BAD_ANCESTOR
+        description "test notify2";
+      }
+    }
+  }
+}

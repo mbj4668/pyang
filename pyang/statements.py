@@ -1879,6 +1879,14 @@ def v_reference_list(ctx, stmt):
     stmt.i_is_validated = True
 
     def v_key():
+        def iterate_action(keyword, s):
+           if keyword == s.keyword:
+               err_add(ctx.errors, s.pos, 'BAD_ANCESTOR', (s.keyword))
+               return
+           else:
+               for s in s.substmts:
+                   iterate_action(keyword, s)
+
         key = stmt.search_one('key')
         if stmt.i_config is True and key is None:
             if hasattr(stmt, 'i_uses_pos'):
@@ -1886,6 +1894,12 @@ def v_reference_list(ctx, stmt):
                         (stmt.pos))
             else:
                 err_add(ctx.errors, stmt.pos, 'NEED_KEY', ())
+
+        elif stmt.i_config is False and key is None:
+            if stmt.i_module.i_version == '1.1':
+                val = ["action", "notification"]
+                for m in val:
+                    iterate_action(m, stmt)
 
         stmt.i_key = []
         if key is not None and key.arg is not None:
