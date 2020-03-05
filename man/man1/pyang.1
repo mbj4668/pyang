@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2020-01-03
+.\"      Date: 2020-03-05
 .\"    Manual: pyang manual
-.\"    Source: pyang-2.1.1
+.\"    Source: pyang-2.2
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2020\-01\-03" "pyang\-2\&.1\&.1" "pyang manual"
+.TH "PYANG" "1" "2020\-03\-05" "pyang\-2\&.2" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -168,6 +168,26 @@ The following example ignores syntax errors in patterns:
 .\}
 .nf
 $ pyang \-\-ignore\-error PATTERN_ERROR
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-\-msg\-template\fR \fImsg\-template\fR
+.RS 4
+Print out error message in defined
+\fImsg\-template\fR\&.
+.sp
+Template used to display error messages\&. This is a python new\-style format string used to format the message information with keys file, line, code, type, and msg\&.
+.sp
+The following example create a msg template in defined pattern:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-msg\-template=\*(Aq{file} || {line} || {type} || {level} || {code} || {msg}\*(Aq
 .fi
 .if n \{\
 .RE

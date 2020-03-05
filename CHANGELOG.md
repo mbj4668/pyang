@@ -1,3 +1,41 @@
+* 2.2 - 2020-03-05
+
+```
+         pr:557 - added new options for customizing error messages
+                  thanks to @gribok
+         pr:556 - extended parsing of deviation in hello
+                  thanks to Remington Campbell
+         pr:549 - align the --bbf option with the options that BBF uses
+                  thanks to William Lupton
+         pr:437 - added "edit" transform
+                  thanks to William Lupton
+
+         #572 - check that action/notification don't have keyless ancestor
+                thanks to Fred Gan
+         #564 - check that min-elements isn't larger than max-elements
+                thanks to Fred Gan
+         #563 - avoid crash i tree plugin when an augment path is invalid
+         #552 - correct prefix validation in default values
+         #547 - keep end-of-line comments in -f yang
+                thanks to Fred Gan
+         #543 - properly handle tab characters as 8 spaces
+                thanks to Fred Gan
+         #542 - handle spaces in PATH
+                thanks to Rui Pires
+         #538 - handle position values greater than 4294967295
+                thanks to Fred Gan
+         #537 - feature searched for in wrong module
+         #536 - better handling of prefixes in xpath strings
+         #501 - jtox plugin fails on yang 1.1 unprefixed paths in a leafref
+                thanks to Fred Gan
+         #475 - honor ABNF grammar for deviate delete substatements
+                thanks to Fred Gan
+
+         code cleanup
+           thanks to Miroslav Los
+
+```
+
 * 2.1.1 - 2020-01-03
 
 ```
