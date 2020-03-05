@@ -355,6 +355,9 @@ error_codes = \
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '
        'defined at %s'),
+    'BAD_ANCESTOR':
+      (1,
+       '"%s" node cannot have an ancestor list node without a key'),
     'BAD_TYPE_NAME':
       (1,
        'illegal type name "%s"'),
