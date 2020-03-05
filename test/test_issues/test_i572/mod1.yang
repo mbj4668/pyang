@@ -1,0 +1,61 @@
+module mod1 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod1";
+
+  list lst1 {
+    //key "name";
+    config false;
+
+    leaf name {
+      type string;
+    }
+
+    action act { // error: 'key' is missing
+      description "test description";
+    }
+
+    notification not { // error: 'key' is missing
+      description "test description";
+    }
+
+  }
+
+  grouping gg1 {
+    leaf le1 {
+      type boolean;
+    }
+
+    action act1 {
+      description "test description";
+    }
+
+    notification not1 { 
+      description "test description";
+    }
+  } 
+
+  container con {
+    list lst2 {
+      //key lle; // error: 'key' is missing 
+      config false;
+      leaf lle {
+        type string;
+      }
+
+      container con1 {
+        list lst3 {
+          key lle2;
+          leaf lle2 {
+            type empty;
+          }
+          uses gg1;
+        }
+      }
+
+    }
+  }
+
+
+
+}
