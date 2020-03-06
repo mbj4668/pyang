@@ -84,7 +84,7 @@ setup(name='pyang',
       keywords='YANG validator',
       distclass=PyangDist,
       scripts=script_files,
-      packages=['pyang', 'pyang.plugins', 'pyang.translators'],
+      packages=['pyang', 'pyang.plugins', 'pyang.translators', 'pyang.transforms'],
       data_files=[
             ('share/man/man1', man1),
             ('share/yang/modules/iana', modules_iana),
