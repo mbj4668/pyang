@@ -63,6 +63,18 @@ else:
     script_files = ['bin/pyang', 'bin/yang2html',
                     'bin/yang2dsdl', 'bin/json2xml']
 
+data_files=[('share/man/man1', man1),
+            ('share/yang/modules/iana', modules_iana),
+            ('share/yang/modules/ietf', modules_ietf),
+            ('share/yang/xslt', xslt),
+            ('share/yang/images', images),
+            ('share/yang/schema', schema),
+           ]
+
+if os.sep != '\\':
+    if os.getuid() == 0 and os.path.exists('etc/bash_completion.d'):
+        data_files.append(('etc/bash_completion.d',['etc/bash_completion.d/pyang']))
+
 setup(name='pyang',
       version=pyang.__version__,
       author='Martin Bjorklund',
@@ -85,15 +97,7 @@ setup(name='pyang',
       distclass=PyangDist,
       scripts=script_files,
       packages=['pyang', 'pyang.plugins', 'pyang.translators'],
-      data_files=[
-            ('share/man/man1', man1),
-            ('share/yang/modules/iana', modules_iana),
-            ('share/yang/modules/ietf', modules_ietf),
-            ('share/yang/xslt', xslt),
-            ('share/yang/images', images),
-            ('share/yang/schema', schema),
-            ('etc/bash_completion.d', ['etc/bash_completion.d/pyang']),
-            ]
+      data_files=data_files
       )
 
 # Remove Bat file
