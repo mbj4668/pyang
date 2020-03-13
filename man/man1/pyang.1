@@ -513,7 +513,229 @@ transformations are (like output formats) plugins and therefore may define their
 option\&. These options and transformations are listed in
 \fBpyang \-h\fR\&.
 .PP
-No standard transformations are currently supported\&.
+\fIedit\fR
+.RS 4
+Modify the supplied module(s) in various ways\&. This transform will usually be used with the
+\fIyang\fR
+output format\&.
+.RE
+.SH "EDIT TRANSFORM"
+.PP
+The
+\fIedit\fR
+transform modifies the supplied module(s) in various ways\&. It can, for example, replace top\-level
+\fIdescription\fR
+statements, update
+\fIinclude\fR
+statements and manage
+\fIrevision\fR
+statements\&. Unless otherwise noted below, it only modifies
+\fIexisting\fR
+statements\&.
+.PP
+Each
+\fIedit\fR
+transform string (non\-date) option value is either a plain string (which is taken literally) or a
+\fI+\fR\-separated list of directives (whose expansions are concatenated with double\-linebreak separators, i\&.e\&. each directive results in one or more paragraphs)\&.
+.PP
+Each directive is either of the form
+\fI@filename\fR
+(which is replaced with the contents of the file; there is no search path; trailing whitespace is discarded) or of the form
+\fI%keyword\fR\&. Any unrecognized directives are treated as plain strings\&. The following
+\fI%\fR\-directives are currently supported:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fI%SUMMARY\fR
+: This expands to a "summary" of the original argument value\&. It\*(Aqs intended for use with top\-level
+\fIdescription\fR
+statements that typically consist of a hand\-crafted summary followed by copyrights, license and other boiler\-plate text\&. The summary is the text up to but not including the first line that (ignoring leading and trailing whitespace) starts with the word
+\fICopyright\fR
+followed by a space\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fI%SUBST/old/new\fR
+: This expands to the original argument value with all instances of
+\fIold\fR
+replaced with
+\fInew\fR\&. There is no provision for replacing characters that contain forward slashes, and there is no terminating slash\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fI%DELETE\fR
+: This clears the output buffer and suppresses a check that would normally prevent overwriting an existing value (unless that value is the literal string
+\fBTBD\fR)\&.
+.RE
+.PP
+In the examples given below, it\*(Aqs assumed that there are
+\fICONTACT\fR,
+\fICONTEXT\fR,
+\fILICENSE\fR,
+\fIORGANIZATION\fR,
+\fIREFERENCE\fR
+and
+\fIREVISION\fR
+files in a top\-level project directory (which in this case is the parent of the directory in which
+\fBpyang\fR
+is being run)\&. These examples illustrate how the
+\fIedit\fR
+transform might be used with the
+\fIyang\fR
+output format to prepare YANG files for publication\&.
+.PP
+Edit transform specific options:
+.PP
+\fB\-\-edit\-yang\-version\fR \fIversion\fR
+.RS 4
+Set the YANG version (i\&.e\&., the
+\fIyang\-version\fR
+statement\*(Aqs argument) to
+\fIversion\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fIyang\-version\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-yang\-version 1\&.1\fR\&.
+.RE
+.PP
+\fB\-\-edit\-namespace\fR \fInamespace\fR
+.RS 4
+Set the YANG namespace (i\&.e\&., the
+\fInamespace\fR
+statement\*(Aqs argument) to
+\fInamespace\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fInamespace\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-namespace %SUBST/acme\-pacific\-org/apo\fR
+.RE
+.PP
+\fB\-\-edit\-update\-import\-dates\fR
+.RS 4
+Update any
+\fIimport\fR
+(or
+\fIinclude\fR)
+\fIrevision\-date\fR
+statements to match imported (or included) modules and submodules\&. If there isn\*(Aqt already a
+\fIrevision\-date\fR
+statement, it will be added\&.
+.RE
+.PP
+\fB\-\-edit\-delete\-import\-dates\fR
+.RS 4
+Delete any
+\fIimport\fR
+(or
+\fIinclude\fR)
+\fIrevision\-date\fR
+statements\&.
+.RE
+.PP
+\fB\-\-edit\-organization\fR \fIorganization\fR
+.RS 4
+Set the organization (i\&.e\&. the
+\fIorganization\fR
+statement\*(Aqs argument) to
+\fIorganization\fR\&. This does nothing if the YANG module doesn\*(Aqt already have an
+\fIorganization\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-organization @\&.\&./ORGANIZATION\fR
+.RE
+.PP
+\fB\-\-edit\-contact\fR \fIcontact\fR
+.RS 4
+Set the contact info (i\&.e\&. the
+\fIcontact\fR
+statement\*(Aqs argument) to
+\fIcontact\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fIcontact\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-contact @\&.\&./CONTACT\fR
+.RE
+.PP
+\fB\-\-edit\-description\fR \fIdescription\fR
+.RS 4
+Set the top\-level description (i\&.e\&. the top\-level
+\fIdescription\fR
+statement\*(Aqs argument) to
+\fIdescription\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fIdescription\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-description %SUMMARY+@\&.\&./LICENSE+@\&.\&./CONTEXT\fR
+.RE
+.PP
+\fB\-\-edit\-delete\-revisions\-after\fR \fIprevdate\fR
+.RS 4
+Delete any
+\fIrevision\fR
+statements after (i\&.e\&. that are more recent than) the supplied
+\fIyyyy\-mm\-dd\fR
+revision date\&. A typical use case is to supply the date of the previous release: any revisions since then will be internal (e\&.g\&. developers often feel that they should add revision statements for git commits) and are not wanted in the next released version\&.
+.sp
+Example:
+\fB\-\-edit\-delete\-revisions\-after 2019\-03\-15\fR
+.RE
+.PP
+\fB\-\-edit\-revision\-date\fR \fIdate\fR
+.RS 4
+Set the most recent revision date to the supplied
+\fIyyyy\-mm\-dd\fR
+revision date\&. This does nothing if the YANG module doesn\*(Aqt already have at least one
+\fIrevision\fR
+statement\&. If necessary, a new
+\fIrevision\fR
+statement will be inserted before any (remaining) existing revisions\&.
+.sp
+Example:
+\fB\-\-edit\-revision\-date 2020\-03\-15\fR
+.RE
+.PP
+\fB\-\-edit\-revision\-description\fR \fIdescription\fR
+.RS 4
+Set the most recent revision description to
+\fIdescription\fR\&.
+.sp
+Example:
+\fB\-\-edit\-revision\-description=%DELETE+@\&.\&./REVISION\fR
+.RE
+.PP
+\fB\-\-edit\-revision\-reference\fR \fIreference\fR
+.RS 4
+Set the most recent revision reference to
+\fIreference\fR\&.
+.sp
+Example:
+\fB\-\-edit\-revision\-reference=%DELETE+@\&.\&./REFERENCE\fR
+.RE
 .SH "OUTPUT FORMATS"
 .PP
 Installed
