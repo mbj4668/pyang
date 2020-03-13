@@ -1,9 +1,8 @@
 """Edit transform plugin
 
+This plugin currently has quite limited functionality. Only some specific
+top-level items can be edited, and only existing statements are edited.
 """
-
-# XXX currently only specific things can be edited; could provide a generic
-#     XPath-based syntax? or not bother
 
 import copy
 import optparse
@@ -38,12 +37,14 @@ def pyang_plugin_init():
 class EditPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):
         optlist = [
-            # set header info
+            # set YANG version (this does nothing if there's no yang-version
+            # statement)
             EditOption("--edit-yang-version", dest="edit_yang_version",
                        metavar="VERSION",
                        help="Set YANG version to the supplied value"),
 
-            # set namespace
+            # set namespace (this does nothing if there's no namespace
+            # statement)
             EditOption("--edit-namespace", dest="edit_namespace",
                        metavar="NAMESPACE",
                        help="Set YANG namespace to the supplied value"),
@@ -61,7 +62,8 @@ class EditPlugin(plugin.PyangPlugin):
                        help="Delete import/include revision-date "
                             "statements"),
 
-            # set meta info
+            # set meta info (these do nothing if there's no corresponding
+            # metadata statement)
             EditOption("--edit-organization", dest="edit_organization",
                        metavar="ORGANIZATION",
                        help="Set module/submodule organization "
@@ -74,7 +76,8 @@ class EditPlugin(plugin.PyangPlugin):
                        help="Set module/submodule description "
                             "to the supplied value"),
 
-            # set revision info
+            # set revision info (these do nothing if there's no revision
+            # statement)
             EditOption("--edit-delete-revisions-after",
                        dest="edit_delete_revisions_after", type="date",
                        metavar="PREVDATE",
