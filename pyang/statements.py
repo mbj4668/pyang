@@ -2196,8 +2196,7 @@ def v_reference_deviate(ctx, stmt):
                 continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
-                # with a default, all nodes has a config property.  this means
-                # that it can only be replaced.
+                # with a default, all nodes has a config property.
                 config = t.search_one(c.keyword)
                 if config is None:
                     if c.arg == 'true':
@@ -2250,11 +2249,9 @@ def v_reference_deviate(ctx, stmt):
                 continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
-                # with a default, all nodes has a config property.  this means
-                # that it can only be replaced.
-                # first, set the property...
+                # with a default, all nodes has a config property.
+                # first, save the old property, and then set the property...
 
-                # ... and then modify the original statement, if any
                 old = t.search_one(c.keyword)
                 if old is not None:
                     negc = copy.copy(old)
