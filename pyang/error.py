@@ -197,6 +197,9 @@ error_codes = \
     'BAD_DEVIATE_ADD':
       (2,
        'the "%s" property already exists in node "%s::%s"'),
+    'BAD_DEVIATE_REP':
+      (2,
+       'the "%s" property does not exist in node "%s::%s"'),
     'BAD_DEVIATE_DEL':
       (2,
        'the "%s" property does not exist in node "%s::%s"'),

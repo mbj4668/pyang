@@ -116,7 +116,7 @@ re_path = re.compile('(.*)/(.*)')
 re_deref = re.compile(r'deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 re_and_or = re.compile(r'\band\b|\bor\b')
 
-data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
+data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list', 'case',
                             'choice', 'anyxml', 'anydata', 'uses', 'augment']
 
 _validation_phases = [
@@ -2118,6 +2118,47 @@ def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
 
 def v_reference_deviate(ctx, stmt):
+    def search_ancestor_config_false(node, target):
+        # the target node's config is set to 'true', and the ancestor node above it
+        # cannot have 'config' is 'false'
+        if node is None or node.parent is None:
+            return False
+        else:
+            p_config = node.parent.search_one('config')
+            if p_config is not None and p_config.arg == 'false':
+                err_add(ctx.errors, target.pos, 'INVALID_CONFIG', ())
+                return True
+            return search_ancestor_config_false(node.parent, target)
+
+    def search_children_config_true(node, target):
+        # the target node's config is set to 'false', and the node underneath it
+        # cannot have 'config' is 'true'
+        if node.keyword in data_definition_keywords:
+            c_config = node.search_one('config')
+            if c_config is not None and c_config.arg == 'true':
+                err_add(ctx.errors, target.pos, 'INVALID_CONFIG', ())
+                return True
+        else:
+            return False
+        if node is None or not hasattr(node, 'i_children'):
+            return False
+        else:
+            for children in node.i_children:
+                if search_children_config_true(children, target):
+                    return True
+            return False
+
+    def inherit_parent_i_config(node, value):
+        if node is None or not hasattr(node, 'i_children'):
+            return
+        else:
+            for children in node.i_children:
+                if children.keyword in data_definition_keywords:
+                    config = children.search_one('config')
+                    if config is None:
+                        children.i_config = value
+                inherit_parent_i_config(children, value)
+
     if stmt.parent.i_target_node is None:
         # this is set in v_reference_deviation above.  if none
         # is found, an error has already been reported.
@@ -2151,12 +2192,24 @@ def v_reference_deviate(ctx, stmt):
             del t.parent.substmts[idx]
     elif stmt.arg == 'add':
         for c in stmt.substmts:
+            if c.keyword == '_comment':
+                continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
                 # with a default, all nodes has a config property.  this means
                 # that it can only be replaced.
-                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
-                        (c.keyword, t.i_module.arg, t.arg))
+                config = t.search_one(c.keyword)
+                if config is None:
+                    if c.arg == 'true':
+                        if not search_ancestor_config_false(t, t):
+                            t.substmts.append(c)
+                    else:
+                        if not search_children_config_true(t, t):
+                            t.substmts.append(c)
+                else:
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
+                            (c.keyword, t.i_module.arg, t.arg))
+
             elif c.keyword in _singleton_keywords:
                 if t.search_one(c.keyword) is not None:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
@@ -2193,45 +2246,44 @@ def v_reference_deviate(ctx, stmt):
                     t.substmts.append(c)
     elif stmt.arg == 'replace':
         for c in stmt.substmts:
+            if c.keyword == '_comment':
+                continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
                 # with a default, all nodes has a config property.  this means
                 # that it can only be replaced.
                 # first, set the property...
-                if c.arg == 'true':
-                    t.i_config = True
-                elif c.arg == 'false':
-                    t.i_config = False
+
                 # ... and then modify the original statement, if any
                 old = t.search_one(c.keyword)
                 if old is not None:
+                    negc = copy.copy(old)
                     old.arg = c.arg
                 else:
-                    t.substmts.append(c)
-                # make sure the target's children have proper config stmts
-                sub = t.substmts
-                if hasattr(t, 'i_children'):
-                    sub = sub + t.i_children
-                for d in sub:
-                    if d.keyword in data_definition_keywords:
-                        if hasattr(d, 'i_config') and d.i_config != t.i_config:
-                            # this child has another config property,
-                            # maybe fix the statment
-                            old = d.search_one('config')
-                            if old is None:
-                                negc = copy.copy(c)
-                                if c.arg == 'true':
-                                    negc.arg = 'false'
-                                else:
-                                    negc.arg = 'true'
-                                d.substmts.append(negc)
+                    err_add(ctx.errors, t.pos, 'BAD_DEVIATE_REP', (c.keyword, t.i_module.arg, t.arg))
+                    continue
+
+                if c.arg == 'true':
+                    if negc.arg != c.arg:
+                        if search_ancestor_config_false(t, t):
+                            old.arg = negc.arg
+                            continue
+                        else:
+                            t.i_config = True
+                else:
+                    if search_children_config_true(t, t):
+                        old.arg = negc.arg
+                        continue
+                    else:
+                        t.i_config = False
+                        inherit_parent_i_config(t, t.i_config)
 
             if c.keyword in _singleton_keywords:
                 old = t.search_one(c.keyword)
             else:
                 old = t.search_one(c.keyword, c.arg)
             if old is None:
-                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_REP',
                         (c.keyword, t.i_module.arg, t.arg))
             else:
                 idx = t.substmts.index(old)
@@ -2245,6 +2297,8 @@ def v_reference_deviate(ctx, stmt):
                 t.substmts.append(c)
     else: # delete
         for c in stmt.substmts:
+            if c.keyword == '_comment':
+                continue
             if c.keyword in _singleton_keywords:
                 if c.keyword in _deviate_delete_singleton_keywords:
                     old = t.search_one(c.keyword)
