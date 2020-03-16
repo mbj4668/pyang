@@ -13,7 +13,7 @@ try:
 except ImportError:
     import pip._internal.locations as locations
 
-from pyang import Context, FileRepository
+from pyang.repository import Context, FileRepository
 
 EXISTING_MODULE = 'ietf-yang-types'
 

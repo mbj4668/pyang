@@ -11,8 +11,10 @@ from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
+from pyang import repository
 from pyang import statements
 from pyang import syntax
+
 
 def run():
 
@@ -221,10 +223,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse,
-                                 verbose=o.verbose)
+    repos = repository.FileRepository(path, no_path_recurse=o.no_path_recurse,
+                                      verbose=o.verbose)
 
-    ctx = pyang.Context(repos)
+    ctx = repository.Context(repos)
 
     ctx.opts = o
     ctx.canonical = o.canonical
