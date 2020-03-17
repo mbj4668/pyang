@@ -164,8 +164,10 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_deviated:
             self.__field_names.append("deviated")
         self.__field_names_set = set(self.__field_names)
+        # Slipping input and output into data keywords
+        # rpc input/output may have children - we want to traverse them.
         self.__keywords = (
-            statements.data_keywords
+            statements.data_keywords + ["input", "output"]
             if ctx.opts.flatten_data_keywords
             else statements.data_definition_keywords
         )
@@ -179,14 +181,16 @@ class FlattenPlugin(plugin.PyangPlugin):
         for module in modules:
             self.output_module(ctx, module, output_writer)
 
-    def output_module(self, ctx, module, output_writer, parent_deviated=False):
+    def output_module(
+        self, ctx, module, output_writer, parent_deviated=False, override_flag=None
+    ):
         module_children = (
             child
             for child in getattr(module, "i_children", [])
             if child.keyword in self.__keywords
         )
         for child in module_children:
-            self.output_child(ctx, child, output_writer, parent_deviated)
+            self.output_child(ctx, child, output_writer, parent_deviated, override_flag)
         # If we are flattening deviations, need to traverse deviated tree as well.
         if ctx.opts.flatten_deviated:
             deviated_module_children = (
@@ -195,9 +199,13 @@ class FlattenPlugin(plugin.PyangPlugin):
                 if child.keyword in self.__keywords
             )
             for child in deviated_module_children:
-                self.output_child(ctx, child, output_writer, parent_deviated)
+                self.output_child(
+                    ctx, child, output_writer, parent_deviated, override_flag
+                )
 
-    def output_child(self, ctx, child, output_writer, parent_deviated=False):
+    def output_child(
+        self, ctx, child, output_writer, parent_deviated=False, override_flag=None
+    ):
         deviated = getattr(child, "i_this_not_supported", False) or parent_deviated
         # Keys map to self.__field_names for CSV output
         output_content = {"xpath": statements.get_xpath(child, prefix_to_module=True)}
@@ -210,7 +218,11 @@ class FlattenPlugin(plugin.PyangPlugin):
                 primitive_type = "nil"
             else:
                 raise e
-        flag = self.get_flag(child)
+        # To handle inputs and outputs we're going to have an override flag.
+        # input children should flag as w all the way through.
+        flag, override_flag = (
+            (override_flag, override_flag) if override_flag else self.get_flag(child)
+        )
         # Set the output content based on the options specified
         if ctx.opts.flatten_keyword:
             output_content["keyword"] = child.keyword
@@ -228,6 +240,7 @@ class FlattenPlugin(plugin.PyangPlugin):
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
         # In this case we're negating compared to what we want to output
+        # Final statement: Always ignore input/output, children will be printed.
         output_filters = set(
             [
                 ctx.opts.flatten_filter_keyword
@@ -235,6 +248,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 ctx.opts.flatten_filter_primitive
                 and primitive_type not in ctx.opts.flatten_filter_primitive,
                 ctx.opts.flatten_filter_flag and flag != ctx.opts.flatten_filter_flag,
+                child.keyword in {"input", "output"},
             ]
         )
         if not any(output_filters):
@@ -242,31 +256,30 @@ class FlattenPlugin(plugin.PyangPlugin):
             # Simply don't output what we don't want, don't stop processing
             output_writer.writerow(output_content)
         if hasattr(child, "i_children"):
-            self.output_module(ctx, child, output_writer, deviated)
+            self.output_module(ctx, child, output_writer, deviated, override_flag)
 
-    def get_flag(self, node):
+    def get_flag(self, node, parent_flag=None):
         """Pulled from tree plugin.
         Removed mode argument, directly derive from keyword.
+        Returns the current flag, and override flag if necessary.
         TODO: Determine no mode arg affect. Might be invalid.
         TODO: Determine default flag. "ro"?
         """
         if node.keyword == "input":
-            return "w"
+            return "w", "w"
         elif node.keyword in ("rpc", "action", ("tailf-common", "action")):
-            return "x"
+            return "x", None
         elif node.keyword == "notification":
-            return "n"
+            return "n", None
         elif node.keyword == "uses":
-            return "u"
+            return "u", None
         elif node.i_config == True:
-            return "rw"
-        elif (
-            node.i_config == False
-            or node.keyword == "output"
-            or node.keyword == "notification"
-        ):
-            return "ro"
+            return "rw", None
+        elif node.i_config == False or node.keyword == "notification":
+            return "ro", None
+        elif node.keyword == "output":
+            return "ro", "ro"
         else:
             # Default to ro, clear up with Martin
             # raise Exception("Unable to determine flag for %s!" % statements.get_xpath(node, prefix_to_module=True))
-            return "ro"
+            return "ro", None

@@ -11,3 +11,4 @@ xpath,keyword
 /y:my-notif,notification
 /y:my-notif/x:bar,leaf
 /y:my-rpc,rpc
+/y:my-rpc/x:bar,leaf
