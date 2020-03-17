@@ -1,0 +1,98 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m2;
+
+  grouping gg2 {
+    container ccon {
+      config false;
+      leaf admin {
+        type string {
+          length "1 .. 10";
+        }
+      }
+     
+      leaf password {
+        type string {
+          pattern '[a-zA-Z0-9]';
+        }
+      }
+
+      leaf-list llst3 {
+        type string;
+      }
+
+      leaf is_set {
+        type boolean; 
+        default "true";
+      }
+   
+      choice ch1 {
+        case ca1 {
+          leaf case-le1 {
+            type boolean;
+          }
+        }
+
+        case ca2 {
+          leaf case-le2 {
+            type string;
+          }
+        }
+       
+        leaf case-le3 {
+          type uint8;
+        }
+
+      } 
+  
+    }
+
+  }
+
+  container ccon1 {
+    uses gg2 {
+      refine ccon/ss { // error: target-node is not existed
+        description "test description";
+      }
+    }
+  }
+
+  container ccon2 {
+    uses gg2 {
+      refine ccon/is_set {
+        default "ttrue"; // error: 'ttrue' is  bad value
+        mandatory true; // error: 'mandatory' can't be with 'default'
+      }
+    }
+  }
+
+  container ccon3 {
+    uses gg2 {
+      refine ch1 {
+        default Tom; // error: bad value, case 'Tom' is not existed
+      }
+    }
+  }
+
+  container ccon4 {
+    uses gg2 {
+      refine ccon/admin {
+        config true; // error: parent is configure data
+      }
+    }
+
+  }
+
+  container ccon5 {
+    uses gg2 {
+      refine ccon/llst3 {
+        default "add"; // error: leaf-list has not default value
+      }
+    }
+  }
+
+
+
+
+}

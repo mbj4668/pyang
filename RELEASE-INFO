@@ -1,6 +1,7 @@
 # we use semver 2.0.0
 
 # update CHANGELOG.md w/ new release number and date
+# ensure CONTRIBUTORS is updated
 # update pyang/__init__.py w/ new release number and date
 
 # build doc (the nroff man pages are checked in)

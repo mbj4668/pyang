@@ -1,0 +1,33 @@
+module mod1 {
+  //yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  notification not1 {
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    description "test description";
+    description "test description"; // error: duplicated description 
+
+    status "current";
+    status "current"; // error: duplicated status
+
+  }
+
+  rpc rp1 {
+    notification not2 {
+      description "test description"; // error: 'not2' cannot be defined within rpc
+    }
+  }
+ 
+  list lst1 {
+    config false;
+
+    notification not2 {
+      description "test description"; // error: 'key' is missing
+    }
+  }
+
+
+}

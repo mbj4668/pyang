@@ -1,0 +1,35 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  identity id1;
+  identity id2;
+
+  identity id3 {
+    description "test description";
+    description "test description"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    status "current";
+    status "obsolete"; // error: duplicated status
+
+  }
+
+  identity id4 {
+    base id5;
+  }
+
+  identity id5 {
+    base id6;
+  }
+
+  identity id6 {
+    base id4; // reference itself indirectly
+  }
+
+
+
+}

@@ -225,6 +225,8 @@ _validation_map = {
         lambda ctx, s: v_unique_name_leaf_list(ctx, s),
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
+    ('reference_1', 'action'):lambda ctx, s:v_reference_action(ctx, s),
+    ('reference_1', 'notification'):lambda ctx, s:v_reference_notification(ctx, s),
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
@@ -748,7 +750,8 @@ def v_type_typedef(ctx, stmt):
           type_.i_type_spec is not None):
         stmt.i_default = type_.i_type_spec.str_to_val(ctx.errors,
                                                       default.pos,
-                                                      default.arg)
+                                                      default.arg,
+                                                      stmt.i_module)
         stmt.i_default_str = default.arg
         if stmt.i_default is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
@@ -980,7 +983,8 @@ def v_type_leaf(ctx, stmt):
     if default is not None and type_.i_type_spec is not None :
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
-                                              default.arg)
+                                              default.arg,
+                                              stmt.i_module)
         stmt.i_default = defval
         stmt.i_default_str = default.arg
         if defval is not None:
@@ -1013,7 +1017,8 @@ def v_type_leaf_list(ctx, stmt):
         if type_.i_type_spec is not None :
             defval = type_.i_type_spec.str_to_val(ctx.errors,
                                                   default.pos,
-                                                  default.arg)
+                                                  default.arg,
+                                                  stmt.i_module)
             if defval is not None:
                 stmt.i_default.append(defval)
                 type_.i_type_spec.validate(ctx.errors, default.pos,
@@ -1024,6 +1029,13 @@ def v_type_leaf_list(ctx, stmt):
         if m is not None and int(m.arg) > 0:
             d = stmt.search_one('default')
             err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
+            return False
+
+    min_value = stmt.search_one('min-elements')
+    max_value = stmt.search_one('max-elements')
+    if min_value is not None and max_value is not None and max_value.arg != 'unbounded':
+        if int(min_value.arg) > int(max_value.arg):
+            err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
             return False
 
     if (not stmt.i_default
@@ -1435,7 +1447,8 @@ def v_default(ctx, target, default):
 
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
-                                              default.arg)
+                                              default.arg,
+                                              target.i_module)
         target.i_default = defval
         target.i_default_str = default.arg
         if defval is not None:
@@ -1862,6 +1875,41 @@ def v_unique_name_leaf_list(ctx, stmt):
 
 ### Reference phase
 
+def v_reference_notification(ctx, stmt):
+    def iterate(s):
+        if s.parent is None:
+            return
+        else:
+            parent = s.parent
+            if parent.keyword == "list":
+                key = parent.search_one('key')
+                if parent.i_config is False and key is None and parent.i_module.i_version == '1.1':
+                    err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR', (stmt.keyword))
+                else:
+                    iterate(parent)
+            else:
+                iterate(parent)
+
+    iterate(stmt)
+
+def v_reference_action(ctx, stmt):
+    def iterate(s):
+        if s.parent is None:
+            return
+        else:
+            parent = s.parent
+            if parent.keyword == "list":
+                key = parent.search_one('key')
+                if parent.i_config is False and key is None and parent.i_module.i_version == '1.1':
+                    err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR', (stmt.keyword))
+                else:
+                    iterate(parent)
+            else:
+                iterate(parent)
+
+    iterate(stmt)
+
+
 def v_reference_list(ctx, stmt):
     if getattr(stmt, 'i_is_validated', None) is True:
         return
@@ -1980,8 +2028,17 @@ def v_reference_list(ctx, stmt):
             u.i_leafs = found
             stmt.i_unique.append((u, found))
 
+    def v_max_min_elements():
+        min_value = stmt.search_one('min-elements')
+        max_value = stmt.search_one('max-elements')
+        if min_value is not None and max_value is not None and max_value.arg != 'unbounded':
+            if int(min_value.arg) > int(max_value.arg):
+                err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
+                return
+
     v_key()
     v_unique()
+    v_max_min_elements()
 
 def v_reference_choice(ctx, stmt):
     """Make sure that the default case exists"""
@@ -2963,6 +3020,11 @@ class BitStatement(Statement):
         'i_position',
     )
 
+class CommentStatement(Statement):
+    __slots__ = (
+        'i_line_end',
+        'i_multi_line',
+    )
 
 class ChoiceStatement(Statement):
     __slots__ = (
@@ -3101,6 +3163,7 @@ STMT_CLASS_FOR_KEYWD = {
     'uses': UsesStatement,
     'must': MustStatement,
     'when': WhenStatement,
+    '_comment': CommentStatement,
     # all other keywords can use generic Statement class
 }
 

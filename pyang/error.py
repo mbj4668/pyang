@@ -355,6 +355,9 @@ error_codes = \
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '
        'defined at %s'),
+    'BAD_ANCESTOR':
+      (1,
+       '"%s" node cannot have an ancestor list node without a key'),
     'BAD_TYPE_NAME':
       (1,
        'illegal type name "%s"'),
@@ -401,6 +404,9 @@ error_codes = \
       (1,
        'a \'default\' value cannot be given when \'min-elements\' is'
        ' greater than 0'),
+    'MAX_ELEMENTS_AND_MIN_ELEMENTS':
+      (1,
+       'a \'min-elements\' value cannot be greater than \'max-elements\' value'),
     'DUPLICATE_DEFAULT':
         (1,
          'the default value "%s" is given twice in the leaf list'),

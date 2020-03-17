@@ -83,14 +83,14 @@
       <arg choice="plain">--sid-update-file</arg>
       <arg choice="plain"><replaceable>sid-filename</replaceable></arg>
       <arg choice="plain"><replaceable>yang-filename</replaceable></arg>
-      <arg choice="opt">--sid-extra-range 
+      <arg choice="opt">--sid-extra-range
         <group choice="req">
           <arg choice="plain">count</arg>
           <arg choice="plain"><replaceable>entry-point:size</replaceable></arg>
         </group>
       </arg>
     </cmdsynopsis>
-    
+
     <cmdsynopsis>
       <command>pyang</command>
       <arg choice="opt">--sid-list</arg>
@@ -302,6 +302,29 @@
           </para>
           <informalexample>
             <screen>$ pyang --ignore-error PATTERN_ERROR</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--msg-template</option>
+          <replaceable>msg-template</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Print out error message in defined <replaceable>msg-template</replaceable>.
+          </para>
+          <para>
+            Template used to display error messages. This is a python
+            new-style format string used to format the message
+            information with keys file, line, code, type, and msg.
+          </para>
+          <para>
+            The following example create a msg template in defined pattern:
+          </para>
+          <informalexample>
+            <screen>$ pyang --msg-template='{file} || {line} || {type} || {level} || {code} || {msg}'</screen>
           </informalexample>
         </listitem>
       </varlistentry>
@@ -1044,7 +1067,7 @@
             module; the previous .sid file generated for the YANG module and the
             definition file of the updated module. Both filenames follow the usual
             naming conversion consisting of the module name, followed by an @ symbol,
-            followed by the module revision, followed by the extension. 
+            followed by the module revision, followed by the extension.
           </para>
           <para>
             This example shows how to generate the file

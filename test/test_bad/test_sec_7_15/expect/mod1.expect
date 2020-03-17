@@ -1,0 +1,9 @@
+mod1.yang:10: error: UNEXPECTED_KEYWORD
+mod1.yang:13: error: UNEXPECTED_KEYWORD
+mod1.yang:16: error: UNEXPECTED_KEYWORD
+mod1.yang:24: error: UNEXPECTED_KEYWORD
+mod1.yang:24: error: DUPLICATE_CHILD_NAME
+mod1.yang:38: error: UNEXPECTED_KEYWORD
+mod1.yang:38: error: DUPLICATE_CHILD_NAME
+mod1.yang:48: error: UNEXPECTED_KEYWORD
+mod1.yang:59: error: BAD_ANCESTOR

@@ -46,7 +46,12 @@ class YANGPlugin(plugin.PyangPlugin):
         emit_yang(ctx, module, fd)
 
 def emit_yang(ctx, module, fd):
-    emit_stmt(ctx, module, fd, 0, None, None, False, '', '  ')
+    link_list = {}
+    # make the stmt tree to a link_list, in order to peek the next stmt
+    make_link_list(ctx, module, link_list)
+    link_list['last'] = None
+
+    emit_stmt(ctx, module, fd, 0, None, None, False, '', '  ', link_list)
 
 # always add newline between keyword and argument
 _force_newline_arg = ('description', 'reference', 'contact', 'organization')
@@ -133,8 +138,25 @@ _need_quote = (
     "\n", "\t", "\r", "//", "/*", "*/",
     )
 
+def make_link_list(ctx, stmt, link_list):
+    if 'last' in link_list:
+        link_list[ link_list['last'] ] = stmt
+    link_list['last'] = stmt
+
+    if len(stmt.substmts) > 0:
+        if ctx.opts.yang_canonical:
+            substmts = grammar.sort_canonical(stmt.keyword, stmt.substmts)
+        else:
+            substmts = stmt.substmts
+        for i, s in enumerate(substmts, start=1):
+            make_link_list(ctx, s, link_list)
+
 def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
-              indent, indentstep):
+              indent, indentstep, link_list):
+    # line end comment has been printed
+    if is_line_end_comment(stmt):
+        return
+
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
@@ -216,7 +238,11 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
         else:
             arg_on_new_line = emit_arg(keywordstr, stmt, fd, indent, indentstep,
                                        max_line_len, line_len)
-    fd.write(eol + '\n')
+    fd.write(eol)
+
+    next_stmt = link_list.get(stmt, None)
+    emit_line_end_comments_after(stmt, next_stmt, link_list, fd, False)
+    fd.write('\n')
 
     if len(stmt.substmts) > 0:
         if ctx.opts.yang_canonical:
@@ -231,18 +257,44 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
             if arg_on_new_line:
                 # arg was printed on a new line, increase indentation
                 n = 2
+
+            link_list['last'] = s
             emit_stmt(ctx, s, fd, level + 1, prev_kwd, kwd_class,
                       i == len(substmts),
-                      indent + (indentstep * n), indentstep)
-            kwd_class = get_kwd_class(s.keyword)
-            prev_kwd = s.keyword
-        fd.write(indent + '}\n')
+                      indent + (indentstep * n), indentstep, link_list)
+            if not is_line_end_comment(s):
+                kwd_class = get_kwd_class(s.keyword)
+                prev_kwd = s.keyword
+        fd.write(indent + '}')
+        last_substmt = link_list['last']
+        if last_substmt in link_list:
+            last_substmt = link_list[last_substmt]
+        emit_line_end_comments_after(stmt, last_substmt, link_list, fd, True)
+        fd.write('\n')
 
     if (not islast and
         ((level == 1 and stmt.keyword in
           _keyword_with_trailing_blank_line_toplevel) or
          stmt.keyword in _keyword_with_trailing_blank_line)):
         fd.write('\n')
+
+def emit_line_end_comments_after(stmt, last_substmt, link_list, fd, need_same_level):
+    while last_substmt is not None:
+        is_sub_level = False
+        if not need_same_level:
+            is_sub_level = last_substmt.parent == stmt
+        if (is_line_end_comment(last_substmt) and
+                (last_substmt.parent == stmt.parent or (not need_same_level and is_sub_level))):
+            fd.write(' ' + last_substmt.arg)
+            if last_substmt in link_list:
+                last_substmt = link_list[last_substmt]
+            else:
+                return
+        else:
+            return
+
+def is_line_end_comment(stmt):
+    return stmt.keyword == '_comment' and stmt.is_line_end and not stmt.is_multi_line
 
 def need_new_line(max_line_len, line_len, arg):
     eol = arg.find('\n')

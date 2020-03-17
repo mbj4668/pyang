@@ -1,0 +1,41 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix aa;
+
+  import mod2 {
+    prefix m2;
+  }
+
+  uses m2:gg2;
+  typedef my_type {
+    type string;
+    description "test one";
+    reference "xxx article";
+    status "current";
+    units "bytes";
+    default "hello";
+  }
+
+  typedef my_type1 {
+    type string;
+    type int8; // error: too many type
+    description "test one";
+    description "test two"; // error: duplicate descriptions
+    reference "xxx article";
+    reference "xxx article1"; // error: duplicate reference
+    status "current";
+    status "current"; // error: duplicate status
+    units "bytes";
+    units "byte"; // error: duplicate units
+    default "hello";
+    default "world"; // error: duplicate default
+  }
+
+  typedef my_type2 {
+    //type uint16; // error: type doesn't exist 
+  }
+
+}
+
+
