@@ -2126,7 +2126,7 @@ def v_reference_deviate(ctx, stmt):
         else:
             p_config = node.parent.search_one('config')
             if p_config is not None and p_config.arg == 'false':
-                err_add(ctx.errors, target.pos, 'INVALID_CONFIG', ())
+                err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
                 return True
             return search_ancestor_config_false(node.parent, target)
 
@@ -2136,7 +2136,7 @@ def v_reference_deviate(ctx, stmt):
         if node.keyword in data_definition_keywords:
             c_config = node.search_one('config')
             if c_config is not None and c_config.arg == 'true':
-                err_add(ctx.errors, target.pos, 'INVALID_CONFIG', ())
+                err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
                 return True
         else:
             return False
@@ -2257,7 +2257,8 @@ def v_reference_deviate(ctx, stmt):
                     negc = copy.copy(old)
                     old.arg = c.arg
                 else:
-                    err_add(ctx.errors, t.pos, 'BAD_DEVIATE_REP', (c.keyword, t.i_module.arg, t.arg))
+                    err_add(ctx.errors, t.pos, 'BAD_DEVIATE_REP',
+                            (c.keyword, t.i_module.arg, t.arg))
                     continue
 
                 if c.arg == 'true':
