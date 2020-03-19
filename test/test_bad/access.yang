@@ -1,0 +1,5 @@
+module access {
+    namespace urn:test:access;
+    prefix a;
+    description "Should be made unreadable prior to testing";
+}

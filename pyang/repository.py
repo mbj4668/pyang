@@ -325,24 +325,39 @@ class Context(object):
                 return None
 
     def validate(self):
-        uris = {}
         modules = []
         for k in self.modules:
             m = self.modules[k]
             if m is not None:
                 modules.append(m)
         for m in modules:
+            # may add new modules by import
             statements.validate_module(self, m)
-            namespace = m.search_one('namespace')
+
+        # check for duplicate namespaces across all loaded modules
+        uri_map = {}
+        for k in self.modules:
+            m = self.modules[k]
+            namespace = None if m is None else m.search_one('namespace')
             if namespace is not None:
                 uri = namespace.arg
-                if uri in uris:
-                    if uris[uri] != m.arg:
-                        error.err_add(self.errors, namespace.pos,
-                                      'DUPLICATE_NAMESPACE',
-                                      (uri, uris[uri]))
-                else:
-                    uris[uri] = m.arg
+                uses = uri_map.get(uri)
+                if uses is None:
+                    uri_map[uri] = uses = [], set()
+                uses[0].append(namespace.pos)
+                uses[1].add(m.arg)
+
+        for uri in uri_map:
+            uses = uri_map[uri]
+            if len(uses[1]) == 1:
+                continue
+            module_names = ' '.join(sorted(uses[1]))
+            #uses[0].sort(key=lambda pos: os.path.basename(pos.ref))
+            for pos in uses[0]:
+                error.err_add(self.errors, pos,
+                              'DUPLICATE_NAMESPACE',
+                              (uri, module_names))
+
 
 class Repository(object):
     """Abstract base class that represents a module repository"""
