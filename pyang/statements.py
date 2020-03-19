@@ -2262,6 +2262,8 @@ def v_reference_deviate(ctx, stmt):
                             err_add(ctx.errors, c.pos,
                                     'INVALID_CONFIG', ())
                             continue
+                        else:
+                            t.i_config = True
                 else:
                     if search_children_config_true(t, t):
                         old.arg = negc.arg
