@@ -1,4 +1,5 @@
 import copy
+import os.path
 
 ### struct to keep track of position for error messages
 
@@ -17,7 +18,13 @@ class Position(object):
         self.uses_pos = None
 
     def __str__(self):
-        s = self.ref + ':' + str(self.line)
+        return self.label()
+
+    def label(self, basename=False):
+        ref = self.ref
+        if basename:
+            ref = os.path.basename(ref)
+        s = ref + ':' + str(self.line)
         if self.uses_pos is None:
             return s
         else:

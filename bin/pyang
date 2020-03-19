@@ -57,6 +57,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="On errors, print the error code instead " \
                              "of the error message."),
+        optparse.make_option("--print-error-basename",
+                             dest="print_error_basename",
+                             action="store_true",
+                             help="On errors, print the basename of files " \
+                             "of the error message."),
         optparse.make_option("--msg-template",
                              dest="msg_template",
                              type="string",
@@ -469,10 +474,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                     level=elevel) + '\n')
             except KeyError as error_msg:
                 sys.stderr.write(
-                    "unsupported key %s in msg-template\n" % str(error_msg))
+                    "unsupported key %s in msg-template\n" % error_msg)
                 sys.exit(1)
         else:
-            sys.stderr.write('%s: %s: %s\n' % (epos, kind, emsg))
+            sys.stderr.write('%s: %s: %s\n' %
+                             (epos.label(o.print_error_basename), kind, emsg))
 
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
