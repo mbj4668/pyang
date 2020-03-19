@@ -2118,18 +2118,6 @@ def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
 
 def v_reference_deviate(ctx, stmt):
-    def search_ancestor_config_false(node, target):
-        # the target node's config is set to 'true', and the ancestor node above it
-        # cannot have 'config' is 'false'
-        if node is None or node.parent is None:
-            return False
-        else:
-            p_config = node.parent.search_one('config')
-            if p_config is not None and p_config.arg == 'false':
-                err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
-                return True
-            return search_ancestor_config_false(node.parent, target)
-
     def search_children_config_true(node, target):
         # the target node's config is set to 'false', and the node underneath it
         # cannot have 'config' is 'true'
@@ -2143,8 +2131,8 @@ def v_reference_deviate(ctx, stmt):
         if node is None or not hasattr(node, 'i_children'):
             return False
         else:
-            for children in node.i_children:
-                if search_children_config_true(children, target):
+            for child in node.i_children:
+                if search_children_config_true(child, target):
                     return True
             return False
 
@@ -2152,12 +2140,12 @@ def v_reference_deviate(ctx, stmt):
         if node is None or not hasattr(node, 'i_children'):
             return
         else:
-            for children in node.i_children:
-                if children.keyword in data_definition_keywords:
-                    config = children.search_one('config')
+            for child in node.i_children:
+                if child.keyword in data_definition_keywords:
+                    config = child.search_one('config')
                     if config is None:
-                        children.i_config = value
-                inherit_parent_i_config(children, value)
+                        child.i_config = value
+                inherit_parent_i_config(child, value)
 
     if stmt.parent.i_target_node is None:
         # this is set in v_reference_deviation above.  if none
@@ -2200,8 +2188,13 @@ def v_reference_deviate(ctx, stmt):
                 config = t.search_one(c.keyword)
                 if config is None:
                     if c.arg == 'true':
-                        if not search_ancestor_config_false(t, t):
+                        if (t.parent is None
+                            or t.parent.i_config is True):
                             t.substmts.append(c)
+                        else:
+                            err_add(ctx.errors, c.pos,
+                                    'INVALID_CONFIG', ())
+                            continue
                     else:
                         if not search_children_config_true(t, t):
                             t.substmts.append(c)
@@ -2263,11 +2256,12 @@ def v_reference_deviate(ctx, stmt):
 
                 if c.arg == 'true':
                     if negc.arg != c.arg:
-                        if search_ancestor_config_false(t, t):
+                        if (t.parent is not None
+                            and t.parent.i_config is False):
                             old.arg = negc.arg
+                            err_add(ctx.errors, c.pos,
+                                    'INVALID_CONFIG', ())
                             continue
-                        else:
-                            t.i_config = True
                 else:
                     if search_children_config_true(t, t):
                         old.arg = negc.arg
