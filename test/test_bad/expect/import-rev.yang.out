@@ -1,0 +1,2 @@
+import-rev.yang:6: error: MODULE_NOT_FOUND_REV
+import-rev.yang:6: warning: UNUSED_IMPORT

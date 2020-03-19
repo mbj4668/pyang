@@ -1,12 +1,13 @@
 DIRS = $(shell for d in test_* ; \
 	do [ -d $$d -a -f $$d/Makefile ] && echo $$d ; done)
 
-PYANG := $(PYANG) --print-error-code --strict
+PYANG := $(PYANG) --print-error-code --print-error-base --strict
 
 MODULES = $(wildcard *.yang)
 
 test: subdirs
-	@for m in $(MODULES); do					\
+	@chmod -r access.yang
+	for m in $(MODULES); do						\
 		echo "trying $$m..." | tr -d '\012';			\
 		$(PYANG) $$m 2> $$m.out;				\
 		diff expect/$$m.out $$m.out > $$m.diff || 		\
@@ -14,6 +15,7 @@ test: subdirs
 		rm -f $$m.diff;						\
 		echo " ok";						\
 	done
+	chmod +r access.yang
 
 subdirs:
 	for d in $(DIRS); do 						\
@@ -22,4 +24,5 @@ subdirs:
 
 
 clean:
+	chmod +r access.yang
 	rm -rf *.out *.diff

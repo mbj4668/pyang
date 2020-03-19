@@ -1,0 +1,12 @@
+module import-name {
+  namespace "urn:ietf:params:xml:ns:yang:ietf-ip"; // error same namespace
+  prefix ip; // error same prefix
+
+  import ietf-ip {
+    prefix ip;
+  }
+
+  import misnamed { // error module name is different
+    prefix m;
+  }
+}
