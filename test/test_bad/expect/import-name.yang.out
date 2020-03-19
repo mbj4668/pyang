@@ -1,0 +1,6 @@
+import-name.yang:2: error: DUPLICATE_NAMESPACE
+import-name.yang:5: warning: UNUSED_IMPORT
+import-name.yang:6: error: PREFIX_ALREADY_USED
+import-name.yang:9: warning: UNUSED_IMPORT
+ietf-ip.yang:3: error: DUPLICATE_NAMESPACE
+misnamed.yang:1: error: BAD_MODULE_NAME
