@@ -15,6 +15,8 @@ Arguments
     Output flag indicator. Based on data type/properties, outputs associated flag.
 --flatten-description
     Output the description.
+--flatten-deviated
+    Output deviated nodes in the schema as well.
 --flatten-data-keywords
     Flatten all data keywords instead of only data definition keywords.
 --flatten-filter-keyword <choice>

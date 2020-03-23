@@ -1704,6 +1704,14 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-deviated</option></term>
+        <listitem>
+          <para>
+            Output deviated nodes in the schema as well.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-data-keywords</option></term>
         <listitem>
           <para>
