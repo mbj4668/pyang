@@ -210,6 +210,18 @@
 
       <varlistentry>
         <term>
+          <option>--print-error-basename</option>
+        </term>
+        <listitem>
+          <para>
+            On errors, print only the base file name independent
+            of its module path location.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>-Werror</option>
         </term>
         <listitem>
