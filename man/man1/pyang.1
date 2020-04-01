@@ -807,6 +807,11 @@ Skeleton of a sample XML instance document\&.
 Tree structure of the module\&.
 .RE
 .PP
+\fIflatten\fR
+.RS 4
+Flatten the module to XPath and attributes in CSV form\&.
+.RE
+.PP
 \fIuml\fR
 .RS 4
 UML file that can be read by
@@ -1327,6 +1332,90 @@ Try to break lines so they are no longer than
 \fB\-\-tree\-module\-name\-prefix\fR \fImaxlen\fR
 .RS 4
 Use the module name (instead of the prefix) to prefix parameters and types\&.
+.RE
+.SH "FLATTEN OUTPUT"
+.PP
+The
+\fIflatten\fR
+output flattens provided YANG schema and outputs XPath attributes in CSV format\&.
+.PP
+Flatten output specific options:
+.PP
+\fB\-\-flatten\-no\-header\fR
+.RS 4
+Do not emit the CSV header\&.
+.RE
+.PP
+\fB\-\-flatten\-keyword\fR
+.RS 4
+Output the keyword\&. This will resolve as container, leaf, etc\&.
+.RE
+.PP
+\fB\-\-flatten\-type\fR
+.RS 4
+Output the top\-level type\&. This will resolve to a module\-prefixed type\&.
+.RE
+.PP
+\fB\-\-flatten\-primitive\-type\fR
+.RS 4
+Output the primitive type\&. This resolves to a YANG type such as uint64\&.
+.RE
+.PP
+\fB\-\-flatten\-flag\fR
+.RS 4
+Output flag property\&. Derives a flag \- for instance rw/ro for config, or x for RPC\&.
+.RE
+.PP
+\fB\-\-flatten\-description\fR
+.RS 4
+Output the description\&.
+.RE
+.PP
+\fB\-\-flatten\-deviated\fR
+.RS 4
+Output deviated nodes in the schema as well\&.
+.RE
+.PP
+\fB\-\-flatten\-data\-keywords\fR
+.RS 4
+Flatten all data keywords instead of only data definition keywords\&.
+.RE
+.PP
+\fB\-\-flatten\-filter\-keyword\fR \fIkeyword\fR
+.RS 4
+Filter output to only desired keywords\&. Keywords specified are what will be displayed in output\&. Can be specified more than once\&.
+.RE
+.PP
+\fB\-\-flatten\-filter\-primitive\fR \fIprimitive_type\fR
+.RS 4
+Filter output to only desired primitive types\&. Primitives specified are what will be displayed in output\&. Can be specified more than once\&.
+.RE
+.PP
+\fB\-\-flatten\-filter\-flag\fR \fIchoice\fR
+.RS 4
+Filter output to flag\&.
+\fIrw\fR
+for configuration data\&.
+\fIro\fR
+for non\-configuration data, output parameters to rpcs and actions, and notification parameters\&.
+\fIw\fR
+for input parameters to rpcs and actions\&.
+\fIu\fR
+for uses of a grouping\&.
+\fIx\fR
+for rpcs and actions\&.
+\fIn\fR
+for notifications\&.
+.RE
+.PP
+\fB\-\-flatten\-csv\-dialect\fR \fIdialect\fR
+.RS 4
+CSV dialect for output\&. excel | excel\-tab | unix
+.RE
+.PP
+\fB\-\-ignore\-no\-primitive\fR
+.RS 4
+Ignore error if primitive is missing\&.
 .RE
 .SH "UML OUTPUT"
 .PP

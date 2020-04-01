@@ -1182,6 +1182,12 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><emphasis>flatten</emphasis></term>
+        <listitem>
+          <para>Flatten the module to XPath and attributes in CSV form.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><emphasis>uml</emphasis></term>
         <listitem>
           <para>UML file that can be read by
@@ -1879,6 +1885,150 @@ $ osascript foo.scpt</screen>
           <para>
             Use the module name (instead of the prefix) to prefix
             parameters and types.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.flatten_output">
+    <title>Flatten Output</title>
+    <para>
+      The <emphasis>flatten</emphasis> output flattens provided
+      YANG schema and outputs XPath attributes in CSV format.
+    </para>
+    <para>
+      Flatten output specific options:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--flatten-no-header</option></term>
+        <listitem>
+          <para>
+            Do not emit the CSV header.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keyword</option></term>
+        <listitem>
+          <para>
+            Output the keyword.
+            This will resolve as container, leaf, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-type</option></term>
+        <listitem>
+          <para>
+            Output the top-level type.
+            This will resolve to a module-prefixed type.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-primitive-type</option></term>
+        <listitem>
+          <para>
+            Output the primitive type.
+            This resolves to a YANG type such as uint64.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-flag</option></term>
+        <listitem>
+          <para>
+            Output flag property.
+            Derives a flag - for instance rw/ro for config, or x for RPC.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-description</option></term>
+        <listitem>
+          <para>
+            Output the description.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-deviated</option></term>
+        <listitem>
+          <para>
+            Output deviated nodes in the schema as well.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-data-keywords</option></term>
+        <listitem>
+          <para>
+            Flatten all data keywords instead of only data definition keywords.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-filter-keyword</option>
+          <replaceable>keyword</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Filter output to only desired keywords.
+            Keywords specified are what will be displayed in output.
+            Can be specified more than once.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-filter-primitive</option>
+          <replaceable>primitive_type</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Filter output to only desired primitive types.
+            Primitives specified are what will be displayed in output.
+            Can be specified more than once.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-filter-flag</option>
+          <replaceable>choice</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Filter output to flag.
+            <emphasis>rw</emphasis> for configuration data.
+            <emphasis>ro</emphasis> for non-configuration data, output parameters to rpcs and actions, and notification parameters.
+            <emphasis>w</emphasis> for input parameters to rpcs and actions.
+            <emphasis>u</emphasis> for uses of a grouping.
+            <emphasis>x</emphasis> for rpcs and actions.
+            <emphasis>n</emphasis> for notifications.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-csv-dialect</option>
+          <replaceable>dialect</replaceable>
+        </term>
+        <listitem>
+          <para>
+            CSV dialect for output.
+            excel | excel-tab | unix
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-ignore-no-primitive</option></term>
+        <listitem>
+          <para>
+            Ignore error if primitive is missing.
           </para>
         </listitem>
       </varlistentry>
