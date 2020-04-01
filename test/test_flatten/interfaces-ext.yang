@@ -1,0 +1,28 @@
+module interfaces-ext {
+  yang-version 1.1;
+  namespace "urn:interfaces-ext";
+  prefix ifext;
+
+   import ietf-interfaces {
+      prefix "if";
+   }
+
+   augment "/if:interfaces/if:interface"
+   {
+      description "extended interface";
+
+      container extended-parameters {
+        leaf extended-parameter {
+            type string;
+            description "An extra parameter";
+        }
+        leaf leafref-parameter {
+          type leafref {
+            path "/if:interfaces/if:interface/if:name";
+          }
+          description
+            "An example leafref";
+        }
+      }
+   }
+}

@@ -1,0 +1,41 @@
+module x {
+  namespace "urn:x";
+  prefix x;
+
+  import y {
+    prefix y;
+  }
+
+  augment "/y:pretty-long-identifier-name/y:shorter"
+        + "/y:another-long-identifier-name"
+        + "/y:also-short/y:but-this-is-long-again" {
+    leaf bar {
+      type string;
+    }
+  }
+
+  leaf foo {
+    type leafref {
+      path "/y:pretty-long-identifier-name/y:shorter"
+         + "/y:another-long-identifier-name"
+         + "/y:also-short/y:but-this-is-long-again/x:bar";
+    }
+  }
+  container q {
+    leaf enabled {
+      type boolean;
+    }
+  }
+
+  augment /y:my-notif {
+    leaf bar {
+      type string;
+    }
+  }
+  augment /y:my-rpc/y:input {
+    leaf bar {
+      type string;
+    }
+  }
+
+}
