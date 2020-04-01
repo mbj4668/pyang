@@ -3286,7 +3286,8 @@ def mk_path_str(stmt,
     return '/%s' % '/'.join(xpath_elements)
 
 def get_xpath(stmt, qualified=False, prefix_to_module=False):
-    """Gets the XPath of the statement.
+    """Gets the XPath path of the data node `stmt`.
+
     Unless qualified=True, does not include prefixes unless the prefix
       changes mid-XPath.
 
@@ -3295,14 +3296,13 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False):
     prefix_to_module will resolve prefixes to module names instead.
 
     For RFC 8040, set prefix_to_module=True:
-      /prefix:root/node/prefix:node/...
+      /prefix1:root/node/prefix2:node/...
 
     qualified=True:
-      /prefix:root/prefix:node/prefix:node/...
+      /prefix1:root/prefix1:node/prefix2:node/...
 
     qualified=True, prefix_to_module=True:
-      /module:root/module:node/module:node/...
-    prefix_to_module=True: /module:root/node/module:node/...
+      /module1:root/module1:node/module2:node/...
     """
     return mk_path_str(stmt, with_prefixes=qualified,
                        prefix_onchange=True, prefix_to_module=prefix_to_module)
