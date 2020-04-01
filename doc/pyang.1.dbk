@@ -2025,7 +2025,7 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--ignore-no-primitive</option></term>
+        <term><option>--flatten-ignore-no-primitive</option></term>
         <listitem>
           <para>
             Ignore error if primitive is missing.

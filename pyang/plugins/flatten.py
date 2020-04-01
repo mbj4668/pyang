@@ -12,7 +12,8 @@ Arguments
 --flatten-primitive-type
     Output the primitive type. This resolves to a YANG type such as uint64.
 --flatten-flag
-    Output flag indicator. Based on data type/properties, outputs associated flag.
+    Output flag indicator. Based on data type/properties, outputs associated
+    flag.
 --flatten-description
     Output the description.
 --flatten-deviated
@@ -20,10 +21,12 @@ Arguments
 --flatten-data-keywords
     Flatten all data keywords instead of only data definition keywords.
 --flatten-filter-keyword <choice>
-    Filter output to only desired keywords. Keywords specified are what will be displayed in output.
+    Filter output to only desired keywords. Keywords specified are what will
+    be displayed in output.
     Can be specified more than once.
 --flatten-filter-primitive <choice>
-    Filter output to only desired primitive types. Primitives specified are what will be displayed in output.
+    Filter output to only desired primitive types. Primitives specified are
+    what will be displayed in output.
     Can be specified more than once.
 --flatten-filter-flag <choice>
     Filter output to flag.
@@ -31,14 +34,15 @@ Arguments
 --flatten-csv-dialect <choice>
     CSV dialect for output.
     ["excel", "excel-tab", "unix"]
---ignore-no-primitive
+--flatten-ignore-no-primitive
     Ignore error if primitive is missing.
 
 Examples
 --------
 pyang -f flatten --flatten-no-header *.yang
     Just emit the XPaths.
-pyang -f flatten --flatten-filter-primitive uint64 --flatten-filter-primitive string *.yang
+pyang -f flatten --flatten-filter-primitive uint64
+    --flatten-filter-primitive string *.yang
     Only output uint64 and string typed elements.
 pyang -f flatten --flatten-filter-keyword container *.yang
     Only output containers.
@@ -111,7 +115,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-data-keywords",
                 dest="flatten_data_keywords",
                 action="store_true",
-                help="Flatten all data keywords instead of only data definition keywords.",
+                help="Flatten all data keywords instead of only"
+                     "data definition keywords.",
             ),
             optparse.make_option(
                 "--flatten-filter-keyword",
@@ -141,7 +146,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 choices=["excel", "excel-tab", "unix"],
             ),
             optparse.make_option(
-                "--ignore-no-primitive",
+                "--flatten-ignore-no-primitive",
                 dest="ignore_no_primitive",
                 help="Ignore error if primitive is missing.",
                 action="store_true",
@@ -176,7 +181,8 @@ class FlattenPlugin(plugin.PyangPlugin):
 
     def emit(self, ctx, modules, fd):
         output_writer = csv.DictWriter(
-            fd, fieldnames=self.__field_names, dialect=ctx.opts.flatten_csv_dialect
+            fd, fieldnames=self.__field_names,
+            dialect=ctx.opts.flatten_csv_dialect
         )
         if not ctx.opts.flatten_no_header:
             output_writer.writeheader()
@@ -184,7 +190,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.output_module(ctx, module, output_writer)
 
     def output_module(
-        self, ctx, module, output_writer, parent_deviated=False, override_flag=None
+        self, ctx, module, output_writer,
+            parent_deviated=False, override_flag=None
     ):
         module_children = (
             child
@@ -192,8 +199,10 @@ class FlattenPlugin(plugin.PyangPlugin):
             if child.keyword in self.__keywords
         )
         for child in module_children:
-            self.output_child(ctx, child, output_writer, parent_deviated, override_flag)
-        # If we are flattening deviations, need to traverse deviated tree as well.
+            self.output_child(ctx, child, output_writer,
+                              parent_deviated, override_flag)
+        # If we are flattening deviations, need to traverse
+        # deviated tree as well.
         if ctx.opts.flatten_deviated:
             deviated_module_children = (
                 child
@@ -206,11 +215,14 @@ class FlattenPlugin(plugin.PyangPlugin):
                 )
 
     def output_child(
-        self, ctx, child, output_writer, parent_deviated=False, override_flag=None
+        self, ctx, child, output_writer,
+            parent_deviated=False, override_flag=None
     ):
-        deviated = getattr(child, "i_this_not_supported", False) or parent_deviated
+        deviated = getattr(child, "i_this_not_supported", False) \
+                   or parent_deviated
         # Keys map to self.__field_names for CSV output
-        output_content = {"xpath": statements.get_xpath(child, prefix_to_module=True)}
+        output_content = {"xpath":
+                          statements.get_xpath(child, prefix_to_module=True)}
         # Sometimes we won't have the full set of YANG models...
         # Handle whether to error out or just set as "nil" for primitive type
         try:
@@ -223,13 +235,15 @@ class FlattenPlugin(plugin.PyangPlugin):
         # To handle inputs and outputs we're going to have an override flag.
         # input children should flag as w all the way through.
         flag, override_flag = (
-            (override_flag, override_flag) if override_flag else self.get_flag(child)
+            (override_flag, override_flag)
+            if override_flag else self.get_flag(child)
         )
         # Set the output content based on the options specified
         if ctx.opts.flatten_keyword:
             output_content["keyword"] = child.keyword
         if ctx.opts.flatten_type:
-            output_content["type"] = statements.get_qualified_type(child) or "nil"
+            output_content["type"] = statements.get_qualified_type(child) \
+                                     or "nil"
         if ctx.opts.flatten_primitive_type:
             output_content["primitive_type"] = primitive_type
         if ctx.opts.flatten_flag:
@@ -249,7 +263,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 and child.keyword not in ctx.opts.flatten_filter_keyword,
                 ctx.opts.flatten_filter_primitive
                 and primitive_type not in ctx.opts.flatten_filter_primitive,
-                ctx.opts.flatten_filter_flag and flag != ctx.opts.flatten_filter_flag,
+                ctx.opts.flatten_filter_flag
+                and flag != ctx.opts.flatten_filter_flag,
                 child.keyword in {"input", "output"},
             ]
         )
@@ -258,7 +273,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             # Simply don't output what we don't want, don't stop processing
             output_writer.writerow(output_content)
         if hasattr(child, "i_children"):
-            self.output_module(ctx, child, output_writer, deviated, override_flag)
+            self.output_module(ctx, child, output_writer,
+                               deviated, override_flag)
 
     def get_flag(self, node, parent_flag=None):
         """Pulled from tree plugin.
@@ -283,5 +299,6 @@ class FlattenPlugin(plugin.PyangPlugin):
             return "ro", "ro"
         else:
             # Default to ro, clear up with Martin
-            # raise Exception("Unable to determine flag for %s!" % statements.get_xpath(node, prefix_to_module=True))
+            # raise Exception("Unable to determine flag for %s!" %
+            #    statements.get_xpath(node, prefix_to_module=True))
             return "ro", None
