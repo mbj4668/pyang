@@ -31,8 +31,6 @@ pip install pytest
 # Build pyang from source and install it using pip
 cd ../../..
 rm -f dist/*.whl
-pip install -r requirements.txt
-python -c "import lxml.etree"
 python setup.py bdist_wheel
 pip install -I dist/*.whl
 cd $current_dir
