@@ -8,6 +8,7 @@ import sys
 import os
 import io
 
+from pyang import context
 from pyang import repository
 from pyang import plugin
 from pyang import statements
@@ -142,7 +143,7 @@ def check_update(ctx, newmod):
         olddir = '.'
     oldpath += os.pathsep + olddir
     oldrepo = repository.FileRepository(oldpath, use_env=False)
-    oldctx = repository.Context(oldrepo)
+    oldctx = context.Context(oldrepo)
     oldctx.opts = ctx.opts
     oldctx.lax_xpath_checks = ctx.lax_xpath_checks
     oldctx.lax_quote_checks = ctx.lax_quote_checks
