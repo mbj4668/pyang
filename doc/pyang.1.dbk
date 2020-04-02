@@ -1184,7 +1184,7 @@
       <varlistentry>
         <term><emphasis>flatten</emphasis></term>
         <listitem>
-          <para>Flatten the module to XPath and attributes in CSV form.</para>
+          <para>Print the schema nodes in CSV form.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -1895,7 +1895,8 @@ $ osascript foo.scpt</screen>
     <title>Flatten Output</title>
     <para>
       The <emphasis>flatten</emphasis> output flattens provided
-      YANG schema and outputs XPath attributes in CSV format.
+      YANG module and outputs the schema nodes and some of their
+      properties in CSV format.
     </para>
     <para>
       Flatten output specific options:

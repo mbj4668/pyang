@@ -1,5 +1,7 @@
 """Copyright 2019 Cisco Systems
-Flattens provided YANG schema and outputs XPath attributes in CSV format.
+Flattens provided YANG module and outputs the schema nodes and some of their
+properties in CSV format.
+
 
 Arguments
 ---------

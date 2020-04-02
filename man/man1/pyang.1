@@ -809,7 +809,7 @@ Tree structure of the module\&.
 .PP
 \fIflatten\fR
 .RS 4
-Flatten the module to XPath and attributes in CSV form\&.
+Print the schema nodes in CSV form\&.
 .RE
 .PP
 \fIuml\fR
@@ -1337,7 +1337,7 @@ Use the module name (instead of the prefix) to prefix parameters and types\&.
 .PP
 The
 \fIflatten\fR
-output flattens provided YANG schema and outputs XPath attributes in CSV format\&.
+output flattens provided YANG module and outputs the schema nodes and some of their properties in CSV format\&.
 .PP
 Flatten output specific options:
 .PP
@@ -1413,7 +1413,7 @@ for notifications\&.
 CSV dialect for output\&. excel | excel\-tab | unix
 .RE
 .PP
-\fB\-\-ignore\-no\-primitive\fR
+\fB\-\-flatten\-ignore\-no\-primitive\fR
 .RS 4
 Ignore error if primitive is missing\&.
 .RE
