@@ -1,0 +1,75 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m1;
+
+  feature f1;
+  feature f2;
+
+  typedef mybase1 {
+    type enumeration {
+      enum aa {
+        if-feature "f1";
+      }
+
+      enum bb;
+      enum cc;
+    }
+  }
+
+  typedef mytype1 {
+    type mybase1;
+  }
+
+  leaf le1 {
+    type mytype1;
+    default "aa";
+  }
+
+  typedef mybase2 {
+    type bits {
+      bit aaa {
+        position 0;
+        if-feature "f1 and f2";
+      }
+
+      bit bbb;
+      bit ccc;
+    }
+    default "bbb";
+  }
+
+  typedef mytype2 {
+    type mybase2;
+  }
+
+  leaf le2 {
+    type mytype2;
+    default "aaa";
+  }
+
+  typedef mybase3 {
+    type bits {
+      bit aaa {
+        position 0;
+        if-feature "f2";
+      }
+
+      bit bbb;
+      bit ccc {
+        if-feature "f1";
+      }
+    }
+    default "bbb ccc";
+  }
+
+  typedef mytype3 {
+    type mybase3;
+  }
+
+  leaf le3 {
+    type mytype3;
+  }
+
+}
+

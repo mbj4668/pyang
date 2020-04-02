@@ -397,6 +397,10 @@ error_codes = \
     'KEY_BAD_SUBSTMT':
       (1,
        'the statement "%s" cannot be given for a key'),
+    'DEFAULT_AND_IFFEATURE':
+      (1,
+       'a \'default\' value cannot be given in leaf node when'
+       ' \'if-feature\' is existing'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
