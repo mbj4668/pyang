@@ -44,6 +44,17 @@ class Context(object):
             revs = self.revs[mod]
             revs.append((rev, handle))
 
+    def internal_reset(self):
+        self.modules = {}
+        self.revs = {}
+        self.errors = []
+        for mod, rev, handle in self.repository.get_modules_and_revisions(
+                self):
+            if mod not in self.revs:
+                self.revs[mod] = []
+            revs = self.revs[mod]
+            revs.append((rev, handle))
+
     def add_module(self, ref, text, in_format=None,
                    expect_modulename=None, expect_revision=None,
                    expect_failure_error=True):
