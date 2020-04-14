@@ -20,6 +20,7 @@ class IETFPlugin(lint.LintPlugin):
         self.found_2119_keywords = False
         self.found_8174 = False
         self.found_tlp = False
+        self.mmap = {}
 
         lint.LintPlugin.__init__(self)
         self.namespace_prefixes = ['urn:ietf:params:xml:ns:yang:']
@@ -64,21 +65,37 @@ class IETFPlugin(lint.LintPlugin):
             + 'The IETF Trust Copyright statement seems to be'
             + ' missing (see pyang --ietf-help for details).')
 
+    def pre_validate_ctx(self, ctx, modules):
+        for mod in modules:
+            self.mmap[mod.arg] = {
+                'found_2119_keywords': False,
+                'found_8174': False}
+
     def v_chk_description(self, ctx, s):
+        if s.i_module.arg not in self.mmap:
+            return
         arg = re.sub(r'\s+', ' ', s.arg)
         if s.parent.keyword == 'module' or s.parent.keyword == 'submodule':
             m = re_rfc8174.search(arg)
             if m is not None:
-                self.found_8174 = True
+                self.mmap[s.i_module.arg]['found_8174'] = True
                 arg = arg[:m.start()] + arg[m.end():]
             if re_tlp.search(arg) is None:
                 err_add(ctx.errors, s.pos,
                         'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
-        if not self.found_2119_keywords:
+        if not self.mmap[s.i_module.arg]['found_2119_keywords']:
             if re_2119_keywords.search(arg) is not None:
-                self.found_2119_keywords = True
-                if not self.found_8174:
-                    err_add(ctx.errors, s.pos, 'IETF_MISSING_RFC8174', ())
+                self.mmap[s.i_module.arg]['found_2119_keywords'] = True
+                self.mmap[s.i_module.arg]['description_pos'] = s.pos
+
+    def post_validate_ctx(self, ctx, modules):
+        if not ctx.opts.ietf:
+            return
+        for mod in modules:
+            if (self.mmap[mod.arg]['found_2119_keywords']
+                and not self.mmap[mod.arg]['found_8174']):
+                pos = self.mmap[mod.arg]['description_pos']
+                err_add(ctx.errors, pos, 'IETF_MISSING_RFC8174', ())
 
 def print_help():
     print("""
