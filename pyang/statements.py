@@ -1747,7 +1747,7 @@ def v_expand_2_augment(ctx, stmt):
                 err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
         elif s.keyword == 'list' or s.keyword == 'leaf-list':
             m = s.search_one('min-elements')
-            if m is not None and int(m.arg) >= 1:
+            if m is not None and m.arg.isnumeric() and int(m.arg) >= 1:
                 err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
         elif s.keyword == 'container':
             p = s.search_one('presence')
@@ -2088,7 +2088,7 @@ def v_reference_choice(ctx, stmt):
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword in ('list', 'leaf-list'):
                         m = c.search_one('min-elements')
-                        if m is not None and int(m.arg) > 0:
+                        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword == 'container':
@@ -2428,7 +2428,7 @@ def is_mandatory_node(stmt):
             return True
     elif stmt.keyword in ('list', 'leaf-list'):
         m = stmt.search_one('min-elements')
-        if m is not None and int(m.arg) > 0:
+        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
             return True
     elif stmt.keyword == 'container':
         p = stmt.search_one('presence')
