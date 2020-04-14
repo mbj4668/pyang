@@ -5,8 +5,8 @@ module mod2 {
 
   leaf-list le1 {
     type string;
-    max-elements 50;
-    //min-elements 51; // error: bad value
+    max-elements "50";
+    min-elements "cd";
   }
 
   list lst {
@@ -15,9 +15,7 @@ module mod2 {
       type string;
     }
 
-    //max-elements 50;
+    max-elements "ab";
     min-elements 51;
   }
-
-
 }
