@@ -1052,11 +1052,11 @@ def v_type_leaf_list(ctx, stmt):
     min_value = stmt.search_one('min-elements')
     max_value = stmt.search_one('max-elements')
 
-    if stmt.i_default:
-        if min_value is not None and int(min_value.arg) > 0:
-            d = stmt.search_one('default')
-            err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
-            return False
+    if (stmt.i_default and min_value is not None
+            and min_value.arg.isnumeric() and int(min_value.arg) > 0):
+        d = stmt.search_one('default')
+        err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
+        return False
 
     if (min_value is not None and min_value.arg.isnumeric()
             and max_value is not None and max_value.arg.isnumeric()):
