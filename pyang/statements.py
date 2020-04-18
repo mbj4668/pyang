@@ -226,7 +226,7 @@ _validation_map = {
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
     ('reference_1', 'action'):lambda ctx, s:v_reference_action(ctx, s),
-    ('reference_1', 'notification'):lambda ctx, s:v_reference_notification(ctx, s),
+    ('reference_1', 'notification'):lambda ctx, s:v_reference_action(ctx, s),
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
@@ -1900,23 +1900,6 @@ def v_unique_name_leaf_list(ctx, stmt):
 
 ### Reference phase
 
-def v_reference_notification(ctx, stmt):
-    def iterate(s):
-        if s.parent is None:
-            return
-        else:
-            parent = s.parent
-            if parent.keyword == "list":
-                key = parent.search_one('key')
-                if parent.i_config is False and key is None and parent.i_module.i_version == '1.1':
-                    err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR', (stmt.keyword))
-                else:
-                    iterate(parent)
-            else:
-                iterate(parent)
-
-    iterate(stmt)
-
 def v_reference_action(ctx, stmt):
     def iterate(s):
         if s.parent is None:
@@ -1925,7 +1908,8 @@ def v_reference_action(ctx, stmt):
             parent = s.parent
             if parent.keyword == "list":
                 key = parent.search_one('key')
-                if parent.i_config is False and key is None and parent.i_module.i_version == '1.1':
+                if (parent.i_config is False and key is None
+                    and parent.i_module.i_version == '1.1'):
                     err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR', (stmt.keyword))
                 else:
                     iterate(parent)
@@ -1933,7 +1917,6 @@ def v_reference_action(ctx, stmt):
                 iterate(parent)
 
     iterate(stmt)
-
 
 def v_reference_list(ctx, stmt):
     if getattr(stmt, 'i_is_validated', None) is True:
