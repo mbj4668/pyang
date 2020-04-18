@@ -1,7 +1,10 @@
-test: test1 test2
+test: test1 test2 test4
 
 test1:
-	pyang mod1.yang --print-error-code 2>&1 | diff mod1.expect -
+	$(PYANG) mod1.yang --print-error-code 2>&1 | diff expect/mod1.expect -
 
 test2:
-	pyang mod2.yang --print-error-code 2>&1 | diff mod2.expect -
+	$(PYANG) mod2.yang --print-error-code 2>&1 | diff expect/mod2.expect -
+
+test4:
+	$(PYANG) mod4.yang --print-error-code 2>&1 | diff expect/mod4.expect -

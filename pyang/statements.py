@@ -1049,16 +1049,17 @@ def v_type_leaf_list(ctx, stmt):
                 type_.i_type_spec.validate(ctx.errors, default.pos,
                                            defval, ' for the default value')
 
-    if stmt.i_default:
-        m = stmt.search_one('min-elements')
-        if m is not None and int(m.arg) > 0:
-            d = stmt.search_one('default')
-            err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
-            return False
-
     min_value = stmt.search_one('min-elements')
     max_value = stmt.search_one('max-elements')
-    if min_value is not None and max_value is not None and max_value.arg != 'unbounded':
+
+    if (stmt.i_default and min_value is not None
+            and min_value.arg.isnumeric() and int(min_value.arg) > 0):
+        d = stmt.search_one('default')
+        err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
+        return False
+
+    if (min_value is not None and min_value.arg.isnumeric()
+            and max_value is not None and max_value.arg.isnumeric()):
         if int(min_value.arg) > int(max_value.arg):
             err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
             return False
@@ -1746,7 +1747,7 @@ def v_expand_2_augment(ctx, stmt):
                 err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
         elif s.keyword == 'list' or s.keyword == 'leaf-list':
             m = s.search_one('min-elements')
-            if m is not None and int(m.arg) >= 1:
+            if m is not None and m.arg.isnumeric() and int(m.arg) >= 1:
                 err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
         elif s.keyword == 'container':
             p = s.search_one('presence')
@@ -2039,7 +2040,8 @@ def v_reference_list(ctx, stmt):
     def v_max_min_elements():
         min_value = stmt.search_one('min-elements')
         max_value = stmt.search_one('max-elements')
-        if min_value is not None and max_value is not None and max_value.arg != 'unbounded':
+        if (min_value is not None and min_value.arg.isnumeric()
+                and max_value is not None and max_value.arg.isnumeric()):
             if int(min_value.arg) > int(max_value.arg):
                 err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
                 return
@@ -2069,7 +2071,7 @@ def v_reference_choice(ctx, stmt):
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword in ('list', 'leaf-list'):
                         m = c.search_one('min-elements')
-                        if m is not None and int(m.arg) > 0:
+                        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword == 'container':
@@ -2409,7 +2411,7 @@ def is_mandatory_node(stmt):
             return True
     elif stmt.keyword in ('list', 'leaf-list'):
         m = stmt.search_one('min-elements')
-        if m is not None and int(m.arg) > 0:
+        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
             return True
     elif stmt.keyword == 'container':
         p = stmt.search_one('presence')

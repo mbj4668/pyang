@@ -18,6 +18,4 @@ module mod1 {
     max-elements 50;
     min-elements 51; // error: bad value
   }
-
-
 }
