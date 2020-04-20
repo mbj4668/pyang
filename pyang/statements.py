@@ -972,6 +972,29 @@ def v_type_type(ctx, stmt):
                         (t.arg, t.pos))
                 return False
 
+def v_check_if_feature(ctx, type, defval):
+    for s in type.substmts:
+        if defval == s.arg:
+            feat = s.search_one('if-feature')
+            if feat is not None:
+                err_add(ctx.errors, feat.pos, 'DEFAULT_AND_IFFEATURE', ())
+            return
+
+def v_check_default(ctx, cur_type, def_value):
+    if def_value is None:
+        return
+    if cur_type.arg in types.yang_type_specs.keys():
+        if cur_type.arg == 'enumeration':
+            v_check_if_feature(ctx, cur_type, def_value)
+        elif cur_type.arg == 'bits':
+            for b in def_value:
+                v_check_if_feature(ctx, cur_type, b)
+        return
+    else:
+        if cur_type.i_typedef is not None:
+            new_type = cur_type.i_typedef.search_one('type')
+            v_check_default(ctx, new_type, def_value)
+
 def v_type_leaf(ctx, stmt):
     stmt.i_default = None
     stmt.i_default_str = ""
@@ -1001,30 +1024,7 @@ def v_type_leaf(ctx, stmt):
                                        stmt.i_default,
                                        ' for the default  value')
 
-    def v_check_if_feature(type, defval):
-        for s in type.substmts:
-            if defval == s.arg:
-                feat = s.search_one('if-feature')
-                if feat is not None:
-                    err_add(ctx.errors, feat.pos, 'DEFAULT_AND_IFFEATURE', ())
-                return
-
-    def v_check_default(cur_type, def_value):
-        if def_value is None:
-            return
-        if cur_type.arg in types.yang_type_specs.keys():
-            if cur_type.arg == 'enumeration':
-                v_check_if_feature(cur_type, def_value)
-            elif cur_type.arg == 'bits':
-                for b in def_value:
-                    v_check_if_feature(cur_type, b)
-            return
-        else:
-            if cur_type.i_typedef is not None:
-                new_type = cur_type.i_typedef.search_one('type')
-                v_check_default(new_type, def_value)
-
-    v_check_default(type_, stmt.i_default)
+    v_check_default(ctx, type_, stmt.i_default)
 
     if default is not None:
         m = stmt.search_one('mandatory')
@@ -1074,6 +1074,8 @@ def v_type_leaf_list(ctx, stmt):
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
                                        type_.i_typedef.i_default,
                                        ' for the default  value')
+    for s in stmt.i_default:
+        v_check_default(ctx, type_, s)
 
 def _v_type_common_leaf(ctx, stmt):
     stmt.i_leafref = None # path_type_spec
