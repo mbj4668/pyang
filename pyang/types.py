@@ -674,7 +674,10 @@ class BitTypeSpec(TypeSpec):
     def __init__(self, base, bits):
         TypeSpec.__init__(self, base.name)
         self.base = base
-        self.bits = [(b.arg, b.i_position) for b in bits]
+        self.bits = []
+        for b in bits:
+            if hasattr(b, "i_position"):
+                self.bits.append((b.arg, b.i_position))
 
     def str_to_val(self, errors, pos, string, _module):
         return string.split()
