@@ -1438,7 +1438,7 @@ def v_expand_1_children(ctx, stmt):
     if stmt.keyword == 'grouping':
         stmt.i_expanded = False
     for s in stmt.substmts:
-        if s.keyword in ['input', 'output']:
+        if s.keyword in ['input', 'output'] and hasattr(stmt, 'i_children'):
             # must create a copy of the statement which sets the argument,
             # since we need to keep the original stmt hierarchy valid
             news = s.copy(nocopy=['type','typedef','grouping'])
