@@ -1,4 +1,5 @@
 module list2 {
+  yang-version 1.1;
   namespace "urn:test:list2";
   prefix "l";
 
@@ -16,7 +17,19 @@ module list2 {
           type string;
         }
       }
+      anyxml aa { // error: no mandatory under default case
+        mandatory true;
+      }
+      anydata bb { // error: no mandatory under default case
+        mandatory true;
+      }
       container x {
+        anyxml cc { // error: no mandatory under default case
+          mandatory true;
+        }
+        anydata dd { // error: no mandatory under default case
+          mandatory true;
+        }
         container y {
           leaf-list m {
             min-elements "1"; // error: no mandatory under default case
