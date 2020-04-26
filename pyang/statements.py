@@ -1913,11 +1913,12 @@ def v_reference_action(ctx, stmt):
                 key = parent.search_one('key')
                 if (parent.i_config is False and key is None
                     and parent.i_module.i_version == '1.1'):
-                    err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR', (stmt.keyword))
-                else:
-                    iterate(parent)
-            else:
-                iterate(parent)
+                    err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR',
+                            (stmt.keyword))
+            elif parent.keyword in ("rpc", "action", "notification"):
+                err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR2',
+                        (stmt.keyword, parent.keyword))
+            iterate(parent)
 
     iterate(stmt)
 
