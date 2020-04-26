@@ -365,6 +365,9 @@ error_codes = \
     'BAD_ANCESTOR':
       (1,
        '"%s" node cannot have an ancestor list node without a key'),
+    'BAD_ANCESTOR2':
+      (1,
+       '"%s" node cannot have an ancestor "%s" node'),
     'BAD_TYPE_NAME':
       (1,
        'illegal type name "%s"'),

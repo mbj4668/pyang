@@ -1,0 +1,78 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  rpc rpcnode1 {//This is rpc node
+    input {
+      leaf reset-rpc1 {
+        type string;
+      }
+      list ifEntry1 {
+        key "ifIndex1";
+        leaf ifIndex1 {
+          type uint32;
+        }
+
+        action reset1 {//error: action is defined within an rpc
+          input {
+            leaf reset-at1 {
+              type string;
+              mandatory true;
+            }
+          }
+          output {
+            leaf reset-finished-at1 {
+              type string;
+              mandatory true;
+            }
+          }
+        }
+      }
+    }
+  }
+  rpc rpcnode2 {//This is rpc node
+    input {
+      leaf reset-rpc2 {
+        type string;
+      }
+      list ifEntry2 {
+        key "ifIndex2";
+        leaf ifIndex2 {
+          type uint32;
+        }
+
+        notification reset2 {//error: notification is defined within an rpc
+          leaf reset-at2 {
+            type string;
+            mandatory true;
+          }
+        }
+      }
+    }
+  }
+
+  container con {
+    notification not { //This is notification node
+      list lst {
+        key name;
+        leaf name {
+          type string;
+        }
+        action act { // error: action is defined within an notification
+          input {
+            leaf le1 {
+              type string;
+            }
+          }
+          output {
+            leaf le2 {
+              type string;
+            }
+          }
+        }
+      }
+    }
+  }
+
+}
