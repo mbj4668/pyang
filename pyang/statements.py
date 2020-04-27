@@ -1952,6 +1952,7 @@ def v_reference_list(ctx, stmt):
                 elif ptr is None or ptr.keyword != 'leaf':
                     err_add(ctx.errors, key.pos, 'BAD_KEY', x)
                     return
+                chk_status(ctx, ptr.parent, ptr)
                 type_ = ptr.search_one('type')
                 if stmt.i_module.i_version == '1':
                     if type_ is not None:
