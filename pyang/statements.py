@@ -1915,9 +1915,11 @@ def v_reference_action(ctx, stmt):
                     and parent.i_module.i_version == '1.1'):
                     err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR',
                             (stmt.keyword))
+                    return
             elif parent.keyword in ("rpc", "action", "notification"):
                 err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR2',
                         (stmt.keyword, parent.keyword))
+                return
             iterate(parent)
 
     iterate(stmt)
