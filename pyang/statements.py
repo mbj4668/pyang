@@ -1814,16 +1814,10 @@ def v_expand_2_augment(ctx, stmt):
                         (stmt.arg, stmt.pos, c.arg, ch.pos))
                 return
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
-            # create an artificial case node for the shorthand
+            # create an artifical case node for the shorthand
             new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
             new_case.parent = stmt.i_target_node
             v_inherit_properties(ctx, stmt.i_target_node, new_case)
-        elif (stmt.i_target_node.keyword not in
-              ('container', 'list', 'choice', 'case',
-                  'input', 'output', 'notification')):
-            nd = stmt.i_target_node
-            err_add(ctx.errors, stmt.pos, 'BAD_TARGET_NODE',
-                    (nd.i_module.i_modulename, nd.arg, nd.keyword))
         else:
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node

@@ -185,9 +185,6 @@ error_codes = \
     'BAD_NODE_IN_AUGMENT':
       (1,
        'node %s::%s of type %s cannot be augmented'),
-    'BAD_TARGET_NODE':
-      (1,
-       'node %s::%s of type %s cannot be target node'),
     'BAD_NODE_IN_REFINE':
       (1,
        'node %s::%s cannot be refined'),
