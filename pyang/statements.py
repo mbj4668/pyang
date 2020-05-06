@@ -340,7 +340,7 @@ _deviate_delete_singleton_keywords = {
 _valid_deviations = {
     'type':['leaf', 'leaf-list'],
     'units':['leaf', 'leaf-list'],
-    'default':['leaf', 'choice'],
+    'default':['leaf', 'leaf-list', 'choice'],
     'config':['leaf', 'choice', 'container', 'list', 'leaf-list'],
     'mandatory':['leaf', 'choice'],
     'min-elements':['leaf-list', 'list'],
