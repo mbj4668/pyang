@@ -1,0 +1,78 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  typedef base {
+    type int8 {
+      range "0..10 | 20..30";
+    }
+    //default "15";
+  }
+
+  typedef my1 {
+    type base {
+      range "min..11"; // error: '11' is bad value
+    }
+  }
+
+  typedef my2 {
+    type base {
+      range "min..max"; // error: 'min' and 'max' are not in the same interval
+    }
+  }
+
+  typedef my3 {
+    type base {
+      range "19..29"; // error: '19' is bad value
+    }
+  }
+
+  typedef my4 {
+    type base {
+      range "15"; // error: '15' is bad value
+    }
+  }
+
+  typedef my5 {
+    type base {
+      range "min"; // no errors
+    }
+  }
+
+  typedef my6 {
+    type base {
+      range "max"; // no errors
+    }
+  }
+
+  typedef my7 {
+    type base {
+      range "10..max"; // error: '10' is bad value
+    }
+  }
+
+  typedef my8 {
+    type base {
+      range "1..10 | 255"; // error: '255' is bad value
+    }
+  }
+
+  typedef my9 {
+    type base {
+      range "max .. 128"; // error: 'max..128' is bad value
+    }
+  }
+
+  typedef mytype {
+    type base {
+      range "1..6 | 25..30";
+    }
+  }
+
+  typedef mytype2 {
+    type mytype {
+      range "27..30 | max"; // error: 'max' is bad value
+    }
+  }
+}

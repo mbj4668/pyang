@@ -851,7 +851,7 @@ def v_type_type(ctx, stmt):
         err_add(ctx.errors, length.pos, 'BAD_RESTRICTION', 'length')
     elif length is not None:
         stmt.i_is_derived = True
-        lengths_spec = types.validate_length_expr(ctx.errors, length)
+        lengths_spec = types.validate_length_expr(ctx.errors, length, stmt)
         if lengths_spec is not None:
             stmt.i_lengths = lengths_spec[0]
             stmt.i_type_spec = types.LengthTypeSpec(stmt.i_type_spec,

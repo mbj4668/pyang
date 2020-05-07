@@ -1,0 +1,72 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  typedef base {
+    type string {
+      length "0..10 | 20..50 | max";
+    }
+    default "Tom & Jerry"; // the string lengths is bad value
+  }
+
+  typedef my1 {
+    type base {
+      length "min..11"; // error: '11' is bad value
+    }
+  }
+
+  typedef my2 {
+    type base {
+      length "min..max"; // error: 'max' is bad value
+    }
+  }
+
+  typedef my3 {
+    type base {
+      length "19..29"; // error: '19' is bad value
+    }
+  }
+
+  typedef my4 {
+    type base {
+      length "15"; // error: '15' is bad value
+    }
+  }
+
+  typedef my5 {
+    type base {
+      length "min"; // no errors
+    }
+  }
+
+  typedef my6 {
+    type base {
+      length "max"; // no errors
+    }
+  }
+
+  typedef my7 {
+    type base {
+      length "10..max"; // error: '10' is bad value
+    }
+  }
+
+  typedef my8 {
+    type base {
+      length "18446744073709551616"; // error: '"18446744073709551616"' is bad value
+    }
+  }
+
+  typedef my9 {
+    type base {
+      length "1..9 | 30..50";
+    }
+  }
+
+  typedef my10 {
+    type my9 {
+      length "2..8 | 35..50 | max"; // error: 'max' is bad value
+    }
+  }
+}
