@@ -242,9 +242,6 @@ error_codes = \
     'LENGTH_BOUNDS':
       (2,
        'length error: "%s" is not larger than "%s"'),
-    'LENGTH_VALUE':
-      (2,
-       'length error: "%s" is too large'),
     'TYPE_VALUE':
       (2,
        'the value "%s" does not match its base type %s- %s'),

@@ -1,0 +1,69 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  typedef base {
+    type string {
+      pattern "[a-zA-Z& ]+";
+      length "0 .. 13";
+    }
+    default "Tom and Jerry";
+  }
+
+  typedef my1 {
+    type base {
+      length "0 .. 11 | 13 | 15 .. 20"; // error: '15 .. 20' is bad value
+    }
+  }
+
+  typedef my2 {
+    type base {
+      length "min .. 5 | 10 .. 13";
+    }
+    default "Tom&Jerry"; // error: 'Tom&Jerry' is bad value
+  }
+
+  typedef my3 {
+    type base {
+      length "min .. 5";
+    }
+    // error: inherit default value doesn't honor the length restriction
+  }
+
+  typedef mybase1 {
+    type base {
+      pattern "[a-gA-G& ]+";
+      length "2 .. 13";
+    }
+    // error: inherit default value doesn't match the pattern
+  }
+
+  typedef mybase2 {
+    type mybase1 {
+      length "2 .. 10 | 12 .. 20"; // error: '20' is bad value
+    }
+  }
+
+  typedef mybase3 {
+    type mybase2 {
+      pattern "[a-gA-G0-9]+";
+    }
+  }
+
+  typedef mybase4 {
+    type mybase3 {
+      pattern "[a-g0-9]+";
+      length "2 .. 4";
+    }
+    default "0775"; // error: default value doesn't match the pattern
+  }
+
+  leaf le1 {
+    type mybase2 {
+      pattern "[abc]+";
+      length "2 .. 5";
+    }
+    default "aabbc";
+  }
+}

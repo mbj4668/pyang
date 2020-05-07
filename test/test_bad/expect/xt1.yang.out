@@ -11,7 +11,6 @@ xt1.yang:196: error: DUPLICATE_CHILD_NAME
 xt1.yang:206: error: DUPLICATE_CHILD_NAME
 xt1.yang:216: error: NEED_KEY_USES
 xt1.yang:226: error: RANGE_BOUNDS
-xt1.yang:232: error: TYPE_VALUE
 xt1.yang:232: error: RANGE_BOUNDS
 xt1.yang:246: error: EXPECTED_KEYWORD_2
 xt1.yang:265: error: TYPE_VALUE
