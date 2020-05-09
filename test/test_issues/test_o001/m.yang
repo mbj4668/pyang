@@ -1,0 +1,5 @@
+module m {
+  namespace "urn:test:m";
+  prefix m;
+  include s;
+}

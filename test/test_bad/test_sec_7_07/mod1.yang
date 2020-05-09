@@ -1,0 +1,39 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  import mod2 {
+    prefix m2;
+  }  
+ 
+  uses m2:gg2;
+  leaf-list lle1 {
+    type string;
+    description "test description";
+    reference " test reference";
+    config true;
+    status "current";
+    units "pk";
+    when "../lle2 = 255";
+    ordered-by "systems";
+    max-elements 10;
+    min-elements 3;
+
+    description "test description1"; // error: duplicate description
+    reference " test reference1"; // error: duplicate reference
+    config true1; // error: duplicate config
+    status "current1"; // error: duplicate status
+    units "pk1"; // error: duplicate units
+    when "../lle2 = 256"; // error: duplicate when
+    ordered-by "systems"; // error: duplicate ordered-by
+    max-elements 8; // error: duplicate max-elements
+    min-elements 2;  // error: duplicate min-elements
+
+  }
+
+  leaf lle2 {
+    type uint16;
+  }
+
+}

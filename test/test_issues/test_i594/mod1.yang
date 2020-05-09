@@ -1,0 +1,19 @@
+module mod1 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod1";
+
+  leaf le1 {
+    type bits {
+      bit one {
+        position 0;
+      }
+      bit two {
+        position '1a';
+      }
+      bit three {
+        position 5;
+      }
+    }
+  }
+}

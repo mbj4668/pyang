@@ -1,0 +1,73 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+ 
+  container con {
+    action act1 {
+      description "test description";
+      description "test description"; // error: duplicated description
+
+      reference "test reference";
+      reference "test reference"; // error: duplicated reference
+
+      status "current";
+      status "obsolete"; // error: duplicated status
+
+      output {
+        leaf le1 {
+          type string;
+        }
+      }
+
+      output { // error: duplicated output
+        leaf-list lst1 {
+          type string;
+          min-elements 3;
+          max-elements 5;
+        }
+      }
+
+      input {
+        leaf le2 {
+          type boolean;
+        }
+      }
+
+      input { // error: duplicated input
+        leaf le3 {
+          type int8;
+        }
+      }
+    }
+  }
+
+
+  rpc rp1 {
+    action act2 {
+      description "test description"; // error: 'action' cannot be defined within rpc
+    }
+  }
+
+  list lst1_1 {
+    config false;
+    leaf le1_1 {
+      type boolean;
+    }
+   
+    action act3 {
+      description "test description"; // error: 'key' is not existed
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+}

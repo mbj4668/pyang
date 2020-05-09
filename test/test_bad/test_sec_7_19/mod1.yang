@@ -1,0 +1,27 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  extension ext1 {
+    description "test description";
+    description "test description"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    status "current";
+    status "obsolete"; // error: duplicated status
+
+    argument "test1" {
+      yin-element true;
+      yin-element false; // error: duplicated yin-element
+    }
+    argument "test2"; // error: duplicated argument
+
+  }
+
+
+
+
+}

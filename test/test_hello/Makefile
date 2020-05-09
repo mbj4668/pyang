@@ -11,17 +11,17 @@ Y2DOPTS = -L -t $(TARGET) -b $(BASE)
 all: $(SCHEMAS)
 
 $(SCHEMAS): $(HELLO) $(MODULES)
-	yang2dsdl $(Y2DOPTS) $(FULLEXT) $<
+	$(YANG2DSDL) $(Y2DOPTS) $(FULLEXT) $<
 
 clean:
 	rm -f $(SCHEMAS) $BASE.{dsdl,tree} *-gdefs.rng *.rnc
 
 test: $(INSTANCE) $(SCHEMAS)
-	yang2dsdl -j -s $(Y2DOPTS) -v $<
+	$(YANG2DSDL) -j -s $(Y2DOPTS) -v $<
 
 $(BASE).dsdl: $(HELLO) $(MODULES)
-	pyang -f dsdl --dsdl-no-documentation $(FULLEXT) $< \
+	$(PYANG) -f dsdl --dsdl-no-documentation $(FULLEXT) $< \
 	| xmllint --format - > $@
 
 $(BASE).tree: $(HELLO) $(MODULES)
-	pyang -f tree -o $@ $(FULLEXT) $<
+	$(PYANG) -f tree -o $@ $(FULLEXT) $<

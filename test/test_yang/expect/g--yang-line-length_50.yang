@@ -21,18 +21,18 @@ module g {
           second line";
     container
       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa {
-        description
-          "first line \"
-              second line";
+      description
+        "first line \"
+            second line";
+      container
+        bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb {
         container
-          bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb {
-            container
-              cccccccccccccccccccccccccccccccccccccc {
-                leaf x {
-                  type string;
-                }
-            }
+          cccccccccccccccccccccccccccccccccccccc {
+          leaf x {
+            type string;
+          }
         }
+      }
     }
     leaf foo {
       type leafref {

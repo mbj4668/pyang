@@ -1,0 +1,19 @@
+submodule s {
+  belongs-to a {
+    prefix a;
+  }
+
+  container test;
+
+  augment "/test" {
+    container x {
+      container test-1 {
+        leaf tcp-profile {
+          when "/../../test/protocol = 'test'";
+          type string;
+        }
+      }
+    }
+  }
+}
+

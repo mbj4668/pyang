@@ -1,0 +1,2 @@
+ERROR, file 'toaster@2009-11-20.sid' not found
+Checking consistency of 'toaster@2009-11-20.sid'

@@ -1,0 +1,6 @@
+module: b
+  +--rw b
+     +--rw a
+        +--rw (b)?
+           +--:(c)
+              +--rw cc?   string

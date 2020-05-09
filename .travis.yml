@@ -4,9 +4,11 @@ python:
   - "2.7"
   # - "3.2" # error: coverage doesn't work
   # - "3.3" # error: pytest doesn't work
-  - "3.4"
+  # - "3.4" # error: lxml doesn't work
   # - "3.5" # error: coverage doesn't work
   - "3.6"
+  - "3.7"
+  - "3.8"
 addons:
   apt:
     packages:
@@ -16,15 +18,11 @@ addons:
       - bash
 install:
   - pip install -r requirements.txt
-  - pip install coveralls virtualenv
-  - SITEPACKAGES=$(pip --version | sed -n 's@.*from \([^ ]\+\) .*@\1@p')
-  - echo 'import coverage; coverage.process_startup()' > $SITEPACKAGES/sitecustomize.py
-  - printf '[run]\nparallel=True\n' > ~/coverage.cfg
+  - pip install -r dev-requirements.txt
 script:
   - source env.sh
-  - export COVERAGE_PROCESS_START=~/coverage.cfg
   - export USE_VIRTUALENV=true
-  - make test
+  - make pylint test TEST_MODE=coverage
   - find . -name '.coverage*' -exec mv -t . {} +
   - coverage combine
   # Test .gitignore for tests:

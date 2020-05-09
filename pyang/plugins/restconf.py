@@ -5,7 +5,6 @@ Verifies RESTCONF YANG statements as defined in RFC 8040.
 Verifies the grammar of the restconf extension statements.
 """
 
-import pyang
 from pyang import plugin
 from pyang import grammar
 from pyang import statements
@@ -33,10 +32,10 @@ def pyang_plugin_init():
     statements.add_keywords_with_no_explicit_config(yd)
 
     # Register the special grammar
-    for (stmt, occurance, (arg, rules), add_to_stmts) in restconf_stmts:
+    for stmt, occurence, (arg, rules), add_to_stmts in restconf_stmts:
         grammar.add_stmt((restconf_module_name, stmt), (arg, rules))
         grammar.add_to_stmts_rules(add_to_stmts,
-                                   [((restconf_module_name, stmt), occurance)])
+                                   [((restconf_module_name, stmt), occurence)])
 
     # Add validation functions
     statements.add_validation_fun('expand_2',
@@ -50,7 +49,7 @@ def pyang_plugin_init():
 
 restconf_stmts = [
 
-    # (<keyword>, <occurance when used>,
+    # (<keyword>, <occurence when used>,
     #  (<argument type name | None>, <substmts>),
     #  <list of keywords where <keyword> can occur>)
 

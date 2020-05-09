@@ -1,11 +1,7 @@
 
 import optparse
-import sys
-import re
-import string
 
 from pyang import plugin
-from pyang import statements
 
 paths_in_module = []
 leafrefs = []
@@ -93,7 +89,7 @@ def post_process(fd, ctx):
     for s in leafrefs:
         # dont try to connect to class not given as input to pyang
 
-        if (s.strip().split(" to ")[1].split(" with ")[0]in paths_in_module):
+        if s.strip().split(" to ")[1].split(" with ")[0] in paths_in_module:
             fd.write(s)
 
 
@@ -128,15 +124,15 @@ def emit_modules(modules, fd, path, ctx):
 
 def iterate_children(parent, s, module, fd, path, ctx):
     if hasattr(s, 'i_children'):
-       for ch in s.i_children:
-           print_node(s, ch, module, fd, path, ctx)
+        for ch in s.i_children:
+            print_node(s, ch, module, fd, path, ctx)
 
 def print_class_header(s, fd, ctx, root='false'):
     global servicepoints
     service = ""
     for sub in s.substmts:
-         if sub.keyword[1] in servicepoints:
-             service = "SERVICE\n"
+        if sub.keyword[1] in servicepoints:
+            service = "SERVICE\n"
 
     fd.write("make new shape at end of graphics with properties {autosizing: full, size: {187.500000, 14.000000}, text: {{alignment: center, font: \"Helvetica-Bold\", text: \"%s \"}, {alignment: center, color:%s, font: \"Helvetica-Bold\", text: \"%s \"}}, text placement: top, origin: {150.000000, 11.500000}, vertical padding: 0}\n" %(service + s.keyword, classnamecolor, s.arg))
 
@@ -166,7 +162,7 @@ def print_attributes(s,fd, ctx):
         for ch in s.i_children:
             index = False
             if ch.keyword in ["leaf", "leaf-list"]:
-                if found_attrs == False:
+                if not found_attrs:
                     # first attr in attr section
                     fd.write("make new shape at end of graphics with properties {autosizing:full, size:{187.5, 28.0}, text:{")
                     found_attrs = True
@@ -174,20 +170,20 @@ def print_attributes(s,fd, ctx):
                     # comma before new textitem
                     fd.write(", ")
                 if ch.keyword == "leaf-list":
-                    str = "[]"
+                    append = "[]"
                 else:
-                    str = ""
+                    append = ""
                 if ch.arg in key:
                     index = True
-                print_leaf(ch, str, index, fd, ctx)
+                print_leaf(ch, append, index, fd, ctx)
         if found_attrs:
-                # close attr section
-                fd.write("}, text placement:top, origin:{150.0, 25.5}, vertical padding:0}\n")
+            # close attr section
+            fd.write("}, text placement:top, origin:{150.0, 25.5}, vertical padding:0}\n")
 
         # Search actions
         for ch in s.i_children:
             if ch.keyword == ('tailf-common', 'action'):
-                if found_actions == False:
+                if not found_actions:
                     fd.write("make new shape at end of graphics with properties {autosizing:full, size:{187.5, 28.0}, text:{text:\"")
                     found_actions = True
                 print_action(ch, fd, ctx)
@@ -198,19 +194,20 @@ def print_attributes(s,fd, ctx):
         return (found_attrs + found_actions) + 1
 
 def close_class(number, s, fd, ctx):
-    fd.write("local %s\n" %fullpath(s))
-    fd.write("set %s to assemble ( graphics -%s through -1 ) table shape {%s, 1}\n" %(fullpath(s), str(number), str(number) ))
+    fd.write("local %s\n" % fullpath(s))
+    fd.write("set %s to assemble ( graphics -%s through -1 ) table shape {%s, 1}\n"
+             % (fullpath(s), number, number))
 
 
 def print_node(parent, s, module, fd, path, ctx, root='false'):
     # We have a class
-    if (s.keyword in class_keywords):
+    if s.keyword in class_keywords:
         print_class_header(s, fd, ctx, root)
         paths_in_module.append(fullpath(s))
         print_class_stuff(s, fd, ctx)
 
         #  Do not try to create relationship to module
-        if (parent != module):
+        if parent != module:
             presence = s.search_one("presence")
             if presence is not None:
                 print_aggregation(parent, s, fd, "0", "1", ctx)
@@ -232,7 +229,7 @@ def print_associations(s, fd, ctx):
 
 
 def print_aggregation(parent, this, fd, lower, upper, ctx):
-     fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), containsline))
+    fd.write("connect %s to %s with properties {%s} \n" %(fullpath(parent),fullpath(this), containsline))
 
 def print_rpc(rpc, fd, ctx, root='false'):
     fd.write("<UML:Class xmi.id = \'%s\' name = \'%s\' " %(fullpath(rpc), rpc.arg))
@@ -247,9 +244,9 @@ def print_notification(notification, fd, ctx, root='false'):
 def print_inout(parent, s, fd, ctx, root='false'):
     fd.write("<UML:Class xmi.id = \'%s\' name = \'%s-%s\' " %(fullpath(s), parent.arg, s.keyword))
 
-def print_leaf(leaf, str, index, fd, ctx):
+def print_leaf(leaf, append, index, fd, ctx):
 
-    if leaf.i_config == True:
+    if leaf.i_config:
         c =  '(rw)'
         color = optionalconfig
     else:
@@ -263,9 +260,11 @@ def print_leaf(leaf, str, index, fd, ctx):
         mand = ''
         color = mandatoryconfig
     if not index:
-        fd.write("{font: \"Helvetica-Oblique\", color: %s, text: \"%s%s%s %s %s\n\"}" %(color, leaf.arg, str, mand, c, get_typename(leaf)))
+        fd.write("{font: \"Helvetica-Oblique\", color: %s, text: \"%s%s%s %s %s\n\"}"
+                 % (color, leaf.arg, append, mand, c, get_typename(leaf)))
     else:
-        fd.write("{font: \"Helvetica-Oblique\", color: %s, underlined: true, text: \"%s%s%s %s %s\n\"}" %(color, leaf.arg, str, mand, c, get_typename(leaf)))
+        fd.write("{font: \"Helvetica-Oblique\", color: %s, underlined: true, text: \"%s%s%s %s %s\n\"}"
+                 % (color, leaf.arg, append, mand, c, get_typename(leaf)))
 
 
 def print_association(fromclass, toclass, fromleaf, toleaf, association, fd, ctx):
@@ -278,39 +277,39 @@ def print_text(t, fd, ctx):
 def get_typename(s):
     t = s.search_one('type')
     if t is not None:
-      s = t.arg
-      # if t.arg == 'enumeration':
-      #   s = s + ' : {'
-      #   for enums in t.substmts[:10]:
-      #       s = s + enums.arg + ','
-      #   if len(t.substmts) > 3:
-      #       s = s + "..."
-      #   s = s + '}'
-      # elif t.arg == 'leafref':
-      #   s = s + ' : '
-      #   p = t.search_one('path')
-      #   if p is not None:
-      #       s = s + p.arg
-      return s
+        s = t.arg
+        # if t.arg == 'enumeration':
+        #   s = s + ' : {'
+        #   for enums in t.substmts[:10]:
+        #       s = s + enums.arg + ','
+        #   if len(t.substmts) > 3:
+        #       s = s + "..."
+        #   s = s + '}'
+        # elif t.arg == 'leafref':
+        #   s = s + ' : '
+        #   p = t.search_one('path')
+        #   if p is not None:
+        #       s = s + p.arg
+        return s
 
 
 def fullpath(stmt):
-        pathsep = "_"
-        path = stmt.arg
-        # for augment paths we need to remove initial /
-        if path.find("/") == 0:
-            path = path[1:len(path)]
-        else:
-            if stmt.keyword == 'case':
-                path = path + '-case'
-            elif stmt.keyword == 'grouping':
-                path = path + '-grouping'
+    pathsep = "_"
+    path = stmt.arg
+    # for augment paths we need to remove initial /
+    if path.startswith("/"):
+        path = path[1:]
+    else:
+        if stmt.keyword == 'case':
+            path = path + '-case'
+        elif stmt.keyword == 'grouping':
+            path = path + '-grouping'
 
-            while stmt.parent is not None:
-                stmt = stmt.parent
-                if stmt.arg is not None:
-                    path = stmt.arg + pathsep + path
-        path = path.replace('-', '_')
-        path = path.replace(':', '_')
-        path = path.replace('/', '_')
-        return path
+        while stmt.parent is not None:
+            stmt = stmt.parent
+            if stmt.arg is not None:
+                path = stmt.arg + pathsep + path
+    path = path.replace('-', '_')
+    path = path.replace(':', '_')
+    path = path.replace('/', '_')
+    return path

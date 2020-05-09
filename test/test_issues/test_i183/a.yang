@@ -1,0 +1,35 @@
+module a {
+  yang-version 1;
+  namespace "http://bug.com/circular-bug";
+  prefix cbug;
+
+  description  "Demonstrate circular bug.";
+
+  typedef circular-type {
+    description "Generates a circular dependency warning!";
+    type enumeration {
+      enum item {
+        description "blah";
+      }
+    }
+  }
+
+  typedef non-circular-type {
+    type enumeration {
+      enum item {
+        description "blah";
+      }
+    }
+    description "Doesn't generate a circular dependency warning!";
+  }
+
+  leaf circular {
+    type circular-type;
+    description "blah";
+  }
+
+  leaf non-circular {
+    type non-circular-type;
+    description "blah";
+  }
+}

@@ -8,13 +8,15 @@ import sys
 import os
 import io
 
-import pyang
+from pyang import context
+from pyang import repository
 from pyang import plugin
 from pyang import statements
 from pyang import error
 from pyang import util
 from pyang import types
 from pyang.error import err_add
+
 
 def pyang_plugin_init():
     plugin.register_plugin(CheckUpdatePlugin())
@@ -132,16 +134,16 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         if not ctx.opts.check_update_from:
             return
 
-        check_update(ctx, ctx.opts.check_update_from, modules[0])
+        check_update(ctx, modules[0])
 
-def check_update(ctx, oldfilename, newmod):
+def check_update(ctx, newmod):
     oldpath = os.pathsep.join(ctx.opts.old_path)
-    olddir = os.path.dirname(oldfilename)
+    olddir = os.path.dirname(ctx.opts.check_update_from)
     if olddir == '':
         olddir = '.'
     oldpath += os.pathsep + olddir
-    oldrepo = pyang.FileRepository(oldpath, use_env=False)
-    oldctx = pyang.Context(oldrepo)
+    oldrepo = repository.FileRepository(oldpath, use_env=False)
+    oldctx = context.Context(oldrepo)
     oldctx.opts = ctx.opts
     oldctx.lax_xpath_checks = ctx.lax_xpath_checks
     oldctx.lax_quote_checks = ctx.lax_quote_checks
@@ -160,20 +162,22 @@ def check_update(ctx, oldfilename, newmod):
             fd = io.open(oldfilename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
-            sys.stderr.write("error %s: %s\n" % (oldfilename, str(ex)))
+            sys.stderr.write("error %s: %s\n" % (oldfilename, ex))
             sys.exit(1)
         if oldfilename in ctx.opts.old_deviation:
             oldctx.add_module(oldfilename, text)
         else:
             oldmod = oldctx.add_module(oldfilename, text)
+    oldctx.validate()
+
     ctx.errors.extend(oldctx.errors)
 
     if oldmod is None:
         return
 
-    for (epos, etag, eargs) in ctx.errors:
-        if (epos.ref in (newmod.pos.ref, oldmod.pos.ref) and
-            error.is_error(error.err_level(etag))):
+    for epos, etag, eargs in ctx.errors:
+        if (epos.ref in (newmod.pos.ref, oldmod.pos.ref)
+            and error.is_error(error.err_level(etag))):
             return
 
     if ctx.opts.verbose:
@@ -182,6 +186,11 @@ def check_update(ctx, oldfilename, newmod):
             (m, r, (fmt, filename)) = x
             print("  %s" % filename)
         print("")
+
+    chk_module(ctx, oldmod, newmod)
+
+
+def chk_module(ctx, oldmod, newmod):
 
     chk_modulename(oldmod, newmod, ctx)
 
@@ -347,7 +356,7 @@ def chk_augment(oldmod, newmod, ctx):
                 chk_children(oldch, newchs, newmod, ctx)
 
 def chk_stmt_definitions(olds, newp, ctx, definitions):
-    news = None;
+    news = None
     if olds.arg in definitions:
         news = definitions[olds.arg]
     if news is None:
@@ -369,8 +378,10 @@ def chk_stmt(olds, newp, ctx):
 def chk_i_children(old, new, ctx):
     for oldch in old.i_children:
         chk_child(oldch, new, ctx)
-    # chk_child removes all old children
-    for newch in new.i_children:
+
+    old_child_args = [oldch.arg for oldch in old.i_children]
+    added_new_children = [new_child for new_child in new.i_children if new_child.arg not in old_child_args]
+    for newch in added_new_children:
         if statements.is_mandatory_node(newch):
             err_add(ctx.errors, newch.pos, 'CHK_NEW_MANDATORY', newch.arg)
 
@@ -386,7 +397,7 @@ def chk_children(oldch, newchs, newp, ctx):
     if newch is None:
         err_def_removed(oldch, newp, ctx)
         return
-    newchs.remove(newch)
+
     if newch.keyword != oldch.keyword:
         err_add(ctx.errors, newch.pos, 'CHK_CHILD_KEYWORD_CHANGED',
                 (oldch.keyword, newch.arg, newch.keyword))
@@ -440,10 +451,10 @@ def chk_if_feature(old, new, ctx):
             err_def_added2(s, new, ctx)
 
 def chk_config(old, new, ctx):
-    if old.i_config == False and new.i_config == True:
+    if not old.i_config and new.i_config:
         if statements.is_mandatory_node(new):
             err_add(ctx.errors, new.pos, 'CHK_MANDATORY_CONFIG', new.arg)
-    elif old.i_config == True and new.i_config == False:
+    elif old.i_config and not new.i_config:
         err_add(ctx.errors, new.pos, 'CHK_BAD_CONFIG', new.arg)
 
 def chk_must(old, new, ctx):
@@ -568,14 +579,8 @@ def chk_key(old, new, ctx):
         if len(oldks) != len(newks):
             err_def_changed(oldkey, newkey, ctx)
         else:
-            def name(x):
-                if x.find(":") == -1:
-                    return x
-                else:
-                    [prefix, name] = x.split(':', 1)
-                    return name
-            for (ok, nk) in zip(oldks, newks):
-                if name(ok) != name(nk):
+            for ok, nk in zip(oldks, newks):
+                if util.split_identifier(ok)[1] != util.split_identifier(nk)[1]:
                     err_def_changed(oldkey, newkey, ctx)
                     return
 
@@ -585,9 +590,9 @@ def chk_unique(old, new, ctx):
     if not hasattr(old, 'i_unique') or not hasattr(new, 'i_unique'):
         return
     oldunique = []
-    for (u, l) in old.i_unique:
+    for u, l in old.i_unique:
         oldunique.append((u, [s.arg for s in l]))
-    for (u, l) in new.i_unique:
+    for u, l in new.i_unique:
         # check if this unique was present before
         o = util.keysearch([s.arg for s in l], 1, oldunique)
         if o is not None:
@@ -647,14 +652,15 @@ def chk_integer(old, new, oldts, newts, ctx):
 def chk_range(old, new, oldts, newts, ctx):
     ots = old.i_type_spec
     nts = new.i_type_spec
-    if (type(ots) == types.RangeTypeSpec and
-        type(nts) == types.RangeTypeSpec):
+    if not isinstance(nts, types.RangeTypeSpec):
+        return
+    if isinstance(ots, types.RangeTypeSpec):
         tmperrors = []
         types.validate_ranges(tmperrors, new.pos, ots.ranges, new)
-        if tmperrors != []:
+        if tmperrors:
             err_add(ctx.errors, new.pos, 'CHK_RESTRICTION_CHANGED',
                     'range')
-    elif type(nts) == types.RangeTypeSpec:
+    else:
         err_add(ctx.errors, nts.ranges_pos, 'CHK_DEF_ADDED',
                 ('range', str(nts.ranges)))
 
@@ -680,7 +686,7 @@ def chk_string(old, new, oldts, newts, ctx):
 
 def chk_enumeration(old, new, oldts, newts, ctx):
     # verify that all old enums are still in new, with the same values
-    for (name, val) in oldts.enums:
+    for name, val in oldts.enums:
         n = util.keysearch(name, 0, newts.enums)
         if n is None:
             err_add(ctx.errors, new.pos, 'CHK_DEF_REMOVED',
@@ -691,7 +697,7 @@ def chk_enumeration(old, new, oldts, newts, ctx):
 
 def chk_bits(old, new, oldts, newts, ctx):
     # verify that all old bits are still in new, with the same positions
-    for (name, pos) in oldts.bits:
+    for name, pos in oldts.bits:
         n = util.keysearch(name, 0, newts.bits)
         if n is None:
             err_add(ctx.errors, new.pos, 'CHK_DEF_REMOVED',
@@ -743,7 +749,7 @@ def chk_union(old, new, oldts, newts, ctx):
     if len(newts.types) != len(oldts.types):
         err_add(ctx.errors, new.pos, 'CHK_UNION_TYPES', ())
     else:
-        for (o,n) in zip(oldts.types, newts.types):
+        for o, n in zip(oldts.types, newts.types):
             chk_type(o, n, ctx)
 
 def chk_dummy(old, new, oldts, newts, ctx):
@@ -772,15 +778,21 @@ chk_type_func = \
 
 
 def err_def_added(new, ctx):
-    err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED', (new.keyword, new.arg))
+    new_arg = new.arg
+    if new.keyword == 'presence':
+        new_arg = new.parent.arg
+    err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED', (new.keyword, new_arg))
 
 def err_def_added2(new, node, ctx):
     err_add(ctx.errors, new.pos, 'CHK_DEF_ADDED2',
             (new.keyword, new.arg, node.keyword, node.arg))
 
 def err_def_removed(old, newp, ctx):
+    old_arg = old.arg
+    if old.keyword == 'presence':
+        old_arg = old.parent.arg
     err_add(ctx.errors, newp.pos, 'CHK_DEF_REMOVED',
-            (old.keyword, old.arg, old.pos))
+            (old.keyword, old_arg, old.pos))
 
 def err_def_changed(old, new, ctx):
     err_add(ctx.errors, new.pos, 'CHK_DEF_CHANGED',

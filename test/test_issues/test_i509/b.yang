@@ -1,0 +1,16 @@
+module b {
+  namespace urn:b;
+  prefix b;
+
+  grouping foo {
+    leaf-list bar {
+      type string;
+    }
+  }
+
+  uses foo {
+    refine bar {
+      default x;
+    }
+  }
+}

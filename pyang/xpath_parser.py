@@ -173,7 +173,7 @@ def p_fun_call_2(p):
 def p_arg_list_1(p):
     'ArgumentList : ArgumentList COMMA Argument'
     p[0] = list(p[1])
-    p[0].append(p[2])
+    p[0].append(p[3])
 def p_arg_list_2(p):
     'ArgumentList : Argument'
     p[0] = [p[1]]
@@ -320,17 +320,17 @@ def _mk_union(a, b):
     if a[0] == 'union' and b[0] == 'union':
         v = list(a[1])
         v.extend(b[1])
-        ('union', v)
+        return ('union', v)
     elif a[0] == 'union':
         v = list(a[1])
         v.append(b[1])
-        ('union', v)
+        return ('union', v)
     elif b[0] == 'union':
         v = [b]
         v.extend(a[1])
-        ('union', v)
+        return ('union', v)
     else:
-        ('union', [a, b])
+        return ('union', [a, b])
 
 def _expand_double_slash():
     return ('step', 'descendant-or-self', ('node_type', 'node'), [])

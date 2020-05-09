@@ -1,0 +1,2 @@
+Invalid YANG module
+test10-bad-toaster@2009-11-20.yang:38: error: unexpected keyword "ident"

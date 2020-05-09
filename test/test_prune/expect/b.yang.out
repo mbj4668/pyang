@@ -2,3 +2,4 @@ module: b
   +--rw a {foo and not bar or a:foo}?
   +--rw b {foo and not bar}?
   +--rw d {not bar and a:fox}?
+  +--rw ref-to-not-implemented?   -> /a:x/bar-gggg

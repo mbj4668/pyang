@@ -1,0 +1,37 @@
+module a {
+  namespace "urn:a";
+  prefix a;
+
+  grouping g1 {
+    leaf l1 {
+      type int8;
+    }
+    uses g2 {
+      when 'l1 > 0';
+    }
+  }
+
+  grouping g2 {
+    leaf l2 {
+      type int8;
+    }
+  }
+
+  uses g1;
+
+  grouping y {
+    leaf gg {
+      type string;
+    }
+  }
+
+  container x {
+    uses y {
+      when 'aa > 0';
+    }
+    leaf aa {
+      type int32;
+    }
+  }
+
+}

@@ -1,0 +1,95 @@
+
+YANG Schema Item iDentifiers (SID) are globally unique unsigned integers used
+to identify YANG items. SIDs are used instead of names to save space in
+constrained applications such as COREconf. This plugin is used to automatically
+generate and updated .sid files used to persist and distribute SID assignments.
+
+
+COMMANDS
+
+pyang [--sid-list] --sid-generate-file {count | entry-point:size} yang-filename
+pyang [--sid-list] --sid-update-file sid-filename yang-filename
+      [--sid-extra-range {count | entry-point:size}]
+pyang [--sid-list] --sid-check-file sid-filename yang-filename
+
+
+OPTIONS
+
+--generate-sid-file
+
+  This option is used to generate a new .sid file from a YANG module.
+  
+  Two arguments are required to generate a .sid file; the SID range assigned to
+  the YANG module and its definition file. The SID range specified is a
+  sub-range within a range obtained from a registrar or a sub-range within the
+  experimental range (i.e. 60000 to 99999). The SID range consists of the first
+  SID of the range, followed by a colon, followed by the number of SID
+  allocated to the YANG module. The filename consists of the module name,
+  followed by an @ symbol, followed by the module revision, followed by the
+  ".yang" extension.
+           
+  This example shows how to generate the file toaster@2009-11-20.sid.
+
+  $ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang
+  
+--update-sid-file
+
+  Each time new items are added to a YANG module by the introduction of a new
+  revision of this module, its included sub-modules or imported modules, the
+  associated .sid file need to be updated. This is done by using the
+  --sid-update-file option.
+
+  Two arguments are required to generate a .sid file for an updated YANG
+  module; the previous .sid file generated for the YANG module and the
+  definition file of the updated module. Both filenames follow the usual
+  naming conversion consisting of the module name, followed by an @ symbol,
+  followed by the module revision, followed by the extension.
+
+  This example shows how to generate the file toaster@2009-12-28.sid based
+  on the SIDs already present in toaster@2009-11-20.sid.
+
+  $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+  
+-- check-sid-file
+
+  The --sid-check-file option can be used at any time to verify if a .sid file
+  need to be updated.
+
+  Two arguments are required to verify a .sid file; the filename of the .sid
+  file to be checked and the corresponding definition file.
+
+  For example:
+
+  $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
+  
+--list_sid
+
+  The --list_sid option can be used before any of the previous options to
+  obtains the list of SIDs assigned or validated. For example:
+
+  $ pyang --list-sid --sid-generate-file 20000:100 toaster@2009-11-20.yang
+  
+--extra-sid-range
+
+  If needed, an extra SID range can be assigned to an existing YANG module
+  during its update with the --sid-extra-range option.
+
+  For example, this command generates the file toaster@2009-12-28.sid using
+  the initial range(s) present in toaster@2009-11-20.sid and the extra range
+  specified in the command line.
+
+  $ pyang --sid-update-file toaster@2009-11-20.sid
+          toaster@2009-12-28.yang --sid-extra-range 20100:100
+  
+count
+  The number of SID required when generating or updating a .sid file can be
+  computed by specifying "count" as SID range.
+
+  For example:
+
+  $ pyang --sid-generate-file count toaster@2009-11-20.yang
+  or:
+
+  $ pyang --sid-update-file toaster@2009-11-20.sid
+          toaster@2009-12-28.yang --sid-extra-range count
+

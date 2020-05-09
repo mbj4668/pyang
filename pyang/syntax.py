@@ -11,7 +11,7 @@ import datetime
 identifier = r"[_A-Za-z][._\-A-Za-z0-9]*"
 prefix = identifier
 keyword = '((' + prefix + '):)?(' + identifier + ')'
-comment = '(/\*([^*]|[\r\n\s]|(\*+([^*/]|[\r\n\s])))*\*+/)|(//.*)|(/\*.*)'
+comment = r'(/\*([^*]|[\r\n\s]|(\*+([^*/]|[\r\n\s])))*\*+/)|(//.*)|(/\*.*)'
 
 # no group version of keyword
 keyword_ng = '(?:(' + prefix + '):)?(?:' + identifier + ')'
@@ -24,15 +24,15 @@ pos_integer = r"[1-9][0-9]*"
 nonneg_integer = r"(0|([1-9][0-9]*))"
 integer_ = r"[+-]?" + nonneg_integer
 decimal_ = integer_ + r"(\.[0-9]+)?"
-length_str = '((min|max|[0-9]+)\s*' \
-             '(\.\.\s*' \
-             '(min|max|[0-9]+)\s*)?)'
-length_expr = length_str + '(\|\s*' + length_str + ')*'
+length_str = r'((min|max|[0-9]+)\s*' \
+             r'(\.\.\s*' \
+             r'(min|max|[0-9]+)\s*)?)'
+length_expr = length_str + r'(\|\s*' + length_str + r')*'
 re_length_part = re.compile(length_str)
-range_str = '((\-INF|min|max|((\+|\-)?[0-9]+(\.[0-9]+)?))\s*' \
-            '(\.\.\s*' \
-            '(INF|min|max|(\+|\-)?[0-9]+(\.[0-9]+)?)\s*)?)'
-range_expr = range_str + '(\|\s*' + range_str + ')*'
+range_str = r'((min|max|((\+|\-)?[0-9]+(\.[0-9]+)?))\s*' \
+            r'(\.\.\s*' \
+            r'(min|max|(\+|\-)?[0-9]+(\.[0-9]+)?)\s*)?)'
+range_expr = range_str + r'(\|\s*' + range_str + r')*'
 re_range_part = re.compile(range_str)
 
 re_identifier = re.compile("^" + identifier + "$")
@@ -49,14 +49,15 @@ descendant_path_arg = node_id + "(" + path_predicate + ")*" + \
                       "(?:" + absolute_path_arg + ")?"
 relative_path_arg = r"(\.\./)*" + descendant_path_arg
 deref_path_arg = r"deref\s*\(\s*(?:" + relative_path_arg + \
-                 ")\s*\)/\.\./" + relative_path_arg
+                 r")\s*\)/\.\./" + relative_path_arg
 path_arg = "(" + absolute_path_arg + "|" + relative_path_arg + "|" + \
            deref_path_arg + ")"
 absolute_schema_nodeid = "(/" + node_id + ")+"
 descendant_schema_nodeid = node_id + "(" + absolute_schema_nodeid + ")?"
 schema_nodeid = "("+absolute_schema_nodeid+"|"+descendant_schema_nodeid+")"
-unique_arg = descendant_schema_nodeid + "(\s+" + descendant_schema_nodeid + ")*"
-key_arg = node_id + "(\s+" + node_id + ")*"
+unique_arg = descendant_schema_nodeid + \
+             r"(\s+" + descendant_schema_nodeid + r")*"
+key_arg = node_id + r"(\s+" + node_id + r")*"
 re_schema_node_id_part = re.compile('/' + keyword)
 
 # URI - RFC 3986, Appendix A
@@ -102,16 +103,16 @@ uri = (scheme + ":" + hier_part + r"(\?" + query + ")?" +
        "(#" + fragment + ")?")
 
 # Date
-date = r"[1-2][0-9]{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
+date = r"([1-2][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
 
 re_nonneg_integer = re.compile("^" + nonneg_integer + "$")
 re_integer = re.compile("^" + integer_ + "$")
 re_decimal = re.compile("^" + decimal_ + "$")
 re_uri = re.compile("^" + uri + "$")
-re_boolean = re.compile("^(true|false)$")
-re_version = re.compile("^(1|(1\.1))$")
+re_boolean = re.compile(r"^(true|false)$")
+re_version = re.compile(r"^(1|(1\.1))$")
 re_date = re.compile("^" + date +"$")
-re_status = re.compile("^(current|obsolete|deprecated)$")
+re_status = re.compile(r"^(current|obsolete|deprecated)$")
 re_key = re.compile("^" + key_arg + "$")
 re_length = re.compile("^" + length_expr + "$")
 re_range = re.compile("^" + range_expr + "$")
@@ -125,7 +126,7 @@ re_unique = re.compile("^" + unique_arg + "$")
 re_schema_nodeid = re.compile("^" + schema_nodeid + "$")
 re_absolute_schema_nodeid = re.compile("^" + absolute_schema_nodeid + "$")
 re_descendant_schema_nodeid = re.compile("^" + descendant_schema_nodeid + "$")
-re_deviate = re.compile("^(add|delete|replace|not-supported)$")
+re_deviate = re.compile(r"^(add|delete|replace|not-supported)$")
 
 # Not part of YANG syntax per se but useful for pyang in several places
 re_filename = re.compile(r"^([^@]*?)" +          # putative module name
@@ -174,13 +175,14 @@ def chk_date_arg(s):
     """Checks if the string `s` is a valid date string.
 
     Return True of False."""
-    if re_date.search(s) is None:
+    match = re_date.match(s)
+    if match is None:
         return False
-    comp = s.split('-')
+    comp = match.groups()
     try:
-        dt = datetime.date(int(comp[0]), int(comp[1]), int(comp[2]))
+        datetime.date(int(comp[0]), int(comp[1]), int(comp[2]))
         return True
-    except Exception as e:
+    except ValueError:
         return False
 
 def chk_enum_arg(s):
@@ -207,7 +209,7 @@ def chk_fraction_digits_arg(s):
         return False
 
 def chk_if_feature_expr(s):
-    return  parse_if_feature_expr(s) != None
+    return parse_if_feature_expr(s) is not None
 
 # if-feature-expr     = "(" if-feature-expr ")" /
 #                      if-feature-expr sep boolean-operator sep
@@ -251,7 +253,7 @@ def parse_if_feature_expr(s):
             y()
             tok = sx.get_token()
         sx.push_token(tok)
-        while operators[-1] != None:
+        while operators[-1] is not None:
             pop_operator()
 
     def y():

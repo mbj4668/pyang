@@ -1,0 +1,18 @@
+module a {
+  yang-version 1.1;
+  namespace "urn:a";
+  prefix a;
+
+  grouping bar {
+    uses foo;
+  }
+  grouping bax {
+    uses bar;
+  }
+  grouping foo {
+    leaf a {
+      type int32;
+    }
+  }
+
+}

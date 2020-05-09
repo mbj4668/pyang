@@ -1,0 +1,8 @@
+module: a
+
+  grouping bar
+    +---u foo
+  grouping bax
+    +---u bar
+  grouping foo
+    +-- a?   int32

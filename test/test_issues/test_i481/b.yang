@@ -1,0 +1,22 @@
+module b {
+  namespace urn:b;
+  prefix b;
+
+  import a {
+    prefix a;
+  }
+
+  grouping b {
+    uses a:a {
+      augment a/b/d {
+        container bbb {
+        }
+      }
+    }
+  }
+
+  container b {
+    uses b;
+  }
+
+}

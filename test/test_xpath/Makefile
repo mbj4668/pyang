@@ -1,7 +1,7 @@
 DIRS = $(shell for d in test_* ; \
 	do [ -d $$d -a -f $$d/Makefile ] && echo $$d ; done)
 
-PYANG = pyang --print-error-code --strict
+PYANG := $(PYANG) --print-error-code --strict
 
 MODULES = $(wildcard *.yang)
 

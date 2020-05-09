@@ -1,0 +1,14 @@
+module mod3 {
+  yang-version 1.1;
+  prefix m3;
+  namespace "urn:mod3";
+
+  container interfaces {
+    list ifEntry {
+      key "ifIndex";
+      leaf ifIndex {
+        type uint32;
+      }
+    }
+  }
+}
