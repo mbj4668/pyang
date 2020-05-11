@@ -1955,10 +1955,10 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--flatten-key</option></term>
+        <term><option>--flatten-keys</option></term>
         <listitem>
           <para>
-            Output the key name if specified.
+            Output the key names if specified.
           </para>
         </listitem>
       </varlistentry>

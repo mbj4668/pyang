@@ -18,8 +18,8 @@ Arguments
     flag.
 --flatten-description
     Output the description.
---flatten-key
-    Output the key name if specified.
+--flatten-keys
+    Output the key names if specified.
 --flatten-keys-in-xpath
     Output the XPath with keys in path.
 --flatten-deviated
@@ -112,10 +112,10 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the description.",
             ),
             optparse.make_option(
-                "--flatten-key",
-                dest="flatten_key",
+                "--flatten-keys",
+                dest="flatten_keys",
                 action="store_true",
-                help="Output the key name if specified.",
+                help="Output the key names if specified.",
             ),
             optparse.make_option(
                 "--flatten-keys-in-xpath",
@@ -186,8 +186,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("type")
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
-        if ctx.opts.flatten_key:
-            self.__field_names.append("key")
+        if ctx.opts.flatten_keys:
+            self.__field_names.append("keys")
         if ctx.opts.flatten_deviated:
             self.__field_names.append("deviated")
         self.__field_names_set = set(self.__field_names)
@@ -266,8 +266,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
             output_content["description"] = statements.get_description(child)
-        if ctx.opts.flatten_key:
-            output_content["key"] = statements.get_key(child)
+        if ctx.opts.flatten_keys:
+            output_content["keys"] = ' '.join(statements.get_keys(child)) or None
         if ctx.opts.flatten_deviated:
             output_content["deviated"] = "deviated" if deviated else "present"
         if set(output_content.keys()) != self.__field_names_set:
