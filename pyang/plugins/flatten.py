@@ -18,6 +18,10 @@ Arguments
     flag.
 --flatten-description
     Output the description.
+--flatten-key
+    Output the key if it exists.
+--flatten-keys-in-xpath
+    Output the XPath with keys.
 --flatten-deviated
     Output deviated nodes in the schema as well.
 --flatten-data-keywords
@@ -108,6 +112,18 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the description.",
             ),
             optparse.make_option(
+                "--flatten-key",
+                dest="flatten_key",
+                action="store_true",
+                help="Output the key if it exists.",
+            ),
+            optparse.make_option(
+                "--flatten-keys-in-xpath",
+                dest="flatten_keys_in_xpath",
+                action="store_true",
+                help="Output the XPath with keys.",
+            ),
+            optparse.make_option(
                 "--flatten-deviated",
                 dest="flatten_deviated",
                 action="store_true",
@@ -170,6 +186,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("type")
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
+        if ctx.opts.flatten_key:
+            self.__field_names.append("key")
         if ctx.opts.flatten_deviated:
             self.__field_names.append("deviated")
         self.__field_names_set = set(self.__field_names)
@@ -224,7 +242,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                    or parent_deviated
         # Keys map to self.__field_names for CSV output
         output_content = {"xpath":
-                          statements.get_xpath(child, prefix_to_module=True)}
+                          statements.get_xpath(child, prefix_to_module=True, with_keys=ctx.opts.flatten_keys_in_xpath)}
         # Sometimes we won't have the full set of YANG models...
         # Handle whether to error out or just set as "nil" for primitive type
         try:
@@ -252,6 +270,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
             output_content["description"] = statements.get_description(child)
+        if ctx.opts.flatten_key:
+            output_content["key"] = statements.get_key(child)
         if ctx.opts.flatten_deviated:
             output_content["deviated"] = "deviated" if deviated else "present"
         if set(output_content.keys()) != self.__field_names_set:
