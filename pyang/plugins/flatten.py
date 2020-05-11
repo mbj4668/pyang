@@ -187,7 +187,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
         if ctx.opts.flatten_keys:
-            self.__field_names.append("keys")
+            self.__field_names.append("key")
         if ctx.opts.flatten_deviated:
             self.__field_names.append("deviated")
         self.__field_names_set = set(self.__field_names)
@@ -209,7 +209,13 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.output_module(ctx, module, output_writer)
 
     def output_module(
-        self, ctx, module, output_writer, parent_deviated=False, override_flag=None
+        self,
+        ctx,
+        module,
+        output_writer,
+        parent_deviated=False,
+        override_flag=None,
+        known_keys=None,
     ):
         module_children = (
             child
@@ -217,7 +223,9 @@ class FlattenPlugin(plugin.PyangPlugin):
             if child.keyword in self.__keywords
         )
         for child in module_children:
-            self.output_child(ctx, child, output_writer, parent_deviated, override_flag)
+            self.output_child(
+                ctx, child, output_writer, parent_deviated, override_flag, known_keys
+            )
         # If we are flattening deviations, need to traverse
         # deviated tree as well.
         if ctx.opts.flatten_deviated:
@@ -228,11 +236,22 @@ class FlattenPlugin(plugin.PyangPlugin):
             )
             for child in deviated_module_children:
                 self.output_child(
-                    ctx, child, output_writer, parent_deviated, override_flag
+                    ctx,
+                    child,
+                    output_writer,
+                    parent_deviated,
+                    override_flag,
+                    known_keys,
                 )
 
     def output_child(
-        self, ctx, child, output_writer, parent_deviated=False, override_flag=None
+        self,
+        ctx,
+        child,
+        output_writer,
+        parent_deviated=False,
+        override_flag=None,
+        known_keys=None,
     ):
         deviated = getattr(child, "i_this_not_supported", False) or parent_deviated
         # Keys map to self.__field_names for CSV output
@@ -255,6 +274,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         flag, override_flag = (
             (override_flag, override_flag) if override_flag else self.get_flag(child)
         )
+        child_keys = set(statements.get_keys(child))
         # Set the output content based on the options specified
         if ctx.opts.flatten_keyword:
             output_content["keyword"] = child.keyword
@@ -267,7 +287,11 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_description:
             output_content["description"] = statements.get_description(child)
         if ctx.opts.flatten_keys:
-            output_content["keys"] = ' '.join(statements.get_keys(child)) or None
+            if not known_keys:
+                output_content["key"] = None
+            else:
+                child_name = child.arg
+                output_content["key"] = "key" if child_name in known_keys else None
         if ctx.opts.flatten_deviated:
             output_content["deviated"] = "deviated" if deviated else "present"
         if set(output_content.keys()) != self.__field_names_set:
@@ -290,7 +314,9 @@ class FlattenPlugin(plugin.PyangPlugin):
             # Simply don't output what we don't want, don't stop processing
             output_writer.writerow(output_content)
         if hasattr(child, "i_children"):
-            self.output_module(ctx, child, output_writer, deviated, override_flag)
+            self.output_module(
+                ctx, child, output_writer, deviated, override_flag, child_keys
+            )
 
     def get_flag(self, node, parent_flag=None):
         """Pulled from tree plugin.
