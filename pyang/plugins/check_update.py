@@ -518,7 +518,7 @@ def chk_default(old, new, ctx):
         oldtype = old.search_one('type')
         if (oldtype.i_typedef is not None and
             hasattr(oldtype.i_typedef, 'i_default_str') and
-            oldtype.i_typedef.i_default_str is not None and
+            oldtype.i_typedef.i_default is not None and
             oldtype.i_typedef.i_default_str != newdefault.arg):
             err_add(ctx.errors, newdefault.pos, 'CHK_IMPLICIT_DEFAULT', ())
     elif olddefault.arg != newdefault.arg:
