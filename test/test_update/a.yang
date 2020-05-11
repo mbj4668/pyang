@@ -24,6 +24,14 @@ module a {
     }
   }
 
+  typedef my-union3 {
+     type union {
+       type uint32;
+       type string;
+     }
+     default "dummy";
+  }
+
   leaf gegga {
     type leafref {
       path "/b:b/b:q";
@@ -102,6 +110,12 @@ module a {
           base xx;
         }
       }
+    }
+    leaf a_union {
+        type my-union1;
+    } 
+    leaf b_union {
+        type my-union3;
     }
   }
 

@@ -1,0 +1,10 @@
+module import-rev {
+  yang-version 1.1;
+  namespace urn:test:import-rev;
+  prefix ir;
+
+  import ietf-ip {
+    prefix ip;
+    revision-date 2020-03-19; // error no such revision
+  }
+}

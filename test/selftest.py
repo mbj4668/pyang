@@ -14,8 +14,8 @@ from pyang import syntax
 def oscmd(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p.wait()
-    out = p.stdout.read().rstrip('\n')
-    err = p.stderr.read().rstrip('\n')
+    out = p.stdout.read().decode('utf-8').rstrip('\n')
+    err = p.stderr.read().decode('utf-8').rstrip('\n')
     retcode = p.returncode
     return retcode, out, err
 

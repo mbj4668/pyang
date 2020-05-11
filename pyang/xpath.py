@@ -174,21 +174,18 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
     # check that the number of arguments are correct
     nexp = len(signature[0])
     nargs = len(args)
-    if nexp == nargs:
-        pass
-    elif nexp == 0 and nargs != 0:
-        err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
-                (func, nexp, nargs))
-    elif signature[0][-1] == '?' and nargs == (nexp - 1):
-        pass
+    if nexp == 0:
+        if nargs != 0:
+            err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
+                    (func, nexp, nargs))
     elif signature[0][-1] == '?':
-        err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
-                (func, "%s-%s" % (nexp-1, nexp), nargs))
-    elif signature[0][-1] == '*' and nargs >= (nexp - 1):
-        pass
+        if nargs != (nexp - 1) and nargs != (nexp - 2):
+            err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
+                    (func, "%s-%s" % (nexp - 2, nexp - 1), nargs))
     elif signature[0][-1] == '*':
-        err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
-                (func, "at least %s" % (nexp-1), nargs))
+        if nargs < (nexp - 1):
+            err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
+                    (func, "at least %s" % (nexp - 1), nargs))
     elif nexp != nargs:
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, nexp, nargs))

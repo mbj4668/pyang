@@ -22,7 +22,7 @@ install:
 script:
   - source env.sh
   - export USE_VIRTUALENV=true
-  - make test
+  - make pylint test TEST_MODE=coverage
   - find . -name '.coverage*' -exec mv -t . {} +
   - coverage combine
   # Test .gitignore for tests:

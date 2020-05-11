@@ -11,8 +11,11 @@ from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
+from pyang import context
+from pyang import repository
 from pyang import statements
 from pyang import syntax
+
 
 def run():
 
@@ -55,6 +58,20 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="On errors, print the error code instead " \
                              "of the error message."),
+        optparse.make_option("--print-error-basename",
+                             dest="print_error_basename",
+                             action="store_true",
+                             help="On errors, print the basename of files " \
+                             "of the error message."),
+        optparse.make_option("--msg-template",
+                             dest="msg_template",
+                             type="string",
+                             help="Template used to display error messages. " \
+                             "This is a python new-style format string used " \
+                             "to format the message information with keys " \
+                             "file, line, code, type and msg. " \
+                             "Example: --msg-template='{file} || {line} || " \
+                             "{code} || {type} || {level} || {msg}'"),
         optparse.make_option("-W",
                              dest="warnings",
                              action="append",
@@ -159,6 +176,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Filename of a server's hello message is "
                              "given instead of module filename(s)."),
+        optparse.make_option("--implicit-hello-deviations",
+                             dest="implicit_hello_deviations",
+                             action="store_true",
+                             help="Attempt to parse all deviations from hello "
+                             "message regardless of declaration."),
         optparse.make_option("--keep-comments",
                              dest="keep_comments",
                              action="store_true",
@@ -212,10 +234,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse,
-                                 verbose=o.verbose)
+    repos = repository.FileRepository(path, no_path_recurse=o.no_path_recurse,
+                                      verbose=o.verbose)
 
-    ctx = pyang.Context(repos)
+    ctx = context.Context(repos)
 
     ctx.opts = o
     ctx.canonical = o.canonical
@@ -292,7 +314,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     if o.hello:
         ctx.capabilities = hel.registered_capabilities()
-        for (mn,rev) in hel.yang_modules():
+        for mn, rev in hel.yang_modules():
             mod = ctx.search_module(error.Position(''), mn, rev)
             if mod is None:
                 emarg = mn
@@ -372,6 +394,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         m = ctx.add_module(filename, text)
         if m is not None:
             ctx.deviation_modules.append(m)
+    if o.hello and o.implicit_hello_deviations:
+        for deviation_module in hel.yang_implicit_deviation_modules():
+            m = ctx.search_module(error.Position(''), deviation_module)
+            if m is not None:
+                ctx.deviation_modules.append(m)
 
     for p in plugin.plugins:
         p.pre_validate_ctx(ctx, modules)
@@ -451,7 +478,21 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             kind = "error"
             exit_code = 1
         emsg = etag if o.print_error_code else error.err_to_str(etag, eargs)
-        sys.stderr.write('%s: %s: %s\n' % (epos, kind, emsg))
+
+        if o.msg_template is not None:
+            try:
+                sys.stderr.write(str(o.msg_template).format(
+                    file=epos.ref, line=epos.line,
+                    code=etag, type=kind,
+                    msg=error.err_to_str(etag, eargs),
+                    level=elevel) + '\n')
+            except KeyError as error_msg:
+                sys.stderr.write(
+                    "unsupported key %s in msg-template\n" % error_msg)
+                sys.exit(1)
+        else:
+            sys.stderr.write('%s: %s: %s\n' %
+                             (epos.label(o.print_error_basename), kind, emsg))
 
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None

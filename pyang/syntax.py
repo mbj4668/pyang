@@ -29,9 +29,9 @@ length_str = r'((min|max|[0-9]+)\s*' \
              r'(min|max|[0-9]+)\s*)?)'
 length_expr = length_str + r'(\|\s*' + length_str + r')*'
 re_length_part = re.compile(length_str)
-range_str = r'((\-INF|min|max|((\+|\-)?[0-9]+(\.[0-9]+)?))\s*' \
+range_str = r'((min|max|((\+|\-)?[0-9]+(\.[0-9]+)?))\s*' \
             r'(\.\.\s*' \
-            r'(INF|min|max|(\+|\-)?[0-9]+(\.[0-9]+)?)\s*)?)'
+            r'(min|max|(\+|\-)?[0-9]+(\.[0-9]+)?)\s*)?)'
 range_expr = range_str + r'(\|\s*' + range_str + r')*'
 re_range_part = re.compile(range_str)
 

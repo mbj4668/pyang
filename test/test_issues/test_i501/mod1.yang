@@ -1,0 +1,33 @@
+module mod1 {
+  yang-version 1;
+  namespace "urn:mod1";
+  prefix abc;
+
+  grouping gg{
+    container ggcc {
+      leaf ggccll{
+        type ref1;
+      }
+    }
+  }
+
+  typedef ref1 {
+    type ref2;
+  }
+
+  typedef ref2 {
+    type leafref {
+      path "/l2";
+    }
+  }
+
+  leaf l2{
+    type uint32;
+  }
+
+  leaf bar{
+    type ref1;
+  }
+
+  uses gg;
+}

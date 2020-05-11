@@ -37,7 +37,7 @@ def _sequence(one, two):
 def add_validation_fun(phase, keywords, fun):
     """Add a validation function to some phase in the framework.
 
-    Function `fun` is called for each valid occurance of each keyword in
+    Function `fun` is called for each valid occurence of each keyword in
     `keywords`.
     Can be used by plugins to do special validation of extensions."""
     for keyword in keywords:
@@ -116,7 +116,7 @@ re_path = re.compile('(.*)/(.*)')
 re_deref = re.compile(r'deref\s*\(\s*(.*)\s*\)/\.\./(.*)')
 re_and_or = re.compile(r'\band\b|\bor\b')
 
-data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list',
+data_definition_keywords = ['container', 'leaf', 'leaf-list', 'list', 'case',
                             'choice', 'anyxml', 'anydata', 'uses', 'augment']
 
 _validation_phases = [
@@ -225,6 +225,8 @@ _validation_map = {
         lambda ctx, s: v_unique_name_leaf_list(ctx, s),
 
     ('reference_1', 'list'):lambda ctx, s:v_reference_list(ctx, s),
+    ('reference_1', 'action'):lambda ctx, s:v_reference_action(ctx, s),
+    ('reference_1', 'notification'):lambda ctx, s:v_reference_action(ctx, s),
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
@@ -338,7 +340,7 @@ _deviate_delete_singleton_keywords = {
 _valid_deviations = {
     'type':['leaf', 'leaf-list'],
     'units':['leaf', 'leaf-list'],
-    'default':['leaf', 'choice'],
+    'default':['leaf', 'leaf-list', 'choice'],
     'config':['leaf', 'choice', 'container', 'list', 'leaf-list'],
     'mandatory':['leaf', 'choice'],
     'min-elements':['leaf-list', 'list'],
@@ -748,7 +750,8 @@ def v_type_typedef(ctx, stmt):
           type_.i_type_spec is not None):
         stmt.i_default = type_.i_type_spec.str_to_val(ctx.errors,
                                                       default.pos,
-                                                      default.arg)
+                                                      default.arg,
+                                                      stmt.i_module)
         stmt.i_default_str = default.arg
         if stmt.i_default is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
@@ -848,7 +851,7 @@ def v_type_type(ctx, stmt):
         err_add(ctx.errors, length.pos, 'BAD_RESTRICTION', 'length')
     elif length is not None:
         stmt.i_is_derived = True
-        lengths_spec = types.validate_length_expr(ctx.errors, length)
+        lengths_spec = types.validate_length_expr(ctx.errors, length, stmt)
         if lengths_spec is not None:
             stmt.i_lengths = lengths_spec[0]
             stmt.i_type_spec = types.LengthTypeSpec(stmt.i_type_spec,
@@ -969,6 +972,29 @@ def v_type_type(ctx, stmt):
                         (t.arg, t.pos))
                 return False
 
+def v_check_if_feature(ctx, type, defval):
+    for s in type.substmts:
+        if defval == s.arg:
+            feat = s.search_one('if-feature')
+            if feat is not None:
+                err_add(ctx.errors, feat.pos, 'DEFAULT_AND_IFFEATURE', ())
+            return
+
+def v_check_default(ctx, cur_type, def_value):
+    if def_value is None:
+        return
+    if cur_type.arg in types.yang_type_specs.keys():
+        if cur_type.arg == 'enumeration':
+            v_check_if_feature(ctx, cur_type, def_value)
+        elif cur_type.arg == 'bits':
+            for b in def_value:
+                v_check_if_feature(ctx, cur_type, b)
+        return
+    else:
+        if cur_type.i_typedef is not None:
+            new_type = cur_type.i_typedef.search_one('type')
+            v_check_default(ctx, new_type, def_value)
+
 def v_type_leaf(ctx, stmt):
     stmt.i_default = None
     stmt.i_default_str = ""
@@ -980,7 +1006,8 @@ def v_type_leaf(ctx, stmt):
     if default is not None and type_.i_type_spec is not None :
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
-                                              default.arg)
+                                              default.arg,
+                                              stmt.i_module)
         stmt.i_default = defval
         stmt.i_default_str = default.arg
         if defval is not None:
@@ -996,6 +1023,8 @@ def v_type_leaf(ctx, stmt):
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
                                        stmt.i_default,
                                        ' for the default  value')
+
+    v_check_default(ctx, type_, stmt.i_default)
 
     if default is not None:
         m = stmt.search_one('mandatory')
@@ -1013,17 +1042,26 @@ def v_type_leaf_list(ctx, stmt):
         if type_.i_type_spec is not None :
             defval = type_.i_type_spec.str_to_val(ctx.errors,
                                                   default.pos,
-                                                  default.arg)
+                                                  default.arg,
+                                                  stmt.i_module)
             if defval is not None:
                 stmt.i_default.append(defval)
                 type_.i_type_spec.validate(ctx.errors, default.pos,
                                            defval, ' for the default value')
 
-    if stmt.i_default:
-        m = stmt.search_one('min-elements')
-        if m is not None and int(m.arg) > 0:
-            d = stmt.search_one('default')
-            err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
+    min_value = stmt.search_one('min-elements')
+    max_value = stmt.search_one('max-elements')
+
+    if (stmt.i_default and min_value is not None
+            and min_value.arg.isnumeric() and int(min_value.arg) > 0):
+        d = stmt.search_one('default')
+        err_add(ctx.errors, d.pos, 'DEFAULT_AND_MIN_ELEMENTS', ())
+        return False
+
+    if (min_value is not None and min_value.arg.isnumeric()
+            and max_value is not None and max_value.arg.isnumeric()):
+        if int(min_value.arg) > int(max_value.arg):
+            err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
             return False
 
     if (not stmt.i_default
@@ -1036,6 +1074,8 @@ def v_type_leaf_list(ctx, stmt):
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
                                        type_.i_typedef.i_default,
                                        ' for the default  value')
+    for s in stmt.i_default:
+        v_check_default(ctx, type_, s)
 
 def _v_type_common_leaf(ctx, stmt):
     stmt.i_leafref = None # path_type_spec
@@ -1398,7 +1438,7 @@ def v_expand_1_children(ctx, stmt):
     if stmt.keyword == 'grouping':
         stmt.i_expanded = False
     for s in stmt.substmts:
-        if s.keyword in ['input', 'output']:
+        if s.keyword in ['input', 'output'] and hasattr(stmt, 'i_children'):
             # must create a copy of the statement which sets the argument,
             # since we need to keep the original stmt hierarchy valid
             news = s.copy(nocopy=['type','typedef','grouping'])
@@ -1435,7 +1475,8 @@ def v_default(ctx, target, default):
 
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
-                                              default.arg)
+                                              default.arg,
+                                              target.i_module)
         target.i_default = defval
         target.i_default_str = default.arg
         if defval is not None:
@@ -1708,7 +1749,7 @@ def v_expand_2_augment(ctx, stmt):
                 err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
         elif s.keyword == 'list' or s.keyword == 'leaf-list':
             m = s.search_one('min-elements')
-            if m is not None and int(m.arg) >= 1:
+            if m is not None and m.arg.isnumeric() and int(m.arg) >= 1:
                 err_add(ctx.errors, m.pos, 'AUGMENT_MANDATORY', s.arg)
         elif s.keyword == 'container':
             p = s.search_one('presence')
@@ -1773,10 +1814,16 @@ def v_expand_2_augment(ctx, stmt):
                         (stmt.arg, stmt.pos, c.arg, ch.pos))
                 return
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
-            # create an artifical case node for the shorthand
+            # create an artificial case node for the shorthand
             new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
             new_case.parent = stmt.i_target_node
             v_inherit_properties(ctx, stmt.i_target_node, new_case)
+        elif (stmt.i_target_node.keyword not in
+              ('container', 'list', 'choice', 'case', 'input',
+                  'output', 'notification', '__tmp_augment__')):
+            nd = stmt.i_target_node
+            err_add(ctx.errors, stmt.pos, 'BAD_TARGET_NODE',
+                    (nd.i_module.i_modulename, nd.arg, nd.keyword))
         else:
             stmt.i_target_node.i_children.append(c)
             c.parent = stmt.i_target_node
@@ -1862,6 +1909,27 @@ def v_unique_name_leaf_list(ctx, stmt):
 
 ### Reference phase
 
+def v_reference_action(ctx, stmt):
+    def iterate(s):
+        if s.parent is None:
+            return
+        else:
+            parent = s.parent
+            if parent.keyword == "list":
+                key = parent.search_one('key')
+                if (parent.i_config is False and key is None
+                    and parent.i_module.i_version == '1.1'):
+                    err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR',
+                            (stmt.keyword))
+                    return
+            elif parent.keyword in ("rpc", "action", "notification"):
+                err_add(ctx.errors, stmt.pos, 'BAD_ANCESTOR2',
+                        (stmt.keyword, parent.keyword))
+                return
+            iterate(parent)
+
+    iterate(stmt)
+
 def v_reference_list(ctx, stmt):
     if getattr(stmt, 'i_is_validated', None) is True:
         return
@@ -1893,6 +1961,7 @@ def v_reference_list(ctx, stmt):
                 elif ptr is None or ptr.keyword != 'leaf':
                     err_add(ctx.errors, key.pos, 'BAD_KEY', x)
                     return
+                chk_status(ctx, ptr.parent, ptr)
                 type_ = ptr.search_one('type')
                 if stmt.i_module.i_version == '1':
                     if type_ is not None:
@@ -1980,8 +2049,18 @@ def v_reference_list(ctx, stmt):
             u.i_leafs = found
             stmt.i_unique.append((u, found))
 
+    def v_max_min_elements():
+        min_value = stmt.search_one('min-elements')
+        max_value = stmt.search_one('max-elements')
+        if (min_value is not None and min_value.arg.isnumeric()
+                and max_value is not None and max_value.arg.isnumeric()):
+            if int(min_value.arg) > int(max_value.arg):
+                err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
+                return
+
     v_key()
     v_unique()
+    v_max_min_elements()
 
 def v_reference_choice(ctx, stmt):
     """Make sure that the default case exists"""
@@ -1997,14 +2076,14 @@ def v_reference_choice(ctx, stmt):
             # make sure there are no mandatory nodes in the default case
             def chk_no_defaults(s):
                 for c in s.i_children:
-                    if c.keyword in ('leaf', 'choice'):
+                    if c.keyword in ('leaf', 'anydata', 'anyxml', 'choice'):
                         m = c.search_one('mandatory')
                         if m is not None and m.arg == 'true':
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword in ('list', 'leaf-list'):
                         m = c.search_one('min-elements')
-                        if m is not None and int(m.arg) > 0:
+                        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword == 'container':
@@ -2061,6 +2140,35 @@ def v_reference_deviation(ctx, stmt):
     stmt.i_target_node = find_target_node(ctx, stmt)
 
 def v_reference_deviate(ctx, stmt):
+    def search_children_config_true(node, target):
+        # the target node's config is set to 'false', and the node underneath it
+        # cannot have 'config' is 'true'
+        if node.keyword in data_definition_keywords:
+            c_config = node.search_one('config')
+            if c_config is not None and c_config.arg == 'true':
+                err_add(ctx.errors, c.pos, 'INVALID_CONFIG', ())
+                return True
+        else:
+            return False
+        if node is None or not hasattr(node, 'i_children'):
+            return False
+        else:
+            for child in node.i_children:
+                if search_children_config_true(child, target):
+                    return True
+            return False
+
+    def inherit_parent_i_config(node, value):
+        if node is None or not hasattr(node, 'i_children'):
+            return
+        else:
+            for child in node.i_children:
+                if child.keyword in data_definition_keywords:
+                    config = child.search_one('config')
+                    if config is None:
+                        child.i_config = value
+                inherit_parent_i_config(child, value)
+
     if stmt.parent.i_target_node is None:
         # this is set in v_reference_deviation above.  if none
         # is found, an error has already been reported.
@@ -2094,12 +2202,28 @@ def v_reference_deviate(ctx, stmt):
             del t.parent.substmts[idx]
     elif stmt.arg == 'add':
         for c in stmt.substmts:
+            if c.keyword == '_comment':
+                continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
-                # with a default, all nodes has a config property.  this means
-                # that it can only be replaced.
-                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
-                        (c.keyword, t.i_module.arg, t.arg))
+                # with a default, all nodes has a config property.
+                config = t.search_one(c.keyword)
+                if config is None:
+                    if c.arg == 'true':
+                        if (t.parent is None
+                            or t.parent.i_config is True):
+                            t.substmts.append(c)
+                        else:
+                            err_add(ctx.errors, c.pos,
+                                    'INVALID_CONFIG', ())
+                            continue
+                    else:
+                        if not search_children_config_true(t, t):
+                            t.substmts.append(c)
+                else:
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
+                            (c.keyword, t.i_module.arg, t.arg))
+
             elif c.keyword in _singleton_keywords:
                 if t.search_one(c.keyword) is not None:
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
@@ -2136,45 +2260,46 @@ def v_reference_deviate(ctx, stmt):
                     t.substmts.append(c)
     elif stmt.arg == 'replace':
         for c in stmt.substmts:
+            if c.keyword == '_comment':
+                continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
-                # with a default, all nodes has a config property.  this means
-                # that it can only be replaced.
-                # first, set the property...
-                if c.arg == 'true':
-                    t.i_config = True
-                elif c.arg == 'false':
-                    t.i_config = False
-                # ... and then modify the original statement, if any
+                # with a default, all nodes has a config property.
+                # first, save the old property, and then set the property...
+
                 old = t.search_one(c.keyword)
                 if old is not None:
+                    negc = copy.copy(old)
                     old.arg = c.arg
                 else:
-                    t.substmts.append(c)
-                # make sure the target's children have proper config stmts
-                sub = t.substmts
-                if hasattr(t, 'i_children'):
-                    sub = sub + t.i_children
-                for d in sub:
-                    if d.keyword in data_definition_keywords:
-                        if hasattr(d, 'i_config') and d.i_config != t.i_config:
-                            # this child has another config property,
-                            # maybe fix the statment
-                            old = d.search_one('config')
-                            if old is None:
-                                negc = copy.copy(c)
-                                if c.arg == 'true':
-                                    negc.arg = 'false'
-                                else:
-                                    negc.arg = 'true'
-                                d.substmts.append(negc)
+                    err_add(ctx.errors, t.pos, 'BAD_DEVIATE_REP',
+                            (c.keyword, t.i_module.arg, t.arg))
+                    continue
+
+                if c.arg == 'true':
+                    if negc.arg != c.arg:
+                        if (t.parent is not None
+                            and t.parent.i_config is False):
+                            old.arg = negc.arg
+                            err_add(ctx.errors, c.pos,
+                                    'INVALID_CONFIG', ())
+                            continue
+                        else:
+                            t.i_config = True
+                else:
+                    if search_children_config_true(t, t):
+                        old.arg = negc.arg
+                        continue
+                    else:
+                        t.i_config = False
+                        inherit_parent_i_config(t, t.i_config)
 
             if c.keyword in _singleton_keywords:
                 old = t.search_one(c.keyword)
             else:
                 old = t.search_one(c.keyword, c.arg)
             if old is None:
-                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_DEL',
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_REP',
                         (c.keyword, t.i_module.arg, t.arg))
             else:
                 idx = t.substmts.index(old)
@@ -2188,6 +2313,8 @@ def v_reference_deviate(ctx, stmt):
                 t.substmts.append(c)
     else: # delete
         for c in stmt.substmts:
+            if c.keyword == '_comment':
+                continue
             if c.keyword in _singleton_keywords:
                 if c.keyword in _deviate_delete_singleton_keywords:
                     old = t.search_one(c.keyword)
@@ -2296,7 +2423,7 @@ def is_mandatory_node(stmt):
             return True
     elif stmt.keyword in ('list', 'leaf-list'):
         m = stmt.search_one('min-elements')
-        if m is not None and int(m.arg) > 0:
+        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
             return True
     elif stmt.keyword == 'container':
         p = stmt.search_one('presence')
@@ -2963,6 +3090,11 @@ class BitStatement(Statement):
         'i_position',
     )
 
+class CommentStatement(Statement):
+    __slots__ = (
+        'i_line_end',
+        'i_multi_line',
+    )
 
 class ChoiceStatement(Statement):
     __slots__ = (
@@ -3101,6 +3233,7 @@ STMT_CLASS_FOR_KEYWD = {
     'uses': UsesStatement,
     'must': MustStatement,
     'when': WhenStatement,
+    '_comment': CommentStatement,
     # all other keywords can use generic Statement class
 }
 
@@ -3175,7 +3308,8 @@ def mk_path_str(stmt,
     return '/%s' % '/'.join(xpath_elements)
 
 def get_xpath(stmt, qualified=False, prefix_to_module=False):
-    """Gets the XPath of the statement.
+    """Gets the XPath path of the data node `stmt`.
+
     Unless qualified=True, does not include prefixes unless the prefix
       changes mid-XPath.
 
@@ -3184,14 +3318,13 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False):
     prefix_to_module will resolve prefixes to module names instead.
 
     For RFC 8040, set prefix_to_module=True:
-      /prefix:root/node/prefix:node/...
+      /prefix1:root/node/prefix2:node/...
 
     qualified=True:
-      /prefix:root/prefix:node/prefix:node/...
+      /prefix1:root/prefix1:node/prefix2:node/...
 
     qualified=True, prefix_to_module=True:
-      /module:root/module:node/module:node/...
-    prefix_to_module=True: /module:root/node/module:node/...
+      /module1:root/module1:node/module2:node/...
     """
     return mk_path_str(stmt, with_prefixes=qualified,
                        prefix_onchange=True, prefix_to_module=prefix_to_module)

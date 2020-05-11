@@ -1,4 +1,5 @@
 import copy
+import os.path
 
 ### struct to keep track of position for error messages
 
@@ -17,7 +18,13 @@ class Position(object):
         self.uses_pos = None
 
     def __str__(self):
-        s = self.ref + ':' + str(self.line)
+        return self.label()
+
+    def label(self, basename=False):
+        ref = self.ref
+        if basename:
+            ref = os.path.basename(ref)
+        s = ref + ':' + str(self.line)
         if self.uses_pos is None:
             return s
         else:
@@ -178,6 +185,9 @@ error_codes = \
     'BAD_NODE_IN_AUGMENT':
       (1,
        'node %s::%s of type %s cannot be augmented'),
+    'BAD_TARGET_NODE':
+      (1,
+       'node %s::%s of type %s cannot be target node'),
     'BAD_NODE_IN_REFINE':
       (1,
        'node %s::%s cannot be refined'),
@@ -190,6 +200,9 @@ error_codes = \
     'BAD_DEVIATE_ADD':
       (2,
        'the "%s" property already exists in node "%s::%s"'),
+    'BAD_DEVIATE_REP':
+      (2,
+       'the "%s" property does not exist in node "%s::%s"'),
     'BAD_DEVIATE_DEL':
       (2,
        'the "%s" property does not exist in node "%s::%s"'),
@@ -232,9 +245,6 @@ error_codes = \
     'LENGTH_BOUNDS':
       (2,
        'length error: "%s" is not larger than "%s"'),
-    'LENGTH_VALUE':
-      (2,
-       'length error: "%s" is too large'),
     'TYPE_VALUE':
       (2,
        'the value "%s" does not match its base type %s- %s'),
@@ -307,9 +317,6 @@ error_codes = \
     'PATTERN_ERROR':
       (2,
        'syntax error in pattern: %s'),
-    'PATTERN_FAILURE':
-      (4,
-       'could not verify pattern: %s'),
     'LEAFREF_TOO_MANY_UP':
       (1,
        'the path for %s at %s has too many ".."'),
@@ -355,6 +362,12 @@ error_codes = \
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '
        'defined at %s'),
+    'BAD_ANCESTOR':
+      (1,
+       '"%s" node cannot have an ancestor list node without a key'),
+    'BAD_ANCESTOR2':
+      (1,
+       '"%s" node cannot have an ancestor "%s" node'),
     'BAD_TYPE_NAME':
       (1,
        'illegal type name "%s"'),
@@ -394,6 +407,10 @@ error_codes = \
     'KEY_BAD_SUBSTMT':
       (1,
        'the statement "%s" cannot be given for a key'),
+    'DEFAULT_AND_IFFEATURE':
+      (1,
+       'a \'default\' value cannot be given in leaf node when'
+       ' \'if-feature\' is existing'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
@@ -401,6 +418,9 @@ error_codes = \
       (1,
        'a \'default\' value cannot be given when \'min-elements\' is'
        ' greater than 0'),
+    'MAX_ELEMENTS_AND_MIN_ELEMENTS':
+      (1,
+       'a \'min-elements\' value cannot be greater than \'max-elements\' value'),
     'DUPLICATE_DEFAULT':
         (1,
          'the default value "%s" is given twice in the leaf list'),
@@ -421,7 +441,7 @@ error_codes = \
        'syntax error: %s'),
     'DUPLICATE_NAMESPACE':
       (1,
-       'duplicate namespace uri "%s" found in module "%s"'),
+       'duplicate namespace uri "%s" found in modules "%s"'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
        'missing argument attribute "%s" for "%s"'),

@@ -31,6 +31,14 @@ module a {
     }
   }
 
+  typedef my-union3 {
+     type union {
+       type uint32;
+       type string;
+     }
+     default "dummy";
+  }
+
   feature foo {
     status obsolete;
   }
@@ -115,6 +123,14 @@ module a {
           type string;
         }
       }
+    }
+    leaf a_union {
+        type my-union1;
+        default "my-default-1";
+    }
+    leaf b_union {
+        type my-union3;
+        default "my-default-2";
     }
   }
 

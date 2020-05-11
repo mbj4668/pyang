@@ -1,0 +1,4 @@
+mod1.yang:11: error: UNEXPECTED_KEYWORD
+mod1.yang:14: error: UNEXPECTED_KEYWORD
+mod1.yang:17: error: UNEXPECTED_KEYWORD
+mod1.yang:21: error: CIRCULAR_DEPENDENCY

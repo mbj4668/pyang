@@ -1,0 +1,33 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  anydata anda {
+    description "test description";
+    description "test description1"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    config true;
+    config false; // error: duplicated config
+
+    mandatory true;
+    mandatory false; // error: duplicated mandatory
+
+    status "current";
+    status "obsolete"; // error: duplicated status
+
+    when "/le1 = 'true'";
+    when "/le1 = 'false'"; // error: duplicated when
+
+  }
+
+  leaf le1 {
+    type boolean;
+  }
+
+
+
+}

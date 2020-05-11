@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2020-01-03
+.\"      Date: 2020-03-06
 .\"    Manual: pyang manual
-.\"    Source: pyang-2.1.1
+.\"    Source: pyang-2.2.1
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2020\-01\-03" "pyang\-2\&.1\&.1" "pyang manual"
+.TH "PYANG" "1" "2020\-03\-06" "pyang\-2\&.2\&.1" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-implicit\-hello\-deviations] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-sid\-list] \-\-sid\-generate\-file {count | \fIentry\-point:size\fR} \fIyang\-filename\fR
 .HP \w'\fBpyang\fR\ 'u
@@ -88,6 +88,11 @@ Print a listing of all error codes and messages pyang might generate, and then e
 \fB\-\-print\-error\-code\fR
 .RS 4
 On errors, print the symbolic error code instead of the error message\&.
+.RE
+.PP
+\fB\-\-print\-error\-basename\fR
+.RS 4
+On errors, print only the base file name independent of its module path location\&.
 .RE
 .PP
 \fB\-Werror\fR
@@ -174,6 +179,26 @@ $ pyang \-\-ignore\-error PATTERN_ERROR
 .\}
 .RE
 .PP
+\fB\-\-msg\-template\fR \fImsg\-template\fR
+.RS 4
+Print out error message in defined
+\fImsg\-template\fR\&.
+.sp
+Template used to display error messages\&. This is a python new\-style format string used to format the message information with keys file, line, code, type, and msg\&.
+.sp
+The following example create a msg template in defined pattern:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-\-msg\-template=\*(Aq{file} || {line} || {type} || {level} || {code} || {msg}\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
 \fB\-\-ignore\-errors\fR
 .RS 4
 Ignore all errors\&. Use with care\&. Plugins that don\*(Aqt expect to be invoked if there are errors present may crash\&.
@@ -230,6 +255,11 @@ Lax checks of XPath expressions\&. Specifically, do not generate an error if an 
 Interpret the input file or standard input as a server <hello> message\&. In this case, no more than one
 \fIfile\fR
 parameter may be given\&.
+.RE
+.PP
+\fB\-\-implicit\-hello\-deviations\fR
+.RS 4
+Attempt to parse all deviations from a supplied <hello> message\&. Not all implementations provide deviations explicitly as modules\&. This flag enables more logic to attempt to derive all deviations from the message\&.
 .RE
 .PP
 \fB\-\-trim\-yin\fR
@@ -488,7 +518,229 @@ transformations are (like output formats) plugins and therefore may define their
 option\&. These options and transformations are listed in
 \fBpyang \-h\fR\&.
 .PP
-No standard transformations are currently supported\&.
+\fIedit\fR
+.RS 4
+Modify the supplied module(s) in various ways\&. This transform will usually be used with the
+\fIyang\fR
+output format\&.
+.RE
+.SH "EDIT TRANSFORM"
+.PP
+The
+\fIedit\fR
+transform modifies the supplied module(s) in various ways\&. It can, for example, replace top\-level
+\fIdescription\fR
+statements, update
+\fIinclude\fR
+statements and manage
+\fIrevision\fR
+statements\&. Unless otherwise noted below, it only modifies
+\fIexisting\fR
+statements\&.
+.PP
+Each
+\fIedit\fR
+transform string (non\-date) option value is either a plain string (which is taken literally) or a
+\fI+\fR\-separated list of directives (whose expansions are concatenated with double\-linebreak separators, i\&.e\&. each directive results in one or more paragraphs)\&.
+.PP
+Each directive is either of the form
+\fI@filename\fR
+(which is replaced with the contents of the file; there is no search path; trailing whitespace is discarded) or of the form
+\fI%keyword\fR\&. Any unrecognized directives are treated as plain strings\&. The following
+\fI%\fR\-directives are currently supported:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fI%SUMMARY\fR
+: This expands to a "summary" of the original argument value\&. It\*(Aqs intended for use with top\-level
+\fIdescription\fR
+statements that typically consist of a hand\-crafted summary followed by copyrights, license and other boiler\-plate text\&. The summary is the text up to but not including the first line that (ignoring leading and trailing whitespace) starts with the word
+\fICopyright\fR
+followed by a space\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fI%SUBST/old/new\fR
+: This expands to the original argument value with all instances of
+\fIold\fR
+replaced with
+\fInew\fR\&. There is no provision for replacing characters that contain forward slashes, and there is no terminating slash\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fI%DELETE\fR
+: This clears the output buffer and suppresses a check that would normally prevent overwriting an existing value (unless that value is the literal string
+\fBTBD\fR)\&.
+.RE
+.PP
+In the examples given below, it\*(Aqs assumed that there are
+\fICONTACT\fR,
+\fICONTEXT\fR,
+\fILICENSE\fR,
+\fIORGANIZATION\fR,
+\fIREFERENCE\fR
+and
+\fIREVISION\fR
+files in a top\-level project directory (which in this case is the parent of the directory in which
+\fBpyang\fR
+is being run)\&. These examples illustrate how the
+\fIedit\fR
+transform might be used with the
+\fIyang\fR
+output format to prepare YANG files for publication\&.
+.PP
+Edit transform specific options:
+.PP
+\fB\-\-edit\-yang\-version\fR \fIversion\fR
+.RS 4
+Set the YANG version (i\&.e\&., the
+\fIyang\-version\fR
+statement\*(Aqs argument) to
+\fIversion\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fIyang\-version\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-yang\-version 1\&.1\fR\&.
+.RE
+.PP
+\fB\-\-edit\-namespace\fR \fInamespace\fR
+.RS 4
+Set the YANG namespace (i\&.e\&., the
+\fInamespace\fR
+statement\*(Aqs argument) to
+\fInamespace\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fInamespace\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-namespace %SUBST/acme\-pacific\-org/apo\fR
+.RE
+.PP
+\fB\-\-edit\-update\-import\-dates\fR
+.RS 4
+Update any
+\fIimport\fR
+(or
+\fIinclude\fR)
+\fIrevision\-date\fR
+statements to match imported (or included) modules and submodules\&. If there isn\*(Aqt already a
+\fIrevision\-date\fR
+statement, it will be added\&.
+.RE
+.PP
+\fB\-\-edit\-delete\-import\-dates\fR
+.RS 4
+Delete any
+\fIimport\fR
+(or
+\fIinclude\fR)
+\fIrevision\-date\fR
+statements\&.
+.RE
+.PP
+\fB\-\-edit\-organization\fR \fIorganization\fR
+.RS 4
+Set the organization (i\&.e\&. the
+\fIorganization\fR
+statement\*(Aqs argument) to
+\fIorganization\fR\&. This does nothing if the YANG module doesn\*(Aqt already have an
+\fIorganization\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-organization @\&.\&./ORGANIZATION\fR
+.RE
+.PP
+\fB\-\-edit\-contact\fR \fIcontact\fR
+.RS 4
+Set the contact info (i\&.e\&. the
+\fIcontact\fR
+statement\*(Aqs argument) to
+\fIcontact\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fIcontact\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-contact @\&.\&./CONTACT\fR
+.RE
+.PP
+\fB\-\-edit\-description\fR \fIdescription\fR
+.RS 4
+Set the top\-level description (i\&.e\&. the top\-level
+\fIdescription\fR
+statement\*(Aqs argument) to
+\fIdescription\fR\&. This does nothing if the YANG module doesn\*(Aqt already have a
+\fIdescription\fR
+statement\&.
+.sp
+Example:
+\fB\-\-edit\-description %SUMMARY+@\&.\&./LICENSE+@\&.\&./CONTEXT\fR
+.RE
+.PP
+\fB\-\-edit\-delete\-revisions\-after\fR \fIprevdate\fR
+.RS 4
+Delete any
+\fIrevision\fR
+statements after (i\&.e\&. that are more recent than) the supplied
+\fIyyyy\-mm\-dd\fR
+revision date\&. A typical use case is to supply the date of the previous release: any revisions since then will be internal (e\&.g\&. developers often feel that they should add revision statements for git commits) and are not wanted in the next released version\&.
+.sp
+Example:
+\fB\-\-edit\-delete\-revisions\-after 2019\-03\-15\fR
+.RE
+.PP
+\fB\-\-edit\-revision\-date\fR \fIdate\fR
+.RS 4
+Set the most recent revision date to the supplied
+\fIyyyy\-mm\-dd\fR
+revision date\&. This does nothing if the YANG module doesn\*(Aqt already have at least one
+\fIrevision\fR
+statement\&. If necessary, a new
+\fIrevision\fR
+statement will be inserted before any (remaining) existing revisions\&.
+.sp
+Example:
+\fB\-\-edit\-revision\-date 2020\-03\-15\fR
+.RE
+.PP
+\fB\-\-edit\-revision\-description\fR \fIdescription\fR
+.RS 4
+Set the most recent revision description to
+\fIdescription\fR\&.
+.sp
+Example:
+\fB\-\-edit\-revision\-description=%DELETE+@\&.\&./REVISION\fR
+.RE
+.PP
+\fB\-\-edit\-revision\-reference\fR \fIreference\fR
+.RS 4
+Set the most recent revision reference to
+\fIreference\fR\&.
+.sp
+Example:
+\fB\-\-edit\-revision\-reference=%DELETE+@\&.\&./REFERENCE\fR
+.RE
 .SH "OUTPUT FORMATS"
 .PP
 Installed
@@ -557,7 +809,7 @@ Tree structure of the module\&.
 .PP
 \fIflatten\fR
 .RS 4
-Flatten the module to XPath and attributes in CSV form\&.
+Print the schema nodes in CSV form\&.
 .RE
 .PP
 \fIuml\fR
@@ -1085,13 +1337,18 @@ Use the module name (instead of the prefix) to prefix parameters and types\&.
 .PP
 The
 \fIflatten\fR
-output flattens provided YANG schema and outputs XPath attributes in CSV format\&.
+output flattens provided YANG module and outputs the schema nodes and some of their properties in CSV format\&.
 .PP
 Flatten output specific options:
 .PP
 \fB\-\-flatten\-no\-header\fR
 .RS 4
 Do not emit the CSV header\&.
+.RE
+.PP
+\fB\-\-flatten\-keyword\fR
+.RS 4
+Output the keyword\&. This will resolve as container, leaf, etc\&.
 .RE
 .PP
 \fB\-\-flatten\-type\fR
@@ -1104,14 +1361,19 @@ Output the top\-level type\&. This will resolve to a module\-prefixed type\&.
 Output the primitive type\&. This resolves to a YANG type such as uint64\&.
 .RE
 .PP
-\fB\-\-flatten\-permission\fR
+\fB\-\-flatten\-flag\fR
 .RS 4
-Output config property\&. If config property is set, outputs rw, else ro\&.
+Output flag property\&. Derives a flag \- for instance rw/ro for config, or x for RPC\&.
 .RE
 .PP
 \fB\-\-flatten\-description\fR
 .RS 4
 Output the description\&.
+.RE
+.PP
+\fB\-\-flatten\-deviated\fR
+.RS 4
+Output deviated nodes in the schema as well\&.
 .RE
 .PP
 \fB\-\-flatten\-data\-keywords\fR
@@ -1129,14 +1391,31 @@ Filter output to only desired keywords\&. Keywords specified are what will be di
 Filter output to only desired primitive types\&. Primitives specified are what will be displayed in output\&. Can be specified more than once\&.
 .RE
 .PP
-\fB\-\-flatten\-filter\-permission\fR \fIchoice\fR
+\fB\-\-flatten\-filter\-flag\fR \fIchoice\fR
 .RS 4
-Filter output to ro or rw (config property)\&. ro | rw
+Filter output to flag\&.
+\fIrw\fR
+for configuration data\&.
+\fIro\fR
+for non\-configuration data, output parameters to rpcs and actions, and notification parameters\&.
+\fIw\fR
+for input parameters to rpcs and actions\&.
+\fIu\fR
+for uses of a grouping\&.
+\fIx\fR
+for rpcs and actions\&.
+\fIn\fR
+for notifications\&.
 .RE
 .PP
 \fB\-\-flatten\-csv\-dialect\fR \fIdialect\fR
 .RS 4
 CSV dialect for output\&. excel | excel\-tab | unix
+.RE
+.PP
+\fB\-\-flatten\-ignore\-no\-primitive\fR
+.RS 4
+Ignore error if primitive is missing\&.
 .RE
 .SH "UML OUTPUT"
 .PP

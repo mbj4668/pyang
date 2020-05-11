@@ -52,7 +52,7 @@ class JtoXPlugin(plugin.PyangPlugin):
             for ann in module.search(("ietf-yang-metadata", "annotation")):
                 typ = ann.search_one("type")
                 annots[module.arg + ":" + ann.arg] = (
-                    "string" if typ is None else self.base_type(typ))
+                    "string" if typ is None else self.base_type(ann, typ))
         for module in modules:
             self.process_children(module, tree, None)
         json.dump({"modules": mods, "tree": tree, "annotations": annots}, fd)
@@ -82,15 +82,18 @@ class JtoXPlugin(plugin.PyangPlugin):
                 ndata.append([(k.i_module.i_modulename, k.arg)
                               for k in ch.i_key])
             elif ch.keyword in ["leaf", "leaf-list"]:
-                ndata.append(self.base_type(ch.search_one("type")))
+                ndata.append(self.base_type(ch, ch.search_one("type")))
             modname = ch.i_module.i_modulename
             parent[nodename] = ndata
 
-    def base_type(self, of_type):
+    def base_type(self, ch, of_type):
         """Return the base type of `of_type`."""
         while 1:
             if of_type.arg == "leafref":
-                node = of_type.i_type_spec.i_target_node
+                if of_type.i_module.i_version == "1":
+                    node = of_type.i_type_spec.i_target_node
+                else:
+                    node = ch.i_leafref.i_target_node
             elif of_type.i_typedef is None:
                 break
             else:
@@ -99,6 +102,6 @@ class JtoXPlugin(plugin.PyangPlugin):
         if of_type.arg == "decimal64":
             return [of_type.arg, int(of_type.search_one("fraction-digits").arg)]
         elif of_type.arg == "union":
-            return [of_type.arg, [self.base_type(x) for x in of_type.i_type_spec.types]]
+            return [of_type.arg, [self.base_type(ch, x) for x in of_type.i_type_spec.types]]
         else:
             return of_type.arg

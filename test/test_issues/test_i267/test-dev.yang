@@ -13,4 +13,9 @@ module test-dev {
         config false;
     }
   }
+  deviation /t:root/t:ll {
+    deviate add {
+      default "aaa"; // test case for #615
+    }
+  }
 }

@@ -8,13 +8,15 @@ import sys
 import os
 import io
 
-import pyang
+from pyang import context
+from pyang import repository
 from pyang import plugin
 from pyang import statements
 from pyang import error
 from pyang import util
 from pyang import types
 from pyang.error import err_add
+
 
 def pyang_plugin_init():
     plugin.register_plugin(CheckUpdatePlugin())
@@ -140,8 +142,8 @@ def check_update(ctx, newmod):
     if olddir == '':
         olddir = '.'
     oldpath += os.pathsep + olddir
-    oldrepo = pyang.FileRepository(oldpath, use_env=False)
-    oldctx = pyang.Context(oldrepo)
+    oldrepo = repository.FileRepository(oldpath, use_env=False)
+    oldctx = context.Context(oldrepo)
     oldctx.opts = ctx.opts
     oldctx.lax_xpath_checks = ctx.lax_xpath_checks
     oldctx.lax_quote_checks = ctx.lax_quote_checks
@@ -516,7 +518,7 @@ def chk_default(old, new, ctx):
         oldtype = old.search_one('type')
         if (oldtype.i_typedef is not None and
             hasattr(oldtype.i_typedef, 'i_default_str') and
-            oldtype.i_typedef.i_default_str is not None and
+            oldtype.i_typedef.i_default is not None and
             oldtype.i_typedef.i_default_str != newdefault.arg):
             err_add(ctx.errors, newdefault.pos, 'CHK_IMPLICIT_DEFAULT', ())
     elif olddefault.arg != newdefault.arg:

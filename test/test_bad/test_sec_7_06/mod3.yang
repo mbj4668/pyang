@@ -1,0 +1,30 @@
+module mod3 {
+  yang-version 1.1;
+  namespace "urn:mod3";
+  prefix m3;
+
+  grouping gg3 {
+    leaf le3_1 {
+      type string;
+    }
+  }
+  
+  leaf le3_2 {
+    type string {
+      length "1..8";
+    }
+    default "password";
+    mandatory true;
+  }
+
+  leaf le3_3 {
+    type string {
+      length "1..8";
+    }
+    default "passwords";
+  }
+
+
+
+
+}

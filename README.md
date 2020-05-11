@@ -124,7 +124,12 @@ man pyang
 
 * **pyang/__init__.py**
   Initialization code for the pyang library.
-  Defines the Context and Repository classes.
+
+* **pyang/context.py**
+  Defines the Context class, which represents a parsing session
+
+* **pyang/repository.py***
+  Defines the Repository class, which is used to access modules.
 
 * **pyang/syntax.py**
   Generic syntax checking for YANG and YIN statements.

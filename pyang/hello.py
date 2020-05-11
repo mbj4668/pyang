@@ -81,10 +81,27 @@ class HelloParser:
         res = {}
         for c in self.capabilities:
             m = c.parameters.get("module")
-            if m is None or m in res:
+            if m is None or m in res.keys():
                 continue
             res[m] = c.parameters.get("revision")
         return res.items()
+    
+    def yang_implicit_deviation_modules(self):
+        """
+        Return an iterable of deviations to YANG modules which are referenced
+        but not explicitly advertised as a module.
+        """
+        deviations = set()
+        advertised_modules = set(dict(self.yang_modules()).keys())
+        for c in self.capabilities:
+            deviation_string = c.parameters.get("deviations")
+            if not deviation_string:
+                continue
+            for deviation in deviation_string.split(","):
+                if not deviation or deviation in advertised_modules:
+                    continue
+                deviations.add(deviation)
+        return deviations
 
     def get_features(self, yam):
         """Return list of features declared for module `yam`."""

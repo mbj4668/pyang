@@ -1,0 +1,42 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  import mod2 {
+    prefix m2;
+  }
+
+  uses m2:gg;
+  container con1 {
+    description "Test container";
+    reference "Test reference";
+    config true;
+    presence "Test presence";
+    when "../con2 = 'one'";
+    status current;
+
+    leaf le1 {
+      type string;
+    }
+
+    description "Test container"; // error: duplicate description
+    reference "Test reference"; // error: duplicate reference
+    config true; // error: duplicate config
+    presence "Test presence"; // error: duplicate presence
+    when "../con2 = 'two'";
+    status current;
+  }
+ 
+  leaf con2 {
+    type enumeration {
+      enum one;
+      enum two;
+      enum three;
+      enum four;
+    }
+
+  }
+
+
+}

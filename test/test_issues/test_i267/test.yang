@@ -16,5 +16,9 @@ module test {
         type string;
       }
     }
+
+    leaf-list ll {
+      type string;
+    }
   }
 }

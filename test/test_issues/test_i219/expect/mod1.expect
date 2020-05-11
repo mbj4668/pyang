@@ -1,0 +1,3 @@
+mod1.yang:12: error: BAD_DEVIATE_REP
+mod1.yang:38: error: INVALID_CONFIG
+mod1.yang:44: error: INVALID_CONFIG

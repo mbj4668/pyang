@@ -1,0 +1,92 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  grouping gg2 {
+    leaf le2 {
+      type uint16;
+    }
+  } 
+
+  typedef binary {
+    type uint32; // error: type is one of the YANG built-in types 
+  }
+
+  typedef bits {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef boolean {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef decimal64 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef empty {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef enumeration {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+  
+  typedef identityref {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef instance-identifier {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef int8 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef int16 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef int32 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef int64 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef leafref {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef string {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef uint8 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef uint16 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef uint32 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef uint64 {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef union {
+    type uint32; // error: type is one of the YANG built-in types
+  }
+
+  typedef abc {
+    type myy_type; // error: type doesn't exist
+  }
+
+}
