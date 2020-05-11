@@ -1958,7 +1958,8 @@ $ osascript foo.scpt</screen>
         <term><option>--flatten-keys</option></term>
         <listitem>
           <para>
-            Output the key names if specified.
+            Output whether the XPath is identified as a key.
+            <emphasis>key</emphasis> or null will be output per XPath.
           </para>
         </listitem>
       </varlistentry>

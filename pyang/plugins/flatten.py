@@ -19,7 +19,7 @@ Arguments
 --flatten-description
     Output the description.
 --flatten-keys
-    Output the key names if specified.
+    Output whether the XPath is identified as a key.
 --flatten-keys-in-xpath
     Output the XPath with keys in path.
 --flatten-deviated

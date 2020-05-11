@@ -3349,7 +3349,9 @@ def get_type(stmt):
     return getattr(type_obj, 'arg', None)
 
 def get_keys(stmt):
-    """Gets the key names for the node if present."""
+    """Gets the key names for the node if present.
+    Returns a list of key name strings.
+    """
     key_obj = stmt.search_one('key')
     key_names = []
     keys = getattr(key_obj, 'arg', None)
