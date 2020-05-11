@@ -19,9 +19,9 @@ Arguments
 --flatten-description
     Output the description.
 --flatten-key
-    Output the key if it exists.
+    Output the key name if specified.
 --flatten-keys-in-xpath
-    Output the XPath with keys.
+    Output the XPath with keys in path.
 --flatten-deviated
     Output deviated nodes in the schema as well.
 --flatten-data-keywords
@@ -115,13 +115,13 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-key",
                 dest="flatten_key",
                 action="store_true",
-                help="Output the key if it exists.",
+                help="Output the key name if specified.",
             ),
             optparse.make_option(
                 "--flatten-keys-in-xpath",
                 dest="flatten_keys_in_xpath",
                 action="store_true",
-                help="Output the XPath with keys.",
+                help="Output the XPath with keys in path.",
             ),
             optparse.make_option(
                 "--flatten-deviated",

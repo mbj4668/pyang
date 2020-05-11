@@ -1955,6 +1955,22 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-key</option></term>
+        <listitem>
+          <para>
+            Output the key name if specified.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keys-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with keys in path.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-deviated</option></term>
         <listitem>
           <para>
