@@ -3262,7 +3262,12 @@ def mk_path_list(stmt):
             return
         def qualified_name_elements(stmt):
             """(module name, prefix, name, keys)"""
-            return (stmt.i_module.arg, stmt.i_module.i_prefix, stmt.arg, get_keys(stmt))
+            return (
+                stmt.i_module.arg,
+                stmt.i_module.i_prefix,
+                stmt.arg,
+                get_keys(stmt)
+            )
         if stmt.parent.keyword in ['module', 'submodule']:
             resolved_names.append(qualified_name_elements(stmt))
             return
@@ -3337,8 +3342,13 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False, with_keys=False):
     prefix_to_module=True, with_keys=True:
       /module1:root/node[name][name2]/module2:node/...
     """
-    return mk_path_str(stmt, with_prefixes=qualified,
-                       prefix_onchange=True, prefix_to_module=prefix_to_module, with_keys=with_keys)
+    return mk_path_str(
+        stmt,
+        with_prefixes=qualified,
+        prefix_onchange=True,
+        prefix_to_module=prefix_to_module,
+        with_keys=with_keys
+    )
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
