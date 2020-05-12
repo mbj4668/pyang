@@ -201,7 +201,9 @@ class FlattenPlugin(plugin.PyangPlugin):
 
     def emit(self, ctx, modules, fd):
         output_writer = csv.DictWriter(
-            fd, fieldnames=self.__field_names, dialect=ctx.opts.flatten_csv_dialect
+            fd,
+            fieldnames=self.__field_names,
+            dialect=ctx.opts.flatten_csv_dialect,
         )
         if not ctx.opts.flatten_no_header:
             output_writer.writeheader()
@@ -224,7 +226,12 @@ class FlattenPlugin(plugin.PyangPlugin):
         )
         for child in module_children:
             self.output_child(
-                ctx, child, output_writer, parent_deviated, override_flag, known_keys
+                ctx,
+                child,
+                output_writer,
+                parent_deviated,
+                override_flag,
+                known_keys,
             )
         # If we are flattening deviations, need to traverse
         # deviated tree as well.
@@ -253,11 +260,15 @@ class FlattenPlugin(plugin.PyangPlugin):
         override_flag=None,
         known_keys=None,
     ):
-        deviated = getattr(child, "i_this_not_supported", False) or parent_deviated
+        deviated = (
+            getattr(child, "i_this_not_supported", False) or parent_deviated
+        )
         # Keys map to self.__field_names for CSV output
         output_content = {
             "xpath": statements.get_xpath(
-                child, prefix_to_module=True, with_keys=ctx.opts.flatten_keys_in_xpath
+                child,
+                prefix_to_module=True,
+                with_keys=ctx.opts.flatten_keys_in_xpath,
             )
         }
         # Sometimes we won't have the full set of YANG models...
@@ -272,14 +283,18 @@ class FlattenPlugin(plugin.PyangPlugin):
         # To handle inputs and outputs we're going to have an override flag.
         # input children should flag as w all the way through.
         flag, override_flag = (
-            (override_flag, override_flag) if override_flag else self.get_flag(child)
+            (override_flag, override_flag)
+            if override_flag
+            else self.get_flag(child)
         )
         child_keys = set(statements.get_keys(child))
         # Set the output content based on the options specified
         if ctx.opts.flatten_keyword:
             output_content["keyword"] = child.keyword
         if ctx.opts.flatten_type:
-            output_content["type"] = statements.get_qualified_type(child) or "nil"
+            output_content["type"] = (
+                statements.get_qualified_type(child) or "nil"
+            )
         if ctx.opts.flatten_primitive_type:
             output_content["primitive_type"] = primitive_type
         if ctx.opts.flatten_flag:
@@ -291,7 +306,9 @@ class FlattenPlugin(plugin.PyangPlugin):
                 output_content["key"] = None
             else:
                 child_name = child.arg
-                output_content["key"] = "key" if child_name in known_keys else None
+                output_content["key"] = (
+                    "key" if child_name in known_keys else None
+                )
         if ctx.opts.flatten_deviated:
             output_content["deviated"] = "deviated" if deviated else "present"
         if set(output_content.keys()) != self.__field_names_set:
@@ -305,7 +322,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 and child.keyword not in ctx.opts.flatten_filter_keyword,
                 ctx.opts.flatten_filter_primitive
                 and primitive_type not in ctx.opts.flatten_filter_primitive,
-                ctx.opts.flatten_filter_flag and flag != ctx.opts.flatten_filter_flag,
+                ctx.opts.flatten_filter_flag
+                and flag != ctx.opts.flatten_filter_flag,
                 child.keyword in {"input", "output"},
             ]
         )
