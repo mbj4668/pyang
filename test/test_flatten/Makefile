@@ -1,4 +1,4 @@
-test: test_xpath test_deviation test_deviation_show test_all test_rpc_notif test_filter_keyword test_filter_primitive test_filter_flag
+test: test_xpath test_deviation test_deviation_show test_all test_rpc_notif test_filter_keyword test_filter_primitive test_filter_flag test_all_keyed test_keys
 
 test_xpath:
 	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang | diff benchmarks/ietf-interfaces.xpath.csv -
@@ -12,6 +12,9 @@ test_deviation_show:
 test_all:
 	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang ietf-interfaces-deviations.yang --flatten-keyword --flatten-type --flatten-primitive-type --flatten-flag --flatten-description --flatten-deviated --flatten-data-keywords | diff benchmarks/ietf-interfaces.all.csv -
 
+test_all_keyed:
+	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang ietf-interfaces-deviations.yang --flatten-keyword --flatten-type --flatten-primitive-type --flatten-flag --flatten-description --flatten-deviated --flatten-data-keywords --flatten-keys --flatten-keys-in-xpath | diff benchmarks/ietf-interfaces.all-keyed.csv -
+
 test_rpc_notif:
 	pyang -f flatten x.yang y.yang --flatten-keyword --flatten-data-keywords | diff benchmarks/xy.flatten.csv -
 
@@ -23,3 +26,6 @@ test_filter_primitive:
 
 test_filter_flag:
 	pyang -f flatten ietf-yang-types.yang ietf-interfaces.yang --flatten-flag --flatten-filter-flag rw | diff benchmarks/ietf-interfaces.rw.csv -
+
+test_keys:
+	pyang -f flatten ietf-yang-types.yang ietf-interfaces-multikey.yang --flatten-keys --flatten-keys-in-xpath | diff benchmarks/ietf-interfaces-multikey.keys.csv -
