@@ -2694,7 +2694,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                     err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
-                if ptr.keyword in ('augment', 'grouping'):
+                if ptr.keyword in ('augment', 'grouping', 'typedef'):
                     # don't check the path here - check in the expanded tree
                     raise Abort
                 ptr = ptr.parent
@@ -2721,7 +2721,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                 err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                         (stmt.arg, stmt.pos))
                 raise NotFound
-        if ptr.keyword in ('augment', 'grouping'):
+        if ptr.keyword in ('augment', 'grouping', 'typedef'):
             # don't check the path here - check in the expanded tree
             raise Abort
         i = 0
