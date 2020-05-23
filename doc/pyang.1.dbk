@@ -1955,6 +1955,23 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-keys</option></term>
+        <listitem>
+          <para>
+            Output whether the XPath is identified as a key.
+            <emphasis>key</emphasis> or null will be output per XPath.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keys-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with keys in path.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-deviated</option></term>
         <listitem>
           <para>

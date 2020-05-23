@@ -3252,7 +3252,7 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
 
 def mk_path_list(stmt):
     """Derives a list of tuples containing
-    (module name, prefix, xpath)
+    (module name, prefix, xpath, keys)
     per node in the statement.
     """
     resolved_names = []
@@ -3261,8 +3261,13 @@ def mk_path_list(stmt):
             resolve_stmt(stmt.parent, resolved_names)
             return
         def qualified_name_elements(stmt):
-            """(module name, prefix, name)"""
-            return (stmt.i_module.arg, stmt.i_module.i_prefix, stmt.arg)
+            """(module name, prefix, name, keys)"""
+            return (
+                stmt.i_module.arg,
+                stmt.i_module.i_prefix,
+                stmt.arg,
+                get_keys(stmt)
+            )
         if stmt.parent.keyword in ['module', 'submodule']:
             resolved_names.append(qualified_name_elements(stmt))
             return
@@ -3277,7 +3282,8 @@ def mk_path_str(stmt,
                 with_prefixes=False,
                 prefix_onchange=False,
                 prefix_to_module=False,
-                resolve_top_prefix_to_module=False):
+                resolve_top_prefix_to_module=False,
+                with_keys=False):
     """Returns the XPath path of the node.
     with_prefixes indicates whether or not to prefix every node.
 
@@ -3288,6 +3294,8 @@ def mk_path_str(stmt,
 
     resolve_top_prefix_to_module resolves the module-level prefix
       to the module name.
+    
+    with_keys will include "[key]" to indicate the key names in the XPath.
 
     Prefixes may be included in the path if the prefix changes mid-path.
     """
@@ -3295,7 +3303,7 @@ def mk_path_str(stmt,
     xpath_elements = []
     last_prefix = None
     for index, resolved_name in enumerate(resolved_names):
-        module_name, prefix, node_name = resolved_name
+        module_name, prefix, node_name, node_keys = resolved_name
         xpath_element = node_name
         if with_prefixes or (prefix_onchange and prefix != last_prefix):
             new_prefix = prefix
@@ -3303,11 +3311,14 @@ def mk_path_str(stmt,
                 (index == 0 and resolve_top_prefix_to_module)):
                 new_prefix = module_name
             xpath_element = '%s:%s' % (new_prefix, node_name)
+        if with_keys and node_keys:
+            for node_key in node_keys:
+                xpath_element = '%s[%s]' % (xpath_element, node_key)
         xpath_elements.append(xpath_element)
         last_prefix = prefix
     return '/%s' % '/'.join(xpath_elements)
 
-def get_xpath(stmt, qualified=False, prefix_to_module=False):
+def get_xpath(stmt, qualified=False, prefix_to_module=False, with_keys=False):
     """Gets the XPath path of the data node `stmt`.
 
     Unless qualified=True, does not include prefixes unless the prefix
@@ -3317,17 +3328,27 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False):
 
     prefix_to_module will resolve prefixes to module names instead.
 
+    with_keys will include "[key]" to indicate the key names in the XPath.
+
     For RFC 8040, set prefix_to_module=True:
-      /prefix1:root/node/prefix2:node/...
+      /module1:root/node/module2:node/...
 
     qualified=True:
       /prefix1:root/prefix1:node/prefix2:node/...
 
     qualified=True, prefix_to_module=True:
       /module1:root/module1:node/module2:node/...
+    
+    prefix_to_module=True, with_keys=True:
+      /module1:root/node[name][name2]/module2:node/...
     """
-    return mk_path_str(stmt, with_prefixes=qualified,
-                       prefix_onchange=True, prefix_to_module=prefix_to_module)
+    return mk_path_str(
+        stmt,
+        with_prefixes=qualified,
+        prefix_onchange=True,
+        prefix_to_module=prefix_to_module,
+        with_keys=with_keys
+    )
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
@@ -3336,6 +3357,17 @@ def get_type(stmt):
     type_obj = stmt.search_one('type')
     # Return type value if exists
     return getattr(type_obj, 'arg', None)
+
+def get_keys(stmt):
+    """Gets the key names for the node if present.
+    Returns a list of key name strings.
+    """
+    key_obj = stmt.search_one('key')
+    key_names = []
+    keys = getattr(key_obj, 'arg', None)
+    if keys:
+        key_names = keys.split()
+    return key_names
 
 def get_qualified_type(stmt):
     """Gets the qualified, top-level type of the node.
