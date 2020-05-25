@@ -107,7 +107,7 @@ error_codes = \
        'unexpected keyword "%s" under "%s", defined at %s'),
     'UNEXPECTED_KEYWORD_AUGMENT':
       (1,
-    'unexpected keyword "%s" augmented under "%s"'),
+       'unexpected keyword "%s" under "%s", defined at %s'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),
