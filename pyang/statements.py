@@ -1785,7 +1785,7 @@ def v_expand_2_augment(ctx, stmt):
                 node.i_children.append(tmp)
                 tmp.parent = node
 
-    def keyword_is_expected(pos, parent, child):
+    def is_expected_keyword(parent, child):
         if parent.keyword == '__tmp_augment__':
             return True
         if parent.keyword == 'choice' and child.keyword != 'case':
@@ -1794,10 +1794,6 @@ def v_expand_2_augment(ctx, stmt):
             (_arg_type, subspec) = grammar.stmt_map[parent.keyword]
         subspec = grammar.flatten_spec(subspec)
         if util.keysearch(child.keyword, 0, subspec) is None:
-            err_add(ctx.errors, pos, 'UNEXPECTED_KEYWORD_AUGMENT',
-                    (util.keyword_to_str(child.raw_keyword),
-                     util.keyword_to_str(parent.raw_keyword),
-                     child.pos))
             return False
         return True
 
@@ -1830,11 +1826,16 @@ def v_expand_2_augment(ctx, stmt):
                         (stmt.arg, stmt.pos, c.arg, ch.pos))
                 return
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
-            if keyword_is_expected(stmt.pos, stmt.i_target_node, c) is True:
+            if is_expected_keyword(stmt.i_target_node, c) is True:
                 # create an artificial case node for the shorthand
                 new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
                 new_case.parent = stmt.i_target_node
                 v_inherit_properties(ctx, stmt.i_target_node, new_case)
+            else:
+                err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_AUGMENT',
+                        (util.keyword_to_str(c.raw_keyword),
+                         util.keyword_to_str(stmt.i_target_node.raw_keyword),
+                         c.pos))
         elif (stmt.i_target_node.keyword not in
               ('container', 'list', 'choice', 'case', 'input',
                   'output', 'notification', '__tmp_augment__')):
@@ -1842,10 +1843,15 @@ def v_expand_2_augment(ctx, stmt):
             err_add(ctx.errors, stmt.pos, 'BAD_TARGET_NODE',
                     (nd.i_module.i_modulename, nd.arg, nd.keyword))
         else:
-            if keyword_is_expected(stmt.pos, stmt.i_target_node, c) is True:
+            if is_expected_keyword(stmt.i_target_node, c) is True:
                 stmt.i_target_node.i_children.append(c)
                 c.parent = stmt.i_target_node
                 v_inherit_properties(ctx, stmt.i_target_node, c)
+            else:
+                err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_AUGMENT',
+                        (util.keyword_to_str(c.raw_keyword),
+                         util.keyword_to_str(stmt.i_target_node.raw_keyword),
+                         c.pos))
     for s in stmt.substmts:
         if s.keyword in _copy_augment_keywords:
             stmt.i_target_node.substmts.append(s)
