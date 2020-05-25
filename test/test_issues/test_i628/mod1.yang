@@ -1,0 +1,46 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  container interfaces {
+    list ifEntry {
+      key "ifIndex";
+      leaf ifIndex {
+        type uint32;
+      }
+
+      choice nodechoice {
+        case nodecase {
+          leaf name {
+            type string;
+          }
+        }
+      }
+    }
+  }
+
+  augment "/interfaces/ifEntry/nodechoice/nodecase" {//target node is case, it is not a container or list node.
+    leaf result {
+      type string;
+    }
+    notification nodenotification {//error: unexpected keyword
+      leaf reset-at {
+        type string;
+      }
+    }
+
+    action nodeaction {//error: unexpected keyword
+      input {
+        leaf start {
+          type string;
+        }
+      }
+      output {
+        leaf finish {
+          type string;
+        }
+      }
+    }
+  }
+}
