@@ -1,0 +1,26 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  container interfaces {
+    list ifEntry {
+      key "ifIndex";
+      leaf ifIndex {
+        type uint32;
+      }
+    }
+  }
+
+  augment "/interfaces/ifEntry" {//target node is list, it is not a choice node.
+    leaf result {
+      type string;
+    }
+
+    case nodecase {//error: unexpected keyword
+      leaf test {
+        type string;
+      }
+    }
+  }
+}
