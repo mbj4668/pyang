@@ -124,6 +124,18 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the XPath with keys in path.",
             ),
             optparse.make_option(
+                "--flatten-prefix-in-xpath",
+                dest="flatten_prefix_in_xpath",
+                action="store_false",
+                help="Output the XPath with prefix in path.",
+            ),
+            optparse.make_option(
+                "--flatten-qualified-in-xpath",
+                dest="flatten_qualified_in_xpath",
+                action="store_true",
+                help="Output the XPath with qualified in path /module1:root/module1:node/module2:node/....",
+            ),
+            optparse.make_option(
                 "--flatten-deviated",
                 dest="flatten_deviated",
                 action="store_true",
@@ -267,7 +279,8 @@ class FlattenPlugin(plugin.PyangPlugin):
         output_content = {
             "xpath": statements.get_xpath(
                 child,
-                prefix_to_module=True,
+                prefix_to_module=ctx.opts.flatten_prefix_in_xpath,
+                qualified=ctx.opts.flatten_qualified_in_xpath,
                 with_keys=ctx.opts.flatten_keys_in_xpath,
             )
         }
