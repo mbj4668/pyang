@@ -126,8 +126,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             optparse.make_option(
                 "--flatten-prefix-in-xpath",
                 dest="flatten_prefix_in_xpath",
-                action="store_false",
-                help="Output the XPath with prefix in path.",
+                action="store_true",
+                help="Output the XPath with prefixes instead of modules.",
             ),
             optparse.make_option(
                 "--flatten-qualified-in-xpath",
@@ -279,7 +279,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         output_content = {
             "xpath": statements.get_xpath(
                 child,
-                prefix_to_module=ctx.opts.flatten_prefix_in_xpath,
+                prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
                 qualified=ctx.opts.flatten_qualified_in_xpath,
                 with_keys=ctx.opts.flatten_keys_in_xpath,
             )
