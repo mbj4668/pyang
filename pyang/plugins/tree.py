@@ -1,6 +1,6 @@
 """Tree output plugin
 
-Compatible with RFC 8340.
+Compatible with RFC 8340 and RFC 8791.
 
 Idea copied from libsmi.
 """
@@ -260,7 +260,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             sxs = module.search(('ietf-yang-structure-ext', 'structure'))
             if len(sxs) > 0:
                 if not printed_header:
-                    print_header()
+                    print_header(module)
                     printed_header = True
                 section_delimiter_printed = False
                 for sx in sxs:
@@ -277,7 +277,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                                  'augment-structure'))
             if len(sxs) > 0:
                 if not printed_header:
-                    print_header()
+                    print_header(module)
                     printed_header = True
                 section_delimiter_printed = False
                 for sx in sxs:

@@ -1854,6 +1854,17 @@ $ osascript foo.scpt</screen>
       </varlistentry>
       <varlistentry>
         <term>
+          <option>--tree-print-structures</option>
+        </term>
+        <listitem>
+          <para>
+            Print the ietf-yang-structure-ext:structure structures
+            defined in the module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
           <option>--tree-print-yang-data</option>
         </term>
         <listitem>

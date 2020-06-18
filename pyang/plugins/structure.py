@@ -1,7 +1,7 @@
 """YANG structure plugin
 
 Verifies the grammar of the structure extension statements,
-as defined in draft-ietf-netmod-yang-data-ext
+as defined in RFC 8791.
 """
 
 import pyang
