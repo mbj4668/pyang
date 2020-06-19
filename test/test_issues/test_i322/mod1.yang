@@ -66,4 +66,11 @@ module mod1 {
     }
     default "aabbc";
   }
+
+  leaf goodpattern {
+    type string {
+      pattern "[\\w]+";
+    }
+    default "Tom_and_Jerry"; // \w should be able to match underline(_)
+  }
 }

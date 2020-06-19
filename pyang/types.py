@@ -2,6 +2,7 @@
 
 import base64
 import lxml.etree
+import re
 
 from . import util
 from . import syntax
@@ -609,7 +610,11 @@ class XSDPattern(object):
         if self.schema is None:
             return None
         self._avalue.text = value
-        return self.schema.validate(self._avalue) is not self.invert_match
+        result = re.match(self.spec, value)
+        if (result is not None and result.span()[0] == 0 and
+                result.span()[1] == len(value)):
+            return not self.invert_match
+        return self.invert_match
 
     def __str__(self):
         return self.spec
