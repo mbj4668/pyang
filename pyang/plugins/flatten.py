@@ -22,6 +22,10 @@ Arguments
     Output whether the XPath is identified as a key.
 --flatten-keys-in-xpath
     Output the XPath with keys in path.
+--flatten-prefix-in-xpath
+    Output the XPath with prefixes instead of modules.
+--flatten-qualified-in-xpath
+    Output the qualified XPath i.e. /module1:root/module1:node/module2:node/...
 --flatten-deviated
     Output deviated nodes in the schema as well.
 --flatten-data-keywords
@@ -122,6 +126,18 @@ class FlattenPlugin(plugin.PyangPlugin):
                 dest="flatten_keys_in_xpath",
                 action="store_true",
                 help="Output the XPath with keys in path.",
+            ),
+            optparse.make_option(
+                "--flatten-prefix-in-xpath",
+                dest="flatten_prefix_in_xpath",
+                action="store_true",
+                help="Output the XPath with prefixes instead of modules.",
+            ),
+            optparse.make_option(
+                "--flatten-qualified-in-xpath",
+                dest="flatten_qualified_in_xpath",
+                action="store_true",
+                help="Output the XPath with qualified in path /module1:root/module1:node/module2:node/...",
             ),
             optparse.make_option(
                 "--flatten-deviated",
@@ -267,7 +283,8 @@ class FlattenPlugin(plugin.PyangPlugin):
         output_content = {
             "xpath": statements.get_xpath(
                 child,
-                prefix_to_module=True,
+                prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+                qualified=ctx.opts.flatten_qualified_in_xpath,
                 with_keys=ctx.opts.flatten_keys_in_xpath,
             )
         }

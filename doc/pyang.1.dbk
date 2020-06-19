@@ -1983,6 +1983,22 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-prefix-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with prefixes instead of modules.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-qualified-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the qualified XPath i.e. /module1:root/module1:node/module2:node/...
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-deviated</option></term>
         <listitem>
           <para>
