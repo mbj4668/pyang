@@ -309,6 +309,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     if o.hello:
         ctx.capabilities = hel.registered_capabilities()
+        modules_missing = False
         for mn, rev in hel.yang_modules():
             mod = ctx.search_module(error.Position(''), mn, rev)
             if mod is None:
@@ -317,8 +318,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                     emarg += "@" + rev
                 sys.stderr.write(
                     "module '%s' specified in hello not found.\n" % emarg)
-                sys.exit(1)
-            modules.append(mod)
+                modules_missing = True
+            else:
+                modules.append(mod)
+        if modules_missing is True:
+            sys.exit(1)
     else:
         if len(filenames) == 0:
             text = sys.stdin.read()
