@@ -45,7 +45,7 @@ class JSTreePlugin(plugin.PyangPlugin):
         emit_header(modules, fd, ctx)
         emit_css(fd, ctx)
         emit_js(fd, ctx)
-        emit_bodystart(modules,fd, ctx)
+        emit_bodystart(modules, fd, ctx)
         emit_tree(modules, fd, ctx, path)
         emit_footer(fd, ctx)
 
@@ -283,7 +283,7 @@ def emit_tree(modules, fd, ctx, path):
         # html plugin specific changes
         if hasattr(ctx, 'html_plugin_user'):
             from pyang.plugins.html import force_link
-            temp_mod_arg = force_link(ctx,module,module)
+            temp_mod_arg = force_link(ctx, module, module)
 
         levelcnt[1] += 1
         chs = [ch for ch in module.i_children
@@ -384,7 +384,7 @@ def print_node(s, module, fd, prefix, path, ctx, level=0):
     if descr is not None:
         descrstring = descr.arg
     flags = get_flags_str(s)
-    if s.keyword == 'list':
+    if s.keyword in ('list', 'input', 'output', 'rpc', 'notification', 'action'):
         folder = True
     elif s.keyword == 'container':
         folder = True
@@ -404,14 +404,6 @@ def print_node(s, module, fd, prefix, path, ctx, level=0):
         folder = True
         # fd.write(':(' + s.arg + ')')
         name = ':(' + s.arg + ')'
-    elif s.keyword == 'input':
-        folder = True
-    elif s.keyword == 'output':
-        folder = True
-    elif s.keyword == 'rpc':
-        folder = True
-    elif s.keyword == 'notification':
-        folder = True
     else:
         if s.keyword == 'leaf-list':
             options = '*'
@@ -444,73 +436,59 @@ def print_node(s, module, fd, prefix, path, ctx, level=0):
         fontendtag = "</em>"
     keyword = s.keyword
 
+    type_html_info = ""
+    attr_html_info = ""
+    element_htmnl_info = ""
     if folder:
-        # html plugin specific changes
         if hasattr(ctx, 'html_plugin_user'):
             from pyang.plugins.html import force_link
-            name = force_link(ctx,s,module,name)
-        fd.write("""<tr id="%s" class="a">
-                       <td nowrap id="p4000">
-                          <div id="p5000" class="tier%s">
-                             <a href="#" id="p6000"
-                                onclick="toggleRows(this);return false"
-                                class="folder">&nbsp;
-                             </a>
-                             <abbr title="%s">%s</abbr>
-                          </div>
-                       </td> \n""" %(idstring, level, descrstring, name))
-        fd.write("""<td nowrap>%s</td>
-                    <td nowrap>%s</td>
-                    <td nowrap>%s</td>
-                    <td>%s</td>
-                    <td>%s</td>
-                    <td nowrap>%s</td>
-                    </tr> \n""" %(s.keyword,
-                                  nodetype,
-                                  flags,
-                                  options,
-                                  status,
-                                  pathstr))
-    else:
-        if s.keyword in ['action', ('tailf-common', 'action')]:
-            classstring = "action"
-            typeinfo = action_params(s)
-            typename = "parameters"
-            keyword = "action"
-        elif s.keyword == 'rpc' or s.keyword == 'notification':
-            classstring = "folder"
-            typeinfo = action_params(s)
-            typename = "parameters"
+            name = force_link(ctx, s, module, name)
+        attr_html_info = """<abbr title="%s">%s</abbr>""" % (descrstring, name)
+        classstring = s.keyword
+        if s.keyword in ('action', 'rpc', 'notification'):
+            type_html_info = """<td nowrap><abbr title="%s">%s</abbr></td>
+                             """ % (action_params(s), "parameters")
         else:
+            type_html_info = """<td nowrap>%s</td>""" % (nodetype)
+        element_html_info = """
+            <td nowrap id="p4000">
+               <div id="p5000" class="tier%s">
+                 <a href="#" id="p6000"
+                    onclick="toggleRows(this);return false"
+                    class="%s">&nbsp;
+                 </a>
+                 %s
+              </div>
+            </td>""" % (level, "folder", attr_html_info)
+    else:
+        attr_html_info = """<attr title="%s"> %s %s %s</abbr>
+            """ % (descrstring, fontstarttag, name, fontendtag)
+        if s.keyword == ('tailf-common', 'action'):
+            type_html_info = """<td nowrap><abbr title="%s">%s</abbr></td>
+                """ % (action_params(s), "parameters")
+            classstring = "action"
+        else:
+            type_html_info = """<td nowrap><abbr title="%s">%s</abbr></td>
+                """ % (typestring(s), nodetype)
             classstring = s.keyword
-            typeinfo = typestring(s)
-            typename = nodetype
-        fd.write("""<tr id="%s" class="a">
-                       <td nowrap>
-                          <div id=9999 class=tier%s>
-                             <a class="%s">&nbsp;</a>
-                             <abbr title="%s"> %s %s %s</abbr>
-                          </div>
-                       </td>
-                       <td>%s</td>
-                       <td nowrap><abbr title="%s">%s</abbr></td>
-                       <td nowrap>%s</td>
-                       <td>%s</td>
-                       <td>%s</td>
-                       <td nowrap>%s</td</tr> \n""" %(idstring,
-                                                      level,
-                                                      classstring,
-                                                      descrstring,
-                                                      fontstarttag,
-                                                      name,
-                                                      fontendtag,
-                                                      keyword,
-                                                      typeinfo,
-                                                      typename,
-                                                      flags,
-                                                      options,
-                                                      status,
-                                                      pathstr))
+        element_html_info = """
+            <td nowrap>
+               <div id=9999 class=tier%s>
+                  <a class="%s">&nbsp;</a>
+                  %s
+               </div>
+            </td> """ % (level, classstring, attr_html_info)
+    fd.write("""
+        <tr id="%s" class="a">
+        %s
+        <td nowrap>%s</td>
+        %s
+        <td nowrap>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td nowrap>%s</td>
+        </tr>""" % (idstring, element_html_info, classstring, type_html_info,
+                    flags, options, status, pathstr))
 
     if hasattr(s, 'i_children'):
         level += 1
@@ -643,7 +621,7 @@ def action_params(action):
             outputs += params.search('anyxml')
             outputs += params.search('uses')
             for o in outputs:
-                s += ' out: ' + o.arg + "\n"
+                s += 'out: ' + o.arg + "\n"
     return s
 
 def get_folder_css():
