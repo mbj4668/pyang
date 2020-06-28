@@ -1,3 +1,45 @@
+* 2.3.0 - 2020-06-28
+
+'''
+         add structure support (RFC8791)
+
+         pr:639 - output all missing hello modules then exit
+                  thanks to Remington Campbell
+         pr:632 - add option --flatten-qualified-in-xpath --flatten-prefix-in-xpath to flatten plugin
+                  thanks to @Huanghao1975
+         pr:623 - add option to output keys in flatten plugin
+                  thanks to Remington Campbell
+         pr:585 - validation improvements
+                  thanks to @mirolos
+         pr:579 - add documentation of the 'edit' transform
+                  thanks to William Lupton
+
+         #638 - fix jstree crash with choice node and adjust action node style to the same with rpc
+         #628 - fix unexpected keyword used within the augment statement
+                thanks to Jie Zhang
+         #626 - fix the incorrent counts of '..' in path
+         #621 - correct check_update for implicit default check
+                thanks to Paul Merlo
+         #620 - the single and double quotes are inconsistent due to the spaces
+         #615 - deviate add should be able to add default statement to leaf-list node
+         #606 - fix 'current' node wrongly referenced to a 'deprecated' definition
+         #603 - fix action statements wrongly defined within an action/rpc/notification node
+         #602 - fix mandatory nodes directly under the default case
+         #601 - fix wrongly reject substring function with 2arguments
+         #599 - fix crash when input defined in anydata node
+         #597 - fix the target node of augment statment being action node
+         #596 - fix default value in leaf-list node marked with an if-feature statement
+         #594 - validate the value of position in 'bit' statements
+         #592 - check illegal range and length restrictions correctly
+         #587 - fix regular expression '\w' cannot recognize underline('_')
+         #564 - validate the value of min-elements and max-elements
+         #583 - the default value in leaf node should not be marked with an if-feature statements
+         #581 - move code out of package init
+                thanks to @ptlm
+         #219 - deviation replace/add config should check the target node's config
+                thanks to Fred Gan
+'''
+
 * 2.2.1 - 2020-03-06
 
 ```
