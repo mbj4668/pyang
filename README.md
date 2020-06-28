@@ -71,14 +71,15 @@ source ./env.sh
 
 pyang is compatible with the following IETF RFCs:
 
-  * [RFC 6020: YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)](http://tools.ietf.org/html/rfc6020)
-  * [RFC 6087: Guidelines for Authors and Reviewers of YANG Data Model Documents](http://tools.ietf.org/html/rfc6087)
-  * [RFC 6110: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content](http://tools.ietf.org/html/rfc6110)
-  * [RFC 6643: Translation of Structure of Management Information Version 2 (SMIv2) MIB Modules to YANG Modules](http://tools.ietf.org/html/rfc6643)
-  * [RFC 7950: The YANG 1.1 Data Modeling Languages](http://tools.ietf.org/html/rfc7950)
-  * [RFC 7952: Defining and Using Metadata with YANGs](http://tools.ietf.org/html/rfc7952)
-  * [RFC 8040: RESTCONF Protocols](http://tools.ietf.org/html/rfc8040)
-  * [RFC 8407: Guidelines for Authors and Reviewers of Documents Containing YANG Data Models](http://tools.ietf.org/html/rfc8407)
+  * [RFC 6020: YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)](https://tools.ietf.org/html/rfc6020)
+  * [RFC 6087: Guidelines for Authors and Reviewers of YANG Data Model Documents](https://tools.ietf.org/html/rfc6087)
+  * [RFC 6110: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content](https://tools.ietf.org/html/rfc6110)
+  * [RFC 6643: Translation of Structure of Management Information Version 2 (SMIv2) MIB Modules to YANG Modules](https://tools.ietf.org/html/rfc6643)
+  * [RFC 7950: The YANG 1.1 Data Modeling Languages](https://tools.ietf.org/html/rfc7950)
+  * [RFC 7952: Defining and Using Metadata with YANGs](https://tools.ietf.org/html/rfc7952)
+  * [RFC 8040: RESTCONF Protocols](https://tools.ietf.org/html/rfc8040)
+  * [RFC 8407: Guidelines for Authors and Reviewers of Documents Containing YANG Data Models](https://tools.ietf.org/html/rfc8407)
+  * [RFC 8791: YANG Data Structure Extensions](https://tools.ietf.org/html/rfc8791)
 
 ## Features ##
 
@@ -128,7 +129,7 @@ man pyang
 * **pyang/context.py**
   Defines the Context class, which represents a parsing session
 
-* **pyang/repository.py***
+* **pyang/repository.py**
   Defines the Repository class, which is used to access modules.
 
 * **pyang/syntax.py**
