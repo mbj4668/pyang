@@ -18,10 +18,10 @@ class TypeSpec(object):
         self.base = None
 
     def str_to_val(self, errors, pos, string, module):
-        return string;
+        return string
 
     def validate(self, errors, pos, val, module, errstr=''):
-        return True;
+        return True
 
     def restrictions(self):
         return []
@@ -328,12 +328,15 @@ def validate_ranges(errors, pos, ranges, type_):
     cur_lo = None
     for lo, hi in ranges:
         if isinstance(type_.i_type_spec, RangeTypeSpec):
-            type_.i_type_spec.validate(errors, pos, (lo, hi), None)
+            type_.i_type_spec.validate(errors, pos, (lo, hi),
+                                       type_.i_module, "")
         else:
             if lo is not None and lo != 'min' and lo != 'max':
-                type_.i_type_spec.validate(errors, pos, lo, None)
+                type_.i_type_spec.validate(errors, pos, lo,
+                                           type_.i_module, "")
             if hi is not None and hi != 'min' and hi != 'max':
-                type_.i_type_spec.validate(errors, pos, hi, None)
+                type_.i_type_spec.validate(errors, pos, hi,
+                                           type_.i_module, "")
         # check that cur_lo < lo < hi
         if not is_smaller(cur_lo, lo):
             err_add(errors, pos, 'RANGE_BOUNDS', (str(lo), cur_lo))
@@ -668,7 +671,7 @@ def validate_enums(errors, enums, stmt):
     for e in enums:
         # for derived enumerations, make sure the enum is defined
         # in the base
-        stmt.i_type_spec.validate(errors, e.pos, e.arg, None)
+        stmt.i_type_spec.validate(errors, e.pos, e.arg, stmt.i_module, "")
         e.i_value = None
         value = e.search_one('value')
         if value is not None:
@@ -749,7 +752,7 @@ def validate_bits(errors, bits, stmt):
     for b in bits:
         # for derived bits, make sure the bit is defined
         # in the base
-        stmt.i_type_spec.validate(errors, b.pos, [b.arg], None)
+        stmt.i_type_spec.validate(errors, b.pos, [b.arg], stmt.i_module, "")
         position = b.search_one('position')
         if position is not None:
             try:
