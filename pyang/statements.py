@@ -743,7 +743,7 @@ def v_type_typedef(ctx, stmt):
         stmt.i_default = type_.i_typedef.i_default
         stmt.i_default_str = type_.i_typedef.i_default_str
         type_.i_type_spec.validate(ctx.errors, stmt.pos,
-                                   stmt.i_default,
+                                   stmt.i_default, stmt.i_module,
                                    ' for the inherited default value ')
     elif (default is not None and
           default.arg is not None and
@@ -755,7 +755,7 @@ def v_type_typedef(ctx, stmt):
         stmt.i_default_str = default.arg
         if stmt.i_default is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       stmt.i_default,
+                                       stmt.i_default, stmt.i_module,
                                        ' for the default value')
 
 def v_type_type(ctx, stmt):
@@ -1012,7 +1012,8 @@ def v_type_leaf(ctx, stmt):
         stmt.i_default_str = default.arg
         if defval is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       defval, ' for the default value')
+                                       defval, stmt.i_module,
+                                       ' for the default value')
     elif (default is None and
           type_.i_typedef is not None and
           getattr(type_.i_typedef, 'i_default', None) is not None):
@@ -1021,7 +1022,7 @@ def v_type_leaf(ctx, stmt):
         # validate the type's default value with our new restrictions
         if type_.i_type_spec is not None:
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
-                                       stmt.i_default,
+                                       stmt.i_default, stmt.i_module,
                                        ' for the default  value')
 
     v_check_default(ctx, type_, stmt.i_default)
@@ -1047,7 +1048,8 @@ def v_type_leaf_list(ctx, stmt):
             if defval is not None:
                 stmt.i_default.append(defval)
                 type_.i_type_spec.validate(ctx.errors, default.pos,
-                                           defval, ' for the default value')
+                                           defval, stmt.i_module,
+                                           ' for the default value')
 
     min_value = stmt.search_one('min-elements')
     max_value = stmt.search_one('max-elements')
@@ -1073,6 +1075,7 @@ def v_type_leaf_list(ctx, stmt):
         if type_.i_type_spec is not None:
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
                                        type_.i_typedef.i_default,
+                                       stmt.i_module,
                                        ' for the default  value')
     for s in stmt.i_default:
         v_check_default(ctx, type_, s)
@@ -1481,7 +1484,8 @@ def v_default(ctx, target, default):
         target.i_default_str = default.arg
         if defval is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       defval, ' for the default value')
+                                       defval, target.i_module,
+                                       ' for the default value')
 
 def v_expand_1_uses(ctx, stmt):
     if getattr(stmt, 'is_grammatically_valid', None) is False:
