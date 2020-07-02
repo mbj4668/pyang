@@ -326,7 +326,6 @@ _singleton_keywords = {
     'type':True,
     'units':True,
     'default':True,
-    'config':True,
     'mandatory':True,
     'min-elements':True,
     'max-elements':True
@@ -2230,23 +2229,10 @@ def v_reference_deviate(ctx, stmt):
                 continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
-                # with a default, all nodes has a config property.
-                config = t.search_one(c.keyword)
-                if config is None:
-                    if c.arg == 'true':
-                        if (t.parent is None
-                            or t.parent.i_config is True):
-                            t.substmts.append(c)
-                        else:
-                            err_add(ctx.errors, c.pos,
-                                    'INVALID_CONFIG', ())
-                            continue
-                    else:
-                        if not search_children_config_true(t, t):
-                            t.substmts.append(c)
-                else:
-                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
-                            (c.keyword, t.i_module.arg, t.arg))
+                # with a default, all nodes has a config property. this
+                # means that it can only be placed.
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
+                        (c.keyword, t.i_module.arg, t.arg))
 
             elif c.keyword in _singleton_keywords:
                 if t.search_one(c.keyword) is not None:
@@ -2296,15 +2282,19 @@ def v_reference_deviate(ctx, stmt):
                     negc = copy.copy(old)
                     old.arg = c.arg
                 else:
-                    err_add(ctx.errors, t.pos, 'BAD_DEVIATE_REP',
-                            (c.keyword, t.i_module.arg, t.arg))
-                    continue
+                    # use the t.i_config when the target node doesn't exist
+                    # config statement.
+                    negc = copy.copy(c)
+                    negc.arg = 'true' if t.i_config is True else 'false'
 
                 if c.arg == 'true':
                     if negc.arg != c.arg:
                         if (t.parent is not None
                             and t.parent.i_config is False):
-                            old.arg = negc.arg
+                            # recover the target node config value when it
+                            # doesn't meet the spec
+                            if old is not None:
+                                old.arg = negc.arg
                             err_add(ctx.errors, c.pos,
                                     'INVALID_CONFIG', ())
                             continue
@@ -2312,7 +2302,10 @@ def v_reference_deviate(ctx, stmt):
                             t.i_config = True
                 else:
                     if search_children_config_true(t, t):
-                        old.arg = negc.arg
+                        # recover the target node config value when it
+                        # doesn't meet the spec
+                        if old is not None:
+                            old.arg = negc.arg
                         continue
                     else:
                         t.i_config = False
@@ -2339,7 +2332,7 @@ def v_reference_deviate(ctx, stmt):
         for c in stmt.substmts:
             if c.keyword == '_comment':
                 continue
-            if c.keyword in _singleton_keywords:
+            if c.keyword in _singleton_keywords or c.keyword == 'config':
                 if c.keyword in _deviate_delete_singleton_keywords:
                     old = t.search_one(c.keyword)
                 else:
