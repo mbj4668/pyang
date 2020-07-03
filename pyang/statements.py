@@ -326,7 +326,6 @@ _singleton_keywords = {
     'type':True,
     'units':True,
     'default':True,
-    'config':True,
     'mandatory':True,
     'min-elements':True,
     'max-elements':True
@@ -2321,9 +2320,8 @@ def v_reference_deviate(ctx, stmt):
             else:
                 old = t.search_one(c.keyword, c.arg)
             if old is None:
-                if c.keyword != 'config':
-                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_REP',
-                            (c.keyword, t.i_module.arg, t.arg))
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_REP',
+                        (c.keyword, t.i_module.arg, t.arg))
             else:
                 idx = t.substmts.index(old)
                 del t.substmts[idx]
@@ -2338,7 +2336,7 @@ def v_reference_deviate(ctx, stmt):
         for c in stmt.substmts:
             if c.keyword == '_comment':
                 continue
-            if c.keyword in _singleton_keywords:
+            if c.keyword in _singleton_keywords or c.keyword == 'config':
                 if c.keyword in _deviate_delete_singleton_keywords:
                     old = t.search_one(c.keyword)
                 else:
