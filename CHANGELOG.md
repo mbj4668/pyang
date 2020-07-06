@@ -1,3 +1,10 @@
+* 2.3.2 - 2020-07-06
+
+'''
+         #646 - config false deviation fix
+         #587 - revert fix for #587; use xml schema regexp engine again
+'''
+
 * 2.3.1 - 2020-06-29
 
 '''
