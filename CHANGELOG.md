@@ -1,19 +1,19 @@
 * 2.3.2 - 2020-07-06
 
-'''
+```
          #646 - config false deviation fix
          #587 - revert fix for #587; use xml schema regexp engine again
-'''
+```
 
 * 2.3.1 - 2020-06-29
 
-'''
+```
          Update Version Number
-'''
+```
 
 * 2.3.0 - 2020-06-28
 
-'''
+```
          add structure support (RFC8791)
 
          pr:639 - output all missing hello modules then exit
@@ -51,7 +51,7 @@
                 thanks to @ptlm
          #219 - deviation replace/add config should check the target node's config
                 thanks to Fred Gan
-'''
+```
 
 * 2.2.1 - 2020-03-06
 
