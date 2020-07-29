@@ -1999,6 +1999,15 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-qualified-module-and-prefix-path</option></term>
+        <listitem>
+          <para>
+            Output an XPath with both module and prefix i.e. /module1:prefix1:root/...
+            This is <emphasis>NOT</emphasis> a colloquial syntax of XPath. Emitted separately.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-deviated</option></term>
         <listitem>
           <para>
