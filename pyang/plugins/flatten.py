@@ -146,7 +146,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-qualified-module-and-prefix-path",
                 dest="flatten_qualified_module_and_prefix_path",
                 action="store_true",
-                help="Output an XPath with both module and prefix i.e. /module1:prefix1:root/..."
+                help="Output an XPath with both module and prefix i.e. /module1:prefix1:root/...",
             ),
             optparse.make_option(
                 "--flatten-deviated",
@@ -340,7 +340,9 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_deviated:
             output_content["deviated"] = "deviated" if deviated else "present"
         if ctx.opts.flatten_qualified_module_and_prefix_path:
-            output_content["mod_prefix_path"] = self.get_mod_prefix_path(child, ctx.opts.flatten_keys_in_xpath)
+            output_content["mod_prefix_path"] = self.get_mod_prefix_path(
+                child, ctx.opts.flatten_keys_in_xpath
+            )
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
@@ -393,8 +395,7 @@ class FlattenPlugin(plugin.PyangPlugin):
             #    statements.get_xpath(node, prefix_to_module=True))
             return "ro", None
 
-    def get_mod_prefix_path(self, stmt,
-                    with_keys=False):
+    def get_mod_prefix_path(self, stmt, with_keys=False):
         """Duplicate statements.mk_path_str,
         but output module and prefix both in path.
         """
@@ -402,9 +403,9 @@ class FlattenPlugin(plugin.PyangPlugin):
         xpath_elements = []
         for index, resolved_name in enumerate(resolved_names):
             module_name, prefix, node_name, node_keys = resolved_name
-            xpath_element = '%s:%s:%s' % (module_name, prefix, node_name)
+            xpath_element = "%s:%s:%s" % (module_name, prefix, node_name)
             if with_keys and node_keys:
                 for node_key in node_keys:
-                    xpath_element = '%s[%s]' % (xpath_element, node_key)
+                    xpath_element = "%s[%s]" % (xpath_element, node_key)
             xpath_elements.append(xpath_element)
-        return '/%s' % '/'.join(xpath_elements)
+        return "/%s" % "/".join(xpath_elements)
