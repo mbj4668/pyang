@@ -235,10 +235,21 @@ class FlattenPlugin(plugin.PyangPlugin):
         override_flag=None,
         known_keys=None,
     ):
-        module_children = (
+        module_children = [
             child
             for child in getattr(module, "i_children", [])
             if child.keyword in self.__keywords
+        ]
+        if ctx.opts.flatten_deviated:
+            deviated_module_children = [
+                child
+                for child in getattr(module, "i_not_supported", [])
+                if child.keyword in self.__keywords
+            ]
+            module_children = module_children + deviated_module_children
+        module_children = sorted(
+            module_children,
+            key=lambda child: child.arg
         )
         for child in module_children:
             self.output_child(
@@ -249,23 +260,6 @@ class FlattenPlugin(plugin.PyangPlugin):
                 override_flag,
                 known_keys,
             )
-        # If we are flattening deviations, need to traverse
-        # deviated tree as well.
-        if ctx.opts.flatten_deviated:
-            deviated_module_children = (
-                child
-                for child in getattr(module, "i_not_supported", [])
-                if child.keyword in self.__keywords
-            )
-            for child in deviated_module_children:
-                self.output_child(
-                    ctx,
-                    child,
-                    output_writer,
-                    parent_deviated,
-                    override_flag,
-                    known_keys,
-                )
 
     def output_child(
         self,
