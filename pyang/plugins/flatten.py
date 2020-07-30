@@ -249,7 +249,7 @@ class FlattenPlugin(plugin.PyangPlugin):
             module_children = module_children + deviated_module_children
         module_children = sorted(
             module_children,
-            key=lambda child: child.arg
+            key=lambda child: statements.get_xpath(child, prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath), qualified=ctx.opts.flatten_qualified_in_xpath)
         )
         for child in module_children:
             self.output_child(

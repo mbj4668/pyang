@@ -4,11 +4,11 @@ xpath
 /ietf-interfaces:interfaces/interface/admin-status
 /ietf-interfaces:interfaces/interface/description
 /ietf-interfaces:interfaces/interface/enabled
+/ietf-interfaces:interfaces/interface/higher-layer-if
+/ietf-interfaces:interfaces/interface/if-index
 /ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters
 /ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/extended-parameter
 /ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/leafref-parameter
-/ietf-interfaces:interfaces/interface/higher-layer-if
-/ietf-interfaces:interfaces/interface/if-index
 /ietf-interfaces:interfaces/interface/last-change
 /ietf-interfaces:interfaces/interface/link-up-down-trap-enable
 /ietf-interfaces:interfaces/interface/lower-layer-if

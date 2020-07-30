@@ -40,13 +40,13 @@ has been initialized, as described in RFC 2863.
 
 Changes in this leaf in the intended configuration are
 reflected in ifAdminStatus.",,present
-/ietf-interfaces:interfaces/interface[name]/interfaces-ext:extended-parameters,container,nil,rw,nil,,,present
-/ietf-interfaces:interfaces/interface[name]/interfaces-ext:extended-parameters/extended-parameter,leaf,string,rw,string,An extra parameter,,present
-/ietf-interfaces:interfaces/interface[name]/interfaces-ext:extended-parameters/leafref-parameter,leaf,leafref,rw,leafref,An example leafref,,present
 /ietf-interfaces:interfaces/interface[name]/higher-layer-if,leaf-list,leafref,ro,ietf-interfaces:interface-ref,"A list of references to interfaces layered on top of this
 interface.",,present
 /ietf-interfaces:interfaces/interface[name]/if-index,leaf,int32,ro,int32,"The ifIndex value for the ifEntry represented by this
 interface.",,present
+/ietf-interfaces:interfaces/interface[name]/interfaces-ext:extended-parameters,container,nil,rw,nil,,,present
+/ietf-interfaces:interfaces/interface[name]/interfaces-ext:extended-parameters/extended-parameter,leaf,string,rw,string,An extra parameter,,present
+/ietf-interfaces:interfaces/interface[name]/interfaces-ext:extended-parameters/leafref-parameter,leaf,leafref,rw,leafref,An example leafref,,present
 /ietf-interfaces:interfaces/interface[name]/last-change,leaf,string,ro,ietf-yang-types:date-and-time,"The time the interface entered its current operational
 state.  If the current state was entered prior to the
 last re-initialization of the local network management
