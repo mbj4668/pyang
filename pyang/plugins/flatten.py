@@ -234,7 +234,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         )
         if not ctx.opts.flatten_no_header:
             output_writer.writeheader()
-        for module in modules:
+        for module in sorted(modules, key=lambda m: m.arg):
             self.output_module(ctx, module, output_writer)
 
     def output_module(
