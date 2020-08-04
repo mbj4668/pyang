@@ -49,6 +49,8 @@ Arguments
     ["excel", "excel-tab", "unix"]
 --flatten-ignore-no-primitive
     Ignore error if primitive is missing.
+--flatten-resolve-leafref
+    Output the XPath of the leafref target.
 
 Examples
 --------
@@ -194,6 +196,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Ignore error if primitive is missing.",
                 action="store_true",
             ),
+            optparse.make_option(
+                "--flatten-resolve-leafref",
+                dest="flatten_resolve_leafref",
+                help="Output the XPath of the leafref target.",
+                action="store_true",
+            ),
         ]
         g = optparser.add_option_group("Flatten output specific options")
         g.add_options(optlist)
@@ -217,6 +225,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("deviated")
         if ctx.opts.flatten_qualified_module_and_prefix_path:
             self.__field_names.append("mod_prefix_path")
+        if ctx.opts.flatten_resolve_leafref:
+            self.__field_names.append("resolved_leafref")
         self.__field_names_set = set(self.__field_names)
         # Slipping input and output into data keywords
         # rpc input/output may have children - we want to traverse them.
@@ -341,6 +351,16 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["mod_prefix_path"] = self.get_mod_prefix_path(
                 child, ctx.opts.flatten_keys_in_xpath
             )
+        if ctx.opts.flatten_resolve_leafref:
+            if primitive_type == "leafref":
+                output_content["resolved_leafref"] = statements.get_xpath(
+                    child.i_leafref.i_target_node,
+                    prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+                    qualified=ctx.opts.flatten_qualified_in_xpath,
+                    with_keys=ctx.opts.flatten_keys_in_xpath,
+                )
+            else:
+                output_content["resolved_leafref"] = None
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
