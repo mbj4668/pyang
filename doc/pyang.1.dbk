@@ -2086,6 +2086,14 @@ $ osascript foo.scpt</screen>
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-resolve-leafref</option></term>
+        <listitem>
+          <para>
+            Output the XPath of the leafref target.
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
