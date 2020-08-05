@@ -2086,6 +2086,14 @@ $ osascript foo.scpt</screen>
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-status</option></term>
+        <listitem>
+          <para>
+            Output the status statement value.
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
