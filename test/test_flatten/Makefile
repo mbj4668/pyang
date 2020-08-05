@@ -41,3 +41,6 @@ test_qualified_xpath:
 
 test_mod_prefix_keyed:
 	pyang -f flatten --flatten-qualified-module-and-prefix-path --flatten-keys-in-xpath ietf-interfaces-multikey.yang | diff benchmarks/ietf-interfaces-multikey.all-keyed-mod-prefix.csv -
+
+test_status:
+	pyang -f flatten --flatten-status ietf-interfaces.yang interfaces-ext.yang ietf-yang-types.yang | diff benchmarks/ietf-interfaces.status.csv -
