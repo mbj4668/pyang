@@ -44,3 +44,6 @@ test_mod_prefix_keyed:
 
 test_status:
 	pyang -f flatten --flatten-status ietf-interfaces.yang interfaces-ext.yang ietf-yang-types.yang | diff benchmarks/ietf-interfaces.status.csv -
+
+test_resolve_leafref:
+	pyang -f flatten --flatten-resolve-leafref ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.leafref.csv -

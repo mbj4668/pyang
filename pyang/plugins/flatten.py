@@ -51,6 +51,8 @@ Arguments
     Ignore error if primitive is missing.
 --flatten-status
     Output the status statement value.
+--flatten-resolve-leafref
+    Output the XPath of the leafref target.
 
 Examples
 --------
@@ -202,6 +204,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the status statement value.",
                 action="store_true",
             ),
+            optparse.make_option(
+                "--flatten-resolve-leafref",
+                dest="flatten_resolve_leafref",
+                help="Output the XPath of the leafref target.",
+                action="store_true",
+            ),
         ]
         g = optparser.add_option_group("Flatten output specific options")
         g.add_options(optlist)
@@ -227,6 +235,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("mod_prefix_path")
         if ctx.opts.flatten_status:
             self.__field_names.append("status")
+        if ctx.opts.flatten_resolve_leafref:
+            self.__field_names.append("resolved_leafref")
         self.__field_names_set = set(self.__field_names)
         # Slipping input and output into data keywords
         # rpc input/output may have children - we want to traverse them.
@@ -244,7 +254,7 @@ class FlattenPlugin(plugin.PyangPlugin):
         )
         if not ctx.opts.flatten_no_header:
             output_writer.writeheader()
-        for module in modules:
+        for module in sorted(modules, key=lambda m: m.arg):
             self.output_module(ctx, module, output_writer)
 
     def output_module(
@@ -358,6 +368,16 @@ class FlattenPlugin(plugin.PyangPlugin):
             if status_statement is not None:
                 status = status_statement.arg
             output_content["status"] = status
+        if ctx.opts.flatten_resolve_leafref:
+            if primitive_type == "leafref":
+                output_content["resolved_leafref"] = statements.get_xpath(
+                    child.i_leafref.i_target_node,
+                    prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+                    qualified=ctx.opts.flatten_qualified_in_xpath,
+                    with_keys=ctx.opts.flatten_keys_in_xpath,
+                )
+            else:
+                output_content["resolved_leafref"] = None
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
