@@ -49,6 +49,8 @@ Arguments
     ["excel", "excel-tab", "unix"]
 --flatten-ignore-no-primitive
     Ignore error if primitive is missing.
+--flatten-status
+    Output the status statement value.
 --flatten-resolve-leafref
     Output the XPath of the leafref target.
 
@@ -197,6 +199,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 action="store_true",
             ),
             optparse.make_option(
+                "--flatten-status",
+                dest="flatten_status",
+                help="Output the status statement value.",
+                action="store_true",
+            ),
+            optparse.make_option(
                 "--flatten-resolve-leafref",
                 dest="flatten_resolve_leafref",
                 help="Output the XPath of the leafref target.",
@@ -225,6 +233,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("deviated")
         if ctx.opts.flatten_qualified_module_and_prefix_path:
             self.__field_names.append("mod_prefix_path")
+        if ctx.opts.flatten_status:
+            self.__field_names.append("status")
         if ctx.opts.flatten_resolve_leafref:
             self.__field_names.append("resolved_leafref")
         self.__field_names_set = set(self.__field_names)
@@ -351,6 +361,13 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["mod_prefix_path"] = self.get_mod_prefix_path(
                 child, ctx.opts.flatten_keys_in_xpath
             )
+        if ctx.opts.flatten_status:
+            # If no status is specified, the default is "current".
+            status = "current"
+            status_statement = child.search_one("status")
+            if status_statement is not None:
+                status = status_statement.arg
+            output_content["status"] = status
         if ctx.opts.flatten_resolve_leafref:
             if primitive_type == "leafref":
                 output_content["resolved_leafref"] = statements.get_xpath(
