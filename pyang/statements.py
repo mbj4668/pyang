@@ -1867,6 +1867,9 @@ def create_new_case(ctx, choice, child, expand=True):
     child.parent = new_case
     new_case.i_children = [child]
     new_case.i_module = child.i_module
+    s = child.search_one('status')
+    if s is not None:
+        new_case.substmts.append(s)
     choice.i_children.append(new_case)
     if expand:
         v_expand_1_children(ctx, child)
