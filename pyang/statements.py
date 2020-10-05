@@ -2332,7 +2332,7 @@ def v_reference_deviate(ctx, stmt):
                 del t.substmts[idx]
                 if (c.keyword == 'type'
                     and c.i_typedef is not None
-                    and ':' in c.arg
+                    and ':' not in c.arg
                     and t.i_module.i_prefix != c.i_module.i_prefix):
 
                     c.arg = c.i_module.i_prefix + ':' + c.arg
