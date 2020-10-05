@@ -1,0 +1,8 @@
+module types {
+  namespace "urn:types";
+  prefix types;
+
+  typedef replacement-test-type {
+    type string;
+  }
+}
