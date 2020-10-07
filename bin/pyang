@@ -450,9 +450,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         if etag in o.ignore_error_tags:
             continue
         if (ctx.implicit_errors is False and
-            hasattr(epos.top, 'i_modulename') and
             epos.top.arg not in modulenames and
-            epos.top.i_modulename not in modulenames and
+            (not hasattr(epos.top, 'i_modulename') or
+             epos.top.i_modulename not in modulenames) and
             epos.ref not in filenames):
             # this module was added implicitly (by import); skip this error
             # the code includes submodules

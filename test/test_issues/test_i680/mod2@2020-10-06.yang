@@ -1,0 +1,13 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  revision 2020-10-06;
+
+  container a {
+    description
+      "This line is rather over-long, and therefore will trigger a warning with
+       --max-line-length=70.";
+  }
+}
