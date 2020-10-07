@@ -23,3 +23,5 @@ test6:
 test7:
 	$(PYANG) -f tree sx.yang --tree-print-structures| diff sx.tree.expect -
 
+test8:
+	$(PYANG) -f tree aug.yang | diff aug.tree.expect -

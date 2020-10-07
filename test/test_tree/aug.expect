@@ -1,0 +1,10 @@
+module: aug
+
+  augment /parent:parent-container:
+    +--rw test-list* [test-key]
+       +--rw test-key    string
+       +--rw dummy?      uint16
+  augment /parent:parent-container-2:
+    +--rw test-list* [test-key]
+       +--rw test-key    string
+       +--rw dummy?      uint16
