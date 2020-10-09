@@ -1,0 +1,14 @@
+module ext {
+  yang-version 1.1;
+  namespace "urn:ext";
+  prefix ext;
+
+  import base {
+    prefix base;
+  }
+
+  augment "/base:c" {
+    container b {
+    }
+  }
+}

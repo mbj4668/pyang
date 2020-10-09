@@ -113,6 +113,11 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         for yam in modules:
             if yam.keyword == 'module':
                 self.ns_uri[yam] = yam.search_one("namespace").arg
+                for imp in yam.search('import'):
+                    iyam = ctx.get_module(imp.arg)
+                    if iyam:
+                        self.ns_uri[iyam] = iyam.search_one("namespace").arg
+
         self.top = etree.Element(
             self.doctype,
             {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
@@ -216,7 +221,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         res = etree.SubElement(parent, node.arg)
         mm = node.main_module()
         if mm != module:
-            res.attrib["xmlns"] = self.ns_uri[mm]
+            res.attrib["xmlns"] = self.ns_uri.get(mm, "urn:UNKNOWN")
             module = mm
         return res, module, path
 
