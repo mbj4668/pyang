@@ -149,6 +149,8 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
     printed_header = []
 
     for module in modules:
+        if printed_header:
+            fd.write("\n")
         del printed_header[:]
 
         chs = [ch for ch in module.i_children
