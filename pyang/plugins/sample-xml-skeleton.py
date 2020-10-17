@@ -73,9 +73,6 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         self.multiple_modules = True
         fmts['sample-xml-skeleton'] = self
 
-    def setup_fmt(self, ctx):
-        ctx.implicit_errors = False
-
     def emit(self, ctx, modules, fd):
         """Main control function.
 
