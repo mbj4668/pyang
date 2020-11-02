@@ -161,14 +161,14 @@ generate and updated .sid files used to persist and distribute SID assignments.
 COMMANDS
 
 pyang [--sid-list] --sid-generate-file {count | entry-point:size} yang-filename
-pyang [--sid-list] --sid-update-file sid-filename yang-filename
+pyang [--sid-list] --sid-update-file=sid-filename yang-filename
       [--sid-extra-range {count | entry-point:size}]
 pyang [--sid-list] --sid-check-file sid-filename yang-filename
 
 
 OPTIONS
 
---generate-sid-file
+--sid-generate-file
 
   This option is used to generate a new .sid file from a YANG module.
 
@@ -185,7 +185,7 @@ OPTIONS
 
   $ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang
 
---update-sid-file
+--sid-update-file=file
 
   Each time new items are added to a YANG module by the introduction of a new
   revision of this module, its included sub-modules or imported modules, the
@@ -201,9 +201,9 @@ OPTIONS
   This example shows how to generate the file toaster@2009-12-28.sid based
   on the SIDs already present in toaster@2009-11-20.sid.
 
-  $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
+  $ pyang --sid-update-file=toaster@2009-11-20.sid toaster@2009-12-28.yang
 
--- check-sid-file
+-- sid-check-file
 
   The --sid-check-file option can be used at any time to verify if a .sid file
   need to be updated.
@@ -213,16 +213,16 @@ OPTIONS
 
   For example:
 
-  $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
+  $ pyang --sid-check-file=toaster@2009-12-28.sid toaster@2009-12-28.yang
 
---list_sid
+--sid-list
 
-  The --list_sid option can be used before any of the previous options to
+  The --sid-list option can be used before any of the previous options to
   obtains the list of SIDs assigned or validated. For example:
 
-  $ pyang --list-sid --sid-generate-file 20000:100 toaster@2009-11-20.yang
+  $ pyang --sid-list --sid-generate-file 20000:100 toaster@2009-11-20.yang
 
---extra-sid-range
+--sid-extra-range
 
   If needed, an extra SID range can be assigned to an existing YANG module
   during its update with the --sid-extra-range option.
@@ -231,7 +231,7 @@ OPTIONS
   the initial range(s) present in toaster@2009-11-20.sid and the extra range
   specified in the command line.
 
-  $ pyang --sid-update-file toaster@2009-11-20.sid
+  $ pyang --sid-update-file=toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range 20100:100
 
 count
@@ -243,7 +243,7 @@ count
   $ pyang --sid-generate-file count toaster@2009-11-20.yang
   or:
 
-  $ pyang --sid-update-file toaster@2009-11-20.sid
+  $ pyang --sid-update-file=toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range count
 """)
 
