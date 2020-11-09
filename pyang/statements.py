@@ -1491,7 +1491,7 @@ def v_expand_1_uses(ctx, stmt):
     if getattr(stmt, 'is_grammatically_valid', None) is False:
         return
 
-    if stmt.i_grouping is None:
+    if not hasattr(stmt, 'i_grouping') or stmt.i_grouping is None:
         return
 
     # possibly expand any uses within the grouping
