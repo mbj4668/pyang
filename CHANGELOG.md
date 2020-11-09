@@ -1,3 +1,19 @@
+* 2.4.0 - 2020-11-09
+
+```
+         #690 - stop uses expanding if import circular dependency exists
+         #685 - report errors in sample-xml-skeleton
+         #683 - fix sample-xml-skeleton unknown namespace crash
+         #681 - newline fix in tree plugin
+         #678 - deviate replace regression
+         #673 - fix unreasonable the case node status
+         #669 - type validator crashes on valid range restriction
+         #665 - output status value in flatten plugin
+         #661 - sort output for flatten plugin
+         #660 - add module:prefix:node output for flatten plugin
+         #657 - fix crash for concat function which has more than 3 params in xpath
+```
+
 * 2.3.2 - 2020-07-06
 
 ```
