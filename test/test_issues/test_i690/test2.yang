@@ -1,0 +1,29 @@
+module test2 {
+
+  yang-version "1";
+
+  namespace "http://test2";
+
+  prefix test2;
+
+  import test {
+    prefix test;
+  }
+
+  organization "x";
+  contact "x";
+  description "x";
+
+  revision 2017-04-21 {
+    description "1st revision.";
+  }
+
+  container one {
+    leaf two {
+      type string;
+    }
+  }
+  grouping testgrouping {
+    uses test:testgrouping;
+  }
+}
