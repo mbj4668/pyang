@@ -1,0 +1,9 @@
+module twogpp-wrongFileName {
+  namespace "urn:twogpp-wrongFileName";
+  prefix tgpp;
+
+  container a {
+    leaf b { type string ; }
+  }
+}
+                             
