@@ -1,0 +1,6 @@
+module _3gpp-missing-incorrect2 {
+  namespace "urn:4gpp:sa5:_3gpp-missing-incorrect2";
+  prefix xx;
+
+  
+}
