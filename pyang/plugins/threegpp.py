@@ -4,6 +4,30 @@ See 3GPP TS 32.160 clause 6.2
 Copyright Ericsson 2020
 Author balazs.lengyel@ericsson.com
 Revision 2020-11-10
+
+Checks implemented
+6.2.1.2     Module name starts with _3gpp-
+6.2.1.3     namespace pattern urn:3gpp:sa5:<module-name>
+6.2.1.4-a   prefix ends with 3gpp
+6.2.1.4-b   prefix.length <= 10 char
+6.2.1.5     yang 1.1
+6.2.1.6-a   anydata
+6.2.1.6-b   anyxml
+6.2.1.6-c   rpc
+6.2.1.6-d   deviation
+6.2.1.b-a   module-description
+6.2.1.b-b   module-organization
+6.2.1.b-c   module-organization includes 3gpp
+6.2.1.b-d   module-contact
+6.2.1.c     module-reference
+6.2.1.d-a   module-revision
+6.2.1.d-a   module-revision-reference
+6.2.1.e     default meaning
+6.2.1.f-a   linelength
+6.2.1.f-b   no-tabs
+6.2.1.f-c   no-strange-chars
+6.2.1.f-d   no-CR-chars
+6.2-a       no-containers
 """
 
 import optparse
