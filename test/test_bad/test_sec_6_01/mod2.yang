@@ -1,0 +1,9 @@
+module mod2 {
+  namespace "urn:mod2";
+  prefix m2;
+
+  leaf l {
+    type uint8;
+    units kg';
+  }
+}

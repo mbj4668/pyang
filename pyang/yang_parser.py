@@ -260,6 +260,7 @@ class YangTokenizer(object):
             i = 0
             while i < buflen:
                 if (self.buf[i].isspace() or self.buf[i] == ';' or
+                    self.buf[i] == '"' or self.buf[i] == "'" or
                     self.buf[i] == '{' or self.buf[i] == '}' or
                     self.buf[i:i+2] == '//' or self.buf[i:i+2] == '/*' or
                     self.buf[i:i+2] == '*/'):
