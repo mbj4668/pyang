@@ -214,7 +214,7 @@ def p_filter_expr_1(p):
     p[0] = p[1]
 def p_filter_expr_2(p):
     'FilterExpr : FilterExpr Predicate'
-    p[0] = ('path', 'filter', (p[1], p[2]))
+    p[0] = ('path', 'filter', p[1], p[2])
 
 ## [21]
 def p_or_expr_1(p):
