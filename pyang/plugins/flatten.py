@@ -79,6 +79,7 @@ def pyang_plugin_init():
 class FlattenPlugin(plugin.PyangPlugin):
     def __init__(self):
         plugin.PyangPlugin.__init__(self, "flatten")
+        csv.register_dialect('excel-semicolon', delimiter=';')
 
     def add_output_format(self, fmts):
         self.multiple_modules = True
@@ -190,7 +191,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 dest="flatten_csv_dialect",
                 default="excel",
                 help="CSV dialect for output.",
-                choices=["excel", "excel-tab", "unix"],
+                choices=["excel", "excel-tab", "excel-semicolon", "unix"],
             ),
             optparse.make_option(
                 "--flatten-ignore-no-primitive",
