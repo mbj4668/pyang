@@ -1,9 +1,13 @@
 module twogpp-wrongFileName {
+  yang-version 1.1;
   namespace "urn:twogpp-wrongFileName";
   prefix tgpp;
 
   container a {
     leaf b { type string ; }
+    anydata ad {
+      mandatory false;  
+    }
   }
 }
                              

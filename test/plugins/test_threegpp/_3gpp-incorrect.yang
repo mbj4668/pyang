@@ -9,13 +9,13 @@ module _3gpp-incorrect {
   contact "https://www.3gpp.org/DynaReport/";    
   reference "XXTS 28.623";
 
-  revision 2020-08-06 { description "whatever"; }  
+  revision 2020-08-06 { description "whatever but it is longggggggggggggggggggggggggggggg"; }  
 
   container main {
     config true;
     status current;
     anyxml ax {
-      mandatory false;
+      mandatory false;  
     }
     anydata ad;
   }
@@ -28,7 +28,7 @@ module _3gpp-incorrect {
     }
   }
   
-  list myOBj {
+  list myOBj {			  // this line contains real tabs
     key id; 
     min-elements 0;
     max-elements unbounded;
