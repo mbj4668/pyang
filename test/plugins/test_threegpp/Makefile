@@ -1,4 +1,4 @@
-test: test1 test2 test3 test4 test5
+test: test1 test2 test3 test4 test5 test6
 
 test1:
 	# Baseline test that a module following 3gpp guidelines is OK
@@ -19,4 +19,10 @@ test4:
 
 test5:
   # Check that normal validation still works
-	$(PYANG) --ietf ietf-yang-types@2013-07-15.yang
+	$(PYANG) --ietf ietf-netconf-acm.yang
+
+test6:
+  # Check help text
+	$(PYANG) -h | grep "  --3gpp                Validate the module(s) according to 3GPP rules."
+
+  
