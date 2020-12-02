@@ -69,7 +69,7 @@ class TreePlugin(plugin.PyangPlugin):
                                      dest="tree_print_structures",
                                      action="store_true",
                                      help="Print ietf-yang-structure-ext" +
-                                     ":strcuture")
+                                     ":structure")
             )
         g = optparser.add_option_group("Tree output specific options")
         g.add_options(optlist)
