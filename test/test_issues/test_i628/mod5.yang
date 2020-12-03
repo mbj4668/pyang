@@ -1,0 +1,59 @@
+module mod5 {
+  yang-version 1.1;
+  namespace "urn:mod5";
+  prefix m5;
+
+  container interfaces {
+    list ifEntry {
+      key "ifIndex";
+      leaf ifIndex {
+        type uint32;
+      }
+
+      action resetact {
+        input {
+          leaf start {
+            type string;
+          }
+        }
+        output {
+          leaf finish {
+            type string;
+          }
+        }
+      }
+
+	  notification nodenotification {
+          leaf reset-at2 {
+            type string;
+            mandatory true;
+          }
+        }
+    }
+  }
+
+  augment "/interfaces/ifEntry/nodenotification" {//target node is a notification, it is not a container or list node.
+    leaf result {
+      type string;
+    }
+
+    notification resetnotify {//error: unexpected keyword
+      leaf reset-at {
+        type string;
+      }
+    }
+
+    action resetact {//error: unexpected keyword
+      input {
+        leaf start {
+          type string;
+        }
+      }
+      output {
+        leaf finish {
+          type string;
+        }
+      }
+    }
+  }
+}

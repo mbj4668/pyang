@@ -1854,6 +1854,17 @@ $ osascript foo.scpt</screen>
       </varlistentry>
       <varlistentry>
         <term>
+          <option>--tree-print-structures</option>
+        </term>
+        <listitem>
+          <para>
+            Print the ietf-yang-structure-ext:structure structures
+            defined in the module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
           <option>--tree-print-yang-data</option>
         </term>
         <listitem>
@@ -1955,6 +1966,48 @@ $ osascript foo.scpt</screen>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--flatten-keys</option></term>
+        <listitem>
+          <para>
+            Output whether the XPath is identified as a key.
+            <emphasis>key</emphasis> or null will be output per XPath.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keys-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with keys in path.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-prefix-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with prefixes instead of modules.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-qualified-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the qualified XPath i.e. /module1:root/module1:node/module2:node/...
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-qualified-module-and-prefix-path</option></term>
+        <listitem>
+          <para>
+            Output an XPath with both module and prefix i.e. /module1:prefix1:root/...
+            This is <emphasis>NOT</emphasis> a colloquial syntax of XPath. Emitted separately.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--flatten-deviated</option></term>
         <listitem>
           <para>
@@ -2030,6 +2083,22 @@ $ osascript foo.scpt</screen>
         <listitem>
           <para>
             Ignore error if primitive is missing.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-status</option></term>
+        <listitem>
+          <para>
+            Output the status statement value.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-resolve-leafref</option></term>
+        <listitem>
+          <para>
+            Output the XPath of the leafref target.
           </para>
         </listitem>
       </varlistentry>

@@ -20,7 +20,7 @@ class Context(object):
         contains all modules and submodule found"""
 
         self.revs = {}
-        """dict of modulename:(revision,handle)
+        """dict of modulename:[(revision,handle)]
         contains all modulenames and revisions found in the repository"""
 
         self.strict = False

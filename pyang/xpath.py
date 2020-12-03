@@ -194,8 +194,11 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
 
     # check the arguments - FIXME check type
     i = 0
+    args_signature = signature[0][:]
     for arg in args:
-        chk_xpath_expr(ctx, mod, pos, initial, node, arg, signature[0][i])
+        chk_xpath_expr(ctx, mod, pos, initial, node, arg, args_signature[i])
+        if args_signature[i] == '*':
+            args_signature.append('*')
         i = i + 1
     return signature[1]
 

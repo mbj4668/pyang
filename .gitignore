@@ -16,6 +16,7 @@ schemas.xml
 *.idea
 .coverage*
 .profile*
+venv/
 /test/test_*/*.dsrl
 /test/test_*/*.rng
 /test/test_*/*.sch

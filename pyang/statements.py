@@ -743,7 +743,7 @@ def v_type_typedef(ctx, stmt):
         stmt.i_default = type_.i_typedef.i_default
         stmt.i_default_str = type_.i_typedef.i_default_str
         type_.i_type_spec.validate(ctx.errors, stmt.pos,
-                                   stmt.i_default,
+                                   stmt.i_default, stmt.i_module,
                                    ' for the inherited default value ')
     elif (default is not None and
           default.arg is not None and
@@ -755,7 +755,7 @@ def v_type_typedef(ctx, stmt):
         stmt.i_default_str = default.arg
         if stmt.i_default is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       stmt.i_default,
+                                       stmt.i_default, stmt.i_module,
                                        ' for the default value')
 
 def v_type_type(ctx, stmt):
@@ -1012,7 +1012,8 @@ def v_type_leaf(ctx, stmt):
         stmt.i_default_str = default.arg
         if defval is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       defval, ' for the default value')
+                                       defval, stmt.i_module,
+                                       ' for the default value')
     elif (default is None and
           type_.i_typedef is not None and
           getattr(type_.i_typedef, 'i_default', None) is not None):
@@ -1021,7 +1022,7 @@ def v_type_leaf(ctx, stmt):
         # validate the type's default value with our new restrictions
         if type_.i_type_spec is not None:
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
-                                       stmt.i_default,
+                                       stmt.i_default, stmt.i_module,
                                        ' for the default  value')
 
     v_check_default(ctx, type_, stmt.i_default)
@@ -1047,7 +1048,8 @@ def v_type_leaf_list(ctx, stmt):
             if defval is not None:
                 stmt.i_default.append(defval)
                 type_.i_type_spec.validate(ctx.errors, default.pos,
-                                           defval, ' for the default value')
+                                           defval, stmt.i_module,
+                                           ' for the default value')
 
     min_value = stmt.search_one('min-elements')
     max_value = stmt.search_one('max-elements')
@@ -1073,6 +1075,7 @@ def v_type_leaf_list(ctx, stmt):
         if type_.i_type_spec is not None:
             type_.i_type_spec.validate(ctx.errors, stmt.pos,
                                        type_.i_typedef.i_default,
+                                       stmt.i_module,
                                        ' for the default  value')
     for s in stmt.i_default:
         v_check_default(ctx, type_, s)
@@ -1481,13 +1484,14 @@ def v_default(ctx, target, default):
         target.i_default_str = default.arg
         if defval is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       defval, ' for the default value')
+                                       defval, target.i_module,
+                                       ' for the default value')
 
 def v_expand_1_uses(ctx, stmt):
     if getattr(stmt, 'is_grammatically_valid', None) is False:
         return
 
-    if stmt.i_grouping is None:
+    if not hasattr(stmt, 'i_grouping') or stmt.i_grouping is None:
         return
 
     # possibly expand any uses within the grouping
@@ -1785,6 +1789,18 @@ def v_expand_2_augment(ctx, stmt):
                 node.i_children.append(tmp)
                 tmp.parent = node
 
+    def is_expected_keyword(parent, child):
+        if parent.keyword == '__tmp_augment__':
+            return True
+        if parent.keyword == 'choice' and child.keyword != 'case':
+            (_arg_type, subspec) = grammar.stmt_map['case']
+        else:
+            (_arg_type, subspec) = grammar.stmt_map[parent.keyword]
+        subspec = grammar.flatten_spec(subspec)
+        if util.keysearch(child.keyword, 0, subspec) is None:
+            return False
+        return True
+
     for c in stmt.i_children:
         c.i_augment = stmt
         if hasattr(stmt, 'i_not_implemented'):
@@ -1814,10 +1830,16 @@ def v_expand_2_augment(ctx, stmt):
                         (stmt.arg, stmt.pos, c.arg, ch.pos))
                 return
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
-            # create an artificial case node for the shorthand
-            new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
-            new_case.parent = stmt.i_target_node
-            v_inherit_properties(ctx, stmt.i_target_node, new_case)
+            if is_expected_keyword(stmt.i_target_node, c) is True:
+                # create an artificial case node for the shorthand
+                new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
+                new_case.parent = stmt.i_target_node
+                v_inherit_properties(ctx, stmt.i_target_node, new_case)
+            else:
+                err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_AUGMENT',
+                        (util.keyword_to_str(c.raw_keyword),
+                         util.keyword_to_str(stmt.i_target_node.raw_keyword),
+                         c.pos))
         elif (stmt.i_target_node.keyword not in
               ('container', 'list', 'choice', 'case', 'input',
                   'output', 'notification', '__tmp_augment__')):
@@ -1825,9 +1847,15 @@ def v_expand_2_augment(ctx, stmt):
             err_add(ctx.errors, stmt.pos, 'BAD_TARGET_NODE',
                     (nd.i_module.i_modulename, nd.arg, nd.keyword))
         else:
-            stmt.i_target_node.i_children.append(c)
-            c.parent = stmt.i_target_node
-            v_inherit_properties(ctx, stmt.i_target_node, c)
+            if is_expected_keyword(stmt.i_target_node, c) is True:
+                stmt.i_target_node.i_children.append(c)
+                c.parent = stmt.i_target_node
+                v_inherit_properties(ctx, stmt.i_target_node, c)
+            else:
+                err_add(ctx.errors, stmt.pos, 'UNEXPECTED_KEYWORD_AUGMENT',
+                        (util.keyword_to_str(c.raw_keyword),
+                         util.keyword_to_str(stmt.i_target_node.raw_keyword),
+                         c.pos))
     for s in stmt.substmts:
         if s.keyword in _copy_augment_keywords:
             stmt.i_target_node.substmts.append(s)
@@ -1839,6 +1867,9 @@ def create_new_case(ctx, choice, child, expand=True):
     child.parent = new_case
     new_case.i_children = [child]
     new_case.i_module = child.i_module
+    s = child.search_one('status')
+    if s is not None:
+        new_case.substmts.append(s)
     choice.i_children.append(new_case)
     if expand:
         v_expand_1_children(ctx, child)
@@ -2206,23 +2237,10 @@ def v_reference_deviate(ctx, stmt):
                 continue
             if c.keyword == 'config' and hasattr(t, 'i_config'):
                 # config is special: since it is an inherited property
-                # with a default, all nodes has a config property.
-                config = t.search_one(c.keyword)
-                if config is None:
-                    if c.arg == 'true':
-                        if (t.parent is None
-                            or t.parent.i_config is True):
-                            t.substmts.append(c)
-                        else:
-                            err_add(ctx.errors, c.pos,
-                                    'INVALID_CONFIG', ())
-                            continue
-                    else:
-                        if not search_children_config_true(t, t):
-                            t.substmts.append(c)
-                else:
-                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
-                            (c.keyword, t.i_module.arg, t.arg))
+                # with a default, all nodes has a config property. this
+                # means that it can only be placed.
+                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_ADD',
+                        (c.keyword, t.i_module.arg, t.arg))
 
             elif c.keyword in _singleton_keywords:
                 if t.search_one(c.keyword) is not None:
@@ -2272,15 +2290,19 @@ def v_reference_deviate(ctx, stmt):
                     negc = copy.copy(old)
                     old.arg = c.arg
                 else:
-                    err_add(ctx.errors, t.pos, 'BAD_DEVIATE_REP',
-                            (c.keyword, t.i_module.arg, t.arg))
-                    continue
+                    # use the t.i_config when the target node doesn't exist
+                    # config statement.
+                    negc = copy.copy(c)
+                    negc.arg = 'true' if t.i_config is True else 'false'
 
                 if c.arg == 'true':
                     if negc.arg != c.arg:
                         if (t.parent is not None
                             and t.parent.i_config is False):
-                            old.arg = negc.arg
+                            # recover the target node config value when it
+                            # doesn't meet the spec
+                            if old is not None:
+                                old.arg = negc.arg
                             err_add(ctx.errors, c.pos,
                                     'INVALID_CONFIG', ())
                             continue
@@ -2288,7 +2310,10 @@ def v_reference_deviate(ctx, stmt):
                             t.i_config = True
                 else:
                     if search_children_config_true(t, t):
-                        old.arg = negc.arg
+                        # recover the target node config value when it
+                        # doesn't meet the spec
+                        if old is not None:
+                            old.arg = negc.arg
                         continue
                     else:
                         t.i_config = False
@@ -2299,14 +2324,15 @@ def v_reference_deviate(ctx, stmt):
             else:
                 old = t.search_one(c.keyword, c.arg)
             if old is None:
-                err_add(ctx.errors, c.pos, 'BAD_DEVIATE_REP',
-                        (c.keyword, t.i_module.arg, t.arg))
+                if c.keyword != 'config':
+                    err_add(ctx.errors, c.pos, 'BAD_DEVIATE_REP',
+                            (c.keyword, t.i_module.arg, t.arg))
             else:
                 idx = t.substmts.index(old)
                 del t.substmts[idx]
                 if (c.keyword == 'type'
                     and c.i_typedef is not None
-                    and ':' in c.arg
+                    and ':' not in c.arg
                     and t.i_module.i_prefix != c.i_module.i_prefix):
 
                     c.arg = c.i_module.i_prefix + ':' + c.arg
@@ -2694,7 +2720,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                     err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                             (stmt.arg, stmt.pos))
                     raise NotFound
-                if ptr.keyword in ('augment', 'grouping'):
+                if ptr.keyword in ('augment', 'grouping', 'typedef'):
                     # don't check the path here - check in the expanded tree
                     raise Abort
                 ptr = ptr.parent
@@ -2721,7 +2747,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                 err_add(ctx.errors, pathpos, 'LEAFREF_TOO_MANY_UP',
                         (stmt.arg, stmt.pos))
                 raise NotFound
-        if ptr.keyword in ('augment', 'grouping'):
+        if ptr.keyword in ('augment', 'grouping', 'typedef'):
             # don't check the path here - check in the expanded tree
             raise Abort
         i = 0
@@ -3252,17 +3278,22 @@ def print_tree(stmt, substmts=True, i_children=True, indent=0):
 
 def mk_path_list(stmt):
     """Derives a list of tuples containing
-    (module name, prefix, xpath)
+    (module name, prefix, xpath, keys)
     per node in the statement.
     """
     resolved_names = []
     def resolve_stmt(stmt, resolved_names):
-        if stmt.keyword in ['choice', 'case', 'input', 'output']:
+        if stmt.keyword in ['case', 'input', 'output']:
             resolve_stmt(stmt.parent, resolved_names)
             return
         def qualified_name_elements(stmt):
-            """(module name, prefix, name)"""
-            return (stmt.i_module.arg, stmt.i_module.i_prefix, stmt.arg)
+            """(module name, prefix, name, keys)"""
+            return (
+                stmt.i_module.arg,
+                stmt.i_module.i_prefix,
+                stmt.arg,
+                get_keys(stmt)
+            )
         if stmt.parent.keyword in ['module', 'submodule']:
             resolved_names.append(qualified_name_elements(stmt))
             return
@@ -3277,7 +3308,8 @@ def mk_path_str(stmt,
                 with_prefixes=False,
                 prefix_onchange=False,
                 prefix_to_module=False,
-                resolve_top_prefix_to_module=False):
+                resolve_top_prefix_to_module=False,
+                with_keys=False):
     """Returns the XPath path of the node.
     with_prefixes indicates whether or not to prefix every node.
 
@@ -3288,6 +3320,8 @@ def mk_path_str(stmt,
 
     resolve_top_prefix_to_module resolves the module-level prefix
       to the module name.
+    
+    with_keys will include "[key]" to indicate the key names in the XPath.
 
     Prefixes may be included in the path if the prefix changes mid-path.
     """
@@ -3295,7 +3329,7 @@ def mk_path_str(stmt,
     xpath_elements = []
     last_prefix = None
     for index, resolved_name in enumerate(resolved_names):
-        module_name, prefix, node_name = resolved_name
+        module_name, prefix, node_name, node_keys = resolved_name
         xpath_element = node_name
         if with_prefixes or (prefix_onchange and prefix != last_prefix):
             new_prefix = prefix
@@ -3303,11 +3337,14 @@ def mk_path_str(stmt,
                 (index == 0 and resolve_top_prefix_to_module)):
                 new_prefix = module_name
             xpath_element = '%s:%s' % (new_prefix, node_name)
+        if with_keys and node_keys:
+            for node_key in node_keys:
+                xpath_element = '%s[%s]' % (xpath_element, node_key)
         xpath_elements.append(xpath_element)
         last_prefix = prefix
     return '/%s' % '/'.join(xpath_elements)
 
-def get_xpath(stmt, qualified=False, prefix_to_module=False):
+def get_xpath(stmt, qualified=False, prefix_to_module=False, with_keys=False):
     """Gets the XPath path of the data node `stmt`.
 
     Unless qualified=True, does not include prefixes unless the prefix
@@ -3317,17 +3354,27 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False):
 
     prefix_to_module will resolve prefixes to module names instead.
 
+    with_keys will include "[key]" to indicate the key names in the XPath.
+
     For RFC 8040, set prefix_to_module=True:
-      /prefix1:root/node/prefix2:node/...
+      /module1:root/node/module2:node/...
 
     qualified=True:
       /prefix1:root/prefix1:node/prefix2:node/...
 
     qualified=True, prefix_to_module=True:
       /module1:root/module1:node/module2:node/...
+    
+    prefix_to_module=True, with_keys=True:
+      /module1:root/node[name][name2]/module2:node/...
     """
-    return mk_path_str(stmt, with_prefixes=qualified,
-                       prefix_onchange=True, prefix_to_module=prefix_to_module)
+    return mk_path_str(
+        stmt,
+        with_prefixes=qualified,
+        prefix_onchange=True,
+        prefix_to_module=prefix_to_module,
+        with_keys=with_keys
+    )
 
 def get_type(stmt):
     """Gets the immediate, top-level type of the node.
@@ -3336,6 +3383,17 @@ def get_type(stmt):
     type_obj = stmt.search_one('type')
     # Return type value if exists
     return getattr(type_obj, 'arg', None)
+
+def get_keys(stmt):
+    """Gets the key names for the node if present.
+    Returns a list of key name strings.
+    """
+    key_obj = stmt.search_one('key')
+    key_names = []
+    keys = getattr(key_obj, 'arg', None)
+    if keys:
+        key_names = keys.split()
+    return key_names
 
 def get_qualified_type(stmt):
     """Gets the qualified, top-level type of the node.

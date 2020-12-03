@@ -1,0 +1,17 @@
+module deviate-test {
+  namespace "urn:deviate-test";
+  prefix deviate-test;
+
+  import target {
+    prefix target;
+  }
+  import types {
+    prefix types;
+  }
+
+  deviation "/target:data/target:original" {
+    deviate replace {
+      type types:replacement-test-type;
+    }
+  }
+}

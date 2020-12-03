@@ -138,6 +138,10 @@ _need_quote = (
     "\n", "\t", "\r", "//", "/*", "*/",
     )
 
+_need_single_quote = (
+    '"', "\n", "\t", "\r",
+    )
+
 def make_link_list(ctx, stmt, link_list):
     if 'last' in link_list:
         link_list[ link_list['last'] ] = stmt
@@ -366,7 +370,7 @@ def select_quote(s, q, pref_q):
             # the string was double quoted for a reason, keep it
             return '"'
     elif q == "'":
-        if need_quote(s):
+        if need_single_quote(s):
             # the string was single quoted for a reason, keep it
             return "'"
         else:
@@ -474,6 +478,12 @@ def emit_comment(comment, fd, indent):
 
 def need_quote(arg):
     for ch in _need_quote:
+        if arg.find(ch) != -1:
+            return True
+    return False
+
+def need_single_quote(arg):
+    for ch in _need_single_quote:
         if arg.find(ch) != -1:
             return True
     return False

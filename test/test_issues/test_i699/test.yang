@@ -1,0 +1,19 @@
+module test {
+  yang-version "1";
+  namespace "http://test";
+  prefix test;
+
+  container top {
+    list interfaces {
+      must "(current()[ipv6-prefix = 'ff02::/16'])";
+      key name;
+      leaf name {
+        type string;
+      }
+
+      leaf ipv6-prefix {
+        type string;
+      }
+    }
+  }
+}

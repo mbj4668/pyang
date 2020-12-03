@@ -1,0 +1,4 @@
+
+module: mod1
+  augment /m2:a:
+    +--rw b

@@ -17,4 +17,9 @@ module mod1 {
       type string;
     }
   }
+
+  leaf test_concat {
+    type string;
+    must "re-match('ha_ha_ha', concat('ha', '_', 'ha', '_', 'ha'))";
+  }
 }

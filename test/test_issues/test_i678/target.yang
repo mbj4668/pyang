@@ -1,0 +1,14 @@
+module target {
+  namespace "urn:target";
+  prefix target;
+
+  typedef test-type {
+    type string;
+  }
+
+  container data {
+    leaf original {
+      type target:test-type;
+    }
+  }
+}

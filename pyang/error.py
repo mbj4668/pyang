@@ -105,6 +105,9 @@ error_codes = \
     'UNEXPECTED_KEYWORD_USES':
       (1,
        'unexpected keyword "%s" under "%s", defined at %s'),
+    'UNEXPECTED_KEYWORD_AUGMENT':
+      (1,
+       'unexpected keyword "%s" under "%s", defined at %s'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),

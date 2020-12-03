@@ -1,0 +1,100 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  // the explicit case node
+  choice con0 {
+    status deprecated;
+
+    case le1_0 {
+      leaf le1_0 {
+        type uint8 {
+          range "0..32";
+        }
+        status deprecated;
+      }
+      status deprecated;
+    }
+
+    case le2_0 {
+      leaf le2_0 {
+        type string;
+        status obsolete;
+      }
+      status current;
+    }
+
+    case le3_0 {
+      leaf le3_0 {
+        type string;
+        status current;
+      }
+      status obsolete;
+    }
+  }
+
+  // the implicit case node
+  choice con1 {
+    status deprecated;
+
+    leaf le1_1 {
+      type uint8 {
+        range "0..32";
+      }
+      status deprecated;
+    }
+
+    leaf le2_1 {
+      type string;
+      status obsolete;
+    }
+
+    leaf le3_1 {
+      type string;
+      status current;
+    }
+  }
+
+  choice con2 {
+    status obsolete;
+
+    leaf le1_2 {
+      type uint8 {
+        range "0..32";
+      }
+      status deprecated;
+    }
+
+    leaf le2_2 {
+      type string;
+      status obsolete;
+    }
+
+    leaf le3_2 {
+      type string;
+      // status current;
+    }
+  }
+
+  choice con3 {
+    status current;
+
+    leaf le1_3 {
+      type uint8 {
+        range "0..32";
+      }
+      status deprecated;
+    }
+
+    leaf le2_3 {
+      type string;
+      status obsolete;
+    }
+
+    leaf le3_3 {
+      type string;
+      status current;
+    }
+  }
+}

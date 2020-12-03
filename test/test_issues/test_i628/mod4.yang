@@ -1,0 +1,51 @@
+module mod4 {
+  yang-version 1.1;
+  namespace "urn:mod4";
+  prefix m4;
+
+  container interfaces {
+    list ifEntry {
+      key "ifIndex";
+      leaf ifIndex {
+        type uint32;
+      }
+
+      action nodeaction {
+        input {
+          leaf start {
+            type string;
+          }
+        }
+        output {
+          leaf finish {
+            type string;
+          }
+        }
+      }
+    }
+  }
+
+  augment "/interfaces/ifEntry/nodeaction/output" {//target node is output, it is not a container or list node.
+    leaf result {
+      type string;
+    }
+    notification resetnotify {//error: unexpected keyword
+      leaf reset-at {
+        type string;
+      }
+    }
+
+    action resetact {//error: unexpected keyword
+      input {
+        leaf start {
+          type string;
+        }
+      }
+      output {
+        leaf finish {
+          type string;
+        }
+      }
+    }
+  }
+}

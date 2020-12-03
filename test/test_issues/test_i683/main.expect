@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <c xmlns="urn:base">
+    <b xmlns="urn:ext">
+      <a xmlns="urn:main"/>
+    </b>
+  </c>
+</data>

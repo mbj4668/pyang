@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2020-03-06
+.\"      Date: 2020-11-09
 .\"    Manual: pyang manual
-.\"    Source: pyang-2.2.1
+.\"    Source: pyang-2.4.0
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2020\-03\-06" "pyang\-2\&.2\&.1" "pyang manual"
+.TH "PYANG" "1" "2020\-11\-09" "pyang\-2\&.4\&.0" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1318,6 +1318,11 @@ is a slash ("/") separated path to a subtree to print\&. For example "/nacm/grou
 Print the top\-level groupings defined in the module\&.
 .RE
 .PP
+\fB\-\-tree\-print\-structures\fR
+.RS 4
+Print the ietf\-yang\-structure\-ext:structure structures defined in the module\&.
+.RE
+.PP
 \fB\-\-tree\-print\-yang\-data\fR
 .RS 4
 Print the ietf\-restconf:yang\-data structures defined in the module\&.
@@ -1371,6 +1376,35 @@ Output flag property\&. Derives a flag \- for instance rw/ro for config, or x fo
 Output the description\&.
 .RE
 .PP
+\fB\-\-flatten\-keys\fR
+.RS 4
+Output whether the XPath is identified as a key\&.
+\fIkey\fR
+or null will be output per XPath\&.
+.RE
+.PP
+\fB\-\-flatten\-keys\-in\-xpath\fR
+.RS 4
+Output the XPath with keys in path\&.
+.RE
+.PP
+\fB\-\-flatten\-prefix\-in\-xpath\fR
+.RS 4
+Output the XPath with prefixes instead of modules\&.
+.RE
+.PP
+\fB\-\-flatten\-qualified\-in\-xpath\fR
+.RS 4
+Output the qualified XPath i\&.e\&. /module1:root/module1:node/module2:node/\&.\&.\&.
+.RE
+.PP
+\fB\-\-flatten\-qualified\-module\-and\-prefix\-path\fR
+.RS 4
+Output an XPath with both module and prefix i\&.e\&. /module1:prefix1:root/\&.\&.\&. This is
+\fINOT\fR
+a colloquial syntax of XPath\&. Emitted separately\&.
+.RE
+.PP
 \fB\-\-flatten\-deviated\fR
 .RS 4
 Output deviated nodes in the schema as well\&.
@@ -1416,6 +1450,16 @@ CSV dialect for output\&. excel | excel\-tab | unix
 \fB\-\-flatten\-ignore\-no\-primitive\fR
 .RS 4
 Ignore error if primitive is missing\&.
+.RE
+.PP
+\fB\-\-flatten\-status\fR
+.RS 4
+Output the status statement value\&.
+.RE
+.PP
+\fB\-\-flatten\-resolve\-leafref\fR
+.RS 4
+Output the XPath of the leafref target\&.
 .RE
 .SH "UML OUTPUT"
 .PP

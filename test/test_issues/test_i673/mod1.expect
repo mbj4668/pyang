@@ -1,0 +1,29 @@
+module: mod1
+  x--rw (con0)?
+  |  x--:(le1_0)
+  |  |  x--rw le1_0?   uint8
+  |  +--:(le2_0)
+  |  |  o--rw le2_0?   string
+  |  o--:(le3_0)
+  |     +--rw le3_0?   string
+  x--rw (con1)?
+  |  x--:(le1_1)
+  |  |  x--rw le1_1?   uint8
+  |  o--:(le2_1)
+  |  |  o--rw le2_1?   string
+  |  +--:(le3_1)
+  |     +--rw le3_1?   string
+  o--rw (con2)?
+  |  x--:(le1_2)
+  |  |  x--rw le1_2?   uint8
+  |  o--:(le2_2)
+  |  |  o--rw le2_2?   string
+  |  +--:(le3_2)
+  |     +--rw le3_2?   string
+  +--rw (con3)?
+     x--:(le1_3)
+     |  x--rw le1_3?   uint8
+     o--:(le2_3)
+     |  o--rw le2_3?   string
+     +--:(le3_3)
+        +--rw le3_3?   string

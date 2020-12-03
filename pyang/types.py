@@ -17,10 +17,10 @@ class TypeSpec(object):
         self.base = None
 
     def str_to_val(self, errors, pos, string, module):
-        return string;
+        return string
 
     def validate(self, errors, pos, val, module, errstr=''):
-        return True;
+        return True
 
     def restrictions(self):
         return []
@@ -327,12 +327,15 @@ def validate_ranges(errors, pos, ranges, type_):
     cur_lo = None
     for lo, hi in ranges:
         if isinstance(type_.i_type_spec, RangeTypeSpec):
-            type_.i_type_spec.validate(errors, pos, (lo, hi), None)
+            type_.i_type_spec.validate(errors, pos, (lo, hi),
+                                       type_.i_module, "")
         else:
             if lo is not None and lo != 'min' and lo != 'max':
-                type_.i_type_spec.validate(errors, pos, lo, None)
+                type_.i_type_spec.validate(errors, pos, lo,
+                                           type_.i_module, "")
             if hi is not None and hi != 'min' and hi != 'max':
-                type_.i_type_spec.validate(errors, pos, hi, None)
+                type_.i_type_spec.validate(errors, pos, hi,
+                                           type_.i_module, "")
         # check that cur_lo < lo < hi
         if not is_smaller(cur_lo, lo):
             err_add(errors, pos, 'RANGE_BOUNDS', (str(lo), cur_lo))
@@ -340,9 +343,13 @@ def validate_ranges(errors, pos, ranges, type_):
         if not is_smaller(lo, hi):
             err_add(errors, pos, 'RANGE_BOUNDS', (str(hi), str(lo)))
             return None
-        if (lo == 'max' and cur_lo is not None
+        if (lo == 'max' and cur_lo is not None and cur_lo != 'min'
                 and cur_lo >= type_.i_type_spec.max):
             err_add(errors, pos, 'RANGE_BOUNDS', (str(lo), str(cur_lo)))
+            return None
+        if (lo == 'min' and hi is not None and
+                hi != 'max' and hi < type_.i_type_spec.min):
+            err_add(errors, pos, 'RANGE_BOUNDS', (str(lo), str(hi)))
             return None
         if hi is None:
             cur_lo = lo
@@ -380,9 +387,16 @@ class RangeTypeSpec(TypeSpec):
             if self.base.validate(errors, pos, val, module, errstr) is False:
                 return False, None
             for lo, hi in self.ranges:
-                if ((lo == 'min' or lo == 'max' or val >= lo) and
-                        ((hi is None and val == lo) or hi == 'max' or \
-                         (hi is not None and val <= hi))):
+                cur_hi = self.max if hi == 'max' else hi
+                if lo == 'min':
+                    cur_lo = self.min
+                elif lo == 'max':
+                    cur_lo = self.max
+                else:
+                    cur_lo = lo
+                if ((lo == 'min' or lo == 'max' or val >= cur_lo) and
+                        ((hi is None and val == cur_lo) or hi == 'max' or
+                         (hi is not None and val <= cur_hi))):
                     return True, (lo, hi)
             err_add(errors, pos, 'TYPE_VALUE',
                     (str(val), self.definition, 'range error' + errstr +
@@ -425,6 +439,8 @@ def common_restriction(errors, pos, val, module, obj, type_name, handler, errstr
         return res
     elif high == 'max':
         high = obj.max
+    elif high == 'min':
+        return False
 
     if res is True and lowRange is not None:
         check = False
@@ -491,9 +507,13 @@ def validate_length_expr(errors, stmt, type_stmt):
         if not is_smaller(lo, hi):
             err_add(errors, stmt.pos, 'LENGTH_BOUNDS', (str(hi), str(lo)))
             return None
-        if (lo == 'max' and cur_lo is not None
+        if (lo == 'max' and cur_lo is not None and cur_lo != 'min'
                 and cur_lo >= length_typespec.max):
             err_add(errors, stmt.pos, 'LENGTH_BOUNDS', (str(lo), str(cur_lo)))
+            return None
+        if (lo == 'min' and hi is not None and
+                hi != 'max' and hi < length_typespec.min):
+            err_add(errors, stmt.pos, 'LENGTH_BOUNDS', (str(lo), str(hi)))
             return None
         if hi is None:
             cur_lo = lo
@@ -543,9 +563,16 @@ class LengthTypeSpec(TypeSpec):
                     return False, None
                 vallen = len(val)
             for lo, hi in self.lengths:
-                if ((lo == 'min' or lo == 'max' or vallen >= lo) and
-                    ((hi is None and vallen == lo) or hi == 'max' or
-                     (hi is not None and vallen <= hi))):
+                cur_hi = self.max if hi == 'max' else hi
+                if lo == 'min':
+                    cur_lo = self.min
+                elif lo == 'max':
+                    cur_lo = self.max
+                else:
+                    cur_lo = lo
+                if ((lo == 'min' or lo == 'max' or vallen >= cur_lo) and
+                    ((hi is None and vallen == cur_lo) or hi == 'max' or
+                     (hi is not None and vallen <= cur_hi))):
                     return True, (lo, hi)
             err_add(errors, pos, 'TYPE_VALUE',
                     (val, self.definition, 'length error' + errstr +
@@ -663,7 +690,7 @@ def validate_enums(errors, enums, stmt):
     for e in enums:
         # for derived enumerations, make sure the enum is defined
         # in the base
-        stmt.i_type_spec.validate(errors, e.pos, e.arg, None)
+        stmt.i_type_spec.validate(errors, e.pos, e.arg, stmt.i_module, "")
         e.i_value = None
         value = e.search_one('value')
         if value is not None:
@@ -744,7 +771,7 @@ def validate_bits(errors, bits, stmt):
     for b in bits:
         # for derived bits, make sure the bit is defined
         # in the base
-        stmt.i_type_spec.validate(errors, b.pos, [b.arg], None)
+        stmt.i_type_spec.validate(errors, b.pos, [b.arg], stmt.i_module, "")
         position = b.search_one('position')
         if position is not None:
             try:

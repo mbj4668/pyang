@@ -1,0 +1,36 @@
+module aug {
+  namespace urn:r;
+  prefix r;
+
+  import parent {
+    prefix parent;
+  }
+
+  augment "/parent:parent-container" {
+    list test-list {
+      key test-key;
+
+      leaf test-key {
+        type string;
+      }
+
+      leaf dummy {
+        type uint16;
+      }
+    }
+  }
+
+  augment "/parent:parent-container-2" {
+    list test-list {
+      key test-key;
+
+      leaf test-key {
+        type string;
+      }
+
+      leaf dummy {
+        type uint16;
+      }
+    }
+  }
+}
