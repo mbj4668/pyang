@@ -21,6 +21,11 @@ submodule submain {
                 path "/native/ip/vrf/name";
               }
             }
+            leaf forwardinfg-error {
+              type leafref {
+                path "/test:native/error:ip/test:vrf/test:name";
+              }
+            }
           }
         }
       }
