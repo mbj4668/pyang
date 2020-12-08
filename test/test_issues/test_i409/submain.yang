@@ -21,9 +21,21 @@ submodule submain {
                 path "/native/ip/vrf/name";
               }
             }
+            leaf forwarding-prefixed-partial {
+              type leafref {
+                path "/test:native/test:ip/vrf/name";
+              }
+            }
             leaf forwardinfg-error {
               type leafref {
                 path "/test:native/error:ip/test:vrf/test:name";
+              }
+            }
+          }
+          container temp {
+            leaf feature-prefixed {
+              type leafref {
+                path "/test:native/ip-vrf/ip/vrf/forwarding-prefixed";
               }
             }
           }
