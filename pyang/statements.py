@@ -2670,6 +2670,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
             if (path.i_module.keyword == 'submodule' and
+                prefix == local_module.i_prefix and 
                 local_module is not None):
                 pmodule = util.prefix_to_module(
                     local_module, prefix, stmt.pos, ctx.errors)
