@@ -1,0 +1,3 @@
+mod3.yang:14: error: BAD_UNIQUE
+mod3.yang:27: error: BAD_UNIQUE_CONFIG
+mod3.yang:42: error: BAD_UNIQUE_PART_LIST

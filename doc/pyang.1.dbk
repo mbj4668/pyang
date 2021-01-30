@@ -53,6 +53,7 @@
       <arg choice="opt">--features <replaceable>features</replaceable></arg>
       <arg choice="opt">--max-status <replaceable>maxstatus</replaceable></arg>
       <arg choice="opt">--hello</arg>
+      <arg choice="opt">--implicit-hello-deviations</arg>
       <arg choice="opt">--check-update-from <replaceable>oldfile</replaceable></arg>
       <arg choice="opt">-o <replaceable>outfile</replaceable></arg>
       <arg choice="opt">-t <replaceable>transform</replaceable></arg>
@@ -64,6 +65,40 @@
         <replaceable>file</replaceable>
       </arg>
     </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>pyang</command>
+      <arg choice="opt">--sid-list</arg>
+      <arg choice="plain">--sid-generate-file</arg>
+      <group choice="req">
+        <arg choice="plain">count</arg>
+        <arg choice="plain"><replaceable>entry-point:size</replaceable></arg>
+      </group>
+      <arg choice="plain"><replaceable>yang-filename</replaceable></arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>pyang</command>
+      <arg choice="opt">--sid-list</arg>
+      <arg choice="plain">--sid-update-file</arg>
+      <arg choice="plain"><replaceable>sid-filename</replaceable></arg>
+      <arg choice="plain"><replaceable>yang-filename</replaceable></arg>
+      <arg choice="opt">--sid-extra-range
+        <group choice="req">
+          <arg choice="plain">count</arg>
+          <arg choice="plain"><replaceable>entry-point:size</replaceable></arg>
+        </group>
+      </arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>pyang</command>
+      <arg choice="opt">--sid-list</arg>
+      <arg choice="plain">--sid-check-file</arg>
+      <arg choice="plain"><replaceable>sid-filename</replaceable></arg>
+      <arg choice="plain"><replaceable>yang-filename</replaceable></arg>
+    </cmdsynopsis>
+
     <cmdsynopsis>
       <command>pyang</command>
       <group choice="plain">
@@ -175,6 +210,18 @@
 
       <varlistentry>
         <term>
+          <option>--print-error-basename</option>
+        </term>
+        <listitem>
+          <para>
+            On errors, print only the base file name independent
+            of its module path location.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>-Werror</option>
         </term>
         <listitem>
@@ -273,6 +320,29 @@
 
       <varlistentry>
         <term>
+          <option>--msg-template</option>
+          <replaceable>msg-template</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Print out error message in defined <replaceable>msg-template</replaceable>.
+          </para>
+          <para>
+            Template used to display error messages. This is a python
+            new-style format string used to format the message
+            information with keys file, line, code, type, and msg.
+          </para>
+          <para>
+            The following example create a msg template in defined pattern:
+          </para>
+          <informalexample>
+            <screen>$ pyang --msg-template='{file} || {line} || {type} || {level} || {code} || {msg}'</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>--ignore-errors</option>
         </term>
         <listitem>
@@ -290,8 +360,7 @@
         <listitem>
           <para>
             This parameter has effect only if a plugin can handle
-            comments.  One example of such a plugin is the 'yang'
-            output format plugin.
+            comments.
           </para>
         </listitem>
       </varlistentry>
@@ -348,7 +417,7 @@
             xlink:href="http://tools.ietf.org/html/rfc2119">RFC
             2119</link> / <link
             xlink:href="http://tools.ietf.org/html/rfc8174">RFC
-            8274</link> boilerplate text.
+            8174</link> boilerplate text.
           </para>
         </listitem>
       </varlistentry>
@@ -403,6 +472,20 @@
             Interpret the input file or standard input as a server
             &lt;hello&gt; message. In this case, no more than one
             <replaceable>file</replaceable> parameter may be given.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--implicit-hello-deviations</option>
+        </term>
+        <listitem>
+          <para>
+            Attempt to parse all deviations from a supplied &lt;hello&gt;
+            message. Not all implementations provide deviations explicitly
+            as modules. This flag enables more logic to attempt to derive
+            all deviations from the message.
           </para>
         </listitem>
       </varlistentry>
@@ -764,14 +847,252 @@
     </title>
 
     <para>
-      Installed <command>pyang</command> transformations are (like output
-      formats) plugins and therefore may define their own options, or add new
-      transformations to the <option>-t</option> option. These options and
-      transformations are listed in <userinput>pyang -h</userinput>.
+      Installed <command>pyang</command> transformations are (like output formats) plugins and
+      therefore may define their own options, or add new transformations to the <option>-t</option>
+      option. These options and transformations are listed in <userinput>pyang -h</userinput>.
     </para>
 
     <variablelist>
-      <para>No standard transformations are currently supported.</para>
+      <varlistentry>
+        <term><emphasis>edit</emphasis></term>
+        <listitem>
+          <para>
+            Modify the supplied module(s) in various ways. This transform will usually be used
+            with the <emphasis>yang</emphasis> output format.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.edit_transform">
+    <title>Edit Transform</title>
+    <para>
+      The <emphasis>edit</emphasis> transform modifies the supplied module(s) in various ways.
+      It can, for example, replace top-level <emphasis>description</emphasis> statements, update
+      <emphasis>include</emphasis> statements and manage <emphasis>revision</emphasis> statements.
+      Unless otherwise noted below, it only modifies <emphasis>existing</emphasis>
+      statements.
+    </para>
+    <para>
+      Each <emphasis>edit</emphasis> transform string (non-date) option value is either a plain
+      string (which is taken literally) or a <emphasis>+</emphasis>-separated list of directives
+      (whose expansions are concatenated with double-linebreak separators, i.e. each directive
+      results in one or more paragraphs).
+    </para>
+    <para>
+      Each directive is either of the form <emphasis>@filename</emphasis> (which is replaced
+      with the contents of the file; there is no search path; trailing whitespace is discarded) or
+      of the form <emphasis>%keyword</emphasis>. Any unrecognized directives are treated as plain
+      strings. The following <emphasis>%</emphasis>-directives are currently supported:<itemizedlist>
+        <listitem>
+          <para>
+            <emphasis>%SUMMARY</emphasis> : This expands to a "summary" of the original argument
+            value. It's intended for use with top-level <emphasis>description</emphasis> statements
+            that typically consist of a hand-crafted summary followed by copyrights, license and
+            other boiler-plate text. The summary is the text up to but not including the first line
+            that (ignoring leading and trailing whitespace) starts with the word
+              <emphasis>Copyright</emphasis> followed by a space.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>%SUBST/old/new</emphasis> : This expands to the original argument value
+            with all instances of <emphasis>old</emphasis> replaced with <emphasis>new</emphasis>.
+            There is no provision for replacing characters that contain forward slashes, and there
+            is no terminating slash.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>%DELETE</emphasis> : This clears the output buffer and suppresses a check
+            that would normally prevent overwriting an existing value (unless that value is the
+            literal string <command>TBD</command>).
+          </para>
+        </listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      In the examples given below, it's assumed that there are <emphasis>CONTACT</emphasis>,
+      <emphasis>CONTEXT</emphasis>, <emphasis>LICENSE</emphasis>,
+      <emphasis>ORGANIZATION</emphasis>, <emphasis>REFERENCE</emphasis> and
+      <emphasis>REVISION</emphasis> files in a top-level project directory (which in this case is
+      the parent of the directory in which <command>pyang</command> is being run). These examples
+      illustrate how the <emphasis>edit</emphasis> transform might be used with the
+      <emphasis>yang</emphasis> output format to prepare YANG files for publication.
+    </para>
+    <para>
+      Edit transform specific options:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--edit-yang-version</option>
+          <replaceable>version</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the YANG version (i.e., the <emphasis>yang-version</emphasis> statement's
+            argument) to <replaceable>version</replaceable>. This does nothing if the YANG module
+            doesn't already have a <emphasis>yang-version</emphasis> statement.
+          </para>
+          <para>
+            Example: <command>--edit-yang-version 1.1</command>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-namespace</option>
+          <replaceable>namespace</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the YANG namespace (i.e., the <emphasis>namespace</emphasis> statement's
+            argument) to <replaceable>namespace</replaceable>. This does nothing if the YANG module
+            doesn't already have a <emphasis>namespace</emphasis> statement.
+          </para>
+          <para>
+            Example: <command>--edit-namespace %SUBST/acme-pacific-org/apo</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-update-import-dates</option>
+        </term>
+        <listitem>
+          <para>
+            Update any <emphasis>import</emphasis> (or <emphasis>include</emphasis>)
+            <emphasis>revision-date</emphasis> statements to match imported (or included) modules
+            and submodules. If there isn't already a <emphasis>revision-date</emphasis> statement,
+            it will be added.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-delete-import-dates</option></term>
+        <listitem>
+          <para>
+            Delete any <replaceable>import</replaceable> (or <emphasis>include</emphasis>)
+            <emphasis>revision-date</emphasis> statements.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-organization</option>
+          <replaceable>organization</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the organization (i.e. the <emphasis>organization</emphasis> statement's
+            argument) to <replaceable>organization</replaceable>. This does nothing if the YANG
+            module doesn't already have an <emphasis>organization</emphasis> statement.
+          </para>
+          <para>
+            Example: <command>--edit-organization @../ORGANIZATION</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-contact</option>
+          <replaceable>contact</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the contact info (i.e. the <emphasis>contact</emphasis> statement's argument) to
+              <replaceable>contact</replaceable>. This does nothing if the YANG module doesn't
+            already have a <emphasis>contact</emphasis> statement.
+          </para>
+          <para>
+            Example: <command>--edit-contact @../CONTACT</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-description</option>
+          <replaceable>description</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the top-level description (i.e. the top-level <emphasis>description</emphasis>
+            statement's argument) to <replaceable>description</replaceable>. This does nothing if
+            the YANG module doesn't already have a <emphasis>description</emphasis>
+            statement.
+          </para>
+          <para>
+            Example: <command>--edit-description %SUMMARY+@../LICENSE+@../CONTEXT</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-delete-revisions-after</option>
+          <replaceable>prevdate</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Delete any <replaceable>revision</replaceable> statements after (i.e. that are more
+            recent than) the supplied <emphasis>yyyy-mm-dd</emphasis> revision date. A typical use
+            case is to supply the date of the previous release: any revisions since then will be
+            internal (e.g. developers often feel that they should add revision statements for git
+            commits) and are not wanted in the next released version.
+          </para>
+          <para>
+            Example: <command>--edit-delete-revisions-after 2019-03-15</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-revision-date</option>
+          <replaceable>date</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the most recent revision date to the supplied
+            <replaceable>yyyy-mm-dd</replaceable> revision date. This does nothing if the YANG
+            module doesn't already have at least one <emphasis>revision</emphasis> statement. If
+            necessary, a new <emphasis>revision</emphasis> statement will be inserted before any
+            (remaining) existing revisions.
+          </para>
+          <para>
+            Example: <command>--edit-revision-date 2020-03-15</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-revision-description</option>
+          <replaceable>description</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the most recent revision description to <replaceable>description</replaceable>.
+          </para>
+          <para>
+            Example: <command>--edit-revision-description=%DELETE+@../REVISION</command>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--edit-revision-reference</option>
+          <replaceable>reference</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Set the most recent revision reference to <replaceable>reference</replaceable>.
+          </para>
+          <para>
+            Example: <command>--edit-revision-reference=%DELETE+@../REFERENCE</command>
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </refsect1>
 
@@ -861,6 +1182,12 @@
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><emphasis>flatten</emphasis></term>
+        <listitem>
+          <para>Print the schema nodes in CSV form.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><emphasis>uml</emphasis></term>
         <listitem>
           <para>UML file that can be read by
@@ -933,6 +1260,147 @@
             Validate that all identifiers use hyphenated style, i.e.,
             no uppercase letters or underscores.
           </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.sid_options">
+    <title>YANG Schema Item iDentifiers (SID)</title>
+    <para>
+      YANG Schema Item iDentifiers (SID) are globally unique unsigned integers
+      used to identify YANG items. SIDs are used instead of names to save space
+      in constrained applications such as COREconf. This plugin is used to
+      automatically generate and updated .sid files used to persist and
+      distribute SID assignments.
+    </para>
+    <para>
+      Options for generating, updating and checking .sid files:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--sid-generate-file</option></term>
+        <listitem>
+          <para>
+            This option is used to generate a new .sid file from a YANG module.
+          </para>
+          <para>
+            Two arguments are required to generate a .sid file; the SID range assigned
+            to the YANG module and its definition file. The SID range specified is a
+            sub-range within a range obtained from a registrar or a sub-range within
+            the experimental range (i.e. 60000 to 99999). The SID range consists of
+            the first SID of the range, followed by a colon, followed by the number
+            of SID allocated to the YANG module. The filename consists of the module
+            name, followed by an @ symbol, followed by the module revision, followed
+            by the ".yang" extension.
+          </para>
+          <para>
+            This example shows how to generate the file
+            <emphasis>toaster@2009-11-20.sid</emphasis>.
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sid-update-file</option></term>
+        <listitem>
+          <para>
+            Each time new items are added to a YANG module by the introduction of
+            a new revision of this module, its included sub-modules or imported
+            modules, the associated .sid file need to be updated. This is done
+            by using the <option>--sid-update-file</option> option.
+          </para>
+          <para>
+            Two arguments are required to generate a .sid file for an updated YANG
+            module; the previous .sid file generated for the YANG module and the
+            definition file of the updated module. Both filenames follow the usual
+            naming conversion consisting of the module name, followed by an @ symbol,
+            followed by the module revision, followed by the extension.
+          </para>
+          <para>
+            This example shows how to generate the file
+            <emphasis>toaster@2009-12-28.sid</emphasis> based on the SIDs already
+            present in <emphasis>toaster@2009-11-20.sid</emphasis>.
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-update-file toaster@2009-11-20.sid \
+toaster@2009-12-28.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sid-check-file</option></term>
+        <listitem>
+          <para>
+            The <option>--sid-check-file</option> option can be used at any time
+            to verify if a .sid file need to be updated.
+          </para>
+          <para>
+            Two arguments are required to verify a .sid file; the filename of the .sid file
+            to be checked and the corresponding definition file.
+          </para>
+          <para>
+            For example:
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-check-file toaster@2009-12-28.sid \
+toaster@2009-12-28.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sid-list</option></term>
+        <listitem>
+          <para>
+            The <option>--sid-list</option> option can be used before any of the
+            previous options to obtains the list of SIDs assigned or validated. For example:
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-list --sid-generate-file 20000:100 \
+toaster@2009-11-20.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sid-extra-range</option></term>
+        <listitem>
+          <para>
+            If needed, an extra SID range can be assigned to an existing YANG module
+            during its update with the <option>--sid-extra-range</option> option.
+          </para>
+          <para>
+            For example, this command generates the file <emphasis>toaster@2009-12-28.sid</emphasis>
+            using the initial range(s) present in <emphasis>toaster@2009-11-20.sid</emphasis>
+            and the extra range specified in the command line.
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-update-file toaster@2009-11-20.sid \
+toaster@2009-12-28.yang --sid-extra-range 20100:100</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><emphasis>count</emphasis></term>
+        <listitem>
+          <para>
+            The number of SID required when generating or updating a .sid file can
+            be computed by specifying "<emphasis>count</emphasis>" as SID range.
+          </para>
+          <para>
+            For example:
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-generate-file count toaster@2009-11-20.yang</screen>
+          </informalexample>
+          <para>
+            or:
+          </para>
+          <informalexample>
+            <screen>$ pyang --sid-update-file toaster@2009-11-20.sid \
+toaster@2009-12-28.yang --sid-extra-range count</screen>
+          </informalexample>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -1386,6 +1854,17 @@ $ osascript foo.scpt</screen>
       </varlistentry>
       <varlistentry>
         <term>
+          <option>--tree-print-structures</option>
+        </term>
+        <listitem>
+          <para>
+            Print the ietf-yang-structure-ext:structure structures
+            defined in the module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
           <option>--tree-print-yang-data</option>
         </term>
         <listitem>
@@ -1417,6 +1896,209 @@ $ osascript foo.scpt</screen>
           <para>
             Use the module name (instead of the prefix) to prefix
             parameters and types.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="man.1.pyang.flatten_output">
+    <title>Flatten Output</title>
+    <para>
+      The <emphasis>flatten</emphasis> output flattens provided
+      YANG module and outputs the schema nodes and some of their
+      properties in CSV format.
+    </para>
+    <para>
+      Flatten output specific options:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--flatten-no-header</option></term>
+        <listitem>
+          <para>
+            Do not emit the CSV header.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keyword</option></term>
+        <listitem>
+          <para>
+            Output the keyword.
+            This will resolve as container, leaf, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-type</option></term>
+        <listitem>
+          <para>
+            Output the top-level type.
+            This will resolve to a module-prefixed type.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-primitive-type</option></term>
+        <listitem>
+          <para>
+            Output the primitive type.
+            This resolves to a YANG type such as uint64.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-flag</option></term>
+        <listitem>
+          <para>
+            Output flag property.
+            Derives a flag - for instance rw/ro for config, or x for RPC.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-description</option></term>
+        <listitem>
+          <para>
+            Output the description.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keys</option></term>
+        <listitem>
+          <para>
+            Output whether the XPath is identified as a key.
+            <emphasis>key</emphasis> or null will be output per XPath.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-keys-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with keys in path.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-prefix-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the XPath with prefixes instead of modules.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-qualified-in-xpath</option></term>
+        <listitem>
+          <para>
+            Output the qualified XPath i.e. /module1:root/module1:node/module2:node/...
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-qualified-module-and-prefix-path</option></term>
+        <listitem>
+          <para>
+            Output an XPath with both module and prefix i.e. /module1:prefix1:root/...
+            This is <emphasis>NOT</emphasis> a colloquial syntax of XPath. Emitted separately.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-deviated</option></term>
+        <listitem>
+          <para>
+            Output deviated nodes in the schema as well.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-data-keywords</option></term>
+        <listitem>
+          <para>
+            Flatten all data keywords instead of only data definition keywords.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-filter-keyword</option>
+          <replaceable>keyword</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Filter output to only desired keywords.
+            Keywords specified are what will be displayed in output.
+            Can be specified more than once.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-filter-primitive</option>
+          <replaceable>primitive_type</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Filter output to only desired primitive types.
+            Primitives specified are what will be displayed in output.
+            Can be specified more than once.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-filter-flag</option>
+          <replaceable>choice</replaceable>
+        </term>
+        <listitem>
+          <para>
+            Filter output to flag.
+            <emphasis>rw</emphasis> for configuration data.
+            <emphasis>ro</emphasis> for non-configuration data, output parameters to rpcs and actions, and notification parameters.
+            <emphasis>w</emphasis> for input parameters to rpcs and actions.
+            <emphasis>u</emphasis> for uses of a grouping.
+            <emphasis>x</emphasis> for rpcs and actions.
+            <emphasis>n</emphasis> for notifications.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--flatten-csv-dialect</option>
+          <replaceable>dialect</replaceable>
+        </term>
+        <listitem>
+          <para>
+            CSV dialect for output.
+            excel | excel-tab | unix
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-ignore-no-primitive</option></term>
+        <listitem>
+          <para>
+            Ignore error if primitive is missing.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-status</option></term>
+        <listitem>
+          <para>
+            Output the status statement value.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--flatten-resolve-leafref</option></term>
+        <listitem>
+          <para>
+            Output the XPath of the leafref target.
           </para>
         </listitem>
       </varlistentry>
@@ -1616,6 +2298,25 @@ $ osascript foo.scpt</screen>
         <listitem>
           <para>
             Remove unused import statements from the output.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--yang-remove-comments</option></term>
+        <listitem>
+          <para>
+            Remove all comments from the output.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--yang-line-length</option>
+        <replaceable>len</replaceable></term>
+        <listitem>
+          <para>
+            Try to format each line with a maximum line length of
+            <replaceable>len</replaceable>.  Does not reformat long
+            lines within strings.
           </para>
         </listitem>
       </varlistentry>

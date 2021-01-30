@@ -1,0 +1,9 @@
+mod1.yang:15: error: TYPE_VALUE
+mod1.yang:21: error: TYPE_VALUE
+mod1.yang:27: error: TYPE_VALUE
+mod1.yang:33: error: TYPE_VALUE
+mod1.yang:51: error: TYPE_VALUE
+mod1.yang:57: error: TYPE_VALUE
+mod1.yang:63: error: TYPE_VALUE
+mod1.yang:63: error: RANGE_BOUNDS
+mod1.yang:75: error: RANGE_BOUNDS

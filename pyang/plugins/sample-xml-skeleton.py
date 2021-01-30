@@ -30,10 +30,10 @@ document containing sample elements for all data nodes.
   --sample-xml-skeleton-defaults option).
 """
 
+import copy
 import sys
 import optparse
 from lxml import etree
-import copy
 
 from pyang import plugin, error
 
@@ -73,9 +73,6 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         self.multiple_modules = True
         fmts['sample-xml-skeleton'] = self
 
-    def setup_fmt(self, ctx):
-        ctx.implicit_errors = False
-
     def emit(self, ctx, modules, fd):
         """Main control function.
 
@@ -90,7 +87,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         else:
             path = []
 
-        for (epos, etag, eargs) in ctx.errors:
+        for epos, etag, eargs in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError(
                     "sample-xml-skeleton plugin needs a valid module")
@@ -113,6 +110,11 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         for yam in modules:
             if yam.keyword == 'module':
                 self.ns_uri[yam] = yam.search_one("namespace").arg
+                for imp in yam.search('import'):
+                    iyam = ctx.get_module(imp.arg)
+                    if iyam:
+                        self.ns_uri[iyam] = iyam.search_one("namespace").arg
+
         self.top = etree.Element(
             self.doctype,
             {"xmlns": "urn:ietf:params:xml:ns:netconf:base:1.0"})
@@ -133,7 +135,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """Do nothing for `node`."""
         pass
 
-    def process_children(self, node, elem, module, path, omit=[]):
+    def process_children(self, node, elem, module, path, omit=()):
         """Proceed with all children of `node`."""
         for ch in node.i_children:
             if ch not in omit and (ch.i_config or self.doctype == "data"):
@@ -204,7 +206,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         """
         if path is None:
             return parent, module, None
-        elif path == []:
+        elif not path:
             # GO ON
             pass
         else:
@@ -216,7 +218,7 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         res = etree.SubElement(parent, node.arg)
         mm = node.main_module()
         if mm != module:
-            res.attrib["xmlns"] = self.ns_uri[mm]
+            res.attrib["xmlns"] = self.ns_uri.get(mm, "urn:UNKNOWN")
             module = mm
         return res, module, path
 

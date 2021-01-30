@@ -1,0 +1,41 @@
+module mod2 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod2";
+
+  container con1 {
+    list lst1 {
+      //key "name";
+      config false;
+
+      leaf name {
+        type string;
+      }
+     
+      container con2 {
+        list lst2 {    
+          key le1;
+
+          leaf le1 {
+            type uint16;
+          }          
+
+        }
+      }
+    }
+  }
+
+
+  augment "/con1/lst1/con2/lst2" {    
+    action act { // error: 'key' is missing
+      description "test description";
+    }
+
+    notification not { // error: 'key' is missing
+      description "test description";
+    }
+
+  }
+
+
+}

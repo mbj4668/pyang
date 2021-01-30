@@ -1,0 +1,29 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  typedef my {
+    type leafref {
+      path "../../top";
+    }
+  }
+
+  container cont {
+    leaf ref {
+      type int8;
+    }
+    leaf top {
+      type uint8;
+    }
+    container cc {
+      leaf ref {
+        type my;
+      }
+    }
+  }
+
+  leaf top {
+    type uint8;
+  }
+}

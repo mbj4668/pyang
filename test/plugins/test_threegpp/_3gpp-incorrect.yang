@@ -1,0 +1,39 @@
+module _3gpp-incorrect {
+  yang-version 1;
+  namespace "urn:3gpp:sa5:_3gpp-xcorrect";
+  prefix corasdfgrty3gp;
+  
+  import _3gpp-correct { prefix xx; }
+
+  organization "2GPP SA5";
+  contact "https://www.3gpp.org/DynaReport/";    
+  reference "XXTS 28.623";
+
+  revision 2020-08-06 { description "whatever"; }  
+
+  container main {
+    config true;
+    status current;
+    anyxml ax {
+      mandatory false;
+    }
+    anydata ad;
+  }
+  
+  rpc do-something { description "text����������������"; }
+  
+  deviation /main/ad {
+    deviate replace {
+      config false;
+    }
+  }
+  
+  list myOBj {
+    key id; 
+    min-elements 0;
+    max-elements unbounded;
+    ordered-by system;
+    
+    leaf id { type string; }
+  }
+}

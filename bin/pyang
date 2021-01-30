@@ -3,18 +3,19 @@
 import sys
 import os
 import optparse
-import re
 import io
-if sys.version < '3':
-    import codecs
+import codecs
 
 import pyang
 from pyang import plugin
 from pyang import error
 from pyang import util
 from pyang import hello
+from pyang import context
+from pyang import repository
 from pyang import statements
 from pyang import syntax
+
 
 def run():
 
@@ -57,6 +58,20 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="On errors, print the error code instead " \
                              "of the error message."),
+        optparse.make_option("--print-error-basename",
+                             dest="print_error_basename",
+                             action="store_true",
+                             help="On errors, print the basename of files " \
+                             "of the error message."),
+        optparse.make_option("--msg-template",
+                             dest="msg_template",
+                             type="string",
+                             help="Template used to display error messages. " \
+                             "This is a python new-style format string used " \
+                             "to format the message information with keys " \
+                             "file, line, code, type and msg. " \
+                             "Example: --msg-template='{file} || {line} || " \
+                             "{code} || {type} || {level} || {msg}'"),
         optparse.make_option("-W",
                              dest="warnings",
                              action="append",
@@ -98,12 +113,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         optparse.make_option("-t", "--transform", dest="transforms",
                              default=[], action="append",
                              help="Apply transform TRANSFORM.  Supported " \
-                                  "transforms are: " + ', '.join(list(
-                                     xforms.keys()))),
+                                  "transforms are: " + ', '.join(xforms)),
         optparse.make_option("-f", "--format",
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
-                             "are: " +  ', '.join(list(fmts.keys()))),
+                             "are: " +  ', '.join(fmts)),
         optparse.make_option("-o", "--output",
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
@@ -157,6 +171,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Filename of a server's hello message is "
                              "given instead of module filename(s)."),
+        optparse.make_option("--implicit-hello-deviations",
+                             dest="implicit_hello_deviations",
+                             action="store_true",
+                             help="Attempt to parse all deviations from hello "
+                             "message regardless of declaration."),
         optparse.make_option("--keep-comments",
                              dest="keep_comments",
                              action="store_true",
@@ -179,29 +198,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     (o, args) = optparser.parse_args()
 
-    if o.list_errors == True:
-        for tag in error.error_codes:
-            (level, fmt) = error.error_codes[tag]
-            if error.is_warning(level):
-                print("Warning: %s" % tag)
-            elif error.allow_warning(level):
-                print("Minor Error:   %s" % tag)
-            else:
-                print("Error:   %s" % tag)
-            print("Message: %s" % fmt)
-            print("")
-        sys.exit(0)
-
-    if o.outfile != None and o.format == None:
+    if o.outfile is not None and o.format is None:
         sys.stderr.write("no format specified\n")
         sys.exit(1)
-
-    # patch the error spec so that -W errors are treated as warnings
-    for w in o.warnings:
-        if w in error.error_codes:
-            (level, wstr) = error.error_codes[w]
-            if error.allow_warning(level):
-                error.error_codes[w] = (4, wstr)
 
     filenames = args
 
@@ -214,7 +213,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             try:
                 fd = open(filenames[0], "rb")
             except IOError as ex:
-                sys.stderr.write("error %s: %s\n" % (filenames[0], str(ex)))
+                sys.stderr.write("error %s: %s\n" % (filenames[0], ex))
                 sys.exit(1)
         elif sys.version < "3":
             fd = sys.stdin
@@ -230,10 +229,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = pyang.FileRepository(path, no_path_recurse=o.no_path_recurse,
-                                 verbose=o.verbose)
+    repos = repository.FileRepository(path, no_path_recurse=o.no_path_recurse,
+                                      verbose=o.verbose)
 
-    ctx = pyang.Context(repos)
+    ctx = context.Context(repos)
 
     ctx.opts = o
     ctx.canonical = o.canonical
@@ -247,7 +246,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     # make a map of features to support, per module
     if o.hello:
-        for (mn,rev) in hel.yang_modules():
+        for mn, rev in hel.yang_modules():
             ctx.features[mn] = hel.get_features(mn)
     for f in ctx.opts.features:
         (modulename, features) = parse_features_string(f)
@@ -255,6 +254,26 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
+
+    if o.list_errors is True:
+        for tag in error.error_codes:
+            (level, fmt) = error.error_codes[tag]
+            if error.is_warning(level):
+                print("Warning: %s" % tag)
+            elif error.allow_warning(level):
+                print("Minor Error:   %s" % tag)
+            else:
+                print("Error:   %s" % tag)
+            print("Message: %s" % fmt)
+            print("")
+        sys.exit(0)
+
+    # patch the error spec so that -W errors are treated as warnings
+    for w in o.warnings:
+        if w in error.error_codes:
+            (level, wstr) = error.error_codes[w]
+            if error.allow_warning(level):
+                error.error_codes[w] = (4, wstr)
 
     xform_objs = []
     for transform in o.transforms:
@@ -267,7 +286,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if len(xform_objs) != len(o.transforms):
         sys.exit(1)
 
-    if o.format != None:
+    if o.format is not None:
         if o.format not in fmts:
             sys.stderr.write("unsupported format '%s'\n" % o.format)
             sys.exit(1)
@@ -290,15 +309,20 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     if o.hello:
         ctx.capabilities = hel.registered_capabilities()
-        for (mn,rev) in hel.yang_modules():
-            mod = ctx.search_module(0, mn, rev)
+        modules_missing = False
+        for mn, rev in hel.yang_modules():
+            mod = ctx.search_module(error.Position(''), mn, rev)
             if mod is None:
                 emarg = mn
-                if rev: emarg += "@" + rev
+                if rev:
+                    emarg += "@" + rev
                 sys.stderr.write(
                     "module '%s' specified in hello not found.\n" % emarg)
-                sys.exit(1)
-            modules.append(mod)
+                modules_missing = True
+            else:
+                modules.append(mod)
+        if modules_missing is True:
+            sys.exit(1)
     else:
         if len(filenames) == 0:
             text = sys.stdin.read()
@@ -320,7 +344,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 if o.verbose:
                     util.report_file_read(filename, "(CL)")
             except IOError as ex:
-                sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+                sys.stderr.write("error %s: %s\n" % (filename, ex))
                 sys.exit(1)
             except UnicodeDecodeError as ex:
                 s = str(ex).replace('utf-8', 'utf8')
@@ -329,9 +353,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             m = syntax.re_filename.search(filename)
             ctx.yin_module_map = {}
             if m is not None:
-                (name, rev, format) = m.groups()
+                name, rev, in_format = m.groups()
                 name = os.path.basename(name)
-                module = ctx.add_module(filename, text, format, name, rev,
+                module = ctx.add_module(filename, text, in_format, name, rev,
                                         expect_failure_error=False)
             else:
                 module = ctx.add_module(filename, text)
@@ -352,7 +376,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             fd = io.open(filename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
-            sys.stderr.write("error %s: %s\n" % (filename, str(ex)))
+            sys.stderr.write("error %s: %s\n" % (filename, ex))
             sys.exit(1)
         except UnicodeDecodeError as ex:
             s = str(ex).replace('utf-8', 'utf8')
@@ -361,6 +385,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         m = ctx.add_module(filename, text)
         if m is not None:
             ctx.deviation_modules.append(m)
+    if o.hello and o.implicit_hello_deviations:
+        for deviation_module in hel.yang_implicit_deviation_modules():
+            m = ctx.search_module(error.Position(''), deviation_module)
+            if m is not None:
+                ctx.deviation_modules.append(m)
 
     for p in plugin.plugins:
         p.pre_validate_ctx(ctx, modules)
@@ -417,13 +446,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if o.ignore_errors:
         ctx.errors = []
 
-    for (epos, etag, eargs) in ctx.errors:
+    for epos, etag, eargs in ctx.errors:
         if etag in o.ignore_error_tags:
             continue
-        if (ctx.implicit_errors == False and
-            hasattr(epos.top, 'i_modulename') and
+        if (ctx.implicit_errors is False and
             epos.top.arg not in modulenames and
-            epos.top.i_modulename not in modulenames and
+            (not hasattr(epos.top, 'i_modulename') or
+             epos.top.i_modulename not in modulenames) and
             epos.ref not in filenames):
             # this module was added implicitly (by import); skip this error
             # the code includes submodules
@@ -439,15 +468,26 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         else:
             kind = "error"
             exit_code = 1
-        if o.print_error_code == True:
-            sys.stderr.write(str(epos) + ': %s: %s\n' % (kind, etag))
+        emsg = etag if o.print_error_code else error.err_to_str(etag, eargs)
+
+        if o.msg_template is not None:
+            try:
+                sys.stderr.write(str(o.msg_template).format(
+                    file=epos.ref, line=epos.line,
+                    code=etag, type=kind,
+                    msg=error.err_to_str(etag, eargs),
+                    level=elevel) + '\n')
+            except KeyError as error_msg:
+                sys.stderr.write(
+                    "unsupported key %s in msg-template\n" % error_msg)
+                sys.exit(1)
         else:
-            sys.stderr.write(str(epos) + ': %s: ' % kind + \
-                                 error.err_to_str(etag, eargs) + '\n')
+            sys.stderr.write('%s: %s: %s\n' %
+                             (epos.label(o.print_error_basename), kind, emsg))
 
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
-        if o.outfile == None:
+        if o.outfile is None:
             if sys.version < '3':
                 fd = codecs.getwriter('utf8')(sys.stdout)
             else:
@@ -463,16 +503,16 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         except error.EmitError as e:
             if e.msg != "":
                 sys.stderr.write(e.msg + '\n')
-            if tmpfile != None:
+            if tmpfile is not None:
                 fd.close()
                 os.remove(tmpfile)
             sys.exit(e.exit_code)
         except:
-            if tmpfile != None:
+            if tmpfile is not None:
                 fd.close()
                 os.remove(tmpfile)
             raise
-        if tmpfile != None:
+        if tmpfile is not None:
             fd.close()
             os.rename(tmpfile, o.outfile)
 
@@ -480,14 +520,14 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
 def parse_features_string(s):
     if s.find(':') == -1:
-        return (s, [])
+        return s, []
     else:
-        [modulename, rest] = s.split(':', 1)
+        modulename, rest = s.split(':', 1)
         if rest == '':
-            return (modulename, [])
+            return modulename, []
         else:
             features = rest.split(',')
-            return (modulename, features)
+            return modulename, features
 
 if __name__ == '__main__':
     run()

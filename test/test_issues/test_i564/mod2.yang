@@ -1,0 +1,21 @@
+module mod2 {
+  yang-version 1.1;
+  prefix bb;
+  namespace "urn:mod2";
+
+  leaf-list le1 {
+    type string;
+    max-elements "50";
+    min-elements "cd";
+    default "234";
+  }
+
+  list lst {
+    key "name";
+    leaf name {
+      type string;
+    }
+    max-elements "ab";
+    min-elements 51;
+  }
+}

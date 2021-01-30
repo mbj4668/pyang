@@ -1,7 +1,7 @@
 #
 # Just drop .mib files here and do make all; make gen-xml
 #
-PYANG ?= pyang -Wnone
+PYANG := $(PYANG) -Wnone
 # need smidump 0.4.7 or later
 SMIDUMP ?= smidump
 

@@ -1,0 +1,3 @@
+mod1.yang:12: error: DEFAULT_AND_IFFEATURE
+mod1.yang:25: error: DEFAULT_AND_IFFEATURE
+mod1.yang:43: error: DEFAULT_AND_IFFEATURE

@@ -1,0 +1,1 @@
+ERROR, The current SID range(s) are exhausted, 9 extra SID(s) are required, use the --sid-extra-range option to add a SID range to this YANG module.

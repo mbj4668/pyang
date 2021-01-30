@@ -1,0 +1,2 @@
+module { // error: expected module name
+}

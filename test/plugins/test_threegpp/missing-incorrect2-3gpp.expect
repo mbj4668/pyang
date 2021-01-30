@@ -1,0 +1,13 @@
+_3gpp-missing-incorrect2.yang:1: error: RFC 8407: 4.8: statement "module" must have a "contact" substatement
+_3gpp-missing-incorrect2.yang:1: error: RFC 8407: 4.8: statement "module" must have a "organization" substatement
+_3gpp-missing-incorrect2.yang:1: error: RFC 8407: 4.8: statement "module" must have a "description" substatement
+_3gpp-missing-incorrect2.yang:1: error: RFC 8407: 4.8: statement "module" must have a "revision" substatement
+_3gpp-missing-incorrect2.yang:1: error: 3GPP: Carriage-return characters should not be used. End-of-line should be just one LF character
+_3gpp-missing-incorrect2.yang:2: error: 3GPP: the namespace should be on the form urn:3gpp:sa5:_3gpp-missing-incorrect2
+_3gpp-missing-incorrect2.yang:2: error: 3GPP: Carriage-return characters should not be used. End-of-line should be just one LF character
+_3gpp-missing-incorrect2.yang:3: error: 3GPP: the yang-version should be 1.1
+_3gpp-missing-incorrect2.yang:3: error: 3GPP: the prefix should end with 3gpp
+_3gpp-missing-incorrect2.yang:3: error: 3GPP: Carriage-return characters should not be used. End-of-line should be just one LF character
+_3gpp-missing-incorrect2.yang:4: error: 3GPP: Carriage-return characters should not be used. End-of-line should be just one LF character
+_3gpp-missing-incorrect2.yang:5: error: 3GPP: Carriage-return characters should not be used. End-of-line should be just one LF character
+_3gpp-missing-incorrect2.yang:6: error: 3GPP: Carriage-return characters should not be used. End-of-line should be just one LF character

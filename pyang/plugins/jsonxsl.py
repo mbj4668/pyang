@@ -25,7 +25,7 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 
-from pyang import plugin, statements, error
+from pyang import plugin, error
 from pyang.util import unique_prefixes
 
 ss = ET.Element("stylesheet",
@@ -68,7 +68,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
         recursively all nodes in all data trees, and finally emit the
         serialized stylesheet.
         """
-        for (epos, etag, eargs) in ctx.errors:
+        for epos, etag, eargs in ctx.errors:
             if error.is_error(error.err_level(etag)):
                 raise error.EmitError("JSONXSL plugin needs a valid module")
         self.real_prefix = unique_prefixes(ctx)
@@ -85,7 +85,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
         nsmap = ET.SubElement(ss, "template", name="nsuri-to-module")
         ET.SubElement(nsmap, "param", name="uri")
         choo = ET.SubElement(nsmap, "choose")
-        for module in self.real_prefix.keys():
+        for module in self.real_prefix:
             ns_uri = module.search_one("namespace").arg
             ss.attrib["xmlns:" + self.real_prefix[module]] = ns_uri
             when = ET.SubElement(choo, "when", test="$uri='" + ns_uri + "'")
@@ -165,7 +165,7 @@ class JsonXslPlugin(plugin.PyangPlugin):
                 self.xsl_withparam("nsid", ch.i_module.i_modulename + ":", ct)
             if ch.keyword in ["leaf", "leaf-list"]:
                 self.type_param(ch, ct)
-            elif ch.keyword != "anyxml":
+            elif ch.keyword != "anyxml" and ch.keyword != "anydata":
                 offset = 2 if ch.keyword == "list" else 1
                 self.process_children(ch, p, level + offset)
 
@@ -194,7 +194,8 @@ class JsonXslPlugin(plugin.PyangPlugin):
                     ut = "other"
                 if ut not in opts:
                     opts.append(ut)
-                    if ut == "other": break
+                    if ut == "other":
+                        break
                     if ut == "decimal" and "integer" not in opts:
                         opts.append("integer")
             self.xsl_withparam("type", "union", ct)
@@ -204,7 +205,8 @@ class JsonXslPlugin(plugin.PyangPlugin):
         res = []
         def resolve(typ):
             if typ.arg == "union":
-                for ut in typ.i_type_spec.types: resolve(ut)
+                for ut in typ.i_type_spec.types:
+                    resolve(ut)
             elif typ.arg == "decimal64":
                 res.append("decimal@" +
                            typ.search_one("fraction-digits").arg)

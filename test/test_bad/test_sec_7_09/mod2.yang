@@ -1,0 +1,57 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  grouping gg2 {
+    leaf le2_1 {
+      type boolean;
+    }
+  }
+
+  container ccon1 {
+    choice cch1 {
+      case cca {
+        description "test description";
+        description "test description1"; // error: duplicated description
+        
+        reference "test reference";
+        reference "test reference1"; // error: duplicated reference
+
+        status "current";
+        status "obsolete"; // error: duplicated status
+
+        when "/node = 'Tom'";
+        when "/node = 'Jerry'"; // error: duplicated when
+
+      }
+
+      case ccb {
+        leaf le2_2 {
+          type string;
+        }
+      }
+
+      case ccc {
+        container le2_2 { // error: repeated 'le2_2'
+          leaf le2_3 {
+            type int8;
+          }
+        }
+      }
+      
+      container cca { // error: duplicated case 'cca' 
+        leaf empty {
+          type empty;
+        }
+      }
+
+    }
+
+  }
+
+  leaf node {
+    type string;
+  }
+
+}

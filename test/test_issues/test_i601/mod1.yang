@@ -1,0 +1,25 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  revision 2020-04-21;
+  container top {
+    leaf teststring {
+      must "substring(., 2) = 'test'";
+      type string;
+    }
+  }
+
+  container top1 {
+    leaf teststring1 {
+      must "substring(., 2, 6, 10) = 'test'";
+      type string;
+    }
+  }
+
+  leaf test_concat {
+    type string;
+    must "re-match('ha_ha_ha', concat('ha', '_', 'ha', '_', 'ha'))";
+  }
+}

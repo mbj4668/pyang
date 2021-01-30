@@ -1,2 +1,2 @@
 test:
-	pyang -f jsonxsl test.yang > /dev/null
+	$(PYANG) -f jsonxsl test.yang > /dev/null

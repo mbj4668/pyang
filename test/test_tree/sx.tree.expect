@@ -1,0 +1,9 @@
+module: sx
+
+  structure address-book:
+    +-- address* [last first]
+       +-- last      string
+       +-- first     string
+       +-- street?   string
+       +-- city?     string
+       +-- state?    string

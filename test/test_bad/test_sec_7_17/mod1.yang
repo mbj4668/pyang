@@ -1,0 +1,49 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  container interfaces {
+    list ifEntry {
+      key "ifIndex";
+
+      leaf ifIndex {
+        type uint32;
+      }
+      leaf ifDescr {
+        type string;
+      }
+      leaf ifType {
+        type boolean;
+      }
+      leaf ifMtu {
+        type int32;
+      }
+    }
+  }
+
+  augment "/interfaces/ifEntry" {
+    leaf Tom {
+      type string;
+    }
+    description "test description";
+    description "test description"; // error: duplicated description
+
+    reference "test reference";
+    reference "test reference"; // error: duplicated reference
+
+    status "current";
+    status "current"; // error: duplicated status
+
+    when "ifIndex = 100";
+    when "ifIndex = 100"; // error: duplicated when
+
+  } 
+
+  augment "/interfaces/ifEntry" {
+    leaf ifMtu { // error: 'ifMtu' is already existed
+      type int32;
+    }
+  }
+
+}

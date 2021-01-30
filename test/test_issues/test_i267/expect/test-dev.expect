@@ -1,0 +1,2 @@
+test-dev.yang:10: error: BAD_DEVIATE_DEL2
+test-dev.yang:13: error: BAD_DEVIATE_ADD

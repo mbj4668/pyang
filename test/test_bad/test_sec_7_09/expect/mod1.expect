@@ -1,0 +1,15 @@
+mod1.yang:31: error: UNEXPECTED_KEYWORD
+mod1.yang:34: error: UNEXPECTED_KEYWORD
+mod1.yang:37: error: UNEXPECTED_KEYWORD
+mod1.yang:40: error: UNEXPECTED_KEYWORD
+mod1.yang:43: error: UNEXPECTED_KEYWORD
+mod1.yang:46: error: UNEXPECTED_KEYWORD
+mod1.yang:57: error: UNEXPECTED_KEYWORD
+mod2.yang:16: error: UNEXPECTED_KEYWORD
+mod2.yang:19: error: UNEXPECTED_KEYWORD
+mod2.yang:22: error: UNEXPECTED_KEYWORD
+mod2.yang:25: error: UNEXPECTED_KEYWORD
+mod2.yang:36: error: DUPLICATE_CHILD_NAME
+mod2.yang:43: error: DUPLICATE_CHILD_NAME
+mod3.yang:12: error: DEFAULT_AND_MANDATORY
+mod3.yang:32: error: MANDATORY_NODE_IN_DEFAULT_CASE

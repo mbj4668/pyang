@@ -1,0 +1,40 @@
+module mod2 {
+  yang-version 1.1;
+  namespace "urn:mod2";
+  prefix m2;
+
+  grouping gg {
+    leaf le {
+      type string;
+    }
+  }
+
+  container con1 {
+    leaf name {
+      type enumeration {
+        enum one;
+        enum two;
+        enum three;
+      } 
+    }
+
+    leaf le1 {
+      type uint16;
+    }
+
+    must "name != 'two' or " +
+         "(name = 'two' and le1 = 100)" {
+        error-message "name must be two, and le1 must be 100";
+        error-message "too many error-message"; // error: duplicate error-message
+
+        description "Test description";
+        description "Test description1"; // error: duplicate description
+
+        reference "Test reference";
+        reference "Test reference1"; // error: duplicate reference
+
+        error-app-tag "Test error-app-tag";
+        error-app-tag "Test error-app-tag1"; // error: duplicate error-app-tag
+    }
+  }
+}

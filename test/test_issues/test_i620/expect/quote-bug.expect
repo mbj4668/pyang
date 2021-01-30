@@ -1,0 +1,56 @@
+module quote-bug {
+  namespace "urn:quote-bug";
+  prefix quote-bug;
+
+  // modified from RFC 7950 Section 9.9.6
+
+  list interface {
+    key "name";
+    leaf name {
+      type string;
+    }
+    leaf admin-status {
+      type string;
+    }
+    list address {
+      key "ip";
+      leaf ip {
+        type string;
+      }
+    }
+  }
+  container default-address {
+    leaf ifname {
+      type leafref {
+        path "../../interface/name";
+      }
+    }
+    leaf address1 {
+      description
+        "YANG input uses single quotes. YANG output retains single quotes
+         for line 1 and uses double quotes for line 2.";
+      type leafref {
+        path "../../interface[name = current()/../ifname]"
+           + "/address/ip";
+      }
+    }
+    leaf address2 {
+      description
+        "YANG input uses single quotes. YANG output uses double quotes for
+         both lines.";
+      type leafref {
+        path "../../interface[name=current()/../ifname]"
+           + "/address/ip";
+      }
+    }
+    leaf address3 {
+      description
+        "YANG input uses single quotes. YANG output uses double quotes for
+         both lines.";
+      type leafref {
+        path "../../interface[name      = current()/../ifname]"
+           + "/address/ip";
+      }
+    }
+  }
+}

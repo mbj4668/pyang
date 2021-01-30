@@ -1,0 +1,11 @@
+[MASTER]
+ignore-patterns = .*yacc
+extension-pkg-whitelist = lxml.etree
+
+[SIMILARITIES]
+ignore-imports = yes
+
+[MESSAGES-CONTROL]
+disable =
+    invalid-name,
+    missing-docstring

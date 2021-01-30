@@ -1,0 +1,9 @@
+module a{
+  yang-version 1.1;
+  prefix ma;
+  namespace "urn:ma";
+
+  leaf la{
+    type string;
+  }
+}

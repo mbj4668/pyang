@@ -1,0 +1,4 @@
+mod2.yang:38: error: INVALID_CONFIG
+mod2.yang:44: error: BAD_DEVIATE_ADD
+mod2.yang:50: error: INVALID_CONFIG
+mod2.yang:56: error: BAD_DEVIATE_ADD

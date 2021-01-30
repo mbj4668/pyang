@@ -2,12 +2,12 @@
 
 The parser does not check any keywords or grammar.
 """
+import collections
+import sys
 from . import error
 from . import util
 from . import statements
 from . import syntax
-import collections
-import sys
 
 class YangTokenizer(object):
     def __init__(self, text, pos, errors,
@@ -81,19 +81,23 @@ class YangTokenizer(object):
                     self.set_buf(i+2)
                     return self.skip(keep_comments=keep_comments)
 
-    def get_comment(self):
+    def get_comment(self, last_line):
         """ret: string()"""
+        is_multi_line = False
+        is_line_end = False
         self.skip(keep_comments=True)
         offset = self.offset
         m = syntax.re_comment.match(self.buf)
-        if m == None:
-            return None
+        if m is None:
+            return None, is_line_end, is_multi_line
         else:
             cmt = m.group(0)
             self.set_buf(m.end())
+            is_line_end = (last_line == self.pos.line)
             # look for a multiline comment
             if cmt[:2] == '/*' and cmt[-2:] != '*/':
                 i = self.buf.find('*/')
+                is_multi_line = True
                 while i == -1:
                     self.readline()
                     # remove at most the same number of whitespace as
@@ -106,14 +110,14 @@ class YangTokenizer(object):
                     cmt += '\n'+self.buf.replace('\n','')
                     i = self.buf.find('*/')
                 self.set_buf(i+2)
-            return cmt
+            return cmt, is_line_end, is_multi_line
 
     def get_keyword(self):
         """ret: identifier | (prefix, identifier)"""
         self.skip()
 
         m = syntax.re_keyword.match(self.buf)
-        if m == None:
+        if m is None:
             error.err_add(self.errors, self.pos,
                           'SYNTAX_ERROR', 'illegal keyword: ' + self.buf)
             raise error.Abort
@@ -130,7 +134,7 @@ class YangTokenizer(object):
                               self.buf[:6] + '..."')
                 raise error.Abort
 
-            if m.group(2) == None: # no prefix
+            if m.group(2) is None: # no prefix
                 return m.group(3)
             else:
                 return (m.group(2), m.group(3))
@@ -208,7 +212,7 @@ class YangTokenizer(object):
                         elif self.strict_quoting:
                             error.err_add(self.errors, self.pos,
                                           'ILLEGAL_ESCAPE_WARN', self.buf[i+1])
-                        if special != None:
+                        if special is not None:
                             res.append(self.buf[start:i])
                             res.append(special)
                             i = i + 1
@@ -231,16 +235,23 @@ class YangTokenizer(object):
                 res.append(s)
                 self.readline()
                 i = 0
+                indent = 0
                 if quote_char == '"':
                     # skip whitespace used for indentation
                     buflen = len(self.buf)
                     while (i < buflen and self.buf[i].isspace() and
-                           i <= indentpos):
+                           indent <= indentpos):
+                        if self.buf[i] == '\t':
+                            indent = indent + 8
+                        else:
+                            indent = indent + 1
                         i = i + 1
-                    if i == buflen:
+                    if indent > indentpos + 1:
+                        res.append(' ' * (indent - indentpos - 1))
+                    elif i == buflen:
                         # whitespace only on this line; keep it as is
                         i = 0
-        elif need_quote == True:
+        elif need_quote is True:
             error.err_add(self.errors, self.pos, 'EXPECTED_QUOTED_STRING', ())
             raise error.Abort
         else:
@@ -249,6 +260,7 @@ class YangTokenizer(object):
             i = 0
             while i < buflen:
                 if (self.buf[i].isspace() or self.buf[i] == ';' or
+                    self.buf[i] == '"' or self.buf[i] == "'" or
                     self.buf[i] == '{' or self.buf[i] == '}' or
                     self.buf[i:i+2] == '//' or self.buf[i:i+2] == '/*' or
                     self.buf[i:i+2] == '*/'):
@@ -258,7 +270,7 @@ class YangTokenizer(object):
                 i = i + 1
 
 class YangParser(object):
-    def __init__(self, extra={}):
+    def __init__(self, extra=None):
         pass
 
     def parse(self, ctx, ref, text):
@@ -269,6 +281,7 @@ class YangParser(object):
 
         self.ctx = ctx
         self.pos = error.Position(ref)
+        self.last_line = 0
         self.top = None
         try:
             self.tokenizer = YangTokenizer(text, self.pos, ctx.errors,
@@ -295,14 +308,16 @@ class YangParser(object):
         # we would like to see if a statement is a comment, and if so
         # treat it differently than we treat keywords further down
         if self.ctx.keep_comments:
-           cmt = self.tokenizer.get_comment()
-           if cmt != None:
-              stmt = statements.new_statement(self.top,
-                                              parent,
-                                              self.pos,
-                                              '_comment',
-                                              cmt)
-              return stmt
+            cmt, is_line_end, is_multi_line = self.tokenizer.get_comment(self.last_line)
+            if cmt is not None:
+                stmt = statements.new_statement(self.top,
+                                                parent,
+                                                self.pos,
+                                                '_comment',
+                                                cmt)
+                stmt.is_line_end = is_line_end
+                stmt.is_multi_line = is_multi_line
+                return stmt
 
         keywd = self.tokenizer.get_keyword()
         # check for argument
@@ -315,7 +330,7 @@ class YangParser(object):
             arg = u''.join([a[0] for a in argstrs])
         # check for YANG 1.1
         if keywd == 'yang-version' and arg == '1.1':
-            self.tokenizer.is_1_1 = True;
+            self.tokenizer.is_1_1 = True
             self.tokenizer.strict_quoting = True
 
         stmt = statements.new_statement(self.top, parent, self.pos, keywd, arg)
@@ -330,6 +345,7 @@ class YangParser(object):
         tok = self.tokenizer.peek()
         if tok == '{':
             self.tokenizer.skip_tok() # skip the '{'
+            self.last_line = self.pos.line
             while self.tokenizer.peek() != '}':
                 substmt = self._parse_statement(stmt)
                 stmt.substmts.append(substmt)
@@ -340,11 +356,10 @@ class YangParser(object):
             error.err_add(self.ctx.errors, self.pos, 'INCOMPLETE_STATEMENT',
                           (keywd, tok))
             raise error.Abort
+        self.last_line = self.pos.line
         return stmt
 
 # FIXME: tmp debug
-import sys
-
 def ppkeywd(tok):
     if util.is_prefixed(tok):
         return tok[0] + ':' + tok[1]
@@ -355,7 +370,7 @@ def pp(s, indent=0):
     sys.stdout.write(" " * indent + ppkeywd(s.raw_keyword))
     if s.arg is not None:
         sys.stdout.write(" '" + s.arg + "'")
-    if s.substmts == []:
+    if not s.substmts:
         sys.stdout.write(";\n")
     else:
         sys.stdout.write(" {\n")

@@ -1,9 +1,7 @@
-import sys
-from xml.parsers import expat
 import copy
+from xml.parsers import expat
 
 from . import syntax
-from . import grammar
 from . import error
 from . import statements
 from . import util
@@ -45,24 +43,23 @@ class YinParser(object):
     ns_sep = "}"
     """namespace separator"""
 
-    def __init__(self, extra={}):
+    def __init__(self, extra=None):
         self.parser = expat.ParserCreate("UTF-8", self.ns_sep)
         self.parser.CharacterDataHandler = self.char_data
         self.parser.StartElementHandler = self.start_element
         self.parser.EndElementHandler = self.end_element
-        self.extra = extra
+        self.extra = {} if extra is None else extra
 
+    @staticmethod
     def split_qname(qname):
         """Split `qname` into namespace URI and local name
 
-        Return namespace and local name as a tuple. This is a static
-        method."""
+        Return namespace and local name as a tuple."""
         res = qname.split(YinParser.ns_sep)
         if len(res) == 1:       # no namespace
             return None, res[0]
         else:
             return res
-    split_qname = staticmethod(split_qname)
 
     def parse(self, ctx, ref, text):
         """Parse the string `text` containing a YIN (sub)module.
@@ -115,7 +112,7 @@ class YinParser(object):
             error.err_add(self.ctx.errors, self.pos, 'SYNTAX_ERROR',
                           "unexpected element - mixed content")
         self.data = ''
-        if self.element_stack == []:
+        if not self.element_stack:
             # this is the top-level element
             self.top_element = e
             self.element_stack.append(e)
@@ -180,7 +177,7 @@ class YinParser(object):
             (arg_is_elem, argname)  = res
 
         keywdstr = util.keyword_to_str(keywd)
-        if arg_is_elem == True:
+        if arg_is_elem is True:
             # find the argument element
             arg_elem = e.find_child(e.ns, argname)
             if arg_elem is None:
@@ -195,7 +192,7 @@ class YinParser(object):
                 else:
                     arg = arg_elem.data
                 e.remove_child(arg_elem)
-        elif arg_is_elem == False:
+        elif arg_is_elem is False:
             arg = e.find_attribute(argname)
             if arg is None:
                 error.err_add(self.ctx.errors, e.pos,
@@ -257,13 +254,13 @@ class YinParser(object):
             # read the parent module in order to find the namespace uri
             res = self.ctx.read_module(modname, extra={'no_include':True,
                                                        'no_extensions':True})
-            if res == 'not_found':
+            if not res:
+                pass
+            elif res == 'not_found':
                 error.err_add(self.ctx.errors, p.pos,
                               'MODULE_NOT_FOUND', modname)
-            elif type(res) == type(()) and res[0] == 'read_error':
+            elif isinstance(res, tuple) and res[0] == 'read_error':
                 error.err_add(self.ctx.errors, p.pos, 'READ_ERROR', res[1])
-            elif res == None:
-                pass
             else:
                 namespace = res.search_one('namespace')
                 if namespace is None or namespace.arg is None:
@@ -388,4 +385,3 @@ class YinParser(object):
                 if r is not None:
                     return r
         return None
-

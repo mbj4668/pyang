@@ -1,0 +1,49 @@
+module mod3 {
+  yang-version 1.1;
+  namespace "urn:mod3";
+  prefix m3;
+
+  feature f1;
+  feature f2;
+
+  leaf-list le1 {
+    type enumeration {
+      enum aa {
+        if-feature "f1";
+      }
+
+      enum bb;
+      enum cc;
+    }
+    default "aa";
+  }
+
+ leaf-list le2 {
+    type bits {
+      bit aaa {
+        position 0;
+        if-feature "f1 and f2";
+      }
+
+      bit bbb;
+      bit ccc;
+    }
+    default "aaa";
+  }
+
+  leaf-list le3 {
+    type bits {
+      bit aaa {
+        position 0;
+        if-feature "f2";
+      }
+
+      bit bbb;
+      bit ccc {
+        if-feature "f1";
+      }
+    }
+    default "bbb ccc";
+  }
+}
+

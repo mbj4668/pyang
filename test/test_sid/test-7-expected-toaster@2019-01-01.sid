@@ -1,0 +1,186 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 20000, 
+      "size": 25
+    }, 
+    {
+      "entry-point": 20100, 
+      "size": 25
+    }
+  ], 
+  "module-name": "toaster", 
+  "module-revision": "2019-01-01", 
+  "items": [
+    {
+      "namespace": "module", 
+      "identifier": "toaster", 
+      "sid": 20000
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "aish-merahrah", 
+      "sid": 20020
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "ajdov-kruh", 
+      "sid": 20021
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "anpan", 
+      "sid": 20022
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "appam", 
+      "sid": 20023
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "arepa", 
+      "sid": 20024
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "baba", 
+      "sid": 20100
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "bagel", 
+      "sid": 20101
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "baguette", 
+      "sid": 20102
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "bakarkhani", 
+      "sid": 20103
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "bammy", 
+      "sid": 20104
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "banana-bread", 
+      "sid": 20105
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "bannock", 
+      "sid": 20106
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "bara-brith", 
+      "sid": 20107
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "brioche", 
+      "sid": 20108
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "croissant", 
+      "sid": 20018
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "frozen-bagel", 
+      "sid": 20001
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "frozen-waffle", 
+      "sid": 20002
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "hash-brown", 
+      "sid": 20003
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "toast-type", 
+      "sid": 20004
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "wheat-bread", 
+      "sid": 20005
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "white-bread", 
+      "sid": 20006
+    }, 
+    {
+      "namespace": "identity", 
+      "identifier": "wonder-bread", 
+      "sid": 20007
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:cancel-toast", 
+      "sid": 20008
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:make-toast", 
+      "sid": 20009
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:make-toast/input/toasterDoneness", 
+      "sid": 20010
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:make-toast/input/toasterToastType", 
+      "sid": 20011
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toastDone", 
+      "sid": 20012
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toastDone/toastStatus", 
+      "sid": 20013
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toaster", 
+      "sid": 20014
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toaster/darknessFactor", 
+      "sid": 20019
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toaster/toasterManufacturer", 
+      "sid": 20015
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toaster/toasterModelNumber", 
+      "sid": 20016
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/toaster:toaster/toasterStatus", 
+      "sid": 20017
+    }
+  ]
+}

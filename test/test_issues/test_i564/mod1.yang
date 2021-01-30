@@ -1,0 +1,21 @@
+module mod1 {
+  yang-version 1.1;
+  prefix aa;
+  namespace "urn:mod1";
+
+  leaf-list le1 {
+    type string;
+    max-elements 50;
+    min-elements 51; // error: bad value
+  }
+
+  list lst {
+    key "name";
+    leaf name {
+      type string;
+    }
+
+    max-elements 50;
+    min-elements 51; // error: bad value
+  }
+}

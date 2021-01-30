@@ -1,0 +1,46 @@
+submodule submain {
+  belongs-to main {
+    prefix test;
+  }
+
+  yang-version "1.1";
+  revision 2018-06-27;
+
+  grouping config-interface-grouping {
+    choice vrf-choice {
+      container ip-vrf {
+        container ip {
+          container vrf {
+            leaf forwarding-prefixed {
+              type leafref {
+                path "/test:native/test:ip/test:vrf/test:name";
+              }
+            }
+            leaf forwarding-unprefixed {
+              type leafref {
+                path "/native/ip/vrf/name";
+              }
+            }
+            leaf forwarding-prefixed-partial {
+              type leafref {
+                path "/test:native/test:ip/vrf/name";
+              }
+            }
+            leaf forwardinfg-error {
+              type leafref {
+                path "/test:native/error:ip/test:vrf/test:name";
+              }
+            }
+          }
+          container temp {
+            leaf feature-prefixed {
+              type leafref {
+                path "/test:native/ip-vrf/ip/vrf/forwarding-prefixed";
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

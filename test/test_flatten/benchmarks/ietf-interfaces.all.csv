@@ -1,0 +1,428 @@
+xpath,keyword,primitive_type,flag,type,description,deviated
+/ietf-interfaces:interfaces,container,nil,rw,nil,Interface parameters.,present
+/ietf-interfaces:interfaces/interface,list,nil,rw,nil,"The list of interfaces on the device.
+
+The status of an interface is available in this list in the
+operational state.  If the configuration of a
+system-controlled interface cannot be used by the system
+(e.g., the interface hardware present does not match the
+interface type), then the configuration is not applied to
+the system-controlled interface shown in the operational
+state.  If the configuration of a user-controlled interface
+cannot be used by the system, the configured interface is
+not instantiated in the operational state.
+
+System-controlled interfaces created by the system are
+always present in this list in the operational state,
+whether or not they are configured.",present
+/ietf-interfaces:interfaces/interface/admin-status,leaf,enumeration,ro,enumeration,"The desired state of the interface.
+
+This leaf has the same read semantics as ifAdminStatus.",present
+/ietf-interfaces:interfaces/interface/description,leaf,string,rw,string,"A textual description of the interface.
+
+A server implementation MAY map this leaf to the ifAlias
+MIB object.  Such an implementation needs to use some
+mechanism to handle the differences in size and characters
+allowed between this leaf and ifAlias.  The definition of
+such a mechanism is outside the scope of this document.
+
+Since ifAlias is defined to be stored in non-volatile
+storage, the MIB implementation MUST map ifAlias to the
+value of 'description' in the persistently stored
+configuration.",present
+/ietf-interfaces:interfaces/interface/enabled,leaf,boolean,rw,boolean,"This leaf contains the configured, desired state of the
+interface.
+
+Systems that implement the IF-MIB use the value of this
+leaf in the intended configuration to set
+IF-MIB.ifAdminStatus to 'up' or 'down' after an ifEntry
+has been initialized, as described in RFC 2863.
+
+Changes in this leaf in the intended configuration are
+reflected in ifAdminStatus.",present
+/ietf-interfaces:interfaces/interface/higher-layer-if,leaf-list,leafref,ro,ietf-interfaces:interface-ref,"A list of references to interfaces layered on top of this
+interface.",present
+/ietf-interfaces:interfaces/interface/if-index,leaf,int32,ro,int32,"The ifIndex value for the ifEntry represented by this
+interface.",present
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters,container,nil,rw,nil,,present
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/extended-parameter,leaf,string,rw,string,An extra parameter,present
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/leafref-parameter,leaf,leafref,rw,leafref,An example leafref,present
+/ietf-interfaces:interfaces/interface/last-change,leaf,string,ro,ietf-yang-types:date-and-time,"The time the interface entered its current operational
+state.  If the current state was entered prior to the
+last re-initialization of the local network management
+subsystem, then this node is not present.",present
+/ietf-interfaces:interfaces/interface/link-up-down-trap-enable,leaf,enumeration,rw,enumeration,"Controls whether linkUp/linkDown SNMP notifications
+should be generated for this interface.
+
+If this node is not configured, the value 'enabled' is
+operationally used by the server for interfaces that do
+not operate on top of any other interface (i.e., there are
+no 'lower-layer-if' entries), and 'disabled' otherwise.",present
+/ietf-interfaces:interfaces/interface/lower-layer-if,leaf-list,leafref,ro,ietf-interfaces:interface-ref,"A list of references to interfaces layered underneath this
+interface.",present
+/ietf-interfaces:interfaces/interface/name,leaf,string,rw,string,"The name of the interface.
+
+A device MAY restrict the allowed values for this leaf,
+possibly depending on the type of the interface.
+For system-controlled interfaces, this leaf is the
+device-specific name of the interface.
+
+If a client tries to create configuration for a
+system-controlled interface that is not present in the
+operational state, the server MAY reject the request if
+the implementation does not support pre-provisioning of
+interfaces or if the name refers to an interface that can
+never exist in the system.  A Network Configuration
+Protocol (NETCONF) server MUST reply with an rpc-error
+with the error-tag 'invalid-value' in this case.
+
+If the device supports pre-provisioning of interface
+configuration, the 'pre-provisioning' feature is
+advertised.
+
+If the device allows arbitrarily named user-controlled
+interfaces, the 'arbitrary-names' feature is advertised.
+When a configured user-controlled interface is created by
+the system, it is instantiated with the same name in the
+operational state.
+
+A server implementation MAY map this leaf to the ifName
+MIB object.  Such an implementation needs to use some
+mechanism to handle the differences in size and characters
+allowed between this leaf and ifName.  The definition of
+such a mechanism is outside the scope of this document.",present
+/ietf-interfaces:interfaces/interface/oper-status,leaf,enumeration,ro,enumeration,"The current operational state of the interface.
+
+This leaf has the same semantics as ifOperStatus.",present
+/ietf-interfaces:interfaces/interface/phys-address,leaf,string,ro,ietf-yang-types:phys-address,"The interface's address at its protocol sub-layer.  For
+example, for an 802.x interface, this object normally
+contains a Media Access Control (MAC) address.  The
+interface's media-specific modules must define the bit
+and byte ordering and the format of the value of this
+object.  For interfaces that do not have such an address
+(e.g., a serial line), this node is not present.",present
+/ietf-interfaces:interfaces/interface/speed,leaf,uint64,ro,ietf-yang-types:gauge64,"An estimate of the interface's current bandwidth in bits
+per second.  For interfaces that do not vary in
+bandwidth or for those where no accurate estimation can
+be made, this node should contain the nominal bandwidth.
+For interfaces that have no concept of bandwidth, this
+node is not present.",present
+/ietf-interfaces:interfaces/interface/statistics,container,nil,ro,nil,A collection of interface-related statistics objects.,present
+/ietf-interfaces:interfaces/interface/statistics/discontinuity-time,leaf,string,ro,ietf-yang-types:date-and-time,"The time on the most recent occasion at which any one or
+more of this interface's counters suffered a
+discontinuity.  If no such discontinuities have occurred
+since the last re-initialization of the local management
+subsystem, then this node contains the time the local
+management subsystem re-initialized itself.",present
+/ietf-interfaces:interfaces/interface/statistics/in-broadcast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The number of packets, delivered by this sub-layer to a
+higher (sub-)layer, that were addressed to a broadcast
+address at this sub-layer.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/in-discards,leaf,uint32,ro,ietf-yang-types:counter32,"The number of inbound packets that were chosen to be
+discarded even though no errors had been detected to
+prevent their being deliverable to a higher-layer
+protocol.  One possible reason for discarding such a
+packet could be to free up buffer space.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/in-errors,leaf,uint32,ro,ietf-yang-types:counter32,"For packet-oriented interfaces, the number of inbound
+packets that contained errors preventing them from being
+deliverable to a higher-layer protocol.  For character-
+oriented or fixed-length interfaces, the number of
+inbound transmission units that contained errors
+preventing them from being deliverable to a higher-layer
+protocol.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/in-multicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The number of packets, delivered by this sub-layer to a
+higher (sub-)layer, that were addressed to a multicast
+address at this sub-layer.  For a MAC-layer protocol,
+this includes both Group and Functional addresses.
+
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/in-octets,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of octets received on the interface,
+including framing characters.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/in-unicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The number of packets, delivered by this sub-layer to a
+higher (sub-)layer, that were not addressed to a
+multicast or broadcast address at this sub-layer.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/in-unknown-protos,leaf,uint32,ro,ietf-yang-types:counter32,"For packet-oriented interfaces, the number of packets
+received via the interface that were discarded because
+of an unknown or unsupported protocol.  For
+character-oriented or fixed-length interfaces that
+support protocol multiplexing, the number of
+transmission units received via the interface that were
+discarded because of an unknown or unsupported protocol.
+For any interface that does not support protocol
+multiplexing, this counter is not present.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/out-broadcast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of packets that higher-level protocols
+requested be transmitted and that were addressed to a
+broadcast address at this sub-layer, including those
+that were discarded or not sent.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/out-discards,leaf,uint32,ro,ietf-yang-types:counter32,"The number of outbound packets that were chosen to be
+discarded even though no errors had been detected to
+prevent their being transmitted.  One possible reason
+for discarding such a packet could be to free up buffer
+space.
+
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/out-errors,leaf,uint32,ro,ietf-yang-types:counter32,"For packet-oriented interfaces, the number of outbound
+packets that could not be transmitted because of errors.
+For character-oriented or fixed-length interfaces, the
+number of outbound transmission units that could not be
+transmitted because of errors.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/out-multicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of packets that higher-level protocols
+requested be transmitted and that were addressed to a
+multicast address at this sub-layer, including those
+that were discarded or not sent.  For a MAC-layer
+protocol, this includes both Group and Functional
+addresses.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/out-octets,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of octets transmitted out of the
+interface, including framing characters.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/statistics/out-unicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of packets that higher-level protocols
+requested be transmitted and that were not addressed
+to a multicast or broadcast address at this sub-layer,
+including those that were discarded or not sent.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",present
+/ietf-interfaces:interfaces/interface/type,leaf,identityref,rw,identityref,"The type of the interface.
+
+When an interface entry is created, a server MAY
+initialize the type leaf with a valid value, e.g., if it
+is possible to derive the type from the name of the
+interface.
+
+If a client tries to set the type of an interface to a
+value that can never be used by the system, e.g., if the
+type is not supported or if the type does not match the
+name of the interface, the server MUST reject the request.
+A NETCONF server MUST reply with an rpc-error with the
+error-tag 'invalid-value' in this case.",present
+/ietf-interfaces:interfaces-state,container,nil,ro,nil,Data nodes for the operational state of interfaces.,deviated
+/ietf-interfaces:interfaces-state/interface,list,nil,ro,nil,"The list of interfaces on the device.
+
+System-controlled interfaces created by the system are
+always present in this list, whether or not they are
+configured.",deviated
+/ietf-interfaces:interfaces-state/interface/admin-status,leaf,enumeration,ro,enumeration,"The desired state of the interface.
+
+This leaf has the same read semantics as ifAdminStatus.",deviated
+/ietf-interfaces:interfaces-state/interface/higher-layer-if,leaf-list,leafref,ro,ietf-interfaces:interface-state-ref,"A list of references to interfaces layered on top of this
+interface.",deviated
+/ietf-interfaces:interfaces-state/interface/if-index,leaf,int32,ro,int32,"The ifIndex value for the ifEntry represented by this
+interface.",deviated
+/ietf-interfaces:interfaces-state/interface/last-change,leaf,string,ro,ietf-yang-types:date-and-time,"The time the interface entered its current operational
+state.  If the current state was entered prior to the
+last re-initialization of the local network management
+subsystem, then this node is not present.",deviated
+/ietf-interfaces:interfaces-state/interface/lower-layer-if,leaf-list,leafref,ro,ietf-interfaces:interface-state-ref,"A list of references to interfaces layered underneath this
+interface.",deviated
+/ietf-interfaces:interfaces-state/interface/name,leaf,string,ro,string,"The name of the interface.
+
+A server implementation MAY map this leaf to the ifName
+MIB object.  Such an implementation needs to use some
+mechanism to handle the differences in size and characters
+allowed between this leaf and ifName.  The definition of
+such a mechanism is outside the scope of this document.",deviated
+/ietf-interfaces:interfaces-state/interface/oper-status,leaf,enumeration,ro,enumeration,"The current operational state of the interface.
+
+This leaf has the same semantics as ifOperStatus.",deviated
+/ietf-interfaces:interfaces-state/interface/phys-address,leaf,string,ro,ietf-yang-types:phys-address,"The interface's address at its protocol sub-layer.  For
+example, for an 802.x interface, this object normally
+contains a Media Access Control (MAC) address.  The
+interface's media-specific modules must define the bit
+and byte ordering and the format of the value of this
+object.  For interfaces that do not have such an address
+(e.g., a serial line), this node is not present.",deviated
+/ietf-interfaces:interfaces-state/interface/speed,leaf,uint64,ro,ietf-yang-types:gauge64,"An estimate of the interface's current bandwidth in bits
+per second.  For interfaces that do not vary in
+bandwidth or for those where no accurate estimation can
+
+be made, this node should contain the nominal bandwidth.
+For interfaces that have no concept of bandwidth, this
+node is not present.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics,container,nil,ro,nil,A collection of interface-related statistics objects.,deviated
+/ietf-interfaces:interfaces-state/interface/statistics/discontinuity-time,leaf,string,ro,ietf-yang-types:date-and-time,"The time on the most recent occasion at which any one or
+more of this interface's counters suffered a
+discontinuity.  If no such discontinuities have occurred
+since the last re-initialization of the local management
+subsystem, then this node contains the time the local
+management subsystem re-initialized itself.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-broadcast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The number of packets, delivered by this sub-layer to a
+higher (sub-)layer, that were addressed to a broadcast
+address at this sub-layer.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-discards,leaf,uint32,ro,ietf-yang-types:counter32,"The number of inbound packets that were chosen to be
+discarded even though no errors had been detected to
+prevent their being deliverable to a higher-layer
+protocol.  One possible reason for discarding such a
+packet could be to free up buffer space.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-errors,leaf,uint32,ro,ietf-yang-types:counter32,"For packet-oriented interfaces, the number of inbound
+packets that contained errors preventing them from being
+deliverable to a higher-layer protocol.  For character-
+oriented or fixed-length interfaces, the number of
+inbound transmission units that contained errors
+preventing them from being deliverable to a higher-layer
+protocol.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-multicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The number of packets, delivered by this sub-layer to a
+higher (sub-)layer, that were addressed to a multicast
+address at this sub-layer.  For a MAC-layer protocol,
+this includes both Group and Functional addresses.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-octets,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of octets received on the interface,
+including framing characters.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-unicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The number of packets, delivered by this sub-layer to a
+higher (sub-)layer, that were not addressed to a
+multicast or broadcast address at this sub-layer.
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/in-unknown-protos,leaf,uint32,ro,ietf-yang-types:counter32,"For packet-oriented interfaces, the number of packets
+received via the interface that were discarded because
+of an unknown or unsupported protocol.  For
+character-oriented or fixed-length interfaces that
+support protocol multiplexing, the number of
+transmission units received via the interface that were
+discarded because of an unknown or unsupported protocol.
+For any interface that does not support protocol
+multiplexing, this counter is not present.
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/out-broadcast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of packets that higher-level protocols
+requested be transmitted and that were addressed to a
+broadcast address at this sub-layer, including those
+that were discarded or not sent.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/out-discards,leaf,uint32,ro,ietf-yang-types:counter32,"The number of outbound packets that were chosen to be
+discarded even though no errors had been detected to
+prevent their being transmitted.  One possible reason
+for discarding such a packet could be to free up buffer
+space.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/out-errors,leaf,uint32,ro,ietf-yang-types:counter32,"For packet-oriented interfaces, the number of outbound
+packets that could not be transmitted because of errors.
+For character-oriented or fixed-length interfaces, the
+number of outbound transmission units that could not be
+transmitted because of errors.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/out-multicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of packets that higher-level protocols
+requested be transmitted and that were addressed to a
+multicast address at this sub-layer, including those
+that were discarded or not sent.  For a MAC-layer
+protocol, this includes both Group and Functional
+addresses.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/out-octets,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of octets transmitted out of the
+interface, including framing characters.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/statistics/out-unicast-pkts,leaf,uint64,ro,ietf-yang-types:counter64,"The total number of packets that higher-level protocols
+requested be transmitted and that were not addressed
+to a multicast or broadcast address at this sub-layer,
+including those that were discarded or not sent.
+
+Discontinuities in the value of this counter can occur
+at re-initialization of the management system and at
+other times as indicated by the value of
+'discontinuity-time'.",deviated
+/ietf-interfaces:interfaces-state/interface/type,leaf,identityref,ro,identityref,The type of the interface.,deviated

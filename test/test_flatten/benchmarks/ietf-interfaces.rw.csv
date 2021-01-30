@@ -1,0 +1,8 @@
+xpath,flag
+/ietf-interfaces:interfaces,rw
+/ietf-interfaces:interfaces/interface,rw
+/ietf-interfaces:interfaces/interface/description,rw
+/ietf-interfaces:interfaces/interface/enabled,rw
+/ietf-interfaces:interfaces/interface/link-up-down-trap-enable,rw
+/ietf-interfaces:interfaces/interface/name,rw
+/ietf-interfaces:interfaces/interface/type,rw

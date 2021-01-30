@@ -1,0 +1,17 @@
+module mod4 {
+  yang-version 1.1;
+  prefix m4;
+  namespace "urn:mod4";
+
+  import mod3 {
+    prefix if;
+  }
+
+  augment "/if:interfaces/if:ifEntry" {
+    leaf-list le1 {
+      type int8;
+      max-elements 50;
+      min-elements 'ab';
+    }
+  }
+}

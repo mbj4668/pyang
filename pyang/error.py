@@ -1,4 +1,5 @@
 import copy
+import os.path
 
 ### struct to keep track of position for error messages
 
@@ -17,7 +18,13 @@ class Position(object):
         self.uses_pos = None
 
     def __str__(self):
-        s = self.ref + ':' + str(self.line)
+        return self.label()
+
+    def label(self, basename=False):
+        ref = self.ref
+        if basename:
+            ref = os.path.basename(ref)
+        s = ref + ':' + str(self.line)
         if self.uses_pos is None:
             return s
         else:
@@ -98,6 +105,9 @@ error_codes = \
     'UNEXPECTED_KEYWORD_USES':
       (1,
        'unexpected keyword "%s" under "%s", defined at %s'),
+    'UNEXPECTED_KEYWORD_AUGMENT':
+      (1,
+       'unexpected keyword "%s" under "%s", defined at %s'),
     'EXPECTED_ARGUMENT':
       (1,
        'expected an argument for keyword "%s"'),
@@ -171,19 +181,16 @@ error_codes = \
        'prefix "%s" is not defined (reported only once)'),
     'WPREFIX_NOT_DEFINED':
       (4,
-       'prefix "%s" is not defined'),
+       '"%s" looks like a prefix but is not defined'),
     'NODE_NOT_FOUND':
       (1,
        'node %s::%s is not found'),
-    'NODE_NOT_FOUND1':
-      (1,
-       'node %s::%s is not found in %s::%s'),
-    'NODE_NOT_FOUND2':
-      (1,
-       'node %s::%s is not found in module %s'),
     'BAD_NODE_IN_AUGMENT':
       (1,
        'node %s::%s of type %s cannot be augmented'),
+    'BAD_TARGET_NODE':
+      (1,
+       'node %s::%s of type %s cannot be target node'),
     'BAD_NODE_IN_REFINE':
       (1,
        'node %s::%s cannot be refined'),
@@ -196,9 +203,15 @@ error_codes = \
     'BAD_DEVIATE_ADD':
       (2,
        'the "%s" property already exists in node "%s::%s"'),
+    'BAD_DEVIATE_REP':
+      (2,
+       'the "%s" property does not exist in node "%s::%s"'),
     'BAD_DEVIATE_DEL':
       (2,
        'the "%s" property does not exist in node "%s::%s"'),
+    'BAD_DEVIATE_DEL2':
+      (2,
+       'the "%s" property connot be deviate deleted in node "%s::%s"'),
     'BAD_DEVIATE_TYPE':
       (2,
        'the "%s" property cannot be added'),
@@ -235,9 +248,6 @@ error_codes = \
     'LENGTH_BOUNDS':
       (2,
        'length error: "%s" is not larger than "%s"'),
-    'LENGTH_VALUE':
-      (2,
-       'length error: "%s" is too large'),
     'TYPE_VALUE':
       (2,
        'the value "%s" does not match its base type %s- %s'),
@@ -293,10 +303,10 @@ error_codes = \
        ' other nodes in the unique expression'),
     'ILLEGAL_ESCAPE':
       (1,
-       'the escape sequence "\%s" is illegal in double quoted strings'),
+       'the escape sequence "\\%s" is illegal in double quoted strings'),
     'ILLEGAL_ESCAPE_WARN':
       (4,
-       'the escape sequence "\%s" is unsafe in double quoted strings' \
+       'the escape sequence "\\%s" is unsafe in double quoted strings' \
        ' - pass the flag --lax-quote-checks to avoid this warning'),
     'UNIQUE_IS_KEY':
       (4,
@@ -310,9 +320,6 @@ error_codes = \
     'PATTERN_ERROR':
       (2,
        'syntax error in pattern: %s'),
-    'PATTERN_FAILURE':
-      (4,
-       'could not verify pattern: %s'),
     'LEAFREF_TOO_MANY_UP':
       (1,
        'the path for %s at %s has too many ".."'),
@@ -351,9 +358,6 @@ error_codes = \
       (1,
        'the deref argument refers to node "%s" at %s which'
        ' does not refer to a key (%s at %s)'),
-    'LEAFREF_DEREF_NOT_LEAFREF':
-      (1,
-       'the deref argument for "%s" at %s does not refer to a leafref leaf'),
     'LEAFREF_TO_NOT_IMPLEMENTED':
       (1,
        'the leafref refer to a node that is not implemented'),
@@ -361,6 +365,12 @@ error_codes = \
       (1,
        'there is already a child node to "%s" at %s with the name "%s" '
        'defined at %s'),
+    'BAD_ANCESTOR':
+      (1,
+       '"%s" node cannot have an ancestor list node without a key'),
+    'BAD_ANCESTOR2':
+      (1,
+       '"%s" node cannot have an ancestor "%s" node'),
     'BAD_TYPE_NAME':
       (1,
        'illegal type name "%s"'),
@@ -400,6 +410,10 @@ error_codes = \
     'KEY_BAD_SUBSTMT':
       (1,
        'the statement "%s" cannot be given for a key'),
+    'DEFAULT_AND_IFFEATURE':
+      (1,
+       'a \'default\' value cannot be given in leaf node when'
+       ' \'if-feature\' is existing'),
     'DEFAULT_AND_MANDATORY':
       (1,
        'a \'default\' value cannot be given when \'mandatory\' is "true"'),
@@ -407,6 +421,9 @@ error_codes = \
       (1,
        'a \'default\' value cannot be given when \'min-elements\' is'
        ' greater than 0'),
+    'MAX_ELEMENTS_AND_MIN_ELEMENTS':
+      (1,
+       'a \'min-elements\' value cannot be greater than \'max-elements\' value'),
     'DUPLICATE_DEFAULT':
         (1,
          'the default value "%s" is given twice in the leaf list'),
@@ -427,7 +444,7 @@ error_codes = \
        'syntax error: %s'),
     'DUPLICATE_NAMESPACE':
       (1,
-       'duplicate namespace uri "%s" found in module "%s"'),
+       'duplicate namespace uri "%s" found in modules "%s"'),
     'MISSING_ARGUMENT_ATTRIBUTE':
       (1,
        'missing argument attribute "%s" for "%s"'),
@@ -458,9 +475,12 @@ error_codes = \
     'XPATH_NODE_NOT_FOUND2':
       (4,
        'node "%s::%s" is not found in module "%s"'),
+    'XPATH_REF_CONFIG_FALSE':
+      (4,
+       'node "%s::%s" is config false and is not part of the accessible tree'),
     'XPATH_PATH_TOO_MANY_UP':
       (2,
-       'the path has too many "..."'),
+       'the path has too many ".."'),
 
 #    'XPATH_FUNCTION_RET_VAL':
 #      (2,
@@ -529,7 +549,7 @@ def err_to_str(tag, args):
 def err_add(errors, pos, tag, args):
     error = (copy.copy(pos), tag, args)
     # surely this can be done more elegant??
-    for (p, t, a) in errors:
+    for p, t, a in errors:
         if (p.line == pos.line and p.ref == pos.ref and
             p.top == pos.top and t == tag and a == args):
             return

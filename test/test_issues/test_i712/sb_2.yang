@@ -1,0 +1,20 @@
+submodule sb_2 {
+  yang-version 1.1;
+  belongs-to b {
+    prefix mb;
+  }
+
+  grouping hh{
+    leaf d {
+      type leafref {
+        path /mb:lb;
+      }
+    }
+
+    leaf g {
+      type leafref {
+        path /bad_prefix:lc;
+      }
+    }
+  }
+}

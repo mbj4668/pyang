@@ -1,0 +1,11 @@
+module parent {
+  namespace urn:parent;
+  prefix parent;
+
+  container parent-container {
+    // to be augmented by small6
+  }
+  container parent-container-2 {
+    // to be augmented by small6
+  }
+}

@@ -1,0 +1,60 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  container con1 {
+    config false;
+
+    container con2 {
+      config false;
+
+      container con3 {
+
+        container con4 {
+
+          container con5 {
+            config false;
+
+            leaf le1 {
+              type boolean;
+            }
+          }
+
+          container con6 {
+            config false;
+
+            leaf le2 {
+              type string;
+            }
+          }
+        }
+      }
+    }
+  }
+ 
+  deviation "/con1/con2" {
+    deviate replace {
+      config true;
+    }
+  }
+
+  deviation "/con1/con2/con3" {
+    deviate add {
+      config true;
+    }
+  }
+
+  deviation "/con1/con2/con3" {
+    deviate replace {
+      config true;
+    }
+  }
+
+  deviation "/con1/con2/con3" {
+    deviate add {
+      config false; // additional devaite comment substatement
+    }
+  }
+
+}

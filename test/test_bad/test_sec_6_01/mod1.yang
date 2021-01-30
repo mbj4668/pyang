@@ -1,0 +1,11 @@
+module mod1 {
+  yang-version 1.1;
+  namespace "urn:mod1";
+  prefix m1;
+
+  contact test1';
+
+  leaf l {
+    type uint8;
+  }
+}

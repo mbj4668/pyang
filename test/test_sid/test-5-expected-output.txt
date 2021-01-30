@@ -1,0 +1,4 @@
+
+File ietf-constrained-voucher@2019-08-01.sid created
+Number of SIDs available : 50
+Number of SIDs used : 13

@@ -1,0 +1,14 @@
+xpath,keyword
+/x:foo,leaf
+/x:q,container
+/x:q/enabled,leaf
+/y:my-notif,notification
+/y:my-notif/x:bar,leaf
+/y:my-rpc,rpc
+/y:my-rpc/x:bar,leaf
+/y:pretty-long-identifier-name,container
+/y:pretty-long-identifier-name/shorter,container
+/y:pretty-long-identifier-name/shorter/another-long-identifier-name,container
+/y:pretty-long-identifier-name/shorter/another-long-identifier-name/also-short,container
+/y:pretty-long-identifier-name/shorter/another-long-identifier-name/also-short/but-this-is-long-again,container
+/y:pretty-long-identifier-name/shorter/another-long-identifier-name/also-short/but-this-is-long-again/x:bar,leaf

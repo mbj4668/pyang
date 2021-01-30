@@ -118,7 +118,7 @@ def scan(s):
     toks = []
     while pos < len(s):
         matched = False
-        for (tokname, r) in patterns:
+        for tokname, r in patterns:
             m = r.match(s, pos)
             if m is not None:
                 # found a matching token
@@ -169,7 +169,7 @@ def scan(s):
                 toks.append(tok)
                 matched = True
                 break
-        if matched == False:
+        if not matched:
             # no patterns matched
             raise XPathError('syntax error', line, linepos)
     return toks

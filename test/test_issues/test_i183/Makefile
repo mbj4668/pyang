@@ -1,2 +1,2 @@
 test:
-	pyang a.yang --canonical --print-error-code 2>&1 | diff a.expect -
+	$(PYANG) a.yang --canonical --print-error-code 2>&1 | diff a.expect -

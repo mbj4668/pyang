@@ -1,0 +1,70 @@
+module indent_bug_i616 {
+  namespace "urn:indent-bug";
+  prefix indent-bug;
+
+  container case1 {
+    description
+      "emit-arg for multiline arguments always returns arg_on_new_line =
+       True for multi-line arguments. It should return need_nl?";
+
+    container good {
+      must "'true'" {
+        error-message
+          "This is indented correctly.";
+      }
+    }
+
+    container bad {
+      must "'true' and
+            'true'" {
+        error-message
+          "This is indented too much.";
+      }
+    }
+  }
+
+  container case2 {
+    description
+      "Single quotes are preferred for 'when' arguments, but this causes
+       problems with double-quoted multi-line arguments. Should preserve the
+       double quotes in this case?";
+
+    container good {
+      when "boolean(.) and boolean(.)" {
+        description
+          "The 'when' arg loses its double quotes but is indented correctly.";
+      }
+    }
+
+    container bad {
+      when "boolean(.) and
+            boolean(.)" {
+        description
+          "The 'when' arg loses its double quotes and wraps to the start
+           of the line.";
+      }
+    }
+  }
+
+  container case3 {
+    description
+      "Similar to the previous case but triggers too much indentation when
+       the argument has to be split over multiple lines.";
+
+    container good {
+      when "boolean(.) and boolean(.) and boolean(.) and boolean(.)" {
+        description
+          "The 'when' arg loses its double quotes but is indented correctly.";
+      }
+    }
+
+    container bad {
+      when "boolean(.) and boolean(.) and boolean(.) and boolean(.) and
+            boolean(.)" {
+        description
+          "The 'description' can be indented too much with
+           --yang-line-length.";
+      }
+    }
+  }
+}

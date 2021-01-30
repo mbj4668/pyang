@@ -46,7 +46,12 @@ class YANGPlugin(plugin.PyangPlugin):
         emit_yang(ctx, module, fd)
 
 def emit_yang(ctx, module, fd):
-    emit_stmt(ctx, module, fd, 0, None, None, False, '', '  ')
+    link_list = {}
+    # make the stmt tree to a link_list, in order to peek the next stmt
+    make_link_list(ctx, module, link_list)
+    link_list['last'] = None
+
+    emit_stmt(ctx, module, fd, 0, None, None, False, '', '  ', link_list)
 
 # always add newline between keyword and argument
 _force_newline_arg = ('description', 'reference', 'contact', 'organization')
@@ -133,8 +138,29 @@ _need_quote = (
     "\n", "\t", "\r", "//", "/*", "*/",
     )
 
+_need_single_quote = (
+    '"', "\n", "\t", "\r",
+    )
+
+def make_link_list(ctx, stmt, link_list):
+    if 'last' in link_list:
+        link_list[ link_list['last'] ] = stmt
+    link_list['last'] = stmt
+
+    if len(stmt.substmts) > 0:
+        if ctx.opts.yang_canonical:
+            substmts = grammar.sort_canonical(stmt.keyword, stmt.substmts)
+        else:
+            substmts = stmt.substmts
+        for i, s in enumerate(substmts, start=1):
+            make_link_list(ctx, s, link_list)
+
 def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
-              indent, indentstep):
+              indent, indentstep, link_list):
+    # line end comment has been printed
+    if is_line_end_comment(stmt):
+        return
+
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
             if stmt.parent.i_unused_prefixes[p] == stmt:
@@ -169,14 +195,15 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
         # line_len is length of line w/o arg but with quotes and space before
         # the arg
         line_len = len(indent) + len(keywordstr) + 1 + 2 + len(eol)
-        if (stmt.keyword in _keyword_prefer_single_quote_arg and
-            stmt.arg.find("'") == -1):
+        if (stmt.keyword in _keyword_prefer_single_quote_arg
+            and "'" not in stmt.arg
+            and '\n' not in stmt.arg):
             # print with single quotes
             if hasattr(stmt, 'arg_substrings') and len(stmt.arg_substrings) > 1:
                 # the arg was already split into multiple lines, keep them
                 emit_multi_str_arg(keywordstr, stmt.arg_substrings, fd, "'",
                                    indent, indentstep, max_line_len, line_len)
-            elif not(need_new_line(max_line_len, line_len, stmt.arg)):
+            elif not need_new_line(max_line_len, line_len, stmt.arg):
                 # fits into a single line
                 fd.write(" '" + stmt.arg + "'")
             else:
@@ -204,7 +231,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
                 (arg_type in _maybe_quote_arg_type and
                  not need_quote(stmt.arg))):
                 # minus 2 since we don't quote
-                if not(need_new_line(max_line_len, line_len-2, stmt.arg)):
+                if not need_new_line(max_line_len, line_len-2, stmt.arg):
                     fd.write(' ' + stmt.arg)
                 else:
                     fd.write('\n' + indent + indentstep + stmt.arg)
@@ -216,7 +243,11 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
         else:
             arg_on_new_line = emit_arg(keywordstr, stmt, fd, indent, indentstep,
                                        max_line_len, line_len)
-    fd.write(eol + '\n')
+    fd.write(eol)
+
+    next_stmt = link_list.get(stmt, None)
+    emit_line_end_comments_after(stmt, next_stmt, link_list, fd, False)
+    fd.write('\n')
 
     if len(stmt.substmts) > 0:
         if ctx.opts.yang_canonical:
@@ -230,25 +261,58 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
             n = 1
             if arg_on_new_line:
                 # arg was printed on a new line, increase indentation
-                n = 2
+                ## The idea here was to do:
+                ##    some-keyword
+                ##      "arg-on-new-line" {
+                ##        some-other-keyword
+                ##      ^^ <- extra indentation here
+                ## But this is not a good idea.
+                pass
+#                n = 2
+
+            link_list['last'] = s
             emit_stmt(ctx, s, fd, level + 1, prev_kwd, kwd_class,
                       i == len(substmts),
-                      indent + (indentstep * n), indentstep)
-            kwd_class = get_kwd_class(s.keyword)
-            prev_kwd = s.keyword
-        fd.write(indent + '}\n')
+                      indent + (indentstep * n), indentstep, link_list)
+            if not is_line_end_comment(s):
+                kwd_class = get_kwd_class(s.keyword)
+                prev_kwd = s.keyword
+        fd.write(indent + '}')
+        last_substmt = link_list['last']
+        if last_substmt in link_list:
+            last_substmt = link_list[last_substmt]
+        emit_line_end_comments_after(stmt, last_substmt, link_list, fd, True)
+        fd.write('\n')
 
-    if (not(islast) and
+    if (not islast and
         ((level == 1 and stmt.keyword in
           _keyword_with_trailing_blank_line_toplevel) or
          stmt.keyword in _keyword_with_trailing_blank_line)):
         fd.write('\n')
 
+def emit_line_end_comments_after(stmt, last_substmt, link_list, fd, need_same_level):
+    while last_substmt is not None:
+        is_sub_level = False
+        if not need_same_level:
+            is_sub_level = last_substmt.parent == stmt
+        if (is_line_end_comment(last_substmt) and
+                (last_substmt.parent == stmt.parent or (not need_same_level and is_sub_level))):
+            fd.write(' ' + last_substmt.arg)
+            if last_substmt in link_list:
+                last_substmt = link_list[last_substmt]
+            else:
+                return
+        else:
+            return
+
+def is_line_end_comment(stmt):
+    return stmt.keyword == '_comment' and stmt.is_line_end and not stmt.is_multi_line
+
 def need_new_line(max_line_len, line_len, arg):
     eol = arg.find('\n')
     if eol == -1:
         eol = len(arg)
-    if (max_line_len is not None and line_len + eol > max_line_len):
+    if max_line_len is not None and line_len + eol > max_line_len:
         return True
     else:
         return False
@@ -260,7 +324,7 @@ def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
     # we can print w/o a newline
     need_new_line = False
     if max_line_len is not None:
-        for (s, q) in strs:
+        for s, q in strs:
             q = select_quote(s, q, pref_q)
             if q == '"':
                 s = escape_str(s)
@@ -280,7 +344,7 @@ def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
         s = escape_str(s)
     fd.write("%s%s%s\n" % (q, s, q))
     # then print the rest with the prefix and a newline at the end
-    for (s, q) in strs[1:-1]:
+    for s, q in strs[1:-1]:
         q = select_quote(s, q, pref_q)
         if q == '"':
             s = escape_str(s)
@@ -298,7 +362,7 @@ def select_quote(s, q, pref_q):
     if pref_q == q:
         return q
     elif pref_q == "'":
-        if s.find("'") == -1:
+        if "'" not in s:
             # the string was double quoted, but it wasn't necessary,
             # use preferred single quote
             return "'"
@@ -306,7 +370,7 @@ def select_quote(s, q, pref_q):
             # the string was double quoted for a reason, keep it
             return '"'
     elif q == "'":
-        if need_quote(s):
+        if need_single_quote(s):
             # the string was single quoted for a reason, keep it
             return "'"
         else:
@@ -327,7 +391,7 @@ def emit_path_arg(keywordstr, arg, fd, indent, max_line_len, line_len, eol):
 
     arg = escape_str(arg)
 
-    if not(need_new_line(max_line_len, line_len, arg)):
+    if not need_new_line(max_line_len, line_len, arg):
         fd.write(" " + quote + arg + quote)
         return False
 
@@ -414,6 +478,12 @@ def emit_comment(comment, fd, indent):
 
 def need_quote(arg):
     for ch in _need_quote:
+        if arg.find(ch) != -1:
+            return True
+    return False
+
+def need_single_quote(arg):
+    for ch in _need_single_quote:
         if arg.find(ch) != -1:
             return True
     return False

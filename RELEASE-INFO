@@ -1,0 +1,36 @@
+# we use semver 2.0.0
+
+# update CHANGELOG.md w/ new release number and date
+# ensure CONTRIBUTORS is updated
+# update pyang/__init__.py w/ new release number and date
+
+# build doc (the nroff man pages are checked in)
+make clean doc
+
+# commit and tag the new release 'pyang-<version>'
+
+git commit
+git tag pyang-<version>
+git push
+git push --tags
+
+# go to github release page and create a new release from the new
+# tag, with the name of the release equal to the tag name
+
+
+# handle PIP
+
+# create a fresh pip virtual environment
+cd ~
+virtualenv pyang-pip
+source pyang-pip/bin/activate
+pip install wheel twine setuptools --upgrade
+
+# build pyang
+wpyang
+make clean
+make sdist
+python setup.py bdist_wheel
+
+# upload to pypi
+twine upload dist/*

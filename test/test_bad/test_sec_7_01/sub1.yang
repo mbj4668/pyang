@@ -1,0 +1,11 @@
+submodule sub1 {
+  yang-version 1.1;
+  belongs-to mod1 {
+    prefix sub1;
+  }
+  
+  leaf sub_le1 {
+    type string;
+  }
+
+}
