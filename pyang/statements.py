@@ -2474,6 +2474,7 @@ def search_data_node(children, modulename, identifier, last_skipped = None):
 def search_typedef(stmt, name):
     """Search for a typedef in scope
     First search the hierarchy, then the module and its submodules."""
+    orig_stmt = stmt
     mod = stmt.i_orig_module
     while stmt is not None:
         if name in stmt.i_typedefs:
@@ -2486,11 +2487,16 @@ def search_typedef(stmt, name):
                     return None
             return t
         stmt = stmt.parent
+    # if the original statement isn't the original module, try the module
+    # (this covers the case where the statement has been re-parented)
+    if mod is not None and orig_stmt is not mod:
+        return search_typedef(mod, name)
     return None
 
 def search_grouping(stmt, name):
     """Search for a grouping in scope
     First search the hierarchy, then the module and its submodules."""
+    orig_stmt = stmt
     mod = stmt.i_orig_module
     while stmt is not None:
         if name in stmt.i_groupings:
@@ -2503,6 +2509,10 @@ def search_grouping(stmt, name):
                     return None
             return g
         stmt = stmt.parent
+    # if the original statement isn't the original module, try the module
+    # (this covers the case where the statement has been re-parented)
+    if mod is not None and orig_stmt is not mod:
+        return search_grouping(mod, name)
     return None
 
 def search_data_keyword_child(children, modulename, identifier):
@@ -2670,7 +2680,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
             if (path.i_module.keyword == 'submodule' and
-                prefix == local_module.i_prefix and 
+                prefix == local_module.i_prefix and
                 local_module is not None):
                 pmodule = util.prefix_to_module(
                     local_module, prefix, stmt.pos, ctx.errors)
@@ -2986,9 +2996,10 @@ class Statement(object):
                                              self.__str__(), id(self))
 
     def internal_reset(self):
-        for s in self.__slots__:
-            if s.startswith('i_') and hasattr(self, s):
-                delattr(self, s)
+        for cls in self.__class__.mro():
+            for s in getattr(cls, '__slots__', ()):
+                if s.startswith('i_') and hasattr(self, s):
+                    delattr(self, s)
         for s in self.substmts:
             s.internal_reset()
 
@@ -3092,6 +3103,9 @@ class ModSubmodStatement(Statement):
         Statement.__init__(self, top, parent, pos, keyword, arg)
         self.i_is_validated = False
 
+    def internal_reset(self):
+        Statement.internal_reset(self)
+        self.i_is_validated = False
 
     def prune(self):
         def p(n):
@@ -3333,7 +3347,7 @@ def mk_path_str(stmt,
 
     resolve_top_prefix_to_module resolves the module-level prefix
       to the module name.
-    
+
     with_keys will include "[key]" to indicate the key names in the XPath.
 
     Prefixes may be included in the path if the prefix changes mid-path.
@@ -3377,7 +3391,7 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False, with_keys=False):
 
     qualified=True, prefix_to_module=True:
       /module1:root/module1:node/module2:node/...
-    
+
     prefix_to_module=True, with_keys=True:
       /module1:root/node[name][name2]/module2:node/...
     """

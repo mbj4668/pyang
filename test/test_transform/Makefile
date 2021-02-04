@@ -1,3 +1,7 @@
+ifeq "$(origin PYANG)" "undefined"
+  PYANG = pyang
+endif
+
 PYANG := $(PYANG) -Wnone
 
 MODULES ?= $(wildcard *.yang)
