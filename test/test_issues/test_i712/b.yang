@@ -1,0 +1,10 @@
+module b{
+  yang-version 1.1;
+  namespace "urn:b";
+  prefix mb;
+
+  include sb;
+  include sb_2;
+  uses gg;
+  uses hh;
+}

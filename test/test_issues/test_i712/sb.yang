@@ -1,0 +1,28 @@
+submodule sb {
+  yang-version 1.1;
+  belongs-to b {
+    prefix mb;
+  }
+
+  import a {
+    prefix ma;
+  }
+
+  leaf lb {
+    type string;
+  }  
+
+  grouping gg{
+    leaf c {
+      type leafref {
+        path /ma:la;
+      }
+    }
+
+    leaf e {
+      type leafref {
+        path /mb:le;
+      } 
+    }
+  }
+}

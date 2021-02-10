@@ -2669,8 +2669,14 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
     def find_identifier(identifier):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
-            pmodule = util.prefix_to_module(
-                path.i_module, prefix, stmt.pos, ctx.errors)
+            if (path.i_module.keyword == 'submodule' and
+                prefix == local_module.i_prefix and 
+                local_module is not None):
+                pmodule = util.prefix_to_module(
+                    local_module, prefix, stmt.pos, ctx.errors)
+            else:
+                pmodule = util.prefix_to_module(
+                    path.i_module, prefix, stmt.pos, ctx.errors)
             if pmodule is None:
                 raise NotFound
             return (pmodule, name)
