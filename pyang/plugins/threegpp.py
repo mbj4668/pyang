@@ -83,7 +83,7 @@ class THREEGPPlugin(lint.LintPlugin):
 
         error.add_error_code(
            '3GPP_TOO_LONG_PREFIX', 3,
-           '3GPP: the prefix should not be longer than 10 characters')
+           '3GPP: the prefix should not be longer than 13 characters')
 
         statements.add_validation_fun(
             'grammar', ['prefix'],
@@ -196,7 +196,7 @@ class THREEGPPlugin(lint.LintPlugin):
         r = '.+3gpp$'
         if re.match(r, stmt.arg) is None:
             err_add(ctx.errors, stmt.pos, '3GPP_BAD_PREFIX_VALUE',())
-        if len(stmt.arg) > 10   :
+        if len(stmt.arg) > 13   :
             err_add(ctx.errors, stmt.pos, '3GPP_TOO_LONG_PREFIX',())
 
     def v_chk_yang_version_present(self, ctx, stmt):

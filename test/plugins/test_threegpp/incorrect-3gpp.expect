@@ -2,7 +2,7 @@ _3gpp-incorrect.yang:1: error: RFC 8407: 4.8: statement "module" must have a "de
 _3gpp-incorrect.yang:2: error: 3GPP: the yang-version should be 1.1
 _3gpp-incorrect.yang:3: error: 3GPP: the namespace should be urn:3gpp:sa5:_3gpp-incorrect
 _3gpp-incorrect.yang:4: error: 3GPP: the prefix should end with 3gpp
-_3gpp-incorrect.yang:4: error: 3GPP: the prefix should not be longer than 10 characters
+_3gpp-incorrect.yang:4: error: 3GPP: the prefix should not be longer than 13 characters
 _3gpp-incorrect.yang:6: warning: imported module "_3gpp-correct" not used
 _3gpp-incorrect.yang:8: error: 3GPP: organization statement must include 3GPP
 _3gpp-incorrect.yang:9: error: 3GPP: incorrect contact statement
@@ -16,6 +16,7 @@ _3gpp-incorrect.yang:17: error: 3GPP: YANG statements anydata, anyxml, deviation
 _3gpp-incorrect.yang:17: error: RFC 8407: 4.14: statement "anyxml" must have a "description" substatement
 _3gpp-incorrect.yang:18: warning: RFC 8407: 4.4: statement "mandatory" is given with its default value "false"
 _3gpp-incorrect.yang:20: error: unexpected keyword "anydata"
+_3gpp-incorrect.yang:23: error: 3GPP: line longer than 80 characters
 _3gpp-incorrect.yang:23: warning: 3GPP: the module should only use ASCII characters
 _3gpp-incorrect.yang:23: error: 3GPP: YANG statements anydata, anyxml, deviation, rpc should not be used
 _3gpp-incorrect.yang:25: error: 3GPP: YANG statements anydata, anyxml, deviation, rpc should not be used

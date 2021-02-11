@@ -1,7 +1,7 @@
 module _3gpp-incorrect {
   yang-version 1;
   namespace "urn:3gpp:sa5:_3gpp-xcorrect";
-  prefix corasdfgrty3gp;
+  prefix corasdfgrty3gpsdf;
   
   import _3gpp-correct { prefix xx; }
 
@@ -20,7 +20,7 @@ module _3gpp-incorrect {
     anydata ad;
   }
   
-  rpc do-something { description "text����������������"; }
+  rpc do-something { description "text������������������������������������������������"; }
   
   deviation /main/ad {
     deviate replace {
