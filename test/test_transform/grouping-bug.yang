@@ -1,0 +1,29 @@
+module grouping-bug {
+  namespace "urn:grouping-bug";
+  prefix grouping-bug;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  grouping profiles-data {
+    leaf name {
+      type yang:yang-identifier;
+    }
+  }
+
+  container root {
+  }
+
+  container profiles {
+    uses profiles-data;
+  }
+
+  augment "/root" {
+    leaf profile-ref {
+      type leafref {
+        path '/profiles/name';
+      }
+    }
+  }
+}

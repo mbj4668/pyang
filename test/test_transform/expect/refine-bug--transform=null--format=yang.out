@@ -1,0 +1,16 @@
+module refine-bug {
+  namespace "urn:refine-bug";
+  prefix refine-bug;
+
+  grouping stuff {
+    leaf-list attr {
+      type string;
+    }
+  }
+
+  container root {
+    uses stuff {
+      refine "attr";
+    }
+  }
+}

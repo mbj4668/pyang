@@ -1,4 +1,4 @@
-module: a
+module: basic
   +--rw x
      +--rw y?     string
      +--rw foo?   string
