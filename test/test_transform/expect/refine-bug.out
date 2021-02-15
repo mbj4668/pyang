@@ -1,0 +1,3 @@
+module: refine-bug
+  +--rw root
+     +--rw attr*   string
