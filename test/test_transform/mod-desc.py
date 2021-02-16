@@ -21,8 +21,9 @@ def mod_desc(stmt, text):
         desc.arg += ' ' + text
 
     else:
-        desc = statements.Statement(stmt.top, stmt, stmt.pos, 'description',
-                                    text)
+        top = stmt.top or stmt
+        desc = statements.new_statement(top, stmt, stmt.pos, 'description',
+                                        text)
         stmt.substmts.append(desc)
 
     # XXX there may be a better idiom for this

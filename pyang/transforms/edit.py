@@ -229,8 +229,8 @@ def set_revision_details(ctx, stmt, lastrev):
             revstmt = stmt
             revstmt.arg = newdate
         else:
-            revstmt = statements.Statement(stmt.top, stmt.parent, None,
-                                           'revision', newdate)
+            revstmt = statements.new_statement(stmt.top, stmt.parent, None,
+                                               'revision', newdate)
 
         other_keywords = set(opts.keys()) - {'olddate', 'newdate'}
         for keyword in other_keywords:
@@ -324,7 +324,7 @@ def update_or_add_stmt(stmt, keyword, arg, index=None):
         else:
             child.arg = argval
     else:
-        child = statements.Statement(stmt.top, stmt, None, keyword, argval)
+        child = statements.new_statement(stmt.top, stmt, None, keyword, argval)
         if index is None:
             index = len(stmt.substmts)
         # XXX this hack ensures that 'reference' is always last
