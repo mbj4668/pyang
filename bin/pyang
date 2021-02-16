@@ -407,10 +407,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     # transform modules
     if len(xform_objs) > 0 and len(modules) > 0:
-        ctx.internal_reset()
         for xform_obj in xform_objs:
             try:
                 if not xform_obj.transform(ctx, modules):
+                    ctx.internal_reset()
                     for module in modules:
                         module.internal_reset()
                         ctx.add_parsed_module(module)

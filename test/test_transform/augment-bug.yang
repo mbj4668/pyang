@@ -6,6 +6,8 @@ module augment-bug {
     prefix if;
   }
 
+  description "module";
+
   typedef aardvark {
     type uint32;
   }
