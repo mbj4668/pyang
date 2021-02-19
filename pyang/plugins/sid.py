@@ -629,7 +629,7 @@ class SidFile:
                 if prefix == "":
                     prefix_module = None
                 else:
-                    prefix_module = statement.parent.i_module
+                    prefix_module = statement.parent.i_orig_module
                 self.collect_inner_data_nodes(statement.i_grouping.i_children, prefix, prefix_module)
 
     def get_path(self, statement, prefix="", prefix_module=None):
@@ -645,10 +645,10 @@ class SidFile:
                         break
                     parent = parent.parent
 
-                if (parent.i_module is not None and parent.i_module == statement.i_module) or (parent.i_module is None and prefix_module is not None and prefix_module == statement.i_module):
+                if (parent.i_orig_module is not None and parent.i_orig_module == statement.i_orig_module) or (parent.i_orig_module is None and prefix_module is not None and prefix_module == statement.i_orig_module):
                     path = "/" + statement.arg + path
                 else:
-                    path = "/" + statement.i_module.arg + ":" + statement.arg + path
+                    path = "/" + statement.i_orig_module.arg + ":" + statement.arg + path
 
             statement = statement.parent
 

@@ -91,6 +91,6 @@ test19:
 
 test20:
 	# Test multiple level of grouping
-	$(PYANG) --sid-list --sid-generate-file 60000:100 ieee802-dot1q-psfp@2020-07-07.yang 2>&1 | diff -b test-20-expected-output.txt -
+	$(PYANG) --sid-generate-file 60000:100 ieee802-dot1q-psfp@2020-07-07.yang 2>&1 | diff -b test-20-expected-output.txt -
 	diff -b test-20-expected-ieee802-dot1q-psfp@2020-07-07.sid ieee802-dot1q-psfp@2020-07-07.sid
 	rm ieee802-dot1q-psfp@2020-07-07.sid
