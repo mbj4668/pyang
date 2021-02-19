@@ -590,27 +590,27 @@ class SidFile:
             elif self.has_yang_data_extension(substmt):
                 self.collect_in_substmts(substmt.substmts)
 
-    def collect_inner_data_nodes(self, statements):
+    def collect_inner_data_nodes(self, statements, prefix="", prefix_module=None):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                self.merge_item('data', self.get_path(statement))
+                self.merge_item('data', self.get_path(statement, prefix, prefix_module))
 
             elif statement.keyword in self.container_keywords:
-                self.merge_item('data', self.get_path(statement))
-                self.collect_inner_data_nodes(statement.i_children)
+                self.merge_item('data', self.get_path(statement, prefix, prefix_module))
+                self.collect_inner_data_nodes(statement.i_children, prefix, prefix_module)
 
             elif statement.keyword == 'action':
-                self.merge_item('data', self.get_path(statement))
+                self.merge_item('data', self.get_path(statement, prefix, prefix_module))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
-                        self.collect_inner_data_nodes(substmt.i_children)
+                        self.collect_inner_data_nodes(substmt.i_children, prefix, prefix_module)
 
             elif statement.keyword == 'notification':
-                self.merge_item('data', self.get_path(statement))
-                self.collect_inner_data_nodes(statement.i_children)
+                self.merge_item('data', self.get_path(statement, prefix, prefix_module))
+                self.collect_inner_data_nodes(statement.i_children, prefix, prefix_module)
 
             elif statement.keyword in self.choice_keywords:
-                self.collect_inner_data_nodes(statement.i_children)
+                self.collect_inner_data_nodes(statement.i_children, prefix, prefix_module)
 
     def collect_in_substmts(self, substmts):
         for statement in substmts:
@@ -625,9 +625,14 @@ class SidFile:
                 self.collect_in_substmts(statement.substmts)
 
             elif statement.keyword == 'uses':
-                self.collect_inner_data_nodes(statement.i_grouping.i_children)
+                prefix = self.get_path(statement.parent)
+                if prefix == "":
+                    prefix_module = None
+                else:
+                    prefix_module = statement.parent.i_module
+                self.collect_inner_data_nodes(statement.i_grouping.i_children, prefix, prefix_module)
 
-    def get_path(self, statement):
+    def get_path(self, statement, prefix="", prefix_module=None):
         path = ""
 
         while statement.i_module is not None:
@@ -640,13 +645,14 @@ class SidFile:
                         break
                     parent = parent.parent
 
-                if parent.i_module is None or parent.i_module != statement.i_module:
-                    path = "/" + statement.i_module.arg + ":" + statement.arg + path
-                else:
+                if (parent.i_module is not None and parent.i_module == statement.i_module) or (parent.i_module is None and prefix_module is not None and prefix_module == statement.i_module):
                     path = "/" + statement.arg + path
+                else:
+                    path = "/" + statement.i_module.arg + ":" + statement.arg + path
+
             statement = statement.parent
 
-        return path
+        return prefix + path
 
     def merge_item(self, namespace, identifier):
         for item in self.content['items']:
