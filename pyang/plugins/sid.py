@@ -645,7 +645,11 @@ class SidFile:
                         break
                     parent = parent.parent
 
-                if (parent.i_orig_module is not None and parent.i_orig_module == statement.i_orig_module) or (parent.i_orig_module is None and prefix_module is not None and prefix_module == statement.i_orig_module):
+                if ((parent.i_orig_module is not None and
+                     parent.i_orig_module == statement.i_orig_module) or
+                    (parent.i_orig_module is None and
+                     prefix_module is not None and
+                     prefix_module == statement.i_orig_module)):
                     path = "/" + statement.arg + path
                 else:
                     path = "/" + statement.i_orig_module.arg + ":" + statement.arg + path
