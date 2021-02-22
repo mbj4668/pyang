@@ -1,0 +1,78 @@
+module ieee802-dot1q-bridge {
+  namespace urn:ieee:std:802.1Q:yang:ieee802-dot1q-bridge;
+  prefix dot1q;
+
+  organization
+    "IEEE 802.1 Working Group";
+
+  description
+    "This YANG module describes the bridge configuration model for the
+    following IEEE 802.1Q Bridges: 
+      1) Two Port MAC Relays
+      2) Customer VLAN Bridges
+      3) Provider Bridges.";
+      
+  revision 2020-11-06 {
+    description
+      "Published as part of IEEE Std 802.1Qcr-2020.
+      Third version.";
+    reference
+      "IEEE Std 802.1Qcr-2020, Bridges and Bridged Networks -
+      Asynchronous Traffic Shaping.";
+  }
+
+  container bridges {
+    description
+      "Contains the Bridge(s) configuration information.";
+    list bridge {
+      key "name";
+      unique "address";
+      description
+        "Provides configuration data in support of the Bridge
+        Configuration resources. There is a single bridge data node
+        per Bridge.";
+      leaf name {
+        type string;
+        description
+          "A text string associated with the Bridge, of locally
+          determined significance.";
+        reference
+          "12.4 of IEEE Std 802.1Q-2018";
+      }
+      leaf address {
+        type string;
+        mandatory true;
+        description
+          "The MAC address for the Bridge from which the Bridge
+          Identifiers used by the STP, RSTP, and MSTP are derived.";
+        reference
+          "12.4 of IEEE Std 802.1Q-2018";
+      }
+      list component {
+        key "name";
+        description
+          "The set of components associated with a given Bridge. For
+          example, - A TPMR is associated with a single VLAN
+          unaware component. - A Customer VLAN Bridge is associated
+          with a single VLAN aware component. - A Provider Bridge is
+          associated with a single S-VLAN component and zero or more
+          C-VLAN components.";
+        reference
+          "12.3 of IEEE Std 802.1Q-2018";
+        leaf name {
+          type string;
+          description
+            "The name of the Component.";
+        }
+        leaf id {
+          type uint32;
+          description
+            "Unique identifier for a particular Bridge component
+            within the system.";
+          reference
+            "12.3, item l) of IEEE Std 802.1Q-2018";
+        }
+      }
+    }
+  }
+}

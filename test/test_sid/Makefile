@@ -1,4 +1,4 @@
-test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19
+test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20
 test1:
 	# Test help
 	$(PYANG) --sid-help 2>&1 | diff -b test-1-expected-output.txt -
@@ -88,3 +88,9 @@ test18:
 test19:
 	# In checksid file, test test sid file not found
 	$(PYANG) --sid-check-file toaster@2009-11-20.sid toaster@2009-11-20.yang 2>&1 | diff -b test-19-expected-output.txt -
+
+test20:
+	# Test multiple level of grouping
+	$(PYANG) --sid-generate-file 60000:100 ieee802-dot1q-psfp@2020-07-07.yang 2>&1 | diff -b test-20-expected-output.txt -
+	diff -b test-20-expected-ieee802-dot1q-psfp@2020-07-07.sid ieee802-dot1q-psfp@2020-07-07.sid
+	rm ieee802-dot1q-psfp@2020-07-07.sid
