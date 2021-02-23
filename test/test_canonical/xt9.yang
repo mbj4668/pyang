@@ -1,0 +1,27 @@
+module xt9 {
+  yang-version 1.1;
+  ext:foo bar;
+  prefix "xt9";
+  namespace "urn:uri:foo";   // expect namespace before prefix
+
+  import ext { prefix ext; }
+  contact "hej" { }
+  description "arne" + /* hmm*/ ' ' + 'anka';
+  organization "hopp";  // expected after import
+
+  revision 2001-01-01 { description "2"; }
+  revision 2000-01-11 { description "initinla"; }
+
+  typedef myInt2 {
+    status deprecated;  // expected after type
+    type int8 {
+      range "1 | 5..6";
+    }
+  }
+  leaf ss {
+    type string {
+      pattern "hej";
+      length 3; // expected before pattern
+    }
+  }
+}

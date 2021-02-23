@@ -613,8 +613,12 @@ def _chk_stmts(ctx, pos, stmts, parent, spec, canonical):
                 ctx.errors = []
                 if _match_stmt(ctx, stmt, (spec[1], []), False) is not None:
                     ctx.errors = save_errors
+                    if stmt.i_module.i_version == '1':
+                        errcode = 'UNEXPECTED_KEYWORD_CANONICAL'
+                    else:
+                        errcode = 'UNEXPECTED_KEYWORD_CANONICAL_v1.1'
                     error.err_add(ctx.errors, stmt.pos,
-                                  'UNEXPECTED_KEYWORD_CANONICAL',
+                                  errcode,
                                   util.keyword_to_str(stmt.raw_keyword))
                 else:
                     ctx.errors = save_errors
@@ -762,8 +766,12 @@ def _match_stmt(ctx, stmt, specs, canonical):
             i = 0
         elif canonical:
             if occurence == '1' or occurence == '+':
+                if stmt.i_module.i_version == '1':
+                    errcode = 'UNEXPECTED_KEYWORD_CANONICAL_1'
+                else:
+                    errcode = 'UNEXPECTED_KEYWORD_CANONICAL_1_v1.1'
                 error.err_add(ctx.errors, stmt.pos,
-                              'UNEXPECTED_KEYWORD_CANONICAL_1',
+                              errcode,
                               (util.keyword_to_str(stmt.raw_keyword),
                                util.keyword_to_str(keywd)))
                 # consume it so we don't report the same error again
