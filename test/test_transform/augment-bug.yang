@@ -1,0 +1,36 @@
+module augment-bug {
+  namespace "urn:augment-bug";
+  prefix augment-bug;
+
+  import ietf-interfaces {
+    prefix if;
+  }
+
+  description "module";
+
+  typedef aardvark {
+    type uint32;
+  }
+
+  grouping bison {
+    leaf cougar {
+      type uint32;
+    }
+  }
+
+  augment "/if:interfaces/if:interface" {
+    leaf dingo {
+      type aardvark;
+    }
+  }
+
+  augment "/if:interfaces/if:interface" {
+    uses bison;
+  }
+
+  augment "/if:interfaces/if:interface" {
+    container echidna {
+      uses bison;
+    }
+  }
+}

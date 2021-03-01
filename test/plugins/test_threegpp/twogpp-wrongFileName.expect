@@ -3,7 +3,9 @@ twogpp-wrongFileName.yang:1: error: RFC 8407: 4.8: statement "module" must have 
 twogpp-wrongFileName.yang:1: error: RFC 8407: 4.8: statement "module" must have a "organization" substatement
 twogpp-wrongFileName.yang:1: error: RFC 8407: 4.8: statement "module" must have a "description" substatement
 twogpp-wrongFileName.yang:1: error: RFC 8407: 4.8: statement "module" must have a "revision" substatement
-twogpp-wrongFileName.yang:2: error: 3GPP: the namespace should be on the form urn:3gpp:sa5:twogpp-wrongFileName
-twogpp-wrongFileName.yang:3: error: 3GPP: the prefix should end with 3gpp
-twogpp-wrongFileName.yang:5: error: 3GPP: the yang-version should be 1.1
-twogpp-wrongFileName.yang:5: warning: 3GPP: containers should only be used to contain the attributes of a class
+twogpp-wrongFileName.yang:3: error: 3GPP: the namespace should be urn:3gpp:sa5:twogpp-wrongFileName
+twogpp-wrongFileName.yang:4: error: 3GPP: the prefix should end with 3gpp
+twogpp-wrongFileName.yang:6: error: 3GPP: the module should have a reference substatement
+twogpp-wrongFileName.yang:6: warning: 3GPP: containers should only be used to contain the attributes of a class
+twogpp-wrongFileName.yang:8: error: 3GPP: YANG statements anydata, anyxml, deviation, rpc should not be used
+twogpp-wrongFileName.yang:9: warning: RFC 8407: 4.4: statement "mandatory" is given with its default value "false"

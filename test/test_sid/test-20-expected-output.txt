@@ -1,0 +1,4 @@
+
+File ieee802-dot1q-psfp@2020-07-07.sid created
+Number of SIDs available : 100
+Number of SIDs used : 48

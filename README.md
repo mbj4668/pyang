@@ -4,7 +4,10 @@
 
 ## Overview ##
 
-pyang is a YANG validator, transformator and code generator, written in python. It can be used to validate YANG modules for correctness, to transform YANG modules into other formats, and to generate code from the modules.
+pyang is a YANG validator, transformator and code generator, written
+in python. It can be used to validate YANG modules for correctness, to
+transform YANG modules into other formats, and to write plugins to
+generate code from the modules.
 
 YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
 
