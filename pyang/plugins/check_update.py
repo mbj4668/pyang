@@ -544,10 +544,10 @@ def chk_min_max(old, new, ctx):
         err_def_changed(oldmin, newmin, ctx)
     oldmax = old.search_one('max-elements')
     newmax = new.search_one('max-elements')
-    if oldmax is None:
+    if newmax is None:
         pass
-    elif newmax is None:
-        pass
+    elif oldmax is None:
+        err_def_added(newmax, ctx)
     elif int(newmax.arg) < int(oldmax.arg):
         err_def_changed(oldmax, newmax, ctx)
 
