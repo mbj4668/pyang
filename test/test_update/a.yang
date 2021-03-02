@@ -128,4 +128,14 @@ module a {
   leaf bbb {
     type uint16;
   } 
+
+  leaf-list baz2 {
+    type string;
+  }
+
+  leaf-list baz3 {
+    type string;
+    min-elements 1;
+    max-elements 5;
+  }
 }

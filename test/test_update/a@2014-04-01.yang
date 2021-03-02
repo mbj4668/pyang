@@ -160,4 +160,16 @@ module a {
       range "5..5000 | 5500..6000";
     }
   }
+
+  leaf-list baz2 {
+    type string;
+    min-elements 1;
+    max-elements 4;
+  }
+
+  leaf-list baz3 {
+    type string;
+    min-elements 2;
+    max-elements 4;
+  }
 }
