@@ -378,6 +378,19 @@
 
       <varlistentry>
         <term>
+          <option>--verify-revision-history</option>
+        </term>
+        <listitem>
+          <para>
+            Ensure that the revision history in the given module(s) is
+            correct, by checking that it can find the old revisions of
+            the module(s) in the YANG module search path.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
           <option>--strict</option>
         </term>
         <listitem>

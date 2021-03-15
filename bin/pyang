@@ -104,6 +104,12 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Validate the module(s) according to the " \
                              "canonical YANG order."),
+        optparse.make_option("--verify-revision-history",
+                             dest="verify_revision_history",
+                             action="store_true",
+                             help="Ensure that all old revisions in the " \
+                             "revision history can be found in the " \
+                             "module search path."),
         optparse.make_option("--max-line-length",
                              type="int",
                              dest="max_line_len"),
@@ -236,6 +242,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     ctx.opts = o
     ctx.canonical = o.canonical
+    ctx.verify_revision_history = o.verify_revision_history
     ctx.max_line_len = o.max_line_len
     ctx.max_identifier_len = o.max_identifier_len
     ctx.trim_yin = o.trim_yin
@@ -356,9 +363,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 name, rev, in_format = m.groups()
                 name = os.path.basename(name)
                 module = ctx.add_module(filename, text, in_format, name, rev,
-                                        expect_failure_error=False)
+                                        expect_failure_error=False,
+                                        primary_module=True)
             else:
-                module = ctx.add_module(filename, text)
+                module = ctx.add_module(filename, text, primary_module=True)
             if module is None:
                 exit_code = 1
             else:

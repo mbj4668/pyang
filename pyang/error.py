@@ -167,6 +167,9 @@ error_codes = \
     'BAD_REVISION':
       (3,
        'unexpected latest revision "%s" in %s, should be "%s"'),
+    'NO_REVISION':
+      (3,
+       'cannot find revision %s of %s in the search path'),
     'WBAD_REVISION':
       (4,
        'unexpected latest revision "%s" in %s, should be "%s"'),

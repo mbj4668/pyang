@@ -241,6 +241,7 @@ _validation_map = {
     ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
     ('reference_3', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
     ('reference_4', 'deviation'):lambda ctx, s:v_reference_deviation_4(ctx, s),
+    ('reference_4', 'revision'):lambda ctx, s:v_reference_revision(ctx, s),
 
     ('unused', 'module'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
@@ -513,7 +514,8 @@ def v_init_import(ctx, stmt):
 
 def v_grammar_module(ctx, stmt):
     # check the statement hierarchy
-    grammar.chk_module_statements(ctx, stmt, ctx.canonical)
+    canonical = (ctx.canonical and stmt.i_is_primary_module)
+    grammar.chk_module_statements(ctx, stmt, canonical)
     # check revision statements order
     prev = None
     stmt.i_latest_revision = None
@@ -580,7 +582,7 @@ def v_import_module(ctx, stmt):
             mymodulename = b.arg
         else:
             mymodulename = None
-    def add_module(i):
+    def add_module(i, primary_module):
         # check if the module to import is already added
         modulename = i.arg
         r = i.search_one('revision-date')
@@ -594,7 +596,8 @@ def v_import_module(ctx, stmt):
             err_add(ctx.errors, i.pos,
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
-        m = ctx.search_module(i.pos, modulename, rev)
+        m = ctx.search_module(i.pos, modulename, rev,
+                              primary_module=primary_module)
         if m is not None:
             validate_module(ctx, m)
         if (m is not None and r is not None and
@@ -605,13 +608,13 @@ def v_import_module(ctx, stmt):
         return m
 
     for i in imports:
-        module = add_module(i)
+        module = add_module(i, False)
         if module is not None and module.keyword != 'module':
             err_add(ctx.errors, i.pos,
                     'BAD_IMPORT', (module.keyword, i.arg))
 
     for i in includes:
-        submodule = add_module(i)
+        submodule = add_module(i, stmt.i_is_primary_module)
         if submodule is not None and submodule.keyword != 'submodule':
             err_add(ctx.errors, i.pos,
                     'BAD_INCLUDE', (submodule.keyword, i.arg))
@@ -1961,6 +1964,17 @@ def v_reference_action(ctx, stmt):
 
     iterate(stmt)
 
+def v_reference_revision(ctx, stmt):
+    if not ctx.verify_revision_history:
+        return
+    if not stmt.i_module.i_is_primary_module:
+        return
+    if stmt.arg == stmt.parent.i_latest_revision:
+        return
+    if ctx.get_module(stmt.i_module.arg, stmt.arg) is None:
+        err_add(ctx.errors, stmt.pos, 'NO_REVISION',
+                (stmt.arg, stmt.i_module.arg))
+
 def v_reference_list(ctx, stmt):
     if getattr(stmt, 'i_is_validated', None) is True:
         return
@@ -3094,6 +3108,7 @@ class ModSubmodStatement(Statement):
         'i_including_modulename',
         'i_ctx',
         'i_undefined_augment_nodes',
+        'i_is_primary_module',
 
         # see v_grammar_module()
         'i_latest_revision',
@@ -3101,6 +3116,7 @@ class ModSubmodStatement(Statement):
 
     def __init__(self, top, parent, pos, keyword, arg=None):
         Statement.__init__(self, top, parent, pos, keyword, arg)
+        self.i_is_primary_module = False
         self.i_is_validated = False
 
     def internal_reset(self):
