@@ -1971,9 +1971,8 @@ def v_reference_revision(ctx, stmt):
         return
     if stmt.arg == stmt.parent.i_latest_revision:
         return
-    if ctx.get_module(stmt.i_module.arg, stmt.arg) is None:
-        err_add(ctx.errors, stmt.pos, 'NO_REVISION',
-                (stmt.arg, stmt.i_module.arg))
+    # search_module adds an error if the module isn't found
+    ctx.search_module(stmt.pos, stmt.i_module.arg, stmt.arg)
 
 def v_reference_list(ctx, stmt):
     if getattr(stmt, 'i_is_validated', None) is True:

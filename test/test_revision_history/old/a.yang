@@ -1,0 +1,9 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  revision 2020-03-15;
+  revision 2019-03-15;
+
+}
+  
