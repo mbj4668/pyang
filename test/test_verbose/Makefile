@@ -5,8 +5,13 @@ MODULES ?= $(wildcard *.yang)
 SEDSCRIPT = sed -e 's/[^-]*//' -e 's/\.yang//' -e 's/--/ --/g'
 
 HOME := $(shell pwd)/out
-SYSPREF := $(shell python -c 'import sys; print(sys.prefix)')
-SEDEXPR := "s:_HOME_:$(HOME):g;s:_ROOT_:$(W):g;s:_SYS_PREFIX_:$(SYSPREF):g"
+SYSPATH := $(shell python -c 'import sys; print(sys.prefix + "/share/yang/modules")')
+SEDEXPR := "s:_HOME_:$(HOME):g;s:_ROOT_:$(W):g"
+ifneq ($(wildcard $(SYSPATH)),)
+SEDEXPR := $(SEDEXPR)";s@_SYSPATH_@:$(SYSPATH)@g"
+else
+SEDEXPR := $(SEDEXPR)";s@_SYSPATH_@@g"
+endif
 
 test: clean out
 	@for m in $(MODULES); do 					\

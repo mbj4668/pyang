@@ -102,7 +102,9 @@ class FileRepository(Repository):
                              % os.pathsep.join(self.dirs))
 
     def _add_directory(self, directory):
-        if not directory or directory in self.dirs:
+        if (not directory
+            or directory in self.dirs
+            or not os.path.isdir(directory)):
             return False
         self.dirs.append(directory)
         return True
