@@ -2,12 +2,12 @@
 .\"     Title: pyang
 .\"    Author: Martin Björklund <mbj@tail-f.com>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2020-11-09
+.\"      Date: 2021-06-21
 .\"    Manual: pyang manual
-.\"    Source: pyang-2.4.0
+.\"    Source: pyang-2.5.0
 .\"  Language: English
 .\"
-.TH "PYANG" "1" "2020\-11\-09" "pyang\-2\&.4\&.0" "pyang manual"
+.TH "PYANG" "1" "2021\-06\-21" "pyang\-2\&.5\&.0" "pyang manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -212,6 +212,11 @@ This parameter has effect only if a plugin can handle comments\&.
 \fB\-\-canonical\fR
 .RS 4
 Validate the module(s) according to the canonical YANG order\&.
+.RE
+.PP
+\fB\-\-verify\-revision\-history\fR
+.RS 4
+Ensure that the revision history in the given module(s) is correct, by checking that it can find the old revisions of the module(s) in the YANG module search path\&.
 .RE
 .PP
 \fB\-\-strict\fR

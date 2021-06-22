@@ -1,3 +1,24 @@
+* 2.5.0 - 2021-06-21
+```
+         moved automated tests from travis ci to github actions
+         added new plugin for verifying 3GPP YANG authoring rules
+           thanks to Balázs Lengyel
+         added --verify-revision-history
+         pretty print long paths in -f yang
+
+         #732 - check_update plugin: now handles "max-elements" correctly
+                thanks to Paul Merlo
+         #726 - sid plugin: prefix paths of data nodes of a grouping
+                thanks to @lemikev
+         #725 - ignore comments before first YANG statement when parsing
+         #723 - documentation fix
+         #716 - sid plugin: same SID could be generated twice
+                thanks to Michel Veillette
+         #700 - parser now detects missing quotes correctly
+         #699 - fix crash on xpath expression for path-filter case
+         #409 - fix leafref from submodule to parent module in YANG 1.1
+```
+
 * 2.4.0 - 2020-11-09
 
 ```
