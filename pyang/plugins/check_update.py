@@ -812,10 +812,13 @@ chk_type_func = \
 
 
 def verrcode(basecode, stmt):
-    if stmt.i_module.i_version == '1':
+    try:
+        if stmt.i_module.i_version == '1':
+            return basecode
+        else:
+            return basecode + '_v' + stmt.i_module.i_version
+    except AttributeError:
         return basecode
-    else:
-        return basecode + '_v' + stmt.i_module.i_version
 
 def err_def_added(new, ctx):
     new_arg = new.arg

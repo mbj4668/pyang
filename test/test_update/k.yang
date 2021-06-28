@@ -1,0 +1,6 @@
+module k {
+  namespace urn:k;
+  prefix k;
+
+  revision 2014-03-01;
+}
