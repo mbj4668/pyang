@@ -48,6 +48,8 @@ def chk_error_codes():
     files = glob.glob("../pyang/*.py") + glob.glob("../pyang/*/*.py")
     all_codes = sorted(set(error.error_codes) | listed_codes)
     for code in all_codes:
+        if code.endswith("_v1.1"):
+            continue
         retcode, out, _ = oscmd(['grep', '-e', r'\b%s\b' % code, '--'] + files)
         # A used error code has has inner newlines in output for 2+ occurences
         if retcode or out.count('\n') == 0:

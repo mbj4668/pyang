@@ -1,0 +1,238 @@
+module ieee802-dot1q-stream-filters-gates {
+  yang-version "1.1";
+  namespace urn:ieee:std:802.1Q:yang:ieee802-dot1q-stream-filters-gates;
+  prefix sfsg;
+  
+  import ieee802-dot1q-bridge {
+    prefix dot1q;
+  }
+  
+  organization
+    "IEEE 802.1 Working Group";
+
+  description
+    "This module provides management of 802.1Q bridge components that support
+    Stream Filters and Stream Gates.";
+
+  revision 2020-11-06 {
+    description
+      "Published as part of IEEE Std 802.1Qcr-2020.
+      Initial version.";
+    reference
+      "IEEE Std 802.1Qcr-2020, Bridges and Bridged Networks -
+      Asynchronous Traffic Shaping.";
+  }
+  
+  typedef gate-state-value-type {
+    type enumeration {
+      enum closed {
+        description
+          "Gate closed";
+      }
+      enum open {
+        description
+          "Gate open";
+      }
+    }
+    description
+      "The gate-state-value-type indicates a gate state, open or closed,
+      for the stream gate.";
+    reference
+      "12.31.3.2.1 of IEEE Std 802.1Qcr-2020";
+  }
+  
+  typedef ipv-spec-type {
+    type enumeration {
+      enum zero {
+        value 0;
+        description
+          "Priority 0";
+      }
+      enum one {
+        value 1;
+        description
+          "Priority 1";
+      }
+      enum two {
+        value 2;
+        description
+          "Priority 2";
+      }
+      enum three {
+        value 3;
+        description
+          "Priority 3";
+      }
+      enum four {
+        value 4;
+        description
+          "Priority 4";
+      }
+      enum five {
+        value 5;
+        description
+          "Priority 5";
+      }
+      enum six {
+        value 6;
+        description
+          "Priority 6";
+      }
+      enum seven {
+        value 7;
+        description
+          "Priority 7";
+      }
+      enum null {
+        description
+          "null value";
+      }
+    }
+    description
+      "An IPV can be either of the following:
+         1) The null value. For a frame that passes through the gate, the
+            priority value associated with the frame is used to determine
+            the frame’s traffic class, using the Traffic Class Table as
+            specified in 8.6.6.
+         2) An internal priority value. For a frame that passes through the
+            gate, the IPV is used, in place of the priority value
+            associated with the frame, to determine the frame’s traffic
+            class, using the Traffic Class Table as specified in 8.6.6.";
+    reference
+      "8.6.5.2 of IEEE Std 802.1Qcr-2020";
+  }
+
+  typedef priority-spec-type {
+    type enumeration {
+      enum zero {
+        value 0;
+        description
+          "Priority 0";
+      }
+      enum one {
+        value 1;
+        description
+          "Priority 1";
+      }
+      enum two {
+        value 2;
+        description
+          "Priority 2";
+      }
+      enum three {
+        value 3;
+        description
+          "Priority 3";
+      }
+      enum four {
+        value 4;
+        description
+          "Priority 4";
+      }
+      enum five {
+        value 5;
+        description
+          "Priority 5";
+      }
+      enum six {
+        value 6;
+        description
+          "Priority 6";
+      }
+      enum seven {
+        value 7;
+        description
+          "Priority 7";
+      }
+      enum wildcard {
+        description
+          "wildcard value";
+      }
+    }
+  }
+
+  typedef stream-gate-ref {
+    type leafref {
+      path
+        '/dot1q:bridges'+
+        '/dot1q:bridge'+
+        '/dot1q:component'+
+        '/sfsg:stream-gates'+
+        '/sfsg:stream-gate-instance-table'+
+        '/sfsg:stream-gate-instance-id';
+    }
+    description
+      "This type is used to refer to a stream gate instance.";
+  }
+  
+  augment "/dot1q:bridges/dot1q:bridge/dot1q:component" {
+    description
+      "Augments the Bridge component with stream filters and stream gates.";
+    container stream-gates {
+      description
+        "This container encapsulates all nodes related to Stream Gates.";
+        
+      list stream-gate-instance-table {
+        key "stream-gate-instance-id";
+        description
+          "Each list entry contains a set of parameters that defines a
+          single stream gate (8.6.5.2), as detailed in Table 12-33. Entries
+          in the table can be created or removed dynamically in
+          implementations that support dynamic configuration of stream
+          gates.";
+        reference
+          "12.31.3 of IEEE Std 802.1Qcr-2020";
+        leaf stream-gate-instance-id {
+          type uint32;
+          description
+            "An integer table index that allows the stream gate to be
+            referenced from Stream Filter Instance Table entries.";
+          reference
+            "12.31.2.4 of IEEE Std 802.1Qcr-2020
+            8.6.5.3 of IEEE Std 802.1Qcr-2020
+            8.6.5.4 of IEEE Std 802.1Qcr-2020";
+        }
+        leaf gate-enable {
+          type boolean;
+          default "false";
+          description
+            "A Boolean variable that indicates whether the operation of the
+            state machines is enabled (TRUE) or disabled (FALSE). This
+            variable is set by management. The default value of this
+            variable is FALSE.";
+          reference
+            "8.6.9.4.14 of IEEE Std 802.1Q-2018";
+        }
+        leaf admin-gate-states {
+          type gate-state-value-type;
+          default "open";
+          description
+            "The administratively set gate state of this gate.";
+          reference
+            "12.31.3.2.1 of IEEE Std 802.1Qcr-2020
+            8.6.10.4 of IEEE Std 802.1Qcr-2020";
+        }
+        leaf admin-ipv {
+          type ipv-spec-type;
+          default "null";
+          description
+            "The administratively set internal priority value
+            specification.";
+          reference
+            "12.31.3.3 of IEEE Std 802.1Qcr-2020
+            8.6.10.6 of IEEE Std 802.1Qcr-2020
+            8.6.5.4 of IEEE Std 802.1Qcr-2020";
+        }
+      }
+      leaf max-stream-gate-instances {
+        type uint32;
+        config false;
+        description
+          "The maximum number of Stream Gate instances supported by this
+          Bridge component.";
+        reference
+          "12.31.1.2 of IEEE Std 802.1Qcr-2020";
+      }
+    }
+  }
+}

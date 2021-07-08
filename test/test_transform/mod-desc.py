@@ -20,11 +20,10 @@ def mod_desc(stmt, text):
     if desc:
         desc.arg += ' ' + text
 
-    # XXX for some reason validate_module() crashes with undefined i_module if
-    #     add description to module or submodule
-    elif stmt.keyword not in ['module', 'submodule']:
-        desc = statements.Statement(stmt.top, stmt, stmt.pos, 'description',
-                                    text)
+    else:
+        top = stmt.top or stmt
+        desc = statements.new_statement(top, stmt, stmt.pos, 'description',
+                                        text)
         stmt.substmts.append(desc)
 
     # XXX there may be a better idiom for this

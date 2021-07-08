@@ -36,9 +36,13 @@ module g {
     }
     leaf foo {
       type leafref {
-        // FIXME: we want to be able to break this path!
-        path
-          "/x/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccccccccccccc/x";
+        path "/x"
+           + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+           + "aaaaa"
+           + "/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+           + "bbbbb"
+           + "/ccccccccccccccccccccccccccccccccc"
+           + "ccccc/x";
       }
       description
         "first line

@@ -1,0 +1,99 @@
+module ieee802-dot1q-types {
+  yang-version 1;
+
+  namespace
+    'urn:ieee:std:802.1Q:yang:ieee802-dot1q-types';
+
+  prefix dot1q-types;
+
+  organization "IEEE 802.1 Working Group";
+
+  description
+    "Common types used within dot1Q-bridge modules.";
+
+  revision "2018-03-07" {
+    description
+      "Published as part of IEEE Std 802.1Q-2018.
+    Initial version.";
+    reference
+      "IEEE Std 802.1Q-2018, Bridges and Bridged Networks.";
+  }
+
+  grouping rational-grouping {
+    description
+      "Definition of a non-negative rational number.";
+    leaf numerator {
+      type uint32;
+      description
+        "Numerator of the rational number.";
+    }
+
+    leaf denominator {
+      type uint32 {
+        range "1..4294967295";
+      }
+      description
+        "Denominator of the rational number.";
+    }
+  }
+  
+  identity type-of-operation {
+    description
+      "Represents the operation type (name).";
+  }
+
+  grouping base-gate-control-entries {
+    list gate-control-entry {
+      key "index";
+      leaf index {
+        type uint32;
+      }
+
+      leaf operation-name {
+        type identityref {
+          base type-of-operation;
+        }
+        mandatory true;
+        description
+          "The name (type) of the operation for this entry.";
+      }
+
+      leaf time-interval-value {
+        type uint32;
+        description
+          "timeIntervalValue is a 32-bit unsigned integer,
+       representing a number of nanoseconds. After timeIntervalValue
+     nanoseconds have elapsed since the completion of the previous
+     entry in the gate control list, control passes to the next
+     entry.";
+        reference
+          "12.29.1.2.3 of IEEE Std 802.1Q-2018 8.6.8.4 of IEEE Std
+          802.1Q-2018";
+
+      }
+    }
+  }
+  
+  grouping ptp-time-grouping {
+    description
+      "This grouping specifies a PTP timestamp, represented as a
+      48-bit unsigned integer number of seconds and a 32-bit unsigned
+      integer number of nanoseconds.";
+    reference
+      "6.3.3.4 of IEEE Std 802.1AS";
+
+    leaf seconds {
+      type uint64;
+      description
+        "This is the integer portion of the timestamp in units of
+        seconds. The upper 16 bits are always zero.";
+    }
+
+    leaf nanoseconds {
+      type uint32;
+      description
+        "This is the fractional portion of the timestamp in units of
+        nanoseconds. This value is always less than 10^9.";
+    }
+  }
+}

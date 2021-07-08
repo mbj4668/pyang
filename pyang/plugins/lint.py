@@ -214,8 +214,6 @@ _recommended_substatements = {
     'bit':(('description',), "RFC 8407: 4.11.3,4.14"),
     }
 
-_ietf_namespace_prefix = 'urn:ietf:params:xml:ns:yang:'
-
 def v_chk_default(ctx, stmt):
     if (stmt.arg == _keyword_with_default[stmt.keyword] and
         stmt.parent.keyword != 'refine'):

@@ -1,0 +1,252 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 60000, 
+      "size": 100
+    }
+  ], 
+  "module-name": "ieee802-dot1q-psfp", 
+  "module-revision": "2020-07-07", 
+  "items": [
+    {
+      "namespace": "module", 
+      "identifier": "ieee802-dot1q-psfp", 
+      "sid": 60000
+    }, 
+    {
+      "namespace": "feature", 
+      "identifier": "psfp", 
+      "sid": 60001
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-base-time", 
+      "sid": 60002
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-base-time/nanoseconds", 
+      "sid": 60003
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-base-time/seconds", 
+      "sid": 60004
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list", 
+      "sid": 60005
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry", 
+      "sid": 60006
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry/gate-state-value", 
+      "sid": 60007
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry/index", 
+      "sid": 60008
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry/interval-octet-max", 
+      "sid": 60009
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry/ipv-spec", 
+      "sid": 60010
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry/operation-name", 
+      "sid": 60011
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-control-list/gate-control-entry/time-interval-value", 
+      "sid": 60012
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-cycle-time", 
+      "sid": 60013
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-cycle-time-extension", 
+      "sid": 60014
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-cycle-time/denominator", 
+      "sid": 60015
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:admin-cycle-time/numerator", 
+      "sid": 60016
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:config-change", 
+      "sid": 60017
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:config-change-error", 
+      "sid": 60018
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:config-change-time", 
+      "sid": 60019
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:config-change-time/nanoseconds", 
+      "sid": 60020
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:config-change-time/seconds", 
+      "sid": 60021
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:config-pending", 
+      "sid": 60022
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:current-time", 
+      "sid": 60023
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:current-time/nanoseconds", 
+      "sid": 60024
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:current-time/seconds", 
+      "sid": 60025
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:gate-closed-due-octets-exceeded", 
+      "sid": 60026
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:gate-closed-due-octets-exceeded-enable", 
+      "sid": 60027
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:gate-closed-due-to-invalid-rx", 
+      "sid": 60028
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:gate-closed-due-to-invalid-rx-enable", 
+      "sid": 60029
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-base-time", 
+      "sid": 60030
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-base-time/nanoseconds", 
+      "sid": 60031
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-base-time/seconds", 
+      "sid": 60032
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list", 
+      "sid": 60033
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry", 
+      "sid": 60034
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry/gate-state-value", 
+      "sid": 60035
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry/index", 
+      "sid": 60036
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry/interval-octet-max", 
+      "sid": 60037
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry/ipv-spec", 
+      "sid": 60038
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry/operation-name", 
+      "sid": 60039
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-control-list/gate-control-entry/time-interval-value", 
+      "sid": 60040
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-cycle-time", 
+      "sid": 60041
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-cycle-time-extension", 
+      "sid": 60042
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-cycle-time/denominator", 
+      "sid": 60043
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-cycle-time/numerator", 
+      "sid": 60044
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-gate-states", 
+      "sid": 60045
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:oper-ipv", 
+      "sid": 60046
+    }, 
+    {
+      "namespace": "data", 
+      "identifier": "/ieee802-dot1q-bridge:bridges/bridge/component/ieee802-dot1q-stream-filters-gates:stream-gates/stream-gate-instance-table/ieee802-dot1q-psfp:tick-granularity", 
+      "sid": 60047
+    }
+  ]
+}

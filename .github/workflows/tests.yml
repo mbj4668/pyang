@@ -1,0 +1,46 @@
+name: tests
+on: [push]
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7, 3.6, 3.7, 3.8, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+
+      - name: Install prerequisites
+        run: sudo apt-get install libxml2-utils xsltproc jing
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+
+      - name: Run tests
+        run: |
+          source env.sh
+          export USE_VIRTUALENV=true
+          make pylint test TEST_MODE=coverage
+          find . -name '.coverage*' -exec mv -t . {} +
+          coverage combine
+          # Test .gitignore for tests:
+          TMP=$(tempfile)
+          git ls-files . --exclude-standard --others | tee "$TMP"
+          if test -s "$TMP"; then false; else true; fi
+          # Test if we .gitignore any tracked files:
+          git ls-files -i --exclude-standard | tee "$TMP"
+          if test -s "$TMP"; then false; else true; fi
+
+#      - name: Coveralls
+#        uses: coverallsapp/github-action@master
+#        with:
+#          github-token: ${{ secrets.GITHUB_TOKEN }}

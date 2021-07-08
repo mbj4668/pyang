@@ -1,6 +1,6 @@
 PYANG := $(PYANG) --print-error-code --check-update-from
 
-MODULES = a c f h i
+MODULES = a c f h i j k
 DEVIATION_MODULES = d e
 
 test:

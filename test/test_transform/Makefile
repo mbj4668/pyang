@@ -1,8 +1,12 @@
+ifeq "$(origin PYANG)" "undefined"
+  PYANG = pyang
+endif
+
 PYANG := $(PYANG) -Wnone
 
 MODULES ?= $(wildcard *.yang)
 
-SEDSCRIPT = sed -e 's/[^-]*//' -e 's/\.yang//' -e 's/--/ --/g'
+SEDSCRIPT = sed -e 's/[^-]*//' -e 's/-bug//' -e 's/\.yang//' -e 's/--/ --/g'
 
 test: clean out
 	@for m in $(MODULES); do 					\
@@ -22,5 +26,3 @@ out:
 
 clean:
 	rm -rf out *.diff
-
-

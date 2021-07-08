@@ -294,13 +294,15 @@ class YangParser(object):
             error.err_add(self.ctx.errors, self.pos, 'EOF_ERROR', ())
             return None
         try:
-            # we expect a error.Eof at this point, everything else is an error
-            self.tokenizer.peek()
+            # we expect a error.Eof or CommentStmt at this point, everything else is an error
+            stmt2 = self._parse_statement(None)
+            if stmt2.keyword != '_comment':
+                error.err_add(self.ctx.errors, self.pos, 'TRAILING_GARBAGE', ())
         except error.Eof:
             return stmt
         except:
+            error.err_add(self.ctx.errors, self.pos, 'TRAILING_GARBAGE', ())
             pass
-        error.err_add(self.ctx.errors, self.pos, 'TRAILING_GARBAGE', ())
         return None
 
     def _parse_statement(self, parent):
@@ -317,7 +319,9 @@ class YangParser(object):
                                                 cmt)
                 stmt.is_line_end = is_line_end
                 stmt.is_multi_line = is_multi_line
-                return stmt
+                # just ignore Comments outside the module
+                if parent is not None:
+                    return stmt
 
         keywd = self.tokenizer.get_keyword()
         # check for argument

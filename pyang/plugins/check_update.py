@@ -50,19 +50,35 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         error.add_error_code(
             'CHK_INVALID_MODULENAME', 1,
             "the module's name MUST NOT be changed"
-            + " (RFC 6020: 10, p3)")
+            + " (RFC 6020: sec. 10, p3)")
+        error.add_error_code(
+            'CHK_INVALID_MODULENAME_v1.1', 1,
+            "the module's name MUST NOT be changed"
+            + " (RFC 7950: sec. 11, p3)")
         error.add_error_code(
             'CHK_INVALID_NAMESPACE', 1,
             "the module's namespace MUST NOT be changed"
-            + " (RFC 6020: 10, p3)")
+            + " (RFC 6020: sec. 10, p3)")
+        error.add_error_code(
+            'CHK_INVALID_NAMESPACE_v1.1', 1,
+            "the module's namespace MUST NOT be changed"
+            + " (RFC 7950: sec. 11, p3)")
         error.add_error_code(
             'CHK_NO_REVISION', 1,
             "a revision statement MUST be present"
-            + " (RFC 6020: 10, p2)")
+            + " (RFC 6020: sec. 10, p2)")
+        error.add_error_code(
+            'CHK_NO_REVISION_v1.1', 1,
+            "a revision statement MUST be present"
+            + " (RFC 7950: sec. 11, p2)")
         error.add_error_code(
             'CHK_BAD_REVISION', 1,
             "new revision %s is not newer than old revision %s"
-            + " (RFC 6020: 10, p2)")
+            + " (RFC 6020: sec. 10, p2)")
+        error.add_error_code(
+            'CHK_BAD_REVISION_v1.1', 1,
+            "new revision %s is not newer than old revision %s"
+            + " (RFC 7950: sec. 11, p2)")
         error.add_error_code(
             'CHK_DEF_REMOVED', 1,
             "the %s '%s', defined at %s is illegally removed")
@@ -117,15 +133,27 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         error.add_error_code(
             'CHK_ENUM_VALUE_CHANGED', 1,
             "the value for enum '%s', has changed from %s to %s"
-            + " (RFC 6020: 10, p5, bullet 1)")
+            + " (RFC 6020: sec. 10, p5, bullet 1)")
+        error.add_error_code(
+            'CHK_ENUM_VALUE_CHANGED_v1.1', 1,
+            "the value for enum '%s', has changed from %s to %s"
+            + " (RFC 7950: sec. 11, p5, bullet 1)")
         error.add_error_code(
             'CHK_BIT_POSITION_CHANGED', 1,
             "the position for bit '%s', has changed from %s to %s"
-            + " (RFC 6020: 10, p5, bullet 2)")
+            + " (RFC 6020: sec. 10, p5, bullet 2)")
+        error.add_error_code(
+            'CHK_BIT_POSITION_CHANGED_v1.1', 1,
+            "the position for bit '%s', has changed from %s to %s"
+            + " (RFC 7950: sec. 11, p5, bullet 2)")
         error.add_error_code(
             'CHK_RESTRICTION_CHANGED', 1,
             "the %s has been illegally restricted"
-            + " (RFC 6020: 10, p5, bullet 3)")
+            + " (RFC 6020: sec. 10, p5, bullet 3)")
+        error.add_error_code(
+            'CHK_RESTRICTION_CHANGED_v1.1', 1,
+            "the %s has been illegally restricted"
+            + " (RFC 7950: sec. 11, p5, bullet 3)")
         error.add_error_code(
             'CHK_UNION_TYPES', 1,
             "the member types in the union have changed")
@@ -225,21 +253,25 @@ def chk_module(ctx, oldmod, newmod):
 
 def chk_modulename(oldmod, newmod, ctx):
     if oldmod.arg != newmod.arg:
-        err_add(ctx.errors, newmod.pos, 'CHK_INVALID_MODULENAME', ())
+        errcode = verrcode('CHK_INVALID_MODULENAME', newmod)
+        err_add(ctx.errors, newmod.pos, errcode, ())
 
 def chk_namespace(oldmod, newmod, ctx):
     oldns = oldmod.search_one('namespace')
     newns = newmod.search_one('namespace')
     if oldns is not None and newns is not None and oldns.arg != newns.arg:
+        errcode = verrcode('CHK_INVALID_NAMESPACE', newmod)
         err_add(ctx.errors, newmod.pos, 'CHK_INVALID_NAMESPACE', ())
 
 def chk_revision(oldmod, newmod, ctx):
     oldrev = get_latest_revision(oldmod)
     newrev = get_latest_revision(newmod)
     if newrev is None:
-        err_add(ctx.errors, newmod.pos, 'CHK_NO_REVISION', ())
+        errcode = verrcode('CHK_NO_REVISION', newmod)
+        err_add(ctx.errors, newmod.pos, errcode, ())
     elif (oldrev is not None) and (oldrev >= newrev):
-        err_add(ctx.errors, newmod.pos, 'CHK_BAD_REVISION', (newrev, oldrev))
+        errcode = verrcode('CHK_BAD_REVISION', newmod)
+        err_add(ctx.errors, newmod.pos, errcode, (newrev, oldrev))
 
 def get_latest_revision(m):
     revs = [r.arg for r in m.search('revision')]
@@ -544,10 +576,10 @@ def chk_min_max(old, new, ctx):
         err_def_changed(oldmin, newmin, ctx)
     oldmax = old.search_one('max-elements')
     newmax = new.search_one('max-elements')
-    if oldmax is None:
+    if newmax is None:
         pass
-    elif newmax is None:
-        pass
+    elif oldmax is None:
+        err_def_added(newmax, ctx)
     elif int(newmax.arg) < int(oldmax.arg):
         err_def_changed(oldmax, newmax, ctx)
 
@@ -658,8 +690,8 @@ def chk_range(old, new, oldts, newts, ctx):
         tmperrors = []
         types.validate_ranges(tmperrors, new.pos, ots.ranges, new)
         if tmperrors:
-            err_add(ctx.errors, new.pos, 'CHK_RESTRICTION_CHANGED',
-                    'range')
+            errcode = verrcode('CHK_RESTRICTION_CHANGED', new)
+            err_add(ctx.errors, new.pos, errcode, 'range')
     else:
         err_add(ctx.errors, nts.ranges_pos, 'CHK_DEF_ADDED',
                 ('range', str(nts.ranges)))
@@ -692,7 +724,8 @@ def chk_enumeration(old, new, oldts, newts, ctx):
             err_add(ctx.errors, new.pos, 'CHK_DEF_REMOVED',
                     ('enum', name, old.pos))
         elif n[1] != val:
-            err_add(ctx.errors, new.pos, 'CHK_ENUM_VALUE_CHANGED',
+            errcode = verrcode('CHK_ENUM_VALUE_CHANGED', new)
+            err_add(ctx.errors, new.pos, errcode,
                     (name, val, n[1]))
 
 def chk_bits(old, new, oldts, newts, ctx):
@@ -703,7 +736,8 @@ def chk_bits(old, new, oldts, newts, ctx):
             err_add(ctx.errors, new.pos, 'CHK_DEF_REMOVED',
                     ('bit', name, old.pos))
         elif n[1] != pos:
-            err_add(ctx.errors, new.pos, 'CHK_BIT_POSITION_CHANGED',
+            errcode = verrcode('CHK_BIT_POSITION_CHANGED', new)
+            err_add(ctx.errors, new.pos, errcode,
                     (name, pos, n[1]))
 
 def chk_binary(old, new, oldts, newts, ctx):
@@ -776,6 +810,15 @@ chk_type_func = \
    'empty': chk_dummy,
    'union': chk_union}
 
+
+def verrcode(basecode, stmt):
+    try:
+        if stmt.i_module.i_version == '1':
+            return basecode
+        else:
+            return basecode + '_v' + stmt.i_module.i_version
+    except AttributeError:
+        return basecode
 
 def err_def_added(new, ctx):
     new_arg = new.arg

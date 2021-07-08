@@ -1,0 +1,16 @@
+module j {
+  yang-version 1.1;
+  namespace urn:j;
+  prefix j;
+
+  revision 2014-03-01;
+
+  leaf foo {
+    type enumeration {
+      enum f {
+        value 1;
+      }
+    }
+  }
+}
+

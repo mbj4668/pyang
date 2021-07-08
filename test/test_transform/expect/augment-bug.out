@@ -1,0 +1,9 @@
+module: augment-bug
+
+  augment /if:interfaces/if:interface:
+    +--rw dingo?   aardvark
+  augment /if:interfaces/if:interface:
+    +--rw cougar?   uint32
+  augment /if:interfaces/if:interface:
+    +--rw echidna
+       +--rw cougar?   uint32

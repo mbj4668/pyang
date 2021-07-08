@@ -102,6 +102,13 @@ error_codes = \
       (1,
        'keyword "%s" not in canonical order, ' \
        'expected "%s" (see RFC 6020, Section 12)'),
+    'UNEXPECTED_KEYWORD_CANONICAL_v1.1':
+      (1,
+       'keyword "%s" not in canonical order (see RFC 7950, Section 14)'),
+    'UNEXPECTED_KEYWORD_CANONICAL_1_v1.1':
+      (1,
+       'keyword "%s" not in canonical order, ' \
+       'expected "%s" (see RFC 7950, Section 14)'),
     'UNEXPECTED_KEYWORD_USES':
       (1,
        'unexpected keyword "%s" under "%s", defined at %s'),

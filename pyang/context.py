@@ -27,6 +27,7 @@ class Context(object):
         self.repository = repository
         self.errors = []
         self.canonical = False
+        self.verify_revision_history = False
         self.max_line_len = None
         self.max_identifier_len = None
         self.implicit_errors = True
@@ -44,9 +45,21 @@ class Context(object):
             revs = self.revs[mod]
             revs.append((rev, handle))
 
+    def internal_reset(self):
+        self.modules = {}
+        self.revs = {}
+        self.errors = []
+        for mod, rev, handle in self.repository.get_modules_and_revisions(
+                self):
+            if mod not in self.revs:
+                self.revs[mod] = []
+            revs = self.revs[mod]
+            revs.append((rev, handle))
+
     def add_module(self, ref, text, in_format=None,
                    expect_modulename=None, expect_revision=None,
-                   expect_failure_error=True):
+                   expect_failure_error=True,
+                   primary_module=False):
         """Parse a module text and add the module data to the context
 
         `ref` is a string which is used to identify the source of
@@ -68,6 +81,7 @@ class Context(object):
         if module is None:
             return None
 
+        module.i_is_primary_module = primary_module
         if expect_modulename is not None:
             if not re.match(syntax.re_identifier, expect_modulename):
                 error.err_add(self.errors, module.pos,
@@ -183,7 +197,8 @@ class Context(object):
                     revs[i] = (rev, ('parsed', module, ref, yintext))
             i += 1
 
-    def search_module(self, pos, modulename, revision=None):
+    def search_module(self, pos, modulename, revision=None,
+                      primary_module=False):
         """Searches for a module named `modulename` in the repository
 
         If the module is found, it is added to the context.
@@ -241,12 +256,13 @@ class Context(object):
                 if module is not None:
                     module = self.add_parsed_module(module)
         else:
-            # get it from the repos
+            # get it from the repo
             try:
                 ref, in_format, text = self.repository.get_module_from_handle(
                     handle)
                 module = self.add_module(
-                    ref, text, in_format, modulename, revision)
+                    ref, text, in_format, modulename, revision,
+                    True, primary_module)
             except self.repository.ReadError as ex:
                 error.err_add(self.errors, pos, 'READ_ERROR', str(ex))
                 module = None

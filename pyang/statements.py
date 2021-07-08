@@ -241,6 +241,7 @@ _validation_map = {
     ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
     ('reference_3', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
     ('reference_4', 'deviation'):lambda ctx, s:v_reference_deviation_4(ctx, s),
+    ('reference_4', 'revision'):lambda ctx, s:v_reference_revision(ctx, s),
 
     ('unused', 'module'):lambda ctx, s: v_unused_module(ctx, s),
     ('unused', 'submodule'):lambda ctx, s: v_unused_module(ctx, s),
@@ -513,7 +514,8 @@ def v_init_import(ctx, stmt):
 
 def v_grammar_module(ctx, stmt):
     # check the statement hierarchy
-    grammar.chk_module_statements(ctx, stmt, ctx.canonical)
+    canonical = (ctx.canonical and stmt.i_is_primary_module)
+    grammar.chk_module_statements(ctx, stmt, canonical)
     # check revision statements order
     prev = None
     stmt.i_latest_revision = None
@@ -580,7 +582,7 @@ def v_import_module(ctx, stmt):
             mymodulename = b.arg
         else:
             mymodulename = None
-    def add_module(i):
+    def add_module(i, primary_module):
         # check if the module to import is already added
         modulename = i.arg
         r = i.search_one('revision-date')
@@ -594,7 +596,8 @@ def v_import_module(ctx, stmt):
             err_add(ctx.errors, i.pos,
                     'CIRCULAR_DEPENDENCY', ('module', modulename))
         # try to add the module to the context
-        m = ctx.search_module(i.pos, modulename, rev)
+        m = ctx.search_module(i.pos, modulename, rev,
+                              primary_module=primary_module)
         if m is not None:
             validate_module(ctx, m)
         if (m is not None and r is not None and
@@ -605,13 +608,13 @@ def v_import_module(ctx, stmt):
         return m
 
     for i in imports:
-        module = add_module(i)
+        module = add_module(i, False)
         if module is not None and module.keyword != 'module':
             err_add(ctx.errors, i.pos,
                     'BAD_IMPORT', (module.keyword, i.arg))
 
     for i in includes:
-        submodule = add_module(i)
+        submodule = add_module(i, stmt.i_is_primary_module)
         if submodule is not None and submodule.keyword != 'submodule':
             err_add(ctx.errors, i.pos,
                     'BAD_INCLUDE', (submodule.keyword, i.arg))
@@ -1993,6 +1996,16 @@ def v_reference_action(ctx, stmt):
 
     iterate(stmt)
 
+def v_reference_revision(ctx, stmt):
+    if not ctx.verify_revision_history:
+        return
+    if not stmt.i_module.i_is_primary_module:
+        return
+    if stmt.arg == stmt.parent.i_latest_revision:
+        return
+    # search_module adds an error if the module isn't found
+    ctx.search_module(stmt.pos, stmt.i_module.arg, stmt.arg)
+
 def v_reference_list(ctx, stmt):
     if getattr(stmt, 'i_is_validated', None) is True:
         return
@@ -2528,6 +2541,7 @@ def search_data_node(children, modulename, identifier, last_skipped = None):
 def search_typedef(stmt, name):
     """Search for a typedef in scope
     First search the hierarchy, then the module and its submodules."""
+    orig_stmt = stmt
     mod = stmt.i_orig_module
     while stmt is not None:
         if name in stmt.i_typedefs:
@@ -2540,11 +2554,16 @@ def search_typedef(stmt, name):
                     return None
             return t
         stmt = stmt.parent
+    # if the original statement isn't the original module, try the module
+    # (this covers the case where the statement has been re-parented)
+    if mod is not None and orig_stmt is not mod:
+        return search_typedef(mod, name)
     return None
 
 def search_grouping(stmt, name):
     """Search for a grouping in scope
     First search the hierarchy, then the module and its submodules."""
+    orig_stmt = stmt
     mod = stmt.i_orig_module
     while stmt is not None:
         if name in stmt.i_groupings:
@@ -2557,6 +2576,10 @@ def search_grouping(stmt, name):
                     return None
             return g
         stmt = stmt.parent
+    # if the original statement isn't the original module, try the module
+    # (this covers the case where the statement has been re-parented)
+    if mod is not None and orig_stmt is not mod:
+        return search_grouping(mod, name)
     return None
 
 def search_data_keyword_child(children, modulename, identifier):
@@ -2724,7 +2747,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
             if (path.i_module.keyword == 'submodule' and
-                prefix == local_module.i_prefix and 
+                prefix == local_module.i_prefix and
                 local_module is not None):
                 pmodule = util.prefix_to_module(
                     local_module, prefix, stmt.pos, ctx.errors)
@@ -3039,6 +3062,14 @@ class Statement(object):
         return '<pyang.%s \'%s\' at %#x>' % (self.__class__.__name__,
                                              self.__str__(), id(self))
 
+    def internal_reset(self):
+        for cls in self.__class__.mro():
+            for s in getattr(cls, '__slots__', ()):
+                if s.startswith('i_') and hasattr(self, s):
+                    delattr(self, s)
+        for s in self.substmts:
+            s.internal_reset()
+
     def search(self, keyword, children=None, arg=None):
         """Return list of receiver's substmts with `keyword`.
         """
@@ -3130,6 +3161,7 @@ class ModSubmodStatement(Statement):
         'i_including_modulename',
         'i_ctx',
         'i_undefined_augment_nodes',
+        'i_is_primary_module',
 
         # see v_grammar_module()
         'i_latest_revision',
@@ -3137,8 +3169,12 @@ class ModSubmodStatement(Statement):
 
     def __init__(self, top, parent, pos, keyword, arg=None):
         Statement.__init__(self, top, parent, pos, keyword, arg)
+        self.i_is_primary_module = False
         self.i_is_validated = False
 
+    def internal_reset(self):
+        Statement.internal_reset(self)
+        self.i_is_validated = False
 
     def prune(self):
         def p(n):
@@ -3380,7 +3416,7 @@ def mk_path_str(stmt,
 
     resolve_top_prefix_to_module resolves the module-level prefix
       to the module name.
-    
+
     with_keys will include "[key]" to indicate the key names in the XPath.
 
     Prefixes may be included in the path if the prefix changes mid-path.
@@ -3424,7 +3460,7 @@ def get_xpath(stmt, qualified=False, prefix_to_module=False, with_keys=False):
 
     qualified=True, prefix_to_module=True:
       /module1:root/module1:node/module2:node/...
-    
+
     prefix_to_module=True, with_keys=True:
       /module1:root/node[name][name2]/module2:node/...
     """

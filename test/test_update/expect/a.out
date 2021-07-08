@@ -7,3 +7,7 @@ a@2014-04-01.yang:91: error: CHK_DEF_ADDED
 a@2014-04-01.yang:117: error: CHK_DEF_ADDED
 a@2014-04-01.yang:133: error: CHK_IMPLICIT_DEFAULT
 a@2014-04-01.yang:160: error: CHK_DEF_ADDED
+a@2014-04-01.yang:166: error: CHK_DEF_ADDED
+a@2014-04-01.yang:167: error: CHK_DEF_ADDED
+a@2014-04-01.yang:172: error: CHK_DEF_CHANGED
+a@2014-04-01.yang:173: error: CHK_DEF_CHANGED
