@@ -2176,7 +2176,7 @@ def v_reference_leaf_leafref(ctx, stmt):
         _validate_leafref_node(ctx, stmt)
     else:
         type_ = stmt.search_one('type')
-        if type_.arg == 'union':
+        if type_ is not None and type_.arg == 'union':
             _validate_leafref_in_union(ctx, type_)
 
 
