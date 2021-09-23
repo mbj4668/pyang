@@ -91,7 +91,6 @@ pyang is compatible with the following IETF RFCs:
   * Translate YANG data models to DSDL schemas, which can be used for
     validating various XML instance documents. See
     [InstanceValidation](https://github.com/mbj4668/pyang/wiki/InstanceValidation).
-  * Translate YANG data models to XSD.
   * Generate UML diagrams from YANG models. See
     [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
     an example.
@@ -167,7 +166,7 @@ man pyang
   initialized.
 
 * **pyang/translators/**
-  Contains output plugins for YANG, YIN, XSD, and DSDL translation.
+  Contains output plugins for YANG, YIN, and DSDL translation.
 
 * **xslt**
   Contains XSLT style sheets for generating RELAX NG, Schematron and
