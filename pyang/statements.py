@@ -2977,7 +2977,10 @@ class Statement(object):
         """pointer to the top-level Statement"""
 
         self.parent = parent
-        """pointer to the parent Statement"""
+        """pointer to the parent Statement, maybe on semantics"""
+
+        self.stmt_parent = parent
+        """pointer to the parent Statement, just on statement"""
 
         self.pos = copy.copy(pos)
         """position in input stream, for error reporting"""

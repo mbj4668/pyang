@@ -1,0 +1,12 @@
+module mod1 {
+  namespace "urn:a";
+  prefix a;
+
+  container x;
+
+  augment "/x" {
+    container dm {
+      presence "x";
+    }// dm
+  } // augment
+}
