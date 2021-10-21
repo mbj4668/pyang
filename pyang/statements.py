@@ -2172,6 +2172,8 @@ def v_reference_when(ctx, stmt):
 def v_xpath(ctx, stmt):
     if stmt.parent.keyword == 'augment':
         node = stmt.parent.i_target_node
+    elif stmt.parent.keyword == 'deviate':
+        node = stmt.parent.parent.i_target_node
     elif getattr(stmt, 'i_origin', None) == 'uses':
         node = util.data_node_up(stmt.parent)
     else:
@@ -2384,6 +2386,10 @@ def v_reference_deviation_4(ctx, stmt):
 def v_recheck_target(ctx, t, reference=False):
     for s in t.search('if-feature'):
         v_type_if_feature(ctx, s)
+    for s in t.search('must'):
+        v_reference_must(ctx, s)
+    for s in t.search('when'):
+        v_reference_when(ctx, s)
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
         if reference:
