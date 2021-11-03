@@ -1,0 +1,25 @@
+module foo {
+    namespace "uri:foo";
+    prefix foo;
+
+    import base {
+        prefix base;
+    }
+
+    grouping foo-grp {
+        container foo {
+            presence "foo enabled";
+        }
+    }
+
+    uses foo-grp {
+        refine foo {
+            // /foo and /base:root/foo are mutually exclusive
+            must "not(/base:root/foo:foo)";
+        }
+    }
+
+    augment "/base:root" {
+        uses foo-grp;
+    }
+}

@@ -2386,10 +2386,11 @@ def v_reference_deviation_4(ctx, stmt):
 def v_recheck_target(ctx, t, reference=False):
     for s in t.search('if-feature'):
         v_type_if_feature(ctx, s)
-    for s in t.search('must'):
-        v_reference_must(ctx, s)
-    for s in t.search('when'):
-        v_reference_when(ctx, s)
+    if reference:
+        for s in t.search('must'):
+            v_reference_must(ctx, s)
+        for s in t.search('when'):
+            v_reference_when(ctx, s)
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
         if reference:
