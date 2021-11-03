@@ -7,13 +7,17 @@ MODULES = $(wildcard *.yang)
 
 test: subdirs
 	@chmod -r access.yang
-	for m in $(MODULES); do						\
-		echo "trying $$m..." | tr -d '\012';			\
-		$(PYANG) $$m 2> $$m.out;				\
-		diff expect/$$m.out $$m.out > $$m.diff || 		\
-			{ cat $$m.diff; exit 1; };			\
-		rm -f $$m.diff;						\
-		echo " ok";						\
+	for m in $(MODULES); do							\
+		if [ "$$m" = "access.yang" ] && [ "$$(id -u)" = "0" ]; then	\
+			echo "Running as root - skipping access.yang";		\
+			continue;						\
+		fi;								\
+		echo "trying $$m..." | tr -d '\012';				\
+		$(PYANG) $$m 2> $$m.out;					\
+		diff expect/$$m.out $$m.out > $$m.diff || 			\
+			{ cat $$m.diff; exit 1; };				\
+		rm -f $$m.diff;							\
+		echo " ok";							\
 	done
 	chmod +r access.yang
 
