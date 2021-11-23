@@ -161,6 +161,7 @@ _validation_phases = [
 
     # reference phase:
     #   verifies all references; e.g. leafref, unique, key for config
+    'reference_0',
     'reference_1',
     'reference_2',
     'reference_3',
@@ -228,6 +229,9 @@ _validation_map = {
     ('reference_1', 'action'):lambda ctx, s:v_reference_action(ctx, s),
     ('reference_1', 'notification'):lambda ctx, s:v_reference_action(ctx, s),
     ('reference_1', 'choice'):lambda ctx, s: v_reference_choice(ctx, s),
+    ('reference_0', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
+    ('reference_0', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
+
     ('reference_2', 'leaf'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'leaf-list'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
     ('reference_2', 'must'):lambda ctx, s:v_reference_must(ctx, s),
@@ -238,8 +242,6 @@ _validation_map = {
 #    ('reference_3', 'must'):lambda ctx, s:v_reference_must(ctx, s),
 #    ('reference_3', 'when'):lambda ctx, s:v_reference_when(ctx, s),
     ('reference_3', 'typedef'):lambda ctx, s:v_reference_leaf_leafref(ctx, s),
-    ('reference_3', 'deviation'):lambda ctx, s:v_reference_deviation(ctx, s),
-    ('reference_3', 'deviate'):lambda ctx, s:v_reference_deviate(ctx, s),
     ('reference_4', 'deviation'):lambda ctx, s:v_reference_deviation_4(ctx, s),
     ('reference_4', 'revision'):lambda ctx, s:v_reference_revision(ctx, s),
 
@@ -2351,6 +2353,12 @@ def v_reference_deviate(ctx, stmt):
                     and t.i_module.i_prefix != c.i_module.i_prefix):
 
                     c.arg = c.i_module.i_prefix + ':' + c.arg
+
+                if (c.keyword == 'type'
+                    and getattr(t, "i_leafref", None) is not None
+                    and c.arg != "leafref"):
+
+                    delattr(t, "i_leafref")
                 t.substmts.append(c)
     else: # delete
         for c in stmt.substmts:
