@@ -63,7 +63,15 @@ class IETFPlugin(lint.LintPlugin):
             'IETF_MISSING_TRUST_LEGAL_PROVISIONING', 4,
             'RFC 8407: 3.1: '
             + 'The IETF Trust Copyright statement seems to be'
-            + ' missing or is not correct (see pyang --ietf-help for details).')
+            + ' missing or is not correct'
+            + ' (see pyang --ietf-help for details).')
+
+        error.add_error_code(
+            'IETF_MISSING_RFC_TEXT', 4,
+            'RFC 8407: Appendix B: '
+            + 'The text about which RFC this module is part of seems to be'
+            + ' missing or is not correct'
+            + ' (see pyang --ietf-help for details).')
 
     def pre_validate_ctx(self, ctx, modules):
         for mod in modules:
@@ -91,6 +99,11 @@ class IETFPlugin(lint.LintPlugin):
             if y >= 2022 and arg.find("Simplified") > 0:
                 err_add(ctx.errors, s.pos,
                         'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
+            if s.parent.arg.startswith('ietf-'):
+                m = re_ietf_rfc.search(arg)
+                if m is None:
+                    err_add(ctx.errors, s.pos,
+                        'IETF_MISSING_RFC_TEXT', ())
         if not self.mmap[s.i_module.arg]['found_2119_keywords']:
             if re_2119_keywords.search(arg) is not None:
                 self.mmap[s.i_module.arg]['found_2119_keywords'] = True
@@ -122,6 +135,9 @@ following text:
      forth in Section 4.c of the IETF Trust's Legal Provisions
      Relating to IETF Documents
      (https://trustee.ietf.org/license-info).
+
+An IETF module (but not an IANA module) must also contain the
+following text:
 
      This version of this YANG module is part of RFC XXXX
      (https://www.rfc-editor.org/info/rfcXXXX); see the RFC itself
@@ -156,13 +172,16 @@ without modification, is permitted pursuant to, and subject
 to the license terms contained in, the (Revised|Simplified) BSD License
 set forth in Section 4\.c of the IETF Trust's Legal Provisions
 Relating to IETF Documents
-\(https?://trustee.ietf.org/license-info\)\.
+\(https?://trustee.ietf.org/license-info\)\."""
 
-This version of this YANG module is part of
+re_tlp = re.compile(re.sub(r'\s+', ' ', tlp_str))
+
+ietf_rfc_str = \
+r"""This version of this YANG module is part of
 RFC .+(\s+\(https?://www.rfc-editor.org/info/rfc.+\))?; see
 the RFC itself for full legal notices\."""
 
-re_tlp = re.compile(re.sub(r'\s+', ' ', tlp_str))
+re_ietf_rfc = re.compile(re.sub(r'\s+', ' ', ietf_rfc_str))
 
 re_2119_keywords = re.compile(
     r"\b(MUST|REQUIRED|SHOULD|SHALL|RECOMMENDED|MAY|OPTIONAL)\b")
