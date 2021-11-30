@@ -56,14 +56,14 @@ class IETFPlugin(lint.LintPlugin):
         error.add_error_code(
             'IETF_MISSING_RFC8174', 4,
             'the module seems to use RFC 2119 keywords, but the required'
-            + ' text from RFC 8174 is not found'
+            + ' text from RFC 8174 is not found or is not correct'
             + ' (see pyang --ietf-help for details).')
 
         error.add_error_code(
             'IETF_MISSING_TRUST_LEGAL_PROVISIONING', 4,
             'RFC 8407: 3.1: '
             + 'The IETF Trust Copyright statement seems to be'
-            + ' missing (see pyang --ietf-help for details).')
+            + ' missing or is not correct (see pyang --ietf-help for details).')
 
     def pre_validate_ctx(self, ctx, modules):
         for mod in modules:
@@ -80,7 +80,15 @@ class IETFPlugin(lint.LintPlugin):
             if m is not None:
                 self.mmap[s.i_module.arg]['found_8174'] = True
                 arg = arg[:m.start()] + arg[m.end():]
-            if re_tlp.search(arg) is None:
+            m = re_tlp.search(arg)
+            if m is None:
+                err_add(ctx.errors, s.pos,
+                        'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
+            # the statement was changed to "Revised BSD License" in
+            # september 2021.  allow both for old docs; require Revised
+            # for new.
+            y = int(m.group(1))
+            if y >= 2022 and arg.find("Simplified") > 0:
                 err_add(ctx.errors, s.pos,
                         'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
         if not self.mmap[s.i_module.arg]['found_2119_keywords']:
@@ -110,7 +118,7 @@ following text:
 
      Redistribution and use in source and binary forms, with or
      without modification, is permitted pursuant to, and subject to
-     the license terms contained in, the Simplified BSD License set
+     the license terms contained in, the Revised BSD License set
      forth in Section 4.c of the IETF Trust's Legal Provisions
      Relating to IETF Documents
      (https://trustee.ietf.org/license-info).
@@ -140,12 +148,12 @@ they appear in all capitals, as shown here."""
 re_rfc8174 = re.compile(re.sub(r'\s+', ' ', rfc8174_str))
 
 tlp_str = \
-r"""Copyright \(c\) [0-9]+ IETF Trust and the persons identified as
+r"""Copyright \(c\) ([0-9]+) IETF Trust and the persons identified as
 authors of the code\.  All rights reserved\.
 
 Redistribution and use in source and binary forms, with or
 without modification, is permitted pursuant to, and subject
-to the license terms contained in, the Simplified BSD License
+to the license terms contained in, the (Revised|Simplified) BSD License
 set forth in Section 4\.c of the IETF Trust's Legal Provisions
 Relating to IETF Documents
 \(https?://trustee.ietf.org/license-info\)\.
