@@ -216,7 +216,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
         elif '\n' in stmt.arg:
             # the arg string contains newlines; print it as double quoted
             arg_on_new_line = emit_arg(keywordstr, stmt, fd, indent, indentstep,
-                                       max_line_len, line_len)
+                                       max_line_len, line_len - 1 - len(eol))
         elif stmt.keyword in _keyword_with_path_arg:
             # special code for path argument; pretty-prints a long path with
             # line breaks
@@ -457,7 +457,7 @@ def emit_arg(keywordstr, stmt, fd, indent, indentstep, max_line_len, line_len):
             need_nl = True
         else:
             for line in lines:
-                if need_new_line(max_line_len, line_len + 1, line):
+                if need_new_line(max_line_len, line_len, line):
                     need_nl = True
                     break
         if need_nl:
