@@ -1,3 +1,17 @@
+* 2.5.1 - 2021-12-02
+```
+        #770 - ietf plugin: updated IETF Trust Legal Provisions
+               statement
+        #767 - fixed access issue in test (thanks to Duncan Eastoe)
+        #765 - validate xpath after deviation
+        #760 - fixed end of line comment printing in augment in -f yang
+        #757 - ietf plugin: do not require the text about RFC origin
+               for IANA modules
+        #754 - fixed bash completion script (thanks to Romanos Skiadas)
+        #750 - fixed crash when updating bad revision module without
+               yang-version stmt (thanks to Per Andersson)
+```
+
 * 2.5.0 - 2021-06-21
 ```
          moved automated tests from travis ci to github actions
