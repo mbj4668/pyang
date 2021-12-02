@@ -1,3 +1,8 @@
+* 2.5.2 - 2021-12-02
+```
+       #774 - fixed regression in 2.5.1 in ietf plugin
+```
+
 * 2.5.1 - 2021-12-02
 ```
         #770 - ietf plugin: updated IETF Trust Legal Provisions
