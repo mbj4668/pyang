@@ -92,13 +92,14 @@ class IETFPlugin(lint.LintPlugin):
             if m is None:
                 err_add(ctx.errors, s.pos,
                         'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
-            # the statement was changed to "Revised BSD License" in
-            # september 2021.  allow both for old docs; require Revised
-            # for new.
-            y = int(m.group(1))
-            if y >= 2022 and arg.find("Simplified") > 0:
-                err_add(ctx.errors, s.pos,
-                        'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
+            else:
+                # the statement was changed to "Revised BSD License" in
+                # september 2021.  allow both for old docs; require "Revised"
+                # for new.
+                y = int(m.group(1))
+                if y >= 2022 and arg.find("Simplified") > 0:
+                    err_add(ctx.errors, s.pos,
+                            'IETF_MISSING_TRUST_LEGAL_PROVISIONING', ())
             if s.parent.arg.startswith('ietf-'):
                 m = re_ietf_rfc.search(arg)
                 if m is None:
