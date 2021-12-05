@@ -488,10 +488,13 @@ error_codes = \
     'XPATH_PATH_TOO_MANY_UP':
       (2,
        'the path has too many ".."'),
-
-#    'XPATH_FUNCTION_RET_VAL':
-#      (2,
-#       'XPath function "%s" does not return a %s'),
+    'XPATH_FUNCTION_RET_VAL':
+      (2,
+       'XPath function "%s" does not return a %s'),
+    'XPATH_DEREF_TARGET':
+      (4,
+       'XPath deref target "%s" is not an leafref or instance-identifier, '\
+       'will return an empty node-set'),
     'AUGMENT_MANDATORY':
       (1,
        'cannot augment with mandatory node "%s"'),

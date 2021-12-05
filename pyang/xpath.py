@@ -1,5 +1,6 @@
 from . import xpath_lexer
 from . import xpath_parser
+from . import types
 from .error import err_add
 from .util import prefix_to_module, search_data_node, data_node_up
 from .syntax import re_identifier
@@ -190,22 +191,37 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, nexp, nargs))
 
-    # FIXME implement checks from check_function()
-
     # check the arguments - FIXME check type
     i = 0
     args_signature = signature[0][:]
-    for arg in args:
-        chk_xpath_expr(ctx, mod, pos, initial, node, arg, args_signature[i])
-        if args_signature[i] == '*':
-            args_signature.append('*')
-        i = i + 1
-    return signature[1]
+    if func == 'deref':
+        arg = args[0]
+        tgt = chk_xpath_path(ctx, mod, pos, initial, node, arg)
+
+        if tgt is not None:
+            if not hasattr(tgt, 'i_leafref_ptr') or tgt.i_leafref_ptr is None:
+                # not a leafref;
+                type_ = tgt.search_one('type')
+                if (type_ is None or
+                    not isinstance(type_.i_type_spec,
+                                   types.InstanceIdentifierTypeSpec)):
+                    err_add(ctx.errors, pos, 'XPATH_DEREF_TARGET', tgt)
+                tgt = None
+        return (signature[1], tgt)
+    else:
+        for arg in args:
+            chk_xpath_expr(ctx, mod, pos, initial, node, arg, args_signature[i])
+            if args_signature[i] == '*':
+                args_signature.append('*')
+            i = i + 1
+        return (signature[1], None)
 
 def chk_xpath_path(ctx, mod, pos, initial, node, path):
     if len(path) == 0:
-        return
+        return node
     head = path[0]
+    if head == 'relative':
+        return chk_xpath_path(ctx, mod, pos, initial, node, path[1])
     if head[0] == 'var':
         # check if the variable is known as a node-set
         # currently we don't have any variables, so this fails
@@ -213,22 +229,27 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
     elif head[0] == 'function_call':
         func = head[1]
         args = head[2]
-        rettype = chk_xpath_function(ctx, mod, pos, initial, node, func, args)
+        (rettype, tgt) = chk_xpath_function(ctx, mod, pos, initial,
+                                            node, func, args)
         if rettype is not None:
             # known function, check that it returns a node set
             if rettype != 'node-set':
-                err_add(ctx.errors, pos, 'XPATH_NODE_SET_FUNC', func)
+                err_add(ctx.errors, pos, 'XPATH_FUNCTION_RET_VAL',
+                        (func, 'node-set'))
         if func == 'current':
-            chk_xpath_path(ctx, mod, pos, initial, initial, path[1:])
+            return chk_xpath_path(ctx, mod, pos, initial, initial, path[1:])
         elif func == 'deref':
-            return chk_xpath_path(ctx, mod, pos, initial, None, path[1:])
-
+            t = None
+            if tgt is not None:
+                (t, _pos) = tgt.i_leafref_ptr
+            return chk_xpath_path(ctx, mod, pos, initial, t, path[1:])
     elif head[0] == 'step':
         axis = head[1]
         nodetest = head[2]
         preds = head[3]
         node1 = None
         if axis == 'self':
+            node1 = node
             pass
         elif axis == 'child' and nodetest[0] == 'name':
             prefix = nodetest[1]
@@ -285,4 +306,4 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             pass
         for p in preds:
             chk_xpath_expr(ctx, mod, pos, initial, node1, p, None)
-        chk_xpath_path(ctx, mod, pos, initial, node1, path[1:])
+        return chk_xpath_path(ctx, mod, pos, initial, node1, path[1:])

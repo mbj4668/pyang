@@ -1,0 +1,39 @@
+module deref {
+  yang-version 1.1;
+  namespace urn:deref;
+  prefix d;
+  
+  list foo {
+    key "a";
+    leaf a {
+      type string;
+    }
+    container b {
+      leaf c {
+        type string;
+      }
+    }
+  }
+
+  leaf bar {
+    type leafref {
+      path "../foo/a";
+    }
+  }
+
+  leaf b1 {
+    type string;
+    must "deref(../bar)/../c";  // c not found
+  }
+  
+  leaf b2 {
+    type string;
+    must "deref(../bax)/../c";  // bax not found
+  }
+  
+  leaf b3 {
+    type string;
+    must "deref(.)";  // . not leafref
+  }
+}
+

@@ -23,7 +23,7 @@ module c {
         path "/a:gizmos/a:gizmo-name";
       }
 
-      must "deref(../widget-name)/../a:gizmo-attrs/b:b-attribute" {
+      must "deref(.)/../a:gizmo-attrs/b:b-attribute" {
       	error-message "Cannot use a gizmo that has b-attributes";
       }
     }
