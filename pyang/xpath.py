@@ -220,6 +220,9 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 err_add(ctx.errors, pos, 'XPATH_NODE_SET_FUNC', func)
         if func == 'current':
             chk_xpath_path(ctx, mod, pos, initial, initial, path[1:])
+        elif func == 'deref':
+            return chk_xpath_path(ctx, mod, pos, initial, None, path[1:])
+
     elif head[0] == 'step':
         axis = head[1]
         nodetest = head[2]
