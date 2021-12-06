@@ -1835,7 +1835,8 @@ def v_expand_2_augment(ctx, stmt):
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
             if is_expected_keyword(stmt.i_target_node, c) is True:
                 # create an artificial case node for the shorthand
-                new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
+                new_case = create_new_case(ctx, stmt.i_target_node, c,
+                                           expand=False)
                 new_case.parent = stmt.i_target_node
                 v_inherit_properties(ctx, stmt.i_target_node, new_case)
             else:
@@ -2099,7 +2100,8 @@ def v_reference_list(ctx, stmt):
         if (min_value is not None and min_value.arg.isnumeric()
                 and max_value is not None and max_value.arg.isnumeric()):
             if int(min_value.arg) > int(max_value.arg):
-                err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
+                err_add(ctx.errors, min_value.pos,
+                        'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
                 return
 
     v_key()
@@ -2127,7 +2129,8 @@ def v_reference_choice(ctx, stmt):
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword in ('list', 'leaf-list'):
                         m = c.search_one('min-elements')
-                        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
+                        if (m is not None and m.arg.isnumeric() and
+                            int(m.arg) > 0):
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword == 'container':
@@ -2174,7 +2177,8 @@ def v_xpath(ctx, stmt):
         node = stmt.parent.i_target_node
     elif stmt.parent.keyword == 'deviate':
         node = stmt.parent.parent.i_target_node
-    elif getattr(stmt, 'i_origin', None) == 'uses':
+    elif (getattr(stmt, 'i_origin', None) == 'uses' and
+          stmt.parent.keyword != 'choice'):
         node = util.data_node_up(stmt.parent)
     else:
         node = stmt.parent
