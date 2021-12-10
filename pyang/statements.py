@@ -3482,7 +3482,9 @@ def get_primitive_type(stmt, enum_delimiter):
     enums = None
     if type_name == 'enumeration':
         enum_objs = type_obj.search('enum')
-        enums=(enum_delimiter.join('{value}={name}'.format(name=getattr(enum, 'arg',None) ,value=getattr(enum,'i_value')) for enum in enum_objs))
+        enums=(enum_delimiter.join('{value}={name}'.format(name=getattr(enum,
+             'arg',None) ,value=getattr(enum,'i_value')
+            ) for enum in enum_objs))
     typedef_obj = getattr(type_obj, 'i_typedef', None)
     if typedef_obj:
         (type_name, enums) = get_primitive_type(typedef_obj, enum_delimiter)
