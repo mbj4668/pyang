@@ -3480,19 +3480,24 @@ def get_qualified_type(stmt):
             fq_type_name = '%s:%s' % (type_module, type_name)
     return fq_type_name
 
-def get_primitive_type(stmt):
+def get_primitive_type(stmt, enum_delimiter):
     """Recurses through the typedefs and returns
-    the most primitive YANG type defined.
+    the most primitive YANG type defined and if it is an enumeration
+    also returns the enumeration options for it.
     """
     type_obj = stmt.search_one('type')
     type_name = getattr(type_obj, 'arg', None)
+    enums = None
+    if type_name == 'enumeration':
+        enum_objs = type_obj.search('enum')
+        enums=(enum_delimiter.join('{value}={name}'.format(name=getattr(enum, 'arg',None) ,value=getattr(enum,'i_value')) for enum in enum_objs))
     typedef_obj = getattr(type_obj, 'i_typedef', None)
     if typedef_obj:
-        type_name = get_primitive_type(typedef_obj)
+        (type_name, enums) = get_primitive_type(typedef_obj, enum_delimiter)
     elif type_obj and not check_primitive_type(type_obj):
         raise Exception('%s is not a primitive! Incomplete parse tree?' %
                         type_name)
-    return type_name
+    return type_name,enums
 
 def check_primitive_type(stmt):
     """i_type_spec appears to indicate primitive type.
