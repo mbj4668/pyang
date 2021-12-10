@@ -25,7 +25,7 @@ test_filter_keyword:
 	pyang -f flatten ietf-yang-types.yang ietf-interfaces.yang --flatten-keyword --flatten-filter-keyword leaf | diff benchmarks/ietf-interfaces.leaf.csv -
 
 test_filter_primitive:
-	pyang -f flatten ietf-yang-types.yang ietf-interfaces.yang --flatten-primitive --flatten-filter-primitive uint64 | diff benchmarks/ietf-interfaces.uint64.csv -
+	pyang -f flatten ietf-yang-types.yang ietf-interfaces.yang --flatten-primitive-type --flatten-filter-primitive uint64 | diff benchmarks/ietf-interfaces.uint64.csv -
 
 test_filter_flag:
 	pyang -f flatten ietf-yang-types.yang ietf-interfaces.yang --flatten-flag --flatten-filter-flag rw | diff benchmarks/ietf-interfaces.rw.csv -
