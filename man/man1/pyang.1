@@ -1410,6 +1410,16 @@ Output the top\-level type\&. This will resolve to a module\-prefixed type\&.
 Output the primitive type\&. This resolves to a YANG type such as uint64\&.
 .RE
 .PP
+\fB\-\-flatten\-primitive\-enums\fR
+.RS 4
+Output containing the enumeration options for the primitive type with their corresponding ordering values\&.
+.RE
+.PP
+\fB\-\-flatten\-enums\-delimiter\fR \fIdelimiter\fR
+.RS 4
+When using --flatten-primitive-enums the character provided here will be used to separate the individual enum entries\&.
+.RE
+.PP
 \fB\-\-flatten\-flag\fR
 .RS 4
 Output flag property\&. Derives a flag \- for instance rw/ro for config, or x for RPC\&.
