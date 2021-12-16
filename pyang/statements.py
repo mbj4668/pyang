@@ -3480,26 +3480,75 @@ def get_qualified_type(stmt):
             fq_type_name = '%s:%s' % (type_module, type_name)
     return fq_type_name
 
-def get_primitive_type(stmt, enum_delimiter):
+def get_primitive_type(type_obj, field_values_delimiter):
     """Recurses through the typedefs and returns
     the most primitive YANG type defined and if it is an enumeration
     also returns the enumeration options for it.
     """
-    type_obj = stmt.search_one('type')
     type_name = getattr(type_obj, 'arg', None)
-    enums = None
+    enums = ''
+    union_types = ''
+    union_resolved_leafref = ''
     if type_name == 'enumeration':
         enum_objs = type_obj.search('enum')
-        enums=(enum_delimiter.join('{value}={name}'.format(name=getattr(enum,
+        enums=(field_values_delimiter.join('{value}={name}'.format(name=getattr(enum,
              'arg',None) ,value=getattr(enum,'i_value')
             ) for enum in enum_objs))
+    elif type_name == 'union':
+        (union_types,enums, union_resolved_leafref)=get_union_types(type_obj, field_values_delimiter)
     typedef_obj = getattr(type_obj, 'i_typedef', None)
     if typedef_obj:
-        (type_name, enums) = get_primitive_type(typedef_obj, enum_delimiter)
+        (type_name, enums, union_types, union_resolved_leafref) = get_primitive_type(
+            typedef_obj.search_one('type'), field_values_delimiter)
     elif type_obj and not check_primitive_type(type_obj):
         raise Exception('%s is not a primitive! Incomplete parse tree?' %
                         type_name)
-    return type_name,enums
+    return type_name,enums, union_types, union_resolved_leafref
+
+def get_union_types(type_obj, field_values_delimiter):
+    union_objs=type_obj.search('type')
+    union_types=''
+    enums=''
+    union_resolved_leafref = ''
+    for union_subtype_obj in union_objs:
+        union_subtype=getattr(union_subtype_obj, 'arg', None)
+        if union_subtype == 'leafref':
+            path_obj = union_subtype_obj.search_one('path')
+            union_resolved_leafref = getattr(path_obj, 'arg', None)
+        typedef_obj = getattr(union_subtype_obj, 'i_typedef', None)
+        if typedef_obj:
+            (union_subtype, enums, child_union_subtypes, 
+             union_resolved_leafref) = get_primitive_type(union_subtype_obj,
+                                                        field_values_delimiter)
+            union_types='{union_types}{delim}{union_subtype}'.format(
+                union_types=union_types,delim=field_values_delimiter,
+                union_subtype=union_subtype)
+        else:
+            if union_subtype == 'union':
+                (inner_union_types, inner_union_enums, 
+                 union_resolved_leafref) = get_union_types(union_subtype_obj, 
+                                                field_values_delimiter)
+                union_types='{union_types}{delim}{union_subtype}'.format(
+                    union_types=union_types,delim=field_values_delimiter, 
+                    union_subtype=inner_union_types)
+                enums='{enums}{delim}{inner_union_enums}'.format(enums=enums, 
+                    delim=field_values_delimiter, 
+                    inner_union_enums=inner_union_enums)
+                if enums[0] == field_values_delimiter:
+                    enums=enums[1:]                
+            else:
+                union_types='{union_types}{delim}{union_subtype}'.format(
+                    union_types=union_types, delim=field_values_delimiter,
+                    union_subtype=union_subtype)
+            if (union_subtype == 'enumeration'):
+                enum_objs = union_subtype_obj.search('enum')
+                enums=(field_values_delimiter.join('{value}={name}'.format(
+                    name=getattr(enum,'arg',None) ,
+                    value=getattr(enum,'i_value')
+                    ) for enum in enum_objs))
+    if union_types[0] == field_values_delimiter:
+        union_types=union_types[1:]
+    return union_types, enums, union_resolved_leafref
 
 def check_primitive_type(stmt):
     """i_type_spec appears to indicate primitive type.
