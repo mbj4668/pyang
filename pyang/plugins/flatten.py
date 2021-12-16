@@ -119,12 +119,20 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "the primitive type with their corresponding ordering values.",
             ),
             optparse.make_option(
-                "--flatten-enums-delimiter",
-                dest="flatten_enums_delimiter",
+                "--flatten-field-values-delimiter",
+                dest="flatten_field_values_delimiter",
                 default="|",
-                help="When using --flatten-primitive-enums the character " +
-                "provided here will be used to separate the individual " +
-                "enum entries",
+                help="When using --flatten-primitive-enums or " +
+                "--flatten-union-subtypes the character provided here " +
+                "will be used to separate the individual values within the "+
+                "field",
+            ),
+            optparse.make_option(
+                "--flatten-union-subtypes",
+                dest="flatten_union_subtypes",
+                action="store_true",
+                help="Adds field containing data types for union types "
+                "separated by --flatten-field-values-delimiter",
             ),
             optparse.make_option(
                 "--flatten-flag",
@@ -239,6 +247,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("primitive_type")
         if ctx.opts.flatten_primitive_enums:
             self.__field_names.append("primitive_enums")            
+        if ctx.opts.flatten_union_subtypes:
+            self.__field_names.append("union_subtypes")
         if ctx.opts.flatten_flag:
             self.__field_names.append("flag")
         if ctx.opts.flatten_type:
@@ -340,12 +350,16 @@ class FlattenPlugin(plugin.PyangPlugin):
         # When the primitive type is an enumeration returns both type and 
         # enumeration options. Else the options are None
         try:
-            (primitive_type, primitive_enums) = statements.get_primitive_type(
-                child, ctx.opts.flatten_enums_delimiter) or ("nil","nil")
+            (primitive_type, primitive_enums, union_subtypes, 
+             union_resolved_leafref) = statements.get_primitive_type(
+                child.search_one('type'), 
+                ctx.opts.flatten_field_values_delimiter) or ("nil","nil",
+                                                             "nil","nil")
         except Exception as e:
             if ctx.opts.ignore_no_primitive:
                 primitive_type = "nil"
                 primitive_enums = "nil"
+                union_subtypes = "nil"
             else:
                 raise e
         # To handle inputs and outputs we're going to have an override flag.
@@ -367,6 +381,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["primitive_type"] = primitive_type
         if ctx.opts.flatten_primitive_enums:
             output_content["primitive_enums"] = primitive_enums
+        if ctx.opts.flatten_union_subtypes:
+            output_content["union_subtypes"] = union_subtypes
         if ctx.opts.flatten_flag:
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
@@ -401,7 +417,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                     with_keys=ctx.opts.flatten_keys_in_xpath,
                 )
             else:
-                output_content["resolved_leafref"] = None
+                output_content["resolved_leafref"] = union_resolved_leafref
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
