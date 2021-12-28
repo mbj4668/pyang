@@ -13,6 +13,16 @@ Arguments
     Output the top-level type. This will resolve to a module-prefixed type.
 --flatten-primitive-type
     Output the primitive type. This resolves to a YANG type such as uint64.
+--flatten-enumerations
+    Output containing the enumeration options for the type with their 
+    corresponding ordering values
+--flatten-field-values-delimiter
+    When using --flatten-enumerations or --flatten-union-subtypes the 
+    character provided here will be used to separate the individual values
+    within the field
+--flatten-expand-union-types
+    Shows the types and primitive types inside unions instead of 'union'. 
+    Individual types are separated by --flatten-field-values-delimiter
 --flatten-flag
     Output flag indicator. Based on data type/properties, outputs associated
     flag.
@@ -112,11 +122,18 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the primitive type.",
             ),
             optparse.make_option(
-                "--flatten-primitive-enums",
-                dest="flatten_primitive_enums",
+                "--flatten-use-as-primitive",
+                dest="flatten_use_as_primitive",
+                default="",
+                help="Types defined under this prefix will be considered"+
+                " primitive",
+            ),
+            optparse.make_option(
+                "--flatten-enumerations",
+                dest="flatten_enumerations",
                 action="store_true",
                 help="Output containing the enumeration options for "+
-                "the primitive type with their corresponding ordering values.",
+                "the type with their corresponding ordering values.",
             ),
             optparse.make_option(
                 "--flatten-field-values-delimiter",
@@ -128,11 +145,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "field",
             ),
             optparse.make_option(
-                "--flatten-union-subtypes",
-                dest="flatten_union_subtypes",
+                "--flatten-expand-union-types",
+                dest="flatten_expand_union",
                 action="store_true",
-                help="Adds field containing data types for union types "
-                "separated by --flatten-field-values-delimiter",
+                help="Shows the types and primitive types inside unions instead"
+                " of 'union'. Individual types are separated by"
+                " --flatten-field-values-delimiter",
             ),
             optparse.make_option(
                 "--flatten-flag",
@@ -245,10 +263,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("keyword")
         if ctx.opts.flatten_primitive_type:
             self.__field_names.append("primitive_type")
-        if ctx.opts.flatten_primitive_enums:
-            self.__field_names.append("primitive_enums")            
-        if ctx.opts.flatten_union_subtypes:
-            self.__field_names.append("union_subtypes")
+        if ctx.opts.flatten_enumerations:
+            self.__field_names.append("enumerations")
         if ctx.opts.flatten_flag:
             self.__field_names.append("flag")
         if ctx.opts.flatten_type:
@@ -345,21 +361,35 @@ class FlattenPlugin(plugin.PyangPlugin):
                 with_keys=ctx.opts.flatten_keys_in_xpath,
             )
         }
+        delim = ctx.opts.flatten_field_values_delimiter
+        expand_unions = ctx.opts.flatten_expand_union
+        enum_list = []
+        leafref_list = []
         # Sometimes we won't have the full set of YANG models...
         # Handle whether to error out or just set as "nil" for primitive type
         # When the primitive type is an enumeration returns both type and 
         # enumeration options. Else the options are None
         try:
-            (primitive_type, primitive_enums, union_subtypes, 
-             union_resolved_leafref) = statements.get_primitive_type(
-                child.search_one('type'), 
-                ctx.opts.flatten_field_values_delimiter) or ("nil","nil",
-                                                             "nil","nil")
+            primitive_type_obj = statements.get_primitive_type(
+                child.search_one("type"), ctx.opts.flatten_use_as_primitive
+                ) or None
+            primitive_type = getattr(primitive_type_obj, 'arg', None)
+            # flatten_use_as_primitive prevents the resolution of enumeration
+            # values under the types for those prefixes. May need to make an
+            # extra call to get_primitive_type to get them or return the real
+            # primitive type as well.
+            
+            statements.get_enum_values(primitive_type_obj,enum_list)
+            if expand_unions and primitive_type == 'union':
+                primitive_types = []
+                statements.get_union_types(primitive_type_obj,enum_list, 
+                            leafref_list, delim, primitive_types, True,
+                            ctx.opts.flatten_use_as_primitive)
+                primitive_types.sort()
+                primitive_type = delim.join(primitive_types)
         except Exception as e:
             if ctx.opts.ignore_no_primitive:
-                primitive_type = "nil"
-                primitive_enums = "nil"
-                union_subtypes = "nil"
+                primitive_type = ''
             else:
                 raise e
         # To handle inputs and outputs we're going to have an override flag.
@@ -374,15 +404,19 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_keyword:
             output_content["keyword"] = child.keyword
         if ctx.opts.flatten_type:
-            output_content["type"] = (
-                statements.get_qualified_type(child) or ''
-            )
+            output_content["type"] = (statements.get_qualified_type(child.search_one('type')) 
+                                      or '')
+            if ( output_content["type"] == 'union' and 
+                    ctx.opts.flatten_expand_union):
+                union_types = []
+                statements.get_union_types(child.search_one('type'), [], [], delim, 
+                                union_types, False, ctx.opts.flatten_use_as_primitive)
+                union_types.sort()
+                output_content["type"] = delim.join(union_types)
         if ctx.opts.flatten_primitive_type:
             output_content["primitive_type"] = primitive_type
-        if ctx.opts.flatten_primitive_enums:
-            output_content["primitive_enums"] = primitive_enums
-        if ctx.opts.flatten_union_subtypes:
-            output_content["union_subtypes"] = union_subtypes
+        if ctx.opts.flatten_enumerations:
+            output_content["enumerations"] =  delim.join(enum_list) 
         if ctx.opts.flatten_flag:
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
@@ -410,6 +444,7 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["status"] = status
         if ctx.opts.flatten_resolve_leafref:
             if primitive_type == "leafref":
+                
                 output_content["resolved_leafref"] = statements.get_xpath(
                     child.i_leafref.i_target_node,
                     prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
@@ -417,7 +452,9 @@ class FlattenPlugin(plugin.PyangPlugin):
                     with_keys=ctx.opts.flatten_keys_in_xpath,
                 )
             else:
-                output_content["resolved_leafref"] = union_resolved_leafref
+# TODO handle all the settings above for this case. The problem with unions not having an i_target_node needs to be fixed first
+
+                output_content["resolved_leafref"] = delim.join(leafref_list)
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments

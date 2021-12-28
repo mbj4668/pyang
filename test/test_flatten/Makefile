@@ -50,4 +50,4 @@ test_resolve_leafref:
 test_enumeration:
 	pyang -f flatten --flatten-primitive-enums --flatten-enums-delimiter=';' ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.enumeration.csv -
 test_unions:
-	pyang -f flatten union-test-bed.yang --flatten-filter-keyword=leaf --flatten-type --flatten-primitive-type --flatten-primitive-enums --flatten-field-values-delimiter='|' --flatten-resolve-leafref --flatten-union-subtypes --flatten-prefix-in-xpath | diff benchmarks/union-test-bed.csv -
+	pyang -f flatten union-test-bed.yang --flatten-filter-keyword=leaf --flatten-type --flatten-primitive-type --flatten-expand-union-types --flatten-enumerations --flatten-field-values-delimiter='|' --flatten-resolve-leafref --flatten-prefix-in-xpath | diff benchmarks/union-test-bed.csv -
