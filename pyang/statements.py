@@ -3459,12 +3459,11 @@ def get_keys(stmt):
         key_names = keys.split()
     return key_names
 
-def get_qualified_type(stmt):
+def get_qualified_type(type_obj):
     """Gets the qualified, top-level type of the node.
     This enters the typedef if defined instead of using the prefix
     to ensure absolute distinction.
     """
-    type_obj = stmt.search_one('type')
     fq_type_name = None
     if type_obj:
         if getattr(type_obj, 'i_typedef', None):
@@ -3480,75 +3479,71 @@ def get_qualified_type(stmt):
             fq_type_name = '%s:%s' % (type_module, type_name)
     return fq_type_name
 
-def get_primitive_type(type_obj, field_values_delimiter):
+def get_primitive_type(type_obj, primitive_prefixes):
     """Recurses through the typedefs and returns
-    the most primitive YANG type defined and if it is an enumeration
-    also returns the enumeration options for it.
+    the most primitive YANG type defined.
+    Types defined under module prefixes included in 
+    primitive_prefixes argument will be used as primitive types.
     """
-    type_name = getattr(type_obj, 'arg', None)
-    enums = ''
-    union_types = ''
-    union_resolved_leafref = ''
-    if type_name == 'enumeration':
-        enum_objs = type_obj.search('enum')
-        enums=(field_values_delimiter.join('{value}={name}'.format(name=getattr(enum,
-             'arg',None) ,value=getattr(enum,'i_value')
-            ) for enum in enum_objs))
-    elif type_name == 'union':
-        (union_types,enums, union_resolved_leafref)=get_union_types(type_obj, field_values_delimiter)
     typedef_obj = getattr(type_obj, 'i_typedef', None)
-    if typedef_obj:
-        (type_name, enums, union_types, union_resolved_leafref) = get_primitive_type(
-            typedef_obj.search_one('type'), field_values_delimiter)
+    if typedef_obj and not typedef_obj.i_orig_module.i_prefix in primitive_prefixes:
+        type_obj = get_primitive_type(typedef_obj.search_one('type'),
+                                      primitive_prefixes)
     elif type_obj and not check_primitive_type(type_obj):
         raise Exception('%s is not a primitive! Incomplete parse tree?' %
-                        type_name)
-    return type_name,enums, union_types, union_resolved_leafref
+                        type_obj.arg)
+    return type_obj
 
-def get_union_types(type_obj, field_values_delimiter):
+def get_enum_values(type_obj, enum_list):
+    type_obj = get_primitive_type(type_obj, "")
+    primitive_type = getattr(type_obj, 'arg', '')
+    if primitive_type == 'enumeration':
+        enum_objs = type_obj.search('enum')
+        for enum in enum_objs:
+            enum_entry = '{value}={name}'.format(
+              name=getattr(enum,'arg',None),value=getattr(enum,'i_value'))
+            enum_list.append(enum_entry)
+
+def get_union_types(type_obj, enum_list, union_resolved_leafref, delim, 
+                    union_types, find_primitive, primitive_prefixes):
     union_objs=type_obj.search('type')
-    union_types=''
-    enums=''
-    union_resolved_leafref = ''
     for union_subtype_obj in union_objs:
-        union_subtype=getattr(union_subtype_obj, 'arg', None)
+        get_union_subtype(union_subtype_obj, enum_list, union_resolved_leafref, 
+                           delim, union_types, find_primitive, primitive_prefixes)
+
+def get_union_subtype(union_subtype_obj, enum_list, union_resolved_leafref, delim,
+                      union_types, find_primitive, primitive_prefixes):
+    union_subtype = get_qualified_type(union_subtype_obj)
+    if union_subtype == 'union':
+        get_union_types(union_subtype_obj, enum_list, union_resolved_leafref, 
+                        delim, union_types, find_primitive, primitive_prefixes)
+    else:
         if union_subtype == 'leafref':
+# TODO This should access the leaf <union_node>.i_leafref.i_target_node
+# but this value is not getting set when the leafref is in a union
+# union_resolved_leafref = get_xpath(
+#         union_subtype_obj.parent.parent.i_leafref.i_target_node,
+#         prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+#         qualified=ctx.opts.flatten_qualified_in_xpath,
+#         with_keys=ctx.opts.flatten_keys_in_xpath,
+#     )
+# This alternative access to the path does not respond to the
+# flatten_prefix_in_path, flatten_qualified_in_xpath or flatten_keys_in_xpath
+# settings but at least it returns a path.
             path_obj = union_subtype_obj.search_one('path')
-            union_resolved_leafref = getattr(path_obj, 'arg', None)
+            res_path = getattr(path_obj, 'arg', None)
+            union_resolved_leafref.append(res_path)
         typedef_obj = getattr(union_subtype_obj, 'i_typedef', None)
         if typedef_obj:
-            (union_subtype, enums, child_union_subtypes, 
-             union_resolved_leafref) = get_primitive_type(union_subtype_obj,
-                                                        field_values_delimiter)
-            union_types='{union_types}{delim}{union_subtype}'.format(
-                union_types=union_types,delim=field_values_delimiter,
-                union_subtype=union_subtype)
+            union_subtype_obj = (get_primitive_type(union_subtype_obj,
+                                                    primitive_prefixes) 
+                                 if find_primitive else union_subtype_obj)
+            union_subtype = get_qualified_type(union_subtype_obj)
+            union_types.append(union_subtype)
         else:
-            if union_subtype == 'union':
-                (inner_union_types, inner_union_enums, 
-                 union_resolved_leafref) = get_union_types(union_subtype_obj, 
-                                                field_values_delimiter)
-                union_types='{union_types}{delim}{union_subtype}'.format(
-                    union_types=union_types,delim=field_values_delimiter, 
-                    union_subtype=inner_union_types)
-                enums='{enums}{delim}{inner_union_enums}'.format(enums=enums, 
-                    delim=field_values_delimiter, 
-                    inner_union_enums=inner_union_enums)
-                if enums[0] == field_values_delimiter:
-                    enums=enums[1:]                
-            else:
-                union_types='{union_types}{delim}{union_subtype}'.format(
-                    union_types=union_types, delim=field_values_delimiter,
-                    union_subtype=union_subtype)
-            if (union_subtype == 'enumeration'):
-                enum_objs = union_subtype_obj.search('enum')
-                enums=(field_values_delimiter.join('{value}={name}'.format(
-                    name=getattr(enum,'arg',None) ,
-                    value=getattr(enum,'i_value')
-                    ) for enum in enum_objs))
-    if union_types[0] == field_values_delimiter:
-        union_types=union_types[1:]
-    return union_types, enums, union_resolved_leafref
+            union_types.append(union_subtype)
+        get_enum_values(union_subtype_obj, enum_list)
+
 
 def check_primitive_type(stmt):
     """i_type_spec appears to indicate primitive type.
