@@ -13,11 +13,14 @@ Arguments
     Output the top-level type. This will resolve to a module-prefixed type.
 --flatten-primitive-type
     Output the primitive type. This resolves to a YANG type such as uint64.
+--flatten-use-as-primitive
+    Defines prefixes and specific types which will be used as primitive types. 
+    Multiple may be used by adding this option multiple times.
 --flatten-enumerations
     Output containing the enumeration options for the type with their 
     corresponding ordering values
 --flatten-field-values-delimiter
-    When using --flatten-enumerations or --flatten-union-subtypes the 
+    When using --flatten-enumerations or --flatten-expand-union-types the 
     character provided here will be used to separate the individual values
     within the field
 --flatten-expand-union-types
@@ -124,9 +127,11 @@ class FlattenPlugin(plugin.PyangPlugin):
             optparse.make_option(
                 "--flatten-use-as-primitive",
                 dest="flatten_use_as_primitive",
-                default="",
-                help="Types defined under this prefix will be considered"+
-                " primitive",
+                action="append",
+                default=[],
+                help="Defines prefixes and specific types which will be used "+
+                     "as primitive types. Multiple may be used by adding this "+
+                     "option multiple times.",
             ),
             optparse.make_option(
                 "--flatten-enumerations",
@@ -140,7 +145,7 @@ class FlattenPlugin(plugin.PyangPlugin):
                 dest="flatten_field_values_delimiter",
                 default="|",
                 help="When using --flatten-primitive-enums or " +
-                "--flatten-union-subtypes the character provided here " +
+                "--flatten-expand-union-types the character provided here " +
                 "will be used to separate the individual values within the "+
                 "field",
             ),
@@ -181,6 +186,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 dest="flatten_prefix_in_xpath",
                 action="store_true",
                 help="Output the XPath with prefixes instead of modules.",
+            ),
+            optparse.make_option(
+                "--flatten-prefix-in-types",
+                dest="flatten_prefix_in_types",
+                action="store_true",
+                help="When the output is a qualified type use prefix to qualify",
             ),
             optparse.make_option(
                 "--flatten-qualified-in-xpath",
@@ -371,9 +382,10 @@ class FlattenPlugin(plugin.PyangPlugin):
         # enumeration options. Else the options are None
         try:
             primitive_type_obj = statements.get_primitive_type(
-                child.search_one("type"), ctx.opts.flatten_use_as_primitive
-                ) or None
-            primitive_type = getattr(primitive_type_obj, 'arg', None)
+                child.search_one("type"), ctx.opts.flatten_use_as_primitive,
+                ctx.opts.flatten_prefix_in_types ) or None
+            primitive_type = statements.get_qualified_type(primitive_type_obj,
+                                ctx.opts.flatten_prefix_in_types)
             # flatten_use_as_primitive prevents the resolution of enumeration
             # values under the types for those prefixes. May need to make an
             # extra call to get_primitive_type to get them or return the real
@@ -384,7 +396,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 primitive_types = []
                 statements.get_union_types(primitive_type_obj,enum_list, 
                             leafref_list, delim, primitive_types, True,
-                            ctx.opts.flatten_use_as_primitive)
+                            ctx.opts.flatten_use_as_primitive,
+                            ctx.opts.flatten_prefix_in_types )
                 primitive_types.sort()
                 primitive_type = delim.join(primitive_types)
         except Exception as e:
@@ -404,13 +417,14 @@ class FlattenPlugin(plugin.PyangPlugin):
         if ctx.opts.flatten_keyword:
             output_content["keyword"] = child.keyword
         if ctx.opts.flatten_type:
-            output_content["type"] = (statements.get_qualified_type(child.search_one('type')) 
-                                      or '')
+            output_content["type"] = statements.get_qualified_type(child.search_one('type'),
+                            ctx.opts.flatten_prefix_in_types)  or ''
             if ( output_content["type"] == 'union' and 
                     ctx.opts.flatten_expand_union):
                 union_types = []
                 statements.get_union_types(child.search_one('type'), [], [], delim, 
-                                union_types, False, ctx.opts.flatten_use_as_primitive)
+                                union_types, False, ctx.opts.flatten_use_as_primitive,
+                                ctx.opts.flatten_prefix_in_types )
                 union_types.sort()
                 output_content["type"] = delim.join(union_types)
         if ctx.opts.flatten_primitive_type:
