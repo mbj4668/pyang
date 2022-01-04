@@ -462,6 +462,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         if etag in o.ignore_error_tags:
             continue
         if (ctx.implicit_errors is False and
+            epos.top is not None and
             epos.top.arg not in modulenames and
             (not hasattr(epos.top, 'i_modulename') or
              epos.top.i_modulename not in modulenames) and
