@@ -3149,6 +3149,8 @@ class ModSubmodStatement(Statement):
                     for d in deletes:
                         idx = n.i_children.index(d)
                         del n.i_children[idx]
+            for a in n.search('augment'):
+                p(a)
         p(self)
 
 class AugmentStatement(Statement):
