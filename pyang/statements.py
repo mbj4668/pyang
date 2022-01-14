@@ -1304,7 +1304,13 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 chk_status(ctx, stmt.parent, found)
                 v_type_feature(ctx, found)
                 if pmodule.i_modulename in ctx.features:
-                    if name not in ctx.features[pmodule.i_modulename]:
+                    ctxfs = ctx.features[pmodule.i_modulename]
+                    # excluded feature names have '!' prefixes (there won't be
+                    # a mixture of excluded and included features, but don't
+                    # assume this here)
+                    inc = [ctxf for ctxf in ctxfs if not ctxf.startswith('!')]
+                    exc = [ctxf[1:] for ctxf in ctxfs if ctxf.startswith('!')]
+                    if (not exc and name not in inc) or (name in exc):
                         return False
 
         if found is None and no_error_report is False:

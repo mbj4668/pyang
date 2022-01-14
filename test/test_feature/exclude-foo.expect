@@ -1,0 +1,4 @@
+# module feature: features ['has-leaf-goo']
+module: feature
+  +--rw root
+     +--rw goo?   string {has-leaf-goo}?
