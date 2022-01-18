@@ -89,18 +89,19 @@ def emit_depend(ctx, modules, fd):
         fd.write('\n')
 
 def add_prereqs(ctx, module, prereqs):
-    new = [i.arg for i in module.search("import") if i.arg not in prereqs]
+    new = [(i.arg, i.search_one("revision-date")) for i in module.search("import") if i.arg not in prereqs]
     if not ctx.opts.depend_no_submodules:
-        new += [i.arg for i in module.search("include")
+        new += [(i.arg, i.search_one("revision-date")) for i in module.search("include")
                 if i.arg not in prereqs and i.arg not in new]
     if ctx.opts.depend_from_submodules:
         for i in module.search("include"):
             subm = ctx.get_module(i.arg)
             if subm is not None:
-                new += [i.arg for i in subm.search("import")
+                new += [(i.arg, i.search_one("revision-date")) for i in subm.search("import")
                         if i.arg not in prereqs and i.arg not in new]
-    prereqs.extend(new)
+    prereqs.extend(i[0] for i in new)
     if ctx.opts.depend_recurse:
-        for i in new:
-            m = ctx.get_module(i)
+        for modulename, revision_date in new:
+            revision = revision_date.arg if revision_date is not None else None
+            m = ctx.get_module(modulename, revision)
             add_prereqs(ctx, m, prereqs)
