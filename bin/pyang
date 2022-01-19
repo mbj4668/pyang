@@ -140,13 +140,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="append",
                              help="Features to support, default all. " \
                              "<modname>:[<feature>,]*"),
-        optparse.make_option("--exclude-features",
+        optparse.make_option("-X", "--exclude-features",
                              metavar="EXCLUDE_FEATURES",
                              dest="exclude_features",
                              default=[],
                              action="append",
                              help="Features not to support, default none. " \
-                                  "<modname>:[<feature>,]+"),
+                                  "<modname>:[<feature>,]*"),
         optparse.make_option("", "--max-status",
                              metavar="MAXSTATUS",
                              dest="max_status",
@@ -264,10 +264,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.max_status = o.max_status
 
     # make a map of features to support, per module
-    if o.features and o.exclude_features:
-        sys.stderr.write("can't specify both --features and "
-                         "--exclude-features\n")
-        sys.exit(1)
     if o.hello:
         for mn, rev in hel.yang_modules():
             ctx.features[mn] = hel.get_features(mn)
@@ -276,10 +272,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         ctx.features[modulename] = features
     for f in ctx.opts.exclude_features:
         (modulename, features) = parse_features_string(f)
-        # unlike --features, --exclude-features only does anything if
-        # individual features are listed explicitly
-        if features:
-            ctx.features[modulename] = ['!' + f for f in features]
+        if modulename in ctx.features:
+            sys.stderr.write("module %s can't have both --hello / --features "
+                             "and --exclude-features\n" % modulename)
+            sys.exit(1)
+        ctx.exclude_features[modulename] = features
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
@@ -435,28 +432,29 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     ctx_validate_and_prune()
 
-    # verify the given features
+    # verify the given features (also update ctx.features and ctx.exclude_
+    # features to be actual included / excluded features)
     for m in modules:
         if m.arg in ctx.features:
-            if not o.exclude_features:
-                for f in ctx.features[m.arg]:
-                    if f not in m.i_features:
-                        sys.stderr.write("unknown feature %s in module %s\n" %
-                                         (f, m.arg))
-                        sys.exit(1)
-            # if --exclude-features, preserve the plugin interface by creating
-            # a list of all the non-excluded features
-            else:
-                new_ctxfs = list(m.i_features.keys())
-                for f in ctx.features[m.arg]:
-                    assert f.startswith('!')
-                    f = f[1:]
-                    if f not in new_ctxfs:
-                        sys.stderr.write("unknown feature %s in module %s\n" %
-                                         (f, m.arg))
-                        sys.exit(1)
-                    new_ctxfs.remove(f)
-                ctx.features[m.arg] = new_ctxfs
+            if m.arg not in ctx.exclude_features:
+                ctx.exclude_features[m.arg] = list(m.i_features.keys())
+            for f in ctx.features[m.arg]:
+                if f not in m.i_features:
+                    sys.stderr.write("unknown feature %s in module %s\n" %
+                                     (f, m.arg))
+                    sys.exit(1)
+                if f in ctx.exclude_features[m.arg]:
+                    ctx.exclude_features[m.arg].remove(f)
+        if m.arg in ctx.exclude_features:
+            if m.arg not in ctx.features:
+                ctx.features[m.arg] = list(m.i_features.keys())
+            for f in ctx.exclude_features[m.arg]:
+                if f not in m.i_features:
+                    sys.stderr.write("unknown feature %s in module %s\n" %
+                                     (f, m.arg))
+                    sys.exit(1)
+                if f in ctx.features[m.arg]:
+                    ctx.features[m.arg].remove(f)
 
     # transform modules
     if len(xform_objs) > 0 and len(modules) > 0:

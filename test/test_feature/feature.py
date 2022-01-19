@@ -11,5 +11,6 @@ class FeaturePlugin(plugin.PyangPlugin):
 
     def transform(self, ctx, modules):
         for module in modules:
-            print('# %s: features %s' % (module, ctx.features.get(
-                    module.arg, None)))
+            print('# %s: features %s exclude_features %s' %
+                  (module, ctx.features.get(module.arg, None),
+                   ctx.exclude_features.get(module.arg, None)))
