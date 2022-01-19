@@ -308,7 +308,7 @@ Write the output to the file
 instead of stdout\&.
 .RE
 .PP
-\fB\-\-features\fR \fIfeatures\fR
+\fB\-F\fR \fB\-\-features\fR \fIfeatures\fR
 .RS 4
 \fIfeatures\fR
 is a string of the form
@@ -317,12 +317,10 @@ is a string of the form
 This option is used to prune the data model by removing all nodes that are defined with a "if\-feature" that is not listed as
 \fIfeature\fR\&. This option affects all output formats\&.
 .sp
-This option can be given multiple times, and may be also combined with
-\fB\-\-hello\fR\&. If a
+This option can be given multiple times, and may also be combined with
+\fB\-\-hello\fR\&. The
 \fB\-\-features\fR
-option specifies different supported features for a module than the hello file, the
-\fB\-\-features\fR
-option takes precedence\&.
+option overrides any supported features for a module that are taken from the hello file\&.
 .sp
 If this option is not given, nothing is pruned, i\&.e\&., it works as if all features were explicitly listed\&.
 .sp
@@ -332,7 +330,7 @@ option can be used for excluding a list of named features\&.
 \fB\-\-features\fR
 and
 \fB\-\-exclude\-features\fR
-can\*(Aqt both be specified\&.
+can\*(Aqt both be specified for a given module\&.
 .sp
 For example, to view the tree output for a module with all if\-feature\*(Aqd nodes removed, do:
 .sp
@@ -347,7 +345,7 @@ $ pyang \-f tree \-\-features mymod: mymod\&.yang
 .\}
 .RE
 .PP
-\fB\-\-exclude\-features\fR \fIfeatures\fR
+\fB\-X\fR \fB\-\-exclude\-features\fR \fIfeatures\fR
 .RS 4
 \fIfeatures\fR
 is a string of the form
@@ -356,20 +354,16 @@ is a string of the form
 This option is used to prune the data model by removing all nodes that are defined with a "if\-feature" that is listed as
 \fIfeature\fR\&. This option affects all output formats\&.
 .sp
-This option can be given multiple times, and may be also combined with
-\fB\-\-hello\fR\&. If an
-\fB\-\-exclude\-features\fR
-option specifies different supported features for a module than the hello file, the
-\fB\-\-exclude\-features\fR
-option takes precedence\&.
+This option can be given multiple times\&. It can\*(Aqt be combined with
+\fB\-\-hello\fR\&.
 .sp
 The
 \fB\-\-features\fR
 option can be used for including all features or a list of named features\&.
-\fB\-\-exclude\-features\fR
-and
 \fB\-\-features\fR
-can\*(Aqt both be specified\&.
+and
+\fB\-\-exclude\-features\fR
+can\*(Aqt both be specified for a given module\&.
 .sp
 For example, to view the tree output for a module with if\-feature\*(Aqd nodes for the specified feature removed, do:
 .sp
