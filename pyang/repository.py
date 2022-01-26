@@ -47,6 +47,7 @@ class FileRepository(Repository):
         self.no_path_recurse = no_path_recurse
         self.modules = None
         self.verbose = verbose
+        search_paths = [sys.prefix, '/usr/', '/usr/local']
 
         for directory in path.split(os.pathsep):
             self._add_directory(directory)
@@ -61,6 +62,7 @@ class FileRepository(Repository):
             home = os.getenv('HOME')
             if home is not None:
                 self._add_directory(os.path.join(home, 'yang', 'modules'))
+                search_paths.append(home + '/.local/')
 
             inst = os.getenv('YANG_INSTALL')
             if inst is not None:
@@ -73,29 +75,12 @@ class FileRepository(Repository):
                 self._add_directory(default_install)
                 break  # end search if default location exists
 
-            # for some systems, sys.prefix returns `/usr`
-            # but the real location is `/usr/local`
-            # if the package is installed with pip
-            # this information can be easily retrieved
-            import pkgutil
-            if not pkgutil.find_loader('pip'):
-                break  # abort search if pip is not installed
-
-            # hack below to handle pip 10 internals
-            # if someone knows pip and how to fix this, it would be great!
-            location = None
-            try:
-                import pip.locations as locations
-                location = locations.distutils_scheme('pyang')
-            except:
-                try:
-                    import pip._internal.locations as locations
-                    location = locations.distutils_scheme('pyang')
-                except:
-                    pass
-            if location is not None:
-                self._add_directory(
-                    os.path.join(location['data'], 'share', 'yang', 'modules'))
+            # try checking various install locations
+            for _path in set(search_paths):
+                default_install = os.path.join(_path, 'share', 'yang', 'modules')
+                if os.path.exists(default_install):
+                    self._add_directory(default_install)
+                    break  # end search if default location exists
 
         if verbose:
             sys.stderr.write('# module search path: %s\n'
