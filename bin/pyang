@@ -25,11 +25,16 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     plugindirs = []
     # check for --plugindir
-    idx = 1
-    while '--plugindir' in sys.argv[idx:]:
-        idx = idx + sys.argv[idx:].index('--plugindir')
-        plugindirs.append(sys.argv[idx+1])
-        idx = idx + 1
+    args = iter(sys.argv[1:])
+    for arg in args:
+        if arg.startswith('--plugindir'):
+            if arg == '--plugindir':
+                path = next(args)
+            elif arg.startswith('--plugindir='):
+                path = arg[arg.index('=')+1:]
+            else:
+                continue
+            plugindirs.append(path)
     plugin.init(plugindirs)
 
     fmts = {}
