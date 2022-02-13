@@ -732,7 +732,7 @@ class SidFile:
             status = ""
             if item['status'] == 'n' and not self.sid_file_created:
                 status = " (New)"
-            if item['status'] == 'd':
+            if item['status'] == 'd' and item['namespace'] != 'module':
                 status = " (Remove)"
                 definition_removed = True
 
