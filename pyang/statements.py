@@ -3132,11 +3132,14 @@ class ModSubmodStatement(Statement):
 
     def __init__(self, top, parent, pos, keyword, arg=None):
         Statement.__init__(self, top, parent, pos, keyword, arg)
-        self.i_is_primary_module = False
-        self.i_is_validated = False
+        self._init_i_attrs()
 
     def internal_reset(self):
         Statement.internal_reset(self)
+        self._init_i_attrs()
+
+    def _init_i_attrs(self):
+        self.i_is_primary_module = False
         self.i_is_validated = False
 
     def prune(self):
