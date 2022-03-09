@@ -482,6 +482,12 @@ error_codes = \
     'XPATH_NODE_NOT_FOUND2':
       (4,
        'node "%s::%s" is not found in module "%s"'),
+    'XPATH_ANCESTOR_NOT_FOUND':
+      (4,
+       'node "%s::%s" is not found as ancestor to "%s::%s"'),
+    'XPATH_MULTIPLE_ANCESTORS':
+      (4,
+       'node "%s::%s" has multiple ancestors called "%s::%s"'),
     'XPATH_REF_CONFIG_FALSE':
       (4,
        'node "%s::%s" is config false and is not part of the accessible tree'),

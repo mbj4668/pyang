@@ -1306,6 +1306,9 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 if pmodule.i_modulename in ctx.features:
                     if name not in ctx.features[pmodule.i_modulename]:
                         return False
+                if pmodule.i_modulename in ctx.exclude_features:
+                    if name in ctx.exclude_features[pmodule.i_modulename]:
+                        return False
 
         if found is None and no_error_report is False:
             err_add(ctx.errors, stmt.pos,
@@ -3129,11 +3132,14 @@ class ModSubmodStatement(Statement):
 
     def __init__(self, top, parent, pos, keyword, arg=None):
         Statement.__init__(self, top, parent, pos, keyword, arg)
-        self.i_is_primary_module = False
-        self.i_is_validated = False
+        self._init_i_attrs()
 
     def internal_reset(self):
         Statement.internal_reset(self)
+        self._init_i_attrs()
+
+    def _init_i_attrs(self):
+        self.i_is_primary_module = False
         self.i_is_validated = False
 
     def prune(self):
@@ -3149,6 +3155,8 @@ class ModSubmodStatement(Statement):
                     for d in deletes:
                         idx = n.i_children.index(d)
                         del n.i_children[idx]
+            for a in n.search('augment'):
+                p(a)
         p(self)
 
 class AugmentStatement(Statement):

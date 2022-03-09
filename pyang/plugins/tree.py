@@ -237,7 +237,7 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
                     if not section_delimiter_printed:
                         fd.write('\n')
                         section_delimiter_printed = True
-                    fd.write("  grouping %s\n" % g.arg)
+                    fd.write("  grouping %s:\n" % g.arg)
                     print_children(g.i_children, m, fd,
                                    '  ', path, 'grouping', depth, llen,
                                    ctx.opts.tree_no_expand_uses,

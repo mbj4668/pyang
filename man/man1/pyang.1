@@ -31,7 +31,7 @@
 pyang \- validate and convert YANG modules to various formats
 .SH "SYNOPSIS"
 .HP \w'\fBpyang\fR\ 'u
-\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-implicit\-hello\-deviations] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
+\fBpyang\fR [\-\-verbose] [\-\-canonical] [\-\-strict] [\-\-lint] [\-\-ietf] [\-\-lax\-quote\-checks] [\-\-lax\-xpath\-checks] [\-\-features\ \fIfeatures\fR] [\-\-exclude\-features\ \fIfeatures\fR] [\-\-max\-status\ \fImaxstatus\fR] [\-\-hello] [\-\-implicit\-hello\-deviations] [\-\-check\-update\-from\ \fIoldfile\fR] [\-o\ \fIoutfile\fR] [\-t\ \fItransform\fR] [\-f\ \fIformat\fR] [\-p\ \fIpath\fR] [\-W\ \fIwarning\fR] [\-E\ \fIerror\fR] \fIfile\fR...
 .HP \w'\fBpyang\fR\ 'u
 \fBpyang\fR [\-\-sid\-list] \-\-sid\-generate\-file {count | \fIentry\-point:size\fR} \fIyang\-filename\fR
 .HP \w'\fBpyang\fR\ 'u
@@ -308,23 +308,29 @@ Write the output to the file
 instead of stdout\&.
 .RE
 .PP
-\fB\-\-features\fR \fIfeatures\fR
+\fB\-F\fR \fB\-\-features\fR \fIfeatures\fR
 .RS 4
 \fIfeatures\fR
-is a string on the form
+is a string of the form
 \fImodulename\fR:[\fIfeature\fR(,\fIfeature\fR)*]
 .sp
 This option is used to prune the data model by removing all nodes that are defined with a "if\-feature" that is not listed as
 \fIfeature\fR\&. This option affects all output formats\&.
 .sp
-This option can be given multiple times, and may be also combined with
-\fB\-\-hello\fR\&. If a
+This option can be given multiple times, and may also be combined with
+\fB\-\-hello\fR\&. The
 \fB\-\-features\fR
-option specifies different supported features for a module than the hello file, the
-\fB\-\-features\fR
-option takes precedence\&.
+option overrides any supported features for a module that are taken from the hello file\&.
 .sp
 If this option is not given, nothing is pruned, i\&.e\&., it works as if all features were explicitly listed\&.
+.sp
+The
+\fB\-\-exclude\-features\fR
+option can be used for excluding a list of named features\&.
+\fB\-\-features\fR
+and
+\fB\-\-exclude\-features\fR
+can\*(Aqt both be specified for a given module\&.
 .sp
 For example, to view the tree output for a module with all if\-feature\*(Aqd nodes removed, do:
 .sp
@@ -333,6 +339,39 @@ For example, to view the tree output for a module with all if\-feature\*(Aqd nod
 .\}
 .nf
 $ pyang \-f tree \-\-features mymod: mymod\&.yang
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+\fB\-X\fR \fB\-\-exclude\-features\fR \fIfeatures\fR
+.RS 4
+\fIfeatures\fR
+is a string of the form
+\fImodulename\fR:[\fIfeature\fR(,\fIfeature\fR)*]
+.sp
+This option is used to prune the data model by removing all nodes that are defined with a "if\-feature" that is listed as
+\fIfeature\fR\&. This option affects all output formats\&.
+.sp
+This option can be given multiple times\&. It can\*(Aqt be combined with
+\fB\-\-hello\fR\&.
+.sp
+The
+\fB\-\-features\fR
+option can be used for including all features or a list of named features\&.
+\fB\-\-features\fR
+and
+\fB\-\-exclude\-features\fR
+can\*(Aqt both be specified for a given module\&.
+.sp
+For example, to view the tree output for a module with if\-feature\*(Aqd nodes for the specified feature removed, do:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ pyang \-f tree \-\-exclude\-features mymod:myfeat mymod\&.yang
 .fi
 .if n \{\
 .RE
@@ -846,7 +885,7 @@ checker:
 .PP
 \fB\-\-lint\-namespace\-prefix\fR \fIprefix\fR
 .RS 4
-Validate that the module\*(Aqs namespace is on the form: "<prefix><modulename>"\&.
+Validate that the module\*(Aqs namespace is of the form: "<prefix><modulename>"\&.
 .RE
 .PP
 \fB\-\-lint\-modulename\-prefix\fR \fIprefix\fR

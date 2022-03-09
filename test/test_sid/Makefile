@@ -87,7 +87,7 @@ test18:
 
 test19:
 	# In checksid file, test test sid file not found
-	$(PYANG) --sid-check-file toaster@2009-11-20.sid toaster@2009-11-20.yang 2>&1 | diff -b test-19-expected-output.txt -
+	$(PYANG) --sid-check-file toaster@2009-11-20.sid toaster@2009-11-20.yang 2>&1 | sort | diff -b test-19-expected-output.txt -
 
 test20:
 	# Test multiple level of grouping
