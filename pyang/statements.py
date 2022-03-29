@@ -300,11 +300,11 @@ _refinements = [
     #  <merge>, <validation function>)
     ('description',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case',
-      'anyxml', 'anydata'],
+      'anyxml', 'anydata', 'action', 'notification'],
      False, None),
     ('reference',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case',
-      'anyxml', 'anydata'],
+      'anyxml', 'anydata', 'action', 'notification'],
      False, None),
     ('config',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'anyxml', 'anydata'],
