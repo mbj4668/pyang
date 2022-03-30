@@ -17,6 +17,7 @@ from pyang import util
 from pyang import types
 from pyang.error import err_add
 
+sxmod = 'ietf-yang-structure-ext'
 
 def pyang_plugin_init():
     plugin.register_plugin(CheckUpdatePlugin())
@@ -43,6 +44,10 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  help="Old deviation module of the OLDMODULE." \
                                       " This option can be given multiple" \
                                       " times."),
+            optparse.make_option("--check-update-include-structures",
+                                 dest="check_update_structures",
+                                 action="store_true",
+                                 help="Check sx:structures."),
             ]
         optparser.add_options(optlist)
 
@@ -246,6 +251,9 @@ def chk_module(ctx, oldmod, newmod):
     for olds in oldmod.search('extension'):
         chk_extension(olds, newmod, ctx)
 
+    if ctx.opts.check_update_structures:
+        for olds in oldmod.search((sxmod, 'structure')):
+            chk_structure(olds, newmod, ctx)
     chk_augment(oldmod, newmod, ctx)
 
     chk_i_children(oldmod, newmod, ctx)
@@ -334,6 +342,12 @@ def chk_rpc(olds, newmod, ctx):
     chk_i_children(olds, news, ctx)
 
 def chk_notification(olds, newmod, ctx):
+    news = chk_stmt(olds, newmod, ctx)
+    if news is None:
+        return
+    chk_i_children(olds, news, ctx)
+
+def chk_structure(olds, newmod, ctx):
     news = chk_stmt(olds, newmod, ctx)
     if news is None:
         return
