@@ -9,7 +9,7 @@ make clean doc
 
 # commit and tag the new release 'pyang-<version>'
 
-git commit
+git commit -m 'Updates for <version> release'
 git tag pyang-<version>
 git push
 git push --tags
