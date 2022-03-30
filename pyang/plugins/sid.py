@@ -161,7 +161,7 @@ generate and updated .sid files used to persist and distribute SID assignments.
 COMMANDS
 
 pyang [--sid-list] --sid-generate-file {count | entry-point:size} yang-filename
-pyang [--sid-list] --sid-update-file=sid-filename yang-filename
+pyang [--sid-list] --sid-update-file sid-filename yang-filename
       [--sid-extra-range {count | entry-point:size}]
 pyang [--sid-list] --sid-check-file sid-filename yang-filename
 
@@ -185,7 +185,7 @@ OPTIONS
 
   $ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang
 
---sid-update-file=file
+--sid-update-file
 
   Each time new items are added to a YANG module by the introduction of a new
   revision of this module, its included sub-modules or imported modules, the
@@ -201,7 +201,7 @@ OPTIONS
   This example shows how to generate the file toaster@2009-12-28.sid based
   on the SIDs already present in toaster@2009-11-20.sid.
 
-  $ pyang --sid-update-file=toaster@2009-11-20.sid toaster@2009-12-28.yang
+  $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
 
 -- sid-check-file
 
@@ -213,7 +213,7 @@ OPTIONS
 
   For example:
 
-  $ pyang --sid-check-file=toaster@2009-12-28.sid toaster@2009-12-28.yang
+  $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
 --sid-list
 
@@ -231,10 +231,10 @@ OPTIONS
   the initial range(s) present in toaster@2009-11-20.sid and the extra range
   specified in the command line.
 
-  $ pyang --sid-update-file=toaster@2009-11-20.sid
+  $ pyang --sid-update-file toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range 20100:100
 
-count
+--sid-extra-range-count
   The number of SID required when generating or updating a .sid file can be
   computed by specifying "count" as SID range.
 
@@ -243,7 +243,7 @@ count
   $ pyang --sid-generate-file count toaster@2009-11-20.yang
   or:
 
-  $ pyang --sid-update-file=toaster@2009-11-20.sid
+  $ pyang --sid-update-file toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range count
 """)
 
