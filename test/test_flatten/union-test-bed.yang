@@ -13,7 +13,7 @@ module union-test-bed {
 
   typedef leafref-to-union-type {
     type leafref {
-      path "/base-type-unions/basic-union";
+      path "/utb:base-type-unions/basic-union";
     }
   }
   
@@ -67,8 +67,8 @@ module union-test-bed {
 	  leaf union-of-enumeration {
 		  type union {
 			  type enumeration {
-				  enum 'enum0';
 				  enum 'enum1';
+				  enum 'enum2';
 			  }
 			  type int32;
 		  }
