@@ -1,4 +1,4 @@
-test: test_xpath test_deviation test_deviation_show test_all test_rpc_notif test_filter_keyword test_filter_primitive test_filter_flag test_all_keyed test_keys test_enumeration
+test: test_xpath test_deviation test_deviation_show test_all test_rpc_notif test_filter_keyword test_filter_primitive test_filter_flag test_all_keyed test_keys
 
 test_xpath:
 	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang | diff benchmarks/ietf-interfaces.xpath.csv -
@@ -10,7 +10,7 @@ test_deviation_show:
 	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang ietf-interfaces-deviations.yang --flatten-deviated | diff benchmarks/ietf-interfaces.dev-show.csv -
 
 test_all:
-	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang ietf-interfaces-deviations.yang --flatten-keyword --flatten-type --flatten-primitive-type --flatten-flag --flatten-description --flatten-deviated --flatten-data-keywords --flatten-primitive-enums --flatten-enums-delimiter=';' | diff benchmarks/ietf-interfaces.all.csv -
+	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang ietf-interfaces-deviations.yang --flatten-keyword --flatten-type --flatten-primitive-type --flatten-flag --flatten-description --flatten-deviated --flatten-data-keywords | diff benchmarks/ietf-interfaces.all.csv -
 
 test_all_keyed:
 	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang ietf-interfaces-deviations.yang --flatten-keyword --flatten-type --flatten-primitive-type --flatten-flag --flatten-description --flatten-deviated --flatten-data-keywords --flatten-keys --flatten-keys-in-xpath | diff benchmarks/ietf-interfaces.all-keyed.csv -
@@ -47,6 +47,3 @@ test_status:
 
 test_resolve_leafref:
 	pyang -f flatten --flatten-resolve-leafref ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.leafref.csv -
-test_enumeration:
-	pyang -f flatten --flatten-primitive-enums --flatten-enums-delimiter=';' ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.enumeration.csv -
-

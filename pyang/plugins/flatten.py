@@ -115,16 +115,13 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-primitive-enums",
                 dest="flatten_primitive_enums",
                 action="store_true",
-                help="Output containing the enumeration options for "+
-                "the primitive type with their corresponding ordering values.",
+                help="Output containing the enumeration options for the primitive type with their corresponding ordering values.",
             ),
             optparse.make_option(
                 "--flatten-enums-delimiter",
                 dest="flatten_enums_delimiter",
                 default="|",
-                help="When using --flatten-primitive-enums the character " +
-                "provided here will be used to separate the individual " +
-                "enum entries",
+                help="When using --flatten-primitive-enums the character provided here will be used to separate the individual enum entries",
             ),
             optparse.make_option(
                 "--flatten-flag",
@@ -337,11 +334,9 @@ class FlattenPlugin(plugin.PyangPlugin):
         }
         # Sometimes we won't have the full set of YANG models...
         # Handle whether to error out or just set as "nil" for primitive type
-        # When the primitive type is an enumeration returns both type and 
-        # enumeration options. Else the options are None
+        # When the primitive type is an enumeration returns both type and enumeration options. Else the options are None
         try:
-            (primitive_type, primitive_enums) = statements.get_primitive_type(
-                child, ctx.opts.flatten_enums_delimiter) or ("nil","nil")
+            (primitive_type, primitive_enums) = statements.get_primitive_type(child, ctx.opts.flatten_enums_delimiter) or ("nil","nil")
         except Exception as e:
             if ctx.opts.ignore_no_primitive:
                 primitive_type = "nil"
