@@ -15,6 +15,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Prepare prerequisites
+        run: sudo apt-get update
 
       - name: Install prerequisites
         run: sudo apt-get install libxml2-utils xsltproc jing

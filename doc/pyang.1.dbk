@@ -51,6 +51,7 @@
       <arg choice="opt">--lax-quote-checks</arg>
       <arg choice="opt">--lax-xpath-checks</arg>
       <arg choice="opt">--features <replaceable>features</replaceable></arg>
+      <arg choice="opt">--exclude-features <replaceable>features</replaceable></arg>
       <arg choice="opt">--max-status <replaceable>maxstatus</replaceable></arg>
       <arg choice="opt">--hello</arg>
       <arg choice="opt">--implicit-hello-deviations</arg>
@@ -600,12 +601,13 @@
 
       <varlistentry>
         <term>
+          <option>-F</option>
           <option>--features</option>
           <replaceable>features</replaceable>
         </term>
         <listitem>
           <para>
-            <replaceable>features</replaceable> is a string on the
+            <replaceable>features</replaceable> is a string of the
             form
             <replaceable>modulename</replaceable>:[<replaceable>feature</replaceable>(,<replaceable>feature</replaceable>)*]
           </para>
@@ -616,15 +618,20 @@
             affects all output formats.
           </para>
           <para>
-            This option can be given multiple times, and may be also
-            combined with <option>--hello</option>. If a
-            <option>--features</option> option specifies different
-            supported features for a module than the hello file, the
-            <option>--features</option> option takes precedence.
+            This option can be given multiple times, and may also be combined
+            with <option>--hello</option>. The <option>--features</option>
+            option overrides any supported features for a module that are taken
+            from the hello file.
           </para>
           <para>
             If this option is not given, nothing is pruned, i.e., it works
             as if all features were explicitly listed.
+          </para>
+          <para>
+            The <option>--exclude-features</option> option can be used for
+            excluding a list of named features. <option>--features</option> and
+            <option>--exclude-features</option> can't both be specified for a
+            given module.
           </para>
           <para>
             For example, to view the tree output for a module with all
@@ -632,6 +639,45 @@
           </para>
           <informalexample>
             <screen>$ pyang -f tree --features mymod: mymod.yang</screen>
+          </informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>-X</option>
+          <option>--exclude-features</option>
+          <replaceable>features</replaceable>
+        </term>
+        <listitem>
+          <para>
+            <replaceable>features</replaceable> is a string of the
+            form
+            <replaceable>modulename</replaceable>:[<replaceable>feature</replaceable>(,<replaceable>feature</replaceable>)*]
+          </para>
+          <para>
+            This option is used to prune the data model by removing
+            all nodes that are defined with a "if-feature" that is
+            listed as <replaceable>feature</replaceable>.  This option
+            affects all output formats.
+          </para>
+          <para>
+            This option can be given multiple times. It can't be combined with
+            <option>--hello</option>.
+          </para>
+          <para>
+            The <option>--features</option> option can be used for including
+            all features or a list of named
+            features. <option>--features</option> and
+            <option>--exclude-features</option> can't both be specified for a
+            given module.
+          </para>
+          <para>
+            For example, to view the tree output for a module with
+            if-feature'd nodes for the specified feature removed, do:
+          </para>
+          <informalexample>
+            <screen>$ pyang -f tree --exclude-features mymod:myfeat mymod.yang</screen>
           </informalexample>
         </listitem>
       </varlistentry>
@@ -1243,7 +1289,7 @@
         </term>
         <listitem>
           <para>
-            Validate that the module's namespace is on the form:
+            Validate that the module's namespace is of the form:
             "&lt;prefix&gt;&lt;modulename&gt;".
           </para>
         </listitem>

@@ -25,11 +25,16 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     plugindirs = []
     # check for --plugindir
-    idx = 1
-    while '--plugindir' in sys.argv[idx:]:
-        idx = idx + sys.argv[idx:].index('--plugindir')
-        plugindirs.append(sys.argv[idx+1])
-        idx = idx + 1
+    args = iter(sys.argv[1:])
+    for arg in args:
+        if arg.startswith('--plugindir'):
+            if arg == '--plugindir':
+                path = next(args)
+            elif arg.startswith('--plugindir='):
+                path = arg[arg.index('=')+1:]
+            else:
+                continue
+            plugindirs.append(path)
     plugin.init(plugindirs)
 
     fmts = {}
@@ -135,6 +140,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="append",
                              help="Features to support, default all. " \
                              "<modname>:[<feature>,]*"),
+        optparse.make_option("-X", "--exclude-features",
+                             metavar="EXCLUDE_FEATURES",
+                             dest="exclude_features",
+                             default=[],
+                             action="append",
+                             help="Features not to support, default none. " \
+                                  "<modname>:[<feature>,]*"),
         optparse.make_option("", "--max-status",
                              metavar="MAXSTATUS",
                              dest="max_status",
@@ -258,6 +270,13 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     for f in ctx.opts.features:
         (modulename, features) = parse_features_string(f)
         ctx.features[modulename] = features
+    for f in ctx.opts.exclude_features:
+        (modulename, features) = parse_features_string(f)
+        if modulename in ctx.features:
+            sys.stderr.write("module %s can't have both --hello / --features "
+                             "and --exclude-features\n" % modulename)
+            sys.exit(1)
+        ctx.exclude_features[modulename] = features
 
     for p in plugin.plugins:
         p.setup_ctx(ctx)
@@ -413,6 +432,30 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     ctx_validate_and_prune()
 
+    # verify the given features (also update ctx.features and ctx.exclude_
+    # features to be actual included / excluded features)
+    for m in modules:
+        if m.arg in ctx.features:
+            if m.arg not in ctx.exclude_features:
+                ctx.exclude_features[m.arg] = list(m.i_features.keys())
+            for f in ctx.features[m.arg]:
+                if f not in m.i_features:
+                    sys.stderr.write("unknown feature %s in module %s\n" %
+                                     (f, m.arg))
+                    sys.exit(1)
+                if f in ctx.exclude_features[m.arg]:
+                    ctx.exclude_features[m.arg].remove(f)
+        if m.arg in ctx.exclude_features:
+            if m.arg not in ctx.features:
+                ctx.features[m.arg] = list(m.i_features.keys())
+            for f in ctx.exclude_features[m.arg]:
+                if f not in m.i_features:
+                    sys.stderr.write("unknown feature %s in module %s\n" %
+                                     (f, m.arg))
+                    sys.exit(1)
+                if f in ctx.features[m.arg]:
+                    ctx.features[m.arg].remove(f)
+
     # transform modules
     if len(xform_objs) > 0 and len(modules) > 0:
         for xform_obj in xform_objs:
@@ -427,15 +470,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 if e.msg != "":
                     sys.stderr.write(e.msg + '\n')
                 sys.exit(e.exit_code)
-
-    # verify the given features
-    for m in modules:
-        if m.arg in ctx.features:
-            for f in ctx.features[m.arg]:
-                if f not in m.i_features:
-                    sys.stderr.write("unknown feature %s in module %s\n" %
-                                     (f, m.arg))
-                    sys.exit(1)
 
     if len(xform_and_emit_objs) > 0 and len(modules) > 0:
         for obj in xform_and_emit_objs:

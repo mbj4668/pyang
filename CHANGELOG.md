@@ -1,3 +1,28 @@
+* 2.5.3 - 2022-03-30
+```
+       added support for checking 'ancestor' and 'ancestor-or-self' XPATH axes
+       added new option --exclude-features which is used to prune the
+         data model by removing all nodes that are defined with the
+         corresponding "if-feature"
+       added --check-update-include-structures to apply the upgrade
+         checks also to sx:structures.
+       changed the error level of all CHK* errors so that they can be
+         changed into warnings
+       allow refinement of description/reference in action/notification
+       disable writing of Yacc parse tables to files
+         thanks to Robert Andersson
+       fix error locating /usr/share/yang with pip 21.3.1
+         thanks to cygnus2048
+
+       #802 - fixed crash when using transforms and the module imports
+                submodules
+       #797 - as per RFC 8340, added : to grouping header
+       #784 - corrupt files could lead to pyang crash
+       #778 - check deref target
+       #777 - check path after deref
+       #775 - correct multi-line argument wrapping when generating YANG
+```
+
 * 2.5.2 - 2021-12-02
 ```
        #774 - fixed regression in 2.5.1 in ietf plugin
