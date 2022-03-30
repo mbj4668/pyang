@@ -356,7 +356,7 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["keyword"] = child.keyword
         if ctx.opts.flatten_type:
             output_content["type"] = (
-                statements.get_qualified_type(child) or ''
+                statements.get_qualified_type(child) or "nil"
             )
         if ctx.opts.flatten_primitive_type:
             output_content["primitive_type"] = primitive_type

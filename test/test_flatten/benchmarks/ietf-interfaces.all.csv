@@ -1,6 +1,6 @@
 xpath,keyword,primitive_type,flag,type,description,deviated
-/ietf-interfaces:interfaces,container,,rw,,Interface parameters.,present
-/ietf-interfaces:interfaces/interface,list,,rw,,"The list of interfaces on the device.
+/ietf-interfaces:interfaces,container,nil,rw,nil,Interface parameters.,present
+/ietf-interfaces:interfaces/interface,list,nil,rw,nil,"The list of interfaces on the device.
 
 The status of an interface is available in this list in the
 operational state.  If the configuration of a
@@ -44,7 +44,7 @@ reflected in ifAdminStatus.",present
 interface.",present
 /ietf-interfaces:interfaces/interface/if-index,leaf,int32,ro,int32,"The ifIndex value for the ifEntry represented by this
 interface.",present
-/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters,container,,rw,,,present
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters,container,nil,rw,nil,,present
 /ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/extended-parameter,leaf,string,rw,string,An extra parameter,present
 /ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/leafref-parameter,leaf,leafref,rw,leafref,An example leafref,present
 /ietf-interfaces:interfaces/interface/last-change,leaf,string,ro,ietf-yang-types:date-and-time,"The time the interface entered its current operational
@@ -107,7 +107,7 @@ bandwidth or for those where no accurate estimation can
 be made, this node should contain the nominal bandwidth.
 For interfaces that have no concept of bandwidth, this
 node is not present.",present
-/ietf-interfaces:interfaces/interface/statistics,container,,ro,,A collection of interface-related statistics objects.,present
+/ietf-interfaces:interfaces/interface/statistics,container,nil,ro,nil,A collection of interface-related statistics objects.,present
 /ietf-interfaces:interfaces/interface/statistics/discontinuity-time,leaf,string,ro,ietf-yang-types:date-and-time,"The time on the most recent occasion at which any one or
 more of this interface's counters suffered a
 discontinuity.  If no such discontinuities have occurred
@@ -253,8 +253,8 @@ type is not supported or if the type does not match the
 name of the interface, the server MUST reject the request.
 A NETCONF server MUST reply with an rpc-error with the
 error-tag 'invalid-value' in this case.",present
-/ietf-interfaces:interfaces-state,container,,ro,,Data nodes for the operational state of interfaces.,deviated
-/ietf-interfaces:interfaces-state/interface,list,,ro,,"The list of interfaces on the device.
+/ietf-interfaces:interfaces-state,container,nil,ro,nil,Data nodes for the operational state of interfaces.,deviated
+/ietf-interfaces:interfaces-state/interface,list,nil,ro,nil,"The list of interfaces on the device.
 
 System-controlled interfaces created by the system are
 always present in this list, whether or not they are
@@ -296,7 +296,7 @@ bandwidth or for those where no accurate estimation can
 be made, this node should contain the nominal bandwidth.
 For interfaces that have no concept of bandwidth, this
 node is not present.",deviated
-/ietf-interfaces:interfaces-state/interface/statistics,container,,ro,,A collection of interface-related statistics objects.,deviated
+/ietf-interfaces:interfaces-state/interface/statistics,container,nil,ro,nil,A collection of interface-related statistics objects.,deviated
 /ietf-interfaces:interfaces-state/interface/statistics/discontinuity-time,leaf,string,ro,ietf-yang-types:date-and-time,"The time on the most recent occasion at which any one or
 more of this interface's counters suffered a
 discontinuity.  If no such discontinuities have occurred
