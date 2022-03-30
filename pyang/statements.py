@@ -3459,11 +3459,10 @@ def get_keys(stmt):
         key_names = keys.split()
     return key_names
 
-def get_qualified_type(type_obj, use_prefix):
+def get_qualified_type(type_obj):
     """Gets the qualified, top-level type of the node.
     This enters the typedef if defined instead of using the prefix
-    to ensure absolute distinction. Use prefix qualifies with prefix
-    instead of module.
+    to ensure absolute distinction.
     """
     fq_type_name = None
     if type_obj:
@@ -3476,33 +3475,27 @@ def get_qualified_type(type_obj, use_prefix):
             # Doesn't make sense to qualify a primitive..I think.
             fq_type_name = type_name
         else:
-            if use_prefix:
-                qualifier =  type_obj.i_orig_module.i_prefix
-            else:
-                qualifier = type_obj.i_orig_module.arg
-            fq_type_name = '%s:%s' % (qualifier, type_name)
+            type_module = type_obj.i_orig_module.arg
+            fq_type_name = '%s:%s' % (type_module, type_name)
     return fq_type_name
 
-def get_primitive_type(type_obj, use_as_primitive, use_prefix_in_type):
+def get_primitive_type(type_obj, primitive_prefixes):
     """Recurses through the typedefs and returns
     the most primitive YANG type defined.
-    use_as_primitive may contain prefixes and specific types which will be used
-    as primitive types.
+    Types defined under module prefixes included in 
+    primitive_prefixes argument will be used as primitive types.
     """
     typedef_obj = getattr(type_obj, 'i_typedef', None)
-    if typedef_obj:
-        typedef_prefix = typedef_obj.i_orig_module.i_prefix
-        fq_type = get_qualified_type(typedef_obj, use_prefix_in_type)
-        if not typedef_prefix in use_as_primitive and not fq_type in use_as_primitive:
-            type_obj = get_primitive_type(typedef_obj.search_one('type'),
-                                      use_as_primitive, use_prefix_in_type)
+    if typedef_obj and not typedef_obj.i_orig_module.i_prefix in primitive_prefixes:
+        type_obj = get_primitive_type(typedef_obj.search_one('type'),
+                                      primitive_prefixes)
     elif type_obj and not check_primitive_type(type_obj):
         raise Exception('%s is not a primitive! Incomplete parse tree?' %
                         type_obj.arg)
     return type_obj
 
 def get_enum_values(type_obj, enum_list):
-    type_obj = get_primitive_type(type_obj, "", True)
+    type_obj = get_primitive_type(type_obj, "")
     primitive_type = getattr(type_obj, 'arg', '')
     if primitive_type == 'enumeration':
         enum_objs = type_obj.search('enum')
@@ -3512,22 +3505,18 @@ def get_enum_values(type_obj, enum_list):
             enum_list.append(enum_entry)
 
 def get_union_types(type_obj, enum_list, union_resolved_leafref, delim, 
-                    union_types, find_primitive, primitive_prefixes, 
-                    use_prefix_in_type):
+                    union_types, find_primitive, primitive_prefixes):
     union_objs=type_obj.search('type')
     for union_subtype_obj in union_objs:
         get_union_subtype(union_subtype_obj, enum_list, union_resolved_leafref, 
-                           delim, union_types, find_primitive, primitive_prefixes,
-                           use_prefix_in_type)
+                           delim, union_types, find_primitive, primitive_prefixes)
 
 def get_union_subtype(union_subtype_obj, enum_list, union_resolved_leafref, delim,
-                      union_types, find_primitive, primitive_prefixes, 
-                      use_prefix_in_type):
-    union_subtype = get_qualified_type(union_subtype_obj, use_prefix_in_type)
+                      union_types, find_primitive, primitive_prefixes):
+    union_subtype = get_qualified_type(union_subtype_obj)
     if union_subtype == 'union':
         get_union_types(union_subtype_obj, enum_list, union_resolved_leafref, 
-                        delim, union_types, find_primitive, primitive_prefixes,
-                        use_prefix_in_type)
+                        delim, union_types, find_primitive, primitive_prefixes)
     else:
         if union_subtype == 'leafref':
 # TODO This should access the leaf <union_node>.i_leafref.i_target_node
@@ -3547,9 +3536,9 @@ def get_union_subtype(union_subtype_obj, enum_list, union_resolved_leafref, deli
         typedef_obj = getattr(union_subtype_obj, 'i_typedef', None)
         if typedef_obj:
             union_subtype_obj = (get_primitive_type(union_subtype_obj,
-                            primitive_prefixes, use_prefix_in_type) 
-                            if find_primitive else union_subtype_obj)
-            union_subtype = get_qualified_type(union_subtype_obj, use_prefix_in_type)
+                                                    primitive_prefixes) 
+                                 if find_primitive else union_subtype_obj)
+            union_subtype = get_qualified_type(union_subtype_obj)
             union_types.append(union_subtype)
         else:
             union_types.append(union_subtype)
