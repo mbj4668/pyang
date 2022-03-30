@@ -112,18 +112,6 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the primitive type.",
             ),
             optparse.make_option(
-                "--flatten-primitive-enums",
-                dest="flatten_primitive_enums",
-                action="store_true",
-                help="Output containing the enumeration options for the primitive type with their corresponding ordering values.",
-            ),
-            optparse.make_option(
-                "--flatten-enums-delimiter",
-                dest="flatten_enums_delimiter",
-                default="|",
-                help="When using --flatten-primitive-enums the character provided here will be used to separate the individual enum entries",
-            ),
-            optparse.make_option(
                 "--flatten-flag",
                 dest="flatten_flag",
                 action="store_true",
@@ -234,8 +222,6 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("keyword")
         if ctx.opts.flatten_primitive_type:
             self.__field_names.append("primitive_type")
-        if ctx.opts.flatten_primitive_enums:
-            self.__field_names.append("primitive_enums")            
         if ctx.opts.flatten_flag:
             self.__field_names.append("flag")
         if ctx.opts.flatten_type:
@@ -334,13 +320,11 @@ class FlattenPlugin(plugin.PyangPlugin):
         }
         # Sometimes we won't have the full set of YANG models...
         # Handle whether to error out or just set as "nil" for primitive type
-        # When the primitive type is an enumeration returns both type and enumeration options. Else the options are None
         try:
-            (primitive_type, primitive_enums) = statements.get_primitive_type(child, ctx.opts.flatten_enums_delimiter) or ("nil","nil")
+            primitive_type = statements.get_primitive_type(child) or "nil"
         except Exception as e:
             if ctx.opts.ignore_no_primitive:
                 primitive_type = "nil"
-                primitive_enums = "nil"
             else:
                 raise e
         # To handle inputs and outputs we're going to have an override flag.
@@ -360,8 +344,6 @@ class FlattenPlugin(plugin.PyangPlugin):
             )
         if ctx.opts.flatten_primitive_type:
             output_content["primitive_type"] = primitive_type
-        if ctx.opts.flatten_primitive_enums:
-            output_content["primitive_enums"] = primitive_enums
         if ctx.opts.flatten_flag:
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
