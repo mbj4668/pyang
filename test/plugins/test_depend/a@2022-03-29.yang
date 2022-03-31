@@ -1,0 +1,29 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  import b {
+    prefix b;
+  }
+
+  import c {
+    prefix c;
+    revision-date 2022-01-01;
+  }
+
+  include a-sub;
+
+  revision 2022-03-29;
+
+  leaf bbb {
+    type leafref {
+      path "/b:b_cont/b:leaf_1";
+    }
+  }
+
+  leaf ccc {
+    type leafref {
+      path "/c:c_cont/c:leaf_3";
+    }
+  }
+}

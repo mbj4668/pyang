@@ -1,0 +1,12 @@
+module d {
+  namespace "urn:d";
+  prefix d;
+
+  revision 2022-03-03;
+  
+  container d_cont {
+    leaf leaf_d {
+      type string;
+    }
+  }   
+}
