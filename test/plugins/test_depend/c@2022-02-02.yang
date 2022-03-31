@@ -1,0 +1,15 @@
+module c {
+  namespace "urn:c";
+  prefix c;
+
+  revision 2022-02-02;
+  
+  container c_cont {
+    leaf leaf_3 {
+      type string;
+    }
+    leaf leaf_4 {
+      type string;
+    }
+  }   
+}
