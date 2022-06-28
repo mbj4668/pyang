@@ -338,6 +338,8 @@ class Translator (object):
             try:
                 if dp:
                     fp = fp.rstrip("0")
+                    if len(fp) == 0:
+                        fp = "0"
                     if len(fp) > type_spec[1]:
                         return None
                     ival = int(ip + fp)
