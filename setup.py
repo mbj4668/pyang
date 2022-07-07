@@ -51,16 +51,6 @@ class PyangDist(Distribution):
                                                             ("", None))[1])
             Distribution.run_commands(self)
 
-# If the installation is on windows, place pyang.bat file in Scripts directory
-script_files = []
-if os.name == "nt":
-    pyang_bat_file = "{}/{}.bat".format(tempfile.gettempdir(), "pyang")
-    with open(pyang_bat_file, 'w') as script:
-        script.write('@echo off\npython %~dp0pyang %*\n')
-    script_files = ['bin/yang2dsdl', pyang_bat_file]
-else:
-    script_files = ['bin/yang2dsdl']
-
 setup(name='pyang',
       version=pyang.__version__,
       author='Martin Bjorklund',
@@ -81,7 +71,7 @@ setup(name='pyang',
             ],
       keywords='YANG validator',
       distclass=PyangDist,
-      scripts=script_files,
+      scripts=['bin/yang2dsdl'],
       entry_points={
           'console_scripts': [
               'pyang = pyang.scripts.pyang:run',
@@ -100,7 +90,3 @@ setup(name='pyang',
             ('etc/bash_completion.d', ['etc/bash_completion.d/pyang']),
             ]
       )
-
-# Remove Bat file
-if os.name == "nt":
-    os.remove(pyang_bat_file)
