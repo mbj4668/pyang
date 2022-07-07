@@ -57,11 +57,9 @@ if os.name == "nt":
     pyang_bat_file = "{}/{}.bat".format(tempfile.gettempdir(), "pyang")
     with open(pyang_bat_file, 'w') as script:
         script.write('@echo off\npython %~dp0pyang %*\n')
-    script_files = ['bin/pyang', 'bin/yang2html',
-                    'bin/yang2dsdl', 'bin/json2xml', pyang_bat_file]
+    script_files = ['bin/yang2dsdl', pyang_bat_file]
 else:
-    script_files = ['bin/pyang', 'bin/yang2html',
-                    'bin/yang2dsdl', 'bin/json2xml']
+    script_files = ['bin/yang2dsdl']
 
 setup(name='pyang',
       version=pyang.__version__,
@@ -84,7 +82,14 @@ setup(name='pyang',
       keywords='YANG validator',
       distclass=PyangDist,
       scripts=script_files,
-      packages=['pyang', 'pyang.plugins', 'pyang.translators', 'pyang.transforms'],
+      entry_points={
+          'console_scripts': [
+              'pyang = pyang.scripts.pyang:run',
+              'yang2html = pyang.scripts.yang2html:run',
+              'json2xml = pyang.scripts.json2xml:main',
+          ]
+      },
+      packages=['pyang', 'pyang.plugins', 'pyang.scripts', 'pyang.translators', 'pyang.transforms'],
       data_files=[
             ('share/man/man1', man1),
             ('share/yang/modules/iana', modules_iana),
