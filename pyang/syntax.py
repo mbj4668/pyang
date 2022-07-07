@@ -131,11 +131,11 @@ re_deviate = re.compile(r"^(add|delete|replace|not-supported)$")
 
 # Not part of YANG syntax per se but useful for pyang in several places
 re_filename = re.compile(
-    r"^(?:.*" + re.escape(os.sep) + r")?" +    # ignore all before os.sep
-    r"([^@]*?)" +                              # putative module name
-    r"(?:@([^.]*?))?" +                        # putative revision
-    r"(?:\.yang|\.yin)*" +                     # foo@bar.yang.yin.yang.yin ?
-    r"\.(yang|yin)$")                          # actual final extension
+    r"^(?:.*[/\\])?" +              # ignore all before path separator (either / or \)
+    r"([^@]*?)" +                   # putative module name
+    r"(?:@([^.]*?))?" +             # putative revision
+    r"(?:\.yang|\.yin)*" +          # foo@bar.yang.yin.yang.yin ?
+    r"\.(yang|yin)$")               # actual final extension
 
 arg_type_map = {
     "identifier": lambda s: re_identifier.search(s) is not None,
