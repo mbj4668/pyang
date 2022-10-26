@@ -461,7 +461,7 @@ def print_node(s, module, fd, prefix, path, ctx, level=0):
               </div>
             </td>""" % (level, "folder", attr_html_info)
     else:
-        attr_html_info = """<attr title="%s"> %s %s %s</abbr>
+        attr_html_info = """<abbr title="%s"> %s %s %s</abbr>
             """ % (descrstring, fontstarttag, name, fontendtag)
         if s.keyword == ('tailf-common', 'action'):
             type_html_info = """<td nowrap><abbr title="%s">%s</abbr></td>
