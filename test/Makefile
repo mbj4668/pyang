@@ -2,15 +2,15 @@ DIRS = $(shell for d in test_* ; \
 	do [ -d $$d -a -f $$d/Makefile ] && echo $$d ; done)
 
 ifeq "$(TEST_MODE)" "coverage"
-COVERAGE := python -mcoverage run --branch --parallel-mode --source $(W)/pyang,$(W)/bin --omit $(W)/pyang/yacc.py
-export PYANG := $(COVERAGE) $(W)/bin/pyang
-export JSON2XML := $(COVERAGE) $(W)/bin/json2xml
-export YANG2HTML := $(COVERAGE) $(W)/bin/yang2html
+COVERAGE := python -mcoverage run --branch --parallel-mode --source $(W)/pyang --omit $(W)/pyang/yacc.py
+export PYANG := $(COVERAGE) $(W)/pyang/scripts/pyang.py
+export JSON2XML := $(COVERAGE) $(W)/pyang/scripts/json2xml.py
+export YANG2HTML := $(COVERAGE) $(W)/pyang/scripts/yang2html.py
 else ifeq "$(TEST_MODE)" "profile"
 PROFILE := python -mcProfile -o .profile-`date +%M.%S.%N`
-export PYANG := $(PROFILE) $(W)/bin/pyang
-export JSON2XML := $(PROFILE) $(W)/bin/json2xml
-export YANG2HTML := $(PROFILE) $(W)/bin/yang2html
+export PYANG := $(PROFILE) $(W)/pyang/scripts/pyang.py
+export JSON2XML := $(PROFILE) $(W)/pyang/scripts/json2xml.py
+export YANG2HTML := $(PROFILE) $(W)/pyang/scripts/yang2html.py
 else
 export PYANG := pyang
 export JSON2XML := json2xml
