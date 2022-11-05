@@ -61,6 +61,11 @@ setup(name='pyang',
       "to other formats.",
       url='https://github.com/mbj4668/pyang',
       install_requires = ["lxml"],
+      extras_require = {
+            ':python_version == "2.7"' : [
+                  "pathlib2"
+            ]
+      },
       license='BSD',
       classifiers=[
             'Development Status :: 5 - Production/Stable',

@@ -4,6 +4,11 @@ import os
 import sys
 import io
 
+if sys.version_info[0] < 3:
+    from pathlib2 import Path
+else:
+    from pathlib import Path
+
 from . import util
 from . import syntax
 
@@ -113,25 +118,23 @@ class FileRepository(Repository):
         # check all dirs for yang and yin files
         self.modules = []
         def add_files_from_dir(d):
+            base = Path(d)
             try:
-                files = os.listdir(d)
+                files = base.iterdir()
             except OSError:
                 files = []
-            for fname in files:
-                absfilename = os.path.join(d, fname)
-                if os.path.isfile(absfilename):
-                    m = syntax.re_filename.search(fname)
+            for file_path in files:
+                if file_path.is_file():
+                    m = syntax.re_filename.search(file_path.name)
                     if m is not None:
                         name, rev, in_format = m.groups()
-                        if not os.access(absfilename, os.R_OK):
+                        if not os.access(str(file_path), os.R_OK):
                             continue
-                        if absfilename.startswith("./"):
-                            absfilename = absfilename[2:]
-                        handle = in_format, absfilename
+                        handle = in_format, str(file_path)
                         self.modules.append((name, rev, handle))
                 elif (not self.no_path_recurse
-                      and d != '.' and os.path.isdir(absfilename)):
-                    add_files_from_dir(absfilename)
+                      and d != '.' and file_path.is_dir()):
+                    add_files_from_dir(file_path)
         for d in self.dirs:
             add_files_from_dir(d)
 

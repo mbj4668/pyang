@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-
+from __future__ import absolute_import
 import sys
 import os
 import optparse
 import io
 import codecs
+
+if sys.version_info[0] < 3:
+    from pathlib2 import Path
+else:
+    from pathlib import Path
 
 import pyang
 from pyang import plugin
@@ -376,7 +381,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                 s = str(ex).replace('utf-8', 'utf8')
                 sys.stderr.write("%s: unicode error: %s\n" % (filename, s))
                 sys.exit(1)
-            m = syntax.re_filename.search(filename)
+            m = syntax.re_filename.search(Path(filename).name)
             ctx.yin_module_map = {}
             if m is not None:
                 name, rev, in_format = m.groups()
