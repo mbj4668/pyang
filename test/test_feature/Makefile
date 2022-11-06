@@ -35,6 +35,3 @@ exclude-foo:
 
 exclude-both:
 	$(PYANG) --exclude-features feature:has-leaf-foo,has-leaf-goo $(POST)
-
-clean:
-	$(RM) -f $(wildcard *.expect)
