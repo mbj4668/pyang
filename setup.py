@@ -79,7 +79,7 @@ setup(name='pyang',
       scripts=['bin/yang2dsdl'],
       entry_points={
           'console_scripts': [
-              'pyang = pyang.scripts.pyang:run',
+              'pyang = pyang.scripts.pyang_tool:run',
               'yang2html = pyang.scripts.yang2html:run',
               'json2xml = pyang.scripts.json2xml:main',
           ]

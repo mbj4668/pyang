@@ -3,12 +3,12 @@ DIRS = $(shell for d in test_* ; \
 
 ifeq "$(TEST_MODE)" "coverage"
 COVERAGE := python -mcoverage run --branch --parallel-mode --source $(W)/pyang --omit $(W)/pyang/yacc.py
-export PYANG := $(COVERAGE) $(W)/pyang/scripts/pyang.py
+export PYANG := $(COVERAGE) $(W)/pyang/scripts/pyang_tool.py
 export JSON2XML := $(COVERAGE) $(W)/pyang/scripts/json2xml.py
 export YANG2HTML := $(COVERAGE) $(W)/pyang/scripts/yang2html.py
 else ifeq "$(TEST_MODE)" "profile"
 PROFILE := python -mcProfile -o .profile-`date +%M.%S.%N`
-export PYANG := $(PROFILE) $(W)/pyang/scripts/pyang.py
+export PYANG := $(PROFILE) $(W)/pyang/scripts/pyang_tool.py
 export JSON2XML := $(PROFILE) $(W)/pyang/scripts/json2xml.py
 export YANG2HTML := $(PROFILE) $(W)/pyang/scripts/yang2html.py
 else
