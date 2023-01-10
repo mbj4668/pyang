@@ -6,7 +6,7 @@ results := $(patsubst %.xml,%.log,$(wildcard *.xml))
 
 .PHONY = all clean
 
-all: $(results) 
+all: $(results)
 
 test: all
 
