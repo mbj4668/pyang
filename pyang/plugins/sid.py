@@ -1,7 +1,7 @@
 """sid plugin
 
 Plugin used to generate or update .sid files.
-Please refer to [I-D.ietf-core-sid], [I-D.ietf-core-comi], [I-D.ietf-core-yang-cbor]
+Please refer to [I-D.ietf-core-sid], [I-D.ietf-core-comi], [RFC9254]
 and [I-D.ietf-core-yang-library] for more information.
 
 """
