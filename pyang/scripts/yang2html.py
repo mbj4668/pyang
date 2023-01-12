@@ -5,8 +5,6 @@
 #
 # Works on the syntax level and does thus not include any intelligent
 # links or anything.
-
-from __future__ import absolute_import
 import sys
 import argparse
 from xml.sax.saxutils import escape

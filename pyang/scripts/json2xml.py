@@ -1,6 +1,4 @@
 #! /usr/bin/env python
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import argparse
 import codecs
 import json
@@ -10,8 +8,6 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-str_type = type(u'')
-str_types = str if str_type is str else (str_type, str)
 
 
 class Error(Exception):
@@ -222,7 +218,7 @@ class Translator (object):
                 if isinstance(job, dict):
                     self.handle_anyxml(job, el)
                 else:
-                    el.text = str_type(job)
+                    el.text = str(job)
 
     def handle_annotations(self, annot_obj, elem, mod_name, path):
         if not isinstance(annot_obj, dict):
@@ -267,10 +263,10 @@ class Translator (object):
                     if isinstance(eob, dict):
                         self.handle_anyxml(eob, el)
                     else:
-                        el.text = str_type(eob)
+                        el.text = str(eob)
             else:
                 el = ET.SubElement(parent, ch)
-                el.text = str_type(cobj)
+                el.text = str(cobj)
 
     def node_lookup(self, name, ns, parent, path):
         """Return tag, module name and node specification for `name`."""
@@ -307,7 +303,7 @@ class Translator (object):
         - `path`: path of the node containing `value` (for error reporting)
         """
         def handle_int(value, bits, unsigned):
-            if (bits == 64 and isinstance(value, str_types)
+            if (bits == 64 and isinstance(value, str)
                 or isinstance(value, numbers.Integral)
                 or isinstance(value, numbers.Real) and value.is_integer()):
 
@@ -333,7 +329,7 @@ class Translator (object):
         if t.startswith("uint"):
             return handle_int(value, int(t[4:]), True)
         if t == "decimal64":
-            if not isinstance(value, str_types):
+            if not isinstance(value, str):
                 return None
             ip, dp, fp = value.partition('.')
             try:
@@ -406,7 +402,7 @@ class Translator (object):
             except:
                 return None
             return result
-        return str_type(value)
+        return str(value)
 
 def main():
     """Parse arguments, open files, create and run the translator."""
@@ -428,8 +424,7 @@ def main():
         dfile = codecs.open(args.jtox, encoding="utf-8")
         jfile = sys.stdin \
             if args.json == "-" else codecs.open(args.json, encoding="utf-8")
-        outfile = (sys.stdout if sys.version < "3" else sys.stdout.buffer) \
-            if args.output is None else open(args.output, "wb")
+        outfile = sys.stdout if args.output is None else open(args.output, "wb")
         jtox = json.load(dfile)
     except IOError as e:
         sys.stderr.write("%s: error: %s: '%s'\n" %

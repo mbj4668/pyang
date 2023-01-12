@@ -229,16 +229,9 @@ def chk_if_feature_expr(s):
 #         | Identifier
 def parse_if_feature_expr(s):
     try:
-        # Encoding to ascii works for valid if-feature-exprs, since all
-        # pars are YANG identifiers (or the boolean keywords).
-        # The reason for this fix is that in Python < 2.7.3, shlex would return
-        # erroneous tokens if a unicode string was passed.
-        # Also, shlex uses cStringIO internally which doesn't handle unicode
-        # characters outside the ascii range anyway.
-        if sys.version < '3':
-            sx = shlex.shlex(s.encode("ascii"))
-        else:
-            sx = shlex.shlex(s)
+        # Shlex uses cStringIO internally which doesn't handle unicode
+        # characters outside the ascii range.
+        sx = shlex.shlex(s)
     except UnicodeEncodeError:
         return None
     sx.wordchars += ":-" # need to handle prefixes and '-' in the name

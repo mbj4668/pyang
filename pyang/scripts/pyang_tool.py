@@ -5,11 +5,7 @@ import os
 import optparse
 import io
 import codecs
-
-if sys.version_info[0] < 3:
-    from pathlib2 import Path
-else:
-    from pathlib import Path
+from pathlib import Path
 
 import pyang
 from pyang import plugin
@@ -238,8 +234,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             except IOError as ex:
                 sys.stderr.write("error %s: %s\n" % (filenames[0], ex))
                 sys.exit(1)
-        elif sys.version < "3":
-            fd = sys.stdin
         else:
             fd = sys.stdin.buffer
         hel = hello.HelloParser().parse(fd)
@@ -540,16 +534,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     if emit_obj is not None and len(modules) > 0:
         tmpfile = None
         if o.outfile is None:
-            if sys.version < '3':
-                fd = codecs.getwriter('utf8')(sys.stdout)
-            else:
-                fd = sys.stdout
+            fd = sys.stdout
         else:
             tmpfile = o.outfile + ".tmp"
-            if sys.version < '3':
-                fd = codecs.open(tmpfile, "w+", encoding="utf-8")
-            else:
-                fd = io.open(tmpfile, "w+", encoding="utf-8")
+            fd = io.open(tmpfile, "w+", encoding="utf-8")
         try:
             emit_obj.emit(ctx, modules, fd)
         except error.EmitError as e:

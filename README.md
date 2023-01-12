@@ -48,7 +48,7 @@ find standard YANG modules. In addition, make sure that **PYTHONPATH** is set
 to something as follows:
 
 ```sh
-export PYTHONPATH=/usr/local/lib/python2.7/site-packages
+export PYTHONPATH=/usr/local/lib/python3.10/site-packages
 ```
 
 or whatever version of python you are running.

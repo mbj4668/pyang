@@ -4,10 +4,7 @@ import os
 import sys
 import io
 
-if sys.version_info[0] < 3:
-    from pathlib2 import Path
-else:
-    from pathlib import Path
+from pathlib import Path
 
 from . import util
 from . import syntax

@@ -21,11 +21,8 @@ export YANG2DSDL := env PYANG="$(PYANG)" $(W)/bin/yang2dsdl
 test:
 	$(MAKE) selftest mtest itest
 
-test_all: python2_test python3_test
+test_all: python3_test
 
-python2_test: python2/python
-	$(MAKE) clean
-	env PATH=`pwd`/python2:$(PATH) $(MAKE) itest
 
 python3_test: python3/python
 	$(MAKE) clean
@@ -51,14 +48,8 @@ itest:
 		( cd $$d && $(MAKE) test ) || exit 1;			\
 	done
 
-python2/python: python2
-	ln -sf `which python2` $@
-
 python3/python: python3
 	ln -sf `which python3` $@
-
-python2:
-	mkdir $@
 
 python3:
 	mkdir $@
@@ -69,4 +60,4 @@ clean:
 	for d in $(DIRS); do 						\
 		  (cd $$d && $(MAKE) $@)				\
 	done;								\
-	rm -rf python2 python3
+	rm -rf python3

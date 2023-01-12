@@ -60,8 +60,6 @@
 # consider to be good Python "coding style."   Modify the code at your
 # own risk!
 # ----------------------------------------------------------------------------
-from __future__ import absolute_import # mbj: handle 'types' name collision
-
 import re
 import types
 import sys
@@ -94,11 +92,6 @@ resultlimit = 40               # Size limit of results when running in debug mod
 
 pickle_protocol = 0            # Protocol to use when writing pickle files
 
-# String type-checking compatibility
-if sys.version_info[0] < 3:
-    string_types = basestring  # noqa: pyflakes on py3 doesn't know this
-else:
-    string_types = str
 
 MAXINT = sys.maxsize
 
@@ -2001,10 +1994,7 @@ class LRTable(object):
         return parsetab._lr_signature
 
     def read_pickle(self, filename):
-        try:
-            import cPickle as pickle
-        except ImportError:
-            import pickle
+        import pickle
 
         if not os.path.exists(filename):
           raise ImportError
@@ -2851,10 +2841,7 @@ del _lr_goto_items
     # -----------------------------------------------------------------------------
 
     def pickle_table(self, filename, signature=''):
-        try:
-            import cPickle as pickle
-        except ImportError:
-            import pickle
+        import pickle
         with open(filename, 'wb') as outf:
             pickle.dump(__tabversion__, outf, pickle_protocol)
             pickle.dump(self.lr_method, outf, pickle_protocol)
@@ -3030,7 +3017,7 @@ class ParserReflect(object):
     # Validate the start symbol
     def validate_start(self):
         if self.start is not None:
-            if not isinstance(self.start, string_types):
+            if not isinstance(self.start, str):
                 self.log.error("'start' must be a string")
 
     # Look for error handler
@@ -3116,12 +3103,12 @@ class ParserReflect(object):
                     self.error = True
                     return
                 assoc = p[0]
-                if not isinstance(assoc, string_types):
+                if not isinstance(assoc, str):
                     self.log.error('precedence associativity must be a string')
                     self.error = True
                     return
                 for term in p[1:]:
-                    if not isinstance(term, string_types):
+                    if not isinstance(term, str):
                         self.log.error('precedence items must be strings')
                         self.error = True
                         return

@@ -61,18 +61,16 @@ setup(name='pyang',
       "to other formats.",
       url='https://github.com/mbj4668/pyang',
       install_requires = ["lxml"],
-      extras_require = {
-            ':python_version == "2.7"' : [
-                  "pathlib2"
-            ]
-      },
       license='BSD',
       classifiers=[
             'Development Status :: 5 - Production/Stable',
             'License :: OSI Approved :: BSD License',
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             ],
       keywords='YANG validator',
       distclass=PyangDist,

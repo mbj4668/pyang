@@ -4,8 +4,6 @@ from numbers import Integral as int_types
 
 from .error import err_add
 
-str_types = str if isinstance(u'', str) else (str, type(u''))
-
 
 def attrsearch(tag, attr, in_list):
     for x in in_list:
@@ -33,7 +31,7 @@ def is_prefixed(identifier):
 
 
 def is_local(identifier):
-    return isinstance(identifier, str_types)
+    return isinstance(identifier, str)
 
 
 def split_identifier(identifier):
