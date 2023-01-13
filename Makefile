@@ -18,8 +18,8 @@ doc:
 pyang/xpath_parsetab.py: pyang/xpath_parser.py
 	python -m pyang.xpath_parser
 
-test: lint
-	(cd test; $(MAKE) test)
+test:
+	$(MAKE) -C test test
 
 lint:
 	flake8 .
