@@ -19,7 +19,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install prerequisites
-        run: sudo apt-get install libxml2-utils xsltproc
+        run: sudo apt-get install libxml2-utils xsltproc jing
 
       - name: Install Python dependencies
         run: |
