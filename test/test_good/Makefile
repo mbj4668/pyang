@@ -8,15 +8,15 @@ test: clean utf8-test mef-ieee-test
 		$(PYANGE) -f yin -o $$m.yin $$m || exit 1;		\
 		echo " " | tr -d '\012';				\
 		echo " generating yang from the generated yin...";	\
-		$(PYANGE) -f yang -o $$m.gen.yang $$m.yin || exit 1;	\
+		$(PYANGE) -f yang -o $$m.yang.gen $$m.yin || exit 1;	\
 		echo " " | tr -d '\012';				\
 		echo " generating yang..." | tr -d '\012';		\
-		$(PYANGE) -f yang -o $$m.gen.yang $$m || exit 1;	\
+		$(PYANGE) -f yang -o $$m.yang.gen $$m || exit 1;	\
 		echo " generating yin from the generated yang...";	\
-		$(PYANGE) -f yin -o $$m.gen.yin $$m.gen.yang || exit 1;	\
+		$(PYANGE) -f yin -o $$m.yin.gen $$m.yang.gen || exit 1;	\
 		echo " " | tr -d '\012';				\
 		echo " comparing the two generated yin..." | tr -d '\012';\
-		diff $$m.yin $$m.gen.yin > $$m.diff ||	 		\
+		diff $$m.yin $$m.yin.gen > $$m.diff ||	 		\
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
 		echo " generating DSDL..." | tr -d '\012';		\
@@ -37,4 +37,4 @@ mef-ieee-test:
         $(PYANG) --ieee ieee-yt12.yang || exit 1;
 
 clean:
-	rm -rf *.yang.yin *.gen.* *.dsdl
+	rm -rf *.yang.yin *.gen *.dsdl
