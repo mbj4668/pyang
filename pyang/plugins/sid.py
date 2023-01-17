@@ -761,9 +761,15 @@ class SidFile:
         for item in self.content['items']:
             del item['status']
 
+        def sidkey(assignment):
+            return assignment['sid']
+
+        myorderedstuff = self.content.copy()
+        myorderedstuff['items'].sort(key=sidkey)
+
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
-            json.dump(self.content, outfile, indent=2)
+            json.dump(myorderedstuff, outfile, indent=2)
 
     ########################################################
     def number_of_sids_allocated(self):
