@@ -511,7 +511,8 @@ class SidFile:
     ########################################################
     # Verify if each SID listed in items is in range and is not duplicate.
     def validate_sid(self):
-        self.content['items'].sort(key=lambda item: item['sid'])
+        if self.content['items'] is not None:
+            self.content['items'].sort(key=lambda item: item['sid'])
         last_sid = -1
         for item in self.content['items']:
             sid = item['sid']
@@ -728,7 +729,10 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
-        for item in self.content['items']:
+        items = self.content['items']
+        if items is not None:
+            items.sort(key=lambda item: item['sid'])
+        for item in items:
             status = ""
             if item['status'] == 'n' and not self.sid_file_created:
                 status = " (New)"
@@ -761,11 +765,8 @@ class SidFile:
         for item in self.content['items']:
             del item['status']
 
-        def sidkey(assignment):
-            return assignment['sid']
-
         myorderedstuff = self.content.copy()
-        myorderedstuff['items'].sort(key=sidkey)
+        myorderedstuff['items'].sort(key=lambda item: item['sid'])
 
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
