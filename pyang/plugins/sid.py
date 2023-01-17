@@ -761,10 +761,8 @@ class SidFile:
         for item in self.content['items']:
             del item['status']
 
-        if os.path.exists(self.output_file_name):
-            os.remove(self.output_file_name)
-
         with open(self.output_file_name, 'w') as outfile:
+            outfile.truncate(0)
             json.dump(self.content, outfile, indent=2)
 
     ########################################################
