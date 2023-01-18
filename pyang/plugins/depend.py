@@ -46,6 +46,10 @@ class DependPlugin(plugin.PyangPlugin):
                                  help="(sub)module to ignore in the" \
                                      " prerequisites.  This option can be" \
                                      " given multiple times."),
+            optparse.make_option("--depend-include-revision",
+                                 dest="depend_include_revision",
+                                 action="store_true",
+                                 help="Include latest revision in output"),
             ]
         g = optparser.add_option_group("Depend output specific options")
         g.add_options(optlist)
@@ -65,6 +69,8 @@ def emit_depend(ctx, modules, fd):
     for module in modules:
         if ctx.opts.depend_target is None:
             fd.write('%s :' % module.pos.ref)
+            if ctx.opts.depend_include_revision:
+                fd.write(', %s\n' % module.i_latest_revision)
         else:
             fd.write('%s :' % ctx.opts.depend_target)
         prereqs = []
@@ -80,6 +86,9 @@ def emit_depend(ctx, modules, fd):
                     basename = os.path.splitext(m.pos.ref)[0]
                     filename = '%s%s' % (basename, ctx.opts.depend_extension)
                 fd.write(' %s' % filename)
+            elif ctx.opts.depend_include_revision:
+                m = ctx.get_module(i)
+                fd.write('%s, %s\n' % (i, m.i_latest_revision))
             else:
                 if ctx.opts.depend_extension is None:
                     ext = ""
