@@ -436,7 +436,13 @@ def print_node(s, module, fd, prefix, path, mode, depth, llen,
             if (get_leafref_path(s) is not None and
                 len(t) + brcol > llen):
                 # there's not even room for the leafref path; skip it
-                line += "%s %-*s   leafref" % (flags, width+1, name)
+                # 7 is len('leafref') - check if we can print it
+                if len(line) + len(flags) + width+1 + 7 + 4 > llen:
+                    line += "%s %s" % (flags, name)
+                    fd.write(line + '\n')
+                    line = prefix + ' ' * (brcol - len(prefix)) + ' leafref'
+                else:
+                    line += "%s %-*s   leafref" % (flags, width+1, name)
             else:
                 line += "%s %s" % (flags, name)
                 fd.write(line + '\n')
