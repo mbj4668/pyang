@@ -182,7 +182,7 @@ class YangTokenizer(object):
                     if self.buf[i] == quote_char:
                         # end-of-string; copy the buf to output
                         res.append(self.buf[start:i])
-                        strs.append((u''.join(res), quote_char))
+                        strs.append((''.join(res), quote_char))
                         # and trim buf
                         self.set_buf(i+1)
                         # check for '+' operator
@@ -331,7 +331,7 @@ class YangParser(object):
             argstrs = None
         else:
             argstrs = self.tokenizer.get_strings()
-            arg = u''.join([a[0] for a in argstrs])
+            arg = ''.join([a[0] for a in argstrs])
         # check for YANG 1.1
         if keywd == 'yang-version' and arg == '1.1':
             self.tokenizer.is_1_1 = True

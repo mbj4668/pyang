@@ -1,5 +1,6 @@
 module: x
-  +--rw foo?   leafref
+  +--rw foo?
+  |       leafref
   +--rw q
      +--rw enabled?
              boolean

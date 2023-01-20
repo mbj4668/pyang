@@ -25,9 +25,7 @@ lint:
 	flake8 .
 
 pylint:
-	touch bin/__init__.py  # makes pylint tell pyang script apart from pyang package
-	pylint bin/pyang bin/json2xml bin/yang2html pyang $(shell find test -name '*.py') || true
-	rm -f bin/__init__.py
+	pylint pyang $(shell find test -name '*.py') || true
 
 clean:
 	rm -f pyang/parser.out pyang/xpath_parsetab.py

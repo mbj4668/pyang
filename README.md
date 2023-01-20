@@ -27,11 +27,12 @@ Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
 
 - **2 Source**
 
+> It is reccomended to use a [Python virtual environment](https://docs.python.org/3/tutorial/venv.html)
+
 ```sh
   git clone https://github.com/mbj4668/pyang.git
   cd pyang
-  python setup.py install
-  (this might require root access)
+  pip install -e .
 ```
 
 
@@ -47,7 +48,7 @@ find standard YANG modules. In addition, make sure that **PYTHONPATH** is set
 to something as follows:
 
 ```sh
-export PYTHONPATH=/usr/local/lib/python2.7/site-packages
+export PYTHONPATH=/usr/local/lib/python3.10/site-packages
 ```
 
 or whatever version of python you are running.
@@ -164,6 +165,10 @@ man pyang
   Directory where plugins can be installed.  All plugins in this
   directory are automatically initialized when the library is
   initialized.
+
+* **pyang/scripts/**
+  Directory where the python cli scripts are located.
+  Installed as entry point.
 
 * **pyang/translators/**
   Contains output plugins for YANG, YIN, and DSDL translation.

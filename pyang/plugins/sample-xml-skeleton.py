@@ -121,15 +121,9 @@ class SampleXMLSkeletonPlugin(plugin.PyangPlugin):
         tree = etree.ElementTree(self.top)
         for yam in modules:
             self.process_children(yam, self.top, None, path)
-        if sys.version > "3":
-            fd.write(str(etree.tostring(tree, pretty_print=True,
-                                        encoding="UTF-8",
-                                        xml_declaration=True), "UTF-8"))
-        elif sys.version > "2.7":
-            tree.write(fd, encoding="UTF-8", pretty_print=True,
-                       xml_declaration=True)
-        else:
-            tree.write(fd, pretty_print=True, encoding="UTF-8")
+        fd.write(str(etree.tostring(tree, pretty_print=True,
+                                    encoding="UTF-8",
+                                    xml_declaration=True), "UTF-8"))
 
     def ignore(self, node, elem, module, path):
         """Do nothing for `node`."""

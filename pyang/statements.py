@@ -1263,13 +1263,13 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
     expr = syntax.parse_if_feature_expr(stmt.arg)
     if stmt.i_module.i_version == '1':
         # version 1 allows only a single value as if-feature
-        if not isinstance(expr, util.str_types):
+        if not isinstance(expr, str):
             err_add(ctx.errors, stmt.pos,
                     'BAD_VALUE', (stmt.arg, 'identifier-ref'))
             return
 
     def eval_if_feature(expr):
-        if isinstance(expr, util.str_types):
+        if isinstance(expr, str):
             return has_feature(expr)
         else:
             op, op1, op2 = expr
