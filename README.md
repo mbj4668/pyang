@@ -57,9 +57,7 @@ or whatever version of python you are running.
 Run locally without installing
 
 ```sh
-alias pyang="$PWD/pyang/scripts/pyang_tool.py"
-alias json2xml="$PWD/pyang/scripts/json2xml.py"
-alias yang2html="$PWD/pyang/scripts/yang2html.py"
+export PATH=`pwd`/bin:$PATH
 export MANPATH=`pwd`/man:$MANPATH
 export PYTHONPATH=`pwd`:$PYTHONPATH
 export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
