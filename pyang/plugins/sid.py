@@ -13,12 +13,8 @@ import re
 import os
 import errno
 import json
+from json import JSONDecodeError
 
-try:
-    from json.decode import JSONDecodeError
-except ImportError:
-    class JSONDecodeError(ValueError):
-        pass
 
 from pyang import plugin
 from pyang import util
@@ -465,13 +461,13 @@ class SidFile:
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if not (isinstance(item[key], util.str_types)
+                    if not (isinstance(item[key], str)
                             and item[key].endswith(self.namespace_ends)):
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
 
                 elif key == 'identifier':
                     identifier_absent = False
-                    if not isinstance(item[key], util.str_types):
+                    if not isinstance(item[key], str):
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
 
                 elif key == 'sid':
