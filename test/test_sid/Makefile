@@ -12,9 +12,9 @@ test2:
 	rm toaster@2009-11-20.sid
 
 test3:
-	# Test update sid file
+	# Test update sid file (test3)
 	cp test-2-expected-toaster@2009-11-20.sid toaster@2009-11-20.sid
-	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | diff -b test-3-expected-output.txt -
+	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-3-expected-output.txt | diff -b test-3-expected-output.txt -
 	diff -b test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
 	rm toaster@2009-11-20.sid toaster@2009-12-28.sid
 

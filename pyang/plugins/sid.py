@@ -689,6 +689,7 @@ class SidFile:
         for item in unassigned:
             try:
                 item['sid'] = next(source)
+                item['status'] = 'unstable'
             except StopIteration:
                 raise SidParsingError(
                     "The current SID range(s) are exhausted, %d extra SID(s) "
