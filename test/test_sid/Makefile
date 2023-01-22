@@ -29,11 +29,11 @@ test5:
 	$(PYANG) --sid-generate-file 2500:50 ietf-constrained-voucher@2019-08-01.yang 2>&1 | diff -b test-5-expected-output.txt -
 	diff -b test-5-expected-ietf-constrained-voucher@2019-08-01.sid ietf-constrained-voucher@2019-08-01.sid
 	rm ietf-constrained-voucher@2019-08-01.sid
-  
+
 test6:
 	# Test SID range exhausted
 	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
-	$(PYANG) --sid-update-file toaster@2009-12-28.sid toaster@2019-01-01.yang 2>&1 | diff -b test-6-expected-output.txt - 
+	$(PYANG) --sid-update-file toaster@2009-12-28.sid toaster@2019-01-01.yang 2>&1 | diff -b test-6-expected-output.txt -
 	rm toaster@2009-12-28.sid
 
 test7:
@@ -46,7 +46,7 @@ test7:
 	rm -f toaster@2009-11-20.sid toaster@2009-12-28.sid toaster@2019-01-01.sid
 
 test8:
-	# In generate sid file, test count 
+	# In generate sid file, test count
 	$(PYANG) --sid-generate-file count toaster@2009-11-20.yang 2>&1 | diff -b test-8-expected-output.txt -
 
 test9:
