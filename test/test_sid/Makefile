@@ -96,3 +96,12 @@ test20:
 	$(PYANG) --sid-generate-file 60000:100 ieee802-dot1q-psfp@2020-07-07.yang 2>&1 | diff -b test-20-expected-output.txt -
 	diff -b test-20-expected-ieee802-dot1q-psfp@2020-07-07.sid ieee802-dot1q-psfp@2020-07-07.sid
 	rm ieee802-dot1q-psfp@2020-07-07.sid
+
+test21:
+	# Test finalize of sid file
+	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
+	mkdir -p OUTPUT
+	$(PYANG) --sid-update-file toaster@2009-12-28.sid --sid-finalize toaster@2019-01-01.yang 2>&1 | tee OUTPUT/test-21-expected-output.txt | diff -b test-21-expected-output.txt -
+	diff -b toaster@2009-12-28.sid test-21-expected-toaster@2009-12-28.sid
+	rm toaster@2009-12-28.sid
+
