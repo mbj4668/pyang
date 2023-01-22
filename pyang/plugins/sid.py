@@ -55,6 +55,10 @@ class SidPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="list_sid",
                                  help="Print the list of SID."),
+            optparse.make_option("--sid-finalize",
+                                 action="store_true",
+                                 dest="finalize_sid",
+                                 help="Mark current allocations as non-provisional."),
             optparse.make_option("--sid-registration-info",
                                  action="store_true",
                                  dest="sid_registration_info",
@@ -221,6 +225,19 @@ OPTIONS
   obtains the list of SIDs assigned or validated. For example:
 
   $ pyang --sid-list --sid-generate-file 20000:100 toaster@2009-11-20.yang
+
+--sid-finalize
+
+  New allocations when during development of a protocol are marked as
+  "provisional", unless --sid-finalize is specified, then they are marked with
+  a status given by the module-revision of the YANG module.
+
+  When --sid-finalize is specified, any items marked provisional are also
+  marked with the module-revision.
+
+  Otherwise, any new allocations are marked "unstable"
+
+  $ pyang --sid-list --sid-generate-file 20000:100 --sid-finalize toaster@2009-11-20.yang
 
 --sid-extra-range
 
