@@ -556,7 +556,7 @@ class SidFile:
             self.content['items'] = []
 
         for item in self.content['items']:
-            item['status'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
+            item['lifecycle'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
 
         self.merge_item('module', self.module_name)
 
@@ -661,10 +661,12 @@ class SidFile:
     def merge_item(self, namespace, identifier):
         for item in self.content['items']:
             if (namespace == item['namespace'] and identifier == item['identifier']):
-                item['status'] = 'o' # Item already assigned
+                item['lifecycle'] = 'o' # Item already assigned
                 return
         self.content['items'].append(collections.OrderedDict(
-            [('namespace', namespace), ('identifier', identifier), ('sid', -1), ('status', 'n')]))
+            [('namespace', namespace), ('identifier', identifier),
+             ('status', 'unstable'),
+             ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
 
     ########################################################
@@ -740,9 +742,9 @@ class SidFile:
             items.sort(key=lambda item: item['sid'])
         for item in items:
             status = ""
-            if item['status'] == 'n' and not self.sid_file_created:
+            if item['lifecycle'] == 'n' and not self.sid_file_created:
                 status = " (New)"
-            if item['status'] == 'd' and item['namespace'] != 'module':
+            if item['lifecycle'] == 'd' and item['namespace'] != 'module':
                 status = " (Remove)"
                 definition_removed = True
 
@@ -756,7 +758,7 @@ class SidFile:
     def list_deleted_items(self):
         definition_removed = False
         for item in self.content['items']:
-            if item['status'] == 'd':
+            if item['lifecycle'] == 'd':
                 print("WARNING, item '%s' was deleted form the .yang files." % item['identifier'])
                 definition_removed = True
 
@@ -769,7 +771,7 @@ class SidFile:
     ########################################################
     def generate_file(self):
         for item in self.content['items']:
-            del item['status']
+            del item['lifecycle']
 
         myorderedstuff = self.content.copy()
         myorderedstuff['items'].sort(key=lambda item: item['sid'])
