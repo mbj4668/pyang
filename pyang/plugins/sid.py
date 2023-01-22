@@ -134,6 +134,12 @@ class SidPlugin(plugin.PyangPlugin):
         if ctx.opts.list_sid:
             sid_file.list_content = True
 
+        if ctx.opts.finalize_sid:
+            print("Will mark unstable allocations finalized")
+            sid_file.check_consistency = False
+            sid_file.is_consistent = False
+            sid_file.finalize_sid  = True
+
         try:
             sid_file.process_sid_file(modules[0])
 
@@ -278,6 +284,7 @@ class SidFile:
         self.is_consistent = True
         self.check_consistency = False
         self.list_content = False
+        self.finalize_sid = False
         self.sid_registration_info = False
         self.input_file_name = None
         self.range = None
@@ -793,6 +800,13 @@ class SidFile:
 
         myorderedstuff = self.content.copy()
         myorderedstuff['items'].sort(key=lambda item: item['sid'])
+
+        if self.finalize_sid:
+            print("Finalizing unstable allocations to %s" % (self.module_revision))
+            for item in myorderedstuff['items']:
+                if item['status'] == 'unstable':
+                    print("  finalized %s" % (item['identifier']))
+                    item['status'] = self.module_revision
 
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
