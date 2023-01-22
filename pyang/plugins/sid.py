@@ -461,6 +461,7 @@ class SidFile:
         namespace_absent = True
         identifier_absent = True
         sid_absent = True
+        status_absent = True
         for item in items:
             for key in item:
                 if key == 'namespace':
@@ -477,6 +478,11 @@ class SidFile:
                 elif key == 'sid':
                     sid_absent = False
                     if not isinstance(item[key], util.int_types):
+                        raise SidFileError("invalid 'sid' value '%s'." % item[key])
+
+                elif key == 'status':
+                    status_absent = False
+                    if not isinstance(item[key], util.str_types):
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
 
                 else:
