@@ -2,7 +2,6 @@
 SID        Assigned to
 ---------  --------------------------------------------------
 20000      module toaster
-20018      identity croissant (New)
 20001      identity frozen-bagel
 20002      identity frozen-waffle
 20003      identity hash-brown
@@ -17,10 +16,11 @@ SID        Assigned to
 20012      data /toaster:toastDone
 20013      data /toaster:toastDone/toastStatus
 20014      data /toaster:toaster
-20019      data /toaster:toaster/darknessFactor (New)
 20015      data /toaster:toaster/toasterManufacturer
 20016      data /toaster:toaster/toasterModelNumber
 20017      data /toaster:toaster/toasterStatus
+20018      identity croissant (New)
+20019      data /toaster:toaster/darknessFactor (New)
 
 File toaster@2009-12-28.sid updated
 Number of SIDs available : 25
