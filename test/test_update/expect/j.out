@@ -1,1 +1,3 @@
 j@2014-04-01.yang:9: error: CHK_ENUM_VALUE_CHANGED_v1.1
+j@2014-04-01.yang:14: error: CHK_NEW_WHEN
+j@2014-04-01.yang:18: warning: CHK_UNDECIDED_WHEN
