@@ -534,7 +534,7 @@ def chk_when(old, new, ctx):
         if len(newwhen) == 0:
             # this is good; maybe some old whens were removed
             return
-    elif len(oldwhen) == 0:
+    if len(oldwhen) == 0:
         for neww in newwhen:
             err_add(ctx.errors, neww.pos, 'CHK_NEW_WHEN', ())
     else:
