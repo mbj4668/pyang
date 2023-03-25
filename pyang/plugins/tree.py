@@ -144,14 +144,12 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if b is not None:
                 bstr = " (belongs-to %s)" % b.arg
             fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
-            printed_header.append(None)
 
-    printed_header = []
+    printed_header = False
 
     for module in modules:
         if printed_header:
             fd.write("\n")
-        del printed_header[:]
 
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
