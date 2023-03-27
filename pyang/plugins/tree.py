@@ -136,21 +136,21 @@ Each node is printed as:
 """)
 
 def emit_tree(ctx, modules, fd, depth, llen, path):
+    printed_header = False
 
     def print_header(module):
+        nonlocal printed_header
         if not printed_header:
             bstr = ""
             b = module.search_one('belongs-to')
             if b is not None:
                 bstr = " (belongs-to %s)" % b.arg
             fd.write("%s: %s%s\n" % (module.keyword, module.arg, bstr))
-
-    printed_header = False
+            printed_header = True
 
     for module in modules:
         if printed_header:
             fd.write("\n")
-
         chs = [ch for ch in module.i_children
                if ch.keyword in statements.data_definition_keywords]
         if path is not None and len(path) > 0:
@@ -261,7 +261,6 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if len(sxs) > 0:
                 if not printed_header:
                     print_header(module)
-                    printed_header = True
                 section_delimiter_printed = False
                 for sx in sxs:
                     if not section_delimiter_printed:
@@ -278,7 +277,6 @@ def emit_tree(ctx, modules, fd, depth, llen, path):
             if len(sxs) > 0:
                 if not printed_header:
                     print_header(module)
-                    printed_header = True
                 section_delimiter_printed = False
                 for sx in sxs:
                     if not section_delimiter_printed:
