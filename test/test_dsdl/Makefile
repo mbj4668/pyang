@@ -1,12 +1,12 @@
-PYANG_RNG_LIBDIR = ../../schema
-PYANG_XSLT_DIR = ../../xslt
+export PYANG_RNG_LIBDIR = ../../schema
+export PYANG_XSLT_DIR = ../../xslt
 YANG2DSDL ?= ../../bin/yang2dsdl
 
 results := $(patsubst %.xml,%.log,$(wildcard *.xml))
 
 .PHONY = all clean
 
-all: $(results) 
+all: $(results)
 
 test: all
 

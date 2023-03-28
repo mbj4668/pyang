@@ -12,11 +12,12 @@ export PYANG := $(PROFILE) $(W)/pyang/scripts/pyang_tool.py
 export JSON2XML := $(PROFILE) $(W)/pyang/scripts/json2xml.py
 export YANG2HTML := $(PROFILE) $(W)/pyang/scripts/yang2html.py
 else
-export PYANG := pyang
+export YANG_MODPATH:=../modules/iana:../modules/ietf
+export PYANG := $(shell pwd)/../bin/pyang
 export JSON2XML := json2xml
 export YANG2HTML := yang2html
 endif
-export YANG2DSDL := env PYANG="$(PYANG)" $(W)/bin/yang2dsdl
+#export YANG2DSDL := env PYANG="$(PYANG)" $(W)/bin/yang2dsdl
 
 test:
 	$(MAKE) selftest mtest itest
