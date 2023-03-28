@@ -502,7 +502,7 @@ class SidFile:
 
                 elif key == 'status':
                     status_absent = False
-                    if not isinstance(item[key], util.str_types):
+                    if not isinstance(item[key], str):
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
 
                 else:
