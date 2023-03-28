@@ -1,0 +1,26 @@
+Will mark unstable allocations finalized
+Finalizing unstable allocations to 2009-12-28
+  finalized toaster
+  finalized frozen-bagel
+  finalized frozen-waffle
+  finalized hash-brown
+  finalized toast-type
+  finalized wheat-bread
+  finalized white-bread
+  finalized wonder-bread
+  finalized /toaster:cancel-toast
+  finalized /toaster:make-toast
+  finalized /toaster:make-toast/input/toasterDoneness
+  finalized /toaster:make-toast/input/toasterToastType
+  finalized /toaster:toastDone
+  finalized /toaster:toastDone/toastStatus
+  finalized /toaster:toaster
+  finalized /toaster:toaster/toasterManufacturer
+  finalized /toaster:toaster/toasterModelNumber
+  finalized /toaster:toaster/toasterStatus
+  finalized croissant
+  finalized /toaster:toaster/darknessFactor
+
+File toaster@2009-12-28.sid updated
+Number of SIDs available : 25
+Number of SIDs used : 20
