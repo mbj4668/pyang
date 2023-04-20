@@ -93,6 +93,14 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
+            optparse.make_option("--uml-leafref-color",
+                                 dest="uml_leafref_color",
+                                 default = "",
+                                 help="sets the color of leafref links\nExample --uml-leafref-color='[#red]'"),
+            optparse.make_option("--uml-skinparams",
+                                 dest="uml_skinparams",
+                                 default = "",
+                                 help="Adds general UML skinparams. The values \nExample --uml-skinparams=ArrowColor:blue,FileFontColor:red"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -150,6 +158,7 @@ class uml_emitter:
     ctx_truncate_augments = False
     ctx_inline_augments = False
     ctx_no_module = False
+    ctx_leafref_color = ''
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -211,6 +220,10 @@ class uml_emitter:
         self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
         self.ctx_truncate_leafrefs = "leafref" in ctx.opts.uml_truncate.split(",")
         self.ctx_no_module = "module" in no
+        self.ctx_leafref_color = ctx.opts.uml_leafref_color
+        self.ctx_skinparams = {}
+        if ctx.opts.uml_skinparams:
+            self.ctx_skinparams = dict(s.split(':', 1) for s in ctx.opts.uml_skinparams.split(","))
 
         truncatestrings = ("augment", "leafref")
         if ctx.opts.uml_truncate != "":
@@ -292,7 +305,7 @@ class uml_emitter:
             node = statements.find_target_node(self._ctx, stmt, True)
             if node is not None and prefix in self.module_prefixes and not self.ctx_inline_augments:
                 # sys.stderr.write("Found augment target : %s , %s \n" %(stmt.arg, self.full_path(node)))
-                self.augments.append(self.full_path(stmt) + '-->' + self.full_path(node) + ' : augments' + '\n')
+                self.augments.append(self.full_path(stmt) + '-' + + '->' + self.full_path(node) + ' : augments' + '\n')
             else:
                 # sys.stderr.write("Not Found augment target : %s \n" %(stmt.arg))
                 pass
@@ -493,7 +506,8 @@ class uml_emitter:
         if not self.ctx_stereotypes:
             fd.write('hide stereotypes \n')
 
-
+        for k in self.ctx_skinparams:
+            fd.write('skinparam %s %s\n' %(k, self.ctx_skinparams[k]))
 
         # split into pages ? option -s
         fd.write('page %s \n' %self.ctx_pagelayout)
@@ -841,9 +855,9 @@ class uml_emitter:
 
                 if n is not None:
                     if node.keyword == 'typedef':
-                        self.leafrefs.append(self.make_plantuml_keyword(node.arg) + '-->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
+                        self.leafrefs.append(self.make_plantuml_keyword(node.arg) + '-' + self.ctx_leafref_color + '->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
                     else:
-                        self.leafrefs.append(self.full_path(node.parent) + '-->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
+                        self.leafrefs.append(self.full_path(node.parent) + '-' + self.ctx_leafref_color + '->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
                     if prefix not in self.module_prefixes:
                         self.post_strings.append('class \"%s\" as %s <<leafref>> \n' %(leafrefparent, self.full_path(n.parent)))
                         # self.post_strings.append('%s : %s\n' %(self.full_path(n.parent), leafrefkey))
