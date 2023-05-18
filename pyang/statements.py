@@ -2300,6 +2300,7 @@ def v_reference_deviate(ctx, stmt):
                 else:
                     t.substmts.append(c)
                     if c.keyword == "if-feature":
+                        # update parent of if-feature as target node
                         c.parent = t
     elif stmt.arg == 'replace':
         for c in stmt.substmts:
