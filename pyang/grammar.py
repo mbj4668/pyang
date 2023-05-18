@@ -539,6 +539,7 @@ stmt_map = {
           ('mandatory', '?'),
           ('min-elements', '?'),
           ('max-elements', '?'),
+          ('if-feature', '*'),
           ]),
     }
 """YANG statement definitions.

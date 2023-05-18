@@ -348,6 +348,7 @@ _valid_deviations = {
     'max-elements':['leaf-list', 'list'],
     'must':['leaf', 'choice', 'container', 'list', 'leaf-list'],
     'unique':['list'],
+    'if-feature':['container']
 }
 
 ### Validation
@@ -2298,6 +2299,8 @@ def v_reference_deviate(ctx, stmt):
 
                 else:
                     t.substmts.append(c)
+                    if c.keyword == "if-feature":
+                        c.parent = t
     elif stmt.arg == 'replace':
         for c in stmt.substmts:
             if c.keyword == '_comment':
