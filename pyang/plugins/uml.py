@@ -46,6 +46,11 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-title",
                                  dest="uml_title",
                                  help="Set the title of the generated UML, including the output file name"),
+            optparse.make_option("--uml-no-title",
+                                 action="store_true",
+                                 dest="uml_no_title",
+                                 default = False,
+                                 help="Do not include a title. If a title has also been specified as an option, it will be ignored."),
             optparse.make_option("--uml-header",
                                  dest="uml_header",
                                  help="Set the page header of the generated UML"),
@@ -93,6 +98,19 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
+            optparse.make_option("--uml-unbound-is-star",
+                                 action="store_true",
+                                 dest="uml_unbound_is_star",
+                                 default = False,
+                                 help="Use a star ('*') to render unbounded upper limit multiplicity instead of an 'N'."),
+            optparse.make_option("--uml-node-choice",
+                                 dest="uml_node_choice",
+                                 default = "",
+                                 help="Selects how to render the relationship between a container or list and a choice. \nValid values are one of: aggregation, composition, dependency, generalization, realization (default dependency)"),
+            optparse.make_option("--uml-choice-case",
+                                 dest="uml_choice_case",
+                                 default = "",
+                                 help="Selects how to render the relationship between a choice and its cases. \nValid values are one of: aggregation, composition, dependency, generalization, realization (default dependency)"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -134,6 +152,7 @@ class uml_emitter:
     ctx_pagelayout = '1x1'
     ctx_outputdir = "img/"
     ctx_title = None
+    ctx_no_title = False
     ctx_fullpath = False
     ctx_classesonly = False
     ctx_description = False
@@ -150,6 +169,9 @@ class uml_emitter:
     ctx_truncate_augments = False
     ctx_inline_augments = False
     ctx_no_module = False
+    ctx_unbound_is_star = False
+    ctx_relationship_node_choice = "dependency"
+    ctx_relationship_choice_case = "dependency"
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -167,11 +189,16 @@ class uml_emitter:
     post_strings = []
     module_prefixes = []
 
+    symbol_node_to_choice = ".."
+    symbol_choice_to_case = ".."
+
     def __init__(self, ctx):
         self._ctx = ctx
         self.ctx_fullpath = ctx.opts.uml_longids
         self.ctx_description = ctx.opts.uml_descr
         self.ctx_classesonly = ctx.opts.uml_classes_only
+        self.ctx_no_title = ctx.opts.uml_no_title
+        self.ctx_unbound_is_star = ctx.opts.uml_unbound_is_star
         # output dir from option -D or default img/
         if ctx.opts.uml_outputdir is not None:
             self.ctx_outputdir = ctx.opts.uml_outputdir
@@ -206,6 +233,37 @@ class uml_emitter:
                 if no_opt not in nostrings:
                     sys.stderr.write("\"%s\" no valid argument to --uml-no=...,  valid arguments: %s \n" %(no_opt, nostrings))
 
+        relationship_strings = ("aggregation", "composition", "dependency", "generalization", "realization")
+        if ctx.opts.uml_node_choice != "":
+            if ctx.opts.uml_node_choice in relationship_strings:
+                self.ctx_relationship_node_choice = ctx.opts.uml_node_choice
+            else:
+                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_node_choice, relationship_strings))
+
+        if self.ctx_relationship_node_choice == 'generalization':
+            self.symbol_node_to_choice = "<|--"
+        elif self.ctx_relationship_node_choice == 'aggregation':
+            self.symbol_node_to_choice = "o--"
+        elif self.ctx_relationship_node_choice == 'composition':
+            self.symbol_node_to_choice = "*--"
+        elif self.ctx_relationship_node_choice == 'realization':
+            self.symbol_node_to_choice = "<|.."
+
+        if ctx.opts.uml_choice_case != "":
+            if ctx.opts.uml_choice_case in relationship_strings:
+                self.ctx_relationship_choice_case = ctx.opts.uml_choice_case
+            else:
+                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_choice_case, relationship_strings))
+
+        if self.ctx_relationship_choice_case == 'generalization':
+            self.symbol_choice_to_case = "<|--"
+        elif self.ctx_relationship_choice_case == 'aggregation':
+            self.symbol_choice_to_case = "o--"
+        elif self.ctx_relationship_choice_case == 'composition':
+            self.symbol_choice_to_case = "*--"
+        elif self.ctx_relationship_choice_case == 'realization':
+            self.symbol_choice_to_case = "<|.."
+            
         self.ctx_filterfile = ctx.opts.uml_gen_filter_file
 
         self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
@@ -225,6 +283,7 @@ class uml_emitter:
                 self.ctx_usefilterfile.close()
             except IOError:
                 raise error.EmitError("Filter file %s does not exist" %ctx.opts.uml_filter_file, 2)
+
 
     def emit(self, modules, fd):
         title = ''
@@ -320,7 +379,7 @@ class uml_emitter:
         elif stmt.keyword == 'choice':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(stmt), self.full_path(stmt)))
-                fd.write('%s .. %s : choice \n' % (self.full_path(mod), self.full_path(stmt)))
+                fd.write('%s %s %s : choice \n' % (self.full_path(mod), self.symbol_node_to_choice, self.full_path(stmt)))
             # sys.stderr.write('in choice %s \n', self.full_path(mod))
             for children in stmt.substmts:
                 self.emit_child_stmt(stmt, children, fd)
@@ -328,7 +387,7 @@ class uml_emitter:
         elif stmt.keyword == 'case':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s \n' %(self.full_display_path(stmt), self.full_path(stmt)))
-                fd.write('%s ..  %s  : choice\n' % (self.full_path(mod), self.full_path(stmt)))
+                fd.write('%s %s %s  : choice\n' % (self.full_path(mod), self.symbol_choice_to_case, self.full_path(stmt)))
             # sys.stderr.write('in case %s \n', full_path(mod))
             for children in mod.substmts:
                 self.emit_child_stmt(stmt, children, fd)
@@ -367,7 +426,8 @@ class uml_emitter:
             # create fake parent statement.keyword = 'case' statement.arg = node.arg
             newparent = statements.Statement(parent, parent, None, 'case', node.arg)
             fd.write('class \"%s\" as %s <<case>> \n' % (node.arg, self.full_path(newparent)))
-            fd.write('%s .. %s : choice %s\n' % (self.full_path(parent), self.full_path(newparent), node.parent.arg))
+            fd.write('%s %s %s : choice %s\n' % (self.full_path(parent), self.symbol_choice_to_case, self.full_path(newparent), node.parent.arg))
+
             parent = newparent
 
 
@@ -388,7 +448,7 @@ class uml_emitter:
         elif node.keyword == 'choice':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(node), self.full_path(node)))
-                fd.write('%s .. %s : choice \n' % (self.full_path(parent), self.full_path(node)))
+                fd.write('%s %s %s : choice \n' % (self.full_path(parent), self.symbol_node_to_choice, self.full_path(node)))
             if cont:
                 for children in node.substmts:
                     # try pointing to parent
@@ -398,7 +458,8 @@ class uml_emitter:
             # sys.stderr.write('in case \n')
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<case>>\n' %(self.full_display_path(node), self.full_path(node)))
-                fd.write('%s .. %s  : choice %s\n' % (self.full_path(parent), self.full_path(node), node.parent.arg))
+                fd.write('%s %s %s  : choice %s\n' % (self.full_path(parent), self.symbol_choice_to_case, self.full_path(node), node.parent.arg))
+
             if cont:
                 for children in node.substmts:
                     self.emit_child_stmt(node, children, fd)
@@ -498,10 +559,10 @@ class uml_emitter:
         # split into pages ? option -s
         fd.write('page %s \n' %self.ctx_pagelayout)
 
-
-        fd.write('Title %s \n' %title)
-        if self._ctx.opts.uml_header is not None:
-            fd.write('center header\n <size:48> %s </size>\n endheader \n' %self._ctx.opts.uml_header)
+        if not self.ctx_no_title:
+            fd.write('Title %s \n' %title)
+            if self._ctx.opts.uml_header is not None:
+                fd.write('center header\n <size:48> %s </size>\n endheader \n' %self._ctx.opts.uml_header)
 
 
     def emit_module_header(self, module, fd):
@@ -636,7 +697,10 @@ class uml_emitter:
         if not self.ctx_filterfile:
             fd.write('class \"%s\" as %s << (L, #FF7700) list>> \n' %(self.full_display_path(node), self.full_path(node)))
             minelem = '0'
-            maxelem = 'N'
+            if self.ctx_unbound_is_star :
+                maxelem = "*"
+            else:
+                maxelem = "N"
             oby = ''
             mi = node.search_one('min-elements')
             if mi is not None:
