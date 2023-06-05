@@ -50,13 +50,18 @@ class UMLPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="uml_no_title",
                                  default = False,
-                                 help="Do not include a title. If a title has also been specified as an option, it will be ignored."),
+                                 help="Do not include a title. If a title has also been specified as an option, it will be ignored"),
             optparse.make_option("--uml-header",
                                  dest="uml_header",
                                  help="Set the page header of the generated UML"),
             optparse.make_option("--uml-footer",
                                  dest="uml_footer",
-                                 help="Set the page footer of the generated UML"),
+                                 help="Set the page footer of the generated UML. If not specified, a default footer will be generated"),
+            optparse.make_option("--uml-no-footer",
+                                 action="store_true",
+                                 dest="uml_no_footer",
+                                 default = False,
+                                 help="Do not include a footer. If a footer has also been specified as an option, it will be ignored"),
             optparse.make_option("--uml-long-identifiers",
                                  action="store_true",
                                  dest="uml_longids",
@@ -153,6 +158,7 @@ class uml_emitter:
     ctx_outputdir = "img/"
     ctx_title = None
     ctx_no_title = False
+    ctx_no_footer = False
     ctx_fullpath = False
     ctx_classesonly = False
     ctx_description = False
@@ -198,6 +204,7 @@ class uml_emitter:
         self.ctx_description = ctx.opts.uml_descr
         self.ctx_classesonly = ctx.opts.uml_classes_only
         self.ctx_no_title = ctx.opts.uml_no_title
+        self.ctx_no_footer = ctx.opts.uml_no_footer
         self.ctx_unbound_is_star = ctx.opts.uml_unbound_is_star
         # output dir from option -D or default img/
         if ctx.opts.uml_outputdir is not None:
@@ -564,8 +571,9 @@ class uml_emitter:
 
         if not self.ctx_no_title:
             fd.write('Title %s \n' %title)
-            if self._ctx.opts.uml_header is not None:
-                fd.write('center header\n <size:48> %s </size>\n endheader \n' %self._ctx.opts.uml_header)
+
+        if self._ctx.opts.uml_header is not None:
+            fd.write('center header\n <size:48> %s </size>\n endheader \n' %self._ctx.opts.uml_header)
 
 
     def emit_module_header(self, module, fd):
@@ -655,11 +663,12 @@ class uml_emitter:
 
 
     def emit_uml_footer(self, module, fd):
-        if self._ctx.opts.uml_footer is not None:
-            fd.write('center footer\n <size:24> %s </size>\n endfooter \n' %self._ctx.opts.uml_footer)
-        else:
-            now = datetime.datetime.now()
-            fd.write('center footer\n <size:20> UML Generated : %s </size>\n endfooter \n' %now.strftime("%Y-%m-%d %H:%M"))
+        if not self.ctx_no_footer:
+            if self._ctx.opts.uml_footer is not None:
+                fd.write('center footer\n <size:24> %s </size>\n endfooter \n' %self._ctx.opts.uml_footer)
+            else:
+                now = datetime.datetime.now()
+                fd.write('center footer\n <size:20> UML Generated : %s </size>\n endfooter \n' %now.strftime("%Y-%m-%d %H:%M"))
 
         fd.write('@enduml \n')
 
