@@ -93,7 +93,14 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-max-enums",
                                  dest="uml_max_enums",
                                  default = "3",
-                                 help="The maximum number of enumerated values being rendered"),
+                                 help="The maximum number of enumerated values or bits values being rendered"),
+            optparse.make_option("--uml-max-bits",
+                                 dest="uml_max_bits",
+                                 help="When present enables the rendering of bits typedefs as a 'bits' class rather than a 'typedef' class and also defines the maximum number of bits values being rendered"),
+            optparse.make_option("--uml-more",
+                                 dest="uml_more",
+                                 default="MORE",
+                                 help="Selects how to indicate within a class that there are more enumerated or bits values than are shown. \nValid values are one of: MORE, ellipsis. \nNote that ellipsis is rendered as '...'"),
 
             optparse.make_option("--uml-filter",
                                  action="store_true",
@@ -178,6 +185,8 @@ class uml_emitter:
     ctx_unbound_is_star = False
     ctx_relationship_node_choice = "dependency"
     ctx_relationship_choice_case = "dependency"
+    ctx_no_circles = False
+    ctx_more_string = "MORE"
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -291,6 +300,14 @@ class uml_emitter:
             except IOError:
                 raise error.EmitError("Filter file %s does not exist" %ctx.opts.uml_filter_file, 2)
 
+        more_strings = ("MORE", "ellipsis")
+        if ctx.opts.uml_more in more_strings:
+            if ctx.opts.uml_more == "ellipsis":
+                self.ctx_more_string = "..."
+            else:
+                self.ctx_more_string = ctx.opts.uml_more
+        else:
+            sys.stderr.write("\"%s\" not a valid argument to --uml-more=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_more, more_strings))
 
     def emit(self, modules, fd):
         title = ''
@@ -548,8 +565,10 @@ class uml_emitter:
 
 
         fd.write('@startuml %s%s.png \n' %(self.ctx_outputdir, title))
+
         fd.write('hide empty fields \n')
         fd.write('hide empty methods \n')
+
         fd.write('hide <<case>> circle\n')
         fd.write('hide <<augment>> circle\n')
         fd.write('hide <<choice>> circle\n')
@@ -781,11 +800,21 @@ class uml_emitter:
             e = t.search_one('type')
             if e.arg == 'enumeration':
                 # enum_name = self.full_path(t, False)
-                fd.write('enum \"%s\" as %s {\n' %(t.arg, self.full_path(t)))
+                fd.write('enum \"%s\" as %s <<enumeration>> {\n' %(t.arg, self.full_path(t)))
                 for enums in e.substmts[:int(self._ctx.opts.uml_max_enums)]:
                     fd.write('%s\n' %enums.arg)
                 if len(e.substmts) > int(self._ctx.opts.uml_max_enums):
-                    fd.write('%s\n' %"MORE")
+                    fd.write('%s\n' %(self.ctx_more_string))
+                fd.write("}\n")
+            elif e.arg == 'bits' and self._ctx.opts.uml_max_bits is not None:
+                fd.write(
+                    'class \"%s\" as %s << (B, Khaki) bits>> {\n' % (
+                    t.arg, self.full_path(t)))
+                for bits in e.substmts[
+                             :int(self._ctx.opts.uml_max_bits)]:
+                    fd.write('%s\n' % bits.arg)
+                if len(e.substmts) > int(self._ctx.opts.uml_max_bits):
+                    fd.write('%s\n' %(self.ctx_more_string))
                 fd.write("}\n")
             else:
                 fd.write('class \"%s\" as %s << (T, YellowGreen) typedef>>\n' %(t.arg, self.make_plantuml_keyword(t.arg)))
