@@ -127,7 +127,7 @@ class UMLPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="uml_hide_prefix_in_package_name",
                                  default = False,
-                                 help="Do not include the module prefix in the name of packages"),
+                                 help="Do not include the module prefix within the displayed name of packages"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
