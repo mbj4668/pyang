@@ -123,6 +123,11 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_choice_case",
                                  default = "",
                                  help="Selects how to render the relationship between a choice and its cases. \nValid values are one of: aggregation, composition, dependency, generalization, realization (default dependency)"),
+            optparse.make_option("--uml-hide-prefix-in-package-name",
+                                 action="store_true",
+                                 dest="uml_hide_prefix_in_package_name",
+                                 default = False,
+                                 help="Do not include the module prefix in the name of packages"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -187,6 +192,7 @@ class uml_emitter:
     ctx_relationship_choice_case = "dependency"
     ctx_no_circles = False
     ctx_more_string = "MORE"
+    ctx_hide_prefix_in_package_name = False
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -285,6 +291,7 @@ class uml_emitter:
         self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
         self.ctx_truncate_leafrefs = "leafref" in ctx.opts.uml_truncate.split(",")
         self.ctx_no_module = "module" in no
+        self.ctx_hide_prefix_in_package_name = ctx.opts.uml_hide_prefix_in_package_name
 
         truncatestrings = ("augment", "leafref")
         if ctx.opts.uml_truncate != "":
@@ -605,7 +612,10 @@ class uml_emitter:
                 #fd.write('package %s.%s \n' %(pre, pkg))
                 pre = i.search_one('prefix').arg
                 pkg = i.arg
-                fd.write('package \"%s:%s\" as %s_%s { \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
+                if self.ctx_hide_prefix_in_package_name :
+                    fd.write('package \"%s\" as %s_%s { \n' % (pkg, self.make_plantuml_keyword(pre),self.make_plantuml_keyword(pkg)))
+                else:
+                    fd.write('package \"%s:%s\" as %s_%s { \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
 
                 # search for augments and place them in correct package
                 ## augments = module.search('augment')
@@ -669,7 +679,10 @@ class uml_emitter:
             fd.write('\n')
 
         # This package
-        fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        if self.ctx_hide_prefix_in_package_name:
+            fd.write('package \"%s\" as %s_%s { \n' %(pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        else:
+            fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
 
         includes = module.search('include')
         for inc in includes:
