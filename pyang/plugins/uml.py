@@ -543,6 +543,8 @@ class uml_emitter:
         if  pre is not None:
             self.thismod_prefix = pre.arg
 
+        fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        fd.write('} \n')
 
         # print package for this module and a class to represent module (notifs and rpcs)
         # print module info as note
