@@ -101,7 +101,6 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_more",
                                  default="MORE",
                                  help="Selects how to indicate within a class that there are more enumerated or bits values than are shown. \nValid values are one of: MORE, ellipsis. \nNote that ellipsis is rendered as '...'"),
-
             optparse.make_option("--uml-filter",
                                  action="store_true",
                                  dest="uml_gen_filter_file",
@@ -110,11 +109,10 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
-            optparse.make_option("--uml-unbound-is-star",
-                                 action="store_true",
-                                 dest="uml_unbound_is_star",
-                                 default = False,
-                                 help="Use a star ('*') to render unbounded upper limit multiplicity instead of an 'N'."),
+            optparse.make_option("--uml-unbounded-multiplicity",
+                                 dest="uml_unbounded_multiplicity",
+                                 default = "",
+                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered from the default of 'N'. \nValid values are one of: *."),
             optparse.make_option("--uml-node-choice",
                                  dest="uml_node_choice",
                                  default = "",
@@ -187,7 +185,7 @@ class uml_emitter:
     ctx_truncate_augments = False
     ctx_inline_augments = False
     ctx_no_module = False
-    ctx_unbound_is_star = False
+    ctx_unbounded_maxelem = "N"
     ctx_relationship_node_choice = "dependency"
     ctx_relationship_choice_case = "dependency"
     ctx_no_circles = False
@@ -220,7 +218,6 @@ class uml_emitter:
         self.ctx_classesonly = ctx.opts.uml_classes_only
         self.ctx_no_title = ctx.opts.uml_no_title
         self.ctx_no_footer = ctx.opts.uml_no_footer
-        self.ctx_unbound_is_star = ctx.opts.uml_unbound_is_star
         # output dir from option -D or default img/
         if ctx.opts.uml_outputdir is not None:
             self.ctx_outputdir = ctx.opts.uml_outputdir
@@ -254,6 +251,13 @@ class uml_emitter:
             for no_opt in no:
                 if no_opt not in nostrings:
                     sys.stderr.write("\"%s\" no valid argument to --uml-no=...,  valid arguments: %s \n" %(no_opt, nostrings))
+
+        alt_unbounded_multiplicity_strings = ("*")
+        if ctx.opts.uml_unbounded_multiplicity != "":
+            if ctx.opts.uml_unbounded_multiplicity in alt_unbounded_multiplicity_strings:
+                self.ctx_unbounded_maxelem = ctx.opts.uml_unbounded_multiplicity
+            else:
+                sys.stderr.write("\"%s\" not a valid argument to --uml-unbounded-multiplcity, valid arguments are (one only): %s \n" %(ctx.opts.uml_unbounded_multiplicity, alt_unbounded_multiplicity_strings))
 
         relationship_strings = ("aggregation", "composition", "dependency", "generalization", "realization")
         if ctx.opts.uml_node_choice != "":
@@ -738,10 +742,7 @@ class uml_emitter:
         if not self.ctx_filterfile:
             fd.write('class \"%s\" as %s << (L, #FF7700) list>> \n' %(self.full_display_path(node), self.full_path(node)))
             minelem = '0'
-            if self.ctx_unbound_is_star :
-                maxelem = "*"
-            else:
-                maxelem = "N"
+            maxelem = self.ctx_unbounded_maxelem
             oby = ''
             mi = node.search_one('min-elements')
             if mi is not None:
