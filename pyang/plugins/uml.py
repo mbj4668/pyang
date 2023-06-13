@@ -112,18 +112,18 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-unbounded-multiplicity",
                                  dest="uml_unbounded_multiplicity",
                                  default = "",
-                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered from the default of 'N'. \nValid values are one of: *."),
-            optparse.make_option("--uml-node-choice",
-                                 dest="uml_node_choice",
+                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered (default: 'N'). \nValid values are one of: *."),
+            optparse.make_option("--uml-choice",
+                                 dest="uml_choice",
                                  default = "",
-                                 help="Selects how to render the relationship between a container or list and a choice. \nValid values are one of: aggregation, composition, dependency, generalization, realization (default dependency)"),
-            optparse.make_option("--uml-choice-case",
-                                 dest="uml_choice_case",
+                                 help="Change how the relationship between a container or list data node and a choice is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable, realization"),
+            optparse.make_option("--uml-case",
+                                 dest="uml_case",
                                  default = "",
-                                 help="Selects how to render the relationship between a choice and its cases. \nValid values are one of: aggregation, composition, dependency, generalization, realization (default dependency)"),
-            optparse.make_option("--uml-hide-prefix-in-package-name",
+                                 help="Change how the relationship between a choice and its cases is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable, realization"),
+            optparse.make_option("--uml-hide-prefix-in-package-names",
                                  action="store_true",
-                                 dest="uml_hide_prefix_in_package_name",
+                                 dest="uml_hide_prefix_in_package_names",
                                  default = False,
                                  help="Do not include the module prefix within the displayed name of packages"),
             ]
@@ -186,11 +186,8 @@ class uml_emitter:
     ctx_inline_augments = False
     ctx_no_module = False
     ctx_unbounded_maxelem = "N"
-    ctx_relationship_node_choice = "dependency"
-    ctx_relationship_choice_case = "dependency"
-    ctx_no_circles = False
     ctx_more_string = "MORE"
-    ctx_hide_prefix_in_package_name = False
+    ctx_hide_prefix_in_package_names = False
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -259,43 +256,46 @@ class uml_emitter:
             else:
                 sys.stderr.write("\"%s\" not a valid argument to --uml-unbounded-multiplcity, valid arguments are (one only): %s \n" %(ctx.opts.uml_unbounded_multiplicity, alt_unbounded_multiplicity_strings))
 
-        relationship_strings = ("aggregation", "composition", "dependency", "generalization", "realization")
-        if ctx.opts.uml_node_choice != "":
-            if ctx.opts.uml_node_choice in relationship_strings:
-                self.ctx_relationship_node_choice = ctx.opts.uml_node_choice
+        relationship_strings = ("aggregation", "association", "composition", "generalization", "navigable-association", "realization")
+        if ctx.opts.uml_choice != "":
+            if ctx.opts.uml_choice in relationship_strings:
+                if ctx.opts.uml_choice == 'generalization':
+                    self.symbol_node_to_choice = "<|--"
+                elif ctx.opts.uml_choice == 'aggregation':
+                    self.symbol_node_to_choice = "o--"
+                elif ctx.opts.uml_choice == 'association':
+                    self.symbol_node_to_choice = "--"
+                elif ctx.opts.uml_choice == 'composition':
+                    self.symbol_node_to_choice = "*--"
+                elif ctx.opts.uml_choice == 'navigable-association':
+                    self.symbol_node_to_choice = "-->"
+                elif ctx.opts.uml_choice == 'realization':
+                    self.symbol_node_to_choice = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_node_choice, relationship_strings))
-
-        if self.ctx_relationship_node_choice == 'generalization':
-            self.symbol_node_to_choice = "<|--"
-        elif self.ctx_relationship_node_choice == 'aggregation':
-            self.symbol_node_to_choice = "o--"
-        elif self.ctx_relationship_node_choice == 'composition':
-            self.symbol_node_to_choice = "*--"
-        elif self.ctx_relationship_node_choice == 'realization':
-            self.symbol_node_to_choice = "<|.."
-
-        if ctx.opts.uml_choice_case != "":
-            if ctx.opts.uml_choice_case in relationship_strings:
-                self.ctx_relationship_choice_case = ctx.opts.uml_choice_case
+                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_choice, relationship_strings))
+        if ctx.opts.uml_case != "":
+            if ctx.opts.uml_case in relationship_strings:
+                if ctx.opts.uml_case == 'generalization':
+                    self.symbol_choice_to_case = "<|--"
+                elif ctx.opts.uml_case == 'aggregation':
+                    self.symbol_choice_to_case = "o--"
+                elif ctx.opts.uml_case == 'association':
+                    self.symbol_choice_to_case = "--"
+                elif ctx.opts.uml_case == 'composition':
+                    self.symbol_choice_to_case = "*--"
+                elif ctx.opts.uml_case == 'navigable-association':
+                    self.symbol_choice_to_case = "-->"
+                elif ctx.opts.uml_case == 'realization':
+                    self.symbol_choice_to_case = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_choice_case, relationship_strings))
+                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_case, relationship_strings))
 
-        if self.ctx_relationship_choice_case == 'generalization':
-            self.symbol_choice_to_case = "<|--"
-        elif self.ctx_relationship_choice_case == 'aggregation':
-            self.symbol_choice_to_case = "o--"
-        elif self.ctx_relationship_choice_case == 'composition':
-            self.symbol_choice_to_case = "*--"
-        elif self.ctx_relationship_choice_case == 'realization':
-            self.symbol_choice_to_case = "<|.."
-            
         self.ctx_filterfile = ctx.opts.uml_gen_filter_file
 
         self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
         self.ctx_truncate_leafrefs = "leafref" in ctx.opts.uml_truncate.split(",")
         self.ctx_no_module = "module" in no
-        self.ctx_hide_prefix_in_package_name = ctx.opts.uml_hide_prefix_in_package_name
+        self.ctx_hide_prefix_in_package_names = ctx.opts.uml_hide_prefix_in_package_names
 
         truncatestrings = ("augment", "leafref")
         if ctx.opts.uml_truncate != "":
@@ -616,7 +616,7 @@ class uml_emitter:
                 #fd.write('package %s.%s \n' %(pre, pkg))
                 pre = i.search_one('prefix').arg
                 pkg = i.arg
-                if self.ctx_hide_prefix_in_package_name :
+                if self.ctx_hide_prefix_in_package_names :
                     fd.write('package \"%s\" as %s_%s { \n' % (pkg, self.make_plantuml_keyword(pre),self.make_plantuml_keyword(pkg)))
                 else:
                     fd.write('package \"%s:%s\" as %s_%s { \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
@@ -683,7 +683,7 @@ class uml_emitter:
             fd.write('\n')
 
         # This package
-        if self.ctx_hide_prefix_in_package_name:
+        if self.ctx_hide_prefix_in_package_names:
             fd.write('package \"%s\" as %s_%s { \n' %(pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
         else:
             fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
