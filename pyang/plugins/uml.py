@@ -254,7 +254,7 @@ class uml_emitter:
                 self.emit_stmt(module, s, fd)
 
             if not self.ctx_filterfile:
-                self.post_process_module(fd)
+                self.post_process_module(module, fd)
         if not self.ctx_filterfile:
             self.post_process_diagram(fd)
 
@@ -582,12 +582,6 @@ class uml_emitter:
 
         # This package
         fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
-
-        if self.ctx_imports:
-            imports = module.search('import')
-            for i in imports:
-                mod = self.make_plantuml_keyword(i.search_one('prefix').arg) + '_' + self.make_plantuml_keyword(i.arg)
-                fd.write('%s +-- %s_%s\n' %(mod,self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
 
         includes = module.search('include')
         for inc in includes:
@@ -1082,7 +1076,7 @@ class uml_emitter:
             fd.write(augm)
 
 
-    def post_process_module(self, fd):
+    def post_process_module(self, module, fd):
 
         for base in self.baseid:
             if not base in self.identities:
@@ -1096,3 +1090,8 @@ class uml_emitter:
 
         if not self.ctx_no_module:
             fd.write("} \n\n")
+            if self.ctx_imports:
+                imports = module.search('import')
+                for i in imports:
+                    mod = self.make_plantuml_keyword(i.search_one('prefix').arg) + '_' + self.make_plantuml_keyword(i.arg)
+                    fd.write('%s +-- %s_%s\n' %(mod,self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(module.arg)))
