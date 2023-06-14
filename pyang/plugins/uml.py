@@ -346,7 +346,7 @@ class uml_emitter:
             elif stmt.keyword == 'feature':
                 self.emit_feature(mod,stmt, fd)
             elif stmt.keyword == 'deviation':
-                self.emit_feature(mod,stmt, fd)
+                self.emit_deviation(mod,stmt, fd)
 
 
         # go down one level and search for good UML roots
@@ -664,10 +664,10 @@ class uml_emitter:
 
 
     def emit_feature(self, parent, feature, fd):
-        fd.write('%s : %s \n' %(self.full_path(parent), 'feature : ' + self.make_plantuml_keyword(feature.arg)) )
+        fd.write('%s : %s \n' %(self.full_path(parent), 'feature : ' + feature.arg) )
 
-    def emit_deviation(self, parent, feature, fd):
-        fd.write('%s : %s \n' %(self.full_path(parent), 'deviation : ' + self.make_plantuml_keyword(feature.arg)) )
+    def emit_deviation(self, parent, deviation, fd):
+        fd.write('%s : %s \n' %(self.full_path(parent), 'deviation : ' + deviation.arg) )
 
     def emit_action(self, parent, action, fd):
         fd.write('%s : %s(' %(self.full_path(parent), action.arg) )
