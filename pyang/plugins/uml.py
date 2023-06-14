@@ -116,11 +116,15 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-choice",
                                  dest="uml_choice",
                                  default = "",
-                                 help="Change how the relationship between a container or list data node and a choice is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable, realization"),
+                                 help="Change how the choice statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization"),
             optparse.make_option("--uml-case",
                                  dest="uml_case",
                                  default = "",
-                                 help="Change how the relationship between a choice and its cases is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable, realization"),
+                                 help="Change how case statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization"),
+            optparse.make_option("--uml-uses",
+                                 dest="uml_uses",
+                                 default = "",
+                                 help="Change how the uses statement is rendered (default: navigable association). \nValid values are one of: aggregation, composition, dependency. generalization, realization. \nThis option has no effect if option --uml-inline-groupings is selected "),
             optparse.make_option("--uml-hide-prefix-in-package-names",
                                  action="store_true",
                                  dest="uml_hide_prefix_in_package_names",
@@ -205,8 +209,10 @@ class uml_emitter:
     post_strings = []
     module_prefixes = []
 
-    symbol_node_to_choice = ".."
-    symbol_choice_to_case = ".."
+    choice_statement_symbol = ".."
+    case_statement_symbol = ".."
+    uses_statement_symbol = "-->"
+    uses_statement_label = "uses"
 
     def __init__(self, ctx):
         self._ctx = ctx
@@ -260,35 +266,53 @@ class uml_emitter:
         if ctx.opts.uml_choice != "":
             if ctx.opts.uml_choice in relationship_strings:
                 if ctx.opts.uml_choice == 'generalization':
-                    self.symbol_node_to_choice = "<|--"
+                    self.choice_statement_symbol = "<|--"
                 elif ctx.opts.uml_choice == 'aggregation':
-                    self.symbol_node_to_choice = "o--"
+                    self.choice_statement_symbol = "o--"
                 elif ctx.opts.uml_choice == 'association':
-                    self.symbol_node_to_choice = "--"
+                    self.choice_statement_symbol = "--"
                 elif ctx.opts.uml_choice == 'composition':
-                    self.symbol_node_to_choice = "*--"
+                    self.choice_statement_symbol = "*--"
                 elif ctx.opts.uml_choice == 'navigable-association':
-                    self.symbol_node_to_choice = "-->"
+                    self.choice_statement_symbol = "-->"
                 elif ctx.opts.uml_choice == 'realization':
-                    self.symbol_node_to_choice = "<|.."
+                    self.choice_statement_symbol = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_choice, relationship_strings))
+                sys.stderr.write("\"%s\" not a valid argument to --uml-choice,  valid arguments are (one only): %s \n" %(ctx.opts.uml_choice, relationship_strings))
         if ctx.opts.uml_case != "":
             if ctx.opts.uml_case in relationship_strings:
                 if ctx.opts.uml_case == 'generalization':
-                    self.symbol_choice_to_case = "<|--"
+                    self.case_statement_symbol = "<|--"
                 elif ctx.opts.uml_case == 'aggregation':
-                    self.symbol_choice_to_case = "o--"
+                    self.case_statement_symbol = "o--"
                 elif ctx.opts.uml_case == 'association':
-                    self.symbol_choice_to_case = "--"
+                    self.case_statement_symbol = "--"
                 elif ctx.opts.uml_case == 'composition':
-                    self.symbol_choice_to_case = "*--"
+                    self.case_statement_symbol = "*--"
                 elif ctx.opts.uml_case == 'navigable-association':
-                    self.symbol_choice_to_case = "-->"
+                    self.case_statement_symbol = "-->"
                 elif ctx.opts.uml_case == 'realization':
-                    self.symbol_choice_to_case = "<|.."
+                    self.case_statement_symbol = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-case=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_case, relationship_strings))
+                sys.stderr.write("\"%s\" not a valid argument to --uml-case,  valid arguments are (one only): %s \n" %(ctx.opts.uml_case, uses_strings))
+        uses_strings = ("aggregation", "association", "composition", "dependency", "generalization", "realization")
+        if ctx.opts.uml_uses != "":
+            if ctx.opts.uml_uses in uses_strings:
+                if ctx.opts.uml_uses == 'generalization':
+                    self.uses_statement_symbol = "<|--"
+                elif ctx.opts.uml_uses == 'aggregation':
+                    self.uses_statement_symbol = "o--"
+                elif ctx.opts.uml_uses == 'association':
+                    self.uses_statement_symbol = "--"
+                elif ctx.opts.uml_uses == 'composition':
+                    self.uses_statement_symbol = "*--"
+                elif ctx.opts.uml_uses == 'dependency':
+                    self.uses_statement_symbol = "..>"
+                    self.uses_statement_label = "<<uses>>"
+                elif ctx.opts.uml_uses == 'realization':
+                    self.uses_statement_symbol = "<|.."
+            else:
+                sys.stderr.write("\"%s\" not a valid argument to --uml-uses,  valid arguments are (one only): %s \n" %(ctx.opts.uml_uses, uses_strings))
 
         self.ctx_filterfile = ctx.opts.uml_gen_filter_file
 
@@ -417,7 +441,7 @@ class uml_emitter:
         elif stmt.keyword == 'choice':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(stmt), self.full_path(stmt)))
-                fd.write('%s %s %s : choice \n' % (self.full_path(mod), self.symbol_node_to_choice, self.full_path(stmt)))
+                fd.write('%s %s %s : choice \n' % (self.full_path(mod), self.choice_statement_symbol, self.full_path(stmt)))
             # sys.stderr.write('in choice %s \n', self.full_path(mod))
             for children in stmt.substmts:
                 self.emit_child_stmt(stmt, children, fd)
@@ -425,7 +449,7 @@ class uml_emitter:
         elif stmt.keyword == 'case':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s \n' %(self.full_display_path(stmt), self.full_path(stmt)))
-                fd.write('%s %s %s  : choice\n' % (self.full_path(mod), self.symbol_choice_to_case, self.full_path(stmt)))
+                fd.write('%s %s %s  : choice\n' % (self.full_path(mod), self.case_statement_symbol, self.full_path(stmt)))
             # sys.stderr.write('in case %s \n', full_path(mod))
             for children in mod.substmts:
                 self.emit_child_stmt(stmt, children, fd)
@@ -464,7 +488,7 @@ class uml_emitter:
             # create fake parent statement.keyword = 'case' statement.arg = node.arg
             newparent = statements.Statement(parent, parent, None, 'case', node.arg)
             fd.write('class \"%s\" as %s <<case>> \n' % (node.arg, self.full_path(newparent)))
-            fd.write('%s %s %s : choice %s\n' % (self.full_path(parent), self.symbol_choice_to_case, self.full_path(newparent), node.parent.arg))
+            fd.write('%s %s %s : choice %s\n' % (self.full_path(parent), self.case_statement_symbol, self.full_path(newparent), node.parent.arg))
 
             parent = newparent
 
@@ -486,7 +510,7 @@ class uml_emitter:
         elif node.keyword == 'choice':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(node), self.full_path(node)))
-                fd.write('%s %s %s : choice \n' % (self.full_path(parent), self.symbol_node_to_choice, self.full_path(node)))
+                fd.write('%s %s %s : choice \n' % (self.full_path(parent), self.choice_statement_symbol, self.full_path(node)))
             if cont:
                 for children in node.substmts:
                     # try pointing to parent
@@ -496,7 +520,7 @@ class uml_emitter:
             # sys.stderr.write('in case \n')
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<case>>\n' %(self.full_display_path(node), self.full_path(node)))
-                fd.write('%s %s %s  : choice %s\n' % (self.full_path(parent), self.symbol_choice_to_case, self.full_path(node), node.parent.arg))
+                fd.write('%s %s %s  : choice %s\n' % (self.full_path(parent), self.case_statement_symbol, self.full_path(node), node.parent.arg))
 
             if cont:
                 for children in node.substmts:
@@ -1174,7 +1198,7 @@ class uml_emitter:
         if self.ctx_uses:
             for p,u in self.uses:
                 try:
-                    fd.write('%s --> %s : uses \n' %(p, self.groupings[u]))
+                    fd.write('%s %s %s : %s \n' % (p, self.uses_statement_symbol, self.groupings[u], self.uses_statement_label))
                 except KeyError: # grouping in imported module, TODO correct paths
                     # Grouping in other module, use red...
                     # fd.write('class \"%s\" as %s << (G,Red) grouping>>\n' %(self.uses_as_string[u], self.make_plantuml_keyword(self.uses_as_string[u])))
