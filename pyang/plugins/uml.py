@@ -50,7 +50,7 @@ class UMLPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="uml_no_title",
                                  default = False,
-                                 help="Do not include a title. If a title has also been specified as an option, it will be ignored"),
+                                 help="Do not include a title. If --uml-title has also been specified, --uml-title will be ignored"),
             optparse.make_option("--uml-header",
                                  dest="uml_header",
                                  help="Set the page header of the generated UML"),
@@ -61,7 +61,7 @@ class UMLPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="uml_no_footer",
                                  default = False,
-                                 help="Do not include a footer. If a footer has also been specified as an option, it will be ignored"),
+                                 help="Do not include a footer. If --uml-footer has also been specified, --uml-footer will be ignored"),
             optparse.make_option("--uml-long-identifiers",
                                  action="store_true",
                                  dest="uml_longids",
@@ -93,14 +93,14 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-max-enums",
                                  dest="uml_max_enums",
                                  default = "3",
-                                 help="The maximum number of enumerated values or bits values being rendered"),
+                                 help="The maximum number of enumerated values to render"),
             optparse.make_option("--uml-max-bits",
                                  dest="uml_max_bits",
-                                 help="When present enables the rendering of bits typedefs as a 'bits' class rather than a 'typedef' class and also defines the maximum number of bits values being rendered"),
-            optparse.make_option("--uml-more",
-                                 dest="uml_more",
-                                 default="MORE",
-                                 help="Selects how to indicate within a class that there are more enumerated or bits values than are shown. \nValid values are one of: MORE, ellipsis. \nNote that ellipsis is rendered as '...'"),
+                                 help="The maximum number of bit values to render. If set also enables rendering of bits typedefs as a 'bits' class"),
+            optparse.make_option("--uml-more-values",
+                                 dest="uml_more_values",
+                                 default="",
+                                 help="Change how to indicate that there are more enumerated or bits values than are shown (default:'MORE'). \nValid value: ellipsis. \nNote that ellipsis is rendered as '...'. \nExample --uml-more-values=ellipsis"),
             optparse.make_option("--uml-filter",
                                  action="store_true",
                                  dest="uml_gen_filter_file",
@@ -109,25 +109,25 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
-            optparse.make_option("--uml-unbounded-multiplicity",
-                                 dest="uml_unbounded_multiplicity",
+            optparse.make_option("--uml-unbounded",
+                                 dest="uml_unbounded",
                                  default = "",
-                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered (default: 'N'). \nValid values are one of: *."),
+                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered (default: 'N'). \nValid value: *. \nExample --uml-unbounded=* "),
             optparse.make_option("--uml-choice",
                                  dest="uml_choice",
                                  default = "",
-                                 help="Change how the choice statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization"),
+                                 help="Change how the choice statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization. \nExample --uml-choice=composition"),
             optparse.make_option("--uml-case",
                                  dest="uml_case",
                                  default = "",
-                                 help="Change how case statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization"),
+                                 help="Change how case statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization. \nExample --uml-case=generalization"),
             optparse.make_option("--uml-uses",
                                  dest="uml_uses",
                                  default = "",
-                                 help="Change how the uses statement is rendered (default: navigable association). \nValid values are one of: aggregation, composition, dependency. generalization, realization. \nThis option has no effect if option --uml-inline-groupings is selected "),
-            optparse.make_option("--uml-hide-prefix-in-package-names",
+                                 help="Change how the uses statement is rendered (default: navigable association). \nValid values are one of: aggregation, composition, dependency. generalization, realization. \nThis option has no effect if option --uml-inline-groupings is selected. \nExample --uml-uses=dependency"),
+            optparse.make_option("--uml-no-package-prefix",
                                  action="store_true",
-                                 dest="uml_hide_prefix_in_package_names",
+                                 dest="uml_no_package_prefix",
                                  default = False,
                                  help="Do not include the module prefix within the displayed name of packages"),
             ]
@@ -191,7 +191,7 @@ class uml_emitter:
     ctx_no_module = False
     ctx_unbounded_maxelem = "N"
     ctx_more_string = "MORE"
-    ctx_hide_prefix_in_package_names = False
+    ctx_no_package_prefix = False
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -255,12 +255,12 @@ class uml_emitter:
                 if no_opt not in nostrings:
                     sys.stderr.write("\"%s\" no valid argument to --uml-no=...,  valid arguments: %s \n" %(no_opt, nostrings))
 
-        alt_unbounded_multiplicity_strings = ("*")
-        if ctx.opts.uml_unbounded_multiplicity != "":
-            if ctx.opts.uml_unbounded_multiplicity in alt_unbounded_multiplicity_strings:
-                self.ctx_unbounded_maxelem = ctx.opts.uml_unbounded_multiplicity
+        unbounded_strings = ("*")
+        if ctx.opts.uml_unbounded != "":
+            if ctx.opts.uml_unbounded in unbounded_strings:
+                self.ctx_unbounded_maxelem = ctx.opts.uml_unbounded
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-unbounded-multiplcity, valid arguments are (one only): %s \n" %(ctx.opts.uml_unbounded_multiplicity, alt_unbounded_multiplicity_strings))
+                sys.stderr.write("\"%s\" no valid argument to --uml-unbounded-multiplcity=..., valid arguments (one only): %s \n" %(ctx.opts.uml_unbounded, unbounded_strings))
 
         relationship_strings = ("aggregation", "association", "composition", "generalization", "navigable-association", "realization")
         if ctx.opts.uml_choice != "":
@@ -278,7 +278,7 @@ class uml_emitter:
                 elif ctx.opts.uml_choice == 'realization':
                     self.choice_statement_symbol = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-choice,  valid arguments are (one only): %s \n" %(ctx.opts.uml_choice, relationship_strings))
+                sys.stderr.write("\"%s\" no valid argument to --uml-choice=...,  valid arguments (one only): %s \n" %(ctx.opts.uml_choice, relationship_strings))
         if ctx.opts.uml_case != "":
             if ctx.opts.uml_case in relationship_strings:
                 if ctx.opts.uml_case == 'generalization':
@@ -294,7 +294,7 @@ class uml_emitter:
                 elif ctx.opts.uml_case == 'realization':
                     self.case_statement_symbol = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-case,  valid arguments are (one only): %s \n" %(ctx.opts.uml_case, uses_strings))
+                sys.stderr.write("\"%s\" no valid argument to --uml-case=...,  valid arguments (one only): %s \n" %(ctx.opts.uml_case, uses_strings))
         uses_strings = ("aggregation", "association", "composition", "dependency", "generalization", "realization")
         if ctx.opts.uml_uses != "":
             if ctx.opts.uml_uses in uses_strings:
@@ -312,14 +312,14 @@ class uml_emitter:
                 elif ctx.opts.uml_uses == 'realization':
                     self.uses_statement_symbol = "<|.."
             else:
-                sys.stderr.write("\"%s\" not a valid argument to --uml-uses,  valid arguments are (one only): %s \n" %(ctx.opts.uml_uses, uses_strings))
+                sys.stderr.write("\"%s\" no valid argument to --uml-uses=...,  valid arguments (one only): %s \n" %(ctx.opts.uml_uses, uses_strings))
 
         self.ctx_filterfile = ctx.opts.uml_gen_filter_file
 
         self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
         self.ctx_truncate_leafrefs = "leafref" in ctx.opts.uml_truncate.split(",")
         self.ctx_no_module = "module" in no
-        self.ctx_hide_prefix_in_package_names = ctx.opts.uml_hide_prefix_in_package_names
+        self.ctx_no_package_prefix = ctx.opts.uml_no_package_prefix
 
         truncatestrings = ("augment", "leafref")
         if ctx.opts.uml_truncate != "":
@@ -335,14 +335,12 @@ class uml_emitter:
             except IOError:
                 raise error.EmitError("Filter file %s does not exist" %ctx.opts.uml_filter_file, 2)
 
-        more_strings = ("MORE", "ellipsis")
-        if ctx.opts.uml_more in more_strings:
-            if ctx.opts.uml_more == "ellipsis":
+        more_strings = ("ellipsis")
+        if ctx.opts.uml_more_values in more_strings:
+            if ctx.opts.uml_more_values == "ellipsis":
                 self.ctx_more_string = "..."
-            else:
-                self.ctx_more_string = ctx.opts.uml_more
         else:
-            sys.stderr.write("\"%s\" not a valid argument to --uml-more=...,  valid arguments are (one only): %s \n" %(ctx.opts.uml_more, more_strings))
+            sys.stderr.write("\"%s\" no valid argument to --uml-more=...,  valid argument: %s \n" %(ctx.opts.uml_more_values, more_strings))
 
     def emit(self, modules, fd):
         title = ''
@@ -637,7 +635,7 @@ class uml_emitter:
                 #fd.write('package %s.%s \n' %(pre, pkg))
                 pre = i.search_one('prefix').arg
                 pkg = i.arg
-                if self.ctx_hide_prefix_in_package_names :
+                if self.ctx_no_package_prefix :
                     fd.write('package \"%s\" as %s_%s { \n' % (pkg, self.make_plantuml_keyword(pre),self.make_plantuml_keyword(pkg)))
                 else:
                     fd.write('package \"%s:%s\" as %s_%s { \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
@@ -705,7 +703,7 @@ class uml_emitter:
             fd.write('\n')
 
         # This package
-        if self.ctx_hide_prefix_in_package_names:
+        if self.ctx_no_package_prefix:
             fd.write('package \"%s\" as %s_%s { \n' %(pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
         else:
             fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
