@@ -244,6 +244,9 @@ class uml_emitter:
             self.emit_uml_header(title, fd)
 
         for module in modules:
+            pre = module.search_one('prefix')
+            if pre is not None:
+                self.thismod_prefix = pre.arg
             if not self.ctx_no_module:
                 self.emit_module_header(module, fd)
             self.emit_module_class(module, fd)
@@ -539,9 +542,6 @@ class uml_emitter:
         # pkg name for this module
         #this_pkg = self.make_plantuml_keyword(module.search_one('prefix').arg) + '.' + self.make_plantuml_keyword(module.arg)
         pkg = module.arg
-        pre = module.search_one('prefix')
-        if  pre is not None:
-            self.thismod_prefix = pre.arg
 
 
         # print package for this module and a class to represent module (notifs and rpcs)
