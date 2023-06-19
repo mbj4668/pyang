@@ -85,7 +85,7 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-no",
                                  dest="uml_no",
                                  default = "",
-                                 help="Suppress parts of the diagram. \nValid suppress values are: module, uses, leafref, identity, identityref, typedef, import, annotation, circles, stereotypes. Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. Module suppresses module box around the diagram and module information. \nExample --uml-no=circles,stereotypes,typedef,import"),
+                                 help="Suppress parts of the diagram. \nValid suppress values are: module, uses, leafref, identity, identityref, typedef, import, prefix, annotation, circles, stereotypes. Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. Module suppresses module box around the diagram and module information. Prefix suppresses the the prefix in the name of packages. \nExample --uml-no=circles,stereotypes,typedef,import"),
             optparse.make_option("--uml-truncate",
                                  dest="uml_truncate",
                                  default = "",
@@ -125,11 +125,6 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_uses",
                                  default = "",
                                  help="Change how the uses statement is rendered (default: navigable association). \nValid values are one of: aggregation, composition, dependency. generalization, realization. \nThis option has no effect if option --uml-inline-groupings is selected. \nExample --uml-uses=dependency"),
-            optparse.make_option("--uml-no-package-prefix",
-                                 action="store_true",
-                                 dest="uml_no_package_prefix",
-                                 default = False,
-                                 help="Do not include the module prefix within the displayed name of packages"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -185,13 +180,13 @@ class uml_emitter:
     ctx_annotations = True
     ctx_circles = True
     ctx_stereotypes = True
+    ctx_prefix = True
     ctx_truncate_leafrefs = False
     ctx_truncate_augments = False
     ctx_inline_augments = False
     ctx_no_module = False
     ctx_unbounded_maxelem = "N"
     ctx_more_string = "MORE"
-    ctx_no_package_prefix = False
 
     ctx_filterfile = False
     ctx_usefilterfile = None
@@ -248,8 +243,9 @@ class uml_emitter:
         self.ctx_imports = not "import" in no
         self.ctx_circles = not "circles" in no
         self.ctx_stereotypes = not "stereotypes" in no
+        self.ctx_prefix = not "prefix" in no
 
-        nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes")
+        nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes", "prefix")
         if ctx.opts.uml_no != "":
             for no_opt in no:
                 if no_opt not in nostrings:
@@ -294,7 +290,7 @@ class uml_emitter:
                 elif ctx.opts.uml_case == 'realization':
                     self.case_statement_symbol = "<|.."
             else:
-                sys.stderr.write("\"%s\" no valid argument to --uml-case=...,  valid arguments (one only): %s \n" %(ctx.opts.uml_case, uses_strings))
+                sys.stderr.write("\"%s\" no valid argument to --uml-case=...,  valid arguments (one only): %s \n" %(ctx.opts.uml_case, relationship_strings))
         uses_strings = ("aggregation", "association", "composition", "dependency", "generalization", "realization")
         if ctx.opts.uml_uses != "":
             if ctx.opts.uml_uses in uses_strings:
@@ -319,7 +315,6 @@ class uml_emitter:
         self.ctx_truncate_augments = "augment" in ctx.opts.uml_truncate.split(",")
         self.ctx_truncate_leafrefs = "leafref" in ctx.opts.uml_truncate.split(",")
         self.ctx_no_module = "module" in no
-        self.ctx_no_package_prefix = ctx.opts.uml_no_package_prefix
 
         truncatestrings = ("augment", "leafref")
         if ctx.opts.uml_truncate != "":
@@ -638,10 +633,10 @@ class uml_emitter:
                 #fd.write('package %s.%s \n' %(pre, pkg))
                 pre = i.search_one('prefix').arg
                 pkg = i.arg
-                if self.ctx_no_package_prefix :
-                    fd.write('package \"%s\" as %s_%s { \n' % (pkg, self.make_plantuml_keyword(pre),self.make_plantuml_keyword(pkg)))
+                if self.ctx_prefix :
+                    fd.write('package \"%s:%s\" as %s_%s { \n' % (pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
                 else:
-                    fd.write('package \"%s:%s\" as %s_%s { \n' %(pre, pkg, self.make_plantuml_keyword(pre), self.make_plantuml_keyword(pkg)))
+                    fd.write('package \"%s\" as %s_%s { \n' % (pkg, self.make_plantuml_keyword(pre),self.make_plantuml_keyword(pkg)))
 
                 # search for augments and place them in correct package
                 ## augments = module.search('augment')
@@ -705,10 +700,10 @@ class uml_emitter:
             fd.write('\n')
 
         # This package
-        if self.ctx_no_package_prefix:
-            fd.write('package \"%s\" as %s_%s { \n' %(pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
-        else:
+        if self.ctx_prefix:
             fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        else:
+            fd.write('package \"%s\" as %s_%s { \n' %(pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
 
         includes = module.search('include')
         for inc in includes:
