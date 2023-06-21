@@ -4,6 +4,7 @@ import sys
 import os
 import optparse
 import io
+import shutil
 import codecs
 from pathlib import Path
 
@@ -134,6 +135,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
                              "of stdout."),
+        optparse.make_option("-O", "--overwrite",
+                             dest="overwrite_output_file",
+                             action="store_true",
+                             default=False,
+                             help="Overwrite the output file, if it already exists."),
         optparse.make_option("-F", "--features",
                              metavar="FEATURES",
                              dest="features",
@@ -554,7 +560,11 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
             raise
         if tmpfile is not None:
             fd.close()
-            os.rename(tmpfile, o.outfile)
+            if not o.overwrite_output_file:
+                os.rename(tmpfile, o.outfile)
+            else:
+                shutil.copyfile(tmpfile, o.outfile)
+                os.remove(tmpfile)
 
     sys.exit(exit_code)
 
