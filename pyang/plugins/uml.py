@@ -35,7 +35,7 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-classes-only",
                                  action="store_true",
                                  dest="uml_classes_only",
-                                 default = False,
+                                 default=False,
                                  help="Generate UML with classes only, no attributes "),
             optparse.make_option("--uml-split-pages",
                                  dest="uml_pages_layout",
@@ -46,85 +46,77 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-title",
                                  dest="uml_title",
                                  help="Set the title of the generated UML, including the output file name"),
-            optparse.make_option("--uml-no-title",
-                                 action="store_true",
-                                 dest="uml_no_title",
-                                 default = False,
-                                 help="Do not include a title. If --uml-title has also been specified, --uml-title will be ignored"),
             optparse.make_option("--uml-header",
                                  dest="uml_header",
                                  help="Set the page header of the generated UML"),
             optparse.make_option("--uml-footer",
                                  dest="uml_footer",
                                  help="Set the page footer of the generated UML. If not specified, a default footer will be generated"),
-            optparse.make_option("--uml-no-footer",
-                                 action="store_true",
-                                 dest="uml_no_footer",
-                                 default = False,
-                                 help="Do not include a footer. If --uml-footer has also been specified, --uml-footer will be ignored"),
             optparse.make_option("--uml-long-identifiers",
                                  action="store_true",
                                  dest="uml_longids",
-                                 default =False,
+                                 default=False,
                                  help="Use the full schema identifiers for UML class names."),
             optparse.make_option("--uml-inline-groupings",
                                  action="store_true",
                                  dest="uml_inline",
-                                 default =False,
+                                 default=False,
                                  help="Inline groupings where they are used."),
             optparse.make_option("--uml-inline-augments",
                                  action="store_true",
                                  dest="uml_inline_augments",
-                                 default =False,
+                                 default=False,
                                  help="Inline augmentations where they are used."),
             optparse.make_option("--uml-description",
                                  action="store_true",
                                  dest="uml_descr",
-                                 default =False,
+                                 default=False,
                                  help="Include description of structural nodes in diagram."),
             optparse.make_option("--uml-no",
                                  dest="uml_no",
-                                 default = "",
-                                 help="Suppress parts of the diagram. \nValid suppress values are: module, uses, leafref, identity, identityref, typedef, import, prefix, annotation, circles, stereotypes. Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. Module suppresses module box around the diagram and module information. Prefix suppresses the the prefix in the name of packages. \nExample --uml-no=circles,stereotypes,typedef,import"),
+                                 default="",
+                                 help="Suppress parts of the diagram. \nValid suppress values are: module, uses, leafref, identity, identityref, typedef, import, annotation, circles, stereotypes, prefix, footer, title. "
+                                      "Annotations suppresses YANG constructs represented as annotations such as config statements for containers and module info. Module suppresses module box around the diagram and module information. " 
+                                      "Prefix suppresses the the prefix in the name of packages. \nIf footer or title are selected, the options --uml-footer and --uml-title respectively will be ignored. \nExample --uml-no=circles,stereotypes,typedef,import"),
             optparse.make_option("--uml-truncate",
                                  dest="uml_truncate",
-                                 default = "",
+                                 default="",
                                  help="Leafref attributes and augment elements can have long paths making the classes too wide. \nThis option will only show the tail of the path. \nExample --uml-truncate=augment,leafref"),
             optparse.make_option("--uml-max-enums",
                                  dest="uml_max_enums",
-                                 default = "3",
+                                 default="3",
                                  help="The maximum number of enumerated values to render"),
             optparse.make_option("--uml-max-bits",
                                  dest="uml_max_bits",
                                  help="The maximum number of bit values to render. If set also enables rendering of bits typedefs as a 'bits' class"),
             optparse.make_option("--uml-more-values",
                                  dest="uml_more_values",
-                                 default = "",
+                                 default="",
                                  help="Use an alternative to 'MORE' to indicate that there are more enumerated or bits values than are shown. \nValid value: ellipsis. \nNote that ellipsis is rendered as '...'. \nExample --uml-more-values=ellipsis"),
             optparse.make_option("--uml-filter",
                                  action="store_true",
                                  dest="uml_gen_filter_file",
-                                 default = False,
+                                 default=False,
                                  help="Generate filter file, comment out lines with '-' and use with option '--filter-file' to filter the UML diagram"),
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
             optparse.make_option("--uml-unbounded",
                                  dest="uml_unbounded",
-                                 default = "",
-                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered (default: 'N'). \nValid value: *. \nExample --uml-unbounded=* "),
+                                 default="",
+                                 help="Change how the unbounded upper limit multiplicity of relationships is rendered from the default 'N'. \nValid value: *. \nExample --uml-unbounded=* "),
             optparse.make_option("--uml-choice",
                                  dest="uml_choice",
-                                 default = "",
-                                 help="Change how the choice statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization. \nExample --uml-choice=composition"),
+                                 default="",
+                                 help="Change how the choice statement is rendered from the default of a dotted line. \nValid values are one of: aggregation, composition, generalization, navigable-association, realization. \nExample --uml-choice=composition"),
             optparse.make_option("--uml-case",
                                  dest="uml_case",
-                                 default = "",
-                                 help="Change how case statement is rendered (default: dotted line). \nValid values are one of: aggregation, composition, generalization, navigable-association, realization. \nExample --uml-case=generalization"),
+                                 default="",
+                                 help="Change how case statement is rendered from the default of a dotted line. \nValid values are one of: aggregation, composition, generalization, navigable-association, realization. \nExample --uml-case=generalization"),
             optparse.make_option("--uml-uses",
                                  dest="uml_uses",
-                                 default = "",
-                                 help="Change how the uses statement is rendered (default: navigable association). \nValid values are one of: aggregation, composition, dependency. generalization, realization. \nThis option has no effect if option --uml-inline-groupings is selected. \nExample --uml-uses=dependency"),
+                                 default="",
+                                 help="Change how the uses statement is rendered from the default of a navigable association. \nValid values are one of: aggregation, composition, dependency. generalization, realization. \nThis option has no effect if option --uml-inline-groupings is selected. \nExample --uml-uses=dependency"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -165,9 +157,7 @@ class uml_emitter:
     unique = ''
     ctx_pagelayout = '1x1'
     ctx_outputdir = "img/"
-    ctx_title = None
-    ctx_no_title = False
-    ctx_no_footer = False
+    ctx_title_text = None
     ctx_fullpath = False
     ctx_classesonly = False
     ctx_description = False
@@ -180,7 +170,6 @@ class uml_emitter:
     ctx_annotations = True
     ctx_circles = True
     ctx_stereotypes = True
-    ctx_prefix = True
     ctx_truncate_leafrefs = False
     ctx_truncate_augments = False
     ctx_inline_augments = False
@@ -214,8 +203,6 @@ class uml_emitter:
         self.ctx_fullpath = ctx.opts.uml_longids
         self.ctx_description = ctx.opts.uml_descr
         self.ctx_classesonly = ctx.opts.uml_classes_only
-        self.ctx_no_title = ctx.opts.uml_no_title
-        self.ctx_no_footer = ctx.opts.uml_no_footer
         # output dir from option -D or default img/
         if ctx.opts.uml_outputdir is not None:
             self.ctx_outputdir = ctx.opts.uml_outputdir
@@ -229,7 +216,7 @@ class uml_emitter:
             self.ctx_pagelayout = ctx.opts.uml_pages_layout
 
         # Title from option -t
-        self.ctx_title = ctx.opts.uml_title
+        self.ctx_title_text = ctx.opts.uml_title
 
         self.ctx_inline_augments = ctx.opts.uml_inline_augments
 
@@ -244,8 +231,10 @@ class uml_emitter:
         self.ctx_circles = not "circles" in no
         self.ctx_stereotypes = not "stereotypes" in no
         self.ctx_prefix = not "prefix" in no
+        self.ctx_title = not "title" in no
+        self.ctx_footer = not "footer" in no
 
-        nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes", "prefix")
+        nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes", "prefix", "footer", "title")
         if ctx.opts.uml_no != "":
             for no_opt in no:
                 if no_opt not in nostrings:
@@ -339,8 +328,8 @@ class uml_emitter:
 
     def emit(self, modules, fd):
         title = ''
-        if self.ctx_title is not None:
-            title = self.ctx_title
+        if self.ctx_title_text is not None:
+            title = self.ctx_title_text
         else:
             for m in modules:
                 title += m.arg + '_'
@@ -616,7 +605,7 @@ class uml_emitter:
         # split into pages ? option -s
         fd.write('page %s \n' %self.ctx_pagelayout)
 
-        if not self.ctx_no_title:
+        if self.ctx_title:
             fd.write('Title %s \n' %title)
 
         if self._ctx.opts.uml_header is not None:
@@ -662,7 +651,13 @@ class uml_emitter:
         #this_pkg = self.make_plantuml_keyword(module.search_one('prefix').arg) + '.' + self.make_plantuml_keyword(module.arg)
         pkg = module.arg
 
-        fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        # define a empty package for the module
+        # this ensures that PlantUML knows that its keyword represents a package and not a class when referenced before the main definition of the package within the Plant UML code,
+        # e.g., by the note definition that follows below
+        if self.ctx_prefix:
+            fd.write('package \"%s:%s\" as %s_%s { \n' %(self.thismod_prefix, pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
+        else:
+            fd.write('package \"%s\" as %s_%s { \n' % (pkg, self.make_plantuml_keyword(self.thismod_prefix), self.make_plantuml_keyword(pkg)))
         fd.write('} \n')
 
         # print package for this module and a class to represent module (notifs and rpcs)
@@ -716,7 +711,7 @@ class uml_emitter:
 
 
     def emit_uml_footer(self, module, fd):
-        if not self.ctx_no_footer:
+        if self.ctx_footer:
             if self._ctx.opts.uml_footer is not None:
                 fd.write('center footer\n <size:24> %s </size>\n endfooter \n' %self._ctx.opts.uml_footer)
             else:
