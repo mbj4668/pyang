@@ -37,6 +37,11 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_classes_only",
                                  default = False,
                                  help="Generate UML with classes only, no attributes "),
+            optparse.make_option("--uml-rpc-classes",
+                                 action="store_true",
+                                 dest="uml_rpc_classes",
+                                 default = False,
+                                 help="Generate UML with RCP as classes instead of operations "),
             optparse.make_option("--uml-split-pages",
                                  dest="uml_pages_layout",
                                  help="Generate UML output split into pages (separate .png files), NxN, example 2x2 "),
@@ -136,6 +141,7 @@ class uml_emitter:
     ctx_title = None
     ctx_fullpath = False
     ctx_classesonly = False
+    ctx_rpc_classes = False    
     ctx_description = False
     ctx_leafrefs = True
     ctx_uses = True
@@ -150,7 +156,7 @@ class uml_emitter:
     ctx_truncate_augments = False
     ctx_inline_augments = False
     ctx_no_module = False
-
+    
     ctx_filterfile = False
     ctx_usefilterfile = None
     groupings = dict()
@@ -172,6 +178,7 @@ class uml_emitter:
         self.ctx_fullpath = ctx.opts.uml_longids
         self.ctx_description = ctx.opts.uml_descr
         self.ctx_classesonly = ctx.opts.uml_classes_only
+        self.ctx_rpc_classes = ctx.opts.uml_rpc_classes
         # output dir from option -D or default img/
         if ctx.opts.uml_outputdir is not None:
             self.ctx_outputdir = ctx.opts.uml_outputdir
@@ -343,7 +350,10 @@ class uml_emitter:
             if stmt.keyword == 'typedef':
                 self.emit_typedef(mod, stmt,fd)
             elif stmt.keyword == 'rpc':
-                self.emit_action(mod, stmt,fd)
+                if self.ctx_rpc_classes:
+                    self.emit_rpc(mod, stmt,fd)
+                else:
+                    self.emit_action(mod, stmt,fd)
             elif stmt.keyword == 'notification':
                 self.emit_notif(mod, stmt,fd)
             elif stmt.keyword == 'feature':
@@ -728,6 +738,17 @@ class uml_emitter:
         #fd.write('%s : notif:%s()\n' %(make_plantuml_keyword(module), make_plantuml_keyword(stmt.arg)) )
         #for params in stmt.substmts:
         #    emit_child_stmt(stmt, params, fd)
+
+    def emit_rpc(self, module, stmt,fd):
+        fd.write('class \"%s\" as %s << (R,#00D1B2) rpc>> \n' %(self.full_display_path(stmt), self.full_path(stmt)))
+        fd.write('%s -- %s : rpc \n' %(self.make_plantuml_keyword(module.arg), self.full_path(stmt)))
+        for sub_stmt in stmt.substmts:
+            if sub_stmt.keyword == 'input' or sub_stmt.keyword == 'output':
+                parent = statements.Statement(stmt, stmt, None, sub_stmt.keyword, sub_stmt.keyword)
+                fd.write('class \"%s\" as %s <<%s>> \n' % (stmt.arg, self.full_path(parent), sub_stmt.keyword))
+                fd.write('%s -- %s : %s\n' % (self.full_path(stmt), self.full_path(parent), sub_stmt.keyword))
+                for params in sub_stmt.substmts:
+                    self.emit_child_stmt(parent, params, fd)
 
     def emit_uses(self, parent, node):
         p = self.full_path(parent)
