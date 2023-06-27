@@ -1063,7 +1063,7 @@ class uml_emitter:
                     # Grouping in other module, use red...
                     # fd.write('class \"%s\" as %s << (G,Red) grouping>>\n' %(self.uses_as_string[u], self.make_plantuml_keyword(self.uses_as_string[u])))
                     # fd.write('%s --> %s : uses \n' %(p, self.make_plantuml_keyword(self.uses_as_string[u])))
-                    sys.stderr.write("Info: Skipping uses reference to %s, grouping not in input files \n" %p)
+                    sys.stderr.write("Info: Skipping uses reference to %s, grouping not in input files \n" %self.uses_as_string[u])
                     pass
 
         if self.ctx_leafrefs: # TODO correct paths for external leafrefs
