@@ -867,7 +867,7 @@ class uml_emitter:
         self.uses.append([p,u])
         self.uses_as_string[u] = node.arg
 
-    def emit_grouping(self, module, stmt, fd, glob = 'False'):
+    def emit_grouping(self, module, stmt, fd, glob = False):
         if not self.ctx_filterfile:
             # MEF
             # When referenced from this module
