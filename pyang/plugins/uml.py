@@ -93,6 +93,16 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
+            optparse.make_option("--uml-skip-module",
+                                 dest="uml_skip_module",
+                                 action="append",
+                                 default=[],
+                                 metavar="SKIP MODULE",
+                                 help="skips given modules, i.e., --uml-skip-module=tailf-ncs"),
+            optparse.make_option("--uml-add-legend",
+                                 dest="uml_add_legend",
+                                 action="store_true",
+                                 help="Adds legend about grouping yang file in the UML"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -166,6 +176,7 @@ class uml_emitter:
     _ctx = None
     post_strings = []
     module_prefixes = []
+    ctx_grp_files = set()
 
     def __init__(self, ctx):
         self._ctx = ctx
@@ -188,6 +199,8 @@ class uml_emitter:
         self.ctx_title = ctx.opts.uml_title
 
         self.ctx_inline_augments = ctx.opts.uml_inline_augments
+        self.ctx_skip_module = set(ctx.opts.uml_skip_module)
+        self.ctx_add_legend = ctx.opts.uml_add_legend
 
         no = ctx.opts.uml_no.split(",")
         self.ctx_leafrefs = not "leafref" in no
@@ -255,6 +268,10 @@ class uml_emitter:
 
             if not self.ctx_filterfile:
                 self.post_process_module(module, fd)
+
+        if self.ctx_add_legend:
+            self.emit_uml_legend(module, fd)
+
         if not self.ctx_filterfile:
             self.post_process_diagram(fd)
 
@@ -413,7 +430,14 @@ class uml_emitter:
             if hasattr(node, 'i_grouping') and (self._ctx.opts.uml_inline) and cont:
                 grouping_node = node.i_grouping
                 if grouping_node is not None:
+                    # skip grouping modules if given
+                    module = str(grouping_node.main_module()).split()[-1]
+                    if module in self.ctx_skip_module:
+                        fd.write('%s : %s {uses} \n' %(self.full_path(parent), node.arg))
+                        return
                     # inline grouping here
+                    # collecting grouping module file names
+                    self.ctx_grp_files.add(str(grouping_node.pos).split(':')[0].split('/')[-1])
                     # sys.stderr.write('Found  target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
                     for children in grouping_node.substmts:
                         # make the inlined parent to parent rather then the grouping to make full path unique
@@ -591,7 +615,12 @@ class uml_emitter:
     def emit_module_class(self, module, fd):
         fd.write('class \"%s\" as %s << (M, #33CCFF) module>> \n' %(self.full_display_path(module), self.full_path(module)))
 
-
+    def emit_uml_legend(self, module, fd):
+        fd.write('legend \n')
+        fd.write('Grouping data pulled from \n')
+        for file in self.ctx_grp_files:
+            fd.write(f'  {file} \n')
+        fd.write('endlegend \n')
 
     def emit_uml_footer(self, module, fd):
         if self._ctx.opts.uml_footer is not None:
