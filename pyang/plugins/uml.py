@@ -102,7 +102,7 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-add-legend",
                                  dest="uml_add_legend",
                                  action="store_true",
-                                 help="Adds legend about grouping yang file in the UML"),
+                                 help="Adds a legend specifying in which modules the groupings referenced in the diagram are to be found"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
