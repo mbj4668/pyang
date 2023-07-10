@@ -617,7 +617,7 @@ class uml_emitter:
 
     def emit_uml_legend(self, module, fd):
         fd.write('legend \n')
-        fd.write('Grouping data pulled from \n')
+        fd.write('Referenced groupings to be found in the following modules:' \n')
         for file in self.ctx_grp_files:
             fd.write(f'  {file} \n')
         fd.write('endlegend \n')
