@@ -437,7 +437,7 @@ class uml_emitter:
                         return
                     # inline grouping here
                     # collecting grouping module file names
-                    self.ctx_grp_files.add(str(grouping_node.pos).split(':')[0].split('/')[-1])
+                    self.ctx_grp_files.add(module)
                     # sys.stderr.write('Found  target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
                     for children in grouping_node.substmts:
                         # make the inlined parent to parent rather then the grouping to make full path unique
