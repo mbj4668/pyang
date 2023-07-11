@@ -98,10 +98,6 @@ class UMLPlugin(plugin.PyangPlugin):
                                  action="append",
                                  default=[],
                                  help="Skips given modules from inline augmentation"),
-            optparse.make_option("--uml-add-legend",
-                                 dest="uml_add_legend",
-                                 action="store_true",
-                                 help="Adds a legend specifying in which modules the groupings referenced in the diagram are to be found"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
@@ -175,7 +171,6 @@ class uml_emitter:
     _ctx = None
     post_strings = []
     module_prefixes = []
-    ctx_grp_files = set()
 
     def __init__(self, ctx):
         self._ctx = ctx
@@ -199,7 +194,6 @@ class uml_emitter:
 
         self.ctx_inline_augments = ctx.opts.uml_inline_augments
         self.ctx_no_inline_groupings_from = set(ctx.opts.uml_no_inline_groupings_from)
-        self.ctx_add_legend = ctx.opts.uml_add_legend
 
         no = ctx.opts.uml_no.split(",")
         self.ctx_leafrefs = not "leafref" in no
@@ -267,9 +261,6 @@ class uml_emitter:
 
             if not self.ctx_filterfile:
                 self.post_process_module(module, fd)
-
-        if self.ctx_add_legend:
-            self.emit_uml_legend(module, fd)
 
         if not self.ctx_filterfile:
             self.post_process_diagram(fd)
@@ -435,8 +426,6 @@ class uml_emitter:
                         fd.write('%s : %s {uses} \n' %(self.full_path(parent), node.arg))
                         return
                     # inline grouping here
-                    # collecting grouping module file names
-                    self.ctx_grp_files.add(module)
                     # sys.stderr.write('Found  target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
                     for children in grouping_node.substmts:
                         # make the inlined parent to parent rather then the grouping to make full path unique
@@ -613,13 +602,6 @@ class uml_emitter:
 
     def emit_module_class(self, module, fd):
         fd.write('class \"%s\" as %s << (M, #33CCFF) module>> \n' %(self.full_display_path(module), self.full_path(module)))
-
-    def emit_uml_legend(self, module, fd):
-        fd.write('legend \n')
-        fd.write('Referenced groupings to be found in the following modules:' \n')
-        for file in self.ctx_grp_files:
-            fd.write(f'  {file} \n')
-        fd.write('endlegend \n')
 
     def emit_uml_footer(self, module, fd):
         if self._ctx.opts.uml_footer is not None:
