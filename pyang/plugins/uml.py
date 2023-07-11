@@ -62,6 +62,11 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_inline",
                                  default =False,
                                  help="Inline groupings where they are used."),
+            optparse.make_option("--uml-no-inline-groupings-from",
+                                 dest="uml_no_inline_groupings_from",
+                                 action="append",
+                                 default=[],
+                                 help="Skips given modules from inline groupings i.e., --uml-inline-groupings"),
             optparse.make_option("--uml-inline-augments",
                                  action="store_true",
                                  dest="uml_inline_augments",
@@ -93,11 +98,6 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-filter-file",
                                  dest="uml_filter_file",
                                  help="NOT IMPLEMENTED: Only paths in the filter file will be included in the diagram"),
-            optparse.make_option("--uml-no-inline-groupings-from",
-                                 dest="uml_no_inline_groupings_from",
-                                 action="append",
-                                 default=[],
-                                 help="Skips given modules from inline augmentation"),
             ]
         if hasattr(optparser, 'uml_opts'):
             g = optparser.uml_opts
