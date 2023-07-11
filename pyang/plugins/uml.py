@@ -66,7 +66,7 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_no_inline_groupings_from",
                                  action="append",
                                  default=[],
-                                 help="Skips given modules from inline groupings i.e., --uml-inline-groupings"),
+                                 help="Skips given modules from inline groupings. \nExample --uml-no-inline-groupings-from=ietf-yang-push"),
             optparse.make_option("--uml-inline-augments",
                                  action="store_true",
                                  dest="uml_inline_augments",
