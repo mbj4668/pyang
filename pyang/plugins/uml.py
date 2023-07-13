@@ -191,7 +191,9 @@ class uml_emitter:
     thismod_prefix = ''
     _ctx = None
     post_strings = []
+    end_strings = []
     module_prefixes = []
+    leafref_classes = []
 
     choice_relation_symbol = ".."
     case_relation_symbol = ".."
@@ -767,12 +769,21 @@ class uml_emitter:
 
     def emit_identity(self, mod, stmt, fd):
         if self.ctx_identities:
-            self.post_strings.append('class \"%s\" as %s << (I,Silver) identity>> \n' %(self.full_display_path(stmt), self.make_plantuml_keyword(stmt.arg)))
-            self.identities.append(stmt.arg)
+            # add module prefix to ensure global uniqueness across modules
+            identity = self.thismod_prefix + ':' + stmt.arg
+            keyword = self.make_plantuml_keyword(identity)+'_identity'
+            self.post_strings.append('class \"%s\" as %s << (I,Silver) identity>> \n' %(self.full_display_path(stmt), keyword))
+            if identity not in self.identities:
+                self.identities.append(identity)
             base = stmt.search_one('base')
             if base is not None:
-                self.baseid.append(base.arg)
-                self.post_strings.append('%s <|-- %s \n' %(self.make_plantuml_keyword(base.arg), self.make_plantuml_keyword(stmt.arg)))
+                # if base does not include prefix, add prefix of current module
+                baseid = base.arg
+                if ':' not in baseid:
+                    baseid = self.thismod_prefix+':'+baseid
+                if baseid not in self.baseid:
+                    self.baseid.append(baseid)
+                self.post_strings.append('%s <|-- %s \n' %(self.make_plantuml_keyword(baseid)+'_identity', keyword))
 
 
     def emit_feature(self, parent, feature, fd):
@@ -819,10 +830,11 @@ class uml_emitter:
 
     def emit_typedef(self, m, t, fd):
         if self.ctx_typedefs:
+            keyword = self.make_plantuml_keyword(self.thismod_prefix) + '_' + self.make_plantuml_keyword(t.arg) + '_typedef'
             e = t.search_one('type')
             if e.arg == 'enumeration':
                 # enum_name = self.full_path(t, False)
-                fd.write('enum \"%s\" as %s {\n' %(t.arg, self.full_path(t)))
+                fd.write('enum \"%s\" as %s <<enumeration>> {\n' %(t.arg, keyword))
                 for enums in e.substmts[:int(self._ctx.opts.uml_max_enums)]:
                     fd.write('%s\n' %enums.arg)
                 if len(e.substmts) > int(self._ctx.opts.uml_max_enums):
@@ -839,8 +851,8 @@ class uml_emitter:
                     fd.write('%s\n' %(self.ctx_more_string))
                 fd.write("}\n")
             else:
-                fd.write('class \"%s\" as %s << (T, YellowGreen) typedef>>\n' %(t.arg, self.make_plantuml_keyword(t.arg)))
-                fd.write('%s : %s\n' %(self.make_plantuml_keyword(t.arg), self.typestring(t)))
+                fd.write('class \"%s\" as %s << (T, YellowGreen) typedef>>\n' %(t.arg, keyword))
+                fd.write('%s : %s\n' %(keyword, self.typestring(t)))
 
 
     def emit_notif(self, module, stmt,fd):
@@ -955,23 +967,39 @@ class uml_emitter:
                 s = s.replace(')', '}')
 
                 if node.i_leafref_ptr is not None:
-                    n = node.i_leafref_ptr[0]
+                    target_node = node.i_leafref_ptr[0]
                 else:
-                    n = None
+                    target_node = None
 
-                prefix, _ = util.split_identifier(p.arg)
-                # FIXME: previous code skipped first char, possibly in error
-                prefix = self.thismod_prefix if prefix is None else prefix[1:]
+                if target_node is not None:
 
-                if n is not None:
                     if node.keyword == 'typedef':
-                        self.leafrefs.append(self.make_plantuml_keyword(node.arg) + '-->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
+                        source_keyword = self.make_plantuml_keyword(self.thismod_prefix) + '_' + self.make_plantuml_keyword(node.arg) + '_typedef'
                     else:
-                        self.leafrefs.append(self.full_path(node.parent) + '-->' + '"' + leafrefkey + '"' + self.full_path(n.parent) + ': ' + node.arg + '\n')
-                    if prefix not in self.module_prefixes:
-                        self.post_strings.append('class \"%s\" as %s <<leafref>> \n' %(leafrefparent, self.full_path(n.parent)))
-                        # self.post_strings.append('%s : %s\n' %(self.full_path(n.parent), leafrefkey))
-                        sys.stderr.write("Info: Leafref %s outside diagram. Prefix = %s\n" %(p.arg, prefix))
+                        source_keyword = self.full_path(node.parent)
+
+                    target_prefix, _ = util.split_identifier(leafrefkey)
+                    # FIXME: previous code skipped first char, possibly in error
+                    if target_prefix is None:
+                        target_prefix = self.thismod_prefix
+
+                    # if target node (last node in path) is located in the list of input modules, a relation to the target class can be created
+                    if target_prefix in self.module_prefixes:
+                        # if the relation is internal to this module append to leafrefs else append to end of diagram outside the scope of any input module
+                        target_keyword = self.full_path(target_node.parent)
+                        if target_prefix == self.thismod_prefix:
+                            self.leafrefs.append(source_keyword + '-->' + '"' + leafrefkey + '"' + target_keyword + ': ' + node.arg + '\n')
+                        else:
+                            self.end_strings.append(source_keyword + '-->' + '"' + leafrefkey + '"' + target_keyword + ': ' + node.arg + '\n')
+                    else:
+                        # no target within input modules, so create a class as placeholder
+                        target_keyword = self.full_path(target_node.parent) + '_leafref'
+                        # add a class to represent the target of the leafref, if not already previously created during processing of this module
+                        if target_keyword not in self.leafref_classes:
+                            self.post_strings.append('class \"%s\" as %s <<leafref>> \n' %(leafrefparent, target_keyword))
+                            self.leafref_classes.append(target_keyword)
+                        self.leafrefs.append(source_keyword + '-->' + '"' + leafrefkey + '"' + target_keyword + ': ' + node.arg + '\n')
+                        sys.stderr.write("Info: Leafref %s outside diagram. Prefix = %s\n" %(p.arg, target_prefix))
 
                 else:
                     sys.stderr.write("Info: Did not find leafref target %s\n" %p.arg)
@@ -989,7 +1017,30 @@ class uml_emitter:
             if b is not None:
                 s = s + ' {' + b.arg + '}'
                 if self.ctx_identityrefs and self.ctx_identities:
-                    self.post_strings.append(self.full_path(node.parent) + '-->' + self.make_plantuml_keyword(b.arg) + ': ' + node.arg + '\n')
+                    baseid = b.arg
+                    if ':' not in baseid:
+                        # if no prefix found, it must be defined in this module, so add this module's prefix
+                        baseid = self.thismod_prefix + ':' + baseid
+
+                    if baseid not in self.baseid:
+                        self.baseid.append(baseid)
+
+                    if node.keyword == 'typedef':
+                        keyword = self.make_plantuml_keyword(self.thismod_prefix) + '_' + self.make_plantuml_keyword(node.arg) + '_typedef'
+                    else:
+                        keyword = self.full_path(node.parent)
+
+                    # add a relation to the baseid:
+                    # if baseid is defined in this module, then an identity class will have been defined in this module and
+                    # if baseid is not in an input module, then function post_process_module() will then add a placeholder class for the identity
+                    # in both the above cases the keyword will be then same
+                    # if baseid is in another input module, then an identity class will have been defined there (with the same keyword), in which case the relation must be defined outside of the module packages
+                    prefix, _ = util.split_identifier(baseid)
+                    if prefix == self.thismod_prefix or prefix not in self.module_prefixes:
+                        self.post_strings.append(keyword + '-->' + self.make_plantuml_keyword(baseid) + '_identity : ' + node.arg + '\n')
+                    else:
+                        self.end_strings.append(keyword + '-->' + self.make_plantuml_keyword(baseid) + '_identity : ' + node.arg + '\n')
+
 
         elif t.arg == 'union':
             uniontypes = t.search('type')
@@ -1185,6 +1236,7 @@ class uml_emitter:
         stmt.i_annotate_node = node
         return inthismod, node
 
+
     def post_process_diagram(self, fd):
         if self.ctx_uses:
             for p,u in self.uses:
@@ -1201,6 +1253,9 @@ class uml_emitter:
             for l in self.leafrefs:
                 fd.write(l)
 
+        for s in self.end_strings:
+            fd.write(s)
+
         # remove duplicates
         self.augments = list(set(self.augments))
         for augm in self.augments:
@@ -1210,13 +1265,19 @@ class uml_emitter:
     def post_process_module(self, module, fd):
 
         for base in self.baseid:
+            # If a base is not defined in the module, define it, if it is not in another input module
             if not base in self.identities:
-                fd.write('class \"%s\" as %s << (I,Silver) identity>> \n' %(base, self.make_plantuml_keyword(base)))
+                prefix, _ = util.split_identifier(base)
+                if prefix not in self.module_prefixes:
+                    keyword = self.make_plantuml_keyword(base) + '_identity'
+                    fd.write('class \"%s\" as %s << (I,Silver) identity>> \n' %(base, keyword))
 
         for s in self.post_strings:
             fd.write(s)
 
-        self.based = []
+        self.baseid = []
+        self.identities = []
+        self.leafref_classes = []
         self.post_strings = []
 
         if not self.ctx_no_module:
