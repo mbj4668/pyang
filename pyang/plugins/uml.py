@@ -822,7 +822,7 @@ class uml_emitter:
             e = t.search_one('type')
             if e.arg == 'enumeration':
                 # enum_name = self.full_path(t, False)
-                fd.write('enum \"%s\" as %s {\n' % (t.arg, self.full_path(t)))
+                fd.write('enum \"%s\" as %s {\n' %(t.arg, self.full_path(t)))
                 for enums in e.substmts[:int(self._ctx.opts.uml_max_enums)]:
                     fd.write('%s\n' %enums.arg)
                 if len(e.substmts) > int(self._ctx.opts.uml_max_enums):
