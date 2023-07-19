@@ -1107,7 +1107,7 @@ class uml_emitter:
         s = s.replace('-', '_')
         s = s.replace('/', '_')
         s = s.replace(':', '_')
-        # RFC 7950 allows YANG identifiers to contain dots and dashes, so to ensure there is no chance of a clash of keywords where say identifiers 'a.b' and 'a-b' exist, use underscores for dots
+        # RFC 7950 allows YANG identifiers to contain dots and dashes, so to ensure there is no chance of a clash of keywords where say identifiers 'a.b' and 'a-b' exist, use 2 underscores for dots
         s = s.replace('.', '__')
 
         return s
