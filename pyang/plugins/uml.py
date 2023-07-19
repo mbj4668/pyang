@@ -1103,10 +1103,13 @@ class uml_emitter:
 
 
     def make_plantuml_keyword(self, s):
-        #plantuml does not like -/: in identifiers, fixed :)
+        #plantuml does not like -/:. in identifiers, fixed :)
         s = s.replace('-', '_')
         s = s.replace('/', '_')
         s = s.replace(':', '_')
+        # RFC 7950 allows YANG identifiers to contain dots and dashes, so to ensure there is no chance of a clash of keywords where say identifiers 'a.b' and 'a-b' exist, use underscores for dots
+        s = s.replace('.', '__')
+
         return s
 
 
