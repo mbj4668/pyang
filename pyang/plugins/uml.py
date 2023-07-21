@@ -458,6 +458,8 @@ class uml_emitter:
             elif node.keyword == 'leaf-list':
                 fd.write('%s : %s %s %s\n' %(self.full_path(parent), node.arg, '[]: ' + self.typestring(node), self.attribs(node)) )
                 self.emit_must_leaf(parent, node, fd)
+            elif node.keyword == 'notification':
+                self.emit_notif(parent, node, fd)
             elif node.keyword in ['action', ('tailf-common', 'action')]:
                 self.emit_action(parent, node, fd)
             elif node.keyword == ('tailf-common', 'callpoint'):
@@ -715,13 +717,13 @@ class uml_emitter:
                 fd.write('%s : %s\n' %(self.make_plantuml_keyword(t.arg), self.typestring(t)))
 
 
-    def emit_notif(self, module, stmt,fd):
+    def emit_notif(self, parent, node, fd):
         # ALTERNATIVE 1
         # notif as class stereotype, ugly, but easier to layout params
-        fd.write('class \"%s\" as %s << (N,#00D1B2) notification>> \n' %(self.full_display_path(stmt), self.full_path(stmt)))
-        fd.write('%s -- %s : notification \n' %(self.make_plantuml_keyword(module.arg), self.full_path(stmt)))
-        for params in stmt.substmts:
-            self.emit_child_stmt(stmt, params, fd)
+        fd.write('class \"%s\" as %s << (N,#00D1B2) notification>> \n' % (self.full_display_path(node), self.full_path(node)))
+        fd.write('%s -- %s : notification \n' % (self.make_plantuml_keyword(self.full_path(parent)), self.full_path(node)))
+        for params in node.substmts:
+            self.emit_child_stmt(node, params, fd)
 
         # ALTERNATIVE 2
         # notif as oper, better, but hard to layout params
