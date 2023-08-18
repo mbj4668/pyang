@@ -1,6 +1,7 @@
-PYANG?= pyang
+export PYTHONPATH=$(PWD)/../../pyang
+PYANG?=../../bin/pyang
 
-test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20 test21
+test: test1 test2 test3 test4 test5 test5sx test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20 test21
 
 test1:
 	# Test help
@@ -30,6 +31,12 @@ test5:
 	$(PYANG) --sid-generate-file 2500:50 ietf-constrained-voucher@2019-08-01.yang 2>&1 | diff -b test-5-expected-output.txt -
 	diff -b test-5-expected-ietf-constrained-voucher@2019-08-01.sid ietf-constrained-voucher@2019-08-01.sid
 	rm ietf-constrained-voucher@2019-08-01.sid
+
+test5sx:
+	# Test structure augment and yang data
+	$(PYANG) --sid-generate-file 2500:50 ietf-voucher@2023-01-10.yang 2>&1 | diff -b test-5sx-expected-output.txt -
+	diff -b test-5sx-expected-ietf-voucher@2023-01-10.sid ietf-voucher@20123-01-10.sid
+	rm ietf-voucher@20123-01-10.sid
 
 test6:
 	# Test SID range exhausted

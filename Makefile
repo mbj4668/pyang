@@ -19,9 +19,10 @@ pyang/xpath_parsetab.py: pyang/xpath_parser.py
 	python -m pyang.xpath_parser
 
 test: lint
-	(cd test; $(MAKE) test)
+	which xsltproc || (echo "Please run pip install -r dev-requirements.txt";exit 1)
+	(source env.sh; $(MAKE) -C test test)
 
-lint:
+ lint:
 	flake8 .
 
 pylint:
