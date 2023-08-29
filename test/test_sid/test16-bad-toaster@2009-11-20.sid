@@ -9,7 +9,7 @@
   "module-revision": "2009-12-28",
   "item": [
     {
-      "namespace: "module",
+      "namespace": "module",
       "identifier": "toaster",
       "sid": 20000
     },
