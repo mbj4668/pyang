@@ -13,6 +13,6 @@ clean:
 
 ../man/man1/%.1: %.1.md
 	cat $< | \
-	  sed -e 's/%VERSION%/$(VERSION)/g' \
-	      -e 's/%DATE%/$(DATE)/g' | \
+	  sed -e 's/_VERSION_/$(VERSION)/g' \
+	      -e 's/_DATE_/$(DATE)/g' | \
 	  pandoc - -s -t man -o $@

@@ -2,8 +2,8 @@
 title: PYANG
 section: 1
 header: User Manual
-footer: pyang-%VERSION%
-date: %DATE%
+footer: pyang-_VERSION_
+date: _DATE_
 ---
 # NAME
 pyang - validate and convert YANG modules to various formats

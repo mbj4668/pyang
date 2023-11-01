@@ -2,8 +2,8 @@
 title: JSON2XML
 section: 1
 header: User Manual
-footer: json2xml-%VERSION%
-date: %DATE%
+footer: json2xml-_VERSION_
+date: _DATE_
 ---
 # NAME
 

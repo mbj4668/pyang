@@ -2,8 +2,8 @@
 title: YANG2DSDL
 section: 1
 header: User Manual
-footer: yang2dsdl-%VERSION%
-date: %DATE%
+footer: yang2dsdl-_VERSION_
+date: _DATE_
 ---
 # NAME
 
