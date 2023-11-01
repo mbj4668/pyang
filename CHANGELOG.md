@@ -1,3 +1,29 @@
+* 2.6.0 - 2023-11-03
+```
+       lots of improvements to the UML plugin
+         thanks to Nick Hancock
+       lots of improvements to build and test
+         thanks to @ubaumann
+       fix invalid regular expression on Windows
+         thanks to Jan Kundrát
+       fix script issues on Windows
+         thanks to Jan Kundrát
+       fix validation of when expressions for 1.1 modules
+         thanks to Derek Ingrouville
+       fixes for revision-date in depend output
+         thanks to Slavomir Mazur
+
+       #845 - sid item status
+       #844 - tree max line length issue
+       #837 - test fixes
+       #821 - typo in jstree output
+       #818 - issue with decimal64 defaults in json2xml
+       #809 - revision-date parsed wrong if multiple "@" found in path
+              thanks to Michael Littlejohn
+       #729 - handle name scoping of 1.1 submodules in XPath expressions
+       #516 - crash in tree output
+```
+
 * 2.5.3 - 2022-03-30
 ```
        added support for checking 'ancestor' and 'ancestor-or-self' XPATH axes
