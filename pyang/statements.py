@@ -155,6 +155,7 @@ _validation_phases = [
 
     #   second expansion: expand augmentations into i_children
     'expand_2',
+    'expand_3',
 
     # unique name check phase:
     'unique_name',
@@ -216,6 +217,7 @@ _validation_map = {
         lambda ctx, s: v_inherit_properties(ctx, s),
 
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
+    ('expand_3', 'augment'):lambda ctx, s: v_expand_3_augment(ctx, s),
 
     ('unique_name', 'module'): \
         lambda ctx, s: v_unique_name_defintions(ctx, s),
@@ -252,10 +254,11 @@ _validation_map = {
 _v_i_children = {
     'unique_name':True,
     'expand_2':True,
+    'expand_3':True,
     'reference_1':True,
     'reference_2':True,
 }
-"""Phases in this dict are run over the stmts which has i_children.
+"""Phases in this dict are run over the stmts that have i_children.
 Note that the tests are not run in grouping definitions."""
 
 _v_i_children_keywords = {
@@ -1464,6 +1467,8 @@ def v_expand_1_children(ctx, stmt):
             v_inherit_properties(ctx, stmt)
             for a in s.search('augment'):
                 v_expand_2_augment(ctx, a)
+            for a in s.search('augment'):
+                v_expand_3_augment(ctx, a)
 
         elif s.keyword in data_keywords and hasattr(stmt, 'i_children'):
             stmt.i_children.append(s)
@@ -1726,18 +1731,19 @@ def v_inherit_properties(ctx, stmt, child=None):
 
 def v_expand_2_augment(ctx, stmt):
     """
-    One-pass augment expansion algorithm: First observation: since we
-    validate each imported module, all nodes that are augmented by
-    other modules already exist.  For each node in the path to the
-    target node, if it does not exist, it might get created by an
-    augment later in this module.  This only applies to nodes defined
-    in our namespace (since all other modules already are validated).
-    For each such node, we add a temporary Statement instance, and
-    store a pointer to it.  If we find such a temporary node in the
-    nodes we add, we replace it with our real node, and delete it from
-    the list of temporary nodes created.  When we're done with all
-    augment statements, the list of temporary nodes should be empty,
-    otherwise it is an error.
+    First pass of two-pass augment expansion algorithm.
+
+    First observation: since we validate each imported module, all
+    nodes that are augmented by other modules already exist.  For each
+    node in the path to the target node, if it does not exist, it
+    might get created by an augment later in this module.  This only
+    applies to nodes defined in our namespace (since all other modules
+    already are validated).  For each such node, we add a temporary
+    Statement instance, and store a pointer to it.  If we find such a
+    temporary node in the nodes we add, we replace it with our real
+    node, and delete it from the list of temporary nodes created.
+    When we're done with all augment statements, the list of temporary
+    nodes should be empty, otherwise it is an error.
     """
     if hasattr(stmt, 'i_target_node'):
         # already expanded
@@ -1867,6 +1873,15 @@ def v_expand_2_augment(ctx, stmt):
         if s.keyword in _copy_augment_keywords:
             stmt.i_target_node.substmts.append(s)
             s.parent = stmt.i_target_node
+
+def v_expand_3_augment(ctx, stmt):
+    """
+    Second pass of two-pass augment expansion algorithm.
+
+    Find the (possibly expanded) target nodes again.  The reason for
+    this is that stmt.i_target_node may point to a __tmp_augment__ node.
+    """
+    stmt.i_target_node = find_target_node(ctx, stmt, is_augment=True)
 
 def create_new_case(ctx, choice, child, expand=True):
     new_case = new_statement(child.top, choice, child.pos, 'case', child.arg)
