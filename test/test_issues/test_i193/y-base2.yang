@@ -1,0 +1,10 @@
+submodule y-base2 {
+  yang-version 1.1;
+  belongs-to y-base {
+    prefix y-b;
+  }
+  container configs {
+    container profiles {
+    }
+  }
+}

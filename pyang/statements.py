@@ -438,13 +438,18 @@ def v_init_module(ctx, stmt):
     if stmt.keyword == 'module':
         prefix = stmt.search_one('prefix')
         stmt.i_modulename = stmt.arg
+        mod = stmt
     else:
         belongs_to = stmt.search_one('belongs-to')
         if belongs_to is not None and belongs_to.arg is not None:
             prefix = belongs_to.search_one('prefix')
             stmt.i_modulename = belongs_to.arg
+            mod = ctx.get_module(stmt.i_modulename)
+            if mod is None:
+                mod = stmt
         else:
             stmt.i_modulename = ""
+            mod = None
 
     if prefix is not None and prefix.arg is not None:
         stmt.i_prefixes[prefix.arg] = (stmt.arg, None)
@@ -484,11 +489,14 @@ def v_init_module(ctx, stmt):
     stmt.i_undefined_augment_nodes = {}
     # next, set the attribute 'i_module' in each statement to point to the
     # module where the statement is defined.  if the module is a submodule,
-    # 'i_module' will point to the main module.
+    # 'i_main_module' will point to the main module, except if a submodule is
+    #    validated stand-alone (then in points to the submodule)
     # 'i_orig_module' will point to the real module / submodule.
+    # 'i_module' will point to the main module.
     def set_i_module(s):
         s.i_orig_module = s.top
         s.i_module = s.top
+        s.i_main_module = mod
         return
     iterate_stmt(stmt, set_i_module)
 
@@ -2972,6 +2980,7 @@ class Statement(object):
         'i_config',                  # True or False
         'i_module',
         'i_orig_module',
+        'i_main_module',
 
         'i_not_implemented', # if set (True) this statement is not implemented,
                              # either a false if-feature or status
