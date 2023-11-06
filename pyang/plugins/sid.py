@@ -629,7 +629,7 @@ class SidFile:
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword == 'action':
-               self.merge_item('data', self.get_path(statement, prefix))
+                self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:
                     self.merge_item('data', "%s/%s" % (self.get_path(statement, prefix), substmt.keyword))
                     if substmt.keyword in self.inrpc_keywords:
