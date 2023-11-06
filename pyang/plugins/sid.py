@@ -599,11 +599,13 @@ class SidFile:
                 self.collect_inner_data_nodes(statement.i_children)
 
             elif statement.keyword == 'rpc':
-                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
+               self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
-                        self.collect_inner_data_nodes(substmt.i_children)
-
+                        if len(substmt.i_children) > 0:
+                            self.merge_item('data', "/%s:%s/%s" % (self.module_name, statement.arg, substmt.keyword))
+                            self.collect_inner_data_nodes(substmt.i_children)
+                            
             elif statement.keyword == 'notification':
                 self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
                 self.collect_inner_data_nodes(statement.i_children)
@@ -627,11 +629,12 @@ class SidFile:
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword == 'action':
-                self.merge_item('data', self.get_path(statement, prefix))
+               self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:
+                    self.merge_item('data', "%s/%s" % (self.get_path(statement, prefix), substmt.keyword))
                     if substmt.keyword in self.inrpc_keywords:
                         self.collect_inner_data_nodes(substmt.i_children, prefix)
-
+                        
             elif statement.keyword == 'notification':
                 self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
