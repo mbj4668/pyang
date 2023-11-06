@@ -51,6 +51,10 @@ class SidPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="list_sid",
                                  help="Print the list of SID."),
+            optparse.make_option("--sid-extension",
+                                 action="store_true",
+                                 dest="sid_ext",
+                                 help="Add info to the sid file to manipulate coreconf."),
             optparse.make_option("--sid-finalize",
                                  action="store_true",
                                  dest="finalize_sid",
@@ -129,6 +133,9 @@ class SidPlugin(plugin.PyangPlugin):
 
         if ctx.opts.list_sid:
             sid_file.list_content = True
+
+        if ctx.opts.sid_ext:
+            sid_file.sid_extension = True
 
         if ctx.opts.finalize_sid:
             print("Will mark unstable allocations finalized")
@@ -221,6 +228,11 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
+--sid-extenstion
+
+   Add non standard entries in the .sid file to facilitate CORECONF manipulation
+   on constrained devices. 
+
 --sid-list
 
   The --sid-list option can be used before any of the previous options to
@@ -291,6 +303,7 @@ class SidFile:
         self.module_name = ''
         self.module_revision = ''
         self.output_file_name = ''
+        self.sid_extension = False
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
@@ -575,6 +588,9 @@ class SidFile:
         if 'items' not in self.content:
             self.content['items'] = []
 
+        if 'key-mapping' not in self.content: 
+            self.content['key-mapping'] = {}
+
         for item in self.content['items']:
             item['lifecycle'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
 
@@ -605,7 +621,7 @@ class SidFile:
                         if len(substmt.i_children) > 0:
                             self.merge_item('data', "/%s:%s/%s" % (self.module_name, statement.arg, substmt.keyword))
                             self.collect_inner_data_nodes(substmt.i_children)
-                            
+
             elif statement.keyword == 'notification':
                 self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
                 self.collect_inner_data_nodes(statement.i_children)
@@ -622,19 +638,43 @@ class SidFile:
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                self.merge_item('data', self.get_path(statement, prefix))
+                for s in statement.substmts: # find type declaration
+                    #print (s)
+                    if s.keyword == "type":
+                        if s.i_type_spec.name == "identityref":
+                            typename = "identityref"
+
+                        elif s.i_type_spec.name == "enumeration":
+                            typename = {}
+                            for k, v in s.i_type_spec.enums:
+                                typename[str(v)] = k
+                        else:
+                            typename = s.arg
+
+                        if typename=="union": # union put all types in an array
+                            typename = []
+                            for t in s.i_type_spec.types:
+                                typename.append(t.arg)
+                self.merge_item('data', self.get_path(statement, prefix), typename)
 
             elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
+                if self.sid_extension:
+                    if statement.keyword == "list": # if list add list-id : [key-id, ...]
+                        keys = []
+                        for k in statement.i_key:
+                            keys.append(self.get_path(k, prefix))
+                        self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword == 'action':
                 self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:
                     self.merge_item('data', "%s/%s" % (self.get_path(statement, prefix), substmt.keyword))
+
                     if substmt.keyword in self.inrpc_keywords:
                         self.collect_inner_data_nodes(substmt.i_children, prefix)
-                        
+
             elif statement.keyword == 'notification':
                 self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
@@ -645,6 +685,27 @@ class SidFile:
     def collect_in_substmts(self, substmts):
         for statement in substmts:
             if statement.keyword in self.leaf_keywords:
+                for stmt in statement.substmts: 
+                    if stmt.keyword == "type":
+                        itype= stmt.i_typedef
+                        if itype != None:
+                            type_descr = {}
+                            for type_stmt in itype.substmts:
+                                #print  (type_stmt.arg)
+                                if type_stmt.arg == "enumeration":
+                                    for enum in type_stmt.substmts:
+                                        enum_name = enum.arg
+                                        for val in enum.substmts:
+                                            if val.keyword == "value":
+                                                enum_val = val.arg
+                                                break
+                                        type_descr[enum_val] = enum_name
+                        else:
+                            type_descr = stmt.arg
+
+                    
+                    
+                self.merge_item('data', self.get_path(statement), type_descr)
                 self.merge_item('data', self.get_path(statement))
 
             elif statement.keyword in self.container_keywords:
@@ -681,15 +742,23 @@ class SidFile:
 
         return prefix + path
 
-    def merge_item(self, namespace, identifier):
+    def merge_item(self, namespace, identifier, typename=None):
         for item in self.content['items']:
             if (namespace == item['namespace'] and identifier == item['identifier']):
                 item['lifecycle'] = 'o' # Item already assigned
                 return
-        self.content['items'].append(collections.OrderedDict(
-            [('namespace', namespace), ('identifier', identifier),
-             ('status', 'unstable'),
-             ('sid', -1), ('lifecycle', 'n')]))
+
+        if self.sid_extension and typename != None:
+            self.content['items'].append(collections.OrderedDict(
+                [('namespace', namespace), ('identifier', identifier),
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n'),
+                ('type', typename)]))
+        else:
+            self.content['items'].append(collections.OrderedDict(
+                [('namespace', namespace), ('identifier', identifier),
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
 
     ########################################################
@@ -793,6 +862,12 @@ class SidFile:
                   "with a 'deprecated' or 'obsolete' status.")
 
     ########################################################
+    def find_sid(self, id):
+        for e in self.content['items']:
+            if e['identifier'] == id:
+                return e['sid']
+        return None
+
     def generate_file(self):
         for item in self.content['items']:
             del item['lifecycle']
@@ -806,6 +881,17 @@ class SidFile:
                 if item['status'] == 'unstable':
                     print("  finalized %s" % (item['identifier']))
                     item['status'] = self.module_revision
+
+        if self.sid_extension:
+            key_mapping_sid = {}
+            for k, v in self.content['key-mapping'].items():
+                k_sid = self.find_sid(k)
+                v_sids = []
+                for e in v:
+                    v_sids.append(self.find_sid(e))
+                key_mapping_sid[k_sid] = v_sids
+
+            self.content['key-mapping'] = key_mapping_sid
 
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
@@ -869,6 +955,8 @@ class SidFile:
         for item in items:
             type_ = item.pop('type', None)
             label = item.pop('label', None)
+            typename = item.pop('type', None)
+
             if not type_:
                 pass
             elif type_ in ('Module', 'Submodule'):
