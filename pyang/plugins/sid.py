@@ -228,7 +228,7 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
---sid-extenstion
+--sid-extension
 
    Add non standard entries in the .sid file to facilitate CORECONF manipulation
    on constrained devices. 
