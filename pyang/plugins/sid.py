@@ -569,6 +569,14 @@ class SidFile:
         except AttributeError:
             return False
 
+
+    @staticmethod
+    def has_yang_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure' # XXX
+        except AttributeError:
+            return False
+
     ########################################################
     # Collection of items defined in .yang file(s)
     def collect_module_items(self, module):
@@ -615,6 +623,8 @@ class SidFile:
             if substmt.keyword == 'augment':
                 self.collect_in_substmts(substmt.substmts)
             elif self.has_yang_data_extension(substmt):
+                self.collect_in_substmts(substmt.substmts)
+            elif self.has_yang_structure_extension(substmt):
                 self.collect_in_substmts(substmt.substmts)
 
     def collect_inner_data_nodes(self, statements, prefix=""):
