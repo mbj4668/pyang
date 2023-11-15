@@ -445,7 +445,8 @@ def v_init_module(ctx, stmt):
             prefix = belongs_to.search_one('prefix')
             stmt.i_modulename = belongs_to.arg
             mod = ctx.get_module(stmt.i_modulename)
-            if mod is None:
+            if mod is None or not mod.i_is_validated:
+                # this happens if a submodule is validated standalone
                 mod = stmt
         else:
             stmt.i_modulename = ""
