@@ -1,0 +1,15 @@
+submodule y1-profiles {
+  belongs-to y1-base {
+    prefix y-b;
+  }
+
+  container y {
+    must "/y-b:configs/y-b:profiles";
+    list profile {
+      key name;
+      leaf name {
+        type string;
+      }
+    }
+  }
+}

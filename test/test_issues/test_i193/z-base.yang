@@ -1,0 +1,7 @@
+module z-base {
+  yang-version 1.1;
+  namespace "http://example.com/z-base";
+  prefix z-b;
+  include z-base2;
+  include z-profiles;
+}

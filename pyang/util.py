@@ -69,11 +69,12 @@ def get_latest_revision(module):
     return max(revisions) if revisions else 'unknown'
 
 
+# module is the (sub)module where the statement is defined
 def prefix_to_modulename_and_revision(module, prefix, pos, errors):
-    if prefix == '':
-        return module.arg, None
-    if prefix == module.i_prefix:
-        return module.arg, None
+    if prefix == '' or prefix == module.i_prefix:
+        if module.i_version == '1':
+            return module.arg, None
+        return module.i_main_module.arg, None
     try:
         (modulename, revision) = module.i_prefixes[prefix]
     except KeyError:
@@ -86,12 +87,12 @@ def prefix_to_modulename_and_revision(module, prefix, pos, errors):
         del module.i_unused_prefixes[prefix]
     return modulename, revision
 
-
+# module is the (sub)module where the statement is defined
 def prefix_to_module(module, prefix, pos, errors):
-    if prefix == '':
-        return module
-    if prefix == module.i_prefix:
-        return module
+    if prefix == '' or prefix == module.i_prefix:
+        if module.i_version == '1':
+            return module
+        return module.i_main_module
     modulename, revision = \
         prefix_to_modulename_and_revision(module, prefix, pos, errors)
     if modulename is None:

@@ -1,0 +1,27 @@
+module bgp {
+  yang-version 1.1;
+  namespace "http://example.com/bgp";
+  prefix ios-bgp;
+
+  import native {
+    prefix ios;
+  }
+
+  
+  grouping config-bgp-grouping {
+    list bgp {
+      key "id";
+      leaf id {
+        type string;
+      }
+
+      container interface {
+        uses ios:interface-with-dependency-grouping;
+      }
+    }
+  }
+
+  augment "/ios:native/ios:router" {
+    uses config-bgp-grouping;
+  }
+}
