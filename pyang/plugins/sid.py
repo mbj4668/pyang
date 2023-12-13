@@ -582,6 +582,13 @@ class SidFile:
         except AttributeError:
             return False
 
+    @staticmethod
+    def has_yang_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
+        except AttributeError:
+            return False
+
     ########################################################
     # Collection of items defined in .yang file(s)
     def collect_module_items(self, module):
@@ -634,6 +641,8 @@ class SidFile:
                 self.collect_in_substmts(substmt.substmts)
             elif self.has_yang_data_extension(substmt):
                 self.collect_in_substmts(substmt.substmts)
+            elif self.has_yang_structure_extension(substmt):
+                self.collect_in_substmts(substmt.substmts)
 
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
@@ -662,8 +671,13 @@ class SidFile:
                 if self.sid_extension:
                     if statement.keyword == "list": # if list add list-id : [key-id, ...]
                         keys = []
-                        for k in statement.i_key:
-                            keys.append(self.get_path(k, prefix))
+                        
+                        try: # LT don't kwon to check if i_key is present
+                            for k in statement.i_key:
+                                keys.append(self.get_path(k, prefix))
+                        except:
+                            pass
+
                         self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
@@ -723,14 +737,19 @@ class SidFile:
         path = ""
 
         while statement.i_module is not None:
+            print (">", statement.arg)
             if (statement.keyword not in self.grouping_keywords
                     and not self.has_yang_data_extension(statement)):
                 # Locate the data node parent
                 parent = statement.parent
                 while parent.i_module is not None:
+                    print("!", parent.arg)
                     if parent.keyword in self.module_keywords:
                         break
                     parent = parent.parent
+
+
+                print ("prefix", prefix, "parent.i_module", parent.i_module)
 
                 if (prefix != "" or
                     (parent.i_module is not None and parent.i_module == statement.i_module)):
@@ -740,6 +759,7 @@ class SidFile:
 
             statement = statement.parent
 
+        print ("<=", prefix, '+', path)
         return prefix + path
 
     def merge_item(self, namespace, identifier, typename=None):
@@ -830,7 +850,7 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
-        items = self.content['item']
+        items = self.content['items']
         if items is not None:
             items.sort(key=lambda item: item['sid'])
         for item in items:
@@ -863,7 +883,7 @@ class SidFile:
 
     ########################################################
     def find_sid(self, id):
-        for e in self.content['items']:
+        for e in self.content['item']:
             if e['identifier'] == id:
                 return e['sid']
         return None
