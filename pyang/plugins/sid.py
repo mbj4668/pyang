@@ -737,19 +737,19 @@ class SidFile:
         path = ""
 
         while statement.i_module is not None:
-            print (">", statement.arg)
+            #print (">", statement.arg)
             if (statement.keyword not in self.grouping_keywords
                     and not self.has_yang_data_extension(statement)):
                 # Locate the data node parent
                 parent = statement.parent
                 while parent.i_module is not None:
-                    print("!", parent.arg)
+                    #print("!", parent.arg)
                     if parent.keyword in self.module_keywords:
                         break
                     parent = parent.parent
 
 
-                print ("prefix", prefix, "parent.i_module", parent.i_module)
+                #print ("prefix", prefix, "parent.i_module", parent.i_module)
 
                 if (prefix != "" or
                     (parent.i_module is not None and parent.i_module == statement.i_module)):
@@ -759,7 +759,7 @@ class SidFile:
 
             statement = statement.parent
 
-        print ("<=", prefix, '+', path)
+        #print ("<=", prefix, '+', path)
         return prefix + path
 
     def merge_item(self, namespace, identifier, typename=None):
@@ -850,7 +850,6 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
-        print (self.content)
         items = self.content['item']
         if items is not None:
             items.sort(key=lambda item: item['sid'])
