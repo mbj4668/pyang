@@ -702,7 +702,7 @@ class SidFile:
                 for stmt in statement.substmts: 
                     if stmt.keyword == "type":
                       print (self.content)
-if statement.keyword in self.container_keywords:
+            if statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement))
                 self.collect_in_substmts(statement.substmts)
 
