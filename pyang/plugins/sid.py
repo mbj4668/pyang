@@ -865,7 +865,7 @@ class SidFile:
     def find_sid(self, id):
         for e in self.content['item']:
             if e['identifier'] == id:
-                print(e['identifier'], id)
+                print(e['identifier'], id, e['sid'])
                 return e['sid']
         return None
 
@@ -891,6 +891,8 @@ class SidFile:
                 for e in v:
                     v_sids.append(self.find_sid(e))
                 key_mapping_sid[k_sid] = v_sids
+
+                print (key_mapping_sid)
 
             self.content['key-mapping'] = key_mapping_sid
 
