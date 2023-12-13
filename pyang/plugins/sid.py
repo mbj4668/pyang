@@ -851,7 +851,7 @@ class SidFile:
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
         print (self.content)
-        items = self.content['items']
+        items = self.content['item']
         if items is not None:
             items.sort(key=lambda item: item['sid'])
         for item in items:
