@@ -701,28 +701,8 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 for stmt in statement.substmts: 
                     if stmt.keyword == "type":
-                        itype= stmt.i_typedef
-                        if itype != None:
-                            type_descr = {}
-                            for type_stmt in itype.substmts:
-                                #print  (type_stmt.arg)
-                                if type_stmt.arg == "enumeration":
-                                    for enum in type_stmt.substmts:
-                                        enum_name = enum.arg
-                                        for val in enum.substmts:
-                                            if val.keyword == "value":
-                                                enum_val = val.arg
-                                                break
-                                        type_descr[enum_val] = enum_name
-                        else:
-                            type_descr = stmt.arg
-
-                    
-                    
-                self.merge_item('data', self.get_path(statement), type_descr)
-                self.merge_item('data', self.get_path(statement))
-
-            elif statement.keyword in self.container_keywords:
+                      print (self.content)
+if statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement))
                 self.collect_in_substmts(statement.substmts)
 
@@ -885,6 +865,7 @@ class SidFile:
     def find_sid(self, id):
         for e in self.content['item']:
             if e['identifier'] == id:
+                print(e['identifier'], id)
                 return e['sid']
         return None
 
