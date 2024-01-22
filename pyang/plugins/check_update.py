@@ -195,7 +195,7 @@ def check_update(ctx, newmod):
             text = fd.read()
         except IOError as ex:
             sys.stderr.write("error %s: %s\n" % (oldfilename, ex))
-            sys.exit(1)
+            return
         if oldfilename in ctx.opts.old_deviation:
             oldctx.add_module(oldfilename, text)
         else:
