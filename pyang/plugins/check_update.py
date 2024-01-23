@@ -197,7 +197,7 @@ def check_update(ctx, newmod):
             fd = io.open(oldfilename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
-            pos = Position(oldfilename)
+            pos = error.Position(oldfilename)
             err_add(oldctx.errors, pos, "CHK_IO_ERROR", (oldfilename, ex))
             return
         if oldfilename in ctx.opts.old_deviation:
