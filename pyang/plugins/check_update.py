@@ -161,6 +161,9 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         error.add_error_code(
             'CHK_UNION_TYPES', 3,
             "the member types in the union have changed")
+        error.add_error_code(
+            'CHK_IO_ERROR', 1,
+            "error %s: %s")
 
     def post_validate_ctx(self, ctx, modules):
         if not ctx.opts.check_update_from:
@@ -194,8 +197,9 @@ def check_update(ctx, newmod):
             fd = io.open(oldfilename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
-            sys.stderr.write("error %s: %s\n" % (oldfilename, ex))
-            sys.exit(1)
+            pos = error.Position(oldfilename)
+            err_add(ctx.errors, pos, "CHK_IO_ERROR", (oldfilename, ex))
+            return
         if oldfilename in ctx.opts.old_deviation:
             oldctx.add_module(oldfilename, text)
         else:
