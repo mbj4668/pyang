@@ -286,7 +286,7 @@ class uml_emitter:
         if ctx.opts.uml_uses != "":
             if ctx.opts.uml_uses in uses_strings:
                 if ctx.opts.uml_uses == 'generalization':
-                    self.uses_relation_symbol = "<|--"
+                    self.uses_relation_symbol = "--|>"
                 elif ctx.opts.uml_uses == 'aggregation':
                     self.uses_relation_symbol = "o--"
                 elif ctx.opts.uml_uses == 'association':
@@ -297,7 +297,7 @@ class uml_emitter:
                     self.uses_relation_symbol = "..>"
                     self.uses_relation_label = "<<uses>>"
                 elif ctx.opts.uml_uses == 'realization':
-                    self.uses_relation_symbol = "<|.."
+                    self.uses_relation_symbol = "..|>"
             else:
                 sys.stderr.write("\"%s\" no valid argument to --uml-uses=...,  valid arguments (one only): %s \n" %(ctx.opts.uml_uses, uses_strings))
 
