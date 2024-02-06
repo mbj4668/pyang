@@ -26,6 +26,9 @@ class YANGPlugin(plugin.PyangPlugin):
             optparse.make_option("--yang-remove-comments",
                                  dest="yang_remove_comments",
                                  action="store_true"),
+            optparse.make_option("--yang-join-substrings",
+                                 dest="yang_join_substrings",
+                                 action="store_true"),
             optparse.make_option("--yang-line-length",
                                  type="int",
                                  dest="yang_line_length",
@@ -38,6 +41,7 @@ class YANGPlugin(plugin.PyangPlugin):
         ctx.implicit_errors = False
         ctx.keep_arg_substrings = True
         ctx.keep_comments = True
+        ctx.join_substrings = ctx.opts.yang_join_substrings
         if ctx.opts.yang_remove_comments:
             ctx.keep_comments = False
 
@@ -199,7 +203,8 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
             if hasattr(stmt, 'arg_substrings') and len(stmt.arg_substrings) > 1:
                 # the arg was already split into multiple lines, keep them
                 emit_multi_str_arg(keywordstr, stmt.arg_substrings, fd, "'",
-                                   indent, indentstep, max_line_len, line_len)
+                                   indent, indentstep, max_line_len, line_len,
+                                   ctx.opts.yang_join_substrings,)
             elif not need_new_line(max_line_len, line_len, stmt.arg):
                 # fits into a single line
                 fd.write(" '" + stmt.arg + "'")
@@ -212,7 +217,8 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
         elif hasattr(stmt, 'arg_substrings') and len(stmt.arg_substrings) > 1:
             # the arg was already split into multiple lines, keep them
             emit_multi_str_arg(keywordstr, stmt.arg_substrings, fd, '"',
-                               indent, indentstep, max_line_len, line_len)
+                               indent, indentstep, max_line_len, line_len,
+                               ctx.opts.yang_join_substrings,)
         elif '\n' in stmt.arg:
             # the arg string contains newlines; print it as double quoted
             arg_on_new_line = emit_arg(keywordstr, stmt, fd, indent, indentstep,
@@ -322,11 +328,13 @@ def need_new_line(max_line_len, line_len, arg):
 
 def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
                        indent, indentstep, max_line_len,
-                       line_len):
+                       line_len, join_substrings):
     # we want to align all strings on the same column; check if
     # we can print w/o a newline
     need_new_line = False
-    if max_line_len is not None:
+    if keywordstr in _force_newline_arg:
+        need_new_line = True
+    elif max_line_len is not None:
         for s, q in strs:
             q = select_quote(s, q, pref_q)
             if q == '"':
@@ -334,6 +342,7 @@ def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
             if line_len + len(s) > max_line_len:
                 need_new_line = True
                 break
+    join_substrings = join_substrings and not max_line_len
     if need_new_line:
         fd.write('\n' + indent + indentstep)
         prefix = (len(indent) - 2) * ' ' + indentstep + '+ '
@@ -345,8 +354,18 @@ def emit_multi_str_arg(keywordstr, strs, fd, pref_q,
     q = select_quote(s, q, pref_q)
     if q == '"':
         s = escape_str(s)
-    fd.write("%s%s%s\n" % (q, s, q))
+    if not join_substrings:
+        fd.write("%s%s%s\n" % (q, s, q))
     # then print the rest with the prefix and a newline at the end
+    if join_substrings:
+        final_string = s
+        for s, q in strs[1:]:
+            q = select_quote(s, q, pref_q)
+            if q == '"':
+                s = escape_str(s)
+            final_string += ' ' + s
+        fd.write("%s%s%s" % (q, final_string, q))
+        return need_new_line
     for s, q in strs[1:-1]:
         q = select_quote(s, q, pref_q)
         if q == '"':
