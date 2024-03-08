@@ -422,6 +422,9 @@ class uml_emitter:
         elif stmt.keyword == 'grouping' and not self._ctx.opts.uml_inline:
             self.emit_grouping(mod, stmt, fd, True)
 
+        elif stmt.keyword == 'uses':
+            self.emit_child_stmt(mod, stmt, fd)
+
         elif stmt.keyword == 'choice':
             if not self.ctx_filterfile:
                 fd.write('class \"%s\" as %s <<choice>> \n' % (self.full_display_path(stmt), self.full_path(stmt)))
