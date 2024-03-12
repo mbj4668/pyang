@@ -515,7 +515,7 @@ class uml_emitter:
                 for children in node.substmts:
                     self.emit_child_stmt(node, children, fd)
         elif node.keyword == 'uses':
-            if not self.ctx_filterfile and not self._ctx.opts.uml_inline and not self.ctx_classesonly:
+            if not self.ctx_filterfile and not self._ctx.opts.uml_inline:
                 fd.write('%s : %s {uses} \n' %(self.full_path(parent), node.arg))
             if not self._ctx.opts.uml_inline:
                 self.emit_uses(parent, node)
