@@ -2055,8 +2055,12 @@ def v_reference_list(ctx, stmt):
                             'KEY_HAS_MANDATORY_FALSE', ())
 
                 if ptr.i_config != stmt.i_config:
-                    err_add(ctx.errors, ptr.search_one('config').pos,
-                            'KEY_BAD_CONFIG', name)
+                    cfg = ptr.search_one('config')
+                    if cfg is not None:
+                        pos = cfg.pos
+                    else:
+                        pos = ptr.pos
+                    err_add(ctx.errors, pos, 'KEY_BAD_CONFIG', name)
 
                 stmt.i_key.append(ptr)
                 ptr.i_is_key = True

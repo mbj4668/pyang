@@ -1,0 +1,35 @@
+module deviation-problem-dev { 
+
+  yang-version 1.1; 
+  namespace "urn:deviation-problem-dev:1.0"; 
+  prefix "dp-dev"; 
+
+  import deviation-problem {
+    prefix "dp";
+  }
+
+  organization "x"; 
+  contact "x"; 
+  description "x"; 
+  revision "2023-12-12" { 
+    description 
+      "version 1.0.0 
+      1) initial version"; 
+    reference
+      "x";
+  }
+
+  /* Deviations to permit configuration of RO parameters */
+  deviation "/dp:top/dp:cnode" {
+    deviate replace {
+      config true;
+    }
+  }
+
+  /* Deviations to permit configuration of RO parameters */
+  deviation "/dp:top/dp:lnode" {
+    deviate replace {
+      config true;
+    }
+  }
+}
