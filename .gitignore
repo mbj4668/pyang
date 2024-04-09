@@ -2,7 +2,6 @@ MANIFEST
 TAGS
 build
 dist
-.DS_Store
 # created during build:
 pyang.egg-info
 .cache
