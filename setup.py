@@ -60,7 +60,7 @@ setup(name='pyang',
       " Provides a framework for plugins that can convert YANG modules" + \
       "to other formats.",
       url='https://github.com/mbj4668/pyang',
-      install_requires = ["lxml"],
+      install_requires = ["lxml", "pygls"],
       license='BSD',
       classifiers=[
             'Development Status :: 5 - Production/Stable',
@@ -82,7 +82,7 @@ setup(name='pyang',
               'json2xml = pyang.scripts.json2xml:main',
           ]
       },
-      packages=['pyang', 'pyang.plugins', 'pyang.scripts', 'pyang.translators', 'pyang.transforms'],
+      packages=['pyang', 'pyang.plugins', 'pyang.scripts', 'pyang.translators', 'pyang.transforms', 'pyang.lsp'],
       data_files=[
             ('share/man/man1', man1),
             ('share/yang/modules/iana', modules_iana),

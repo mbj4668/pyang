@@ -5,7 +5,6 @@ import os
 import optparse
 import io
 import shutil
-import codecs
 from pathlib import Path
 
 import pyang
@@ -15,8 +14,8 @@ from pyang import util
 from pyang import hello
 from pyang import context
 from pyang import repository
-from pyang import statements
 from pyang import syntax
+from pyang.lsp import server as pyangls
 
 
 def run():
@@ -131,6 +130,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
                              "are: " +  ', '.join(fmts)),
+        optparse.make_option("-l", "--lsp",
+                             dest="lsp",
+                             action="store_true",
+                             help="Run as LSP server instead of CLI tool."),
         optparse.make_option("-o", "--output",
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
@@ -218,6 +221,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     optparser.version = '%prog ' + pyang.__version__
     optparser.add_options(optlist)
 
+    pyangls.add_opts(optparser)
     for p in plugin.plugins:
         p.add_opts(optparser)
 
@@ -267,6 +271,9 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.lax_quote_checks = o.lax_quote_checks
     ctx.strict = o.strict
     ctx.max_status = o.max_status
+
+    if o.lsp:
+        pyangls.start_server(o, ctx)
 
     # make a map of features to support, per module
     if o.hello:

@@ -141,17 +141,18 @@ class Context(object):
 
         return module
 
-    def del_module(self, module):
+    def del_module(self, module, revision=None):
         """Remove a module from the context"""
-        rev = util.get_latest_revision(module)
-        del self.modules[(module.arg, rev)]
+        if revision is None:
+            revision = util.get_latest_revision(module)
+        del self.modules[(module.arg, revision)]
 
     def get_module(self, modulename, revision=None):
         """Return the module if it exists in the context"""
         if revision is None and modulename in self.revs:
             (revision, _handle) = self._get_latest_rev(self.revs[modulename])
         if revision is not None:
-            if (modulename,revision) in self.modules:
+            if (modulename, revision) in self.modules:
                 return self.modules[(modulename, revision)]
         else:
             return None
