@@ -201,8 +201,8 @@ def formatting(ls: LanguageServer, params: lsp.DocumentFormattingParams):
     opts = params.options
     if opts.insert_spaces == False:
         ls.log_trace("insert_spaces is currently restricted to True")
-    if opts.tab_size != 2:
-        ls.log_trace("tab_size is currently restricted to 2")
+    if opts.tab_size:
+        pyangls.ctx.opts.yang_indent_size = opts.tab_size
     if opts.trim_trailing_whitespace == False:
         ls.log_trace("trim_trailing_whitespace is currently restricted to True")
     if opts.trim_final_newlines == False:
@@ -221,9 +221,10 @@ def formatting(ls: LanguageServer, params: lsp.DocumentFormattingParams):
     fmt_text = tmpfd.read()
     tmpfd.close()
 
-    # pyang only supports unix file endings
-    if opts.insert_final_newline == False and not source.endswith('\n'):
+    # pyang only supports unix file endings and inserts a final one if missing
+    if not opts.insert_final_newline and not source.endswith('\n'):
         fmt_text.rstrip('\n')
+
     start_pos = lsp.Position(line=0, character=0)
     end_pos = lsp.Position(line=len(text_doc.lines), character=0)
     text_range = lsp.Range(start=start_pos, end=end_pos)
