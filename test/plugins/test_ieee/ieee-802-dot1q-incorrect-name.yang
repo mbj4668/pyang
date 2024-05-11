@@ -1,0 +1,29 @@
+module ieee-802-dot1q-incorrect-name {
+  yang-version 1.1;
+  namespace "urn:ieee:std:802.1Q:yang:ieee-802-dot1q-incorrect-name";
+  prefix dot1q-incorrect-name;
+
+  organization
+    "Institute of Electrical and Electronics Engineers";
+
+  contact
+    "WG-URL: http://www.ieee802.org/1
+    WG-EMail: stds-802-1-L@ieee.org
+
+    Contact: IEEE 802.1 Working Group Chair
+    Postal: C/O IEEE 802.1 Working Group
+            IEEE Standards Association
+            445 Hoes Lane
+            Piscataway
+            NJ 08854
+            USA
+    
+    E-mail: STDS-802-1-L@LISTSERV.IEEE.ORG";
+
+    description
+      "ieee-802-dot1q-incorrect-name";
+
+    revision 2024-05-10 {
+      reference "ieee-802-dot1q-incorrect-name";
+    }
+}
