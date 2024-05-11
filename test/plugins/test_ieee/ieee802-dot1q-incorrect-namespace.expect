@@ -1,0 +1,1 @@
+ieee802-dot1q-incorrect-namespace.yang:3: warning: the namespace should be of the form urn:ieee:std:{IEEE standard designation}:yang:ieee802-dot1q-incorrect-namespace
