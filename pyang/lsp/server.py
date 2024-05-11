@@ -1,13 +1,17 @@
 """pyang LSP handling"""
 
 from __future__ import absolute_import
+import io
 import optparse
+import tempfile
 from pathlib import Path
+from typing import Union
 
 from pyang import error
 from pyang import context
 from pyang import plugin
 from pyang import syntax
+from pyang.translators import yang
 
 from lsprotocol import types as lsp
 
@@ -31,48 +35,59 @@ default_port = 2087
 class PyangLanguageServer(LanguageServer):
     def __init__(self, *args):
         self.ctx : context.Context
+        self.yangfmt : yang.YANGPlugin
         super().__init__(*args)
 
 pyangls = PyangLanguageServer(SERVER_NAME, SERVER_VERSION)
 
 def _validate(ls: LanguageServer,
-              params: lsp.DidChangeTextDocumentParams | lsp.DidOpenTextDocumentParams):
+              params: Union[lsp.DidChangeTextDocumentParams,
+                            lsp.DidOpenTextDocumentParams,
+                            lsp.DocumentDiagnosticParams]):
     ls.show_message_log("Validating YANG...")
 
     text_doc = ls.workspace.get_text_document(params.text_document.uri)
-    source = text_doc.source
 
     pyangls.ctx.errors = []
-    modules = []
     diagnostics = []
-    if source:
-        m = syntax.re_filename.search(Path(text_doc.filename).name)
-        if m is not None:
-            name, rev, in_format = m.groups()
-            module = pyangls.ctx.get_module(name, rev)
-            if module is not None:
-                pyangls.ctx.del_module(module)
-            module = pyangls.ctx.add_module(text_doc.path, source,
-                                            in_format, name, rev,
-                                            expect_failure_error=False,
-                                            primary_module=True)
-        else:
-            module = pyangls.ctx.add_module(text_doc.path, source,
-                                            primary_module=True)
-        if module is not None:
-            modules.append(module)
-            p : plugin.PyangPlugin
-            for p in plugin.plugins:
-                p.pre_validate_ctx(pyangls.ctx, modules)
+    if text_doc.source:
+        _validate_yang(text_doc)
 
-            pyangls.ctx.validate()
-            module.prune()
-
-        diagnostics = build_diagnostics()
+        diagnostics = _build_diagnostics()
 
     ls.publish_diagnostics(text_doc.uri, diagnostics)
 
-def build_diagnostics():
+def _validate_yang(text_doc):
+    modules = []
+    m = syntax.re_filename.search(Path(text_doc.filename).name)
+    if m is not None:
+        name, rev, in_format = m.groups()
+        module = pyangls.ctx.get_module(name, rev)
+        if module is not None:
+            pyangls.ctx.del_module(module)
+        module = pyangls.ctx.add_module(text_doc.path, text_doc.source,
+                                        in_format, name, rev,
+                                        expect_failure_error=False,
+                                        primary_module=True)
+    else:
+        module = pyangls.ctx.add_module(text_doc.path, text_doc.source,
+                                        primary_module=True)
+    if module is not None:
+        modules.append(module)
+        p : plugin.PyangPlugin
+        for p in plugin.plugins:
+            p.pre_validate_ctx(pyangls.ctx, modules)
+        pyangls.ctx.validate()
+        module.prune()
+        for p in plugin.plugins:
+            p.post_validate_ctx(pyangls.ctx, modules)
+        pyangls.ctx.errors.sort(key=lambda e: (e[0].ref, e[0].line),
+                                reverse=True)
+
+    return module
+
+
+def _build_diagnostics():
     """Builds lsp diagnostics from pyang context"""
     diagnostics = []
 
@@ -170,10 +185,50 @@ async def did_open(ls: LanguageServer, params: lsp.DidOpenTextDocumentParams):
     _validate(ls, params)
 
 
-@pyangls.feature(lsp.TEXT_DOCUMENT_INLINE_VALUE)
-def inline_value(params: lsp.InlineValueParams):
-    """Returns inline value."""
-    return [lsp.InlineValueText(range=params.range, text="Inline value")]
+@pyangls.feature(lsp.TEXT_DOCUMENT_FORMATTING)
+def formatting(ls: LanguageServer, params: lsp.DocumentFormattingParams):
+    """Text document formatting."""
+    ls.show_message("Text Document Formatting")
+    text_doc = ls.workspace.get_text_document(params.text_document.uri)
+    source = text_doc.source
+
+    if source:
+        module = _validate_yang(text_doc)
+    else:
+        ls.show_message("No text_doc.source found")
+        return []
+
+    opts = params.options
+    if opts.insert_spaces == False:
+        ls.log_trace("insert_spaces is currently restricted to True")
+    if opts.tab_size != 2:
+        ls.log_trace("tab_size is currently restricted to 2")
+    if opts.trim_trailing_whitespace == False:
+        ls.log_trace("trim_trailing_whitespace is currently restricted to True")
+    if opts.trim_final_newlines == False:
+        ls.log_trace("trim_final_newlines is currently restricted to True")
+    pyangls.ctx.opts.yang_canonical = True
+    pyangls.ctx.opts.yang_line_length = 80
+    pyangls.ctx.opts.yang_remove_unused_imports = False
+    pyangls.ctx.opts.yang_remove_comments = False
+
+    pyangls.yangfmt.setup_fmt(pyangls.ctx)
+    tmpfd = tempfile.TemporaryFile(mode="w+", encoding="utf-8")
+
+    pyangls.yangfmt.emit(pyangls.ctx, [module], tmpfd)
+
+    tmpfd.seek(0)
+    fmt_text = tmpfd.read()
+    tmpfd.close()
+
+    # pyang only supports unix file endings
+    if opts.insert_final_newline == False and not source.endswith('\n'):
+        fmt_text.rstrip('\n')
+    start_pos = lsp.Position(line=0, character=0)
+    end_pos = lsp.Position(line=len(text_doc.lines), character=0)
+    text_range = lsp.Range(start=start_pos, end=end_pos)
+
+    return [lsp.TextEdit(range=text_range, new_text=fmt_text)]
 
 
 def add_opts(optparser: optparse.OptionParser):
@@ -201,8 +256,9 @@ def add_opts(optparser: optparse.OptionParser):
     g = optparser.add_option_group("LSP Server specific options")
     g.add_options(optlist)
 
-def start_server(optargs, ctx: context.Context):
+def start_server(optargs, ctx: context.Context, fmts: dict):
     pyangls.ctx = ctx
+    pyangls.yangfmt = fmts['yang']
     if optargs.pyangls_mode == SERVER_MODE_TCP:
         pyangls.start_tcp(optargs.pyangls_host, optargs.pyangls_port)
     elif optargs.pyangls_mode == SERVER_MODE_WS:

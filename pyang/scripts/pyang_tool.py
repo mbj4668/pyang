@@ -40,6 +40,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     fmts = {}
     xforms = {}
+    p : plugin.PyangPlugin
     for p in plugin.plugins:
         p.add_output_format(fmts)
         p.add_transform(xforms)
@@ -227,7 +228,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     (o, args) = optparser.parse_args()
 
-    if o.outfile is not None and o.format is None:
+    if o.outfile is not None and o.format is None and o.lsp is None:
         sys.stderr.write("no format specified\n")
         sys.exit(1)
 
@@ -271,9 +272,6 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     ctx.lax_quote_checks = o.lax_quote_checks
     ctx.strict = o.strict
     ctx.max_status = o.max_status
-
-    if o.lsp:
-        pyangls.start_server(o, ctx)
 
     # make a map of features to support, per module
     if o.hello:
@@ -341,6 +339,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     for p in plugin.plugins:
         p.pre_load_modules(ctx)
+
+    if o.lsp:
+        pyangls.start_server(o, ctx, fmts)
+        sys.exit(0)
 
     exit_code = 0
     modules = []
