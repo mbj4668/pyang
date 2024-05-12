@@ -54,7 +54,7 @@ class PyangDist(Distribution):
 setup(name='pyang',
       version=pyang.__version__,
       author='Martin Bjorklund',
-      author_email='mbj@tail-f.com',
+      author_email='mbj4668@gmail.com',
       description="A YANG (RFC 6020/7950) validator and converter",
       long_description="An extensible  YANG (RFC 6020/7950) validator." + \
       " Provides a framework for plugins that can convert YANG modules" + \
