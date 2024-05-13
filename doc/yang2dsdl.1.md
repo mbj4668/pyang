@@ -47,7 +47,6 @@ directory must be writable.
 Metadata annotations are also supported, if they are defined and used
 as described in **RFC 7952**.
 
-
 The script can be executed by any shell interpreter compatible with
 POSIX.2, such as **bash**(1) or **dash**(1).
 
@@ -87,7 +86,6 @@ rpc-reply
 
 notification
 :   An event notification defined in an input YANG module.
-
 
 The output schemas are contained in the following four files whose
 names depend on the arguments *basename* and *target*:
@@ -255,7 +253,6 @@ rpc-rock.yang.
 3
 :   Instance validation failed
 
-
 # BUGS
 
 1. The logic of command-line arguments may not be able to distinguish
@@ -266,8 +263,9 @@ rpc-rock.yang.
 
 **pyang**(1), **xsltproc**(1), **xmllint**(1), **RFC 61110**.
 
-
 # AUTHOR
 
 **Ladislav Lhotka** &lt;lhotka@nic.cz&gt;\
 CZ.NIC
+
+<!-- markdownlint-disable-file MD014 MD025 MD034 MD049 MD052 -->

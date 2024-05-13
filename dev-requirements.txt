@@ -4,3 +4,4 @@ pyflakes
 flake8
 pylint
 virtualenv
+pygls

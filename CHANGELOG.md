@@ -1,5 +1,8 @@
+# CHANGELOG
+
 * 2.6.1 - 2024-05-23
-```
+
+```text
        fix IEEE module name prefix expectation
          thanks to Siddharth Sharma
 
@@ -10,7 +13,8 @@
 ```
 
 * 2.6.0 - 2023-11-03
-```
+
+```text
        lots of improvements to the UML plugin
          thanks to Nick Hancock
        lots of improvements to build and test
@@ -36,7 +40,8 @@
 ```
 
 * 2.5.3 - 2022-03-30
-```
+
+```text
        added support for checking 'ancestor' and 'ancestor-or-self' XPATH axes
        added new option --exclude-features which is used to prune the
          data model by removing all nodes that are defined with the
@@ -61,12 +66,14 @@
 ```
 
 * 2.5.2 - 2021-12-02
-```
+
+```text
        #774 - fixed regression in 2.5.1 in ietf plugin
 ```
 
 * 2.5.1 - 2021-12-02
-```
+
+```text
         #770 - ietf plugin: updated IETF Trust Legal Provisions
                statement
         #767 - fixed access issue in test (thanks to Duncan Eastoe)
@@ -80,7 +87,8 @@
 ```
 
 * 2.5.0 - 2021-06-21
-```
+
+```text
          moved automated tests from travis ci to github actions
          added new plugin for verifying 3GPP YANG authoring rules
            thanks to Balázs Lengyel
@@ -102,7 +110,7 @@
 
 * 2.4.0 - 2020-11-09
 
-```
+```text
          #690 - stop uses expanding if import circular dependency exists
          #685 - report errors in sample-xml-skeleton
          #683 - fix sample-xml-skeleton unknown namespace crash
@@ -118,20 +126,20 @@
 
 * 2.3.2 - 2020-07-06
 
-```
+```text
          #646 - config false deviation fix
          #587 - revert fix for #587; use xml schema regexp engine again
 ```
 
 * 2.3.1 - 2020-06-29
 
-```
+```text
          Update Version Number
 ```
 
 * 2.3.0 - 2020-06-28
 
-```
+```text
          add structure support (RFC8791)
 
          pr:639 - output all missing hello modules then exit
@@ -173,7 +181,7 @@
 
 * 2.2.1 - 2020-03-06
 
-```
+```text
          pr:576 - added all transforms to the release (specifically 'edit')
                   thanks to William Lupton
 
@@ -181,7 +189,7 @@
 
 * 2.2 - 2020-03-05
 
-```
+```text
          pr:557 - added new options for customizing error messages
                   thanks to @gribok
          pr:556 - extended parsing of deviation in hello
@@ -219,7 +227,7 @@
 
 * 2.1.1 - 2020-01-03
 
-```
+```text
          #532 - warn if config true xpath refers to config false node
          #522 - find prefixes in xpath expressions in groupings
          #518 - broken xpath check
@@ -229,7 +237,7 @@
 
 * 2.1 - 2019-10-20
 
-```
+```text
          added a plugin to generate SID files (see draft-ietf-core-sid)
            thanks to @lemikev
          fixed canonical stmt order in 'identity'
@@ -243,7 +251,7 @@
 
 * 2.0.2 - 2019-08-21
 
-```
+```text
          pr:497 - fixed crash when parsing an xpath union with three or
                   more terms
                   thanks to Stuart Bayley
@@ -257,7 +265,7 @@
 
 * 2.0.1 - 2019-06-11
 
-```
+```text
          pr:492 - ensure the ietf-netconf namespace isn't added multiple times
                   in json2xml
          #493 - fixed crash with --keep-comments where comments were present
@@ -265,9 +273,9 @@
          #491 - fixed incorrect prototype for XPath "concat" function
 ```
 
-*   2.0 - 2019-05-29
+* 2.0 - 2019-05-29
 
-```
+```text
          pyang now has a proper XPath 1.0 parser, which means that it will
            detect more XPath errors, and produce warnings for XPath expressions
            that for example refer to unknown nodes
@@ -322,7 +330,7 @@
 
 * 1.7.8 - 2019-01-21
 
-```
+```text
          for python coders: reverted method signature change for
          Repository.get_module_from_handle().  it now has the same
          signature as in 1.7.5.
@@ -333,13 +341,13 @@
 
 * 1.7.7 - 2019-01-17
 
-```
+```text
          fixed a bug in -f yang formatting
 ```
 
 * 1.7.6 - 2019-01-17
 
-```
+```text
          fixed grammar; do not allow "must" in "choice"
          added --yang-line-length to try to format lines with max length
          various fixes to -f yang for consistency in the output
@@ -372,7 +380,7 @@
 
 * 1.7.5 - 2018-04-25
 
-```
+```text
          the tree output is now aligned with RFC 8340
          remove trailing whitespace from double quoted strings
          -f yang formatting fixes
@@ -402,7 +410,7 @@
 
 * 1.7.4 - 2018-02-23
 
-```
+```text
          the tree output is now aligned with
            draft-ietf-netmod-yang-tree-diagrams-05
          added --tree-no-expand-uses to not expang groupings in uses
@@ -434,7 +442,7 @@
 
 * 1.7.3 - 2017-06-27
 
-```
+```text
          #318 - handle multiple rc:yang-data statements.
                 this bug caused validation of ietf-restconf, or any
                 module that imported ietf-restconf, to fail.
@@ -442,7 +450,7 @@
 
 * 1.7.2 - 2017-06-14
 
-```
+```text
          added support for external plugins, using setuptools entry_points
          added a warning for unsafe escape sequences in double quoted
            strings.
@@ -475,7 +483,7 @@
 
 * 1.7.1 - 2016-11-02
 
-```
+```text
          added support for RFC 7952, metadata annotations
          added --tree-max-length option
 
@@ -498,7 +506,7 @@
 
 * 1.7 - 2016-06-16
 
-```
+```text
          added support for YANG 1.1
          added command line flag --ignore-error, thanks to Nick Weeds
          added option --tree-print-groupings to the 'tree' plugin
@@ -520,7 +528,7 @@
 
 * 1.6 - 2015-10-06
 
-```
+```text
          removed the deprecated, incomplete and erroneous XSD plugin - use
            the DSDL plugin instead.
          added new plugin: 'lint' to check if a module follow
@@ -568,7 +576,7 @@
 
 * 1.5 - 2014-11-18
 
-```
+```text
          added new plugin: 'capability' to print the capability string for
            a module
          added new plugin: 'check-update' which can be used to compare
@@ -601,13 +609,13 @@
 
 * 1.4.1 - 2013-11-11
 
-```
+```text
          #96 - 1.4 doesn't work with Pyhton 3
 ```
 
 * 1.4 - 2013-10-24
 
-```
+```text
          added option --lax-xpath-checks
          deprecated the xsd output plugin
          tree: now prints augmented nodes
@@ -628,7 +636,7 @@
 
 * 1.3 - 2013-01-31
 
-```
+```text
          added new plugins: hypertree and jstree
          added new plugins: jsonxsl and jtox
          added command line flags -W and -E to treat warnings as errors
@@ -664,7 +672,7 @@
 
 * 1.2 - 2011-07-27
 
-```
+```text
         added edit-config target to yang2dsls
 
         if a submodule A includes submodule B, which includes
@@ -682,7 +690,7 @@
 
 * 1.1 - 2011-02-16
 
-```
+```text
         DSDL output compatible with RFC 6110
 
         added uml output format
@@ -703,7 +711,7 @@
 
 * 1.0 - 2010-10-07
 
-```
+```text
         compatible with RFC 6020
 
         added yang2dsdl(1) program
@@ -715,7 +723,7 @@
 
 * 0.9.3 - 2008-12-07
 
-```
+```text
         compatible with draft-ietf-netmod-yang-02
         rewrote validation code.  got rid of all the specialized classes
         handle circular defintions
@@ -734,7 +742,7 @@
 
 * 0.9.2 - 2008-10-13
 
-```
+```text
         handle prefixed references to local groupings
         make use of path argument given to pyang
         handle multiple patterns
@@ -772,7 +780,7 @@
 
 * 0.9.1 - 2008-07-08
 
-```
+```text
         rewrote yang parser
         added yin parser
         added dsdl output
@@ -782,13 +790,13 @@
 
 * 0.9.0b - 2008-05-19
 
-```
+```text
         first release of restructured code
 ```
 
 * 02.2 - 2008-02-21
 
-```
+```text
         fixed some xsd output bugs
         fixed bug in refinmenet, where a valid refinmened would
           generate a duplicate node definition error
@@ -800,19 +808,19 @@
 
 * 02.1 - 2008-02-06
 
-```
+```text
         draft-bjorklund-netconf-yang-02 compliant.
 ```
-   
+
 * 01.3 - 2008-02-01
 
-```
+```text
         draft-bjorklund-netconf-yang-01 compliant.
 ```
 
 * 00.2 - 2008-01-15
 
-```
+```text
         fixed grouping translation in XSD output
         generate YIN appinfo by default in XSD output
         added validation of identifiers
@@ -825,6 +833,6 @@
 
 * 00.1 - 2007-11-14
 
-```
+```text
         Initial version, draft-bjorklund-netconf-yang-00 compliant.
 ```

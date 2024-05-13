@@ -1,5 +1,4 @@
-Contributing
-============
+# Contributing
 
 Pull requests are welcome!
 
@@ -7,9 +6,7 @@ Pull requests are welcome!
 
 * If applicable, update the man page
 
-
-Code style
-----------
+## Code style
 
 * Do not introduce trailing whitespace.
 
@@ -20,4 +17,3 @@ Hint for emacs users:
 (setq whitespace-style (quote (face trailing tabs lines)))
 
 and use whitespace-mode.
-

@@ -6,6 +6,7 @@ footer: pyang-_VERSION_
 date: _DATE_
 ---
 # NAME
+
 pyang - validate and convert YANG modules to various formats
 
 # SYNOPSIS
@@ -29,7 +30,6 @@ pyang - validate and convert YANG modules to various formats
 **pyang** -h | -\-help
 
 **pyang** -v -\-version
-
 
 One or more *file* parameters may be given on the command line. They
 denote either YANG modules to be processed (in YANG or YIN syntax) or,
@@ -1125,3 +1125,5 @@ only for basic syntax errors.
 # AUTHORS
 
 See the file CONTRIBUTORS at https://github.com/mbj4668/pyang.
+
+<!-- markdownlint-disable-file MD014 MD025 MD034 MD049 MD052 -->

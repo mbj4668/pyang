@@ -1,112 +1,112 @@
-# pyang #
+# pyang
 
-[![Release](https://img.shields.io/github/v/release/mbj4668/pyang)](https://github.com/mbj4668/pyang/releases) [![Build Status](https://github.com/mbj4668/pyang/actions/workflows/tests.yml/badge.svg)](https://github.com/mbj4668/pyang/actions)
+[![Release](https://img.shields.io/github/v/release/mbj4668/pyang)](https://github.com/mbj4668/pyang/releases)
+[![Build Status](https://github.com/mbj4668/pyang/actions/workflows/tests.yml/badge.svg)](https://github.com/mbj4668/pyang/actions)
 
-## Overview ##
+## Overview
 
 pyang is a YANG validator, transformator and code generator, written
 in python. It can be used to validate YANG modules for correctness, to
 transform YANG modules into other formats, and to write plugins to
 generate code from the modules.
 
-YANG ([RFC 7950](http://tools.ietf.org/html/rfc7950)) is a data modeling language for NETCONF ([RFC 6241](http://tools.ietf.org/html/rfc6241)), developed by the IETF [NETMOD](http://www.ietf.org/html.charters/netmod-charter.html) WG.
+YANG ([RFC 7950][rfc7950]) is a data modeling language for NETCONF
+([RFC 6241][rfc6241]), developed by the IETF [NETMOD][netmod] WG.
 
-## Documentation ##
+## Documentation
 
 See [Documentation](https://github.com/mbj4668/pyang/wiki/Documentation).
 
-## Installation ##
+## Installation
 
-- **1 PyPI**
+1. **PyPI**
 
-Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
+    Pyang can be installed from [PyPI](https://pypi.python.org/pypi):
 
-```sh
-# pip install pyang
-```
+    ```sh
+    pip install pyang
+    ```
 
-- **2 Source**
+2. **Source**
 
-> It is reccomended to use a [Python virtual environment](https://docs.python.org/3/tutorial/venv.html)
+    > It is recommended to use a [Python virtual environment][venv]
 
-```sh
-  git clone https://github.com/mbj4668/pyang.git
-  cd pyang
-  pip install -e .
-```
+    ```sh
+    git clone https://github.com/mbj4668/pyang.git
+    cd pyang
+    pip install -e .
+    ```
 
+    To install in a different location, run:
 
-To install in a different location, run:
+    ```sh
+    python setup.py install --prefix=/usr/local
+    ```
 
-```sh
-  python setup.py install --prefix=/usr/local
-```
+    If you do this, it is recommended to set the environment variable
+    **YANG_INSTALL** to the prefix directory.  This ensures that pyang will
+    find standard YANG modules. In addition, make sure that **PYTHONPATH** is
+    set to something as follows:
 
-If you do this, it is recommended to set the environment variable
-**YANG_INSTALL** to the prefix directory.  This ensures that pyang will
-find standard YANG modules. In addition, make sure that **PYTHONPATH** is set
-to something as follows:
+    ```sh
+    export PYTHONPATH=/usr/local/lib/python3.10/site-packages
+    ```
 
-```sh
-export PYTHONPATH=/usr/local/lib/python3.10/site-packages
-```
+    or whatever version of python you are running.
 
-or whatever version of python you are running.
+    Run locally without installing
 
+    ```sh
+    export PATH=`pwd`/bin:$PATH
+    export MANPATH=`pwd`/man:$MANPATH
+    export PYTHONPATH=`pwd`:$PYTHONPATH
+    export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
+    export PYANG_XSLT_DIR=`pwd`/xslt
+    export PYANG_RNG_LIBDIR=`pwd`/schema
+    ```
 
-Run locally without installing
+    or:
 
-```sh
-export PATH=`pwd`/bin:$PATH
-export MANPATH=`pwd`/man:$MANPATH
-export PYTHONPATH=`pwd`:$PYTHONPATH
-export YANG_MODPATH=`pwd`/modules:$YANG_MODPATH
-export PYANG_XSLT_DIR=`pwd`/xslt
-export PYANG_RNG_LIBDIR=`pwd`/schema
-```
+    ```sh
+    source ./env.sh
+    ```
 
-or:
-
-```sh
-source ./env.sh
-```
-
-## Compatibility ##
+## Compatibility
 
 pyang is compatible with the following IETF RFCs:
 
-  * [RFC 6020: YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)](https://tools.ietf.org/html/rfc6020)
-  * [RFC 6087: Guidelines for Authors and Reviewers of YANG Data Model Documents](https://tools.ietf.org/html/rfc6087)
-  * [RFC 6110: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content](https://tools.ietf.org/html/rfc6110)
-  * [RFC 6643: Translation of Structure of Management Information Version 2 (SMIv2) MIB Modules to YANG Modules](https://tools.ietf.org/html/rfc6643)
-  * [RFC 7950: The YANG 1.1 Data Modeling Languages](https://tools.ietf.org/html/rfc7950)
-  * [RFC 7952: Defining and Using Metadata with YANGs](https://tools.ietf.org/html/rfc7952)
-  * [RFC 8040: RESTCONF Protocols](https://tools.ietf.org/html/rfc8040)
-  * [RFC 8407: Guidelines for Authors and Reviewers of Documents Containing YANG Data Models](https://tools.ietf.org/html/rfc8407)
-  * [RFC 8791: YANG Data Structure Extensions](https://tools.ietf.org/html/rfc8791)
+* [RFC 6020: YANG - A Data Modeling Language for the Network Configuration Protocol (NETCONF)][rfc6020]
+* [RFC 6087: Guidelines for Authors and Reviewers of YANG Data Model Documents][rfc6087]
+* [RFC 6110: Mapping YANG to Document Schema Definition Languages and Validating NETCONF Content][rfc6110]
+* [RFC 6643: Translation of Structure of Management Information Version 2 (SMIv2) MIB Modules to YANG Modules][rfc6643]
+* [RFC 7950: The YANG 1.1 Data Modeling Languages][rfc7950]
+* [RFC 7952: Defining and Using Metadata with YANGs][rfc7952]
+* [RFC 8040: RESTCONF Protocols][rfc8040]
+* [RFC 8407: Guidelines for Authors and Reviewers of Documents Containing YANG Data Models][rfc8407]
+* [RFC 8791: YANG Data Structure Extensions][rfc8791]
 
-## Features ##
+## Features
 
-  * Validate YANG modules.
-  * Convert YANG modules to YIN, and YIN to YANG.
-  * Translate YANG data models to DSDL schemas, which can be used for
-    validating various XML instance documents. See
-    [InstanceValidation](https://github.com/mbj4668/pyang/wiki/InstanceValidation).
-  * Generate UML diagrams from YANG models. See
-    [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
-    an example.
-  * Generate compact tree representation of YANG models for quick
-    visualization. See
-    [TreeOutput](https://github.com/mbj4668/pyang/wiki/TreeOutput) for
-    an example.
-  * Generate a skeleton XML instance document from the data model.
-  * Schema-aware translation of instance documents encoded in XML to
-    JSON and vice-versa. See
-    [XmlJson](https://github.com/mbj4668/pyang/wiki/XmlJson).
-  * Plugin framework for simple development of other outputs, such as
-    code generation.
+* Validate YANG modules.
+* Convert YANG modules to YIN, and YIN to YANG.
+* Translate YANG data models to DSDL schemas, which can be used for
+  validating various XML instance documents. See
+  [InstanceValidation](https://github.com/mbj4668/pyang/wiki/InstanceValidation).
+* Generate UML diagrams from YANG models. See
+  [UMLOutput](https://github.com/mbj4668/pyang/wiki/UMLOutput) for
+  an example.
+* Generate compact tree representation of YANG models for quick
+  visualization. See
+  [TreeOutput](https://github.com/mbj4668/pyang/wiki/TreeOutput) for
+  an example.
+* Generate a skeleton XML instance document from the data model.
+* Schema-aware translation of instance documents encoded in XML to
+  JSON and vice-versa. See
+  [XmlJson](https://github.com/mbj4668/pyang/wiki/XmlJson).
+* Plugin framework for simple development of other outputs, such as
+  code generation.
 
-## Usage ##
+## Usage
 
 ```sh
 pyang -h
@@ -118,70 +118,80 @@ or
 man pyang
 ```
 
-## Code structure ##
+## Code structure
 
-* **bin/**
+* **`bin/`**
   Executable scripts.
 
-* **pyang/**
+* **`pyang/`**
   Contains the pyang library code.
 
-* **pyang/__init__.py**
+* **`pyang/__init__.py`**
   Initialization code for the pyang library.
 
-* **pyang/context.py**
+* **`pyang/context.py`**
   Defines the Context class, which represents a parsing session
 
-* **pyang/repository.py**
+* **`pyang/repository.py`**
   Defines the Repository class, which is used to access modules.
 
-* **pyang/syntax.py**
+* **`pyang/syntax.py`**
   Generic syntax checking for YANG and YIN statements.
   Defines regular expressions for argument checking of core
   statements.
 
-* **pyang/grammar.py**
+* **`pyang/grammar.py`**
   Generic grammar for YANG and YIN.
   Defines chk_module_statements() which validates a parse tree
   according to the grammar.
 
-* **pyang/statements.py**
+* **`pyang/statements.py`**
   Defines the generic Statement class and all validation code.
 
-* **pyang/yang_parser.py**
+* **`pyang/yang_parser.py`**
   YANG tokenizer and parser.
 
-* **pyang/yin_parser.py**
+* **`pyang/yin_parser.py`**
   YIN parser.  Uses the expat library for XML parsing.
 
-* **pyang/types.py**
+* **`pyang/types.py`**
   Contains code for checking built-in types.
 
-* **pyang/plugin.py**
+* **`pyang/plugin.py`**
   Plugin API.  Defines the class PyangPlugin which all plugins
   inherits from. All output handlers are written as plugins.
 
-* **pyang/plugins/**
+* **`pyang/plugins/`**
   Directory where plugins can be installed.  All plugins in this
   directory are automatically initialized when the library is
   initialized.
 
-* **pyang/scripts/**
+* **`pyang/scripts/`**
   Directory where the python cli scripts are located.
   Installed as entry point.
 
-* **pyang/translators/**
+* **`pyang/translators/`**
   Contains output plugins for YANG, YIN, and DSDL translation.
 
-* **xslt**
+* **`xslt/`**
   Contains XSLT style sheets for generating RELAX NG, Schematron and
   DSRL schemas and validating instance documents. Also included is the
   free implementation of ISO Schematron by Rick Jelliffe from
-  http://www.schematron.com/ (files iso_schematron_skeleton_for_xslt1.xsl,
-  iso_abstract_expand.xsl and iso_svrl_for_xslt1.xsl).
+  <http://www.schematron.com> (files `iso_schematron_skeleton_for_xslt1.xsl`,
+  `iso_abstract_expand.xsl` and `iso_svrl_for_xslt1.xsl`).
 
-* **schema**
+* **`schema/`**
   Contains RELAX NG schemas and pattern libraries.
 
-
-
+[rfc6020]: https://tools.ietf.org/html/rfc6020
+[rfc6087]: https://tools.ietf.org/html/rfc6087
+[rfc6110]: https://tools.ietf.org/html/rfc6110
+[rfc6241]: https://tools.ietf.org/html/rfc6241
+[rfc6643]: https://tools.ietf.org/html/rfc6643
+[rfc7950]: https://tools.ietf.org/html/rfc7950
+[rfc7952]: https://tools.ietf.org/html/rfc7952
+[rfc8040]: https://tools.ietf.org/html/rfc8040
+[rfc8407]: https://tools.ietf.org/html/rfc8407
+[rfc8791]: https://tools.ietf.org/html/rfc8791
+[netmod]: https://www.ietf.org/html.charters/netmod-charter.html
+[venv]: https://docs.python.org/3/tutorial/venv.html
