@@ -173,6 +173,11 @@ man pyang
 * **`pyang/translators/`**
   Contains output plugins for YANG, YIN, and DSDL translation.
 
+* **`pyang/lsp/`**
+  Contains Microsoft [LSP][lsp] YANG language server based on pyang backend.
+  Lint plugin and all plugins based on it are used for diagnostics, and YANG
+  format output plugin is used for formatting.
+
 * **`xslt/`**
   Contains XSLT style sheets for generating RELAX NG, Schematron and
   DSRL schemas and validating instance documents. Also included is the
@@ -195,3 +200,4 @@ man pyang
 [rfc8791]: https://tools.ietf.org/html/rfc8791
 [netmod]: https://www.ietf.org/html.charters/netmod-charter.html
 [venv]: https://docs.python.org/3/tutorial/venv.html
+[lsp]: https://microsoft.github.io/language-server-protocol/

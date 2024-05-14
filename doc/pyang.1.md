@@ -152,6 +152,10 @@ program exits with exit code 0 if all modules are valid.
     and that the module has the correct license text and **RFC
     2119** / **RFC 8174** boilerplate text.
 
+**-\-ieee**
+:   Validate the module(s) like **-\-lint**, and in addition verifies
+    that the namespace and module name follow the IEEE conventions.
+
 **-\-lax-quote-checks**
 :   Lax checks of backslashes in double quoted strings in YANG version
     1 modules.  **RFC 6020** does not clearly define how to handle
@@ -207,6 +211,10 @@ program exits with exit code 0 if all modules are valid.
 
 **-o** **-\-output** _outfile_
 :   Write the output to the file _outfile_ instead of stdout.
+
+**-l** **-\-lsp** _lsp_
+:   Run as Microsoft LSP server instead of CLI tool. The supported LSP
+    modes and configuration options are listed in LSP SERVER below.
 
 **-F** **-\-features** _features_
 :   _features_ is a string of the form
@@ -530,6 +538,43 @@ Options for the *lint* checker:
 :   Validate that all identifiers use hyphenated style, i.e.,
     no uppercase letters or underscores.
 
+# LSP SERVER
+
+The *lsp* option switches **pyang** to run as a Microsoft LSP Server.
+See https://microsoft.github.io/language-server-protocol/.
+
+When running as an LSP server, no files are required to be provided as
+arguments and if provided they are ignored.
+
+*lint* backend is used to serve the *diagnosticProvider* capability with
+respect for all *lint* checker options and plugin extension capability.
+
+_format_ backend is used to serve the *documentFormattingProvider*
+capability via the *yang* output plugin.
+
+Options for *lsp*:
+
+**-\-lsp-mode** *mode*
+:   The mode options for the *lsp* service are listed in **pyang -h**:
+
+    *tcp*
+    :   TCP mode, generally used for debugging. See **-\-lsp-host** and
+        **-\-lsp-port**.
+
+    *io*
+    :   STDIO mode, generally used for production.
+
+    *ws*
+    :   WEBSOCKET mode, generally used to serve browser based editors.
+        See **-\-lsp-host** and **-\-lsp-port**.
+
+**-\-lsp-host** *host*
+:   The host name or IP address LSP service is running on.  Default is
+    *127.0.0.1*
+
+**-\-lsp-port** *port*
+:   The TCP port LSP service is running on.  Default is *2087*.
+
 # YANG SCHEMA ITEM IDENTIFIERS (SID)
 
 YANG Schema Item iDentifiers (SID) are globally unique unsigned
@@ -623,7 +668,7 @@ Options for generating, updating and checking .sid files:
         $ pyang --sid-update-file toaster@2009-11-20.sid \
             toaster@2009-12-28.yang --sid-extra-range count
 
-# CAPABILITY OUTPUT>
+# CAPABILITY OUTPUT
 
 The *capability* output prints a capability URL for each module of the
 input data model, taking into account features and deviations, as
