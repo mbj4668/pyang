@@ -1,7 +1,6 @@
 """pyang LSP handling"""
 
 from __future__ import absolute_import
-import io
 import optparse
 import tempfile
 from pathlib import Path
@@ -14,8 +13,14 @@ from pyang import syntax
 from pyang.translators import yang
 
 from lsprotocol import types as lsp
-
 from pygls.server import LanguageServer
+
+import importlib
+ext_deps = ['lsprotocol.types', 'pygls.server']
+def try_import_deps():
+    """Throws ModuleNotFoundError if external module dependencies are missing"""
+    for dep in ext_deps:
+        importlib.import_module(dep)
 
 SERVER_NAME = "pyangls"
 SERVER_VERSION = "v0.1"

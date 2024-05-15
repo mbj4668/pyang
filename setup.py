@@ -60,7 +60,7 @@ setup(name='pyang',
       " Provides a framework for plugins that can convert YANG modules" + \
       "to other formats.",
       url='https://github.com/mbj4668/pyang',
-      install_requires = ["lxml", "pygls"],
+      install_requires = ["lxml"],
       license='BSD',
       classifiers=[
             'Development Status :: 5 - Production/Stable',

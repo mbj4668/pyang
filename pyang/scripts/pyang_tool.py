@@ -341,8 +341,15 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
         p.pre_load_modules(ctx)
 
     if o.lsp:
-        pyangls.start_server(o, ctx, fmts)
-        sys.exit(0)
+        try:
+            pyangls.try_import_deps()
+            pyangls.start_server(o, ctx, fmts)
+            sys.exit(0)
+        except ModuleNotFoundError as e:
+            print("LSP feature required external dependencies are missing")
+            print(str(e))
+            print("Please resolve dependencies to use pyang as an LSP server")
+            sys.exit(1)
 
     exit_code = 0
     modules = []
