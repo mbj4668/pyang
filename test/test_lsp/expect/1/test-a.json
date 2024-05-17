@@ -1,0 +1,78 @@
+{
+	"items": [
+		{
+			"range": {
+				"start": {
+					"line": 66,
+					"character": 0
+				},
+				"end": {
+					"line": 67,
+					"character": 0
+				}
+			},
+			"message": "the \"config\" property already exists in node \"ietf-netconf-acm::nacm\"",
+			"severity": 1,
+			"code": "BAD_DEVIATE_ADD",
+			"source": "pyang",
+			"tags": [],
+			"relatedInformation": []
+		},
+		{
+			"range": {
+				"start": {
+					"line": 55,
+					"character": 0
+				},
+				"end": {
+					"line": 56,
+					"character": 0
+				}
+			},
+			"message": "there is already a child node to \"test-a\" at /home/esmasth/code/pyang/test/test_lsp/workspace/test-a.yang:1 with the name \"test-aleph\" defined at /home/esmasth/code/pyang/test/test_lsp/workspace/test-a.yang:50",
+			"severity": 1,
+			"code": "DUPLICATE_CHILD_NAME",
+			"source": "pyang",
+			"tags": [],
+			"relatedInformation": [
+				{
+					"location": {
+						"uri": "file:///home/esmasth/code/pyang/test/test_lsp/workspace/test-a.yang",
+						"range": {
+							"start": {
+								"line": 49,
+								"character": 0
+							},
+							"end": {
+								"line": 50,
+								"character": 0
+							}
+						}
+					},
+					"message": "Original Child"
+				}
+			]
+		},
+		{
+			"range": {
+				"start": {
+					"line": 8,
+					"character": 0
+				},
+				"end": {
+					"line": 9,
+					"character": 0
+				}
+			},
+			"message": "imported module \"ietf-netconf\" not used",
+			"severity": 3,
+			"code": "UNUSED_IMPORT",
+			"source": "pyang",
+			"tags": [
+				1
+			],
+			"relatedInformation": []
+		}
+	],
+	"kind": "full"
+}

@@ -1,0 +1,23 @@
+{
+	"items": [
+		{
+			"range": {
+				"start": {
+					"line": 24,
+					"character": 0
+				},
+				"end": {
+					"line": 25,
+					"character": 0
+				}
+			},
+			"message": "the key \"test-grouping-leaf\" does not reference an existing leaf",
+			"severity": 1,
+			"code": "BAD_KEY",
+			"source": "pyang",
+			"tags": [],
+			"relatedInformation": []
+		}
+	],
+	"kind": "full"
+}

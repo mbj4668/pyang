@@ -1060,6 +1060,9 @@ Options for the *yang* output format:
 **-\-yang-remove-comments**
 :   Remove all comments from the output.
 
+**-\-yang-indent-size** *size*
+:   Format each line with a maximum indentation of *size*.  Default is 2.
+
 **-\-yang-line-length** *len*
 :   Try to format each line with a maximum line length of *len*.  Does
     not reformat long lines within strings.

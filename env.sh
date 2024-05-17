@@ -11,3 +11,5 @@ export PYANG_XSLT_DIR="$PWD/xslt"
 export PYANG_RNG_LIBDIR="$PWD/schema"
 export PYANG="$PWD/bin/pyang"
 export W="$PWD"
+
+. "$PWD/etc/bash_completion.d/pyang"

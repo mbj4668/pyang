@@ -105,6 +105,9 @@ pyang is compatible with the following IETF RFCs:
   [XmlJson](https://github.com/mbj4668/pyang/wiki/XmlJson).
 * Plugin framework for simple development of other outputs, such as
   code generation.
+* Serve Microsoft [Language Server Protocol][lsp] for in editor support
+  for pyang provided features, such as diagnostics and formatting. See
+  [pyang-lsp](./doc/pyang-lsp.md) for further details.
 
 ## Usage
 
@@ -174,9 +177,9 @@ man pyang
   Contains output plugins for YANG, YIN, and DSDL translation.
 
 * **`pyang/lsp/`**
-  Contains Microsoft [LSP][lsp] YANG language server based on pyang backend.
-  Lint plugin and all plugins based on it are used for diagnostics, and YANG
-  format output plugin is used for formatting.
+  Contains Microsoft [Language Server Protocol][lsp] based YANG language server
+  using pyang backend. Lint plugin and all plugins based on it are used for
+  diagnostics, and YANG format output plugin is used for formatting.
 
 * **`xslt/`**
   Contains XSLT style sheets for generating RELAX NG, Schematron and

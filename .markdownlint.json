@@ -5,6 +5,7 @@
   "fenced-code-language": {
     "allowed_languages": [
       "sh",
+      "json",
       "text"
     ],
     "language_only": true

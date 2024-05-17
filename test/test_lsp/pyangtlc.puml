@@ -1,0 +1,92 @@
+@startuml "pyang Test LSP Client"
+
+title "Basic Validation"
+
+participant tlc as "pyang\nTest LSP Client"
+participant ls as "pyang\nLSP Server"
+
+--> tlc : Start Test LSP Client
+activate tlc
+
+note left of tlc
+	Build workspace with
+	all *.yang files.
+end note
+
+tlc --> ls : Start STDIO mode server\n**pyang --lsp**
+activate ls
+
+note right of ls
+	Prepare LSP server
+	capabilities and defaults
+end note
+note left of tlc
+	Prepare LSP client
+	capabilities as Eglot
+end note
+
+tlc [#Blue]-> ls : **initialize** request
+note right of ls
+	Build LSP server
+	workspace
+end note
+tlc <-[#Blue] ls : **initialize** response
+note left of tlc
+	Validate response for
+	Server capabilities
+end note
+
+tlc [#Purple]-> ls : **initialized** notification
+' note right of ls
+' 	Build and validate workspace
+' 	with all *.yang files
+' end note
+' alt #Salmon "Client has //textDocument/publishDiagnostics// capability"
+' 	loop "For each *.yang in workspace"
+' 		tlc <-[#Purple] ls : **textDocument/publishDiagnostics** notification
+' 		note left of tlc
+' 			Validate response for
+' 			Server capabilities
+' 		end note
+' 	end
+' end
+
+opt
+	tlc -> ls : **textDocument/didOpen** notification
+end
+
+tlc [#Purple]-> ls : **workspace/didChangeConfiguration** notification
+note right of ls
+	Build and validate workspace
+	with all *.yang files
+end note
+' alt #Salmon "Configuration different from defaults"
+' 	note right of ls
+' 		Rebuild and revalidate workspace
+' 		with all *.yang files
+' 	end note
+	alt #White "Client has //textDocument/publishDiagnostics// capability"
+		loop "For each *.yang in workspace"
+			tlc <-[#Purple] ls : **textDocument/publishDiagnostics** notification
+		end
+	end
+' end
+
+...
+
+tlc [#Blue]-> ls : **shutdown** request
+tlc <-[#Blue] ls : **shutdown** response
+note left of tlc
+	TODO: Validate response
+	error code, if feasible
+end note
+
+tlc [#Purple]-> ls : **exit** notification
+tlc <-- ls : **pyang --lsp** exit code
+deactivate ls
+note left of tlc
+	TODO: Validate exit
+	code, if feasible
+end note
+
+@enduml
