@@ -1,0 +1,27 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "create_env",
+			"type": "shell",
+			"command": "${workspaceFolder}/.vscode/create_env.sh"
+		},
+		{
+			"label": "test",
+			"type": "shell",
+			"command": ". ./env.sh && make test"
+		},
+		{
+			"label": "test lsp",
+			"type": "shell",
+			"command": ". ./env.sh && make -C test/test_lsp test",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

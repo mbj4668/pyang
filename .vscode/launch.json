@@ -1,0 +1,52 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Python Debugger: lsp",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/bin/pyang",
+			"console": "integratedTerminal",
+			"preLaunchTask": "create_env",
+			"justMyCode": false,
+			"args": [
+				"--lsp",
+				"--lsp-mode=tcp",
+				"--lint",
+				"--strict",
+				"--canonical",
+				"--max-line-length=80",
+				"--max-identifier-length=32",
+			]
+		},
+		{
+			"name": "Python Debugger: lsp client",
+			"type": "debugpy",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/test/test_lsp",
+			"program": "client.py",
+			"console": "integratedTerminal",
+			"preLaunchTask": "create_env",
+			"justMyCode": false,
+			"args": []
+		},
+		{
+			"name": "Python Debugger: Remote Attach",
+			"type": "debugpy",
+			"request": "attach",
+			"connect": {
+				"host": "localhost",
+				"port": 5678
+			},
+			"pathMappings": [
+				{
+					"localRoot": "${workspaceFolder}",
+					"remoteRoot": "."
+				}
+			]
+		}
+	]
+}
