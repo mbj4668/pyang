@@ -11,3 +11,6 @@ a@2014-04-01.yang:166: error: CHK_DEF_ADDED
 a@2014-04-01.yang:167: error: CHK_DEF_ADDED
 a@2014-04-01.yang:172: error: CHK_DEF_CHANGED
 a@2014-04-01.yang:173: error: CHK_DEF_CHANGED
+a@2014-04-01.yang:174: error: CHK_DEF_CHANGED
+a@2014-04-01.yang:188: error: CHK_DEF_CHANGED
+a@2014-04-01.yang:193: error: CHK_DEF_ADDED
