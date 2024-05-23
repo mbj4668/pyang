@@ -1,3 +1,14 @@
+* 2.6.1 - 2024-05-23
+```
+       fix IEEE module name prefix expectation
+         thanks to Siddharth Sharma
+
+       #884 - tree module header not printed
+       #886 - crash on deviation of config
+       #887 - replace call to sys.exit with return
+       #907 - --check-update now checks for changes in ordered-by
+```
+
 * 2.6.0 - 2023-11-03
 ```
        lots of improvements to the UML plugin
