@@ -76,7 +76,8 @@ class LintPlugin(plugin.PyangPlugin):
 
         ctx.strict = True
         ctx.canonical = True
-        ctx.max_identifier_len = 64
+        if ctx.max_identifier_len is None:
+            ctx.max_identifier_len = 64
         ctx.implicit_errors = False
 
         # always add additional prefixes given on the command line
