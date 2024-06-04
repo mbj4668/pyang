@@ -57,13 +57,7 @@ See following sections for detailed support statements including non-compliance.
 
 ## Configuration
 
-pyang does not support workspace configuration over LSP, and for clients which
-support `workspace.didChangeConfiguration` following informative log can be seen
-when a client sends `workspace/didChangeConfiguration` notification.
-
-```text
-Ignoring notification for unknown method "workspace/didChangeConfiguration"
-```
+pyang does not support workspace configuration over LSP, yet.
 
 Any configurability is limited to the following channels, listed in ascending
 order of precedence
@@ -97,19 +91,21 @@ LSP to the client.
 #### Configuration
 
 pyang default diagnostics configuration parameters are as listed below, with
-CLI based day0 and LSP based day1/day2 configuration setting/override mechanisms.
+CLI based day0 setting at server instantiation.
 
-Parameter | Default | CLI (~~unnecessary~~) | LSP |
-----------|---------|-----|-----|
-**RFC 8407** Checks Enabled | False | **~~--lint~~** | N/A |
-Strict YANG Compliance | False | **~~--strict~~** | N/A |
-Canonical Order | False | **~~--canonical~~** | N/A |
-Disable All Warnings | False | **-Wnone** | N/A |
-Treat an Error as a Warning | N/A | **-W** _errorcode_ |  N/A |
-Treat a Warning as an Error | N/A | **-E** _errorcode_ |  N/A |
-Treat All Warnings as Errors | False | **-Werror** | N/A |
-Maximum Line Length | 80 | **--max-line-length** | N/A |
-Maximum Identifier Length | 64 | **--max-identifier-length** | N/A |
+Parameter                     | Default | CLI                         | LSP |
+------------------------------|---------|-----------------------------|-----|
+**RFC 8407** Checks Enabled   | False   | **--lint**                  | N/A |
+Strict YANG Compliance        | False   | **--strict**                | N/A |
+Canonical Order               | False   | **--canonical**             | N/A |
+Disable All Warnings          | False   | **-Wnone**                  | N/A |
+Treat an Error as a Warning   | N/A     | **-W** _errorcode_          | N/A |
+Treat a Warning as an Error   | N/A     | **-E** _errorcode_          | N/A |
+Treat All Warnings as Errors  | False   | **-Werror**                 | N/A |
+Maximum Line Length           | 80      | **--max-line-length**       | N/A |
+Maximum Identifier Length     | 64      | **--max-identifier-length** | N/A |
+
+LSP based day1/day2 configuration override mechanism can be introduced later.
 
 #### Diagnostic Context
 
@@ -150,15 +146,23 @@ codes.
 
 #### Demo
 
-![pyang diagnostics view in Visual Studio Code](./img/lsp-vscode.png "Title")
-_Diagnostics view using [Visual Studio Code][vscode] via a language extension_
+##### GNU Emacs Diagnostics
 
-[vscode]: https://www.gnu.org/software/emacs/manual/html_mono/eglot.html
+> ![pyang diagnostics view in GNU Emacs+Eglot](./img/lsp-eglot.png "Title")
+> _Diagnostics view using GNU Emacs via its [Eglot][eglot] LSP client submodule_
 
-![pyang diagnostics view in GNU Emacs+Eglot](./img/lsp-eglot.png "Title")
-_Diagnostics view using GNU Emacs via its [Eglot][eglot] LSP client submodule_
+See [LSP Client Settings](#gnu-emacs-settings) for details.
 
 [eglot]: https://www.gnu.org/software/emacs/manual/html_mono/eglot.html
+
+##### Microsoft Visual Studio Code Diagnostics
+
+> ![pyang diagnostics view in Visual Studio Code](./img/lsp-vscode.png "Title")
+> _Diagnostics view using [Visual Studio Code][vscode] via a language extension_
+
+See [LSP Client Settings](#microsoft-visual-studio-code-settings) for details.
+
+[vscode]: https://www.gnu.org/software/emacs/manual/html_mono/eglot.html
 
 ### Formatting
 
@@ -181,19 +185,20 @@ file, i.e., no sytactical errors exist, e.g., `EOF_ERROR` or `SYNTAX_ERROR`.
 pyang default formatting configuration parameters are as listed below, with
 CLI based day0 and LSP based day1/day2 configuration setting/override mechanisms.
 
-Parameter | Default | CLI | LSP (For ~~unsupported~~, see below) |
-----------|---------|-----|-----|
-Indentation Size | 2 | **--yang-indent-size** | [`tabSize`][formattingOptions] |
-Indentation Style | Spaces | N/A | [~~`insertSpaces`~~][formattingOptions] |
-Trim Trailing Whitespace | True | N/A | [~~`trimTrailingWhitespace`~~][formattingOptions] |
-Insert Final Newline | True | N/A | [`insertFinalNewline`][formattingOptions] |
-Trim Final Newlines | True | N/A | [~~`trimFinalNewlines`~~][formattingOptions] |
-Maximum Line Length | 80 | **--yang-line-length** | N/A |
-Canonical Order | False | **--yang-canonical** | N/A |
-Remove Unused Imports | False | **--yang-remove-unused-imports** | N/A |
-Remove Comments | False | **--yang-remove-comments** |  N/A |
+Parameter                 | Default | CLI                               | LSP (For ~~unsupported~~, see below)              |
+--------------------------|---------|-----------------------------------|---------------------------------------------------|
+Indentation Size          | 2       | **--yang-indent-size**            | [`tabSize`][formattingOptions]                    |
+Indentation Style         | Spaces  | N/A                               | [~~`insertSpaces`~~][formattingOptions]           |
+Trim Trailing Whitespace  | True    | N/A                               | [~~`trimTrailingWhitespace`~~][formattingOptions] |
+Insert Final Newline      | True    | N/A                               | [`insertFinalNewline`][formattingOptions]         |
+Trim Final Newlines       | True    | N/A                               | [~~`trimFinalNewlines`~~][formattingOptions]      |
+Maximum Line Length       | 80      | **--yang-line-length**            | N/A                                               |
+Canonical Order           | False   | **--yang-canonical**              | N/A                                               |
+Remove Unused Imports     | False   | **--yang-remove-unused-imports**  | N/A                                               |
+Remove Comments           | False   | **--yang-remove-comments**        | N/A                                               |
 
-Following [`FormattingOptions`][formattingOptions] are currently not respected.
+Unsupported [`FormattingOptions`][formattingOptions] are handled as per default
+settings as described below
 
 * `insertSpaces`
   > Tab characters are always replaced with spaces as per `tabSize`
@@ -206,3 +211,115 @@ Following [`FormattingOptions`][formattingOptions] are currently not respected.
 [textDocument_rangeFormatting]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_rangeFormatting
 [textDocument_onTypeFormatting]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_onTypeFormatting
 [formattingOptions]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#formattingOptions
+
+## Annex A Editor/IDE and LSP Client Settings
+
+### General Editor/IDE Settings
+
+To avoid per editor configuration of formatting parameters per project,
+it is recommended to use editorconfig. it also allows for differential
+formatting settings per directory or file in a project.
+
+Example editorconfig file at root of the project as below.
+
+```ini
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.yang]
+indent_style = space
+indent_size = 2
+```
+
+### GNU Emacs Settings
+
+General plugins and settings which are required or enhance the experience are
+as in configuration below
+
+```lisp
+;; https://github.com/mbj4668/yang-mode/blob/master/yang-mode.el
+(require 'yang-mode)
+
+(defun my-yang-mode-hook ()
+  "Configuration for YANG Mode.  Add this to `yang-mode-hook'."
+  (if window-system
+    (progn
+      (c-set-style "BSD")
+      (setq indent-tabs-mode nil)
+      (setq c-basic-offset 2)
+      (setq font-lock-maximum-decoration t)
+      (font-lock-mode t))))
+(add-hook 'yang-mode-hook 'my-yang-mode-hook)
+
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Outline-Mode.html
+(defun show-onelevel ()
+  "show entry and children in outline mode"
+  (interactive)
+  (outline-show-entry)
+  (outline-show-children))
+(defun my-outline-bindings ()
+  "sets shortcut bindings for outline minor mode"
+  (interactive)
+  (local-set-key [?\C-,] 'hide-body)
+  (local-set-key [?\C-.] 'show-all)
+  (local-set-key [C-up] 'outline-previous-visible-heading)
+  (local-set-key [C-down] 'outline-next-visible-heading)
+  (local-set-key [C-left] 'hide-subtree)
+  (local-set-key [C-right] 'show-onelevel)
+  (local-set-key [M-up] 'outline-backward-same-level)
+  (local-set-key [M-down] 'outline-forward-same-level)
+  (local-set-key [M-left] 'outline-hide-subtree)
+  (local-set-key [M-right] 'outline-show-subtree))
+(add-hook
+ 'outline-minor-mode-hook
+ 'my-outline-bindings)
+(defconst sort-of-yang-identifier-regexp "[-a-zA-Z0-9_\\.:]*")
+(add-hook
+ 'yang-mode-hook
+ '(lambda ()
+    (outline-minor-mode)
+    (setq outline-regexp
+      (concat "^ *" sort-of-yang-identifier-regexp " *"
+              sort-of-yang-identifier-regexp
+              " *{"))))
+
+;; https://github.com/editorconfig/editorconfig-emacs/blob/master/README.md
+(editorconfig-mode 1)
+```
+
+#### Eglot (built-in since Emacs v29)
+
+Works with built-in Emacs modules.
+
+```lisp
+;; https://www.gnu.org/software/emacs/manual/html_mono/eglot.html
+(require 'eglot)
+(add-hook 'yang-mode-hook 'eglot-ensure)
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(yang-mode . ("pyang"
+                              "--lsp"
+                              "--lint"
+                              "--canonical"
+                              "--max-line-length=80"
+                              "--max-identifier-length=32"))))
+```
+
+### Microsoft Visual Studio Code Settings
+
+General extensions which assist experience are as below
+
+* [editorconfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
+
+#### pyang (WIP extension)
+
+An extension (currently private) is built from scratch to validate the LSP
+server implementation.

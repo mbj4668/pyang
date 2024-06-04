@@ -6,6 +6,8 @@
     "allowed_languages": [
       "sh",
       "json",
+      "lisp",
+      "ini",
       "text"
     ],
     "language_only": true
@@ -38,6 +40,6 @@
     "style": "asterisk"
   },
   "MD013": {
-    "line_length": 120
+    "line_length": 160
   }
 }
