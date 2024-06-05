@@ -4,15 +4,14 @@ from __future__ import absolute_import
 import optparse
 import os
 import tempfile
-from pathlib import Path
 from typing import List
 
-from pyang import error, repository, util
+from pyang import error
 from pyang import yang_parser
 from pyang import context
 from pyang import plugin
 from pyang import syntax
-from pyang.statements import Statement
+from pyang.statements import Statement, ModSubmodStatement
 from pyang.translators import yang
 
 from lsprotocol import types as lsp
@@ -53,6 +52,7 @@ class PyangLanguageServer(LanguageServer):
     def __init__(self):
         self.ctx : context.Context
         self.yangfmt : yang.YANGPlugin
+        self.modules : dict[str, ModSubmodStatement] = {}
         super().__init__(
             name=SERVER_NAME,
             version=SERVER_VERSION,
@@ -99,22 +99,14 @@ def start_server(optargs, ctx: context.Context, fmts: dict):
         pyangls.start_io()
 
 def _delete_from_ctx(text_doc: TextDocument):
-    assert text_doc.filename
-    m = syntax.re_filename.search(text_doc.filename)
-    if m is not None:
-        name, rev, _ = m.groups()
-        module = pyangls.ctx.get_module(name, rev)
-        if module is not None:
-            pyangls.ctx.del_module(module)
-    else:
-        p = yang_parser.YangParser()
-        ctx = context.Context(repository.FileRepository())
-        module = p.parse(ctx, text_doc.path, text_doc.source)
-        if module is not None:
-            rev = util.get_latest_revision(module)
-            module = pyangls.ctx.get_module(module.arg, rev)
-            if module is not None:
-                pyangls.ctx.del_module(module)
+    if not pyangls.modules:
+        return
+    try:
+        module = pyangls.modules[text_doc.uri]
+    except KeyError:
+        return
+    pyangls.ctx.del_module(module)
+    del pyangls.modules[text_doc.uri]
 
 def _add_to_ctx(text_doc: TextDocument):
     assert text_doc.filename
@@ -129,6 +121,8 @@ def _add_to_ctx(text_doc: TextDocument):
     else:
         module = pyangls.ctx.add_module(text_doc.path, text_doc.source,
                                         primary_module=True)
+    if module:
+        pyangls.modules[text_doc.uri] = module
     return module
 
 def _update_ctx_module(text_doc: TextDocument):
@@ -137,7 +131,9 @@ def _update_ctx_module(text_doc: TextDocument):
 
 def _update_ctx_modules():
     for text_doc in pyangls.workspace.documents.values():
-        _update_ctx_module(text_doc)
+        _delete_from_ctx(text_doc)
+    for text_doc in pyangls.workspace.documents.values():
+        _add_to_ctx(text_doc)
 
 def _get_ctx_modules():
     modules = []
