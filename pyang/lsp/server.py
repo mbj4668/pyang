@@ -376,7 +376,7 @@ def did_change_watched_files(
     params: lsp.DidChangeWatchedFilesParams
 ):
     """Workspace did change watched files notification."""
-    ls.show_message("Received Workspace Did Change Watched Files")
+    # ls.show_message("Received Workspace Did Change Watched Files")
     _clear_ctx_validation()
 
     # Process all the Deleted events first to handle renames more gracefully
