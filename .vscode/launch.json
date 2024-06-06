@@ -5,7 +5,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Python Debugger: lsp",
+			"name": "Python Debugger: lsp server",
 			"type": "debugpy",
 			"request": "launch",
 			"program": "${workspaceFolder}/bin/pyang",
@@ -20,6 +20,9 @@
 				"--canonical",
 				"--max-line-length=80",
 				"--max-identifier-length=32",
+				"--verbose",
+				"--no-env-path",
+				"--path=${workspaceFolder}/modules",
 			]
 		},
 		{
