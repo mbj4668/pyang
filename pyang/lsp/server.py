@@ -259,12 +259,14 @@ def _build_doc_diagnostics(ref: str) -> List[lsp.Diagnostic]:
 
     return diagnostics
 
-def _publish_doc_diagnostics(text_doc: TextDocument):
+def _publish_doc_diagnostics(text_doc: TextDocument,
+                             diagnostics: List[lsp.Diagnostic] | None = None):
     if not pyangls.client_capabilities.text_document:
         return
     if not pyangls.client_capabilities.text_document.publish_diagnostics:
         return
-    diagnostics = _build_doc_diagnostics(text_doc.path)
+    if not diagnostics:
+        diagnostics = _build_doc_diagnostics(text_doc.path)
     pyangls.publish_diagnostics(text_doc.uri, diagnostics)
 
 def _publish_workspace_diagnostics():
@@ -383,6 +385,7 @@ def did_change_watched_files(
         text_doc = ls.workspace.get_text_document(event.uri)
         ls.workspace.remove_text_document(text_doc.uri)
         _delete_from_ctx(text_doc)
+        _publish_doc_diagnostics(text_doc, [])
 
     for event in params.changes:
         if event.type == lsp.FileChangeType.Created:
