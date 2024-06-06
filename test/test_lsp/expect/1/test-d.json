@@ -1,0 +1,41 @@
+{
+	"items": [
+		{
+			"range": {
+				"start": {
+					"line": 0,
+					"character": 0
+				},
+				"end": {
+					"line": 1,
+					"character": 0
+				}
+			},
+			"message": "expected keyword \"namespace\" as child to \"module\"",
+			"severity": 1,
+			"code": "EXPECTED_KEYWORD_2",
+			"source": "pyang",
+			"tags": [],
+			"relatedInformation": []
+		},
+		{
+			"range": {
+				"start": {
+					"line": 0,
+					"character": 0
+				},
+				"end": {
+					"line": 1,
+					"character": 0
+				}
+			},
+			"message": "expected keyword \"prefix\" as child to \"module\"",
+			"severity": 1,
+			"code": "EXPECTED_KEYWORD_2",
+			"source": "pyang",
+			"tags": [],
+			"relatedInformation": []
+		}
+	],
+	"kind": "full"
+}

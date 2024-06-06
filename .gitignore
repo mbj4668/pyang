@@ -33,3 +33,5 @@ venv/
 /test/test_json/test-data.xml
 /test/test_xsd/*.xsd
 /test/test_*/out/
+# created by vscode specific scripts:
+.env

@@ -30,6 +30,11 @@ class YANGPlugin(plugin.PyangPlugin):
                                  type="int",
                                  dest="yang_line_length",
                                  help="Maximum line length"),
+            optparse.make_option("--yang-indent-size",
+                                 dest="yang_indent_size",
+                                 default=2,
+                                 action="store_true",
+                                 help="Indentation size"),
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
@@ -51,7 +56,7 @@ def emit_yang(ctx, module, fd):
     make_link_list(ctx, module, link_list)
     link_list['last'] = None
 
-    emit_stmt(ctx, module, fd, 0, None, None, False, '', '  ', link_list)
+    emit_stmt(ctx, module, fd, 0, None, None, False, '', link_list)
 
 # always add newline between keyword and argument
 _force_newline_arg = ('description', 'reference', 'contact', 'organization')
@@ -153,10 +158,12 @@ def make_link_list(ctx, stmt, link_list):
             make_link_list(ctx, s, link_list)
 
 def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
-              indent, indentstep, link_list):
+              indent, link_list):
     if is_line_end_comment(stmt):
         # line end comments has been printed after last meaningful statement
         return
+
+    indentstep = ctx.opts.yang_indent_size * ' '
 
     if ctx.opts.yang_remove_unused_imports and stmt.keyword == 'import':
         for p in stmt.parent.i_unused_prefixes:
@@ -270,7 +277,7 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
             link_list['last'] = s
             emit_stmt(ctx, s, fd, level + 1, prev_kwd, kwd_class,
                       i == len(substmts),
-                      indent + (indentstep * n), indentstep, link_list)
+                      indent + (indentstep * n), link_list)
             if not is_line_end_comment(s):
                 kwd_class = get_kwd_class(s.keyword)
                 prev_kwd = s.keyword

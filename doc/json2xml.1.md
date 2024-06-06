@@ -16,7 +16,6 @@ model into XML.
 
 **json2xml** -h | -\-help
 
-
 # DESCRIPTION
 
 This program translates *json_file* into XML using the procedure
@@ -86,8 +85,9 @@ dhcp-data.xml.
 
 **RFC 7951**, **pyang**(1)
 
-
 # AUTHOR
 
 **Ladislav Lhotka** &lt;lhotka@nic.cz&gt;\
 CZ.NIC
+
+<!-- markdownlint-disable-file MD014 MD025 MD034 MD049 MD052 -->

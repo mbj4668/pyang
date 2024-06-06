@@ -1,0 +1,37 @@
+module test-b {
+  yang-version 1.1;
+  namespace "urn:ietf:params:xml:ns:yang:test-b";
+  prefix testb;
+
+  import test-a {
+    prefix testa;
+  }
+
+  description
+    "Module Test B";
+
+  augment "/testa:test-alpha" {
+    description
+      "Augmenting Test Alpha";
+  }
+
+  container test-container {
+    uses testa:test-grouping;
+  }
+  container test-container2 {
+    uses testa:test-grouping;
+  }
+  list test-list {
+    key "test-grouping-leaf";
+    description
+      "Test List";
+    leaf test-grouping-leaf2 {
+      type string;
+    }
+    uses testa:test-grouping;
+    container test-container3 {
+      description
+        "Test Container 3";
+    }
+  }
+}

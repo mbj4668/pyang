@@ -193,6 +193,10 @@ that the namespace and module name follow the IETF conventions, and that
 the module has the correct license text and \f[B]RFC 2119\f[R] /
 \f[B]RFC 8174\f[R] boilerplate text.
 .TP
+\f[B]--ieee\f[R]
+Validate the module(s) like \f[B]--lint\f[R], and in addition verifies
+that the namespace and module name follow the IEEE conventions.
+.TP
 \f[B]--lax-quote-checks\f[R]
 Lax checks of backslashes in double quoted strings in YANG version 1
 modules.
@@ -253,6 +257,11 @@ The supported formats are listed in OUTPUT FORMATS below.
 .TP
 \f[B]-o\f[R] \f[B]--output\f[R] \f[I]outfile\f[R]
 Write the output to the file \f[I]outfile\f[R] instead of stdout.
+.TP
+\f[B]-l\f[R] \f[B]--lsp\f[R] \f[I]lsp\f[R]
+Run as Microsoft LSP server instead of CLI tool.
+The supported LSP modes and configuration options are listed in LSP
+SERVER below.
 .TP
 \f[B]-F\f[R] \f[B]--features\f[R] \f[I]features\f[R]
 \f[I]features\f[R] is a string of the form
@@ -656,6 +665,49 @@ Validate that the module\[cq]s name starts with \f[I]prefix\f[R].
 \f[B]--lint-ensure-hyphenated-names\f[R]
 Validate that all identifiers use hyphenated style, i.e., no uppercase
 letters or underscores.
+.SH LSP SERVER
+.PP
+The \f[I]lsp\f[R] option switches \f[B]pyang\f[R] to run as a Microsoft
+LSP Server.
+See https://microsoft.github.io/language-server-protocol/.
+.PP
+When running as an LSP server, no files are required to be provided as
+arguments and if provided they are ignored.
+.PP
+\f[I]lint\f[R] backend is used to serve the \f[I]diagnosticProvider\f[R]
+capability with respect for all \f[I]lint\f[R] checker options and
+plugin extension capability.
+.PP
+\f[I]format\f[R] backend is used to serve the
+\f[I]documentFormattingProvider\f[R] capability via the \f[I]yang\f[R]
+output plugin.
+.PP
+Options for \f[I]lsp\f[R]:
+.TP
+\f[B]--lsp-mode\f[R] \f[I]mode\f[R]
+The mode options for the \f[I]lsp\f[R] service are listed in \f[B]pyang
+-h\f[R]:
+.RS
+.TP
+\f[I]tcp\f[R]
+TCP mode, generally used for debugging.
+See \f[B]--lsp-host\f[R] and \f[B]--lsp-port\f[R].
+.TP
+\f[I]io\f[R]
+STDIO mode, generally used for production.
+.TP
+\f[I]ws\f[R]
+WEBSOCKET mode, generally used to serve browser based editors.
+See \f[B]--lsp-host\f[R] and \f[B]--lsp-port\f[R].
+.RE
+.TP
+\f[B]--lsp-host\f[R] \f[I]host\f[R]
+The host name or IP address LSP service is running on.
+Default is \f[I]127.0.0.1\f[R]
+.TP
+\f[B]--lsp-port\f[R] \f[I]port\f[R]
+The TCP port LSP service is running on.
+Default is \f[I]2087\f[R].
 .SH YANG SCHEMA ITEM IDENTIFIERS (SID)
 .PP
 YANG Schema Item iDentifiers (SID) are globally unique unsigned integers
@@ -791,7 +843,7 @@ $ pyang --sid-update-file toaster\[at]2009-11-20.sid \[rs]
 \f[R]
 .fi
 .RE
-.SH CAPABILITY OUTPUT>
+.SH CAPABILITY OUTPUT
 .PP
 The \f[I]capability\f[R] output prints a capability URL for each module
 of the input data model, taking into account features and deviations, as

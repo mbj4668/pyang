@@ -8,6 +8,8 @@ _pyang()
     local formats="hypertree dsdl depend sample-xml-skeleton omni yin
         tree jstree capability yang xsd uml jtox jsonxsl xmi name"
 
+    local lspmodes="io tcp ws"
+
     local opts_global="
         -h --help
         -v --version
@@ -22,6 +24,7 @@ _pyang()
         --max-identifier-length
         -f --format
         -o --output
+        -l --lsp
         -F --features
         --deviation-module
         -p --path
@@ -34,8 +37,8 @@ _pyang()
         --check-update-from
         -P --check-update-from-path
         --ietf
-        --lint
-        --lint-ensure-hyphenated-names"
+        --ieee
+        --lint"
 
     local opts_capability="--capability-entity"
 
@@ -97,11 +100,24 @@ _pyang()
 
     local opts_yang="
         --yang-canonical
-        --yang-remove-unused-imports"
+        --yang-remove-unused-imports
+        --yang-remove-comments
+        --yang-max-line-length
+        --yang-indent-size"
 
     local opts_yin="
         --yin-canonical
         --yin-pretty-strings"
+
+    local opts_lint="
+        --lint-namespace-prefix
+        --lint-modulename-prefix
+        --lint-ensure-hyphenated-names"
+
+    local opts_lsp="
+        --lsp-mode
+        --lsp-host
+        --lsp-port"
 
     COMPREPLY=()
     _get_comp_words_by_ref cur prev cword words
@@ -113,6 +129,12 @@ _pyang()
                 ;;
             -L|--hello)
                 hello=yes
+                ;;
+            --lint|--ietf|--ieee|--threegpp|--mef)
+                plugin=lint
+                ;;
+            -l|--lsp)
+                plugin=lsp
                 ;;
         esac
         ((wind++))
@@ -171,6 +193,10 @@ _pyang()
             ;;
         -f|--format)
             COMPREPLY=($(compgen -W '$formats' -- "$cur"))
+            return 0
+            ;;
+        --lsp-mode)
+            COMPREPLY=($(compgen -W '$lspmodes' -- "$cur"))
             return 0
             ;;
     esac

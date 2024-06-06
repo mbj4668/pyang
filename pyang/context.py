@@ -1,6 +1,7 @@
 """A parse session context"""
 
 import re
+from typing import List, Tuple
 
 from . import error
 from . import yang_parser
@@ -8,18 +9,19 @@ from . import yin_parser
 from . import util
 from . import statements
 from . import syntax
+from . import repository
 
 class Context(object):
     """Class which encapsulates a parse session"""
 
-    def __init__(self, repository):
+    def __init__(self, repository: repository.Repository):
         """`repository` is a `Repository` instance"""
 
-        self.modules = {}
+        self.modules : dict[Tuple[str, str], statements.ModSubmodStatement] = {}
         """dict of (modulename,revision):<class Statement>
         contains all modules and submodule found"""
 
-        self.revs = {}
+        self.revs : dict[str, List[Tuple[str, Unknown]]] = {}
         """dict of modulename:[(revision,handle)]
         contains all modulenames and revisions found in the repository"""
 
@@ -50,8 +52,7 @@ class Context(object):
         self.modules = {}
         self.revs = {}
         self.errors = []
-        for mod, rev, handle in self.repository.get_modules_and_revisions(
-                self):
+        for mod, rev, handle in self.repository.get_modules_and_revisions(self):
             if mod not in self.revs:
                 self.revs[mod] = []
             revs = self.revs[mod]
@@ -78,7 +79,7 @@ class Context(object):
         else:
             p = yang_parser.YangParser()
 
-        module = p.parse(self, ref, text)
+        module : statements.ModSubmodStatement | None = p.parse(self, ref, text)
         if module is None:
             return None
 
@@ -118,7 +119,7 @@ class Context(object):
 
         return self.add_parsed_module(module)
 
-    def add_parsed_module(self, module):
+    def add_parsed_module(self, module: statements.ModSubmodStatement):
         if module is None:
             return None
         if module.arg is None:
@@ -141,17 +142,24 @@ class Context(object):
 
         return module
 
-    def del_module(self, module):
+    def del_module(self, module, revision=None):
         """Remove a module from the context"""
-        rev = util.get_latest_revision(module)
-        del self.modules[(module.arg, rev)]
+        if revision is None:
+            revision = util.get_latest_revision(module)
+        revs = self.revs[module.arg]
+        for (rev, handle) in revs:
+            if rev == revision:
+                revs.remove((rev, handle))
+        if not revs:
+            del self.revs[module.arg]
+        del self.modules[(module.arg, revision)]
 
     def get_module(self, modulename, revision=None):
         """Return the module if it exists in the context"""
         if revision is None and modulename in self.revs:
             (revision, _handle) = self._get_latest_rev(self.revs[modulename])
         if revision is not None:
-            if (modulename,revision) in self.modules:
+            if (modulename, revision) in self.modules:
                 return self.modules[(modulename, revision)]
         else:
             return None
@@ -209,7 +217,7 @@ class Context(object):
             # this module doesn't exist in the repos at all
             error.err_add(self.errors, pos, 'MODULE_NOT_FOUND', modulename)
             # keep track of this to avoid multiple errors
-            self.revs[modulename] = []
+            # self.revs[modulename] = []
             return None
         elif not self.revs[modulename]:
             # this module doesn't exist in the repos at all, error reported

@@ -1,0 +1,23 @@
+{
+	"items": [
+		{
+			"range": {
+				"start": {
+					"line": 119,
+					"character": 0
+				},
+				"end": {
+					"line": 120,
+					"character": 0
+				}
+			},
+			"message": "trailing garbage after module",
+			"severity": 1,
+			"code": "TRAILING_GARBAGE",
+			"source": "pyang",
+			"tags": [],
+			"relatedInformation": []
+		}
+	],
+	"kind": "full"
+}

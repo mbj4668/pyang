@@ -1,0 +1,119 @@
+module test-a {
+  yang-version 1.1;
+  namespace "urn:test-a";
+  prefix testa;
+
+  import ietf-netconf-acm {
+    prefix nacm;
+  }
+  import ietf-netconf {
+    prefix nc;
+  }
+
+  organization
+    "Test Organization";
+  contact
+    "Test Contact";
+  description
+    "Module Test A";
+
+  revision 2024-03-09 {
+    description
+      "Revision Description";
+    reference
+      "Revision Reference";
+  }
+
+  grouping test-grouping {
+    description
+      "Test Grouping";
+    leaf test-grouping-leaf {
+      type string;
+      description
+        "Test Grouping Leaf";
+    }
+  }
+
+  rpc test-apple-de-Finibus-Bonorum-et-Malorum-de-Finibus-Bonorum-et-Malorum {
+    description
+      "Test Apple";
+    input {
+      leaf leaf-name {
+        type string;
+        description
+          "Apple input leaf name";
+      }
+      uses test-grouping;
+    }
+  }
+
+  notification test-aleph {
+    description
+      "Test Aleph";
+    uses test-grouping;
+  }
+
+  notification test-aleph {
+    status deprecated;
+    description
+      "Test Aleph";
+    uses test-grouping;
+  }
+
+  deviation "/nacm:nacm" {
+    description
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+    deviate add {
+      config false;
+    }
+  }
+
+  container test-alpha {
+    presence "Test Alpha Presence";
+    description
+      "Test Alpha";
+    uses test-grouping;
+    leaf test-leaf {
+      type string;
+      description
+        "Test Leaf Description";
+    }
+    choice test-choice {
+      description
+        "Test Choice";
+      case test-case-a {
+        description
+          "Test Case A";
+        leaf test-case-a-leaf {
+          type leafref {
+            path "/testa:test-alpha/testa:test-leaf";
+          }
+          description
+            "Test Case A Leaf";
+        }
+      }
+      case test-case-b {
+        description
+          "Test Case B";
+        leaf test-case-b-leaf {
+          type string {
+            pattern '[ ]+';
+          }
+          description
+            "Test Case B Leaf";
+        }
+      }
+      case test-case-c {
+        description
+          "Test Case B";
+        leaf test-case-c-leaf {
+          type leafref {
+            path "/testa:test-alpha/testa:test-grouping-leaf";
+          }
+          description
+            "Test Case C Leaf";
+        }
+      }
+    }
+  }
+}
