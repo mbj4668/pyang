@@ -236,7 +236,7 @@ class uml_emitter:
         self.ctx_title = not "title" in no
         self.ctx_footer = not "footer" in no
 
-        nostrings = ("module", "leafref", "uses", "annotation", "identityref", "typedef", "import", "circles", "stereotypes", "prefix", "footer", "title")
+        nostrings = ("module", "uses", "leafref", "identity", "identityref", "typedef", "import", "annotation", "circles", "stereotypes", "prefix", "footer", "title")
         if ctx.opts.uml_no != "":
             for no_opt in no:
                 if no_opt not in nostrings:
