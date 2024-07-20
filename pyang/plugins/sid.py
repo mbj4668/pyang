@@ -595,7 +595,7 @@ class SidFile:
         if 'item' not in self.content:
             self.content['item'] = []
 
-        if 'key-mapping' not in self.content: 
+        if self.sid_extension and 'key-mapping' not in self.content: 
             self.content['key-mapping'] = {}
 
         for item in self.content['item']:
@@ -894,9 +894,9 @@ class SidFile:
 
                 print (key_mapping_sid)
 
-            print ("<", self.content)
+            #print ("<", self.content)
             self.content['key-mapping'] = key_mapping_sid
-            print (">", self.content)
+            #print (">", self.content)
             myorderedstuff['key-mapping'] = key_mapping_sid
 
 
