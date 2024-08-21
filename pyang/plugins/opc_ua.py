@@ -3,7 +3,6 @@
 >pyang -f opc_ua <file.yang> > <file.uml>
 """
 
-
 from pyang import error
 from pyang import plugin
 
@@ -234,19 +233,43 @@ class OPCUAEmitter:
         typedef_description = None
         typedef_type = None
 
-        if node.search_one('type') is not None:
-            typedef_type = yang_to_opcua_data_type.get(node.search_one('type').arg, "Unknown OpcUa data type")
-            if typedef_type != 'Unknown OpcUa data type':
-                yang_to_opcua_data_type[typedef_type] = typedef_type
-
         if node.search_one('default') is not None:
             typedef_default_value = node.search_one('default').arg
 
         if node.search_one('description') is not None:
             typedef_description = node.search_one('description').arg
 
+        if node.search_one('type') is not None:
+            if node.search_one('type').arg == 'enumeration':
+                typedef_type = 'Enumeration'
+                fd.write(
+                    f'{spaces}<opc:DataType SymbolicName="{convert_to_camel_case(typedef_name)}Type" BaseType="ua:{typedef_type}"> \n'
+                    f'{spaces}  <opc:Fields>\n')
+
+                for stmt in node.substmts:
+                    enum_names = stmt.search('enum')
+                    k = 0
+                    for s in stmt.substmts:
+                        fd.write(f'{spaces}    <opc:Field Name="{enum_names[k]}" ')
+                        k += 1
+                        if s.search_one('value') is not None:
+                            value = s.search_one('value').arg
+                            fd.write(f' Identifier="{value}" ')
+                        if s.search_one('description') is not None:
+                            desc = s.search_one('description').arg
+                            fd.write(f' Description="{desc}" ')
+                        fd.write('/>\n')
+                fd.write(f'{spaces}  </opc:Fields>\n'
+                         f'{spaces}</opc:DataType>\n')
+                return
+
+            else:
+                typedef_type = yang_to_opcua_data_type.get(node.search_one('type').arg, "Unknown OpcUa data type")
+                if typedef_type != 'Unknown OpcUa data type':
+                    yang_to_opcua_data_type[typedef_type] = typedef_type
+
         fd.write(
-            f'{spaces}<opc:DataType SymbolicName="{convert_to_camel_case(typedef_name)}" BaseType="{typedef_type}"> \n')
+            f'{spaces}<opc:DataType SymbolicName="{convert_to_camel_case(typedef_name)}" BaseType="ua:{typedef_type}"> \n')
         if typedef_default_value is not None:
             fd.write(
                 f'{spaces}  <opc:DefaultValue> <uax:{typedef_type}>{typedef_default_value}</uax:{typedef_type}> </opc:DefaultValue>\n')
