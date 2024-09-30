@@ -30,6 +30,11 @@ class YANGPlugin(plugin.PyangPlugin):
                                  type="int",
                                  dest="yang_line_length",
                                  help="Maximum line length"),
+            optparse.make_option("--yang-no-newlines",
+                                 dest="yang_no_newlines",
+                                 action="store_true",
+                                 help=f"Don't insert newlines after "
+                                      f"{_force_newline_arg}"),
             ]
         g = optparser.add_option_group("YANG output specific options")
         g.add_options(optlist)
@@ -40,6 +45,9 @@ class YANGPlugin(plugin.PyangPlugin):
         ctx.keep_comments = True
         if ctx.opts.yang_remove_comments:
             ctx.keep_comments = False
+        ctx.yang_newlines = True
+        if ctx.opts.yang_no_newlines:
+            ctx.yang_newlines = False
 
     def emit(self, ctx, modules, fd):
         module = modules[0]
@@ -215,7 +223,8 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
                                indent, indentstep, max_line_len, line_len)
         elif '\n' in stmt.arg:
             # the arg string contains newlines; print it as double quoted
-            arg_on_new_line = emit_arg(keywordstr, stmt, fd, indent, indentstep,
+            arg_on_new_line = emit_arg(ctx, keywordstr, stmt, fd,
+                                       indent, indentstep,
                                        max_line_len, line_len - 1 - len(eol))
         elif stmt.keyword in _keyword_with_path_arg:
             # special code for path argument; pretty-prints a long path with
@@ -234,12 +243,12 @@ def emit_stmt(ctx, stmt, fd, level, prev_kwd, prev_kwd_class, islast,
                     fd.write('\n' + indent + indentstep + stmt.arg)
                     arg_on_new_line = True
             else:
-                arg_on_new_line = emit_arg(keywordstr, stmt, fd,
+                arg_on_new_line = emit_arg(ctx, keywordstr, stmt, fd,
                                            indent, indentstep,
                                            max_line_len, line_len)
         else:
-            arg_on_new_line = emit_arg(keywordstr, stmt, fd, indent, indentstep,
-                                       max_line_len, line_len)
+            arg_on_new_line = emit_arg(ctx, keywordstr, stmt, fd, indent,
+                                       indentstep, max_line_len, line_len)
     fd.write(eol)
 
     next_stmt = link_list.get(stmt, None)
@@ -433,14 +442,15 @@ def emit_path_arg(keywordstr, arg, fd, indent, max_line_len, line_len, eol):
                      quote + arg[:num_chars] + quote)
             arg = arg[num_chars:]
 
-def emit_arg(keywordstr, stmt, fd, indent, indentstep, max_line_len, line_len):
+def emit_arg(ctx, keywordstr, stmt, fd, indent, indentstep,
+             max_line_len, line_len):
     """Heuristically pretty print the argument string with double quotes"""
     arg = escape_str(stmt.arg)
     lines = arg.splitlines(True)
     if len(lines) <= 1:
         if len(arg) > 0 and arg[-1] == '\n':
             arg = arg[:-1] + r'\n'
-        if (stmt.keyword in _force_newline_arg or
+        if (ctx.yang_newlines and stmt.keyword in _force_newline_arg or
             need_new_line(max_line_len, line_len, arg)):
             fd.write('\n' + indent + indentstep + '"' + arg + '"')
             return True
@@ -449,7 +459,7 @@ def emit_arg(keywordstr, stmt, fd, indent, indentstep, max_line_len, line_len):
             return False
     else:
         need_nl = False
-        if stmt.keyword in _force_newline_arg:
+        if ctx.yang_newlines and stmt.keyword in _force_newline_arg:
             need_nl = True
         elif len(keywordstr) > 8:
             # Heuristics: multi-line after a "long" keyword looks better
