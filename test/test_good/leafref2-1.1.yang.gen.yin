@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="leafref2-1.1"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:ll2="urn:example:ll2"
+        xmlns:ll="urn:example:ll">
+  <yang-version value="1.1"/>
+  <namespace uri="urn:example:ll2"/>
+  <prefix value="ll2"/>
+  <import module="leafref-1.1">
+    <prefix value="ll"/>
+  </import>
+  <uses name="ll:x"/>
+</module>

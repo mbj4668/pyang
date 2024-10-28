@@ -1,0 +1,29 @@
+module feature {
+  yang-version 1.1;
+  namespace "urn:feature";
+  prefix feature;
+
+  import ietf-interfaces {
+    prefix if;
+  }
+
+  feature has-leaf-foo;
+
+  grouping common {
+    leaf foo {
+      if-feature has-leaf-foo;
+      type string;
+    }
+  }
+
+  container root {
+  }
+
+  augment /root {
+    uses common;
+  }
+
+  augment /if:interfaces/if:interface {
+    uses common;
+  }
+}

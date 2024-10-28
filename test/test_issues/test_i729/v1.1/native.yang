@@ -1,0 +1,19 @@
+module native {
+  yang-version 1.1;
+  namespace "http://example.com/native";
+  prefix ios;
+
+  include native-sub;
+
+  container native {
+    container router;
+    container ip {
+      container routing-conf {
+        leaf routing {
+          type string;
+        }
+      }
+    }
+    uses config-interface-grouping;
+  }
+}

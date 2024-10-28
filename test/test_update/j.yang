@@ -12,5 +12,9 @@ module j {
       }
     }
   }
+  leaf bar {
+    type string;
+    when "../foo = 'f'";
+  }
 }
 

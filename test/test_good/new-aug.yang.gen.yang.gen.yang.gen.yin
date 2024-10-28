@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="new-aug"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:na="urn:new-aug"
+        xmlns:n="urn:new">
+  <yang-version value="1.1"/>
+  <namespace uri="urn:new-aug"/>
+  <prefix value="na"/>
+  <import module="new">
+    <prefix value="n"/>
+  </import>
+  <augment target-node="/n:yy">
+    <when condition="foo"/>
+    <leaf name="bar">
+      <type name="string"/>
+      <mandatory value="true"/>
+    </leaf>
+  </augment>
+</module>

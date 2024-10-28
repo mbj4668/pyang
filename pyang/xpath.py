@@ -1,5 +1,6 @@
 from . import xpath_lexer
 from . import xpath_parser
+from . import types
 from .error import err_add
 from .util import prefix_to_module, search_data_node, data_node_up
 from .syntax import re_identifier
@@ -190,22 +191,37 @@ def chk_xpath_function(ctx, mod, pos, initial, node, func, args):
         err_add(ctx.errors, pos, 'XPATH_FUNC_ARGS',
                 (func, nexp, nargs))
 
-    # FIXME implement checks from check_function()
-
     # check the arguments - FIXME check type
     i = 0
     args_signature = signature[0][:]
-    for arg in args:
-        chk_xpath_expr(ctx, mod, pos, initial, node, arg, args_signature[i])
-        if args_signature[i] == '*':
-            args_signature.append('*')
-        i = i + 1
-    return signature[1]
+    if func == 'deref':
+        arg = args[0]
+        tgt = chk_xpath_path(ctx, mod, pos, initial, node, arg)
+
+        if tgt is not None:
+            if not hasattr(tgt, 'i_leafref_ptr') or tgt.i_leafref_ptr is None:
+                # not a leafref;
+                type_ = tgt.search_one('type')
+                if (type_ is None or
+                    not isinstance(type_.i_type_spec,
+                                   types.InstanceIdentifierTypeSpec)):
+                    err_add(ctx.errors, pos, 'XPATH_DEREF_TARGET', tgt)
+                tgt = None
+        return (signature[1], tgt)
+    else:
+        for arg in args:
+            chk_xpath_expr(ctx, mod, pos, initial, node, arg, args_signature[i])
+            if args_signature[i] == '*':
+                args_signature.append('*')
+            i = i + 1
+        return (signature[1], None)
 
 def chk_xpath_path(ctx, mod, pos, initial, node, path):
     if len(path) == 0:
-        return
+        return node
     head = path[0]
+    if head == 'relative':
+        return chk_xpath_path(ctx, mod, pos, initial, node, path[1])
     if head[0] == 'var':
         # check if the variable is known as a node-set
         # currently we don't have any variables, so this fails
@@ -213,21 +229,29 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
     elif head[0] == 'function_call':
         func = head[1]
         args = head[2]
-        rettype = chk_xpath_function(ctx, mod, pos, initial, node, func, args)
+        (rettype, tgt) = chk_xpath_function(ctx, mod, pos, initial,
+                                            node, func, args)
         if rettype is not None:
             # known function, check that it returns a node set
             if rettype != 'node-set':
-                err_add(ctx.errors, pos, 'XPATH_NODE_SET_FUNC', func)
+                err_add(ctx.errors, pos, 'XPATH_FUNCTION_RET_VAL',
+                        (func, 'node-set'))
         if func == 'current':
-            chk_xpath_path(ctx, mod, pos, initial, initial, path[1:])
+            return chk_xpath_path(ctx, mod, pos, initial, initial, path[1:])
+        elif func == 'deref':
+            t = None
+            if tgt is not None:
+                (t, _pos) = tgt.i_leafref_ptr
+            return chk_xpath_path(ctx, mod, pos, initial, t, path[1:])
     elif head[0] == 'step':
         axis = head[1]
         nodetest = head[2]
         preds = head[3]
         node1 = None
         if axis == 'self':
+            node1 = node
             pass
-        elif axis == 'child' and nodetest[0] == 'name':
+        elif nodetest[0] == 'name':
             prefix = nodetest[1]
             name = nodetest[2]
             if prefix is None:
@@ -244,27 +268,69 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             # when the full tree is not expanded.  in this case we can't check
             # the paths
             if pmodule is not None and node is not None and initial is not None:
-                if node == 'root':
-                    children = pmodule.i_children
+                if axis == 'child':
+                    if node == 'root':
+                        children = pmodule.i_children
+                    else:
+                        children = getattr(node, 'i_children', None) or []
+                    child = search_data_node(children, pmodule.i_modulename,
+                                             name)
+                    if child is None and node == 'root':
+                        err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
+                                (pmodule.i_modulename, name, pmodule.arg))
+                    elif child is None and node.i_module is not None:
+                        err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND1',
+                                (pmodule.i_modulename, name,
+                                 node.i_module.i_modulename, node.arg))
+                    elif child is None:
+                        err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
+                                (pmodule.i_modulename, name, node.arg))
+                    elif (getattr(initial, 'i_config', None) is True
+                          and getattr(child, 'i_config', None) is False):
+                        err_add(ctx.errors, pos, 'XPATH_REF_CONFIG_FALSE',
+                                (pmodule.i_modulename, name))
+                    else:
+                        node1 = child
+                elif axis == 'ancestor' or axis == 'ancestor-or-self':
+                    p = node
+                    if axis == 'ancestor':
+                        if node == 'root':
+                            err_add(ctx.errors, pos, 'XPATH_ANCESTOR_NOT_FOUND',
+                                    (pmodule.i_modulename, name,
+                                     node.i_module.i_modulename, node.arg))
+                        else:
+                            p = data_node_up(node)
+                    while (p is not None and
+                           not(p.arg == name and
+                               p.i_module and
+                               p.i_module.i_modulename == pmodule.i_modulename)):
+                        p = data_node_up(p)
+                    if p is None:
+                        err_add(ctx.errors, pos, 'XPATH_ANCESTOR_NOT_FOUND',
+                                (pmodule.i_modulename, name,
+                                 node.i_module.i_modulename, node.arg))
+                    else:
+                        node1 = p
+                        # we have now found one matching ancestor.
+                        # NOTE: we don't handle multiple matching ancestors,
+                        # so we check for this
+                        p = data_node_up(p)
+                        while (p is not None and
+                               not(p.arg == name and
+                                   p.i_module and
+                                   p.i_module.i_modulename ==
+                                   pmodule.i_modulename)):
+                            p = data_node_up(p)
+                        if p is not None:
+                            # multiple ancestors; give a warning and continue
+                            err_add(ctx.errors, pos, 'XPATH_MULTIPLE_ANCESTORS',
+                                    (node.i_module.i_modulename, node.arg,
+                                     pmodule.i_modulename, name))
+                            node1 = None
                 else:
-                    children = getattr(node, 'i_children', None) or []
-                child = search_data_node(children, pmodule.i_modulename, name)
-                if child is None and node == 'root':
-                    err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
-                            (pmodule.i_modulename, name, pmodule.arg))
-                elif child is None and node.i_module is not None:
-                    err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND1',
-                            (pmodule.i_modulename, name,
-                             node.i_module.i_modulename, node.arg))
-                elif child is None:
-                    err_add(ctx.errors, pos, 'XPATH_NODE_NOT_FOUND2',
-                            (pmodule.i_modulename, name, node.arg))
-                elif (getattr(initial, 'i_config', None) is True
-                      and getattr(child, 'i_config', None) is False):
-                    err_add(ctx.errors, pos, 'XPATH_REF_CONFIG_FALSE',
-                            (pmodule.i_modulename, name))
-                else:
-                    node1 = child
+                    # we can't validate the steps on other axis, but we can
+                    # validate functions etc.
+                    pass
         elif axis == 'parent' and nodetest == ('node_type', 'node'):
             if node is None:
                 pass
@@ -277,9 +343,9 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                 else:
                     node1 = p
         else:
-            # we can't validate the steps on other axis, but we can validate
-            # functions etc.
+            # we can't validate the steps on other axis, but we can
+            # validate functions etc.
             pass
         for p in preds:
             chk_xpath_expr(ctx, mod, pos, initial, node1, p, None)
-        chk_xpath_path(ctx, mod, pos, initial, node1, path[1:])
+        return chk_xpath_path(ctx, mod, pos, initial, node1, path[1:])

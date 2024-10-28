@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="yt8"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:yt8="urn:ietf:params:xml:ns:yang:yt8">
+  <namespace uri="urn:ietf:params:xml:ns:yang:yt8"/>
+  <prefix value="yt8"/>
+  <organization>
+    <text>YANG Language Design Team</text>
+  </organization>
+  <contact>
+    <text>ietf@andybierman.com</text>
+  </contact>
+  <description>
+    <text>YANG test module 8.</text>
+  </description>
+  <revision date="2008-02-12">
+    <description>
+      <text>Initial revision.</text>
+    </description>
+  </revision>
+  <typedef name="foo">
+    <type name="int32">
+      <range value="-42 | -2 .. +7 | 8 | 41 | 42"/>
+    </type>
+  </typedef>
+</module>

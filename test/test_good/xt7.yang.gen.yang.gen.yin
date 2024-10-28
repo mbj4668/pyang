@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="xt7"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:x="urn:test:xt7">
+  <prefix value="x"/>
+  <namespace uri="urn:test:xt7"/>
+  <leaf name="foo">
+    <type name="int16"/>
+    <x:foo bar="some string"/>
+  </leaf>
+  <x:foo bar="another string"/>
+  <extension name="foo">
+    <argument name="bar">
+      <yin-element value="false"/>
+    </argument>
+  </extension>
+  <grouping name="baz">
+    <leaf name="x">
+      <type name="int32"/>
+    </leaf>
+  </grouping>
+  <uses name="baz">
+    <refine target-node="x">
+      <default value="42"/>
+    </refine>
+  </uses>
+</module>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="xt10"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:xt10="urn:xt10">
+  <namespace uri="urn:xt10"/>
+  <prefix value="xt10"/>
+  <revision date="2009-02-01">
+    <description>
+      <text>second update</text>
+    </description>
+  </revision>
+  <revision date="2009-01-01">
+    <description>
+      <text>first update</text>
+    </description>
+  </revision>
+  <typedef name="a">
+    <type name="string"/>
+  </typedef>
+  <typedef name="c">
+    <type name="string"/>
+  </typedef>
+</module>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<submodule name="augment-sub0"
+           xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+           xmlns:as="urn:test">
+  <belongs-to module="augment-super">
+    <prefix value="as"/>
+  </belongs-to>
+  <container name="interfaces"/>
+</submodule>

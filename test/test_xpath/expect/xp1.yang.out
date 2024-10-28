@@ -1,0 +1,4 @@
+xp1.yang:30: warning: XPATH_NODE_NOT_FOUND1
+xp1.yang:34: warning: XPATH_ANCESTOR_NOT_FOUND
+xp1.yang:38: warning: XPATH_ANCESTOR_NOT_FOUND
+xp1.yang:52: warning: XPATH_MULTIPLE_ANCESTORS

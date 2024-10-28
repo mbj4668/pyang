@@ -1,0 +1,19 @@
+submodule qs {
+  belongs-to q {
+    prefix q;
+  }
+
+  extension foo {
+    argument id;
+  }
+
+  identity foo;
+
+  feature foo;
+
+  grouping g {
+    leaf x {
+      type string;
+    }
+  }
+}

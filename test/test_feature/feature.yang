@@ -1,0 +1,19 @@
+module feature {
+  yang-version 1.1;
+  namespace "urn:feature";
+  prefix feature;
+
+  feature has-leaf-foo;
+  feature has-leaf-goo;
+
+  container root {
+    leaf foo {
+      if-feature has-leaf-foo;
+      type string;
+    }
+    leaf goo {
+      if-feature has-leaf-goo;
+      type string;
+    }
+  }
+}

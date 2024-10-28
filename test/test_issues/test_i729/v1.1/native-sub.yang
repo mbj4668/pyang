@@ -1,0 +1,42 @@
+submodule native-sub {
+  yang-version 1.1;
+  belongs-to native {
+    prefix ii;
+  }
+
+  grouping interface-with-dependency-grouping {
+    choice interface-choice {
+      leaf GigabitEthernet {
+        description
+          "Service-Context Virtual Interface Compress";
+        type leafref {
+          path "/ii:native/ii:interface/ii:GigabitEthernet/ii:name";
+        }
+      }
+    }
+  }
+
+  grouping config-interface-grouping {
+    container interface {
+      description
+        "Configure Interfaces";
+      list GigabitEthernet {
+        description
+          "Service-Context Virtual Interface Compress";
+        key "name";
+        leaf name {
+          type uint16;
+        }
+        uses interface-common-grouping;
+      }
+    }
+  }
+
+  grouping interface-common-grouping {
+    container switchport-conf {
+      leaf switchport {
+        type boolean;
+      }
+    }
+  }
+}

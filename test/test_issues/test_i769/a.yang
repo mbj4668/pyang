@@ -1,0 +1,31 @@
+module a {
+  namespace urn:a;
+  prefix a;
+
+  grouping g1 {
+    choice foo {
+      leaf a {
+        type int64;
+      }
+    }
+  }
+
+  grouping g2 {
+    leaf b {
+      type int64;
+    }
+  }
+
+
+  container c {
+    leaf d {
+      type int64;
+    }
+    uses g1 {
+      when d;
+    }
+    uses g2 {
+      when d;
+    }
+  }
+}

@@ -1,0 +1,218 @@
+module new {
+  yang-version 1.1;
+  namespace "urn:new";
+  prefix n;
+
+  // make sure that 1.1 constructs are ok
+  // compare with test_bad/new.yang
+
+  feature f;
+
+  feature g;
+
+  identity id {
+    if-feature "f"; // new 1.1 syntax
+  }
+
+  leaf l1 {
+    type enumeration {
+      enum r {
+        if-feature "f"; // new 1.1 syntax
+      }
+    }
+  }
+  leaf l2 {
+    type bits {
+      bit b {
+        if-feature "f"; // new 1.1 syntax
+      }
+    }
+  }
+  container yy {
+    leaf foo {
+      type empty;
+    }
+    if-feature "f or g"; // error: 1.1 synatx
+  }
+
+  grouping g {
+    container x;
+  }
+
+  uses g {
+    refine "x" {
+      if-feature "f";
+    }
+  }
+  container w {
+    choice c1 {
+      choice c2;
+    }
+  }
+
+  typedef id {
+    type string {
+      pattern '[a-zA-Z_][a-zA-Z0-9\-_.]*';
+      pattern '[xX][mM][lL].*' {
+        modifier "invert-match"; // new 1.1 syntax
+      }
+    }
+  }
+
+  rpc r {
+    input {
+      must 'g'; // new 1.1 syntax
+      leaf g {
+        type int32;
+      }
+    }
+    output {
+      must 'g'; // new 1.1 syntax
+      leaf g {
+        type int32;
+      }
+    }
+  }
+
+  notification n {
+    must 'g'; // new 1.1 syntax
+    leaf g {
+      type int32;
+    }
+  }
+
+  container t {
+    must 're-match("hej", "dsop")'; // new 1.1 syntax
+    must 'deref(.)'; // new 1.1 syntax
+    leaf idleafderrived {
+      type identityref {
+        base id2;
+        base id5; // new 1.1 syntax
+      }
+      default "id7";
+    }
+    must 'derived-from(idleafderrived, "id2")'; // new 1.1 syntax
+    must 'derived-from-or-self(idleafderrived, "id2")'; // new 1.1 syntax
+    leaf ofenum {
+      type e1;
+    }
+    leaf ofbit {
+      type bits {
+        bit hej {
+          if-feature "f"; // new 1.1 syntax
+        }
+      }
+    }
+    must 'enum-value(./ofenum)'; // new 1.1 syntax
+    must 'bit-is-set(./ofbit, "hej")'; // new 1.1 syntax
+  }
+
+  identity id1;
+
+  identity id2;
+
+  identity id3 {
+    base id1;
+    base id2; // new 1.1 syntax
+  }
+
+  identity id4 {
+    base id2;
+  }
+
+  identity id5 {
+    base id3;
+    base id4;
+  }
+
+  identity id6 {
+    base id2;
+  }
+
+  identity id7 {
+    base id5;
+  }
+
+  leaf idleaf1 {
+    type identityref {
+      base id2;
+      base id5; // new 1.1 syntax
+    }
+    default "id7";
+  }
+  leaf idleaf2 {
+    type identityref {
+      base id5;
+    }
+    default "id7";
+  }
+  leaf idleaf3 {
+    type identityref {
+      base id2;
+    }
+    default "id5";
+  }
+
+  typedef e1 {
+    type enumeration {
+      enum a;
+      enum b;
+      enum c;
+    }
+  }
+
+  typedef e2 {
+    type e1 {
+      enum a; // new 1.1 syntax
+      enum b;
+    }
+  }
+
+  leaf-list ll {
+    type int32;
+    default "1"; // new 1.1 syntax
+    default "2"; // new 1.1 syntax
+  }
+  container w2 {
+    action a; // new 1.1 syntax
+    notification n; // new 1.1 syntax
+    anydata d; // new 1.1 syntax
+  }
+
+  typedef t2 {
+    type union {
+      type empty; // new 1.1 syntax
+      type string;
+    }
+  }
+
+  typedef t3 {
+    type union {
+      type string;
+      type leafref { // new 1.1 syntax
+        path "/l1";
+      }
+    }
+  }
+
+  list l3 {
+    config false;
+    key "e";
+    leaf e {
+      type empty; // new 1.1. syntax
+    }
+  }
+
+  typedef foo {
+    type leafref {
+      path "/x1/y1";
+    }
+  }
+
+  leaf lr {
+    type leafref {
+      path "/l3/e";
+      require-instance false; // new 1.1 syntax
+    }
+  }
+}

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="ieee-yt12"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:epon="urn:ieee:std:802.3:yang:ieee-yt12"
+        xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces"
+        xmlns:eth="urn:ieee:params:xml:ns:yang:ethernet">
+  <namespace uri="urn:ieee:std:802.3:yang:ieee-yt12"/>
+  <prefix value="epon"/>
+  <import module="ietf-interfaces">
+    <prefix value="if"/>
+  </import>
+  <import module="ethernet">
+    <prefix value="eth"/>
+  </import>
+  <organization>
+    <text>IEEE 802.3 Working Group</text>
+  </organization>
+  <contact>
+    <text>Marek Hajduczenia, marek.hajduczenia@mybrighthouse.com</text>
+  </contact>
+  <description>
+    <text>This module contains a collection of YANG definitions
+for managing the Multi Point Control Protocol, as defined in
+    IEEE Std 802.3, Clause 64/77
+
+This YANG module augments the 'ethernet' module.</text>
+  </description>
+  <reference>
+    <text>IEEE Std 802.3-2015, Clause 64/77, unless dated explicitly
+IEEE Std 802.3.1-2013, Clause 9, unless dated explicitly</text>
+  </reference>
+  <revision date="2015-11-27">
+    <description>
+      <text>Initial version</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3-2015, unless dated explicitly in reference
+IEEE Std 802.3.1-2013, unless dated explicitly in reference</text>
+    </reference>
+  </revision>
+  <typedef name="mpcp-llid">
+    <type name="uint32">
+      <range value="0 .. 32767"/>
+    </type>
+    <description>
+      <text>The third and fourth octets following the SLD contain the mode and
+       logical_link_id values. OLTs and ONUsact upon these values in a
+       different manner.
+If the device is an OLT, then the following comparison is made:
+a)The received mode bit is ignored.
+b)If the received logical_link_id value matches 0x7FFF or 0x7FFE and
+        an enabled MAC exists with alogical_link_id variable with the same
+        value, then the comparison is considered a match to thatMAC.
+c)If the received logical_link_id has a value other than 0x7FFF or
+        0x7FFE and an enabled MAC existswith a mode variable with a value of
+        0 and a logical_link_id variable matching the receivedlogical_link_id
+        value, then the comparison is considered a match to that MAC.
+If the device is an ONU then the following comparison is made:
+d)If the received mode bit is equal to 0 and the received
+        logical_link_id value matches the logi-cal_link_id variable,
+        then the comparison is considered a match.
+e)If the received mode bit is equal to 1 and the received
+        logical_link_id value does not match thelogical_link_id variable,
+        or the received logical_link_id matches 0x7FFE, then the comparison
+        is considered a match.
+f)If the received logical_link_id value matches one of the assigned
+        multicast LLIDs, then thecomparison is considered a match.
+If no match is found, then the packet shall be discarded within the
+        RS. If a match is found, then the packet isintended to be transferred.
+        If the packet is transferred, then both octets of the LLID field
+        shall be replacedwith normal preamble octets.
+If the packet is transferred, the one octet preceding the LLID is
+        passed without modification. A number ofLLIDs have been reserved
+        (see IEEE Std 802.3, Figure 76â€“4) for various purposes including
+        downstream broadcast,discovery messages, and upstream registration
+        request messages. An additional block of LLIDs has been setaside for
+        future use and definition. A registered ONU shall not transmit frames
+        with one of these reservedLLIDs.</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3, 76.2.6.1.3.2 (1G-EPON and 10G-EPON)</text>
+    </reference>
+  </typedef>
+  <typedef name="mpcp-mode">
+    <type name="enumeration">
+      <enum name="olt">
+        <description>
+          <text>mpcp mode: olt = server</text>
+        </description>
+      </enum>
+      <enum name="onu">
+        <description>
+          <text>mpcp mode: onu = client</text>
+        </description>
+      </enum>
+    </type>
+    <description>
+      <text>Enumeration of valid mpcp modes for Ethernet interfaces</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3, 30.3.5.1.3</text>
+    </reference>
+  </typedef>
+  <typedef name="mpcp-state">
+    <type name="enumeration">
+      <enum name="unregistered">
+        <description>
+          <text>MPCP registration state: logical link is NOT registered</text>
+        </description>
+      </enum>
+      <enum name="registering">
+        <description>
+          <text>MPCP registration state: logical link is currently in the
+process of registering</text>
+        </description>
+      </enum>
+      <enum name="registered">
+        <description>
+          <text>MPCP registration state: logical link is currently
+registered</text>
+        </description>
+      </enum>
+    </type>
+    <description>
+      <text>Enumeration of valid MPCP registration states for Ethernet interfaces</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3, 30.3.5.1.6</text>
+    </reference>
+  </typedef>
+  <typedef name="ompe-mode">
+    <type name="enumeration">
+      <enum name="unknown">
+        <description>
+          <text>omp-emulation mode: unknown = system is initializing</text>
+        </description>
+      </enum>
+      <enum name="olt">
+        <description>
+          <text>omp-emulation mode: olt = server</text>
+        </description>
+      </enum>
+      <enum name="onu">
+        <description>
+          <text>omp-emulation mode: onu = client</text>
+        </description>
+      </enum>
+    </type>
+    <description>
+      <text>Enumeration of valid OMP-Emulation modes for Ethernet interfaces</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3, 30.3.7.1.2</text>
+    </reference>
+  </typedef>
+  <typedef name="fec-capability">
+    <type name="enumeration">
+      <enum name="unknown">
+        <description>
+          <text>FEC capability: unknown = system is initializing</text>
+        </description>
+      </enum>
+      <enum name="supported">
+        <description>
+          <text>FEC capability: supported</text>
+        </description>
+      </enum>
+      <enum name="not supported">
+        <description>
+          <text>FEC capability: not supported</text>
+        </description>
+      </enum>
+    </type>
+    <description>
+      <text>Enumeration of valid FEC capability values for Ethernet
+interfaces with enabled MPCP</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3, 30.5.1.1.15</text>
+    </reference>
+  </typedef>
+  <typedef name="fec-mode">
+    <type name="enumeration">
+      <enum name="unknown">
+        <description>
+          <text>FEC mode: unknown = system is initializing</text>
+        </description>
+      </enum>
+      <enum name="disabled">
+        <description>
+          <text>FEC mode: disabled</text>
+        </description>
+      </enum>
+      <enum name="enabled">
+        <description>
+          <text>FEC mode: enabled</text>
+        </description>
+      </enum>
+    </type>
+    <description>
+      <text>Enumeration of valid FEC modes for Ethernet interfaces</text>
+    </description>
+    <reference>
+      <text>IEEE Std 802.3, 30.5.1.1.16</text>
+    </reference>
+  </typedef>
+  <augment target-node="/if:interfaces/if:interface/eth:ethernet">
+    <description>
+      <text>Augments definition of Ethernet interface
+   (/if:interfaces/if:interface/eth:ethernet) operational state model
+   with nodes
+specific to Ethernet MPCP</text>
+    </description>
+    <leaf name="fec-mode">
+      <type name="fec-mode"/>
+      <description>
+        <text>An object that defines the mode of operation of the optional FEC
+  	 sublayer of the 1000BASE-PX PHY, specified in IEEE Std 802.3, 65.2,
+  	 and reflects its state.
+A write operation changes the mode of operation of the PHY to the
+  	  indicated value at any time.
+The value of 'unknown' is assigned in the initialization for non
+  	  FEC support state or type not yet known.
+The value of 'disabled' is assigned when the FEC sublayer is
+  	  operating in disabled mode.
+The value of 'enabled' is assigned when the FEC sublayer is
+  	  operating in FEC mode.
+Changing the value of fec-mode can lead to disabling the
+  	  Forward Error Correction on the respective interface, which can
+  	  lead to a degradation of the optical link, and therefore may lead
+  	  to an interruption of service for the users connected to the
+  	  respective EPON interface.
+This object is applicable for an OLT and an ONU.
+At the OLT, it has a distinct value for each logical link. </text>
+      </description>
+      <reference>
+        <text>IEEE Std 802.3, 30.5.1.1.16</text>
+      </reference>
+    </leaf>
+  </augment>
+</module>

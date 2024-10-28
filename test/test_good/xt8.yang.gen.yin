@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="xt8"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:x="urn:test:xt8">
+  <prefix value="x"/>
+  <namespace uri="urn:test:xt8"/>
+  <container name="x">
+    <list name="a">
+      <key value="a1"/>
+      <leaf name="a1">
+        <type name="string"/>
+      </leaf>
+      <leaf name="a2">
+        <type name="string"/>
+      </leaf>
+      <leaf-list name="a3">
+        <type name="string"/>
+      </leaf-list>
+      <list name="b">
+        <key value="b1 x:b2"/>
+        <leaf name="b1">
+          <type name="string"/>
+        </leaf>
+        <leaf name="b2">
+          <type name="string"/>
+        </leaf>
+        <list name="c">
+          <key value="c1"/>
+          <leaf name="c1">
+            <type name="string"/>
+          </leaf>
+          <leaf name="c2">
+            <type name="int32"/>
+          </leaf>
+        </list>
+      </list>
+    </list>
+    <container name="ref1">
+      <leaf name="ra1">
+        <type name="leafref">
+          <path value="/x/a/a1"/>
+        </type>
+      </leaf>
+      <leaf name="rb1">
+        <type name="leafref">
+          <path value="/x/a[a1 = current()/../ra1]/b/b1"/>
+        </type>
+      </leaf>
+      <leaf name="rb2">
+        <type name="leafref">
+          <path value="/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1]/b2"/>
+        </type>
+      </leaf>
+      <leaf name="rc1">
+        <type name="leafref">
+          <path value="/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1][b2 = current()/../rb2]/c/c1"/>
+        </type>
+      </leaf>
+      <leaf name="rc2">
+        <type name="leafref">
+          <path value="/x/a[a1 = current()/../ra1]/b[b1 = current()/../rb1][b2 = current()/../rb2]/c/c2"/>
+        </type>
+      </leaf>
+      <leaf name="dc1">
+        <type name="decimal64">
+          <fraction-digits value="3"/>
+          <range value="1..5.5"/>
+        </type>
+        <default value="1.506"/>
+      </leaf>
+      <leaf name="ra2">
+        <type name="leafref">
+          <path value="/x/a/a2"/>
+        </type>
+      </leaf>
+      <leaf name="ra3">
+        <type name="leafref">
+          <path value="/x/a/a3"/>
+        </type>
+      </leaf>
+    </container>
+  </container>
+  <grouping name="g">
+    <container name="c1">
+      <config value="false"/>
+    </container>
+  </grouping>
+  <uses name="g">
+    <augment target-node="c1">
+      <container name="c2"/>
+    </augment>
+  </uses>
+  <grouping name="g2">
+    <container name="c12"/>
+  </grouping>
+  <uses name="g2">
+    <augment target-node="c12">
+      <container name="c22"/>
+      <leaf name="lm1">
+        <type name="string"/>
+        <mandatory value="true"/>
+      </leaf>
+    </augment>
+  </uses>
+  <augment target-node="/c12/c22">
+    <container name="c32"/>
+  </augment>
+  <container name="xx">
+    <list name="a">
+      <key value="name"/>
+      <leaf name="name">
+        <type name="string"/>
+      </leaf>
+    </list>
+    <choice name="c">
+      <case name="a">
+        <leaf name="aref">
+          <type name="leafref">
+            <path value="../a/name"/>
+          </type>
+        </leaf>
+        <list name="yy">
+          <key value="name"/>
+          <leaf name="name">
+            <type name="string"/>
+          </leaf>
+        </list>
+      </case>
+      <case name="b">
+        <leaf name="yyref">
+          <type name="leafref">
+            <path value="/xx/yy/name"/>
+          </type>
+        </leaf>
+      </case>
+    </choice>
+  </container>
+</module>

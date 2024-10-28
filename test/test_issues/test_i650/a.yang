@@ -1,0 +1,64 @@
+module a {
+   yang-version 1.1;
+   namespace "urn:a";
+
+   prefix ex;
+
+   container interfaces {
+
+    list interface {
+      key "name";
+
+     leaf name {
+        type string;
+      }
+
+      leaf type {
+        type string;
+        mandatory true;
+      }
+
+    }
+  
+  }
+
+
+  augment '/ex:interfaces/ex:interface/ex:frame-processing/ex:inline-frame-processingx/ex:inline-frame-processing/ex:ingress-rule/ex:rule/ex:flexible-match' {
+
+    when
+      "../../../../ex:type = 'value'";
+
+  }
+
+  augment '/ex:interfaces/ex:interface' {
+
+    choice frame-processing {
+
+      case inline-frame-processingx {
+
+        container inline-frame-processing {
+
+          container ingress-rule {
+
+            list rule {
+              key "name";
+
+              leaf name {
+                type string;
+              }
+
+              container flexible-match {
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+
+
+
+
+}

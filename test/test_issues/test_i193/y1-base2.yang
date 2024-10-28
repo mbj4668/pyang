@@ -1,0 +1,9 @@
+submodule y1-base2 {
+  belongs-to y1-base {
+    prefix y-b;
+  }
+  container configs {
+    container profiles {
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# module feature: features has-leaf-foo exclude_features has-leaf-goo
+module: feature
+  +--rw root
+     +--rw foo?   string {has-leaf-foo}?

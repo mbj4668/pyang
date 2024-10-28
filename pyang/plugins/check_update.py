@@ -17,6 +17,7 @@ from pyang import util
 from pyang import types
 from pyang.error import err_add
 
+sxmod = 'ietf-yang-structure-ext'
 
 def pyang_plugin_init():
     plugin.register_plugin(CheckUpdatePlugin())
@@ -43,77 +44,80 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
                                  help="Old deviation module of the OLDMODULE." \
                                       " This option can be given multiple" \
                                       " times."),
+            optparse.make_option("--check-update-include-structures",
+                                 dest="check_update_structures",
+                                 action="store_true",
+                                 help="Check sx:structures."),
             ]
         optparser.add_options(optlist)
 
-        # register our error codes
         error.add_error_code(
-            'CHK_INVALID_MODULENAME', 1,
+            'CHK_INVALID_MODULENAME', 3,
             "the module's name MUST NOT be changed"
             + " (RFC 6020: sec. 10, p3)")
         error.add_error_code(
-            'CHK_INVALID_MODULENAME_v1.1', 1,
+            'CHK_INVALID_MODULENAME_v1.1', 3,
             "the module's name MUST NOT be changed"
             + " (RFC 7950: sec. 11, p3)")
         error.add_error_code(
-            'CHK_INVALID_NAMESPACE', 1,
+            'CHK_INVALID_NAMESPACE', 3,
             "the module's namespace MUST NOT be changed"
             + " (RFC 6020: sec. 10, p3)")
         error.add_error_code(
-            'CHK_INVALID_NAMESPACE_v1.1', 1,
+            'CHK_INVALID_NAMESPACE_v1.1', 3,
             "the module's namespace MUST NOT be changed"
             + " (RFC 7950: sec. 11, p3)")
         error.add_error_code(
-            'CHK_NO_REVISION', 1,
+            'CHK_NO_REVISION', 3,
             "a revision statement MUST be present"
             + " (RFC 6020: sec. 10, p2)")
         error.add_error_code(
-            'CHK_NO_REVISION_v1.1', 1,
+            'CHK_NO_REVISION_v1.1', 3,
             "a revision statement MUST be present"
             + " (RFC 7950: sec. 11, p2)")
         error.add_error_code(
-            'CHK_BAD_REVISION', 1,
+            'CHK_BAD_REVISION', 3,
             "new revision %s is not newer than old revision %s"
             + " (RFC 6020: sec. 10, p2)")
         error.add_error_code(
-            'CHK_BAD_REVISION_v1.1', 1,
+            'CHK_BAD_REVISION_v1.1', 3,
             "new revision %s is not newer than old revision %s"
             + " (RFC 7950: sec. 11, p2)")
         error.add_error_code(
-            'CHK_DEF_REMOVED', 1,
+            'CHK_DEF_REMOVED', 3,
             "the %s '%s', defined at %s is illegally removed")
         error.add_error_code(
-            'CHK_DEF_ADDED', 1,
+            'CHK_DEF_ADDED', 3,
             "the %s '%s' is illegally added")
         error.add_error_code(
-            'CHK_DEF_ADDED2', 1,
+            'CHK_DEF_ADDED2', 3,
             "the %s '%s' is illegally added in %s %s")
         error.add_error_code(
-            'CHK_DEF_CHANGED', 1,
+            'CHK_DEF_CHANGED', 3,
             "the %s '%s' is illegally changed from '%s'")
         error.add_error_code(
-            'CHK_INVALID_STATUS', 1,
+            'CHK_INVALID_STATUS', 3,
             "new status %s is not valid since the old status was %s")
         error.add_error_code(
-            'CHK_CHILD_KEYWORD_CHANGED', 1,
+            'CHK_CHILD_KEYWORD_CHANGED', 3,
             "the %s '%s' is illegally changed to a %s")
         error.add_error_code(
-            'CHK_MANDATORY_CONFIG', 1,
+            'CHK_MANDATORY_CONFIG', 3,
             "the node %s is changed to config true, but it is mandatory")
         error.add_error_code(
-            'CHK_NEW_MANDATORY', 1,
+            'CHK_NEW_MANDATORY', 3,
             "the mandatory node %s is illegally added")
         error.add_error_code(
-            'CHK_BAD_CONFIG', 1,
+            'CHK_BAD_CONFIG', 3,
             "the node %s is changed to config false")
         error.add_error_code(
-            'CHK_NEW_MUST', 1,
+            'CHK_NEW_MUST', 3,
             "a new must expression cannot be added")
         error.add_error_code(
             'CHK_UNDECIDED_MUST', 4,
             "this must expression may be more constrained than before")
         error.add_error_code(
-            'CHK_NEW_WHEN', 1,
+            'CHK_NEW_WHEN', 3,
             "a new when expression cannot be added")
         error.add_error_code(
             'CHK_UNDECIDED_WHEN', 4,
@@ -122,41 +126,44 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
             'CHK_UNDECIDED_PRESENCE', 4,
             "this presence expression may be different than before")
         error.add_error_code(
-            'CHK_IMPLICIT_DEFAULT', 1,
+            'CHK_IMPLICIT_DEFAULT', 3,
             "the leaf had an implicit default")
         error.add_error_code(
-            'CHK_BASE_TYPE_CHANGED', 1,
+            'CHK_BASE_TYPE_CHANGED', 3,
             "the base type has illegally changed from %s to %s")
         error.add_error_code(
-            'CHK_LEAFREF_PATH_CHANGED', 1,
+            'CHK_LEAFREF_PATH_CHANGED', 3,
             "the leafref's path has illegally changed")
         error.add_error_code(
-            'CHK_ENUM_VALUE_CHANGED', 1,
+            'CHK_ENUM_VALUE_CHANGED', 3,
             "the value for enum '%s', has changed from %s to %s"
             + " (RFC 6020: sec. 10, p5, bullet 1)")
         error.add_error_code(
-            'CHK_ENUM_VALUE_CHANGED_v1.1', 1,
+            'CHK_ENUM_VALUE_CHANGED_v1.1', 3,
             "the value for enum '%s', has changed from %s to %s"
             + " (RFC 7950: sec. 11, p5, bullet 1)")
         error.add_error_code(
-            'CHK_BIT_POSITION_CHANGED', 1,
+            'CHK_BIT_POSITION_CHANGED', 3,
             "the position for bit '%s', has changed from %s to %s"
             + " (RFC 6020: sec. 10, p5, bullet 2)")
         error.add_error_code(
-            'CHK_BIT_POSITION_CHANGED_v1.1', 1,
+            'CHK_BIT_POSITION_CHANGED_v1.1', 3,
             "the position for bit '%s', has changed from %s to %s"
             + " (RFC 7950: sec. 11, p5, bullet 2)")
         error.add_error_code(
-            'CHK_RESTRICTION_CHANGED', 1,
+            'CHK_RESTRICTION_CHANGED', 3,
             "the %s has been illegally restricted"
             + " (RFC 6020: sec. 10, p5, bullet 3)")
         error.add_error_code(
-            'CHK_RESTRICTION_CHANGED_v1.1', 1,
+            'CHK_RESTRICTION_CHANGED_v1.1', 3,
             "the %s has been illegally restricted"
             + " (RFC 7950: sec. 11, p5, bullet 3)")
         error.add_error_code(
-            'CHK_UNION_TYPES', 1,
+            'CHK_UNION_TYPES', 3,
             "the member types in the union have changed")
+        error.add_error_code(
+            'CHK_IO_ERROR', 1,
+            "error %s: %s")
 
     def post_validate_ctx(self, ctx, modules):
         if not ctx.opts.check_update_from:
@@ -190,8 +197,9 @@ def check_update(ctx, newmod):
             fd = io.open(oldfilename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
-            sys.stderr.write("error %s: %s\n" % (oldfilename, ex))
-            sys.exit(1)
+            pos = error.Position(oldfilename)
+            err_add(ctx.errors, pos, "CHK_IO_ERROR", (oldfilename, ex))
+            return
         if oldfilename in ctx.opts.old_deviation:
             oldctx.add_module(oldfilename, text)
         else:
@@ -247,6 +255,9 @@ def chk_module(ctx, oldmod, newmod):
     for olds in oldmod.search('extension'):
         chk_extension(olds, newmod, ctx)
 
+    if ctx.opts.check_update_structures:
+        for olds in oldmod.search((sxmod, 'structure')):
+            chk_structure(olds, newmod, ctx)
     chk_augment(oldmod, newmod, ctx)
 
     chk_i_children(oldmod, newmod, ctx)
@@ -335,6 +346,12 @@ def chk_rpc(olds, newmod, ctx):
     chk_i_children(olds, news, ctx)
 
 def chk_notification(olds, newmod, ctx):
+    news = chk_stmt(olds, newmod, ctx)
+    if news is None:
+        return
+    chk_i_children(olds, news, ctx)
+
+def chk_structure(olds, newmod, ctx):
     news = chk_stmt(olds, newmod, ctx)
     if news is None:
         return
@@ -521,7 +538,7 @@ def chk_when(old, new, ctx):
         if len(newwhen) == 0:
             # this is good; maybe some old whens were removed
             return
-    elif len(oldwhen) == 0:
+    if len(oldwhen) == 0:
         for neww in newwhen:
             err_add(ctx.errors, neww.pos, 'CHK_NEW_WHEN', ())
     else:
@@ -632,6 +649,22 @@ def chk_unique(old, new, ctx):
         else:
             err_def_added(u, ctx)
 
+def chk_ordered_by(old, new, ctx):
+    oldorderedby = old.search_one('ordered-by')
+    neworderedby = new.search_one('ordered-by')
+    if oldorderedby is None and neworderedby is None:
+        pass
+    elif oldorderedby is None and neworderedby is not None and \
+         neworderedby.arg == 'user':
+        err_def_added(neworderedby, ctx)
+    elif oldorderedby is not None and neworderedby is None and \
+         oldorderedby.arg == 'user':
+        err_def_removed(oldorderedby, new, ctx)
+    elif oldorderedby is not None and neworderedby is not None and \
+         oldorderedby.arg != neworderedby.arg:
+        err_add(ctx.errors, neworderedby.pos, 'CHK_DEF_CHANGED',
+                ('ordered-by', neworderedby.arg, oldorderedby.arg))
+
 def chk_leaf(old, new, ctx):
     chk_type(old.search_one('type'), new.search_one('type'), ctx)
     chk_units(old, new, ctx)
@@ -642,6 +675,7 @@ def chk_leaf_list(old, new, ctx):
     chk_type(old.search_one('type'), new.search_one('type'), ctx)
     chk_units(old, new, ctx)
     chk_min_max(old, new, ctx)
+    chk_ordered_by(old, new, ctx)
 
 def chk_container(old, new, ctx):
     chk_presence(old, new, ctx)
@@ -652,6 +686,7 @@ def chk_list(old, new, ctx):
     chk_key(old, new, ctx)
     chk_unique(old, new, ctx)
     chk_i_children(old, new, ctx)
+    chk_ordered_by(old, new, ctx)
 
 def chk_choice(old, new, ctx):
     chk_mandatory(old, new, ctx)

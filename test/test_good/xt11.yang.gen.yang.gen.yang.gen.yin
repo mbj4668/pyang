@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="xt11"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:xt11="urn:xt11"
+        xmlns:x1="urn:xt10"
+        xmlns:x2="urn:xt10"
+        xmlns:xt8="urn:test:xt8">
+  <namespace uri="urn:xt11"/>
+  <prefix value="xt11"/>
+  <import module="xt10">
+    <prefix value="x1"/>
+    <revision-date date="2009-01-01"/>
+  </import>
+  <import module="xt10">
+    <prefix value="x2"/>
+    <revision-date date="2009-02-01"/>
+  </import>
+  <import module="xt8">
+    <prefix value="xt8"/>
+  </import>
+  <leaf name="a">
+    <type name="x2:c"/>
+  </leaf>
+  <leaf name="b">
+    <type name="x1:b"/>
+  </leaf>
+  <grouping name="x">
+    <leaf name="x">
+      <type name="leafref">
+        <path value="/xt8:x/xt8:a/xt8:a1"/>
+      </type>
+    </leaf>
+  </grouping>
+</module>

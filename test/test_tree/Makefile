@@ -1,4 +1,6 @@
-test: test1 test2 test3 test4 test5 test6 test7
+PYANG := $(or $(PYANG), pyang)
+
+test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10
 
 test1:
 	$(PYANG) -f tree x.yang --tree-line-length 10 | diff x.tree.10.expect -
@@ -25,3 +27,9 @@ test7:
 
 test8:
 	$(PYANG) -f tree aug.yang | diff aug.tree.expect -
+
+test9:
+	$(PYANG) -f tree feature.yang | diff feature.tree.expect -
+
+test10:
+	$(PYANG) -f tree -F feature: feature.yang | diff feature-pruned.tree.expect -

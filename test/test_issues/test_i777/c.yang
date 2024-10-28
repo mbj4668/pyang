@@ -1,0 +1,31 @@
+module c {
+  namespace "urn:c";
+  prefix c;
+
+  import a {
+    prefix a;
+  }
+
+  import b {
+    prefix b;
+  }
+
+  list c-widget {
+    key "widget-name";
+
+    leaf widget-name {
+      type string;
+    }
+
+    // to define a C widget, we need an A gizmo, but those with b-attributes are not usable
+    leaf a-gizmo {
+      type leafref {
+        path "/a:gizmos/a:gizmo-name";
+      }
+
+      must "deref(.)/../a:gizmo-attrs/b:b-attribute" {
+      	error-message "Cannot use a gizmo that has b-attributes";
+      }
+    }
+  }
+}

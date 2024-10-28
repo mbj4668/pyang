@@ -1,0 +1,6 @@
+module y1-base {
+  namespace "http://example.com/y1-base";
+  prefix y-b;
+  include y1-base2;
+  include y1-profiles;
+}

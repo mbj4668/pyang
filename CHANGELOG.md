@@ -1,3 +1,84 @@
+* 2.6.1 - 2024-05-23
+```
+       fix IEEE module name prefix expectation
+         thanks to Siddharth Sharma
+
+       #884 - tree module header not printed
+       #886 - crash on deviation of config
+       #887 - replace call to sys.exit with return
+       #907 - --check-update now checks for changes in ordered-by
+```
+
+* 2.6.0 - 2023-11-03
+```
+       lots of improvements to the UML plugin
+         thanks to Nick Hancock
+       lots of improvements to build and test
+         thanks to @ubaumann
+       fix invalid regular expression on Windows
+         thanks to Jan Kundrát
+       fix script issues on Windows
+         thanks to Jan Kundrát
+       fix validation of when expressions for 1.1 modules
+         thanks to Derek Ingrouville
+       fixes for revision-date in depend output
+         thanks to Slavomir Mazur
+
+       #845 - sid item status
+       #844 - tree max line length issue
+       #837 - test fixes
+       #821 - typo in jstree output
+       #818 - issue with decimal64 defaults in json2xml
+       #809 - revision-date parsed wrong if multiple "@" found in path
+              thanks to Michael Littlejohn
+       #729 - handle name scoping of 1.1 submodules in XPath expressions
+       #516 - crash in tree output
+```
+
+* 2.5.3 - 2022-03-30
+```
+       added support for checking 'ancestor' and 'ancestor-or-self' XPATH axes
+       added new option --exclude-features which is used to prune the
+         data model by removing all nodes that are defined with the
+         corresponding "if-feature"
+       added --check-update-include-structures to apply the upgrade
+         checks also to sx:structures.
+       changed the error level of all CHK* errors so that they can be
+         changed into warnings
+       allow refinement of description/reference in action/notification
+       disable writing of Yacc parse tables to files
+         thanks to Robert Andersson
+       fix error locating /usr/share/yang with pip 21.3.1
+         thanks to cygnus2048
+
+       #802 - fixed crash when using transforms and the module imports
+                submodules
+       #797 - as per RFC 8340, added : to grouping header
+       #784 - corrupt files could lead to pyang crash
+       #778 - check deref target
+       #777 - check path after deref
+       #775 - correct multi-line argument wrapping when generating YANG
+```
+
+* 2.5.2 - 2021-12-02
+```
+       #774 - fixed regression in 2.5.1 in ietf plugin
+```
+
+* 2.5.1 - 2021-12-02
+```
+        #770 - ietf plugin: updated IETF Trust Legal Provisions
+               statement
+        #767 - fixed access issue in test (thanks to Duncan Eastoe)
+        #765 - validate xpath after deviation
+        #760 - fixed end of line comment printing in augment in -f yang
+        #757 - ietf plugin: do not require the text about RFC origin
+               for IANA modules
+        #754 - fixed bash completion script (thanks to Romanos Skiadas)
+        #750 - fixed crash when updating bad revision module without
+               yang-version stmt (thanks to Per Andersson)
+```
+
 * 2.5.0 - 2021-06-21
 ```
          moved automated tests from travis ci to github actions

@@ -1,0 +1,16 @@
+submodule y-profiles {
+  yang-version 1.1;
+  belongs-to y-base {
+    prefix y-b;
+  }
+
+  container y {
+    must "/y-b:configs/y-b:profiles";
+    list profile {
+      key name;
+      leaf name {
+        type string;
+      }
+    }
+  }
+}

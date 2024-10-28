@@ -1,0 +1,31 @@
+module xt11 {
+  namespace "urn:xt11";
+  prefix xt11;
+
+  import xt10 {
+    prefix x1;
+    revision-date 2009-01-01;
+  }
+  import xt10 {
+    prefix x2;
+    revision-date 2009-02-01;
+  }
+  import xt8 {
+    prefix xt8;
+  }
+
+  leaf a {
+    type x2:c;
+  }
+  leaf b {
+    type x1:b;
+  }
+
+  grouping x {
+    leaf x {
+      type leafref {
+        path "/xt8:x/xt8:a/xt8:a1";
+      }
+    }
+  }
+}

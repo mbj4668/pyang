@@ -76,7 +76,10 @@ module new {
   }
   container t {
     must 're-match("hej", "dsop")'; // new 1.1 syntax
-    must 'deref(.)'; // new 1.1 syntax
+    must 'deref(foo)'; // new 1.1 syntax
+    leaf foo {
+      type instance-identifier;
+    }
     leaf idleafderrived {
     type identityref {
       base id2;

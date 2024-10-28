@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="yt3a"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:yt3a="urn:ietf:params:xml:ns:yang:yt3a">
+  <namespace uri="urn:ietf:params:xml:ns:yang:yt3a"/>
+  <prefix value="yt3a"/>
+  <organization>
+    <text>YANG Language Design Team</text>
+  </organization>
+  <contact>
+    <text>Andy Bierman</text>
+  </contact>
+  <description>
+    <text>YANG test module 3a.</text>
+  </description>
+  <revision date="2008-02-04">
+    <description>
+      <text>Initial revision.</text>
+    </description>
+  </revision>
+  <leaf name="l1">
+    <description>
+      <text>int8</text>
+    </description>
+    <type name="int8"/>
+  </leaf>
+  <leaf name="l2">
+    <description>
+      <text>int16</text>
+    </description>
+    <type name="int16"/>
+  </leaf>
+  <leaf name="l3">
+    <description>
+      <text>int32</text>
+    </description>
+    <type name="int32"/>
+  </leaf>
+  <leaf name="l4">
+    <description>
+      <text>int64</text>
+    </description>
+    <type name="int64"/>
+  </leaf>
+  <leaf name="l5">
+    <description>
+      <text>uint8</text>
+    </description>
+    <type name="uint8"/>
+  </leaf>
+  <leaf name="l6">
+    <description>
+      <text>uint16</text>
+    </description>
+    <type name="uint16"/>
+  </leaf>
+  <leaf name="l7">
+    <description>
+      <text>uint32</text>
+    </description>
+    <type name="uint32"/>
+  </leaf>
+  <leaf name="l8">
+    <description>
+      <text>uint64</text>
+    </description>
+    <type name="uint64"/>
+  </leaf>
+  <leaf name="l11">
+    <description>
+      <text>boolean</text>
+    </description>
+    <type name="boolean"/>
+  </leaf>
+  <anyxml name="l12">
+    <config value="false"/>
+    <mandatory value="true"/>
+  </anyxml>
+  <leaf name="l13">
+    <description>
+      <text>string</text>
+    </description>
+    <type name="string"/>
+  </leaf>
+  <leaf name="l14">
+    <description>
+      <text>binary</text>
+    </description>
+    <type name="binary"/>
+  </leaf>
+  <leaf name="l15">
+    <description>
+      <text>enumeration</text>
+    </description>
+    <type name="enumeration">
+      <enum name="a"/>
+      <enum name="b"/>
+      <enum name="c"/>
+    </type>
+  </leaf>
+  <leaf name="l16">
+    <description>
+      <text>bits</text>
+    </description>
+    <type name="bits">
+      <bit name="a">
+        <position value="1"/>
+      </bit>
+      <bit name="b">
+        <position value="2"/>
+      </bit>
+      <bit name="c">
+        <position value="7"/>
+      </bit>
+    </type>
+  </leaf>
+  <leaf name="l18">
+    <description>
+      <text>instance-identifier</text>
+    </description>
+    <type name="instance-identifier"/>
+  </leaf>
+  <leaf name="l19">
+    <description>
+      <text>empty</text>
+    </description>
+    <type name="empty"/>
+  </leaf>
+  <leaf name="Num3">
+    <units name="seconds"/>
+    <type name="int16">
+      <range value="-32000 .. 4 | max">
+        <error-app-tag value="range-violation"/>
+        <error-message>
+          <value>Wrong value genius!</value>
+        </error-message>
+      </range>
+    </type>
+    <description>
+      <text>test 3</text>
+    </description>
+  </leaf>
+  <leaf name="Bug1">
+    <type name="int32">
+      <range value="min..-1"/>
+    </type>
+    <description>
+      <text>parse bug 1</text>
+    </description>
+  </leaf>
+  <leaf name="Num1">
+    <type name="int32">
+      <range value="min..max"/>
+    </type>
+    <description>
+      <text>test 1</text>
+    </description>
+    <status value="deprecated"/>
+  </leaf>
+  <leaf name="Num2">
+    <description>
+      <text>test 2</text>
+    </description>
+    <type name="int32">
+      <range value="-32000 .. 4 | max"/>
+    </type>
+    <default value="-1"/>
+  </leaf>
+  <leaf name="Num6">
+    <description>
+      <text>test 6</text>
+    </description>
+    <type name="int32">
+      <range value="-3 | -2 .. +2 | 3"/>
+    </type>
+    <default value="0"/>
+  </leaf>
+  <container name="foo">
+    <container name="foo">
+      <leaf name="bar">
+        <type name="int32"/>
+      </leaf>
+    </container>
+  </container>
+</module>

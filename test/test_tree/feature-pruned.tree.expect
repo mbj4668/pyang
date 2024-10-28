@@ -1,0 +1,4 @@
+module: feature
+  +--rw root
+
+  augment /if:interfaces/if:interface:

@@ -24,7 +24,7 @@ venv/
 /test/test_*/*.log
 /test/test_*/*.dsdl
 /test/test_*/*.capa
-/test/test_*/*.gen.*
+/test/test_*/*.gen
 /test/test_good/*.yang.yin
 /test/test_good/*.xsd
 /test/test_json/*.jtox
