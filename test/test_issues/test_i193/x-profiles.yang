@@ -1,0 +1,14 @@
+submodule x-profiles {
+  yang-version 1.1;
+  belongs-to x-base {
+    prefix x-b;
+  }
+  augment "/x-b:configs/x-b:profiles" {
+    list profile {
+      key name;
+      leaf name {
+        type string;
+      }
+    }
+  }
+}

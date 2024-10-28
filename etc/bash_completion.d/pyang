@@ -1,6 +1,6 @@
 # pyang(1) completion           -*- shell-script -*-
 
-have pyang &&
+_have pyang &&
 _pyang()
 {
     local cur prev words cword plugin hello pl_opts wind=1
@@ -189,7 +189,7 @@ _pyang()
 } &&
 complete -F _pyang pyang
 
-have yang2dsdl &&
+_have yang2dsdl &&
 _yang2dsdl()
 {
     local cur prev words cword mode opts wind=1
@@ -250,7 +250,7 @@ _yang2dsdl()
 } &&
 complete -F _yang2dsdl yang2dsdl
 
-have json2xml &&
+_have json2xml &&
 _json2xml()
 {
     local cur prev words cword opts jtox wind=1

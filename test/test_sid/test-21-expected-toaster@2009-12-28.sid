@@ -1,0 +1,132 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 20000,
+      "size": 25
+    }
+  ],
+  "module-name": "toaster",
+  "module-revision": "2009-12-28",
+  "items": [
+    {
+      "namespace": "module",
+      "identifier": "toaster",
+      "status": "2009-12-28",
+      "sid": 20000
+    },
+    {
+      "namespace": "identity",
+      "identifier": "frozen-bagel",
+      "status": "2009-12-28",
+      "sid": 20001
+    },
+    {
+      "namespace": "identity",
+      "identifier": "frozen-waffle",
+      "status": "2009-12-28",
+      "sid": 20002
+    },
+    {
+      "namespace": "identity",
+      "identifier": "hash-brown",
+      "status": "2009-12-28",
+      "sid": 20003
+    },
+    {
+      "namespace": "identity",
+      "identifier": "toast-type",
+      "status": "2009-12-28",
+      "sid": 20004
+    },
+    {
+      "namespace": "identity",
+      "identifier": "wheat-bread",
+      "status": "2009-12-28",
+      "sid": 20005
+    },
+    {
+      "namespace": "identity",
+      "identifier": "white-bread",
+      "status": "2009-12-28",
+      "sid": 20006
+    },
+    {
+      "namespace": "identity",
+      "identifier": "wonder-bread",
+      "status": "2009-12-28",
+      "sid": 20007
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:cancel-toast",
+      "status": "2009-12-28",
+      "sid": 20008
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:make-toast",
+      "status": "2009-12-28",
+      "sid": 20009
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:make-toast/input/toasterDoneness",
+      "status": "2009-12-28",
+      "sid": 20010
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:make-toast/input/toasterToastType",
+      "status": "2009-12-28",
+      "sid": 20011
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toastDone",
+      "status": "2009-12-28",
+      "sid": 20012
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toastDone/toastStatus",
+      "status": "2009-12-28",
+      "sid": 20013
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toaster",
+      "status": "2009-12-28",
+      "sid": 20014
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toaster/toasterManufacturer",
+      "status": "2009-12-28",
+      "sid": 20015
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toaster/toasterModelNumber",
+      "status": "2009-12-28",
+      "sid": 20016
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toaster/toasterStatus",
+      "status": "2009-12-28",
+      "sid": 20017
+    },
+    {
+      "namespace": "identity",
+      "identifier": "croissant",
+      "status": "2009-12-28",
+      "sid": 20018
+    },
+    {
+      "namespace": "data",
+      "identifier": "/toaster:toaster/darknessFactor",
+      "status": "2009-12-28",
+      "sid": 20019
+    }
+  ]
+}

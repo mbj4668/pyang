@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="leafref-1.1"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:ll="urn:example:ll">
+  <yang-version value="1.1"/>
+  <namespace uri="urn:example:ll"/>
+  <prefix value="ll"/>
+  <container name="x">
+    <leaf name="foo">
+      <type name="string"/>
+    </leaf>
+    <leaf name="bar">
+      <type name="leafref">
+        <path value="../foo"/>
+        <require-instance value="false"/>
+      </type>
+    </leaf>
+    <list name="q">
+      <key value="a"/>
+      <leaf name="a">
+        <type name="string"/>
+      </leaf>
+      <leaf name="b">
+        <type name="string"/>
+      </leaf>
+    </list>
+  </container>
+  <grouping name="x">
+    <leaf name="a">
+      <type name="string"/>
+    </leaf>
+    <leaf name="b">
+      <type name="leafref">
+        <path value="/ll:x/ll:q[ll:a = current()/../a]/ll:b"/>
+      </type>
+    </leaf>
+  </grouping>
+</module>

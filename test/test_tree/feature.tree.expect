@@ -1,0 +1,6 @@
+module: feature
+  +--rw root
+     +--rw foo?   string {has-leaf-foo}?
+
+  augment /if:interfaces/if:interface:
+    +--rw foo?   string {has-leaf-foo}?

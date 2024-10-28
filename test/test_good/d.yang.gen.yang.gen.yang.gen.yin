@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="d"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:d="urn:d">
+  <namespace uri="urn:d"/>
+  <prefix value="d"/>
+  <container name="x">
+    <choice name="c">
+      <leaf name="d">
+        <type name="string"/>
+      </leaf>
+    </choice>
+  </container>
+  <deviation target-node="/x/c/d">
+    <deviate value="not-supported"/>
+  </deviation>
+</module>

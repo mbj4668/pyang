@@ -1,0 +1,3 @@
+deref.yang:26: warning: XPATH_NODE_NOT_FOUND1
+deref.yang:31: warning: XPATH_NODE_NOT_FOUND2
+deref.yang:36: warning: XPATH_DEREF_TARGET

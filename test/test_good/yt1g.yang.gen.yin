@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="yt1g"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:yt1="urn:ietf:params:xml:ns:yang:yt1">
+  <namespace uri="urn:ietf:params:xml:ns:yang:yt1"/>
+  <prefix value="yt1"/>
+  <organization>
+    <text>YANG Language Design Team</text>
+  </organization>
+  <contact>
+    <text>Andy Bierman</text>
+  </contact>
+  <description>
+    <text>YANG test module 1.</text>
+  </description>
+  <revision date="2007-11-23">
+    <description>
+      <text>Initial revision.</text>
+    </description>
+  </revision>
+  <typedef name="Num3">
+    <default value="-7"/>
+    <units name="seconds"/>
+    <type name="int16">
+      <range value="-32000 .. 4 | max">
+        <error-app-tag value="range-violation"/>
+        <error-message>
+          <value>Wrong value genius!</value>
+        </error-message>
+      </range>
+    </type>
+    <description>
+      <text>number test 3</text>
+    </description>
+  </typedef>
+  <typedef name="Num1">
+    <type name="int32">
+      <range value="min..max"/>
+    </type>
+    <description>
+      <text>test 1</text>
+    </description>
+    <status value="deprecated"/>
+  </typedef>
+  <typedef name="Num2">
+    <description>
+      <text>test 2</text>
+    </description>
+    <type name="int32">
+      <range value="-32000 .. 4 | max"/>
+    </type>
+    <default value="-1"/>
+  </typedef>
+  <typedef name="Num4">
+    <description>
+      <text>test 4</text>
+    </description>
+    <type name="Num1">
+      <range value="3 | 7"/>
+    </type>
+  </typedef>
+  <typedef name="Num6">
+    <description>
+      <text>test 6</text>
+    </description>
+    <type name="Num3">
+      <range value="-3 | -2 .. +2 | 3"/>
+    </type>
+    <default value="0"/>
+  </typedef>
+</module>

@@ -1,0 +1,14 @@
+submodule a-sub {
+
+  belongs-to a {
+    prefix a;
+  }
+
+  revision 2022-03-29;
+
+  typedef secret {
+    type string {
+      length "0..255";
+    }
+  }
+}

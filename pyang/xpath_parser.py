@@ -354,4 +354,4 @@ precedence = (
 
 tokens = xpath_lexer.token_defs()
 lexer = xpath_lexer.XPathLexer()
-parser = yacc.yacc(tabmodule="xpath_parsetab", debug=False)
+parser = yacc.yacc(tabmodule="xpath_parsetab", debug=False, write_tables=False)

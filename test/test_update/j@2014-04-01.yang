@@ -11,6 +11,11 @@ module j {
         value 2;
       }
     }
+    when "../bar = 'bar'";
+  }
+  leaf bar {
+    type string;
+    when "../foo != 'f'";
   }
 }
 

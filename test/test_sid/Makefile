@@ -1,7 +1,10 @@
-test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20
+PYANG?= pyang
+
+test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20 test21
+
 test1:
 	# Test help
-	$(PYANG) --sid-help 2>&1 | diff -b test-1-expected-output.txt -
+	$(PYANG) --sid-help 2>&1 | diff -w test-1-expected-output.txt -
 
 test2:
 	# Test generate sid file
@@ -10,9 +13,9 @@ test2:
 	rm toaster@2009-11-20.sid
 
 test3:
-	# Test update sid file
+	# Test update sid file (test3)
 	cp test-2-expected-toaster@2009-11-20.sid toaster@2009-11-20.sid
-	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | diff -b test-3-expected-output.txt -
+	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-3-expected-output.txt | diff -b test-3-expected-output.txt -
 	diff -b test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
 	rm toaster@2009-11-20.sid toaster@2009-12-28.sid
 
@@ -27,11 +30,11 @@ test5:
 	$(PYANG) --sid-generate-file 2500:50 ietf-constrained-voucher@2019-08-01.yang 2>&1 | diff -b test-5-expected-output.txt -
 	diff -b test-5-expected-ietf-constrained-voucher@2019-08-01.sid ietf-constrained-voucher@2019-08-01.sid
 	rm ietf-constrained-voucher@2019-08-01.sid
-  
+
 test6:
 	# Test SID range exhausted
 	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
-	$(PYANG) --sid-update-file toaster@2009-12-28.sid toaster@2019-01-01.yang 2>&1 | diff -b test-6-expected-output.txt - 
+	$(PYANG) --sid-update-file toaster@2009-12-28.sid toaster@2019-01-01.yang 2>&1 | diff -b test-6-expected-output.txt -
 	rm toaster@2009-12-28.sid
 
 test7:
@@ -44,7 +47,7 @@ test7:
 	rm -f toaster@2009-11-20.sid toaster@2009-12-28.sid toaster@2019-01-01.sid
 
 test8:
-	# In generate sid file, test count 
+	# In generate sid file, test count
 	$(PYANG) --sid-generate-file count toaster@2009-11-20.yang 2>&1 | diff -b test-8-expected-output.txt -
 
 test9:
@@ -87,10 +90,19 @@ test18:
 
 test19:
 	# In checksid file, test test sid file not found
-	$(PYANG) --sid-check-file toaster@2009-11-20.sid toaster@2009-11-20.yang 2>&1 | diff -b test-19-expected-output.txt -
+	$(PYANG) --sid-check-file toaster@2009-11-20.sid toaster@2009-11-20.yang 2>&1 | sort | diff -b test-19-expected-output.txt -
 
 test20:
 	# Test multiple level of grouping
 	$(PYANG) --sid-generate-file 60000:100 ieee802-dot1q-psfp@2020-07-07.yang 2>&1 | diff -b test-20-expected-output.txt -
 	diff -b test-20-expected-ieee802-dot1q-psfp@2020-07-07.sid ieee802-dot1q-psfp@2020-07-07.sid
 	rm ieee802-dot1q-psfp@2020-07-07.sid
+
+test21:
+	# Test finalize of sid file
+	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
+	mkdir -p OUTPUT
+	$(PYANG) --sid-update-file toaster@2009-12-28.sid --sid-finalize toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-21-expected-output.txt | diff -b test-21-expected-output.txt -
+	diff -b toaster@2009-12-28.sid test-21-expected-toaster@2009-12-28.sid
+	rm toaster@2009-12-28.sid
+

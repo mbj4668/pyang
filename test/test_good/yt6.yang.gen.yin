@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="yt6"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:yt6="urn:ietf:params:xml:ns:yang:yt6"
+        xmlns:y="urn:ietf:params:xml:ns:yang:ietf-yang-types">
+  <namespace uri="urn:ietf:params:xml:ns:yang:yt6"/>
+  <prefix value="yt6"/>
+  <import module="ietf-yang-types">
+    <prefix value="y"/>
+  </import>
+  <organization>
+    <text>YANG Language Design Team</text>
+  </organization>
+  <contact>
+    <text>Andy Bierman</text>
+  </contact>
+  <description>
+    <text>YANG test module 6. Container, augment</text>
+  </description>
+  <typedef name="un-1">
+    <type name="union">
+      <type name="union">
+        <type name="int32"/>
+        <type name="binary"/>
+        <type name="union">
+          <type name="string"/>
+          <type name="binary"/>
+          <type name="boolean"/>
+        </type>
+      </type>
+      <type name="int64"/>
+    </type>
+    <default value="9"/>
+  </typedef>
+  <augment target-node="/foo/a/z">
+    <leaf name="xxx">
+      <type name="binary"/>
+    </leaf>
+  </augment>
+  <augment target-node="/foo/a">
+    <case name="zz">
+      <leaf name="zzz">
+        <type name="int64"/>
+      </leaf>
+    </case>
+  </augment>
+  <container name="foo">
+    <leaf name="un">
+      <type name="un-1"/>
+      <config value="false"/>
+      <default value="forty"/>
+    </leaf>
+    <leaf name="bar1">
+      <type name="y:counter32"/>
+    </leaf>
+    <leaf name="bar2">
+      <type name="int32"/>
+      <default value="10"/>
+    </leaf>
+    <leaf name="bar3">
+      <type name="int32"/>
+      <mandatory value="true"/>
+    </leaf>
+    <leaf name="bar4">
+      <type name="int32"/>
+      <mandatory value="false"/>
+    </leaf>
+    <leaf name="bar5">
+      <type name="int32"/>
+      <mandatory value="true"/>
+    </leaf>
+    <leaf name="bar6">
+      <type name="int32"/>
+      <mandatory value="false"/>
+      <default value="10"/>
+    </leaf>
+    <choice name="a">
+      <default value="x"/>
+      <leaf name="x">
+        <type name="int32"/>
+      </leaf>
+      <leaf name="y">
+        <type name="string"/>
+      </leaf>
+      <container name="z"/>
+    </choice>
+  </container>
+  <list name="bar">
+    <config value="false"/>
+    <key value="bar1"/>
+    <unique tag="zz2"/>
+    <leaf name="zz1">
+      <type name="un-1"/>
+      <mandatory value="true"/>
+    </leaf>
+    <leaf name="zz2">
+      <type name="y:zero-based-counter32"/>
+    </leaf>
+    <leaf-list name="zz3">
+      <description>
+        <text>testing-one-two-three</text>
+      </description>
+      <min-elements value="4"/>
+      <max-elements value="14"/>
+      <type name="y:date-and-time"/>
+      <ordered-by value="user"/>
+    </leaf-list>
+    <leaf name="bar1">
+      <type name="un-1"/>
+    </leaf>
+  </list>
+  <notification name="notif1">
+    <description>
+      <text>notification test</text>
+    </description>
+    <reference>
+      <text>test-notif-1</text>
+    </reference>
+    <status value="deprecated"/>
+    <container name="x">
+      <list name="y">
+        <reference>
+          <text>RFC 4741</text>
+        </reference>
+        <leaf name="xx">
+          <type name="int32"/>
+        </leaf>
+        <leaf name="zz">
+          <type name="zz_type"/>
+        </leaf>
+        <key value="xx"/>
+        <max-elements value="77"/>
+        <min-elements value="15"/>
+      </list>
+      <leaf name="yy">
+        <type name="int32"/>
+        <default value="-123"/>
+      </leaf>
+      <typedef name="zz_type">
+        <type name="enumeration">
+          <enum name="x"/>
+          <enum name="y"/>
+        </type>
+      </typedef>
+    </container>
+    <leaf name="x2">
+      <type name="instance-identifier"/>
+    </leaf>
+    <anyxml name="x3">
+      <description>
+        <text>test-any</text>
+      </description>
+    </anyxml>
+  </notification>
+  <notification name="notif2"/>
+</module>

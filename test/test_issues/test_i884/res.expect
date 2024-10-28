@@ -1,0 +1,5 @@
+module: a
+  +--rw a?   string
+
+module: b
+  +--rw b?   string

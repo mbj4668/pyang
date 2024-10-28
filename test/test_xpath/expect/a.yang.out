@@ -1,4 +1,4 @@
-a.yang:27: error: XPATH_NODE_SET_FUNC
+a.yang:27: error: XPATH_FUNCTION_RET_VAL
 a.yang:28: warning: XPATH_NODE_NOT_FOUND1
 a.yang:32: warning: XPATH_NODE_NOT_FOUND2
 a.yang:58: error: XPATH_SYNTAX_ERROR

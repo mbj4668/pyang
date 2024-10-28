@@ -7,11 +7,7 @@ tests for PYANG data files
 import os
 import sys
 
-# hack to handle pip 10 internals
-try:
-    import pip.locations as locations
-except ImportError:
-    import pip._internal.locations as locations
+import pip._internal.locations as locations
 
 from pyang.context import Context
 from pyang.repository import FileRepository

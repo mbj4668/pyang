@@ -155,6 +155,7 @@ _validation_phases = [
 
     #   second expansion: expand augmentations into i_children
     'expand_2',
+    'expand_3',
 
     # unique name check phase:
     'unique_name',
@@ -216,6 +217,7 @@ _validation_map = {
         lambda ctx, s: v_inherit_properties(ctx, s),
 
     ('expand_2', 'augment'):lambda ctx, s: v_expand_2_augment(ctx, s),
+    ('expand_3', 'augment'):lambda ctx, s: v_expand_3_augment(ctx, s),
 
     ('unique_name', 'module'): \
         lambda ctx, s: v_unique_name_defintions(ctx, s),
@@ -252,10 +254,11 @@ _validation_map = {
 _v_i_children = {
     'unique_name':True,
     'expand_2':True,
+    'expand_3':True,
     'reference_1':True,
     'reference_2':True,
 }
-"""Phases in this dict are run over the stmts which has i_children.
+"""Phases in this dict are run over the stmts that have i_children.
 Note that the tests are not run in grouping definitions."""
 
 _v_i_children_keywords = {
@@ -300,11 +303,11 @@ _refinements = [
     #  <merge>, <validation function>)
     ('description',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case',
-      'anyxml', 'anydata'],
+      'anyxml', 'anydata', 'action', 'notification'],
      False, None),
     ('reference',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'case',
-      'anyxml', 'anydata'],
+      'anyxml', 'anydata', 'action', 'notification'],
      False, None),
     ('config',
      ['container', 'leaf', 'leaf-list', 'list', 'choice', 'anyxml', 'anydata'],
@@ -435,13 +438,19 @@ def v_init_module(ctx, stmt):
     if stmt.keyword == 'module':
         prefix = stmt.search_one('prefix')
         stmt.i_modulename = stmt.arg
+        mod = stmt
     else:
         belongs_to = stmt.search_one('belongs-to')
         if belongs_to is not None and belongs_to.arg is not None:
             prefix = belongs_to.search_one('prefix')
             stmt.i_modulename = belongs_to.arg
+            mod = ctx.get_module(stmt.i_modulename)
+            if mod is None or not mod.i_is_validated:
+                # this happens if a submodule is validated standalone
+                mod = stmt
         else:
             stmt.i_modulename = ""
+            mod = None
 
     if prefix is not None and prefix.arg is not None:
         stmt.i_prefixes[prefix.arg] = (stmt.arg, None)
@@ -481,11 +490,14 @@ def v_init_module(ctx, stmt):
     stmt.i_undefined_augment_nodes = {}
     # next, set the attribute 'i_module' in each statement to point to the
     # module where the statement is defined.  if the module is a submodule,
-    # 'i_module' will point to the main module.
+    # 'i_main_module' will point to the main module, except if a submodule is
+    #    validated stand-alone (then in points to the submodule)
     # 'i_orig_module' will point to the real module / submodule.
+    # 'i_module' will point to the main module.
     def set_i_module(s):
         s.i_orig_module = s.top
         s.i_module = s.top
+        s.i_main_module = mod
         return
     iterate_stmt(stmt, set_i_module)
 
@@ -1295,13 +1307,13 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
     expr = syntax.parse_if_feature_expr(stmt.arg)
     if stmt.i_module.i_version == '1':
         # version 1 allows only a single value as if-feature
-        if not isinstance(expr, util.str_types):
+        if not isinstance(expr, str):
             err_add(ctx.errors, stmt.pos,
                     'BAD_VALUE', (stmt.arg, 'identifier-ref'))
             return
 
     def eval_if_feature(expr):
-        if isinstance(expr, util.str_types):
+        if isinstance(expr, str):
             return has_feature(expr)
         else:
             op, op1, op2 = expr
@@ -1337,6 +1349,9 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
                 v_type_feature(ctx, found)
                 if pmodule.i_modulename in ctx.features:
                     if name not in ctx.features[pmodule.i_modulename]:
+                        return False
+                if pmodule.i_modulename in ctx.exclude_features:
+                    if name in ctx.exclude_features[pmodule.i_modulename]:
                         return False
 
         if found is None and no_error_report is False:
@@ -1493,6 +1508,8 @@ def v_expand_1_children(ctx, stmt):
             v_inherit_properties(ctx, stmt)
             for a in s.search('augment'):
                 v_expand_2_augment(ctx, a)
+            for a in s.search('augment'):
+                v_expand_3_augment(ctx, a)
 
         elif s.keyword in data_keywords and hasattr(stmt, 'i_children'):
             stmt.i_children.append(s)
@@ -1755,18 +1772,19 @@ def v_inherit_properties(ctx, stmt, child=None):
 
 def v_expand_2_augment(ctx, stmt):
     """
-    One-pass augment expansion algorithm: First observation: since we
-    validate each imported module, all nodes that are augmented by
-    other modules already exist.  For each node in the path to the
-    target node, if it does not exist, it might get created by an
-    augment later in this module.  This only applies to nodes defined
-    in our namespace (since all other modules already are validated).
-    For each such node, we add a temporary Statement instance, and
-    store a pointer to it.  If we find such a temporary node in the
-    nodes we add, we replace it with our real node, and delete it from
-    the list of temporary nodes created.  When we're done with all
-    augment statements, the list of temporary nodes should be empty,
-    otherwise it is an error.
+    First pass of two-pass augment expansion algorithm.
+
+    First observation: since we validate each imported module, all
+    nodes that are augmented by other modules already exist.  For each
+    node in the path to the target node, if it does not exist, it
+    might get created by an augment later in this module.  This only
+    applies to nodes defined in our namespace (since all other modules
+    already are validated).  For each such node, we add a temporary
+    Statement instance, and store a pointer to it.  If we find such a
+    temporary node in the nodes we add, we replace it with our real
+    node, and delete it from the list of temporary nodes created.
+    When we're done with all augment statements, the list of temporary
+    nodes should be empty, otherwise it is an error.
     """
     if hasattr(stmt, 'i_target_node'):
         # already expanded
@@ -1867,7 +1885,8 @@ def v_expand_2_augment(ctx, stmt):
         elif stmt.i_target_node.keyword == 'choice' and c.keyword != 'case':
             if is_expected_keyword(stmt.i_target_node, c) is True:
                 # create an artificial case node for the shorthand
-                new_case = create_new_case(ctx, stmt.i_target_node, c, expand=False)
+                new_case = create_new_case(ctx, stmt.i_target_node, c,
+                                           expand=False)
                 new_case.parent = stmt.i_target_node
                 v_inherit_properties(ctx, stmt.i_target_node, new_case)
             else:
@@ -1895,6 +1914,15 @@ def v_expand_2_augment(ctx, stmt):
         if s.keyword in _copy_augment_keywords:
             stmt.i_target_node.substmts.append(s)
             s.parent = stmt.i_target_node
+
+def v_expand_3_augment(ctx, stmt):
+    """
+    Second pass of two-pass augment expansion algorithm.
+
+    Find the (possibly expanded) target nodes again.  The reason for
+    this is that stmt.i_target_node may point to a __tmp_augment__ node.
+    """
+    stmt.i_target_node = find_target_node(ctx, stmt, is_augment=True)
 
 def create_new_case(ctx, choice, child, expand=True):
     new_case = new_statement(child.top, choice, child.pos, 'case', child.arg)
@@ -2059,8 +2087,12 @@ def v_reference_list(ctx, stmt):
                             'KEY_HAS_MANDATORY_FALSE', ())
 
                 if ptr.i_config != stmt.i_config:
-                    err_add(ctx.errors, ptr.search_one('config').pos,
-                            'KEY_BAD_CONFIG', name)
+                    cfg = ptr.search_one('config')
+                    if cfg is not None:
+                        pos = cfg.pos
+                    else:
+                        pos = ptr.pos
+                    err_add(ctx.errors, pos, 'KEY_BAD_CONFIG', name)
 
                 stmt.i_key.append(ptr)
                 ptr.i_is_key = True
@@ -2131,7 +2163,8 @@ def v_reference_list(ctx, stmt):
         if (min_value is not None and min_value.arg.isnumeric()
                 and max_value is not None and max_value.arg.isnumeric()):
             if int(min_value.arg) > int(max_value.arg):
-                err_add(ctx.errors, min_value.pos, 'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
+                err_add(ctx.errors, min_value.pos,
+                        'MAX_ELEMENTS_AND_MIN_ELEMENTS', ())
                 return
 
     v_key()
@@ -2159,7 +2192,8 @@ def v_reference_choice(ctx, stmt):
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword in ('list', 'leaf-list'):
                         m = c.search_one('min-elements')
-                        if m is not None and m.arg.isnumeric() and int(m.arg) > 0:
+                        if (m is not None and m.arg.isnumeric() and
+                            int(m.arg) > 0):
                             err_add(ctx.errors, c.pos,
                                     'MANDATORY_NODE_IN_DEFAULT_CASE', ())
                     elif c.keyword == 'container':
@@ -2226,7 +2260,10 @@ def v_reference_when(ctx, stmt):
 def v_xpath(ctx, stmt):
     if stmt.parent.keyword == 'augment':
         node = stmt.parent.i_target_node
-    elif getattr(stmt, 'i_origin', None) == 'uses':
+    elif stmt.parent.keyword == 'deviate':
+        node = stmt.parent.parent.i_target_node
+    elif (getattr(stmt, 'i_origin', None) == 'uses' and
+          stmt.parent.keyword != 'choice'):
         node = util.data_node_up(stmt.parent)
     else:
         node = stmt.parent
@@ -2438,6 +2475,11 @@ def v_reference_deviation_4(ctx, stmt):
 def v_recheck_target(ctx, t, reference=False):
     for s in t.search('if-feature'):
         v_type_if_feature(ctx, s)
+    if reference:
+        for s in t.search('must'):
+            v_reference_must(ctx, s)
+        for s in t.search('when'):
+            v_reference_when(ctx, s)
     if t.keyword == 'leaf':
         v_type_leaf(ctx, t)
         if reference:
@@ -2997,6 +3039,7 @@ class Statement(object):
         'i_config',                  # True or False
         'i_module',
         'i_orig_module',
+        'i_main_module',
 
         'i_not_implemented', # if set (True) this statement is not implemented,
                              # either a false if-feature or status
@@ -3031,7 +3074,10 @@ class Statement(object):
         """pointer to the top-level Statement"""
 
         self.parent = parent
-        """pointer to the parent Statement"""
+        """pointer to the parent Statement, maybe on semantics"""
+
+        self.stmt_parent = parent
+        """pointer to the parent Statement, just on statement"""
 
         self.pos = copy.copy(pos)
         """position in input stream, for error reporting"""
@@ -3169,11 +3215,14 @@ class ModSubmodStatement(Statement):
 
     def __init__(self, top, parent, pos, keyword, arg=None):
         Statement.__init__(self, top, parent, pos, keyword, arg)
-        self.i_is_primary_module = False
-        self.i_is_validated = False
+        self._init_i_attrs()
 
     def internal_reset(self):
         Statement.internal_reset(self)
+        self._init_i_attrs()
+
+    def _init_i_attrs(self):
+        self.i_is_primary_module = False
         self.i_is_validated = False
 
     def prune(self):
@@ -3189,6 +3238,8 @@ class ModSubmodStatement(Statement):
                     for d in deletes:
                         idx = n.i_children.index(d)
                         del n.i_children[idx]
+            for a in n.search('augment'):
+                p(a)
         p(self)
 
 class AugmentStatement(Statement):

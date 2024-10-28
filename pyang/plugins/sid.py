@@ -13,12 +13,8 @@ import re
 import os
 import errno
 import json
+from json import JSONDecodeError
 
-try:
-    from json.decode import JSONDecodeError
-except ImportError:
-    class JSONDecodeError(ValueError):
-        pass
 
 from pyang import plugin
 from pyang import util
@@ -55,6 +51,10 @@ class SidPlugin(plugin.PyangPlugin):
                                  action="store_true",
                                  dest="list_sid",
                                  help="Print the list of SID."),
+            optparse.make_option("--sid-finalize",
+                                 action="store_true",
+                                 dest="finalize_sid",
+                                 help="Mark current allocations as non-provisional."),
             optparse.make_option("--sid-registration-info",
                                  action="store_true",
                                  dest="sid_registration_info",
@@ -130,6 +130,12 @@ class SidPlugin(plugin.PyangPlugin):
         if ctx.opts.list_sid:
             sid_file.list_content = True
 
+        if ctx.opts.finalize_sid:
+            print("Will mark unstable allocations finalized")
+            sid_file.check_consistency = False
+            sid_file.is_consistent = False
+            sid_file.finalize_sid  = True
+
         try:
             sid_file.process_sid_file(modules[0])
 
@@ -168,7 +174,7 @@ pyang [--sid-list] --sid-check-file sid-filename yang-filename
 
 OPTIONS
 
---generate-sid-file
+--sid-generate-file
 
   This option is used to generate a new .sid file from a YANG module.
 
@@ -185,7 +191,7 @@ OPTIONS
 
   $ pyang --sid-generate-file 20000:100 toaster@2009-11-20.yang
 
---update-sid-file
+--sid-update-file
 
   Each time new items are added to a YANG module by the introduction of a new
   revision of this module, its included sub-modules or imported modules, the
@@ -203,7 +209,7 @@ OPTIONS
 
   $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
 
--- check-sid-file
+-- sid-check-file
 
   The --sid-check-file option can be used at any time to verify if a .sid file
   need to be updated.
@@ -215,14 +221,27 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
---list_sid
+--sid-list
 
-  The --list_sid option can be used before any of the previous options to
+  The --sid-list option can be used before any of the previous options to
   obtains the list of SIDs assigned or validated. For example:
 
-  $ pyang --list-sid --sid-generate-file 20000:100 toaster@2009-11-20.yang
+  $ pyang --sid-list --sid-generate-file 20000:100 toaster@2009-11-20.yang
 
---extra-sid-range
+--sid-finalize
+
+  New allocations when during development of a protocol are marked as
+  "provisional", unless --sid-finalize is specified, then they are marked with
+  a status given by the module-revision of the YANG module.
+
+  When --sid-finalize is specified, any items marked provisional are also
+  marked with the module-revision.
+
+  Otherwise, any new allocations are marked "unstable"
+
+  $ pyang --sid-list --sid-generate-file 20000:100 --sid-finalize toaster@2009-11-20.yang
+
+--sid-extra-range
 
   If needed, an extra SID range can be assigned to an existing YANG module
   during its update with the --sid-extra-range option.
@@ -234,7 +253,7 @@ OPTIONS
   $ pyang --sid-update-file toaster@2009-11-20.sid
           toaster@2009-12-28.yang --sid-extra-range 20100:100
 
-count
+--sid-extra-range-count
   The number of SID required when generating or updating a .sid file can be
   computed by specifying "count" as SID range.
 
@@ -261,6 +280,7 @@ class SidFile:
         self.is_consistent = True
         self.check_consistency = False
         self.list_content = False
+        self.finalize_sid = False
         self.sid_registration_info = False
         self.input_file_name = None
         self.range = None
@@ -461,22 +481,28 @@ class SidFile:
         namespace_absent = True
         identifier_absent = True
         sid_absent = True
+        status_absent = True
         for item in items:
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if not (isinstance(item[key], util.str_types)
+                    if not (isinstance(item[key], str)
                             and item[key].endswith(self.namespace_ends)):
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
 
                 elif key == 'identifier':
                     identifier_absent = False
-                    if not isinstance(item[key], util.str_types):
+                    if not isinstance(item[key], str):
                         raise SidFileError("invalid 'identifier' value '%s'." % item[key])
 
                 elif key == 'sid':
                     sid_absent = False
                     if not isinstance(item[key], util.int_types):
+                        raise SidFileError("invalid 'sid' value '%s'." % item[key])
+
+                elif key == 'status':
+                    status_absent = False
+                    if not isinstance(item[key], str):
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
 
                 else:
@@ -511,7 +537,8 @@ class SidFile:
     ########################################################
     # Verify if each SID listed in items is in range and is not duplicate.
     def validate_sid(self):
-        self.content['items'].sort(key=lambda item: item['sid'])
+        if self.content['items'] is not None:
+            self.content['items'].sort(key=lambda item: item['sid'])
         last_sid = -1
         for item in self.content['items']:
             sid = item['sid']
@@ -549,7 +576,7 @@ class SidFile:
             self.content['items'] = []
 
         for item in self.content['items']:
-            item['status'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
+            item['lifecycle'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
 
         self.merge_item('module', self.module_name)
 
@@ -654,10 +681,12 @@ class SidFile:
     def merge_item(self, namespace, identifier):
         for item in self.content['items']:
             if (namespace == item['namespace'] and identifier == item['identifier']):
-                item['status'] = 'o' # Item already assigned
+                item['lifecycle'] = 'o' # Item already assigned
                 return
         self.content['items'].append(collections.OrderedDict(
-            [('namespace', namespace), ('identifier', identifier), ('sid', -1), ('status', 'n')]))
+            [('namespace', namespace), ('identifier', identifier),
+             ('status', 'unstable'),
+             ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
 
     ########################################################
@@ -680,6 +709,7 @@ class SidFile:
         for item in unassigned:
             try:
                 item['sid'] = next(source)
+                item['status'] = 'unstable'
             except StopIteration:
                 raise SidParsingError(
                     "The current SID range(s) are exhausted, %d extra SID(s) "
@@ -728,11 +758,14 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
-        for item in self.content['items']:
+        items = self.content['items']
+        if items is not None:
+            items.sort(key=lambda item: item['sid'])
+        for item in items:
             status = ""
-            if item['status'] == 'n' and not self.sid_file_created:
+            if item['lifecycle'] == 'n' and not self.sid_file_created:
                 status = " (New)"
-            if item['status'] == 'd':
+            if item['lifecycle'] == 'd' and item['namespace'] != 'module':
                 status = " (Remove)"
                 definition_removed = True
 
@@ -746,7 +779,7 @@ class SidFile:
     def list_deleted_items(self):
         definition_removed = False
         for item in self.content['items']:
-            if item['status'] == 'd':
+            if item['lifecycle'] == 'd':
                 print("WARNING, item '%s' was deleted form the .yang files." % item['identifier'])
                 definition_removed = True
 
@@ -759,13 +792,21 @@ class SidFile:
     ########################################################
     def generate_file(self):
         for item in self.content['items']:
-            del item['status']
+            del item['lifecycle']
 
-        if os.path.exists(self.output_file_name):
-            os.remove(self.output_file_name)
+        myorderedstuff = self.content.copy()
+        myorderedstuff['items'].sort(key=lambda item: item['sid'])
+
+        if self.finalize_sid:
+            print("Finalizing unstable allocations to %s" % (self.module_revision))
+            for item in myorderedstuff['items']:
+                if item['status'] == 'unstable':
+                    print("  finalized %s" % (item['identifier']))
+                    item['status'] = self.module_revision
 
         with open(self.output_file_name, 'w') as outfile:
-            json.dump(self.content, outfile, indent=2)
+            outfile.truncate(0)
+            json.dump(myorderedstuff, outfile, indent=2)
 
     ########################################################
     def number_of_sids_allocated(self):

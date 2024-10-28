@@ -218,7 +218,7 @@ error_codes = \
        'the "%s" property does not exist in node "%s::%s"'),
     'BAD_DEVIATE_DEL2':
       (2,
-       'the "%s" property connot be deviate deleted in node "%s::%s"'),
+       'the "%s" property cannot be deviate deleted in node "%s::%s"'),
     'BAD_DEVIATE_TYPE':
       (2,
        'the "%s" property cannot be added'),
@@ -482,16 +482,25 @@ error_codes = \
     'XPATH_NODE_NOT_FOUND2':
       (4,
        'node "%s::%s" is not found in module "%s"'),
+    'XPATH_ANCESTOR_NOT_FOUND':
+      (4,
+       'node "%s::%s" is not found as ancestor to "%s::%s"'),
+    'XPATH_MULTIPLE_ANCESTORS':
+      (4,
+       'node "%s::%s" has multiple ancestors called "%s::%s"'),
     'XPATH_REF_CONFIG_FALSE':
       (4,
        'node "%s::%s" is config false and is not part of the accessible tree'),
     'XPATH_PATH_TOO_MANY_UP':
       (2,
        'the path has too many ".."'),
-
-#    'XPATH_FUNCTION_RET_VAL':
-#      (2,
-#       'XPath function "%s" does not return a %s'),
+    'XPATH_FUNCTION_RET_VAL':
+      (2,
+       'XPath function "%s" does not return a %s'),
+    'XPATH_DEREF_TARGET':
+      (4,
+       'XPath deref target "%s" is not an leafref or instance-identifier, '\
+       'will return an empty node-set'),
     'AUGMENT_MANDATORY':
       (1,
        'cannot augment with mandatory node "%s"'),

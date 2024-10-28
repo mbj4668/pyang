@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="req_inst"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:a="urn:a">
+  <yang-version value="1.1"/>
+  <namespace uri="urn:a"/>
+  <prefix value="a"/>
+  <typedef name="lref">
+    <type name="leafref">
+      <path value="/a:foo"/>
+    </type>
+  </typedef>
+  <typedef name="lref2">
+    <type name="leafref">
+      <path value="/a:foo"/>
+      <require-instance value="false"/>
+    </type>
+  </typedef>
+  <typedef name="iiref">
+    <type name="instance-identifier"/>
+  </typedef>
+  <typedef name="iiref2">
+    <type name="instance-identifier">
+      <require-instance value="false"/>
+    </type>
+  </typedef>
+  <leaf name="foo">
+    <type name="empty"/>
+    <config value="false"/>
+  </leaf>
+  <leaf name="bar">
+    <type name="lref2"/>
+  </leaf>
+  <leaf name="baz">
+    <type name="iiref">
+      <require-instance value="false"/>
+    </type>
+  </leaf>
+</module>

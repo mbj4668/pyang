@@ -1,0 +1,15 @@
+module presence_bug_i775 {
+  namespace "urn:presence-bug";
+  prefix presence-bug;
+  container root {
+    container aardvark {
+      description "The length of the next line is 66.";
+      presence "Presence of an aardvark strongly suggests that the
+                'a' key is working correctly.";
+    }
+    container bison {
+      description "The length of the next line is 66.";
+      presence "Presence of a bison suggests that we should run.";
+    }
+  }
+}

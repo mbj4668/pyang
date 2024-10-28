@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="yt5a"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:yt5a="urn:ietf:params:xml:ns:yang:yt5a"
+        xmlns:yt="urn:ietf:params:xml:ns:yang:ietf-yang-types"
+        xmlns:yt3="urn:ietf:params:xml:ns:yang:yt3">
+  <yt5a:b>
+    <yt5a:bb>test-bb</yt5a:bb>
+    <yt5a:a>
+      <yt5a:aa>test-aa</yt5a:aa>
+    </yt5a:a>
+  </yt5a:b>
+  <yt5a:c cc="testing five six">
+    <yt5a:d>
+      <yt5a:a>
+        <yt5a:aa>foo</yt5a:aa>
+        <yt5a:a>
+          <yt5a:aa>bar</yt5a:aa>
+        </yt5a:a>
+      </yt5a:a>
+    </yt5a:d>
+  </yt5a:c>
+  <namespace uri="urn:ietf:params:xml:ns:yang:yt5a"/>
+  <prefix value="yt5a"/>
+  <import module="ietf-yang-types">
+    <prefix value="yt"/>
+  </import>
+  <import module="yt3">
+    <prefix value="yt3"/>
+  </import>
+  <organization>
+    <text>YANG Language Design Team</text>
+  </organization>
+  <contact>
+    <text>Andy Bierman</text>
+  </contact>
+  <description>
+    <text>YANG test module 5.</text>
+  </description>
+  <typedef name="un-1">
+    <type name="union">
+      <type name="union">
+        <type name="int32"/>
+        <type name="binary"/>
+        <type name="union">
+          <type name="string"/>
+          <type name="string"/>
+          <type name="boolean"/>
+        </type>
+      </type>
+      <type name="int64"/>
+    </type>
+  </typedef>
+  <grouping name="X">
+    <grouping name="XX">
+      <leaf name="x">
+        <type name="yt:counter32"/>
+      </leaf>
+    </grouping>
+    <leaf name="z">
+      <type name="XXt"/>
+    </leaf>
+    <container name="zz">
+      <uses name="XX"/>
+    </container>
+    <typedef name="XXt">
+      <type name="int32"/>
+    </typedef>
+  </grouping>
+  <list name="list1">
+    <unique tag="___"/>
+    <unique tag="zz/x ___"/>
+    <unique tag="leaf"/>
+    <leaf name="___">
+      <type name="union">
+        <type name="int32"/>
+        <type name="uint32"/>
+        <type name="yt3:t8"/>
+      </type>
+    </leaf>
+    <leaf name="_x_">
+      <type name="un-1"/>
+    </leaf>
+    <config value="true"/>
+    <uses name="X"/>
+    <leaf name="leaf">
+      <type name="yt3:t10"/>
+    </leaf>
+    <key value="leaf z ___  _x_"/>
+  </list>
+  <extension name="a">
+    <description>
+      <text>test 1a</text>
+    </description>
+    <reference>
+      <text>test 1a ref</text>
+    </reference>
+    <argument name="aa">
+      <yin-element value="true"/>
+    </argument>
+  </extension>
+  <extension name="b">
+    <description>
+      <text>test 1b</text>
+    </description>
+    <reference>
+      <text>test 1b ref</text>
+    </reference>
+    <argument name="bb">
+      <yin-element value="true"/>
+    </argument>
+  </extension>
+  <extension name="c">
+    <argument name="cc"/>
+  </extension>
+  <extension name="d"/>
+</module>

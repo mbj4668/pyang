@@ -1,0 +1,61 @@
+module xp1 {
+  yang-version 1.1;
+  namespace urn:xp1;
+  prefix xp1;
+
+  container a {
+    list b {
+      key id;
+      leaf id {
+        type string;
+      }
+      leaf type {
+        type string;
+      }
+      container c {
+        container d {
+          leaf e1 {
+            when 'ancestor::xp1:b/xp1:type = "bar"';
+            type int32;
+          }
+          leaf e2 {
+            when 'ancestor::b/type = "bar"';
+            type int32;
+          }
+          leaf e3 {
+            when 'ancestor-or-self::b/type = "bar"';
+            type int32;
+          }
+          leaf f {
+            when 'ancestor::xp1:b/typex = "bar"'; // error
+            type int32;
+          }
+          leaf g1 {
+            when 'ancestor::xp1:bx/type = "bar"'; // error
+            type int32;
+          }
+          leaf g2 {
+            when 'ancestor-or-self::xp1:bx/type = "bar"'; // error
+            type int32;
+          }
+          leaf h {
+            when 'ancestor::node()/xp1:b/typex = "bar"'; // can't check node()
+            type int32;
+          }
+        }
+        list b {
+          key name;
+          leaf name {
+            type string;
+          }
+          leaf x {
+            when 'ancestor::xp1:b/xtype = "bar"'; // NOTE: this is an error, but we have
+                                                  // multiple ancestors called "b", and the code can't
+                                                  // handle that
+            type int32;
+          }
+        }
+      }
+    }
+  }
+}

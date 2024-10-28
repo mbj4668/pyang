@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="yt10"
+        xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+        xmlns:yt10="urn:ietf:params:xml:ns:yang:yt10"
+        xmlns:yt9="urn:ietf:params:xml:ns:yang:yt9">
+  <namespace uri="urn:ietf:params:xml:ns:yang:yt10"/>
+  <prefix value="yt10"/>
+  <import module="yt9">
+    <prefix value="yt9"/>
+  </import>
+  <organization>
+    <text>Netconf Central</text>
+  </organization>
+  <contact>
+    <text>Andy Bierman</text>
+  </contact>
+  <description>
+    <text>YANG test module 9. augment</text>
+  </description>
+  <revision date="2008-04-11">
+    <description>
+      <text>initial version</text>
+    </description>
+  </revision>
+  <augment target-node="/yt9:con1">
+    <leaf name="b1">
+      <type name="int32"/>
+    </leaf>
+    <container name="con2">
+      <leaf name="b2">
+        <type name="string"/>
+      </leaf>
+    </container>
+  </augment>
+  <container name="test">
+    <description>
+      <text>Particular configuration to retrieve.</text>
+    </description>
+    <uses name="Foo"/>
+  </container>
+  <grouping name="Foo">
+    <leaf name="X">
+      <type name="int32"/>
+    </leaf>
+    <leaf name="Y">
+      <type name="uint32"/>
+    </leaf>
+  </grouping>
+</module>

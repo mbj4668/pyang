@@ -1,4 +1,4 @@
-PYANG := $(PYANG) -Wnone
+PYANG := $(or $(PYANG), pyang) -Wnone
 
 MODULES ?= $(wildcard *.yang)
 

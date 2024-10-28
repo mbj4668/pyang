@@ -1,0 +1,13 @@
+module project {
+  yang-version 1;
+  namespace "urn:at-char-in-path:project:1";
+  prefix p;
+
+  description "'@' char in parent dir of file confuses the revision date parsing";
+
+  revision 2022-04-07;
+
+  leaf foo {
+    type string;
+  }
+}

@@ -1,0 +1,26 @@
+module b {
+  namespace "urn:b";
+  prefix b;
+
+  import d {
+    prefix d;
+  }
+
+  revision 2022-02-20;
+
+  container b_cont {
+    leaf leaf_1 {
+      type string;
+    }
+
+    leaf leaf_2 {
+      type string;
+    }
+
+    leaf ddd {
+      type leafref {
+        path "/d:d_cont/d:leaf_d";
+      }
+    }
+  }  
+}

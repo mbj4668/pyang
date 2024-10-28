@@ -1,0 +1,18 @@
+module c {
+  yang-version 1.1;
+  namespace "urn:c";
+  prefix c;
+
+  container x {
+    leaf a {
+      type int32;
+    }
+  }
+
+  deviation "/x/a" {
+    deviate add {
+      must "../b > ../a";
+    }
+  }
+
+}
