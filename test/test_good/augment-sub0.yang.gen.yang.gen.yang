@@ -1,7 +1,0 @@
-submodule augment-sub0 {
-  belongs-to augment-super {
-    prefix as;
-  }
-
-  container interfaces;
-}
