@@ -36,16 +36,16 @@ ss = ET.Element("stylesheet",
 """Root element of the output XSLT stylesheet."""
 
 type_class = dict((t,"unquoted") for t in
-                  ("boolean", "int8", "int16", "int32",
-                   "uint8", "uint16", "uint32"))
+                  ("boolean", "int8", "int16", "int32", "int64",
+                   "uint8", "uint16", "uint32", "uint64"))
 """Classification of types suited for JSON translation."""
 
 type_class.update((t,t) for t in
                   ("empty", "instance-identifier", "identityref", "string"))
 
 union_class = dict((t,"integer") for t in
-                   ("int8", "int16", "int32",
-                   "uint8", "uint16", "uint32"))
+                   ("int8", "int16", "int32", "int64",
+                   "uint8", "uint16", "uint32", "uint64"))
 """Classification of types needed for resolving union-typed values."""
 
 union_class.update({"boolean": "boolean"})
