@@ -3,7 +3,7 @@
 import os
 import sys
 if sys.version_info >= (3, 12):
-    import importlib.resources as resources
+    import importlib.metadata as metadata
 else:
     import pkg_resources
 
@@ -23,7 +23,7 @@ def init(plugindirs=None):
 
     # initialize installed plugins
     if sys.version_info >= (3, 12):
-        eps = list(resources.entry_points(group='pyang.plugin'))
+        eps = list(metadata.entry_points(group='pyang.plugin'))
     else:
         eps = pkg_resources.iter_entry_points(group='pyang.plugin')
     for ep in eps:
