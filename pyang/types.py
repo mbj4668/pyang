@@ -68,6 +68,7 @@ class Decimal64Value(object):
         # must set s (string repr) OR fd (fraction-digits)
         self.value = value
         self.s = s
+        self.fd = fd
         if s is None:
             if fd is None:
                 raise ValueError(
