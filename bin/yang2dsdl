@@ -28,8 +28,17 @@ onlydata=0
 hello=0
 jing=0
 
-xslt_dir=${PYANG_XSLT_DIR:-/usr/local/share/yang/xslt}
-schema_dir=${PYANG_RNG_LIBDIR:-/usr/local/share/yang/schema}
+bin_dir=$(dirname $0)
+prefix=${bin_dir}/..
+
+if [ -d $prefix/.git ] && [ -f $prefix/setup.py ]; then
+	base_dir=$prefix
+else
+	base_dir=$prefix/share/yang
+fi
+
+xslt_dir=${PYANG_XSLT_DIR:-$base_dir/xslt}
+schema_dir=${PYANG_RNG_LIBDIR:-$base_dir/schema}
 
 usage() {
     cat <<EOF
