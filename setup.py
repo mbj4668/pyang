@@ -82,7 +82,7 @@ setup(name='pyang',
               'json2xml = pyang.scripts.json2xml:main',
           ]
       },
-      packages=['pyang', 'pyang.plugins', 'pyang.scripts', 'pyang.translators', 'pyang.transforms'],
+      packages=['pyang', 'pyang.plugins', 'pyang.scripts', 'pyang.translators', 'pyang.transforms', 'pyang.lsp'],
       data_files=[
             ('share/man/man1', man1),
             ('share/yang/modules/iana', modules_iana),

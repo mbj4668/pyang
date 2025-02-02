@@ -9,6 +9,18 @@ from . import util
 from . import statements
 from . import syntax
 
+# List of YANG parser errors handled
+errors = [
+    'EOF_ERROR',
+    'SYNTAX_ERROR',
+    'ILLEGAL_ESCAPE',
+    'ILLEGAL_ESCAPE_WARN',
+    'TRAILING_GARBAGE',
+    'EXPECTED_ARGUMENT',
+    'EXPECTED_QUOTED_STRING',
+    'INCOMPLETE_STATEMENT',
+    ]
+
 class YangTokenizer(object):
     def __init__(self, text, pos, errors,
                  max_line_len=None, keep_comments=False,

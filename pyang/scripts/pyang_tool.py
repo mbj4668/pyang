@@ -5,7 +5,6 @@ import os
 import optparse
 import io
 import shutil
-import codecs
 from pathlib import Path
 
 import pyang
@@ -15,8 +14,8 @@ from pyang import util
 from pyang import hello
 from pyang import context
 from pyang import repository
-from pyang import statements
 from pyang import syntax
+from pyang.lsp import server as pyangls
 
 
 def run():
@@ -41,6 +40,7 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     fmts = {}
     xforms = {}
+    p : plugin.PyangPlugin
     for p in plugin.plugins:
         p.add_output_format(fmts)
         p.add_transform(xforms)
@@ -131,6 +131,10 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              dest="format",
                              help="Convert to FORMAT.  Supported formats " \
                              "are: " +  ', '.join(fmts)),
+        optparse.make_option("-l", "--lsp",
+                             dest="lsp",
+                             action="store_true",
+                             help="Run as LSP server instead of CLI tool."),
         optparse.make_option("-o", "--output",
                              dest="outfile",
                              help="Write the output to OUTFILE instead " \
@@ -212,18 +216,23 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
                              action="store_true",
                              help="Do not recurse into directories in the \
                                    yang path."),
+        optparse.make_option("--no-env-path",
+                             dest="no_env_path",
+                             action="store_true",
+                             help="Do not use environment for yang file paths."),
         ]
 
     optparser = optparse.OptionParser(usage, add_help_option = False)
     optparser.version = '%prog ' + pyang.__version__
     optparser.add_options(optlist)
 
+    pyangls.add_opts(optparser)
     for p in plugin.plugins:
         p.add_opts(optparser)
 
     (o, args) = optparser.parse_args()
 
-    if o.outfile is not None and o.format is None:
+    if o.outfile is not None and o.format is None and o.lsp is None:
         sys.stderr.write("no format specified\n")
         sys.exit(1)
 
@@ -252,7 +261,12 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
     else:
         path += os.pathsep + "."
 
-    repos = repository.FileRepository(path, no_path_recurse=o.no_path_recurse,
+    if o.no_env_path:
+        use_env = False
+    else:
+        use_env = True
+    repos = repository.FileRepository(path, use_env,
+                                      no_path_recurse=o.no_path_recurse,
                                       verbose=o.verbose)
 
     ctx = context.Context(repos)
@@ -334,6 +348,17 @@ Validates the YANG module in <filename> (or stdin), and all its dependencies."""
 
     for p in plugin.plugins:
         p.pre_load_modules(ctx)
+
+    if o.lsp:
+        try:
+            pyangls.try_import_deps()
+            pyangls.start_server(o, ctx, fmts)
+            sys.exit(0)
+        except ModuleNotFoundError as e:
+            print("LSP feature required external dependencies are missing")
+            print(str(e))
+            print("Please resolve dependencies to use pyang as an LSP server")
+            sys.exit(1)
 
     exit_code = 0
     modules = []
