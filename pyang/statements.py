@@ -2367,6 +2367,8 @@ def v_reference_deviate(ctx, stmt):
                         continue
                     else:
                         t.i_config = False
+                        if old is None:
+                            t.substmts.append(c)
                         inherit_parent_i_config(t, t.i_config)
 
             if c.keyword in _singleton_keywords:
