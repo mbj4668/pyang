@@ -15,7 +15,7 @@ test: clean utf8-test mef-ieee-test
 		echo " generating yin from the generated yang...";	\
 		$(PYANGE) -f yin -o $$m.yin.gen $$m.yang.gen || exit 1;	\
 		echo " " | tr -d '\012';				\
-		echo " comparing the two generated yin..." | tr -d '\012';\
+		echo " comparing two generated yin..." | tr -d '\012';  \
 		diff $$m.yin $$m.yin.gen > $$m.diff ||	 		\
 			{ cat $$m.diff; exit 1; };			\
 		rm -f $$m.diff;						\
@@ -37,4 +37,4 @@ mef-ieee-test:
         $(PYANG) --ieee ieee-yt12.yang || exit 1;
 
 clean:
-	rm -rf *.yang.yin *.gen *.dsdl
+	rm -rf *.yang.yin *.gen *.dsdl *.yang.*
