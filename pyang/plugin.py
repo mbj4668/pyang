@@ -2,7 +2,10 @@
 
 import os
 import sys
-import pkg_resources
+if sys.version_info >= (3, 10):
+    import importlib.metadata as metadata
+else:
+    import pkg_resources
 
 plugins = []
 """List of registered PyangPlugin instances"""
@@ -19,7 +22,11 @@ def init(plugindirs=None):
     dsdl.pyang_plugin_init()
 
     # initialize installed plugins
-    for ep in pkg_resources.iter_entry_points(group='pyang.plugin'):
+    if sys.version_info >= (3, 10):
+        eps = list(metadata.entry_points(group='pyang.plugin'))
+    else:
+        eps = pkg_resources.iter_entry_points(group='pyang.plugin')
+    for ep in eps:
         plugin_init = ep.load()
         plugin_init()
 

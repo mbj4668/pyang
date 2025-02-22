@@ -1,3 +1,4 @@
+setuptools
 coveralls
 pycodestyle
 pyflakes

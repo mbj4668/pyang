@@ -169,7 +169,28 @@ module a {
 
   leaf-list baz3 {
     type string;
+    ordered-by system;
     min-elements 2;
     max-elements 4;
   }
+
+  leaf-list baz4 {
+    type int32;
+  }
+
+  leaf-list baz5 {
+    type int32;
+    ordered-by system;
+  }
+
+  leaf-list baz6 {
+    type int32;
+    ordered-by user;
+  }
+
+  leaf-list baz7 {
+    type int32;
+    ordered-by user;
+  }
+
 }

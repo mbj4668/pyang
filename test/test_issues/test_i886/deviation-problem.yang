@@ -1,0 +1,51 @@
+module deviation-problem { 
+
+  yang-version 1.1; 
+  namespace "urn:deviation-problem:1.0"; 
+  prefix "deviation-problem";
+  
+  organization "x"; 
+  contact "x"; 
+  description "x"; 
+   revision "2023-12-12" { 
+    description 
+      "version 1.0.0 
+      1) initial version"; 
+    reference
+      "x";
+  }
+  
+  container top {
+    description "top container";
+    
+    leaf tleaf {
+        type uint32;
+        units nanoseconds;
+        description "eleaf";
+    }
+    
+    container cnode {
+      config false;
+      description "container node";
+      leaf cleaf {
+        type uint32;
+        units nanoseconds;
+        description "eleaf";
+      }
+    }
+    
+    list lnode {
+      key "id";
+      config false;
+      description
+        "List node";
+
+      leaf id {
+        type uint16;
+        description
+          "list key";
+      }
+    }
+  }
+
+}

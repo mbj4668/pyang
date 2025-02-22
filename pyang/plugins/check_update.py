@@ -161,6 +161,9 @@ class CheckUpdatePlugin(plugin.PyangPlugin):
         error.add_error_code(
             'CHK_UNION_TYPES', 3,
             "the member types in the union have changed")
+        error.add_error_code(
+            'CHK_IO_ERROR', 1,
+            "error %s: %s")
 
     def post_validate_ctx(self, ctx, modules):
         if not ctx.opts.check_update_from:
@@ -194,8 +197,9 @@ def check_update(ctx, newmod):
             fd = io.open(oldfilename, "r", encoding="utf-8")
             text = fd.read()
         except IOError as ex:
-            sys.stderr.write("error %s: %s\n" % (oldfilename, ex))
-            sys.exit(1)
+            pos = error.Position(oldfilename)
+            err_add(ctx.errors, pos, "CHK_IO_ERROR", (oldfilename, ex))
+            return
         if oldfilename in ctx.opts.old_deviation:
             oldctx.add_module(oldfilename, text)
         else:
@@ -645,6 +649,22 @@ def chk_unique(old, new, ctx):
         else:
             err_def_added(u, ctx)
 
+def chk_ordered_by(old, new, ctx):
+    oldorderedby = old.search_one('ordered-by')
+    neworderedby = new.search_one('ordered-by')
+    if oldorderedby is None and neworderedby is None:
+        pass
+    elif oldorderedby is None and neworderedby is not None and \
+         neworderedby.arg == 'user':
+        err_def_added(neworderedby, ctx)
+    elif oldorderedby is not None and neworderedby is None and \
+         oldorderedby.arg == 'user':
+        err_def_removed(oldorderedby, new, ctx)
+    elif oldorderedby is not None and neworderedby is not None and \
+         oldorderedby.arg != neworderedby.arg:
+        err_add(ctx.errors, neworderedby.pos, 'CHK_DEF_CHANGED',
+                ('ordered-by', neworderedby.arg, oldorderedby.arg))
+
 def chk_leaf(old, new, ctx):
     chk_type(old.search_one('type'), new.search_one('type'), ctx)
     chk_units(old, new, ctx)
@@ -655,6 +675,7 @@ def chk_leaf_list(old, new, ctx):
     chk_type(old.search_one('type'), new.search_one('type'), ctx)
     chk_units(old, new, ctx)
     chk_min_max(old, new, ctx)
+    chk_ordered_by(old, new, ctx)
 
 def chk_container(old, new, ctx):
     chk_presence(old, new, ctx)
@@ -665,6 +686,7 @@ def chk_list(old, new, ctx):
     chk_key(old, new, ctx)
     chk_unique(old, new, ctx)
     chk_i_children(old, new, ctx)
+    chk_ordered_by(old, new, ctx)
 
 def chk_choice(old, new, ctx):
     chk_mandatory(old, new, ctx)
