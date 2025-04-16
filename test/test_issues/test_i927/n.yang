@@ -1,0 +1,16 @@
+module n {
+    yang-version 1.1;
+    namespace "urn:test:n";
+    prefix n;
+
+    import ietf-netconf-notifications {
+        prefix ncn;
+    }
+
+    augment "/ncn:netconf-session-start" {
+      leaf foo {
+        type string;
+        mandatory true;
+      }
+    }
+}

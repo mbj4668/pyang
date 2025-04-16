@@ -1785,7 +1785,8 @@ def v_expand_2_augment(ctx, stmt):
     # trying to add a mandatory node
     if stmt.i_module.i_modulename != stmt.i_target_node.i_module.i_modulename:
         # 1.1 allows mandatory augment if the augment is conditional
-        if stmt.i_module.i_version == '1' or stmt.search_one('when') is None:
+        if (stmt.i_target_node.i_config and
+            (stmt.i_module.i_version == '1' or stmt.search_one('when') is None)):
             for sc in stmt.i_children:
                 chk_mandatory(sc)
 

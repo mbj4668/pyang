@@ -264,7 +264,6 @@ def emit_bodystart(modules, fd, ctx):
 """)
 
 def emit_tree(modules, fd, ctx, path):
-    global levelcnt
     for module in modules:
         bstr = ""
         b = module.search_one('belongs-to')
@@ -361,7 +360,6 @@ def print_children(i_children, module, fd, prefix, path, ctx, level=0):
 
 def print_node(s, module, fd, prefix, path, ctx, level=0):
 
-    global levelcnt
     fontstarttag = ""
     fontendtag = ""
     status = get_status_str(s)

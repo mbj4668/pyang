@@ -128,7 +128,6 @@ def iterate_children(parent, s, module, fd, path, ctx):
             print_node(s, ch, module, fd, path, ctx)
 
 def print_class_header(s, fd, ctx, root='false'):
-    global servicepoints
     service = ""
     for sub in s.substmts:
         if sub.keyword[1] in servicepoints:
