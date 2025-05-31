@@ -139,7 +139,8 @@ program exits with exit code 0 if all modules are valid.
 
 **-\-strict**
 :   Force strict YANG compliance. Currently this checks that the
-    deref() function is not used in XPath expressions and leafrefs.
+    deref() function is not used in XPath expressions and leafrefs for
+    YANG 1.0.
 
 **-\-lint**
 :   Validate the module(s) according to the generic YANG guideline as
