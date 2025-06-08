@@ -3535,3 +3535,16 @@ def get_description(stmt):
     description_obj = stmt.search_one('description')
     # Return description value if exists
     return getattr(description_obj, 'arg', None)
+
+def get_default(stmt):
+    # check the default
+    default_obj = stmt.search_one('default')
+    return getattr(default_obj, 'arg', None)
+
+def get_range(stmt):
+    # check the range
+    range_obj = None
+    type_obj = stmt.search_one('type')
+    if type_obj is not None:
+        range_obj = type_obj.search_one('range')
+    return getattr(range_obj, 'arg', None)

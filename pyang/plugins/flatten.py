@@ -18,6 +18,10 @@ Arguments
     flag.
 --flatten-description
     Output the description.
+--flatten-default
+    Output the default.
+--flatten-range
+    Output the range.
 --flatten-keys
     Output whether the XPath is identified as a key.
 --flatten-keys-in-xpath
@@ -124,6 +128,18 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the description.",
             ),
             optparse.make_option(
+                "--flatten-default",
+                dest="flatten_default",
+                action="store_true",
+                help="Output the default value.",
+            ),
+            optparse.make_option(
+                "--flatten-range",
+                dest="flatten_range",
+                action="store_true",
+                help="Output the range.",
+            ),
+            optparse.make_option(
                 "--flatten-keys",
                 dest="flatten_keys",
                 action="store_true",
@@ -228,6 +244,10 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("type")
         if ctx.opts.flatten_description:
             self.__field_names.append("description")
+        if ctx.opts.flatten_default:
+            self.__field_names.append("default")
+        if ctx.opts.flatten_range:
+            self.__field_names.append("range")
         if ctx.opts.flatten_keys:
             self.__field_names.append("key")
         if ctx.opts.flatten_deviated:
@@ -348,6 +368,10 @@ class FlattenPlugin(plugin.PyangPlugin):
             output_content["flag"] = flag
         if ctx.opts.flatten_description:
             output_content["description"] = statements.get_description(child)
+        if ctx.opts.flatten_default:
+            output_content["default"] = statements.get_default(child)
+        if ctx.opts.flatten_range:
+            output_content["range"] = statements.get_range(child)
         if ctx.opts.flatten_keys:
             if not known_keys:
                 output_content["key"] = None
