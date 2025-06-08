@@ -74,6 +74,8 @@ def emit_depend(ctx, modules, fd):
                 continue
             if ctx.opts.depend_include_path:
                 m = ctx.get_module(i)
+                if m is None:
+                    continue
                 if ctx.opts.depend_extension is None:
                     filename = m.pos.ref
                 else:
