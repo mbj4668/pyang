@@ -1095,6 +1095,34 @@ def v_type_leaf_list(ctx, stmt):
     for s in stmt.i_default:
         v_check_default(ctx, type_, s)
 
+
+def _check_unit_type(ctx, type_stmt):
+    # get and check  all union's types
+    union_types = type_stmt.search('type')
+    if not union_types:
+        # ensure the type is validated
+        v_type_type(ctx, type_stmt)
+        # check the direct typedef
+        if (type_stmt.i_typedef is not None and
+                type_stmt.i_typedef.is_grammatically_valid is True):
+            v_type_typedef(ctx, type_stmt.i_typedef)
+
+        if type_stmt.i_typedef:
+            chk_status(ctx, type_stmt, type_stmt.i_typedef)
+
+        # keep track of our leafref
+        type_spec = type_stmt.i_type_spec
+        if isinstance(type_spec, types.PathTypeSpec):
+            type_stmt.i_leafref = type_spec
+            type_stmt.i_leafref_expanded = False
+            type_stmt.i_leafref_ptr = None
+        return
+
+    # parse union member types
+    for t in union_types:
+        _check_unit_type(ctx, t)
+
+
 def _v_type_common_leaf(ctx, stmt):
     stmt.i_leafref = None # path_type_spec
     stmt.i_leafref_ptr = None # pointer to the leaf the leafref refer to
@@ -1115,6 +1143,10 @@ def _v_type_common_leaf(ctx, stmt):
     type_spec = type_.i_type_spec
     if isinstance(type_spec, types.PathTypeSpec):
         stmt.i_leafref = type_spec
+
+    if type_.arg == 'union':
+        _check_unit_type(ctx, type_)
+
 
 def chk_status(ctx, x, y):
     if x.top.i_modulename != y.top.i_modulename:
@@ -2175,28 +2207,50 @@ def v_reference_leaf_leafref(ctx, stmt):
     """Verify that all leafrefs in a leaf or leaf-list have correct path"""
 
     if (getattr(stmt, 'i_leafref', None) is not None
-        and stmt.i_leafref_expanded is False):
+            and stmt.i_leafref_expanded is False):
+        _validate_leafref_node(ctx, stmt)
+    else:
+        type_ = stmt.search_one('type')
+        if type_ is not None and type_.arg == 'union':
+            _validate_leafref_in_union(ctx, type_)
 
-        path_type_spec = stmt.i_leafref
-        not_req_inst = not path_type_spec.require_instance
-        x = validate_leafref_path(ctx, stmt,
-                                  path_type_spec.path_spec,
-                                  path_type_spec.path_,
-                                  accept_non_config_target=not_req_inst)
-        if x is None:
-            return
-        ptr, expanded_path, path_list = x
-        path_type_spec.i_target_node = ptr
-        path_type_spec.i_expanded_path = expanded_path
-        path_type_spec.i_path_list = path_list
-        stmt.i_leafref_expanded = True
-        if ptr is not None:
-            chk_status(ctx, stmt, ptr)
-            if (not hasattr(stmt, 'i_not_implemented') and
+
+def _validate_leafref_node(ctx, stmt):
+    path_type_spec = stmt.i_leafref
+    not_req_inst = not path_type_spec.require_instance
+    x = validate_leafref_path(ctx, stmt,
+                              path_type_spec.path_spec,
+                              path_type_spec.path_,
+                              accept_non_config_target=not_req_inst)
+    if x is None:
+        return
+    ptr, expanded_path, path_list = x
+    path_type_spec.i_target_node = ptr
+    path_type_spec.i_expanded_path = expanded_path
+    path_type_spec.i_path_list = path_list
+    stmt.i_leafref_expanded = True
+    if ptr is not None:
+        chk_status(ctx, stmt, ptr)
+        if (not hasattr(stmt, 'i_not_implemented') and
                 hasattr(ptr, 'i_not_implemented')):
-                err_add(ctx.errors, stmt.pos,
-                        'LEAFREF_TO_NOT_IMPLEMENTED', ())
-            stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
+            err_add(ctx.errors, stmt.pos,
+                    'LEAFREF_TO_NOT_IMPLEMENTED', ())
+        stmt.i_leafref_ptr = (ptr, path_type_spec.pos)
+
+
+def _validate_leafref_in_union(ctx, type_stmt):
+    # get and check  all union's types for leafref setting
+    union_types = type_stmt.search('type')
+    if not union_types:
+        if (getattr(type_stmt, 'i_leafref', None) is not None
+                and type_stmt.i_leafref_expanded is False):
+            _validate_leafref_node(ctx, type_stmt)
+        return
+
+    # parse union member types
+    for t in union_types:
+        _validate_leafref_in_union(ctx, t)
+
 
 def v_reference_must(ctx, stmt):
     v_xpath(ctx, stmt)
