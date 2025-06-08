@@ -1,0 +1,18 @@
+module a {
+	prefix "a";
+	namespace "urn:a";
+
+	container a {
+		leaf b {
+			type leafref {
+				path "/d"; // does not exist
+			}
+		}
+	}
+
+	deviation "/a/b" {
+		deviate replace {
+			type string;
+		}
+	}
+}
