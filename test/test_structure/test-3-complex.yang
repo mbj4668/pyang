@@ -1,0 +1,106 @@
+module test-3-complex {
+  yang-version 1.1;
+  namespace "urn:example:test";
+  prefix t;
+
+  import ietf-yang-structure-ext {
+    prefix sx;
+    revision-date 2020-06-17;
+  }
+
+  sx:structure struct {
+    must "outer_box/inner_box/b = 2";
+    status obsolete;
+    description
+      "Testing structure extension behaviour";
+    reference
+      "RFC 8791: YANG Data Structure Extensions";
+
+    typedef mytype {
+      type int32 { range "12..40"; }
+      units "myunit";
+      default 14;
+      status current;
+      description "desc";
+      reference "broken link";
+    }
+
+    grouping sx_group {
+      leaf x { type uint8; }
+      leaf y { type uint8; }
+    }
+
+    container outer_box {
+      container inner_box {
+        leaf a { type string; }
+        leaf b { type int32; }
+      }
+
+      leaf mm {
+        type mytype;
+        when "/struct/outer_box/left/x > 100";
+      }
+
+      list l {
+        leaf name { type string; }
+        leaf value { type int64; }
+      }
+
+      container left {
+        uses sx_group; 
+      }
+      container right {
+        uses sx_group; 
+      }
+    }
+
+    choice options {
+      case simple {
+        leaf simp { type int8; }
+      }
+      case complex {
+        leaf comp { type int16; }
+      }
+    }
+  }
+
+  sx:augment-structure "/struct/outer_box/inner_box" {
+    leaf x {
+      type binary;
+    }
+
+    container d {
+      presence true;
+    }
+  }
+
+  sx:augment-structure "/struct/options" {
+    status current;
+    description "test of structure choice augmentation";
+    reference "example ref";
+
+    case intermediate {
+      leaf imm {
+        type binary;
+      }
+    }
+
+    case other {
+      leaf o {
+        type empty;
+      }
+    }
+  }
+
+  sx:augment-structure "/struct/outer_box" {
+    // TODO: this should cause an error
+    // RFC 8791: YANG Data Structure Extensions, section 4. 
+    // YANG Data Structure Extensions Module, extension augment-structure
+    //
+    // Substatement rules for augment-structure:
+    // 
+    // 1*(data-def-stmt / case-stmt)
+    //
+    // meaning at least one occurence of either data-def-stmt, or case-stmt
+  }
+}

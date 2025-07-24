@@ -1,0 +1,5 @@
+module: example-module-aug
+
+  augment-structure /exm:address-book/exm:address:
+    +-- county?    string
+    +-- zipcode?   string
