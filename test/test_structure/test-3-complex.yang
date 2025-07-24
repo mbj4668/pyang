@@ -47,10 +47,10 @@ module test-3-complex {
       }
 
       container left {
-        uses sx_group; 
+        uses sx_group;
       }
       container right {
-        uses sx_group; 
+        uses sx_group;
       }
     }
 
@@ -94,11 +94,11 @@ module test-3-complex {
 
   sx:augment-structure "/struct/outer_box" {
     // TODO: this should cause an error
-    // RFC 8791: YANG Data Structure Extensions, section 4. 
+    // RFC 8791: YANG Data Structure Extensions, section 4.
     // YANG Data Structure Extensions Module, extension augment-structure
     //
     // Substatement rules for augment-structure:
-    // 
+    //
     // 1*(data-def-stmt / case-stmt)
     //
     // meaning at least one occurence of either data-def-stmt, or case-stmt
