@@ -460,6 +460,8 @@ stmt_map = {
           ('status', '?'),
           ('description', '?'),
           ('reference', '?'),
+          ## FIXME at least one data-def-stmt substatement of case statement is required
+          # (for both yang-version 1 and 1.1)
           ('$interleave',
            [('case', '*')] +
            data_def_stmts +

@@ -107,6 +107,8 @@ asx_body_stmts = [
     ('status', '?'),
     ('description', '?'),
     ('reference', '?'),
+    ## FIXME at least one data-def-stmt substatement \
+    ## or case statement is required
     ('$interleave', [('case', '*')] +
                     grammar.data_def_stmts),
     ]
