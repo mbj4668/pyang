@@ -1,0 +1,38 @@
+module: test-3-complex
+
+  structure struct:
+    +-- outer_box
+    |  +-- inner_box
+    |  |  +-- a?   string
+    |  |  +-- b?   int32
+    |  |  +-- x?   binary
+    |  |  +-- d!
+    |  +-- mm?          mytype
+    |  +-- l* []
+    |  |  +-- name?    string
+    |  |  +-- value?   int64
+    |  +-- left
+    |  |  +-- x?   uint8
+    |  |  +-- y?   uint8
+    |  +-- right
+    |     +-- x?   uint8
+    |     +-- y?   uint8
+    +-- (options)?
+       +--:(simple)
+       |  +-- simp?   int8
+       +--:(complex)
+       |  +-- comp?   int16
+       +--:(intermediate)
+       |  +-- imm?    binary
+       +--:(other)
+          +-- o?      empty
+
+  augment-structure /struct/outer_box/inner_box:
+    +-- x?   binary
+    +-- d!
+  augment-structure /struct/options:
+    +--:(intermediate)
+    |  +-- imm?   binary
+    +--:(other)
+       +-- o?     empty
+  augment-structure /struct/outer_box:
