@@ -1,0 +1,60 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 60000,
+      "size": 20
+    }
+  ],
+  "module-name": "example-module",
+  "module-revision": "2020-06-17",
+  "items": [
+    {
+      "namespace": "module",
+      "identifier": "example-module",
+      "status": "unstable",
+      "sid": 60000
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book",
+      "status": "unstable",
+      "sid": 60001
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address",
+      "status": "unstable",
+      "sid": 60002
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/city",
+      "status": "unstable",
+      "sid": 60003
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/first",
+      "status": "unstable",
+      "sid": 60004
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/last",
+      "status": "unstable",
+      "sid": 60005
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/state",
+      "status": "unstable",
+      "sid": 60006
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/street",
+      "status": "unstable",
+      "sid": 60007
+    }
+  ]
+}

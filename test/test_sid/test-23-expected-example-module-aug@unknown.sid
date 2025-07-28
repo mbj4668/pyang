@@ -1,0 +1,30 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 61000,
+      "size": 10
+    }
+  ],
+  "module-name": "example-module-aug",
+  "module-revision": "unknown",
+  "items": [
+    {
+      "namespace": "module",
+      "identifier": "example-module-aug",
+      "status": "unstable",
+      "sid": 61000
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/example-module-aug:county",
+      "status": "unstable",
+      "sid": 61001
+    },
+    {
+      "namespace": "data",
+      "identifier": "/example-module:address-book/address/example-module-aug:zipcode",
+      "status": "unstable",
+      "sid": 61002
+    }
+  ]
+}
