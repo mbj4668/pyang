@@ -1,0 +1,15 @@
+
+SID        Assigned to
+---------  --------------------------------------------------
+60000      module example-module
+60001      data /example-module:address-book
+60002      data /example-module:address-book/address
+60003      data /example-module:address-book/address/city
+60004      data /example-module:address-book/address/first
+60005      data /example-module:address-book/address/last
+60006      data /example-module:address-book/address/state
+60007      data /example-module:address-book/address/street
+
+File example-module@2020-06-17.sid created
+Number of SIDs available : 20
+Number of SIDs used : 8

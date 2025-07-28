@@ -1,0 +1,4 @@
+
+File example-module-aug@unknown.sid created
+Number of SIDs available : 10
+Number of SIDs used : 3

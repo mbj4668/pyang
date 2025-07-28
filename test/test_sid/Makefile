@@ -1,6 +1,6 @@
 PYANG?= pyang
 
-test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20 test21
+test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 test23
 
 test1:
 	# Test help
@@ -105,3 +105,17 @@ test21:
 	diff -b toaster@2009-12-28.sid test-21-expected-toaster@2009-12-28.sid
 	rm toaster@2009-12-28.sid
 
+EXAMPLE_MOD=../test_structure/example-module@2020-06-17.yang
+EXAMPLE_MOD_AUG=../test_structure/example-module-aug.yang
+
+test22:
+	# Test ietf-yang-structure-ext structure sid assignment
+	$(PYANG) --sid-list --sid-generate-file 60000:20 ${EXAMPLE_MOD} 2>&1 | diff -b test-22-expected-output.txt -
+	diff -b example-module@2020-06-17.sid test-22-expected-example-module@2020-06-17.sid
+	rm example-module@2020-06-17.sid
+
+test23:
+	# Test ietf-yang-structure-ext augment-structure sid assignment
+	$(PYANG) --sid-generate-file 61000:10 ${EXAMPLE_MOD_AUG} -p ../test_structure 2>&1 | diff -b test-23-expected-output.txt -
+	diff -b example-module-aug@unknown.sid test-23-expected-example-module-aug@unknown.sid
+	rm example-module-aug@unknown.sid

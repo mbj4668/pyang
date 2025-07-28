@@ -1,7 +1,7 @@
 """sid plugin
 
 Plugin used to generate or update .sid files.
-Please refer to [I-D.ietf-core-sid], [I-D.ietf-core-comi], [I-D.ietf-core-yang-cbor]
+Please refer to RFC 9595: YANG Schema Item iDentifier, [I-D.ietf-core-comi], [I-D.ietf-core-yang-cbor]
 and [I-D.ietf-core-yang-library] for more information.
 
 """
@@ -557,6 +557,8 @@ class SidFile:
     # Groups of keywords with same handling in some method below, named after a representative
     leaf_keywords = ('leaf', 'leaf-list', 'anyxml', 'anydata')
     container_keywords = ('container', 'list')
+    module_container_keywords = ('container', 'list',
+                                 ('ietf-yang-structure-ext', 'structure'))
     choice_keywords = ('choice', 'case')
     inrpc_keywords = ('input', 'output')
     grouping_keywords = ('grouping', 'choice', 'case')
@@ -591,7 +593,7 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement))
 
-            elif statement.keyword in self.container_keywords:
+            elif statement.keyword in self.module_container_keywords:
                 self.merge_item('data', self.get_path(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
@@ -615,6 +617,9 @@ class SidFile:
             if substmt.keyword == 'augment':
                 self.collect_in_substmts(substmt.substmts)
             elif self.has_yang_data_extension(substmt):
+                self.collect_in_substmts(substmt.substmts)
+            elif substmt.keyword == \
+                    ('ietf-yang-structure-ext', 'augment-structure'):
                 self.collect_in_substmts(substmt.substmts)
 
     def collect_inner_data_nodes(self, statements, prefix=""):
@@ -664,12 +669,17 @@ class SidFile:
                 # Locate the data node parent
                 parent = statement.parent
                 while parent.i_module is not None:
-                    if parent.keyword in self.module_keywords:
+                    if (parent.keyword in self.module_keywords or
+                            parent.keyword ==
+                                ('ietf-yang-structure-ext', 'structure') or
+                            parent.keyword ==
+                                ('ietf-yang-structure-ext', 'augment-structure')):
                         break
                     parent = parent.parent
 
                 if (prefix != "" or
-                    (parent.i_module is not None and parent.i_module == statement.i_module)):
+                        (parent.i_module is not None and
+                        parent.i_module == statement.i_module)):
                     path = "/" + statement.arg + path
                 else:
                     path = "/" + statement.i_module.arg + ":" + statement.arg + path
