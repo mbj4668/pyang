@@ -15,7 +15,7 @@ test2:
 test3:
 	# Test update sid file (test3)
 	cp test-2-expected-toaster@2009-11-20.sid toaster@2009-11-20.sid
-	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-3-expected-output.txt | diff -b test-3-expected-output.txt -
+	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | diff -b test-3-expected-output.txt -
 	diff -b test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
 	rm toaster@2009-11-20.sid toaster@2009-12-28.sid
 
@@ -101,8 +101,7 @@ test20:
 test21:
 	# Test finalize of sid file
 	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
-	mkdir -p OUTPUT
-	$(PYANG) --sid-update-file toaster@2009-12-28.sid --sid-finalize toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-21-expected-output.txt | diff -b test-21-expected-output.txt -
+	$(PYANG) --sid-update-file toaster@2009-12-28.sid --sid-finalize toaster@2009-12-28.yang 2>&1 | diff -b test-21-expected-output.txt -
 	diff -b toaster@2009-12-28.sid test-21-expected-toaster@2009-12-28.sid
 	rm toaster@2009-12-28.sid
 
