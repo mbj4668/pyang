@@ -1,0 +1,9 @@
+module m {
+  namespace "urn:example:m";
+  prefix m;
+
+  import l {
+    prefix l;
+    revision-date 2020-07-25;
+  }
+}

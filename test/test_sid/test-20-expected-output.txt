@@ -1,3 +1,6 @@
+WARNING: Module 'ieee802-dot1q-types' imported without revision, using latest revision 2018-03-07
+WARNING: Module 'ieee802-dot1q-bridge' imported without revision, using latest revision 2020-11-06
+WARNING: Module 'ieee802-dot1q-stream-filters-gates' imported without revision, using latest revision 2020-11-06
 
 File ieee802-dot1q-psfp@2020-07-07.sid created
 Number of SIDs available : 100

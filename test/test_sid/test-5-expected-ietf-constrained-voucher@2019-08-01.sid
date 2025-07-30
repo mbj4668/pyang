@@ -86,5 +86,15 @@
       "status": "unstable",
       "sid": 2512
     }
+  ],
+  "dependency-revision": [
+    {
+      "module-name": "ietf-restconf",
+      "module-revision": "2017-01-26"
+    },
+    {
+      "module-name": "ietf-voucher",
+      "module-revision": "2018-05-09"
+    }
   ]
 }

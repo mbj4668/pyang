@@ -1,0 +1,6 @@
+module j {
+  namespace "urn:example:j";
+  prefix j;
+
+  revision 2025-07-15;
+}

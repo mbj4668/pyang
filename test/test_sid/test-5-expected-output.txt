@@ -1,3 +1,5 @@
+WARNING: Module 'ietf-restconf' imported without revision, using latest revision 2017-01-26
+WARNING: Module 'ietf-voucher' imported without revision, using latest revision 2018-05-09
 
 File ietf-constrained-voucher@2019-08-01.sid created
 Number of SIDs available : 50

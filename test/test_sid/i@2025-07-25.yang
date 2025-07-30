@@ -1,0 +1,10 @@
+module i {
+  namespace "urn:example:i";
+  prefix i;
+
+  import h {
+    prefix h;
+  }
+
+  revision 2025-07-25;
+}

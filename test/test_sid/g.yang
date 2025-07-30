@@ -1,0 +1,8 @@
+module g {
+  namespace "urn:example:g";
+  prefix g;
+
+  import f {
+    prefix f;
+  }
+}

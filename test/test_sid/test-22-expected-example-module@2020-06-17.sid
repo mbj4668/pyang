@@ -56,5 +56,11 @@
       "status": "unstable",
       "sid": 60007
     }
+  ],
+  "dependency-revision": [
+    {
+      "module-name": "ietf-yang-structure-ext",
+      "module-revision": "2020-06-17"
+    }
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 250,
+      "size": 10
+    }
+  ],
+  "module-name": "a",
+  "module-revision": "unknown",
+  "items": [
+    {
+      "namespace": "module",
+      "identifier": "a",
+      "status": "unstable",
+      "sid": 250
+    }
+  ]
+}
