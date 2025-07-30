@@ -296,5 +296,19 @@
       "status": "unstable",
       "sid": 60047
     }
+  ], 
+  "dependency-revision": [
+    {
+      "module-name": "ieee802-dot1q-types",
+      "module-revision": "2018-03-07"
+    },
+    {
+      "module-name": "ieee802-dot1q-bridge",
+      "module-revision": "2020-11-06"
+    },
+    {
+      "module-name": "ieee802-dot1q-stream-filters-gates",
+      "module-revision": "2020-11-06"
+    }
   ]
 }

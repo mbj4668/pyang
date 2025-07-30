@@ -1,0 +1,4 @@
+module j {
+  namespace "urn:example:j";
+  prefix j;
+}

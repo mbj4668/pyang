@@ -1,0 +1,6 @@
+module l {
+  namespace "urn:example:l";
+  prefix l;
+
+  revision 2025-07-20;
+}

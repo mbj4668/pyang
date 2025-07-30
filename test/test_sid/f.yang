@@ -1,0 +1,6 @@
+module f {
+  namespace "urn:example:f";
+  prefix f;
+
+  revision 2025-07-25;
+}

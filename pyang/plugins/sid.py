@@ -324,6 +324,7 @@ class SidFile:
 
         self.set_module_information()
         self.collect_module_items(module)
+        self.build_dependencies(module)
 
         if self.range == 'count':
             number_of_unassigned_yang_items = self.number_of_unassigned_yang_items()
@@ -698,6 +699,68 @@ class SidFile:
              ('status', 'unstable'),
              ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
+
+    ########################################################
+    # Create list of dependent module with optional revision
+    def build_dependencies(self, module):
+        imports = module.search('import')
+
+        if 'dependency-revision' not in self.content and len(imports) > 0:
+            self.content['dependency-revision'] = []
+
+        for import_stmt in imports:
+            dep = collections.OrderedDict()
+            module_name = import_stmt.arg
+            dep['module-name'] = module_name
+            rev_stmt = import_stmt.search_one('revision-date')
+            revision = rev_stmt.arg if rev_stmt is not None else None
+            if revision is None:
+                entries = list(filter(
+                    lambda name_rev: name_rev[0] == module_name,
+                    module.i_ctx.modules))
+
+                if len(entries) == 1 and entries[0][1] == 'unknown':
+                    pass
+                else:
+                    latest = ''
+                    for ent in entries:
+                        if ent[1] == 'unknown':
+                            continue
+                        if ent[1] > latest:
+                            latest = ent[1]
+
+                    if latest == '':
+                        # We could not have 2 or more modules with same named
+                        # and no revision
+                        raise SidFileError('unreachable')
+                    ##assert re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', latest)
+
+                    revision = latest
+                    print(f"WARNING: Module '{module_name}' imported " +
+                        f"without revision, using latest revision {latest}")
+
+            if revision is None and module_name in module.i_ctx.revs:
+                latest = ''
+                for r in module.i_ctx.revs[module_name]:
+                    if r[0] == 'unknown':
+                        continue
+                    if r[0] > latest:
+                        latest = r[0]
+
+                if latest == '':
+                    raise Exception
+
+                revision = latest
+                print(f"WARNING: Module '{module_name}' imported without " +
+                    f"revision, using latest revision {latest}")
+
+            if revision is None:
+                raise SidFileError(f"Missing revision for module " +
+                    f"'{module_name}' for mandatory sid-file field " +
+                    "'ietf-sid-file:sid-file/dependency-revision/module-revision'.")
+
+            dep['module-revision'] = revision
+            self.content['dependency-revision'].append(dep)
 
     ########################################################
     # Sort the items list by 'namespace' and 'identifier'
