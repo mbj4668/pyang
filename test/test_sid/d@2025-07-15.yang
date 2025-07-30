@@ -1,0 +1,6 @@
+module d {
+  namespace "urn:example:d";
+  prefix d;
+
+  revision 2025-07-15;
+}

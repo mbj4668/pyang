@@ -1,0 +1,24 @@
+{
+  "assignment-ranges": [
+    {
+      "entry-point": 270,
+      "size": 10
+    }
+  ],
+  "module-name": "e",
+  "module-revision": "unknown",
+  "items": [
+    {
+      "namespace": "module",
+      "identifier": "e",
+      "status": "unstable",
+      "sid": 270
+    }
+  ],
+  "dependency-revision": [
+    {
+      "module-name": "d",
+      "module-revision": "2025-07-15"
+    }
+  ]
+}

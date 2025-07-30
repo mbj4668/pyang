@@ -1,0 +1,6 @@
+module h {
+  namespace "urn:example:h";
+  prefix h;
+
+  revision 2025-07-15;
+}
