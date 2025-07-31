@@ -1,5 +1,5 @@
 {
-  "assignment-ranges": [
+  "assignment-range": [
     {
       "entry-point": 300,
       "size": 10
@@ -7,7 +7,7 @@
   ],
   "module-name": "k",
   "module-revision": "unknown",
-  "items": [
+  "item": [
     {
       "namespace": "module",
       "identifier": "k",
