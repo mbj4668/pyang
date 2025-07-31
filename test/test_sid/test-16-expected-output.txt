@@ -1,1 +1,1 @@
-ERROR in 'test16-bad-toaster@2009-11-20.sid', Expecting ':' delimiter: line 12 column 20 (char 190)
+ERROR in 'test16-bad-toaster@2009-11-20.sid', Expecting ':' delimiter: line 13 column 22 (char 246)
