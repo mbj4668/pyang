@@ -2,10 +2,10 @@ PYANG?= pyang
 
 .PHONY: test test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 test23 \
-	test25 test26 test27 test28 test29 test30
+	test24 test25 test26 test27 test28 test29 test30
 test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 \
-	test23 test25 test26 test27 test28 test29 test30
+	test23 test24 test25 test26 test27 test28 test29 test30
 
 test1:
 	# Test help
@@ -124,6 +124,14 @@ test23:
 	$(PYANG) --sid-generate-file 61000:10 ${EXAMPLE_MOD_AUG} -p ../test_structure 2>&1 | diff -b test-23-expected-output.txt -
 	diff -b example-module-aug.sid test-23-expected-example-module-aug.sid
 	rm example-module-aug.sid
+
+IETF_SYSTEM=../../modules/ietf/ietf-system.yang
+
+test24:
+	# Test ietf-system example from RFC 9595
+	$(PYANG) --sid-generate-file 1700:100 ${IETF_SYSTEM} --sid-finalize 2>&1 | diff -b test-24-expected-output.txt -
+	diff -b ietf-system@2014-08-06.sid test-24-expected-ietf-system@2014-08-06.sid
+	rm ietf-system@2014-08-06.sid
 
 test25: a.yang test-25-expected-output.txt test-25-a.sid
 	# Test trivial depend
