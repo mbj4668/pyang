@@ -1,4 +1,4 @@
 
-File c@unknown.sid created
+File c.sid created
 Number of SIDs available : 10
 Number of SIDs used : 1
