@@ -1,5 +1,5 @@
 {
-  "assignment-ranges": [
+  "assignment-range": [
     {
       "entry-point": 2500,
       "size": 50
@@ -7,7 +7,7 @@
   ],
   "module-name": "ietf-constrained-voucher",
   "module-revision": "2019-08-01",
-  "items": [
+  "item": [
     {
       "namespace": "module",
       "identifier": "ietf-constrained-voucher",

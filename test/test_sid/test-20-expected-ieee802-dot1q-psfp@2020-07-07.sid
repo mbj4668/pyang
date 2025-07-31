@@ -1,5 +1,5 @@
 {
-  "assignment-ranges": [
+  "assignment-range": [
     {
       "entry-point": 60000,
       "size": 100
@@ -7,7 +7,7 @@
   ],
   "module-name": "ieee802-dot1q-psfp",
   "module-revision": "2020-07-07",
-  "items": [
+  "item": [
     {
       "namespace": "module",
       "identifier": "ieee802-dot1q-psfp",
