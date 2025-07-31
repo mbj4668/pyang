@@ -1,24 +1,26 @@
 {
-  "assignment-range": [
-    {
-      "entry-point": 270,
-      "size": 10
-    }
-  ],
-  "module-name": "e",
-  "module-revision": "unknown",
-  "item": [
-    {
-      "namespace": "module",
-      "identifier": "e",
-      "status": "unstable",
-      "sid": 270
-    }
-  ],
-  "dependency-revision": [
-    {
-      "module-name": "d",
-      "module-revision": "2025-07-15"
-    }
-  ]
+  "ietf-sid-file:sid-file": {
+    "module-name": "e",
+    "sid-file-status": "unpublished",
+    "dependency-revision": [
+      {
+        "module-name": "d",
+        "module-revision": "2025-07-15"
+      }
+    ],
+    "assignment-range": [
+      {
+        "entry-point": "270",
+        "size": "10"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "e",
+        "status": "unstable",
+        "sid": "270"
+      }
+    ]
+  }
 }

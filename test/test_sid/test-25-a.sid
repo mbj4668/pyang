@@ -1,18 +1,20 @@
 {
-  "assignment-range": [
-    {
-      "entry-point": 250,
-      "size": 10
-    }
-  ],
-  "module-name": "a",
-  "module-revision": "unknown",
-  "item": [
-    {
-      "namespace": "module",
-      "identifier": "a",
-      "status": "unstable",
-      "sid": 250
-    }
-  ]
+  "ietf-sid-file:sid-file": {
+    "module-name": "a",
+    "sid-file-status": "unpublished",
+    "assignment-range": [
+      {
+        "entry-point": "250",
+        "size": "10"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "a",
+        "status": "unstable",
+        "sid": "250"
+      }
+    ]
+  }
 }
