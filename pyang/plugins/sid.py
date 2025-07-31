@@ -300,7 +300,10 @@ class SidFile:
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
         self.module_revision = util.get_latest_revision(module)
-        self.output_file_name = '%s@%s.sid' % (self.module_name, self.module_revision)
+        if self.module_revision != 'unknown':
+            self.output_file_name = f"{self.module_name}@{self.module_revision}.sid"
+        else:
+            self.output_file_name = f"{self.module_name}.sid"
 
         if self.range is not None:
             if self.range == 'count':

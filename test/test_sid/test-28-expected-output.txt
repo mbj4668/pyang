@@ -1,5 +1,5 @@
 WARNING: Module 'f' imported without revision, using latest revision 2025-07-25
 
-File g@unknown.sid created
+File g.sid created
 Number of SIDs available : 10
 Number of SIDs used : 1

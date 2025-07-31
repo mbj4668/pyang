@@ -122,32 +122,32 @@ test22:
 test23:
 	# Test ietf-yang-structure-ext augment-structure sid assignment
 	$(PYANG) --sid-generate-file 61000:10 ${EXAMPLE_MOD_AUG} -p ../test_structure 2>&1 | diff -b test-23-expected-output.txt -
-	diff -b example-module-aug@unknown.sid test-23-expected-example-module-aug@unknown.sid
-	rm example-module-aug@unknown.sid
+	diff -b example-module-aug.sid test-23-expected-example-module-aug.sid
+	rm example-module-aug.sid
 
 test25: a.yang test-25-expected-output.txt test-25-a.sid
 	# Test trivial depend
 	$(PYANG) --sid-generate-file 250:10 a.yang 2>&1 | diff -b test-25-expected-output.txt -
-	diff -b a@unknown.sid test-25-a.sid
-	rm a@unknown.sid
+	diff -b a.sid test-25-a.sid
+	rm a.sid
 
 test26: b@2025-07-20.yang c.yang test-26-expected-output.txt test-26-c.sid
 	# Test explicit import depend
 	$(PYANG) --sid-generate-file 260:10 c.yang 2>&1 | diff -b test-26-expected-output.txt -
-	diff -b c@unknown.sid test-26-c.sid
-	rm c@unknown.sid
+	diff -b c.sid test-26-c.sid
+	rm c.sid
 
 test27: d@2025-07-15.yang e.yang test-27-expected-output.txt test-27-e.sid
 	# Test unique module version
 	$(PYANG) --sid-generate-file 270:10 e.yang 2>&1 | diff -b test-27-expected-output.txt -
-	diff -b e@unknown.sid test-27-e.sid
-	rm e@unknown.sid
+	diff -b e.sid test-27-e.sid
+	rm e.sid
 
 test28: f.yang g.yang test-28-expected-output.txt test-28-g.sid
 	# Test module with revision inside
 	$(PYANG) --sid-generate-file 280:10 g.yang 2>&1 | diff -b test-28-expected-output.txt -
-	diff -b g@unknown.sid test-28-g.sid
-	rm g@unknown.sid
+	diff -b g.sid test-28-g.sid
+	rm g.sid
 
 test29: h@2025-07-15.yang h@2025-07-20.yang i@2025-07-25.yang test-29-i.sid
 	# Test revision use latest
@@ -158,8 +158,8 @@ test29: h@2025-07-15.yang h@2025-07-20.yang i@2025-07-25.yang test-29-i.sid
 test30: j.yang j@2025-07-15.yang k.yang test-30-expected-output.txt
 	# Test with and without revision
 	$(PYANG) --sid-generate-file 300:10 k.yang 2>&1 | diff -b test-30-expected-output.txt -
-	diff -b k@unknown.sid test-30-k.sid
-	rm k@unknown.sid
+	diff -b k.sid test-30-k.sid
+	rm k.sid
 
 test31: l@2025-07-20.yang m.yang test-31-expected-output.txt
 	# Test nonexistent revision
