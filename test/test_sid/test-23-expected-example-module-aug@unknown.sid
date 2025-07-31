@@ -1,5 +1,5 @@
 {
-  "assignment-ranges": [
+  "assignment-range": [
     {
       "entry-point": 61000,
       "size": 10
@@ -7,7 +7,7 @@
   ],
   "module-name": "example-module-aug",
   "module-revision": "unknown",
-  "items": [
+  "item": [
     {
       "namespace": "module",
       "identifier": "example-module-aug",
