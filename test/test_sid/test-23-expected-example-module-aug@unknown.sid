@@ -1,40 +1,42 @@
 {
-  "assignment-range": [
-    {
-      "entry-point": 61000,
-      "size": 10
-    }
-  ],
-  "module-name": "example-module-aug",
-  "module-revision": "unknown",
-  "item": [
-    {
-      "namespace": "module",
-      "identifier": "example-module-aug",
-      "status": "unstable",
-      "sid": 61000
-    },
-    {
-      "namespace": "data",
-      "identifier": "/example-module:address-book/address/example-module-aug:county",
-      "status": "unstable",
-      "sid": 61001
-    },
-    {
-      "namespace": "data",
-      "identifier": "/example-module:address-book/address/example-module-aug:zipcode",
-      "status": "unstable",
-      "sid": 61002
-    }
-  ],
-  "dependency-revision": [
-    {
-      "module-name": "ietf-yang-structure-ext",
-      "module-revision": "2020-06-17"
-    },
-    {
-      "module-name": "example-module",
-      "module-revision": "2020-06-17"
-    }
-  ]
+  "ietf-sid-file:sid-file": {
+    "module-name": "example-module-aug",
+    "sid-file-status": "unpublished",
+    "dependency-revision": [
+      {
+        "module-name": "ietf-yang-structure-ext",
+        "module-revision": "2020-06-17"
+      },
+      {
+        "module-name": "example-module",
+        "module-revision": "2020-06-17"
+      }
+    ],
+    "assignment-range": [
+      {
+        "entry-point": "61000",
+        "size": "10"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "example-module-aug",
+        "status": "unstable",
+        "sid": "61000"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/example-module:address-book/address/example-module-aug:county",
+        "status": "unstable",
+        "sid": "61001"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/example-module:address-book/address/example-module-aug:zipcode",
+        "status": "unstable",
+        "sid": "61002"
+      }
+    ]
+  }
 }

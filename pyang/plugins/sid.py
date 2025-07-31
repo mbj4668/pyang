@@ -2,7 +2,8 @@
 
 Plugin used to generate or update .sid files.
 Please refer to RFC 9595: YANG Schema Item iDentifier, [I-D.ietf-core-comi], [I-D.ietf-core-yang-cbor]
-and [I-D.ietf-core-yang-library] for more information.
+and [I-D.ietf-core-yang-library] and RFC 7951: JSON Encoding of Data Modeled with YANG,
+for more information.
 
 """
 
@@ -13,6 +14,7 @@ import re
 import os
 import errno
 import json
+import copy
 from json import JSONDecodeError
 
 
@@ -275,6 +277,9 @@ class SidParsingError(Exception):
 
 ############################################################
 class SidFile:
+    IETF_SID_FILE = 'ietf-sid-file:sid-file'
+    SID_FILE_STATUSES = ('published', 'unpublished')
+
     def __init__(self):
         self.sid_file_created = False
         self.is_consistent = True
@@ -287,7 +292,7 @@ class SidFile:
         self.extra_range = None
         self.count = False
         self.node_highest = 0
-        self.content = collections.OrderedDict()
+        self.content = {}
         self.module_name = ''
         self.module_revision = ''
         self.output_file_name = ''
@@ -308,7 +313,14 @@ class SidFile:
                 raise SidParsingError("File '%s' is not a .sid file" % self.input_file_name)
 
             with open(self.input_file_name) as f:
-                self.content = json.load(f, object_pairs_hook=collections.OrderedDict)
+                cont = json.load(f)
+
+            sid_cont = cont.get(self.IETF_SID_FILE, None)
+            if sid_cont is None or len(cont) != 1:
+                raise SidFileError("File %s is not a valid .sid file" % self.input_file_name)
+
+            self.content = SidFile.str_to_uint64(sid_cont)
+
             # Upgrades can be removed after a reasonable transition period.
             self.upgrade_sid_file_format()
             self.validate_key_and_value()
@@ -434,6 +446,21 @@ class SidFile:
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
+
+            elif key == 'sid-file-version':
+                if not isinstance(self.content[key], int):
+                    raise SidFileError("key 'sid-file-version', invalid value.")
+
+                if self.content[key] < 0 or self.content[key] >= 2**32:
+                    raise SidFileError("key 'sid-file-version out of valid range (uint32)")
+
+            elif key == 'sid-file-status':
+                if self.content[key] not in self.SID_FILE_STATUSES:
+                    raise SidFileError("key 'sid-file-status' has invalid enum value")
+
+            elif key == 'description':
+                if not isinstance(self.content[key], str):
+                    raise SidFileError("key 'description', invalid value.")
 
             else:
                 raise SidFileError("invalid field '%s'." % key)
@@ -867,19 +894,50 @@ class SidFile:
         for item in self.content['item']:
             del item['lifecycle']
 
-        myorderedstuff = self.content.copy()
-        myorderedstuff['item'].sort(key=lambda item: item['sid'])
+        # Ordered sid file content (data inside 'ietf-sid-file:sid-file' dictionary)
+        sid_cont = collections.OrderedDict()
+        sid_cont['module-name'] = self.content['module-name']
+        if self.content['module-revision'] != 'unknown':
+            sid_cont['module-revision'] = self.content['module-revision']
+        # TODO sid-file-version
+        if not self.finalize_sid:
+            sid_cont['sid-file-status'] = 'unpublished'
+        descr = self.content.get('description', None)
+        if descr:
+            sid_cont['description'] = descr
+        dep_revision = self.content.get('dependency-revision', [])
+        if dep_revision:
+            sid_cont['dependency-revision'] = dep_revision
+        ranges = self.content.get('assignment-range', [])
+        if ranges:
+            sid_cont['assignment-range'] = copy.deepcopy(ranges)
+            for range in sid_cont['assignment-range']:
+                # According to RFC 7951, uint64 values are represented
+                # as JSON strings for interoperability
+                range['entry-point'] = str(range['entry-point'])
+                range['size'] = str(range['size'])
 
-        if self.finalize_sid:
+        items = self.content.get('item', [])
+        if items:
+            sid_cont['item'] = copy.deepcopy(items)
+            sid_cont['item'].sort(key=lambda item: item['sid'])
+
+            for item in sid_cont['item']:
+                # According to RFC 7951, uint64 values are represented
+                # as JSON strings for interoperability
+                item['sid'] = str(item['sid'])
+
+        if self.finalize_sid and items:
             print("Finalizing unstable allocations to %s" % (self.module_revision))
-            for item in myorderedstuff['item']:
+            for item in sid_cont['item']:
                 if item['status'] == 'unstable':
                     print("  finalized %s" % (item['identifier']))
+                    # TODO
                     item['status'] = self.module_revision
 
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
-            json.dump(myorderedstuff, outfile, indent=2)
+            json.dump({self.IETF_SID_FILE: sid_cont}, outfile, indent=2)
 
     ########################################################
     def number_of_sids_allocated(self):
@@ -956,3 +1014,23 @@ class SidFile:
             elif type_ in self.node_keywords:
                 item['namespace'] = 'data'
                 item['identifier'] = '/' + self.module_name + ':' + label[1:]
+
+    @staticmethod
+    def str_to_uint64(sid_cont: dict) -> dict:
+        ranges = sid_cont.get('assignment-range', [])
+        for range in ranges:
+            if 'entry-point' not in range:
+                raise SidFileError("mandatory key 'entry-point' not present")
+            if 'size' not in range:
+                raise SidFileError("mandatory field 'size' not present")
+
+            range['entry-point'] = int(range['entry-point'])
+            range['size'] = int(range['size'])
+
+        items = sid_cont.get('item', [])
+        for item in items:
+            if 'sid' not in item:
+                raise SidFileError("mandatory field 'sid' not present")
+            item['sid'] = int(item['sid'])
+
+        return sid_cont
