@@ -194,8 +194,7 @@
       },
       {
         "namespace": "data",
-        "identifier": "/ietf-system:system/authentication/user/
-                                                  authorized-key",
+        "identifier": "/ietf-system:system/authentication/user/authorized-key",
         "sid": "1732"
       },
       {

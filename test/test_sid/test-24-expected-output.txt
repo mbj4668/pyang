@@ -1,4 +1,8 @@
 Will mark unstable allocations finalized
+WARNING: Module 'ietf-yang-types' imported without revision, using latest revision 2013-07-15
+WARNING: Module 'ietf-inet-types' imported without revision, using latest revision 2013-07-15
+WARNING: Module 'ietf-netconf-acm' imported without revision, using latest revision 2018-02-14
+WARNING: Module 'iana-crypt-hash' imported without revision, using latest revision 2014-08-06
 Finalizing unstable allocations to 2014-08-06
   finalized ietf-system
   finalized authentication-method
