@@ -1,5 +1,5 @@
 
 Number of SIDs allocated to this module: 25
-Number of SIDs required by this version: 34
+Number of SIDs required by this version: 38
 
-An extra range of at least 9 SIDs is required to perform this update.
+An extra range of at least 13 SIDs is required to perform this update.

@@ -637,6 +637,9 @@ class SidFile:
                 self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
+                        # RFC 9595, Appendix B requires us to create SID for all
+                        # rpc input and output schema nodes (needed if augmented)
+                        self.merge_item('data', self.get_path(substmt))
                         self.collect_inner_data_nodes(substmt.i_children)
 
             elif statement.keyword == 'notification':
@@ -668,6 +671,9 @@ class SidFile:
                 self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
+                        # RFC 9595, Appendix B requires us to create SID for all
+                        # action input and output schema node (needed if augmented)
+                        self.merge_item('data', self.get_path(substmt))
                         self.collect_inner_data_nodes(substmt.i_children, prefix)
 
             elif statement.keyword == 'notification':

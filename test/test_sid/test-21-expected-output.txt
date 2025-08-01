@@ -9,9 +9,13 @@ Finalizing unstable allocations to 2009-12-28
   finalized white-bread
   finalized wonder-bread
   finalized /toaster:cancel-toast
+  finalized /toaster:cancel-toast/input
+  finalized /toaster:cancel-toast/output
   finalized /toaster:make-toast
+  finalized /toaster:make-toast/input
   finalized /toaster:make-toast/input/toasterDoneness
   finalized /toaster:make-toast/input/toasterToastType
+  finalized /toaster:make-toast/output
   finalized /toaster:toastDone
   finalized /toaster:toastDone/toastStatus
   finalized /toaster:toaster
@@ -23,4 +27,4 @@ Finalizing unstable allocations to 2009-12-28
 
 File toaster@2009-12-28.sid updated
 Number of SIDs available : 25
-Number of SIDs used : 20
+Number of SIDs used : 24

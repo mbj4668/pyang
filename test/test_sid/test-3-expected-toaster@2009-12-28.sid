@@ -67,69 +67,93 @@
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast",
+        "identifier": "/toaster:cancel-toast/input",
         "status": "unstable",
         "sid": "20009"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast/input/toasterDoneness",
+        "identifier": "/toaster:cancel-toast/output",
         "status": "unstable",
         "sid": "20010"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast/input/toasterToastType",
+        "identifier": "/toaster:make-toast",
         "status": "unstable",
         "sid": "20011"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toastDone",
+        "identifier": "/toaster:make-toast/input",
         "status": "unstable",
         "sid": "20012"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toastDone/toastStatus",
+        "identifier": "/toaster:make-toast/input/toasterDoneness",
         "status": "unstable",
         "sid": "20013"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster",
+        "identifier": "/toaster:make-toast/input/toasterToastType",
         "status": "unstable",
         "sid": "20014"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterManufacturer",
+        "identifier": "/toaster:make-toast/output",
         "status": "unstable",
         "sid": "20015"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterModelNumber",
+        "identifier": "/toaster:toastDone",
         "status": "unstable",
         "sid": "20016"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterStatus",
+        "identifier": "/toaster:toastDone/toastStatus",
         "status": "unstable",
         "sid": "20017"
       },
       {
-        "namespace": "identity",
-        "identifier": "croissant",
+        "namespace": "data",
+        "identifier": "/toaster:toaster",
         "status": "unstable",
         "sid": "20018"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/darknessFactor",
+        "identifier": "/toaster:toaster/toasterManufacturer",
         "status": "unstable",
         "sid": "20019"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/toaster:toaster/toasterModelNumber",
+        "status": "unstable",
+        "sid": "20020"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/toaster:toaster/toasterStatus",
+        "status": "unstable",
+        "sid": "20021"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "croissant",
+        "status": "unstable",
+        "sid": "20022"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/toaster:toaster/darknessFactor",
+        "status": "unstable",
+        "sid": "20023"
       }
     ]
   }
