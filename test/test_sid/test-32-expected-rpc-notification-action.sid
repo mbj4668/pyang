@@ -1,0 +1,303 @@
+{
+  "ietf-sid-file:sid-file": {
+    "module-name": "rpc-notification-action",
+    "assignment-range": [
+      {
+        "entry-point": "60000",
+        "size": "100"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "rpc-notification-action",
+        "sid": "60000"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:compare-and-swap-hostname",
+        "sid": "60001"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:compare-and-swap-hostname/input",
+        "sid": "60002"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:compare-and-swap-hostname/input/hostname",
+        "sid": "60003"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:compare-and-swap-hostname/output",
+        "sid": "60004"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:compare-and-swap-hostname/output/hostname",
+        "sid": "60005"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:get-hostname",
+        "sid": "60006"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:get-hostname/input",
+        "sid": "60007"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:get-hostname/output",
+        "sid": "60008"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:get-hostname/output/hostname",
+        "sid": "60009"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:hostname-changed",
+        "sid": "60010"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:hostname-changed/hostname",
+        "sid": "60011"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:restart-system",
+        "sid": "60012"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:restart-system/input",
+        "sid": "60013"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:restart-system/output",
+        "sid": "60014"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:set-hostname",
+        "sid": "60015"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:set-hostname/input",
+        "sid": "60016"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:set-hostname/input/hostname",
+        "sid": "60017"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:set-hostname/output",
+        "sid": "60018"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system",
+        "sid": "60019"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system-shutdown",
+        "sid": "60020"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/hostname",
+        "sid": "60021"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface",
+        "sid": "60022"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/address",
+        "sid": "60023"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address",
+        "sid": "60024"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address/input",
+        "sid": "60025"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address/input/index",
+        "sid": "60026"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address/input/new-address",
+        "sid": "60027"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address/input/old-address",
+        "sid": "60028"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address/output",
+        "sid": "60029"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/cas-address/output/result-address",
+        "sid": "60030"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/change-name",
+        "sid": "60031"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/change-name/input",
+        "sid": "60032"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/change-name/input/new-name",
+        "sid": "60033"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/change-name/input/old-name",
+        "sid": "60034"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/change-name/output",
+        "sid": "60035"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/disable-all-interfaces",
+        "sid": "60036"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/disable-all-interfaces/input",
+        "sid": "60037"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/disable-all-interfaces/output",
+        "sid": "60038"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface",
+        "sid": "60039"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface/input",
+        "sid": "60040"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface/output",
+        "sid": "60041"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/address",
+        "sid": "60042"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/index",
+        "sid": "60043"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/name",
+        "sid": "60044"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/status",
+        "sid": "60045"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/index",
+        "sid": "60046"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/interfaces-change",
+        "sid": "60047"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/name",
+        "sid": "60048"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/new-interface",
+        "sid": "60049"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/new-interface/address",
+        "sid": "60050"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/new-interface/index",
+        "sid": "60051"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/new-interface/name",
+        "sid": "60052"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/new-interface/status",
+        "sid": "60053"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/new-interface/time-of-change",
+        "sid": "60054"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/interface/status",
+        "sid": "60055"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/simple-notification",
+        "sid": "60056"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/rpc-notification-action:system/simple-notification/description",
+        "sid": "60057"
+      }
+    ]
+  }
+}

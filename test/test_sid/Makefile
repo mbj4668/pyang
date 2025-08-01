@@ -2,10 +2,10 @@ PYANG?= pyang
 
 .PHONY: test test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 test23 \
-	test25 test26 test27 test28 test29 test30 test31
+	test25 test26 test27 test28 test29 test30 test31 test32
 test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 \
-	test23 test25 test26 test27 test28 test29 test30 test31
+	test23 test25 test26 test27 test28 test29 test30 test31 test32
 
 test1:
 	# Test help
@@ -113,21 +113,23 @@ test21:
 EXAMPLE_MOD=../test_structure/example-module@2020-06-17.yang
 EXAMPLE_MOD_AUG=../test_structure/example-module-aug.yang
 
-test22:
+test22: ${EXAMPLE_MOD} test-22-expected-output.txt test-22-expected-example-module@2020-06-17.sid
 	# Test ietf-yang-structure-ext structure sid assignment
 	$(PYANG) --sid-list --sid-generate-file 60000:20 ${EXAMPLE_MOD} 2>&1 | diff -b test-22-expected-output.txt -
 	diff -b example-module@2020-06-17.sid test-22-expected-example-module@2020-06-17.sid
 	rm example-module@2020-06-17.sid
 
-test23:
+test23: ${EXAMPLE_MOD_AUG} test-23-expected-output.txt test-23-expected-example-module-aug.sid
 	# Test ietf-yang-structure-ext augment-structure sid assignment
 	$(PYANG) --sid-generate-file 61000:10 ${EXAMPLE_MOD_AUG} -p ../test_structure 2>&1 | diff -b test-23-expected-output.txt -
 	diff -b example-module-aug.sid test-23-expected-example-module-aug.sid
 	rm example-module-aug.sid
 
+## The RFC is not clear, an errata discussion is ongoing
+## Don't forget to add me back to 'test' rule
 IETF_SYSTEM=../../modules/ietf/ietf-system.yang
 
-test24:
+test24: ${IETF_SYSTEM} test-24-expected-output.txt test-24-expected-ietf-system@2014-08-06.sid
 	# Test ietf-system example from RFC 9595
 	$(PYANG) --sid-generate-file 1700:100 ${IETF_SYSTEM} --sid-finalize 2>&1 | diff -b test-24-expected-output.txt -
 	diff -b ietf-system@2014-08-06.sid test-24-expected-ietf-system@2014-08-06.sid
@@ -163,7 +165,7 @@ test29: h@2025-07-15.yang h@2025-07-20.yang i@2025-07-25.yang test-29-i.sid
 	diff -b i@2025-07-25.sid test-29-i.sid
 	rm i@2025-07-25.sid
 
-test30: j.yang j@2025-07-15.yang k.yang test-30-expected-output.txt
+test30: j.yang j@2025-07-15.yang k.yang test-30-expected-output.txt test-30-k.sid
 	# Test with and without revision
 	$(PYANG) --sid-generate-file 300:10 k.yang 2>&1 | diff -b test-30-expected-output.txt -
 	diff -b k.sid test-30-k.sid
@@ -173,3 +175,7 @@ test31: l@2025-07-20.yang m.yang test-31-expected-output.txt
 	# Test nonexistent revision
 	$(PYANG) --sid-generate-file 310:10 m.yang 2>&1 | diff -b test-31-expected-output.txt -
 
+test32: rpc-notification-action.yang test-32-expected-rpc-notification-action.sid
+	$(PYANG) --sid-generate-file 60000:100 rpc-notification-action.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b rpc-notification-action.sid test-32-expected-rpc-notification-action.sid
+	rm rpc-notification-action.sid

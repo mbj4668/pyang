@@ -1,0 +1,3 @@
+Invalid YANG module
+m.yang:5: error: module "l" revision "2020-07-25" not found in search path
+m.yang:5: warning: imported module "l" not used
