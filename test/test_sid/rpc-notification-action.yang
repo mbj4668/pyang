@@ -1,0 +1,149 @@
+module rpc-notification-action {
+  yang-version 1.1;
+  namespace "urn:example:rna";
+  prefix rna;
+
+  rpc restart-system;
+  rpc set-hostname {
+    input {
+      leaf hostname {
+        type string;
+      }
+    }
+  }
+  rpc get-hostname {
+    output {
+      leaf hostname {
+        type string;
+      }
+    }
+  }
+  rpc compare-and-swap-hostname {
+    input {
+      leaf hostname {
+        type string;
+      }
+    }
+    output {
+      leaf hostname {
+        type string;
+      }
+    }
+  }
+  notification system-shutdown;
+  notification hostname-changed {
+    leaf hostname {
+      type string;
+    }
+  }
+
+  container system {
+    leaf hostname {
+      type string;
+    }
+
+    notification simple-notification {
+      leaf description {
+        type string;
+      }
+    }
+
+    list interface {
+      key index;
+
+      leaf index {
+        type uint32;
+      }
+
+      leaf name {
+        type string;
+      }
+
+      leaf-list address {
+        type string;
+      }
+
+      leaf status {
+        type enumeration {
+          enum down;
+          enum up;
+        }
+      }
+
+      action disable-all-interfaces;
+      action change-name {
+        input {
+          leaf old-name {
+            type string;
+          }
+          leaf new-name {
+            type string;
+          }
+        }
+      }
+      action get-first-interface {
+        output {
+          leaf index {
+            type uint32;
+          }
+          leaf name {
+            type string;
+          }
+          leaf-list address {
+            type string;
+          }
+          leaf status {
+            type enumeration {
+              enum down;
+              enum up;
+            }
+          }
+        }
+      }
+      action cas-address {
+        input {
+          leaf index {
+            type uint32;
+          }
+          leaf old-address {
+            type string;
+          }
+          leaf new-address {
+            type string;
+          }
+        }
+        output {
+          leaf result-address {
+            type string;
+          }
+        }
+      }
+
+      notification interfaces-change;
+      notification new-interface {
+        leaf index {
+          type uint32;
+        }
+
+        leaf name {
+          type string;
+        }
+
+        leaf-list address {
+          type string;
+        }
+
+        leaf status {
+          type enumeration {
+            enum down;
+            enum up;
+          }
+        }
+
+        leaf time-of-change {
+          type string;
+        }
+      }
+    }
+  }
+}

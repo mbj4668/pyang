@@ -71,153 +71,177 @@
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast",
+        "identifier": "/toaster:cancel-toast/input",
         "status": "unstable",
         "sid": "20009"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast/input/toasterDoneness",
+        "identifier": "/toaster:cancel-toast/output",
         "status": "unstable",
         "sid": "20010"
-      },
+      }, 
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast/input/toasterToastType",
+        "identifier": "/toaster:make-toast",
         "status": "unstable",
         "sid": "20011"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toastDone",
+        "identifier": "/toaster:make-toast/input",
         "status": "unstable",
         "sid": "20012"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toastDone/toastStatus",
+        "identifier": "/toaster:make-toast/input/toasterDoneness",
         "status": "unstable",
         "sid": "20013"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster",
+        "identifier": "/toaster:make-toast/input/toasterToastType",
         "status": "unstable",
         "sid": "20014"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterManufacturer",
+        "identifier": "/toaster:make-toast/output",
         "status": "unstable",
         "sid": "20015"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterModelNumber",
+        "identifier": "/toaster:toastDone",
         "status": "unstable",
         "sid": "20016"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterStatus",
+        "identifier": "/toaster:toastDone/toastStatus",
         "status": "unstable",
         "sid": "20017"
       },
       {
-        "namespace": "identity",
-        "identifier": "croissant",
+        "namespace": "data",
+        "identifier": "/toaster:toaster",
         "status": "unstable",
         "sid": "20018"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/darknessFactor",
+        "identifier": "/toaster:toaster/toasterManufacturer",
         "status": "unstable",
         "sid": "20019"
       },
       {
-        "namespace": "identity",
-        "identifier": "aish-merahrah",
+        "namespace": "data",
+        "identifier": "/toaster:toaster/toasterModelNumber",
         "status": "unstable",
         "sid": "20020"
       },
       {
-        "namespace": "identity",
-        "identifier": "ajdov-kruh",
+        "namespace": "data",
+        "identifier": "/toaster:toaster/toasterStatus",
         "status": "unstable",
         "sid": "20021"
       },
       {
         "namespace": "identity",
-        "identifier": "anpan",
+        "identifier": "croissant",
         "status": "unstable",
         "sid": "20022"
       },
       {
-        "namespace": "identity",
-        "identifier": "appam",
+        "namespace": "data",
+        "identifier": "/toaster:toaster/darknessFactor",
         "status": "unstable",
         "sid": "20023"
       },
       {
         "namespace": "identity",
-        "identifier": "arepa",
+        "identifier": "aish-merahrah",
         "status": "unstable",
         "sid": "20024"
       },
       {
         "namespace": "identity",
-        "identifier": "baba",
+        "identifier": "ajdov-kruh",
         "status": "unstable",
         "sid": "20100"
       },
       {
         "namespace": "identity",
-        "identifier": "bagel",
+        "identifier": "anpan",
         "status": "unstable",
         "sid": "20101"
       },
       {
         "namespace": "identity",
-        "identifier": "baguette",
+        "identifier": "appam",
         "status": "unstable",
         "sid": "20102"
       },
       {
         "namespace": "identity",
-        "identifier": "bakarkhani",
+        "identifier": "arepa",
         "status": "unstable",
         "sid": "20103"
       },
       {
         "namespace": "identity",
-        "identifier": "bammy",
+        "identifier": "baba",
         "status": "unstable",
         "sid": "20104"
       },
       {
         "namespace": "identity",
-        "identifier": "banana-bread",
+        "identifier": "bagel",
         "status": "unstable",
         "sid": "20105"
       },
       {
         "namespace": "identity",
-        "identifier": "bannock",
+        "identifier": "baguette",
         "status": "unstable",
         "sid": "20106"
       },
       {
         "namespace": "identity",
-        "identifier": "bara-brith",
+        "identifier": "bakarkhani",
         "status": "unstable",
         "sid": "20107"
       },
       {
         "namespace": "identity",
-        "identifier": "brioche",
+        "identifier": "bammy",
         "status": "unstable",
         "sid": "20108"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "banana-bread",
+        "status": "unstable",
+        "sid": "20109"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "bannock",
+        "status": "unstable",
+        "sid": "20110"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "bara-brith",
+        "status": "unstable",
+        "sid": "20111"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "brioche",
+        "status": "unstable",
+        "sid": "20112"
       }
     ]
   }

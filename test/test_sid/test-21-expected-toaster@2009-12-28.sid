@@ -57,58 +57,78 @@
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast",
+        "identifier": "/toaster:cancel-toast/input",
         "sid": "20009"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast/input/toasterDoneness",
+        "identifier": "/toaster:cancel-toast/output",
         "sid": "20010"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:make-toast/input/toasterToastType",
+        "identifier": "/toaster:make-toast",
         "sid": "20011"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toastDone",
+        "identifier": "/toaster:make-toast/input",
         "sid": "20012"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toastDone/toastStatus",
+        "identifier": "/toaster:make-toast/input/toasterDoneness",
         "sid": "20013"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster",
+        "identifier": "/toaster:make-toast/input/toasterToastType",
         "sid": "20014"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterManufacturer",
+        "identifier": "/toaster:make-toast/output",
         "sid": "20015"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterModelNumber",
+        "identifier": "/toaster:toastDone",
         "sid": "20016"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/toasterStatus",
+        "identifier": "/toaster:toastDone/toastStatus",
         "sid": "20017"
       },
       {
-        "namespace": "identity",
-        "identifier": "croissant",
+        "namespace": "data",
+        "identifier": "/toaster:toaster",
         "sid": "20018"
       },
       {
         "namespace": "data",
-        "identifier": "/toaster:toaster/darknessFactor",
+        "identifier": "/toaster:toaster/toasterManufacturer",
         "sid": "20019"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/toaster:toaster/toasterModelNumber",
+        "sid": "20020"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/toaster:toaster/toasterStatus",
+        "sid": "20021"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "croissant",
+        "sid": "20022"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/toaster:toaster/darknessFactor",
+        "sid": "20023"
       }
     ]
   }

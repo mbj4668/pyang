@@ -20,6 +20,7 @@ Finalizing unstable allocations to 2014-08-06
   finalized radius-authentication
   finalized timezone-name
   finalized /ietf-system:set-current-datetime
+  finalized /ietf-system:set-current-datetime/input
   finalized /ietf-system:set-current-datetime/input/current-datetime
   finalized /ietf-system:system
   finalized /ietf-system:system-restart
@@ -82,4 +83,4 @@ Finalizing unstable allocations to 2014-08-06
 
 File ietf-system@2014-08-06.sid created
 Number of SIDs available : 100
-Number of SIDs used : 75
+Number of SIDs used : 76
