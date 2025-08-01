@@ -2,6 +2,7 @@
   "ietf-sid-file:sid-file": {
     "module-name": "toaster",
     "module-revision": "2019-01-01",
+    "sid-file-version": 2,
     "sid-file-status": "unpublished",
     "assignment-range": [
       {
