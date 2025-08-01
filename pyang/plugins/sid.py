@@ -428,29 +428,18 @@ class SidFile:
     ########################################################
     # Verify the tag and data type of each .sid file JSON object
     def validate_key_and_value(self):
-        assignment_ranges_absent = True
         module_name_absent = True
-        module_revision_absent = True
-        items_absent = True
 
         for key in self.content:
-            if key == 'assignment-range':
-                assignment_ranges_absent = False
-                if not isinstance(self.content[key], list):
-                    raise SidFileError("key 'assignment-range', invalid  value.")
-                self.validate_ranges(self.content[key])
-
-            elif key == 'module-name':
+            if key == 'module-name':
+                # Further validation will be done during searching the module
                 module_name_absent = False
 
             elif key == 'module-revision':
-                module_revision_absent = False
-
-            elif key == 'item':
-                items_absent = False
-                if not isinstance(self.content[key], list):
-                    raise SidFileError("key 'item', invalid value.")
-                self.validate_items(self.content[key])
+                if not isinstance(self.content[key], str):
+                    raise SidFileError("key 'module-revision', invalid value")
+                if not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", self.content[key]):
+                    raise SidFileError("key 'module-revision', invalid format")
 
             elif key == 'sid-file-version':
                 if not isinstance(self.content[key], int):
@@ -467,27 +456,49 @@ class SidFile:
                 if not isinstance(self.content[key], str):
                     raise SidFileError("key 'description', invalid value.")
 
+            elif key == 'dependency-revision':
+                if not isinstance(self.content[key], list):
+                    raise SidFileError("key 'dependency-revision',, invalid value")
+                self.validate_dep_revisions(self.content[key])
+
+            elif key == 'assignment-range':
+                if not isinstance(self.content[key], list):
+                    raise SidFileError("key 'assignment-range', invalid  value.")
+                self.validate_ranges(self.content[key])
+
+            elif key == 'item':
+                if not isinstance(self.content[key], list):
+                    raise SidFileError("key 'item', invalid value.")
+                self.validate_items(self.content[key])
+
             else:
                 raise SidFileError("invalid field '%s'." % key)
 
         if module_name_absent:
             raise SidFileError("mandatory field 'module-name' not present")
 
-        if module_revision_absent:
-            raise SidFileError("mandatory field 'module-revision' not present")
 
-        if assignment_ranges_absent:
-            raise SidFileError("mandatory field 'assignment-range' not present")
+    @staticmethod
+    def validate_dep_revisions(revisions):
+        for dep_rev in revisions:
+            mod_name = dep_rev.get('module-name', None)
+            if mod_name is None:
+                raise SidFileError("mandatory field 'module-name' of 'dependency-revision' not present")
 
-        if items_absent:
-            raise SidFileError("mandatory field 'item' not present")
+            mod_rev = dep_rev.get('module-revision', None)
+            if mod_rev is None:
+                raise SidFileError("mandatory field 'module-revision' of 'dependency-revision' not present")
+
+            if len(dep_rev) != 2:
+                raise SidFileError("unknown key in 'dependency-revision' list")
+
 
     @staticmethod
     def validate_ranges(ranges):
-        entry_point_absent = True
-        size_absent = True
-
         for arange in ranges:
+            entry_point_absent = True
+            size_absent = True
+
             for key in arange:
                 if key == 'entry-point':
                     entry_point_absent = False
@@ -502,25 +513,25 @@ class SidFile:
                 else:
                     raise SidFileError("invalid key '%s'." % key)
 
-        if entry_point_absent:
-            raise SidFileError("mandatory field 'entry-point' not present")
+            if entry_point_absent:
+                raise SidFileError("mandatory field 'entry-point' not present")
 
-        if size_absent:
-            raise SidFileError("mandatory field 'size' not present")
+            if size_absent:
+                raise SidFileError("mandatory field 'size' not present")
 
-    namespace_ends = ('module', 'identity', 'feature', 'data')
+    item_namespaces = ('module', 'identity', 'feature', 'data')
+    item_statuses = ('unstable', 'stable', 'obsolete')
 
     def validate_items(self, items):
-        namespace_absent = True
-        identifier_absent = True
-        sid_absent = True
-        status_absent = True
         for item in items:
+            namespace_absent = True
+            identifier_absent = True
+            sid_absent = True
+
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if not (isinstance(item[key], str)
-                            and item[key].endswith(self.namespace_ends)):
+                    if item[key] not in self.item_namespaces:
                         raise SidFileError("invalid 'namespace' value '%s'." % item[key])
 
                 elif key == 'identifier':
@@ -534,21 +545,20 @@ class SidFile:
                         raise SidFileError("invalid 'sid' value '%s'." % item[key])
 
                 elif key == 'status':
-                    status_absent = False
-                    if not isinstance(item[key], str):
-                        raise SidFileError("invalid 'sid' value '%s'." % item[key])
+                    if not item[key] in self.item_statuses:
+                        raise SidFileError("invalid 'status' value '%s'." % item[key])
 
                 else:
                     raise SidFileError("invalid key '%s'." % key)
 
-        if namespace_absent:
-            raise SidFileError("mandatory field 'namespace' not present")
+            if namespace_absent:
+                raise SidFileError("mandatory field 'namespace' not present")
 
-        if identifier_absent:
-            raise SidFileError("mandatory field 'identifier' not present")
+            if identifier_absent:
+                raise SidFileError("mandatory field 'identifier' not present")
 
-        if sid_absent:
-            raise SidFileError("mandatory field 'sid' not present")
+            if sid_absent:
+                raise SidFileError("mandatory field 'sid' not present")
 
     ########################################################
     # Verify if each range defined in the .sid file is distinct
