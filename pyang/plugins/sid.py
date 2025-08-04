@@ -1,8 +1,9 @@
 """sid plugin
 
 Plugin used to generate or update .sid files.
-Please refer to RFC 9595: YANG Schema Item iDentifier, [I-D.ietf-core-comi], [I-D.ietf-core-yang-cbor]
-and [I-D.ietf-core-yang-library] and RFC 7951: JSON Encoding of Data Modeled with YANG,
+Please refer to RFC 9595: YANG Schema Item iDentifier, [I-D.ietf-core-comi],
+[I-D.ietf-core-yang-cbor], [I-D.ietf-core-yang-library],
+and RFC 7951: JSON Encoding of Data Modeled with YANG,
 for more information.
 
 """
@@ -30,42 +31,45 @@ class SidPlugin(plugin.PyangPlugin):
     def add_opts(self, optparser):
         optlist = [
             optparse.make_option("--sid-help",
-                                 dest="sid_help",
-                                 action="store_true",
-                                 help="Print help on automatic SID generation"),
+                         dest="sid_help",
+                         action="store_true",
+                         help="Print help on automatic SID generation"),
             optparse.make_option("--sid-generate-file",
-                                 action="store",
-                                 type="string",
-                                 dest="generate_sid_file",
-                                 help="Generate a .sid file."),
+                         action="store",
+                         type="string",
+                         dest="generate_sid_file",
+                         help="Generate a .sid file."),
             optparse.make_option("--sid-update-file",
-                                 action="store",
-                                 type="string",
-                                 dest="update_sid_file",
-                                 help="Generate a .sid file based on a previous .sid file."),
+                         action="store",
+                         type="string",
+                         dest="update_sid_file",
+                         help="Generate a .sid file based on "
+                         "a previous .sid file."),
             optparse.make_option("--sid-check-file",
-                                 action="store",
-                                 type="string",
-                                 dest="check_sid_file",
-                                 help="Check the consistency between a .sid file "
-                                 "and the .yang file(s)."),
+                         action="store",
+                         type="string",
+                         dest="check_sid_file",
+                         help="Check the consistency between a .sid file "
+                         "and the .yang file(s)."),
             optparse.make_option("--sid-list",
-                                 action="store_true",
-                                 dest="list_sid",
-                                 help="Print the list of SID."),
+                         action="store_true",
+                         dest="list_sid",
+                         help="Print the list of SID."),
             optparse.make_option("--sid-finalize",
-                                 action="store_true",
-                                 dest="finalize_sid",
-                                 help="Mark current allocations as non-provisional."),
+                         action="store_true",
+                         dest="finalize_sid",
+                         help="Mark current allocations as non-provisional."),
             optparse.make_option("--sid-registration-info",
-                                 action="store_true",
-                                 dest="sid_registration_info",
-                                 help="Print the information required by the SID registry."),
+                         action="store_true",
+                         dest="sid_registration_info",
+                         help="Print the information required by "
+                         "the SID registry."),
             optparse.make_option("--sid-extra-range",
-                                 action="store",
-                                 type="string",
-                                 dest="extra_sid_range",
-                                 help="Add an extra SID range during a .sid file update."),
+                         action="store",
+                         type="string",
+                         dest="extra_sid_range",
+                         help="Add an extra SID range during "
+                         "a .sid file update."),
             ]
 
         g = optparser.add_option_group("SID file specific options")
@@ -90,7 +94,8 @@ class SidPlugin(plugin.PyangPlugin):
         if nbr_option_specified == 0:
             return
         if nbr_option_specified > 1:
-            sys.stderr.write("Invalid option, only one process on .sid file can be requested.\n")
+            sys.stderr.write("Invalid option, only one process " +
+                "on .sid file can be requested.\n")
             return
 
         fatal_error = False
@@ -120,14 +125,15 @@ class SidPlugin(plugin.PyangPlugin):
             sid_file.input_file_name = ctx.opts.check_sid_file
             sid_file.check_consistency = True
             if not sid_file.sid_registration_info:
-                print("Checking consistency of '%s'" % sid_file.input_file_name)
+                print("Checking consistency of '%s'"
+                      % sid_file.input_file_name)
 
         if ctx.opts.extra_sid_range is not None:
             if ctx.opts.update_sid_file is not None:
                 sid_file.extra_range = ctx.opts.extra_sid_range
             else:
-                sys.stderr.write(
-                    "An extra SID range can be specified only during a .sid file update.\n")
+                sys.stderr.write("An extra SID range can be specified " +
+                    "only during a .sid file update.\n")
                 return
 
         if ctx.opts.list_sid:
@@ -145,16 +151,20 @@ class SidPlugin(plugin.PyangPlugin):
         except SidParsingError as e:
             sys.stderr.write("ERROR, %s\n" % e)
         except SidFileError as e:
-            sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e))
+            sys.stderr.write("ERROR in '%s', %s\n" %
+                             (sid_file.input_file_name, e))
         except EnvironmentError as e:
             if e.errno == errno.ENOENT:
-                sys.stderr.write("ERROR, file '%s' not found\n" % e.filename)
+                sys.stderr.write("ERROR, file '%s' not found\n"
+                                 % e.filename)
             else:
                 sys.stderr.write("ERROR, in file '%s' " % e.filename)
         except JSONDecodeError as e:
-            sys.stderr.write("ERROR in '%s', %s\n" % (sid_file.input_file_name, e))
+            sys.stderr.write("ERROR in '%s', %s\n"
+                             % (sid_file.input_file_name, e))
         except ValueError as e:
-            sys.stderr.write("ERROR in '%s', invalid JSON content\n" % sid_file.input_file_name)
+            sys.stderr.write("ERROR in '%s', invalid JSON content\n"
+                             % sid_file.input_file_name)
         else:
             sys.exit(0)
         sys.exit(1)
@@ -242,7 +252,8 @@ OPTIONS
 
   Otherwise, any new allocations are marked "unstable"
 
-  $ pyang --sid-list --sid-generate-file 20000:100 --sid-finalize toaster@2009-11-20.yang
+  $ pyang --sid-list --sid-generate-file 20000:100 --sid-finalize toaster@2009-11-20.yang""" # noqa E501
++ """
 
 --sid-extra-range
 
@@ -303,7 +314,8 @@ class SidFile:
         self.module_name = module.i_modulename
         self.module_revision = util.get_latest_revision(module)
         if self.module_revision != 'unknown':
-            self.output_file_name = f"{self.module_name}@{self.module_revision}.sid"
+            self.output_file_name = \
+                    f"{self.module_name}@{self.module_revision}.sid"
         else:
             self.output_file_name = f"{self.module_name}.sid"
 
@@ -315,14 +327,16 @@ class SidFile:
 
         if self.input_file_name is not None:
             if not self.input_file_name.endswith(".sid"):
-                raise SidParsingError("File '%s' is not a .sid file" % self.input_file_name)
+                raise SidParsingError("File '%s' is not a .sid file"
+                                      % self.input_file_name)
 
             with open(self.input_file_name) as f:
                 cont = json.load(f)
 
             sid_cont = cont.get(self.IETF_SID_FILE, None)
             if sid_cont is None or len(cont) != 1:
-                raise SidFileError("File %s is not a valid .sid file" % self.input_file_name)
+                raise SidFileError("File %s is not a valid .sid file"
+                                   % self.input_file_name)
 
             self.content = SidFile.str_to_uint64(sid_cont)
 
@@ -344,22 +358,28 @@ class SidFile:
         self.build_dependencies(module)
 
         if self.range == 'count':
-            number_of_unassigned_yang_items = self.number_of_unassigned_yang_items()
-            print("\nThis YANG module requires %d SIDs." % number_of_unassigned_yang_items)
+            number_of_unassigned_yang_items = \
+                    self.number_of_unassigned_yang_items()
+            print("\nThis YANG module requires %d SIDs."
+                  % number_of_unassigned_yang_items)
             return
 
         if self.extra_range == 'count':
             number_of_sids_allocated = self.number_of_sids_allocated()
             number_of_sids_used = self.number_of_sids_used()
-            number_of_sids_available = number_of_sids_allocated - number_of_sids_used
-            number_of_unassigned_yang_items = self.number_of_unassigned_yang_items()
+            number_of_sids_available = \
+                    number_of_sids_allocated - number_of_sids_used
+            number_of_unassigned_yang_items = \
+                    self.number_of_unassigned_yang_items()
 
-            print("\nNumber of SIDs allocated to this module: %d" % number_of_sids_allocated)
+            print("\nNumber of SIDs allocated to this module: %d"
+                  % number_of_sids_allocated)
             print("Number of SIDs required by this version: %d"
                   % (number_of_sids_used + number_of_unassigned_yang_items))
             if number_of_unassigned_yang_items > number_of_sids_available:
-                print("\nAn extra range of at least %d SIDs is required to perform this update."
-                      % (number_of_unassigned_yang_items - number_of_sids_available))
+                print("\nAn extra range of at least " +
+                      f"{number_of_unassigned_yang_items - number_of_sids_available} " + # noqa: E501
+                      "SIDs is required to perform this update.")
             else:
                 print("\nThe update of the .sid file can be performed using "
                       "the currently available SIDs.")
@@ -383,7 +403,8 @@ class SidFile:
                 print("\nThe .sid file needs to be updated.")
         else:
             if self.is_consistent:
-                print("No .sid file generated, the current .sid file is already up to date.")
+                print("No .sid file generated, the current .sid file " +
+                      "is already up to date.")
             else:
                 self.generate_file()
                 if self.sid_file_created:
@@ -391,7 +412,8 @@ class SidFile:
                 else:
                     print("\nFile %s updated" % self.output_file_name)
 
-                print("Number of SIDs available : %d" % self.number_of_sids_allocated())
+                print("Number of SIDs available : %d"
+                      % self.number_of_sids_allocated())
                 print("Number of SIDs used : %d" % self.number_of_sids_used())
 
 
@@ -399,17 +421,20 @@ class SidFile:
     def set_sid_range(self, srange):
         match = re.match(r'^(\d+):(\d+)$', srange)
         if not match:
-            raise SidParsingError("invalid range in argument, must be '<entry-point>:<size>'.")
+            raise SidParsingError("invalid range in argument, must be " +
+                "'<entry-point>:<size>'.")
         components = match.groups()
 
         aranges = self.content.get('assignment-range')
         if aranges is None:
             self.content['assignment-range'] = aranges = []
         aranges.append(collections.OrderedDict(
-            [('entry-point', int(components[0])), ('size', int(components[1]))]))
+            [('entry-point', int(components[0])),
+             ('size', int(components[1]))]))
 
     ########################################################
-    # Set the 'module-name' and/or 'module-revision' in the .sid file if they differ
+    # Set the 'module-name' and/or 'module-revision' in the .sid file
+    # if they differ
     def set_module_information(self):
         if self.module_name != self.content.get('module-name'):
             self.content['module-name'] = self.module_name
@@ -437,20 +462,26 @@ class SidFile:
 
             elif key == 'module-revision':
                 if not isinstance(self.content[key], str):
-                    raise SidFileError("key 'module-revision', invalid value")
-                if not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", self.content[key]):
-                    raise SidFileError("key 'module-revision', invalid format")
+                    raise SidFileError("key 'module-revision', " +
+                        "invalid value")
+                if not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}",
+                                self.content[key]):
+                    raise SidFileError("key 'module-revision', " +
+                        "invalid format")
 
             elif key == 'sid-file-version':
                 if not isinstance(self.content[key], int):
-                    raise SidFileError("key 'sid-file-version', invalid value.")
+                    raise SidFileError("key 'sid-file-version', " +
+                        "invalid value.")
 
                 if self.content[key] < 0 or self.content[key] >= 2**32:
-                    raise SidFileError("key 'sid-file-version out of valid range (uint32)")
+                    raise SidFileError("key 'sid-file-version " +
+                        "out of valid range (uint32)")
 
             elif key == 'sid-file-status':
                 if self.content[key] not in self.SID_FILE_STATUSES:
-                    raise SidFileError("key 'sid-file-status' has invalid enum value")
+                    raise SidFileError("key 'sid-file-status' " +
+                                       "has invalid enum value")
 
             elif key == 'description':
                 if not isinstance(self.content[key], str):
@@ -458,12 +489,14 @@ class SidFile:
 
             elif key == 'dependency-revision':
                 if not isinstance(self.content[key], list):
-                    raise SidFileError("key 'dependency-revision',, invalid value")
+                    raise SidFileError("key 'dependency-revision', " +
+                                       "invalid value")
                 self.validate_dep_revisions(self.content[key])
 
             elif key == 'assignment-range':
                 if not isinstance(self.content[key], list):
-                    raise SidFileError("key 'assignment-range', invalid  value.")
+                    raise SidFileError("key 'assignment-range', " +
+                                       "invalid  value.")
                 self.validate_ranges(self.content[key])
 
             elif key == 'item':
@@ -483,11 +516,13 @@ class SidFile:
         for dep_rev in revisions:
             mod_name = dep_rev.get('module-name', None)
             if mod_name is None:
-                raise SidFileError("mandatory field 'module-name' of 'dependency-revision' not present")
+                raise SidFileError("mandatory field 'module-name' " +
+                    "of 'dependency-revision' not present")
 
             mod_rev = dep_rev.get('module-revision', None)
             if mod_rev is None:
-                raise SidFileError("mandatory field 'module-revision' of 'dependency-revision' not present")
+                raise SidFileError("mandatory field 'module-revision' " +
+                    "of 'dependency-revision' not present")
 
             if len(dep_rev) != 2:
                 raise SidFileError("unknown key in 'dependency-revision' list")
@@ -503,12 +538,14 @@ class SidFile:
                 if key == 'entry-point':
                     entry_point_absent = False
                     if not isinstance(arange[key], util.int_types):
-                        raise SidFileError("invalid 'entry-point' value '%s'." % arange[key])
+                        raise SidFileError("invalid 'entry-point' value '%s'."
+                                           % arange[key])
 
                 elif key == 'size':
                     size_absent = False
                     if not isinstance(arange[key], util.int_types):
-                        raise SidFileError("invalid 'size' value '%s'." % arange[key])
+                        raise SidFileError("invalid 'size' value '%s'."
+                                           % arange[key])
 
                 else:
                     raise SidFileError("invalid key '%s'." % key)
@@ -532,21 +569,25 @@ class SidFile:
                 if key == 'namespace':
                     namespace_absent = False
                     if item[key] not in self.item_namespaces:
-                        raise SidFileError("invalid 'namespace' value '%s'." % item[key])
+                        raise SidFileError("invalid 'namespace' value '%s'."
+                                           % item[key])
 
                 elif key == 'identifier':
                     identifier_absent = False
                     if not isinstance(item[key], str):
-                        raise SidFileError("invalid 'identifier' value '%s'." % item[key])
+                        raise SidFileError("invalid 'identifier' value '%s'."
+                                           % item[key])
 
                 elif key == 'sid':
                     sid_absent = False
                     if not isinstance(item[key], util.int_types):
-                        raise SidFileError("invalid 'sid' value '%s'." % item[key])
+                        raise SidFileError("invalid 'sid' value '%s'."
+                                           % item[key])
 
                 elif key == 'status':
                     if not item[key] in self.item_statuses:
-                        raise SidFileError("invalid 'status' value '%s'." % item[key])
+                        raise SidFileError("invalid 'status' value '%s'."
+                                           % item[key])
 
                 else:
                     raise SidFileError("invalid key '%s'." % key)
@@ -586,18 +627,21 @@ class SidFile:
         for item in self.content['item']:
             sid = item['sid']
             if self.out_of_ranges(sid):
-                raise SidFileError("'sid' %d not within 'assignment-range'" % sid)
+                raise SidFileError("'sid' %d not within 'assignment-range'"
+                                   % sid)
             if sid == last_sid:
                 raise SidFileError("duplicated 'sid' value %d " % sid)
             last_sid = sid
 
     def out_of_ranges(self, sid):
         for arange in self.content.get('assignment-range') or []:
-            if arange['entry-point'] <= sid < arange['entry-point'] + arange['size']:
+            if arange['entry-point'] <= sid and \
+                    sid < arange['entry-point'] + arange['size']:
                 return False
         return True
 
-    # Groups of keywords with same handling in some method below, named after a representative
+    # Groups of keywords with same handling in some method below,
+    # named after a representative
     leaf_keywords = ('leaf', 'leaf-list', 'anyxml', 'anydata')
     container_keywords = ('container', 'list')
     module_container_keywords = ('container', 'list',
@@ -605,7 +649,8 @@ class SidFile:
     choice_keywords = ('choice', 'case')
     inrpc_keywords = ('input', 'output')
     grouping_keywords = ('grouping', 'choice', 'case')
-    module_keywords = ('module', 'container', 'list', 'notification', 'rpc', 'action')
+    module_keywords = ('module', 'container', 'list', 'notification',
+                       'rpc', 'action')
 
     @staticmethod
     def has_yang_data_extension(statement):
@@ -621,7 +666,8 @@ class SidFile:
             self.content['item'] = []
 
         for item in self.content['item']:
-            item['lifecycle'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
+            # Set to 'd' deleted, updated to 'o' if present in .yang file
+            item['lifecycle'] = 'd'
 
         self.merge_item('module', self.module_name)
 
@@ -644,16 +690,19 @@ class SidFile:
                 self.collect_inner_data_nodes(statement.i_children)
 
             elif statement.keyword == 'rpc':
-                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
+                self.merge_item('data',
+                                "/%s:%s" % (self.module_name, statement.arg))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
-                        # RFC 9595, Appendix B requires us to create SID for all
-                        # rpc input and output schema nodes (needed if augmented)
+                        # RFC 9595, Appendix B require to create SID for all
+                        # rpc input and output schema nodes
+                        # (this is needed during schema augmentation)
                         self.merge_item('data', self.get_path(substmt))
                         self.collect_inner_data_nodes(substmt.i_children)
 
             elif statement.keyword == 'notification':
-                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
+                self.merge_item('data',
+                                "/%s:%s" % (self.module_name, statement.arg))
                 self.collect_inner_data_nodes(statement.i_children)
 
         for identity in module.i_identities:
@@ -681,10 +730,12 @@ class SidFile:
                 self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
-                        # RFC 9595, Appendix B requires us to create SID for all
-                        # action input and output schema node (needed if augmented)
+                        # RFC 9595, Appendix B require to create SID for all
+                        # action input and output schema nodes
+                        # (this is needed during schema augmentation)
                         self.merge_item('data', self.get_path(substmt))
-                        self.collect_inner_data_nodes(substmt.i_children, prefix)
+                        self.collect_inner_data_nodes(substmt.i_children,
+                                                      prefix)
 
             elif statement.keyword == 'notification':
                 self.merge_item('data', self.get_path(statement, prefix))
@@ -707,7 +758,8 @@ class SidFile:
 
             elif statement.keyword == 'uses':
                 prefix = self.get_path(statement.parent)
-                self.collect_inner_data_nodes(statement.i_grouping.i_children, prefix)
+                self.collect_inner_data_nodes(statement.i_grouping.i_children,
+                                              prefix)
 
     def get_path(self, statement, prefix=""):
         path = ""
@@ -720,9 +772,9 @@ class SidFile:
                 while parent.i_module is not None:
                     if (parent.keyword in self.module_keywords or
                             parent.keyword ==
-                                ('ietf-yang-structure-ext', 'structure') or
+                            ('ietf-yang-structure-ext', 'structure') or
                             parent.keyword ==
-                                ('ietf-yang-structure-ext', 'augment-structure')):
+                            ('ietf-yang-structure-ext', 'augment-structure')):
                         break
                     parent = parent.parent
 
@@ -731,7 +783,8 @@ class SidFile:
                         parent.i_module == statement.i_module)):
                     path = "/" + statement.arg + path
                 else:
-                    path = "/" + statement.i_module.arg + ":" + statement.arg + path
+                    path = "/" + statement.i_module.arg + ":" + statement.arg \
+                            + path
 
             statement = statement.parent
 
@@ -739,7 +792,8 @@ class SidFile:
 
     def merge_item(self, namespace, identifier):
         for item in self.content['item']:
-            if (namespace == item['namespace'] and identifier == item['identifier']):
+            if (namespace == item['namespace'] and
+                    identifier == item['identifier']):
                 item['lifecycle'] = 'o' # Item already assigned
                 return
         self.content['item'].append(collections.OrderedDict(
@@ -805,7 +859,7 @@ class SidFile:
             if revision is None:
                 raise SidFileError(f"Missing revision for module " +
                     f"'{module_name}' for mandatory sid-file field " +
-                    "'ietf-sid-file:sid-file/dependency-revision/module-revision'.")
+                    "'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
 
             dep['module-revision'] = revision
             self.content['dependency-revision'].append(dep)
@@ -814,7 +868,8 @@ class SidFile:
     # Sort the items list by 'namespace' and 'identifier'
     def sort_items(self):
         self.content['item'].sort(key=lambda item: item['identifier'])
-        self.content['item'].sort(key=lambda item: item['namespace'], reverse=True)
+        self.content['item'].sort(key=lambda item: item['namespace'],
+                                  reverse=True)
 
     ########################################################
     # Identifier assignment
@@ -846,7 +901,7 @@ class SidFile:
 
     def gen_sids(self, used):
         ranges = sorted((arange['entry-point'], arange['size'])
-                        for arange in self.content.get('assignment-range') or [])
+                    for arange in self.content.get('assignment-range') or [])
         used_idx = 0
         used_len = len(used)
         for sid, size in ranges:
@@ -890,18 +945,21 @@ class SidFile:
                 status = " (Remove)"
                 definition_removed = True
 
-            print("%-9s  %s %s%s" % (item['sid'], item['namespace'], item['identifier'], status))
+            print("%-9s  %s %s%s"
+                % (item['sid'], item['namespace'], item['identifier'], status))
 
         if definition_removed:
             print(
-                "\nWARNING, obsolete definitions should be defined as 'deprecated' or 'obsolete'.")
+                "\nWARNING, obsolete definitions should be defined " +
+                "as 'deprecated' or 'obsolete'.")
 
     ########################################################
     def list_deleted_items(self):
         definition_removed = False
         for item in self.content['item']:
             if item['lifecycle'] == 'd':
-                print("WARNING, item '%s' was deleted form the .yang files." % item['identifier'])
+                print("WARNING, item '%s' was deleted form the .yang files."
+                      % item['identifier'])
                 definition_removed = True
 
         if definition_removed:
@@ -915,7 +973,7 @@ class SidFile:
         for item in self.content['item']:
             del item['lifecycle']
 
-        # Ordered sid file content (data inside 'ietf-sid-file:sid-file' dictionary)
+        # Ordered sid file content ('ietf-sid-file:sid-file' dictionary)
         sid_cont = collections.OrderedDict()
         sid_cont['module-name'] = self.content['module-name']
         if self.content['module-revision'] != 'unknown':
@@ -951,7 +1009,8 @@ class SidFile:
                 item['sid'] = str(item['sid'])
 
         if self.finalize_sid and items:
-            print("Finalizing unstable allocations to %s" % (self.module_revision))
+            print("Finalizing unstable allocations to %s"
+                  % (self.module_revision))
             for item in sid_cont['item']:
                 if item['status'] == 'unstable':
                     print("  finalized %s" % (item['identifier']))
@@ -978,7 +1037,8 @@ class SidFile:
     def number_of_sids_used_in_range(self, entry_point, size):
         low = entry_point
         high = low + size
-        return len([0 for item in self.content['item'] if low <= item['sid'] < high])
+        return len([0 for item in self.content['item']
+                if low <= item['sid'] < high])
 
     ########################################################
     def print_registration_information(self, module):
@@ -987,7 +1047,8 @@ class SidFile:
         info = {
             'module_name' : self.module_name,
             'module_revision' : self.module_revision,
-            'yang_file' : '%s@%s.yang' % (self.module_name, self.module_revision),
+            'yang_file' : '%s@%s.yang'
+                    % (self.module_name, self.module_revision),
             'ranges' : ranges,
             'submodules' : submodules,
         }
@@ -996,18 +1057,21 @@ class SidFile:
             ranges.append({
                 'entry_point' : arange['entry-point'],
                 'size' : arange['size'],
-                'used' : self.number_of_sids_used_in_range(arange['entry-point'], arange['size'])
+                'used' : self.number_of_sids_used_in_range(
+                    arange['entry-point'], arange['size'])
             })
 
         for name in module.i_ctx.modules:
             submodule = module.i_ctx.modules[name]
             if submodule.keyword == 'submodule':
-                submodules.append('%s@%s.yang' % (submodule.arg, submodule.i_latest_revision))
+                submodules.append('%s@%s.yang'
+                                % (submodule.arg, submodule.i_latest_revision))
 
         print(json.dumps(info, indent=2))
 
     ########################################################
-    # Perform the conversion to the .sid file fromat introduced by [I-D.ietf-core-sid] version 3.
+    # Perform the conversion to the .sid file fromat
+    # introduced by [I-D.ietf-core-sid] version 3.
     # This method can be removed after the proper transition period.
 
     node_keywords = ('node', 'notification', 'rpc', 'action')
