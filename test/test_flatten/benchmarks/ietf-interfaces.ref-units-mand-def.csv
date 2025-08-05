@@ -1,0 +1,72 @@
+xpath,units,default,mandatory,reference
+/ietf-interfaces:interfaces,,,false,
+/ietf-interfaces:interfaces/interface,,,false,
+/ietf-interfaces:interfaces/interface/admin-status,,,true,RFC 2863: The Interfaces Group MIB - ifAdminStatus
+/ietf-interfaces:interfaces/interface/description,,,false,RFC 2863: The Interfaces Group MIB - ifAlias
+/ietf-interfaces:interfaces/interface/enabled,,true,false,RFC 2863: The Interfaces Group MIB - ifAdminStatus
+/ietf-interfaces:interfaces/interface/higher-layer-if,,,false,RFC 2863: The Interfaces Group MIB - ifStackTable
+/ietf-interfaces:interfaces/interface/if-index,,,true,RFC 2863: The Interfaces Group MIB - ifIndex
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters,,,false,
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/extended-parameter,,,false,
+/ietf-interfaces:interfaces/interface/interfaces-ext:extended-parameters/leafref-parameter,,,false,
+/ietf-interfaces:interfaces/interface/last-change,,,false,RFC 2863: The Interfaces Group MIB - ifLastChange
+/ietf-interfaces:interfaces/interface/link-up-down-trap-enable,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifLinkUpDownTrapEnable"
+/ietf-interfaces:interfaces/interface/lower-layer-if,,,false,RFC 2863: The Interfaces Group MIB - ifStackTable
+/ietf-interfaces:interfaces/interface/name,,,false,RFC 2863: The Interfaces Group MIB - ifName
+/ietf-interfaces:interfaces/interface/oper-status,,,true,RFC 2863: The Interfaces Group MIB - ifOperStatus
+/ietf-interfaces:interfaces/interface/phys-address,,,false,RFC 2863: The Interfaces Group MIB - ifPhysAddress
+/ietf-interfaces:interfaces/interface/speed,bits/second,,false,"RFC 2863: The Interfaces Group MIB -
+          ifSpeed, ifHighSpeed"
+/ietf-interfaces:interfaces/interface/statistics,,,false,
+/ietf-interfaces:interfaces/interface/statistics/discontinuity-time,,,true,
+/ietf-interfaces:interfaces/interface/statistics/in-broadcast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCInBroadcastPkts"
+/ietf-interfaces:interfaces/interface/statistics/in-discards,,,false,RFC 2863: The Interfaces Group MIB - ifInDiscards
+/ietf-interfaces:interfaces/interface/statistics/in-errors,,,false,RFC 2863: The Interfaces Group MIB - ifInErrors
+/ietf-interfaces:interfaces/interface/statistics/in-multicast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCInMulticastPkts"
+/ietf-interfaces:interfaces/interface/statistics/in-octets,,,false,RFC 2863: The Interfaces Group MIB - ifHCInOctets
+/ietf-interfaces:interfaces/interface/statistics/in-unicast-pkts,,,false,RFC 2863: The Interfaces Group MIB - ifHCInUcastPkts
+/ietf-interfaces:interfaces/interface/statistics/in-unknown-protos,,,false,RFC 2863: The Interfaces Group MIB - ifInUnknownProtos
+/ietf-interfaces:interfaces/interface/statistics/out-broadcast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCOutBroadcastPkts"
+/ietf-interfaces:interfaces/interface/statistics/out-discards,,,false,RFC 2863: The Interfaces Group MIB - ifOutDiscards
+/ietf-interfaces:interfaces/interface/statistics/out-errors,,,false,RFC 2863: The Interfaces Group MIB - ifOutErrors
+/ietf-interfaces:interfaces/interface/statistics/out-multicast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCOutMulticastPkts"
+/ietf-interfaces:interfaces/interface/statistics/out-octets,,,false,RFC 2863: The Interfaces Group MIB - ifHCOutOctets
+/ietf-interfaces:interfaces/interface/statistics/out-unicast-pkts,,,false,RFC 2863: The Interfaces Group MIB - ifHCOutUcastPkts
+/ietf-interfaces:interfaces/interface/type,,,true,RFC 2863: The Interfaces Group MIB - ifType
+/ietf-interfaces:interfaces-state,,,false,
+/ietf-interfaces:interfaces-state/interface,,,false,
+/ietf-interfaces:interfaces-state/interface/admin-status,,,true,RFC 2863: The Interfaces Group MIB - ifAdminStatus
+/ietf-interfaces:interfaces-state/interface/higher-layer-if,,,false,RFC 2863: The Interfaces Group MIB - ifStackTable
+/ietf-interfaces:interfaces-state/interface/if-index,,,true,RFC 2863: The Interfaces Group MIB - ifIndex
+/ietf-interfaces:interfaces-state/interface/last-change,,,false,RFC 2863: The Interfaces Group MIB - ifLastChange
+/ietf-interfaces:interfaces-state/interface/lower-layer-if,,,false,RFC 2863: The Interfaces Group MIB - ifStackTable
+/ietf-interfaces:interfaces-state/interface/name,,,false,RFC 2863: The Interfaces Group MIB - ifName
+/ietf-interfaces:interfaces-state/interface/oper-status,,,true,RFC 2863: The Interfaces Group MIB - ifOperStatus
+/ietf-interfaces:interfaces-state/interface/phys-address,,,false,RFC 2863: The Interfaces Group MIB - ifPhysAddress
+/ietf-interfaces:interfaces-state/interface/speed,bits/second,,false,"RFC 2863: The Interfaces Group MIB -
+          ifSpeed, ifHighSpeed"
+/ietf-interfaces:interfaces-state/interface/statistics,,,false,
+/ietf-interfaces:interfaces-state/interface/statistics/discontinuity-time,,,true,
+/ietf-interfaces:interfaces-state/interface/statistics/in-broadcast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCInBroadcastPkts"
+/ietf-interfaces:interfaces-state/interface/statistics/in-discards,,,false,RFC 2863: The Interfaces Group MIB - ifInDiscards
+/ietf-interfaces:interfaces-state/interface/statistics/in-errors,,,false,RFC 2863: The Interfaces Group MIB - ifInErrors
+/ietf-interfaces:interfaces-state/interface/statistics/in-multicast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCInMulticastPkts"
+/ietf-interfaces:interfaces-state/interface/statistics/in-octets,,,false,RFC 2863: The Interfaces Group MIB - ifHCInOctets
+/ietf-interfaces:interfaces-state/interface/statistics/in-unicast-pkts,,,false,RFC 2863: The Interfaces Group MIB - ifHCInUcastPkts
+/ietf-interfaces:interfaces-state/interface/statistics/in-unknown-protos,,,false,RFC 2863: The Interfaces Group MIB - ifInUnknownProtos
+/ietf-interfaces:interfaces-state/interface/statistics/out-broadcast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCOutBroadcastPkts"
+/ietf-interfaces:interfaces-state/interface/statistics/out-discards,,,false,RFC 2863: The Interfaces Group MIB - ifOutDiscards
+/ietf-interfaces:interfaces-state/interface/statistics/out-errors,,,false,RFC 2863: The Interfaces Group MIB - ifOutErrors
+/ietf-interfaces:interfaces-state/interface/statistics/out-multicast-pkts,,,false,"RFC 2863: The Interfaces Group MIB -
+          ifHCOutMulticastPkts"
+/ietf-interfaces:interfaces-state/interface/statistics/out-octets,,,false,RFC 2863: The Interfaces Group MIB - ifHCOutOctets
+/ietf-interfaces:interfaces-state/interface/statistics/out-unicast-pkts,,,false,RFC 2863: The Interfaces Group MIB - ifHCOutUcastPkts
+/ietf-interfaces:interfaces-state/interface/type,,,true,RFC 2863: The Interfaces Group MIB - ifType
