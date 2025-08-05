@@ -1,4 +1,4 @@
-test: test_xpath test_deviation test_deviation_show test_all test_rpc_notif test_filter_keyword test_filter_primitive test_filter_flag test_all_keyed test_keys test_rootmodule
+test: test_xpath test_deviation test_deviation_show test_all test_rpc_notif test_filter_keyword test_filter_primitive test_filter_flag test_all_keyed test_keys test_rootmodule test_ref_units_mand_def
 
 test_xpath:
 	pyang -f flatten interfaces-ext.yang ietf-yang-types.yang ietf-interfaces.yang | diff benchmarks/ietf-interfaces.xpath.csv -
@@ -48,5 +48,10 @@ test_status:
 test_resolve_leafref:
 	pyang -f flatten --flatten-resolve-leafref ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.leafref.csv -
 
+
 test_rootmodule:
 	pyang -f flatten --flatten-rootmodule ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.leafref.csv -
+
+test_ref_units_mand_def:
+	pyang -f flatten  --flatten-reference --flatten-units --flatten-mandatory --flatten-default ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.ref-units-mand-def.csv -
+

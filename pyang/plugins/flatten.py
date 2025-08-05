@@ -20,6 +20,14 @@ Arguments
     Output the description.
 --flatten-rootmodule
     Output the root of the XPath as a separate column.
+--flatten-reference
+    Output the reference.
+--flatten-units
+    Output the units.
+--flatten-default
+    Output the default.
+--flatten-mandatory
+    Output the mandatory flag.
 --flatten-keys
     Output whether the XPath is identified as a key.
 --flatten-keys-in-xpath
@@ -214,10 +222,30 @@ class FlattenPlugin(plugin.PyangPlugin):
                 action="store_true",
             ),
             optparse.make_option(
-                "--flatten-rootmodule", 
+                "--flatten-rootmodule",
                 dest="flatten_rootmodule",
-                action="store_true", 
+                action="store_true",
                 help="Output the root module name in a separate column."),
+            optparse.make_option(
+                "--flatten-units",
+                dest="flatten_units",
+                action="store_true",
+                help="Output the units statement."),
+            optparse.make_option(
+                "--flatten-default",
+                dest="flatten_default",
+                action="store_true",
+                help="Output the default value."),
+            optparse.make_option(
+                "--flatten-mandatory",
+                dest="flatten_mandatory",
+                action="store_true",
+                help="Output the mandatory flag."),
+            optparse.make_option(
+                "--flatten-reference",
+                dest="flatten_reference",
+                action="store_true",
+                help="Output the reference text."),
         ]
         g = optparser.add_option_group("Flatten output specific options")
         g.add_options(optlist)
@@ -247,6 +275,14 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("resolved_leafref")
         if ctx.opts.flatten_rootmodule:
             self.__field_names.append("rootmodule")
+        if ctx.opts.flatten_units:
+            self.__field_names.append("units")
+        if ctx.opts.flatten_default:
+            self.__field_names.append("default")
+        if ctx.opts.flatten_mandatory:
+            self.__field_names.append("mandatory")
+        if ctx.opts.flatten_reference:
+            self.__field_names.append("reference")
         self.__field_names_set = set(self.__field_names)
         # Slipping input and output into data keywords
         # rpc input/output may have children - we want to traverse them.
@@ -390,6 +426,19 @@ class FlattenPlugin(plugin.PyangPlugin):
                 output_content["resolved_leafref"] = None
         if ctx.opts.flatten_rootmodule:
             output_content["rootmodule"] = self.get_root_module(ctx, child)
+        if ctx.opts.flatten_units:
+            units_stmt = child.search_one("units")
+            output_content["units"] = units_stmt.arg if units_stmt is not None else None
+        if ctx.opts.flatten_default:
+            default_stmt = child.search_one("default")
+            output_content["default"] = default_stmt.arg if default_stmt is not None else None
+        if ctx.opts.flatten_mandatory:
+            mand_stmt = child.search_one("mandatory")
+            # default YANG behavior is 'false' if not specified
+            output_content["mandatory"] = mand_stmt.arg if mand_stmt is not None else "false"
+        if ctx.opts.flatten_reference:
+            ref_stmt = child.search_one("reference")
+            output_content["reference"] = ref_stmt.arg if ref_stmt is not None else None
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
