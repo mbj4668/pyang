@@ -18,6 +18,8 @@ Arguments
     flag.
 --flatten-description
     Output the description.
+--flatten-rootmodule
+    Output the root of the XPath as a separate column.
 --flatten-keys
     Output whether the XPath is identified as a key.
 --flatten-keys-in-xpath
@@ -211,6 +213,11 @@ class FlattenPlugin(plugin.PyangPlugin):
                 help="Output the XPath of the leafref target.",
                 action="store_true",
             ),
+            optparse.make_option(
+                "--flatten-rootmodule", 
+                dest="flatten_rootmodule",
+                action="store_true", 
+                help="Output the root module name in a separate column."),
         ]
         g = optparser.add_option_group("Flatten output specific options")
         g.add_options(optlist)
@@ -238,6 +245,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("status")
         if ctx.opts.flatten_resolve_leafref:
             self.__field_names.append("resolved_leafref")
+        if ctx.opts.flatten_rootmodule:
+            self.__field_names.append("rootmodule")
         self.__field_names_set = set(self.__field_names)
         # Slipping input and output into data keywords
         # rpc input/output may have children - we want to traverse them.
@@ -379,6 +388,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 )
             else:
                 output_content["resolved_leafref"] = None
+        if ctx.opts.flatten_rootmodule:
+            output_content["rootmodule"] = self.get_root_module(ctx, child)
         if set(output_content.keys()) != self.__field_names_set:
             raise Exception("Output keys do not match CSV field names!")
         # Filters are specified as a positive in the command line arguments
@@ -445,3 +456,10 @@ class FlattenPlugin(plugin.PyangPlugin):
                     xpath_element = "%s[%s]" % (xpath_element, node_key)
             xpath_elements.append(xpath_element)
         return "/%s" % "/".join(xpath_elements)
+  
+    def get_root_module(self, ctx, stmt):
+        xpath = statements.get_xpath(stmt,
+                            prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+                            qualified=ctx.opts.flatten_qualified_in_xpath,
+                            with_keys=ctx.opts.flatten_keys_in_xpath)
+        return xpath.split('/')[1]
