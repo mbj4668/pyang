@@ -2734,7 +2734,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
     else:
         in_typedef = False
 
-    def find_identifier(identifier):
+    def find_identifier(identifier, current_module):
         if util.is_prefixed(identifier):
             (prefix, name) = identifier
             if (path.i_module.keyword == 'submodule' and
@@ -2750,6 +2750,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             return (pmodule, name)
         elif in_typedef and stmt.i_module.i_version != '1':
             raise Abort
+        elif current_module:
+            return (current_module, identifier)
         else: # local identifier
             return (local_module, identifier)
 
@@ -2765,11 +2767,12 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             return True
         return False
 
-    def follow_path(ptr, up, dn):
+    def follow_path(ptr, up, dn, target_module):
         path_list = []
         last_skipped = None
         if up == -1: # absolute path
-            (pmodule, name) = find_identifier(dn[0])
+            (pmodule, name) = find_identifier(dn[0], target_module)
+            target_module = pmodule
             ptr = search_child(pmodule.i_children, pmodule.i_modulename, name)
             if not is_submodule_included(path, ptr):
                 ptr = None
@@ -2829,7 +2832,8 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
         keys = []
         while i < len(dn):
             if is_identifier(dn[i]) is True:
-                (pmodule, name) = find_identifier(dn[i])
+                (pmodule, name) = find_identifier(dn[i], target_module)
+                target_module = pmodule
                 module_name = pmodule.i_modulename
             elif ptr.keyword == 'list': # predicate on a list, good
                 key_list = ptr
@@ -2838,7 +2842,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                 while i < len(dn) and is_predicate(dn[i]) is True:
                     # unpack the predicate
                     (_tag, keyleaf, pup, pdn) = dn[i]
-                    (pmodule, pname) = find_identifier(keyleaf)
+                    (pmodule, pname) = find_identifier(keyleaf, target_module)
                     # make sure the keyleaf is really a key in the list
                     pleaf = search_child(ptr.i_key, pmodule.i_modulename, pname)
                     if pleaf is None:
@@ -2857,7 +2861,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
                     # check what this predicate refers to; make sure it's
                     # another leaf; either of type leafref to keyleaf, OR same
                     # type as the keyleaf
-                    (xkey_list, x_key, xleaf, _x) = follow_path(stmt, pup, pdn)
+                    (xkey_list, x_key, xleaf, _x) = follow_path(stmt, pup, pdn, local_module)
                     stmt.i_derefed_leaf = xleaf
                     if xleaf.keyword != 'leaf':
                         err_add(ctx.errors, pathpos,
@@ -2894,7 +2898,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
         (up, dn, derefup, derefdn) = path_spec
         if derefup > 0:
             # first follow the deref
-            (key_list, keys, ptr, _x) = follow_path(stmt, derefup, derefdn)
+            (key_list, keys, ptr, _x) = follow_path(stmt, derefup, derefdn, local_module)
             if ptr.keyword != 'leaf':
                 err_add(ctx.errors, pathpos, 'LEAFREF_DEREF_NOT_LEAFREF',
                         (ptr.arg, ptr.pos))
@@ -2933,9 +2937,9 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
             d2 = m.group(2)
             expanded_path = "%s[%s = current()/%s]/%s" % \
                 (s1, s2, d1, d2)
-            (key_list, keys, ptr, path_list) = follow_path(derefed_stmt, up, dn)
+            (key_list, keys, ptr, path_list) = follow_path(derefed_stmt, up, dn, derefed_stmt.i_module)
         else:
-            (key_list, keys, ptr, path_list) = follow_path(stmt, up, dn)
+            (key_list, keys, ptr, path_list) = follow_path(stmt, up, dn, local_module)
             expanded_path = path.arg
         # ptr is now the node that the leafref path points to
         # check that it is a leaf
