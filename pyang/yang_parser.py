@@ -54,32 +54,33 @@ class YangTokenizer(object):
 
     def skip(self, keep_comments=False):
         """Skip whitespace and count position"""
-        buflen = len(self.buf)
-
         while True:
-            self.buf = self.buf.lstrip()
-            if self.buf == '':
-                self.readline()
+            # strip leading whitespace
+            while True:
                 buflen = len(self.buf)
-            else:
-                self.offset += (buflen - len(self.buf))
-                break
-
-        # do not keep comments in the syntax tree
-        if not keep_comments:
-            # skip line comment
-            if self.buf[0] == '/':
-                if self.buf[1] == '/':
+                self.buf = self.buf.lstrip()
+                if self.buf == '':
                     self.readline()
-                    return self.skip(keep_comments=keep_comments)
-            # skip block comment
-                elif self.buf[1] == '*':
+                else:
+                    self.offset += (buflen - len(self.buf))
+                    break
+
+            # do not keep comments in the syntax tree
+            if not keep_comments:
+                if self.buf.startswith('//'):
+                    # skip line comment
+                    self.readline()
+                    continue  # restart loop after skipping line comment
+                elif self.buf.startswith('/*'):
+                    # skip block comment
                     i = self.buf.find('*/')
                     while i == -1:
                         self.readline()
                         i = self.buf.find('*/')
-                    self.set_buf(i+2)
-                    return self.skip(keep_comments=keep_comments)
+                    self.set_buf(i + 2)
+                    continue  # restart loop after skipping block comment
+            # no more whitespace/comments to skip
+            break
 
     def get_comment(self, last_line):
         """ret: string()"""
