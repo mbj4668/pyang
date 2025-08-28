@@ -234,10 +234,10 @@ def parse_if_feature_expr(s):
         sx = shlex.shlex(s)
     except UnicodeEncodeError:
         return None
-    sx.wordchars += ":-" # need to handle prefixes and '-' in the name
+    sx.wordchars += ":-." # need to handle prefixes and '-' in the name
     operators = [None]
     operands = []
-    precedence = {'not':3, 'and':2, 'or':1, None:0}
+    precedence = {'not': 3, 'and': 2, 'or': 1, None: 0}
 
     def x():
         y()

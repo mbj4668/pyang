@@ -1,0 +1,17 @@
+module a {
+  yang-version 1.1;
+  prefix a;
+  namespace "urn:a";
+
+
+  feature band-2.4ghz;
+
+  leaf band {
+    type enumeration {
+      enum 2.4ghz {
+        if-feature "band-2.4ghz";
+        description "";
+      }
+    }
+  }
+}
