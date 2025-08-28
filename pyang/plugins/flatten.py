@@ -240,32 +240,12 @@ class FlattenPlugin(plugin.PyangPlugin):
                 "--flatten-reference",
                 dest="flatten_reference",
                 action="store_true",
+                help="Output the reference text."),
             optparse.make_option(
                 "--flatten-rootmodule",
                 dest="flatten_rootmodule",
                 action="store_true",
                 help="Output the root module name in a separate column."),
-            optparse.make_option(
-                "--flatten-units",
-                dest="flatten_units",
-                action="store_true",
-                help="Output the units statement."),
-            optparse.make_option(
-                "--flatten-default",
-                dest="flatten_default",
-                action="store_true",
-                help="Output the default value."),
-            optparse.make_option(
-                "--flatten-mandatory",
-                dest="flatten_mandatory",
-                action="store_true",
-                help="Output the mandatory flag."),
-            optparse.make_option(
-                "--flatten-reference",
-                dest="flatten_reference",
-                action="store_true",
->>>>>>> knollpoi-add-flatten-rootmodule
-                help="Output the reference text."),
         ]
         g = optparser.add_option_group("Flatten output specific options")
         g.add_options(optlist)
