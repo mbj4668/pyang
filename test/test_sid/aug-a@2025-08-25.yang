@@ -1,0 +1,18 @@
+module aug-a {
+  yang-version 1.1;
+  namespace "urn:exampel:aug_a";
+  prefix aa;
+
+  revision 2025-08-25;
+
+  choice top-level {
+    case a {
+      leaf a {
+        type int8;
+      }
+    }
+
+    case b {
+    }
+  }
+}

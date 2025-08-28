@@ -1,0 +1,21 @@
+module aug-c {
+  yang-version 1.1;
+  namespace "urn:example:aug_c";
+  prefix ac;
+
+  import aug-a {
+    prefix aa;
+  }
+
+  import aug-b {
+    prefix ab;
+  }
+
+  revision 2025-08-25;
+
+  augment "/aa:top-level/ab:d" {
+    leaf d {
+      type int64;
+    }
+  }
+}

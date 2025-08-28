@@ -1,0 +1,45 @@
+{
+  "ietf-sid-file:sid-file": {
+    "module-name": "aug-b",
+    "module-revision": "2025-08-25",
+    "dependency-revision": [
+      {
+        "module-name": "aug-a",
+        "module-revision": "2025-08-25"
+      }
+    ],
+    "assignment-range": [
+      {
+        "entry-point": "1100",
+        "size": "100"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "aug-b",
+        "sid": "1100"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/aug-a:top-level/aug-b:c",
+        "sid": "1101"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/aug-a:top-level/aug-b:c/c",
+        "sid": "1102"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/aug-a:top-level/aug-b:d",
+        "sid": "1103"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/aug-a:top-level/b/aug-b:b",
+        "sid": "1104"
+      }
+    ]
+  }
+}
