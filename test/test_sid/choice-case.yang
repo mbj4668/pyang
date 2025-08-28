@@ -1,0 +1,72 @@
+module choice-case {
+  yang-version 1.1;
+  namespace "urn:example:cc";
+  prefix cc;
+
+  feature triple;
+
+  choice top-level {
+    case ab {
+      leaf a {
+        type string;
+      }
+      leaf b {
+        type int32;
+      }
+    }
+
+    leaf c {
+      type uint32;    
+    }
+  }
+
+  container box {
+    choice boxed {
+      case ipv4_prefix {
+        leaf ipv4_network {
+          type binary {
+            length 4;
+          }
+        }
+        leaf ipv4_length {
+          type uint8;
+        }
+      }
+      case ipv6_prefix {
+        leaf ipv6_network {
+          type binary {
+            length 16;
+          }
+        }
+        leaf ipv6_length {
+          type uint8;
+        }
+      }
+    }
+
+    choice implicit_case {
+      container pair {
+        leaf s {
+          type string;
+        }
+        leaf t {
+          type string;
+        }
+      }
+
+      container triple {
+        if-feature triple;
+
+        leaf x {
+          type string;
+        }
+        leaf y {
+          type string;
+        }
+        leaf z {
+          type string;
+        }
+      }
+    }
+  }
+}
