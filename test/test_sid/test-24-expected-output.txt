@@ -22,9 +22,14 @@ Finalizing unstable allocations to 2014-08-06
   finalized /ietf-system:set-current-datetime
   finalized /ietf-system:set-current-datetime/input
   finalized /ietf-system:set-current-datetime/input/current-datetime
+  finalized /ietf-system:set-current-datetime/output
   finalized /ietf-system:system
   finalized /ietf-system:system-restart
+  finalized /ietf-system:system-restart/input
+  finalized /ietf-system:system-restart/output
   finalized /ietf-system:system-shutdown
+  finalized /ietf-system:system-shutdown/input
+  finalized /ietf-system:system-shutdown/output
   finalized /ietf-system:system-state
   finalized /ietf-system:system-state/clock
   finalized /ietf-system:system-state/clock/boot-datetime
@@ -44,8 +49,11 @@ Finalizing unstable allocations to 2014-08-06
   finalized /ietf-system:system/authentication/user/name
   finalized /ietf-system:system/authentication/user/password
   finalized /ietf-system:system/clock
-  finalized /ietf-system:system/clock/timezone-name
-  finalized /ietf-system:system/clock/timezone-utc-offset
+  finalized /ietf-system:system/clock/timezone
+  finalized /ietf-system:system/clock/timezone/timezone-name
+  finalized /ietf-system:system/clock/timezone/timezone-name/timezone-name
+  finalized /ietf-system:system/clock/timezone/timezone-utc-offset
+  finalized /ietf-system:system/clock/timezone/timezone-utc-offset/timezone-utc-offset
   finalized /ietf-system:system/contact
   finalized /ietf-system:system/dns-resolver
   finalized /ietf-system:system/dns-resolver/options
@@ -54,9 +62,11 @@ Finalizing unstable allocations to 2014-08-06
   finalized /ietf-system:system/dns-resolver/search
   finalized /ietf-system:system/dns-resolver/server
   finalized /ietf-system:system/dns-resolver/server/name
-  finalized /ietf-system:system/dns-resolver/server/udp-and-tcp
-  finalized /ietf-system:system/dns-resolver/server/udp-and-tcp/address
-  finalized /ietf-system:system/dns-resolver/server/udp-and-tcp/port
+  finalized /ietf-system:system/dns-resolver/server/transport
+  finalized /ietf-system:system/dns-resolver/server/transport/udp-and-tcp
+  finalized /ietf-system:system/dns-resolver/server/transport/udp-and-tcp/udp-and-tcp
+  finalized /ietf-system:system/dns-resolver/server/transport/udp-and-tcp/udp-and-tcp/address
+  finalized /ietf-system:system/dns-resolver/server/transport/udp-and-tcp/udp-and-tcp/port
   finalized /ietf-system:system/hostname
   finalized /ietf-system:system/location
   finalized /ietf-system:system/ntp
@@ -66,9 +76,11 @@ Finalizing unstable allocations to 2014-08-06
   finalized /ietf-system:system/ntp/server/iburst
   finalized /ietf-system:system/ntp/server/name
   finalized /ietf-system:system/ntp/server/prefer
-  finalized /ietf-system:system/ntp/server/udp
-  finalized /ietf-system:system/ntp/server/udp/address
-  finalized /ietf-system:system/ntp/server/udp/port
+  finalized /ietf-system:system/ntp/server/transport
+  finalized /ietf-system:system/ntp/server/transport/udp
+  finalized /ietf-system:system/ntp/server/transport/udp/udp
+  finalized /ietf-system:system/ntp/server/transport/udp/udp/address
+  finalized /ietf-system:system/ntp/server/transport/udp/udp/port
   finalized /ietf-system:system/radius
   finalized /ietf-system:system/radius/options
   finalized /ietf-system:system/radius/options/attempts
@@ -76,11 +88,13 @@ Finalizing unstable allocations to 2014-08-06
   finalized /ietf-system:system/radius/server
   finalized /ietf-system:system/radius/server/authentication-type
   finalized /ietf-system:system/radius/server/name
-  finalized /ietf-system:system/radius/server/udp
-  finalized /ietf-system:system/radius/server/udp/address
-  finalized /ietf-system:system/radius/server/udp/authentication-port
-  finalized /ietf-system:system/radius/server/udp/shared-secret
+  finalized /ietf-system:system/radius/server/transport
+  finalized /ietf-system:system/radius/server/transport/udp
+  finalized /ietf-system:system/radius/server/transport/udp/udp
+  finalized /ietf-system:system/radius/server/transport/udp/udp/address
+  finalized /ietf-system:system/radius/server/transport/udp/udp/authentication-port
+  finalized /ietf-system:system/radius/server/transport/udp/udp/shared-secret
 
 File ietf-system@2014-08-06.sid created
 Number of SIDs available : 100
-Number of SIDs used : 76
+Number of SIDs used : 90
