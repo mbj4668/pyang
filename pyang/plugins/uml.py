@@ -62,6 +62,11 @@ class UMLPlugin(plugin.PyangPlugin):
                                  dest="uml_inline",
                                  default=False,
                                  help="Inline groupings where they are used."),
+            optparse.make_option("--uml-no-inline-groupings-from",
+                                 dest="uml_no_inline_groupings_from",
+                                 action="append",
+                                 default=[],
+                                 help="Skips given modules from inline groupings. \nExample --uml-no-inline-groupings-from=ietf-yang-push"),
             optparse.make_option("--uml-inline-augments",
                                  action="store_true",
                                  dest="uml_inline_augments",
@@ -221,6 +226,7 @@ class uml_emitter:
         self.ctx_title_text = ctx.opts.uml_title
 
         self.ctx_inline_augments = ctx.opts.uml_inline_augments
+        self.ctx_no_inline_groupings_from = set(ctx.opts.uml_no_inline_groupings_from)
 
         no = ctx.opts.uml_no.split(",")
         self.ctx_leafrefs = not "leafref" in no
@@ -357,6 +363,7 @@ class uml_emitter:
 
             if not self.ctx_filterfile:
                 self.post_process_module(module, fd)
+
         if not self.ctx_filterfile:
             self.post_process_diagram(fd)
 
@@ -525,6 +532,11 @@ class uml_emitter:
             if hasattr(node, 'i_grouping') and (self._ctx.opts.uml_inline) and cont:
                 grouping_node = node.i_grouping
                 if grouping_node is not None:
+                    # skip grouping modules if given
+                    module = str(grouping_node.main_module()).split()[-1]
+                    if module in self.ctx_no_inline_groupings_from:
+                        fd.write('%s : %s {uses} \n' %(self.full_path(parent), node.arg))
+                        return
                     # inline grouping here
                     # sys.stderr.write('Found  target grouping to inline %s %s \n' %(grouping_node.keyword, grouping_node.arg))
                     targets = [s.i_target_node for s in node.substmts if s.keyword == 'augment']
@@ -723,8 +735,6 @@ class uml_emitter:
 
     def emit_module_class(self, module, fd):
         fd.write('class \"%s\" as %s << (M, #33CCFF) module>> \n' %(self.full_display_path(module), self.full_path(module)))
-
-
 
     def emit_uml_footer(self, module, fd):
         if self.ctx_footer:
