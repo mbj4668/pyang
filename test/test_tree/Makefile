@@ -33,3 +33,6 @@ test9:
 
 test10:
 	$(PYANG) -f tree -F feature: feature.yang | diff feature-pruned.tree.expect -
+
+test11:
+	$(PYANG) -f tree --tree-print-grouping grouping.yang | diff grouping.tree.expect -

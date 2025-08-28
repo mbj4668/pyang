@@ -1,0 +1,5 @@
+module: grouping
+
+  grouping g:
+    +-- d* [foo]
+       +-- foo    string

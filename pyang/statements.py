@@ -207,6 +207,7 @@ _validation_map = {
     ('type_2', 'typedef'):lambda ctx, s: v_type_typedef(ctx, s),
     ('type_2', 'leaf'):lambda ctx, s: v_type_leaf(ctx, s),
     ('type_2', 'leaf-list'):lambda ctx, s: v_type_leaf_list(ctx, s),
+    ('type_2', 'list'):lambda ctx, s: v_type_list(ctx, s),
 
     ('expand_1', 'module'):lambda ctx, s: v_expand_1_children(ctx, s),
     ('expand_1', 'submodule'):lambda ctx, s: v_expand_1_children(ctx, s),
@@ -1047,6 +1048,23 @@ def v_type_leaf(ctx, stmt):
         if m is not None and m.arg == 'true':
             err_add(ctx.errors, stmt.pos, 'DEFAULT_AND_MANDATORY', ())
             return False
+
+def v_type_list(ctx, stmt):
+    # set i_is_key before expansion, if possible
+    def set_is_key():
+        key = stmt.search_one('key')
+        if key is not None and key.arg is not None:
+            for x in key.arg.split():
+                if x == '':
+                    continue
+                prefix, name = util.split_identifier(x)
+                if prefix is not None and prefix != stmt.i_module.i_prefix:
+                    return
+                ptr = stmt.search_one('leaf', arg=x)
+                if ptr is not None and ptr.keyword == 'leaf':
+                    ptr.i_is_key = True
+    set_is_key()
+
 
 def v_type_leaf_list(ctx, stmt):
     stmt.i_default = []

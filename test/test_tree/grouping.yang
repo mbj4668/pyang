@@ -1,0 +1,15 @@
+module grouping {
+  namespace urn:g;
+  prefix g;
+
+  grouping g {
+    list d {
+      key foo;
+
+      leaf foo {
+        type string;
+      }
+    }
+  }
+}
+    
