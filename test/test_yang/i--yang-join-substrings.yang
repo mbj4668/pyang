@@ -1,0 +1,12 @@
+module i {
+  namespace "urn:i";
+  prefix i;
+
+  contact
+    "Some Corporation"
+  + "Customer Service"
+  + "Postal: some address"
+  + "some more address"
+  + "Tel: +1899420402"
+  + "E-mail: example@example.com";
+}
