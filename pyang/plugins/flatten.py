@@ -18,6 +18,8 @@ Arguments
     flag.
 --flatten-description
     Output the description.
+--flatten-rootmodule
+    Output the root of the XPath as a separate column.
 --flatten-reference
     Output the reference.
 --flatten-units
@@ -220,24 +222,49 @@ class FlattenPlugin(plugin.PyangPlugin):
                 action="store_true",
             ),
             optparse.make_option(
-                "--flatten-units", 
+                "--flatten-units",
                 dest="flatten_units",
-                action="store_true", 
+                action="store_true",
                 help="Output the units statement."),
             optparse.make_option(
-                "--flatten-default", 
+                "--flatten-default",
                 dest="flatten_default",
-                action="store_true", 
+                action="store_true",
                 help="Output the default value."),
             optparse.make_option(
-                "--flatten-mandatory", 
+                "--flatten-mandatory",
                 dest="flatten_mandatory",
-                action="store_true", 
+                action="store_true",
                 help="Output the mandatory flag."),
             optparse.make_option(
-                "--flatten-reference", 
+                "--flatten-reference",
                 dest="flatten_reference",
-                action="store_true", 
+                action="store_true",
+            optparse.make_option(
+                "--flatten-rootmodule",
+                dest="flatten_rootmodule",
+                action="store_true",
+                help="Output the root module name in a separate column."),
+            optparse.make_option(
+                "--flatten-units",
+                dest="flatten_units",
+                action="store_true",
+                help="Output the units statement."),
+            optparse.make_option(
+                "--flatten-default",
+                dest="flatten_default",
+                action="store_true",
+                help="Output the default value."),
+            optparse.make_option(
+                "--flatten-mandatory",
+                dest="flatten_mandatory",
+                action="store_true",
+                help="Output the mandatory flag."),
+            optparse.make_option(
+                "--flatten-reference",
+                dest="flatten_reference",
+                action="store_true",
+>>>>>>> knollpoi-add-flatten-rootmodule
                 help="Output the reference text."),
         ]
         g = optparser.add_option_group("Flatten output specific options")
@@ -266,6 +293,8 @@ class FlattenPlugin(plugin.PyangPlugin):
             self.__field_names.append("status")
         if ctx.opts.flatten_resolve_leafref:
             self.__field_names.append("resolved_leafref")
+        if ctx.opts.flatten_rootmodule:
+            self.__field_names.append("rootmodule")
         if ctx.opts.flatten_units:
             self.__field_names.append("units")
         if ctx.opts.flatten_default:
@@ -415,6 +444,8 @@ class FlattenPlugin(plugin.PyangPlugin):
                 )
             else:
                 output_content["resolved_leafref"] = None
+        if ctx.opts.flatten_rootmodule:
+            output_content["rootmodule"] = self.get_root_module(ctx, child)
         if ctx.opts.flatten_units:
             units_stmt = child.search_one("units")
             output_content["units"] = units_stmt.arg if units_stmt is not None else None
@@ -494,3 +525,10 @@ class FlattenPlugin(plugin.PyangPlugin):
                     xpath_element = "%s[%s]" % (xpath_element, node_key)
             xpath_elements.append(xpath_element)
         return "/%s" % "/".join(xpath_elements)
+  
+    def get_root_module(self, ctx, stmt):
+        xpath = statements.get_xpath(stmt,
+                            prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+                            qualified=ctx.opts.flatten_qualified_in_xpath,
+                            with_keys=ctx.opts.flatten_keys_in_xpath)
+        return xpath.split('/')[1]
