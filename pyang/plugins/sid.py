@@ -648,7 +648,6 @@ class SidFile:
                                  ('ietf-yang-structure-ext', 'structure'))
     choice_keywords = ('choice', 'case')
     inrpc_keywords = ('input', 'output')
-    grouping_keywords = ('grouping', 'choice', 'case')
     module_keywords = ('module', 'container', 'list', 'notification',
                        'rpc', 'action')
 
@@ -682,11 +681,9 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement))
 
-            elif statement.keyword in self.module_container_keywords:
+            elif (statement.keyword in self.module_container_keywords or 
+                  statement.keyword in self.choice_keywords):
                 self.merge_item('data', self.get_path(statement))
-                self.collect_inner_data_nodes(statement.i_children)
-
-            elif statement.keyword in self.choice_keywords:
                 self.collect_inner_data_nodes(statement.i_children)
 
             elif statement.keyword == 'rpc':
@@ -722,7 +719,8 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
 
-            elif statement.keyword in self.container_keywords:
+            elif (statement.keyword in self.container_keywords or
+                  statement.keyword in self.choice_keywords):
                 self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
@@ -741,19 +739,14 @@ class SidFile:
                 self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
-            elif statement.keyword in self.choice_keywords:
-                self.collect_inner_data_nodes(statement.i_children, prefix)
-
     def collect_in_substmts(self, substmts):
         for statement in substmts:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement))
 
-            elif statement.keyword in self.container_keywords:
+            elif (statement.keyword in self.container_keywords or
+                  statement.keyword in self.choice_keywords):
                 self.merge_item('data', self.get_path(statement))
-                self.collect_in_substmts(statement.substmts)
-
-            elif statement.keyword in self.choice_keywords:
                 self.collect_in_substmts(statement.substmts)
 
             elif statement.keyword == 'uses':
@@ -764,8 +757,10 @@ class SidFile:
     def get_path(self, statement, prefix=""):
         path = ""
 
+        #breakpoint()
+
         while statement.i_module is not None:
-            if (statement.keyword not in self.grouping_keywords
+            if (statement.keyword != 'grouping'
                     and not self.has_yang_data_extension(statement)):
                 # Locate the data node parent
                 parent = statement.parent
@@ -780,7 +775,11 @@ class SidFile:
 
                 if (prefix != "" or
                         (parent.i_module is not None and
-                        parent.i_module == statement.i_module)):
+                         parent.i_module == statement.i_module) or
+                        (statement.keyword == 'case' and 
+                         statement.i_module == statement.parent.i_module) or
+                        (statement.parent.keyword == 'case' and 
+                         statement.i_module == statement.parent.i_module)):
                     path = "/" + statement.arg + path
                 else:
                     path = "/" + statement.i_module.arg + ":" + statement.arg \
@@ -850,7 +849,9 @@ class SidFile:
                         latest = r[0]
 
                 if latest == '':
-                    raise Exception
+                    raise Exception(f'The .sid file requires the imported ' +
+                    'modules to have revision statement. No module ' +
+                    '"{module_name}" with revision statement found.')
 
                 revision = latest
                 print(f"WARNING: Module '{module_name}' imported without " +

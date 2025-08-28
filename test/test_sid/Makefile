@@ -2,10 +2,10 @@ PYANG?= pyang
 
 .PHONY: test test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 test23 \
-	test25 test26 test27 test28 test29 test30 test31 test32
+	test25 test26 test27 test28 test29 test30 test31 test32 test33 test34
 test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 \
-	test23 test25 test26 test27 test28 test29 test30 test31 test32
+	test23 test25 test26 test27 test28 test29 test30 test31 test32 test33 test34
 
 test1:
 	# Test help
@@ -179,3 +179,20 @@ test32: rpc-notification-action.yang test-32-expected-rpc-notification-action.si
 	$(PYANG) --sid-generate-file 60000:100 rpc-notification-action.yang --sid-finalize >/dev/null 2>/dev/null
 	diff -b rpc-notification-action.sid test-32-expected-rpc-notification-action.sid
 	rm rpc-notification-action.sid
+
+test33: choice-case.yang test-33-expected-choice-case.sid
+	# Test that choice and case schema nodes are properly assigned the SID numbers
+	$(PYANG) --sid-generate-file 60000:100 choice-case.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b choice-case.sid test-33-expected-choice-case.sid
+	rm choice-case.sid
+
+test34: aug-a@2025-08-25.yang aug-b@2025-08-25.yang aug-c@2025-08-25.yang test-34-expected-aug-a.sid test-34-expected-aug-b.sid test-34-expected-aug-c.sid
+	# Test SID assignment identifiers of choice and case node with augmentation
+	$(PYANG) --sid-generate-file 1000:100 aug-a@2025-08-25.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b aug-a@2025-08-25.sid test-34-expected-aug-a.sid
+	$(PYANG) --sid-generate-file 1100:100 aug-b@2025-08-25.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b aug-b@2025-08-25.sid test-34-expected-aug-b.sid
+	$(PYANG) --sid-generate-file 1200:100 aug-c@2025-08-25.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b aug-c@2025-08-25.sid test-34-expected-aug-c.sid
+	rm aug-a@2025-08-25.sid aug-b@2025-08-25.sid aug-c@2025-08-25.sid
+
