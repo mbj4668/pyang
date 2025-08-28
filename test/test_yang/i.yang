@@ -1,0 +1,11 @@
+module i {
+  namespace "urn:i";
+  prefix i;
+  container x {
+    description "Container description";
+    leaf y {
+      type string;
+      description "Leaf description";
+    }
+  }
+}
