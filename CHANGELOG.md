@@ -1,3 +1,18 @@
+* 2.7.0 - 2025-08-29
+```
+      lots of updates to the SID plugin
+        thanks to Vojtech Vilimek
+      various fixes in the UML plugin
+        thanks to Nick Hancock and Stefan Gula
+      various fixes in the flatten plugin
+        thanks to Kevin Noll
+
+      #902 - ensure leaf keys in groupings are marked as such
+      #914 - more robust implementation of comment parser
+      #927 - allow augment of mandatory node in non-config nodes
+      #930 - allow dot in if-feature expression
+```
+
 * 2.6.1 - 2024-05-23
 ```
        fix IEEE module name prefix expectation
