@@ -1,3 +1,8 @@
+* 2.7.1 - 2025-08-29
+```
+      documentation fix
+```
+
 * 2.7.0 - 2025-08-29
 ```
       lots of updates to the SID plugin
