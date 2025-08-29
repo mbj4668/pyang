@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "PYANG" "1" "2024-05-23" "pyang-2.6.1" "User Manual"
+.TH "PYANG" "1" "2025-08-29" "pyang-2.7.0" "User Manual"
 .hy
 .SH NAME
 .PP
@@ -180,7 +180,7 @@ module search path.
 \f[B]--strict\f[R]
 Force strict YANG compliance.
 Currently this checks that the deref() function is not used in XPath
-expressions and leafrefs.
+expressions and leafrefs for YANG 1.0.
 .TP
 \f[B]--lint\f[R]
 Validate the module(s) according to the generic YANG guideline as
@@ -1072,24 +1072,9 @@ Derives a flag - for instance rw/ro for config, or x for RPC.
 \f[B]--flatten-description\f[R]
 Output the description.
 .TP
-\f[B]--flatten-reference\f[R]
-Output the reference.
-.TP
-\f[B]--flatten-units\f[R]
-Output the units.
-.TP
-\f[B]--flatten-default\f[R]
-Output the default.
-.TP
-\f[B]--flatten-mandatory\f[R]
-Output the mandatory flag.
-.TP
 \f[B]--flatten-keys\f[R]
 Output whether the XPath is identified as a key.
 \f[I]key\f[R] or null will be output per XPath.
-.TP
-\f[B]--flatten-rootmodule\f[R]
-Output the root of the XPath in a separate column.
 .TP
 \f[B]--flatten-keys-in-xpath\f[R]
 Output the XPath with keys in path.
