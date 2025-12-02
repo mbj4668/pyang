@@ -79,8 +79,8 @@ class FileRepository(Repository):
             # but the real location is `/usr/local`
             # if the package is installed with pip
             # this information can be easily retrieved
-            import pkgutil
-            if not pkgutil.find_loader('pip'):
+            import importlib
+            if not importlib.util.find_spec('pip'):
                 break  # abort search if pip is not installed
 
             # hack below to handle pip 10 internals
