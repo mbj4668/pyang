@@ -3,6 +3,7 @@
     "module-name": "i",
     "module-revision": "2025-07-25",
     "sid-file-status": "unpublished",
+    "description": "pyang description",
     "dependency-revision": [
       {
         "module-name": "h",

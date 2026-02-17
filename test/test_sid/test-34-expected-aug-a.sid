@@ -2,6 +2,7 @@
   "ietf-sid-file:sid-file": {
     "module-name": "aug-a",
     "module-revision": "2025-08-25",
+    "description": "pyang description",
     "assignment-range": [
       {
         "entry-point": "1000",
