@@ -3,6 +3,7 @@
     "module-name": "ieee802-dot1q-psfp",
     "module-revision": "2020-07-07",
     "sid-file-status": "unpublished",
+    "description": "pyang description",
     "dependency-revision": [
       {
         "module-name": "ieee802-dot1q-types",

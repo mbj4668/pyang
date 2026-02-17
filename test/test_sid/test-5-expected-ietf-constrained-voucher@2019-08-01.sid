@@ -3,6 +3,7 @@
     "module-name": "ietf-constrained-voucher",
     "module-revision": "2019-08-01",
     "sid-file-status": "unpublished",
+    "description": "pyang description",
     "dependency-revision": [
       {
         "module-name": "ietf-restconf",

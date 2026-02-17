@@ -23,460 +23,460 @@
     ],
     "assignment-range": [
       {
-        "entry-point": "1700",
-        "size": "100"
+        "entry-point": "60000",
+        "size": "1000"
       }
     ],
     "item": [
       {
         "namespace": "module",
         "identifier": "ietf-system",
-        "sid": "1700"
+        "sid": "60000"
       },
       {
         "namespace": "identity",
         "identifier": "authentication-method",
-        "sid": "1701"
+        "sid": "60001"
       },
       {
         "namespace": "identity",
         "identifier": "local-users",
-        "sid": "1702"
+        "sid": "60002"
       },
       {
         "namespace": "identity",
         "identifier": "radius",
-        "sid": "1703"
+        "sid": "60003"
       },
       {
         "namespace": "identity",
         "identifier": "radius-authentication-type",
-        "sid": "1704"
+        "sid": "60004"
       },
       {
         "namespace": "identity",
         "identifier": "radius-chap",
-        "sid": "1705"
+        "sid": "60005"
       },
       {
         "namespace": "identity",
         "identifier": "radius-pap",
-        "sid": "1706"
+        "sid": "60006"
       },
       {
         "namespace": "feature",
         "identifier": "authentication",
-        "sid": "1707"
+        "sid": "60007"
       },
       {
         "namespace": "feature",
         "identifier": "dns-udp-tcp-port",
-        "sid": "1708"
+        "sid": "60008"
       },
       {
         "namespace": "feature",
         "identifier": "local-users",
-        "sid": "1709"
+        "sid": "60009"
       },
       {
         "namespace": "feature",
         "identifier": "ntp",
-        "sid": "1710"
+        "sid": "60010"
       },
       {
         "namespace": "feature",
         "identifier": "ntp-udp-port",
-        "sid": "1711"
+        "sid": "60011"
       },
       {
         "namespace": "feature",
         "identifier": "radius",
-        "sid": "1712"
+        "sid": "60012"
       },
       {
         "namespace": "feature",
         "identifier": "radius-authentication",
-        "sid": "1713"
+        "sid": "60013"
       },
       {
         "namespace": "feature",
         "identifier": "timezone-name",
-        "sid": "1714"
+        "sid": "60014"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:set-current-datetime",
-        "sid": "1715"
+        "sid": "60015"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:set-current-datetime/input",
-        "sid": "1716"
+        "sid": "60016"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:set-current-datetime/input/current-datetime",
-        "sid": "1717"
+        "sid": "60017"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:set-current-datetime/output",
-        "sid": "1718"
+        "sid": "60018"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system",
-        "sid": "1719"
+        "sid": "60019"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-restart",
-        "sid": "1720"
+        "sid": "60020"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-restart/input",
-        "sid": "1721"
+        "sid": "60021"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-restart/output",
-        "sid": "1722"
+        "sid": "60022"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-shutdown",
-        "sid": "1723"
+        "sid": "60023"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-shutdown/input",
-        "sid": "1724"
+        "sid": "60024"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-shutdown/output",
-        "sid": "1725"
+        "sid": "60025"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state",
-        "sid": "1726"
+        "sid": "60026"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/clock",
-        "sid": "1727"
+        "sid": "60027"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/clock/boot-datetime",
-        "sid": "1728"
+        "sid": "60028"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/clock/current-datetime",
-        "sid": "1729"
+        "sid": "60029"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/platform",
-        "sid": "1730"
+        "sid": "60030"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/platform/machine",
-        "sid": "1731"
+        "sid": "60031"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/platform/os-name",
-        "sid": "1732"
+        "sid": "60032"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/platform/os-release",
-        "sid": "1733"
+        "sid": "60033"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system-state/platform/os-version",
-        "sid": "1734"
+        "sid": "60034"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication",
-        "sid": "1735"
+        "sid": "60035"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user",
-        "sid": "1736"
+        "sid": "60036"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user-authentication-order",
-        "sid": "1737"
+        "sid": "60037"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user/authorized-key",
-        "sid": "1738"
+        "sid": "60038"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user/authorized-key/algorithm",
-        "sid": "1739"
+        "sid": "60039"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user/authorized-key/key-data",
-        "sid": "1740"
+        "sid": "60040"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user/authorized-key/name",
-        "sid": "1741"
+        "sid": "60041"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user/name",
-        "sid": "1742"
+        "sid": "60042"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/authentication/user/password",
-        "sid": "1743"
+        "sid": "60043"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/clock",
-        "sid": "1744"
+        "sid": "60044"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/clock/timezone",
-        "sid": "1745"
+        "sid": "60045"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/clock/timezone/timezone-name",
-        "sid": "1746"
+        "sid": "60046"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/clock/timezone/timezone-name/timezone-name",
-        "sid": "1747"
+        "sid": "60047"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/clock/timezone/timezone-utc-offset",
-        "sid": "1748"
+        "sid": "60048"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/clock/timezone/timezone-utc-offset/timezone-utc-offset",
-        "sid": "1749"
+        "sid": "60049"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/contact",
-        "sid": "1750"
+        "sid": "60050"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver",
-        "sid": "1751"
+        "sid": "60051"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/options",
-        "sid": "1752"
+        "sid": "60052"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/options/attempts",
-        "sid": "1753"
+        "sid": "60053"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/options/timeout",
-        "sid": "1754"
+        "sid": "60054"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/search",
-        "sid": "1755"
+        "sid": "60055"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server",
-        "sid": "1756"
+        "sid": "60056"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server/name",
-        "sid": "1757"
+        "sid": "60057"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server/transport",
-        "sid": "1758"
+        "sid": "60058"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server/transport/udp-and-tcp",
-        "sid": "1759"
+        "sid": "60059"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server/transport/udp-and-tcp/udp-and-tcp",
-        "sid": "1760"
+        "sid": "60060"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server/transport/udp-and-tcp/udp-and-tcp/address",
-        "sid": "1761"
+        "sid": "60061"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/dns-resolver/server/transport/udp-and-tcp/udp-and-tcp/port",
-        "sid": "1762"
+        "sid": "60062"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/hostname",
-        "sid": "1763"
+        "sid": "60063"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/location",
-        "sid": "1764"
+        "sid": "60064"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp",
-        "sid": "1765"
+        "sid": "60065"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/enabled",
-        "sid": "1766"
+        "sid": "60066"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server",
-        "sid": "1767"
+        "sid": "60067"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/association-type",
-        "sid": "1768"
+        "sid": "60068"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/iburst",
-        "sid": "1769"
+        "sid": "60069"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/name",
-        "sid": "1770"
+        "sid": "60070"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/prefer",
-        "sid": "1771"
+        "sid": "60071"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/transport",
-        "sid": "1772"
+        "sid": "60072"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/transport/udp",
-        "sid": "1773"
+        "sid": "60073"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/transport/udp/udp",
-        "sid": "1774"
+        "sid": "60074"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/transport/udp/udp/address",
-        "sid": "1775"
+        "sid": "60075"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/ntp/server/transport/udp/udp/port",
-        "sid": "1776"
+        "sid": "60076"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius",
-        "sid": "1777"
+        "sid": "60077"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/options",
-        "sid": "1778"
+        "sid": "60078"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/options/attempts",
-        "sid": "1779"
+        "sid": "60079"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/options/timeout",
-        "sid": "1780"
+        "sid": "60080"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server",
-        "sid": "1781"
+        "sid": "60081"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/authentication-type",
-        "sid": "1782"
+        "sid": "60082"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/name",
-        "sid": "1783"
+        "sid": "60083"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/transport",
-        "sid": "1784"
+        "sid": "60084"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/transport/udp",
-        "sid": "1785"
+        "sid": "60085"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/transport/udp/udp",
-        "sid": "1786"
+        "sid": "60086"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/transport/udp/udp/address",
-        "sid": "1787"
+        "sid": "60087"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/transport/udp/udp/authentication-port",
-        "sid": "1788"
+        "sid": "60088"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-system:system/radius/server/transport/udp/udp/shared-secret",
-        "sid": "1789"
+        "sid": "60089"
       }
     ]
   }

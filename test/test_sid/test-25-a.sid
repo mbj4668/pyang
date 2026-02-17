@@ -2,6 +2,7 @@
   "ietf-sid-file:sid-file": {
     "module-name": "a",
     "sid-file-status": "unpublished",
+    "description": "pyang description",
     "assignment-range": [
       {
         "entry-point": "250",

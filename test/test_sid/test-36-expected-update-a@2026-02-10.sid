@@ -1,0 +1,30 @@
+{
+  "ietf-sid-file:sid-file": {
+    "module-name": "update-a",
+    "module-revision": "2026-02-10",
+    "description": "pyang description",
+    "assignment-range": [
+      {
+        "entry-point": "60000",
+        "size": "1000"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "update-a",
+        "sid": "60000"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-a:table",
+        "sid": "60001"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-a:table/surface",
+        "sid": "60002"
+      }
+    ]
+  }
+}

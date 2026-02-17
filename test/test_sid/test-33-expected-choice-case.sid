@@ -1,6 +1,7 @@
 {
   "ietf-sid-file:sid-file": {
     "module-name": "choice-case",
+    "description": "pyang description",
     "assignment-range": [
       {
         "entry-point": "60000",
