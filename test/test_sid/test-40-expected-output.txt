@@ -1,0 +1,1 @@
+ERROR, .sid files can be only generated for YANG modules. Generation of .sid files for YANG submodules is prohibited.
