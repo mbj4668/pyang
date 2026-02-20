@@ -1,0 +1,52 @@
+{
+  "ietf-sid-file:sid-file": {
+    "module-name": "update-b",
+    "module-revision": "2026-02-10",
+    "sid-file-status": "unpublished",
+    "description": "pyang description",
+    "dependency-revision": [
+      {
+        "module-name": "update-a",
+        "module-revision": "2026-02-10"
+      }
+    ],
+    "assignment-range": [
+      {
+        "entry-point": "61000",
+        "size": "1000"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "update-b",
+        "status": "unstable",
+        "sid": "61000"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "advanced-table",
+        "status": "unstable",
+        "sid": "61001"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace",
+        "status": "unstable",
+        "sid": "61002"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace/number-of-tables",
+        "status": "unstable",
+        "sid": "61003"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace/tables-type",
+        "status": "unstable",
+        "sid": "61004"
+      }
+    ]
+  }
+}

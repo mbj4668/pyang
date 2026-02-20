@@ -802,11 +802,17 @@ class SidFile:
 
     ########################################################
     # Create list of dependent module with optional revision
+    # Call only after validate_dep_revisions()
     def build_dependencies(self, module):
         imports = module.search('import')
 
         if 'dependency-revision' not in self.content and len(imports) > 0:
             self.content['dependency-revision'] = []
+
+        dep_unification = {}
+        for dep in self.content.get('dependency-revision', []):
+            # the deps are already checked
+            dep_unification[dep['module-name']] = dep
 
         for import_stmt in imports:
             dep = collections.OrderedDict()
@@ -862,7 +868,11 @@ class SidFile:
                     f"'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
 
             dep['module-revision'] = revision
-            self.content['dependency-revision'].append(dep)
+            old_dep = dep_unification.get(module_name)
+            if old_dep is not None and (old_rev := old_dep['module-revision']) > revision:
+                raise SidFileError(f"Module {module_name} is imported with older revision in YANG ({revision}) than in the .sid file ({old_rev})")
+            dep_unification[module_name] = dep
+        self.content['dependency-revision'] = sorted(dep_unification.values(), key=lambda d: d['module-name'])
 
     ########################################################
     # Sort the items list by 'namespace' and 'identifier'

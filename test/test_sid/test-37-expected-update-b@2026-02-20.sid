@@ -1,0 +1,65 @@
+{
+  "ietf-sid-file:sid-file": {
+    "module-name": "update-b",
+    "module-revision": "2026-02-20",
+    "sid-file-version": 2,
+    "sid-file-status": "unpublished",
+    "description": "pyang description",
+    "dependency-revision": [
+      {
+        "module-name": "update-a",
+        "module-revision": "2026-02-15"
+      }
+    ],
+    "assignment-range": [
+      {
+        "entry-point": "61000",
+        "size": "1000"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "update-b",
+        "status": "unstable",
+        "sid": "61000"
+      },
+      {
+        "namespace": "identity",
+        "identifier": "advanced-table",
+        "status": "unstable",
+        "sid": "61001"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace",
+        "status": "unstable",
+        "sid": "61002"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace/number-of-tables",
+        "status": "unstable",
+        "sid": "61003"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace/tables-type",
+        "status": "unstable",
+        "sid": "61004"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace/misc",
+        "status": "unstable",
+        "sid": "61005"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/update-b:workplace/number-of-chairs",
+        "status": "unstable",
+        "sid": "61006"
+      }
+    ]
+  }
+}
