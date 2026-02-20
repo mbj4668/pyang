@@ -1,0 +1,38 @@
+module update-b {
+  yang-version 1.1;
+  namespace "http://example.com/update-b";
+  prefix udp-b;
+
+  import update-a {
+    prefix udp-a;
+    revision-date 2026-02-15;
+  }
+  
+  revision 2026-02-20;
+  revision 2026-02-15;
+  revision 2026-02-10;
+
+  identity advanced-table {
+    base udp-a:table-type;
+  }
+
+  container workplace {
+    leaf number-of-tables {
+      type uint32;
+    }
+
+    leaf number-of-chairs {
+      type uint32;
+    }
+
+    leaf tables-type {
+      type identityref {
+        base udp-a:table-type;
+      }
+    }
+
+    leaf misc {
+      type string;
+    }
+  }
+}

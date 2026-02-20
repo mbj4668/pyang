@@ -6,6 +6,11 @@ module update-a {
   revision 2026-02-15;
   revision 2026-02-10;
 
+  identity table-type;
+  identity basic-table {
+    base table-type;
+  }
+
   container table {
     leaf surface {
       type uint32;
