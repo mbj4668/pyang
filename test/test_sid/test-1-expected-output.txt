@@ -3,6 +3,7 @@ YANG Schema Item iDentifiers (SID) are globally unique unsigned integers used
 to identify YANG items. SIDs are used instead of names to save space in
 constrained applications such as COREconf. This plugin is used to automatically
 generate and updated .sid files used to persist and distribute SID assignments.
+Note that the yang-filename must contain a YANG module not a YANG submodule.
 
 
 COMMANDS
