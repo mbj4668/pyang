@@ -81,7 +81,7 @@
         "identifier": "/toaster:cancel-toast/output",
         "status": "unstable",
         "sid": "20010"
-      }, 
+      },
       {
         "namespace": "data",
         "identifier": "/toaster:make-toast",

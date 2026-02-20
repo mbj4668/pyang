@@ -36,7 +36,7 @@ module ieee802-dot1q-types {
         "Denominator of the rational number.";
     }
   }
-  
+
   identity type-of-operation {
     description
       "Represents the operation type (name).";
@@ -73,7 +73,7 @@ module ieee802-dot1q-types {
       }
     }
   }
-  
+
   grouping ptp-time-grouping {
     description
       "This grouping specifies a PTP timestamp, represented as a

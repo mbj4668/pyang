@@ -775,9 +775,9 @@ class SidFile:
                 if (prefix != "" or
                         (parent.i_module is not None and
                          parent.main_module() == statement.main_module()) or
-                        (statement.keyword == 'case' and 
+                        (statement.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module()) or
-                        (statement.parent.keyword == 'case' and 
+                        (statement.parent.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module())):
                     path = "/" + statement.arg + path
                 else:

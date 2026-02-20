@@ -2,8 +2,8 @@ module update-a {
   yang-version 1.1;
   namespace "http://example.com/update-a";
   prefix udp-a;
-  
-  revision 2026-02-10; 
+
+  revision 2026-02-10;
 
   identity table-type;
   identity basic-table {

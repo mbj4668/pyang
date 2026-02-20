@@ -7,14 +7,14 @@ module update-b {
     prefix udp-a;
     revision-date 2026-02-10;
   }
- 
+
   revision 2026-02-15;
   revision 2026-02-10;
 
   identity advanced-table {
     base udp-a:table-type;
   }
-  
+ 
   container workplace {
     leaf number-of-tables {
       type uint32;

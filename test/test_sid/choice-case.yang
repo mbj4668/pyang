@@ -16,7 +16,7 @@ module choice-case {
     }
 
     leaf c {
-      type uint32;    
+      type uint32;
     }
   }
 
