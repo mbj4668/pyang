@@ -1,33 +1,33 @@
 module ieee802-dot1q-psfp {
   namespace urn:ieee:std:802.1Q:yang:ieee802-dot1q-psfp;
   prefix psfp;
-  
+
   import ieee802-dot1q-types {
     prefix dot1q-types;
   }
-  
+
   import ieee802-dot1q-bridge {
     prefix dot1q;
   }
-  
+
   import ieee802-dot1q-stream-filters-gates {
     prefix sfsg;
   }
-  
+
   organization
     "IEEE 802.1 Working Group";
-    
+
   description
     "This module provides management of 802.1Q bridge components that
     support Per Stream Filtering and Policing (PSFP).";
-  
+
   revision 2020-07-07 {
     description
       "Published as part of IEEE Std 802.1Qcw.
       Initial version.";
     reference
-      "IEEE Std 802.1Qcw - Bridges and Bridged Networks — Amendment: 
-      YANG Data Models for Scheduled Traffic, Frame Preemption, and 
+      "IEEE Std 802.1Qcw - Bridges and Bridged Networks — Amendment:
+      YANG Data Models for Scheduled Traffic, Frame Preemption, and
       Per-Stream Filtering and Policing.";
   }
 
@@ -41,10 +41,10 @@ module ieee802-dot1q-psfp {
   grouping stream-gate-control-entries {
     description
       "A GateControlEntry consists of an operation name, followed by
-      four parameters associated with the operation. The first 
+      four parameters associated with the operation. The first
       parameter is a gateStatesValue; the second parameter is an IPV
-      value; the third parameter is a timeIntervalValue; and the 
-      fourth parameter is an IntervalOctetMaxValue. 
+      value; the third parameter is a timeIntervalValue; and the
+      fourth parameter is an IntervalOctetMaxValue.
       IntervalOctetMaxValue is optional.";
     uses dot1q-types:base-gate-control-entries {
       refine "gate-control-entry/operation-name" {
@@ -53,12 +53,12 @@ module ieee802-dot1q-psfp {
       augment "gate-control-entry" {
         description
           "Augment gate-control-entry from base-gate-control-entries
-          with parameters gate-states-value, ipv-spec and 
+          with parameters gate-states-value, ipv-spec and
           interval-octet-max.";
         leaf gate-state-value {
           type sfsg:gate-state-value-type;
           mandatory true;
-          description 
+          description
             "The PSFPgateStatesValue indicates the desired gate state,
             open or closed, for the stream gate.";
           reference
@@ -84,7 +84,7 @@ module ieee802-dot1q-psfp {
       }
     }
   }
-  
+
   augment
     "/dot1q:bridges"+
     "/dot1q:bridge"+
@@ -143,7 +143,7 @@ module ieee802-dot1q-psfp {
         8.6.9.4.19 of IEEE Std 802.1Q-2018";
       uses stream-gate-control-entries;
     }
-    
+
     container admin-cycle-time {
       description
         "The administrative value of the gating cycle for the Port.

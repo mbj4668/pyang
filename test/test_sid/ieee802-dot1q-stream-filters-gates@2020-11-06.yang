@@ -2,11 +2,11 @@ module ieee802-dot1q-stream-filters-gates {
   yang-version "1.1";
   namespace urn:ieee:std:802.1Q:yang:ieee802-dot1q-stream-filters-gates;
   prefix sfsg;
-  
+
   import ieee802-dot1q-bridge {
     prefix dot1q;
   }
-  
+
   organization
     "IEEE 802.1 Working Group";
 
@@ -22,7 +22,7 @@ module ieee802-dot1q-stream-filters-gates {
       "IEEE Std 802.1Qcr-2020, Bridges and Bridged Networks -
       Asynchronous Traffic Shaping.";
   }
-  
+
   typedef gate-state-value-type {
     type enumeration {
       enum closed {
@@ -40,7 +40,7 @@ module ieee802-dot1q-stream-filters-gates {
     reference
       "12.31.3.2.1 of IEEE Std 802.1Qcr-2020";
   }
-  
+
   typedef ipv-spec-type {
     type enumeration {
       enum zero {
@@ -164,14 +164,14 @@ module ieee802-dot1q-stream-filters-gates {
     description
       "This type is used to refer to a stream gate instance.";
   }
-  
+
   augment "/dot1q:bridges/dot1q:bridge/dot1q:component" {
     description
       "Augments the Bridge component with stream filters and stream gates.";
     container stream-gates {
       description
         "This container encapsulates all nodes related to Stream Gates.";
-        
+
       list stream-gate-instance-table {
         key "stream-gate-instance-id";
         description

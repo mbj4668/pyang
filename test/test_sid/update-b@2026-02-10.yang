@@ -12,7 +12,7 @@ module update-b {
 
   identity advanced-table {
     base udp-a:table-type;
-  } 
+  }
 
   container workplace {
     leaf number-of-tables {

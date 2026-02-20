@@ -7,11 +7,11 @@ module ieee802-dot1q-bridge {
 
   description
     "This YANG module describes the bridge configuration model for the
-    following IEEE 802.1Q Bridges: 
+    following IEEE 802.1Q Bridges:
       1) Two Port MAC Relays
       2) Customer VLAN Bridges
       3) Provider Bridges.";
-      
+
   revision 2020-11-06 {
     description
       "Published as part of IEEE Std 802.1Qcr-2020.
