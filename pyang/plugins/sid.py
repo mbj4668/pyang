@@ -223,7 +223,7 @@ OPTIONS
 
   $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
 
--- sid-check-file
+--sid-check-file
 
   The --sid-check-file option can be used at any time to verify if a .sid file
   need to be updated.
