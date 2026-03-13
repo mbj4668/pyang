@@ -670,10 +670,9 @@ class SidFile:
 
         self.merge_item('module', self.module_name)
 
-        # do not generate SIDs for submodules
-        #for name in module.i_ctx.modules:
-        #    if module.i_ctx.modules[name].keyword == 'submodule':
-        #        self.merge_item('module', module.i_ctx.modules[name].arg)
+        for name in module.i_ctx.modules:
+            if module.i_ctx.modules[name].keyword == 'submodule':
+                self.merge_item('module', module.i_ctx.modules[name].arg)
 
         for feature in module.i_features:
             self.merge_item('feature', feature)
