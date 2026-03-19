@@ -771,11 +771,17 @@ class SidFile:
                         break
                     parent = parent.parent
 
+                # This if statement guards the simple-form 'identifier' paths elements
+                # (A) we don't want /test-mod:toplevel-choice/test-mod:toplevel-case-a/a
+                # (B) we don't want /test-mod:toplevel-choice/toplevel-case-a/test-mod:a
+                # we want /test-mod:toplevel-choice/toplevel-case-a/a
                 if (prefix != "" or
                         (parent.i_module is not None and
                          parent.main_module() == statement.main_module()) or
+                        # handles cases for case nodes children of toplevel choice (A)
                         (statement.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module()) or
+                        # handles cases of children of case nodes children of toplevel choice (B)
                         (statement.parent.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module())):
                     path = "/" + statement.arg + path
