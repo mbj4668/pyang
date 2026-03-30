@@ -84,6 +84,7 @@ pyang is compatible with the following IETF RFCs:
   * [RFC 8040: RESTCONF Protocols](https://tools.ietf.org/html/rfc8040)
   * [RFC 8407: Guidelines for Authors and Reviewers of Documents Containing YANG Data Models](https://tools.ietf.org/html/rfc8407)
   * [RFC 8791: YANG Data Structure Extensions](https://tools.ietf.org/html/rfc8791)
+  * [RFC 9595: YANG Schema Item iDentifier (YANG SID)](https://tools.ietf.org/html/rfc9595)
 
 ## Features ##
 
