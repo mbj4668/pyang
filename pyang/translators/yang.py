@@ -486,6 +486,8 @@ def emit_comment(comment, fd, indent):
     for x in lines:
         if x[0] == '*':
             fd.write(indent + ' ' + x)
+        elif x == '\n':
+            fd.write(x)
         else:
             fd.write(indent + x)
     fd.write('\n')
