@@ -6,7 +6,6 @@ test: test1 test2 test3 test4
 test1:
 	# Test tree for strcuture (duplicit test)
 	$(PYANG) -f tree --tree-print-structures -p ../../modules/ietf example-module@2020-06-17.yang 2>&1 | diff -b test-1-expected-output.txt -
-
 test2:
 	# Test tree for augment-structure
 	$(PYANG) -f tree --tree-print-structures -p ../../modules/ietf example-module-aug.yang 2>&1 | diff -b test-2-expected-output.txt -
