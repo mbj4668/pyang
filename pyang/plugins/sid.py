@@ -456,7 +456,13 @@ class SidFile:
         module_name_absent = True
 
         for key in self.content:
-            if key == 'module-name':
+            if key == 'assignment-range':
+                assignment_ranges_absent = False
+                if not isinstance(self.content[key], list):
+                    raise SidFileError("key 'assignment-range', invalid  value.")
+                self.validate_ranges(self.content[key])
+
+            elif key == 'module-name':
                 # Further validation will be done during searching the module
                 module_name_absent = False
 
@@ -510,6 +516,12 @@ class SidFile:
         if module_name_absent:
             raise SidFileError("mandatory field 'module-name' not present")
 
+        if assignment_ranges_absent:
+            raise SidFileError("mandatory field 'assignment-range' not present")
+
+        if items_absent:
+            raise SidFileError("mandatory field 'item' not present")
+
 
     @staticmethod
     def validate_dep_revisions(revisions):
@@ -526,7 +538,6 @@ class SidFile:
 
             if len(dep_rev) != 2:
                 raise SidFileError("unknown key in 'dependency-revision' list")
-
 
     @staticmethod
     def validate_ranges(ranges):
