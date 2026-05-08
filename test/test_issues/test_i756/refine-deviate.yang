@@ -1,0 +1,26 @@
+module refine-deviate {
+  yang-version 1.1;
+  namespace "urn:refine-deviate";
+  prefix rd;
+
+  import base { prefix b; }
+
+  // YANG 1.1 allows multiple default statements when refining a leaf-list
+  container cfg2 {
+    uses b:servers-grp {
+      refine servers {
+        default "alpha";
+        default "beta";
+        default "gamma";
+      }
+    }
+  }
+
+  // YANG 1.1 allows multiple default statements in deviate for a leaf-list
+  deviation /b:dns {
+    deviate replace {
+      default "1.1.1.1";
+      default "8.8.8.8";
+    }
+  }
+}

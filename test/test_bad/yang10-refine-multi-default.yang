@@ -1,0 +1,20 @@
+module yang10-refine-multi-default {
+  yang-version 1;
+  namespace "urn:yang10-refine-multi-default";
+  prefix y10rmd;
+
+  grouping servers-grp {
+    leaf-list servers {
+      type string;
+    }
+  }
+
+  container cfg {
+    uses servers-grp {
+      refine servers {
+        default "alpha";
+        default "beta";
+      }
+    }
+  }
+}
