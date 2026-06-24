@@ -255,12 +255,12 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
             prefix = nodetest[1]
             name = nodetest[2]
             if prefix is None:
-                if initial is None:
+                if node is None:
                     pmodule = None
-                elif initial.keyword == 'module':
-                    pmodule = initial
+                elif node.keyword == 'module':
+                    pmodule = node
                 else:
-                    pmodule = initial.i_module
+                    pmodule = node.i_module
             else:
                 pmodule = prefix_to_module(mod, prefix, pos, ctx.errors)
             # if node and initial are None, it means we're checking an XPath
