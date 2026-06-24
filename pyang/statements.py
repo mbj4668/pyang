@@ -1020,15 +1020,19 @@ def v_type_leaf(ctx, stmt):
     default = stmt.search_one('default')
     type_ = stmt.search_one('type')
     if default is not None and type_.i_type_spec is not None :
+        # Use the default statement's module if it's set (e.g., from deviate add),
+        # otherwise use the leaf's module. This ensures prefix resolution works
+        # correctly for default values added via deviation statements.
+        default_module = getattr(default, 'i_module', None) or stmt.i_module
         defval = type_.i_type_spec.str_to_val(ctx.errors,
                                               default.pos,
                                               default.arg,
-                                              stmt.i_module)
+                                              default_module)
         stmt.i_default = defval
         stmt.i_default_str = default.arg
         if defval is not None:
             type_.i_type_spec.validate(ctx.errors, default.pos,
-                                       defval, stmt.i_module,
+                                       defval, default_module,
                                        ' for the default value')
     elif (default is None and
           type_.i_typedef is not None and
@@ -2319,6 +2323,10 @@ def v_reference_deviate(ctx, stmt):
                     err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
                             c.keyword)
                 else:
+                    # Ensure i_module is set so prefix resolution works correctly
+                    # when validating default values with prefixed names
+                    if not hasattr(c, 'i_module') or c.i_module is None:
+                        c.i_module = stmt.i_module
                     t.substmts.append(c)
             else:
                 # multi-valued keyword; just add the statement if it is valid
@@ -2335,6 +2343,9 @@ def v_reference_deviate(ctx, stmt):
                         else:
                             # unknown module, let's assume the extension can
                             # be deviated
+                            # Ensure i_module is set so prefix resolution works correctly
+                            if not hasattr(c, 'i_module') or c.i_module is None:
+                                c.i_module = stmt.i_module
                             t.substmts.append(c)
                     else:
                         err_add(ctx.errors, c.pos, 'BAD_DEVIATE_TYPE',
@@ -2344,6 +2355,10 @@ def v_reference_deviate(ctx, stmt):
                             c.keyword)
 
                 else:
+                    # Ensure i_module is set so prefix resolution works correctly
+                    # when validating default values with prefixed names
+                    if not hasattr(c, 'i_module') or c.i_module is None:
+                        c.i_module = stmt.i_module
                     t.substmts.append(c)
     elif stmt.arg == 'replace':
         for c in stmt.substmts:

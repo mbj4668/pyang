@@ -343,6 +343,13 @@ class Context(object):
             m = self.modules[k]
             if m is not None:
                 modules.append(m)
+        # First, ensure all deviation modules are fully validated (including
+        # their imports) before validating main modules. This fixes issues where
+        # deviation statements use prefixed values (e.g., identityref in default
+        # statements) that require imports to be resolved.
+        for dev_mod in self.deviation_modules:
+            if dev_mod is not None and not dev_mod.i_is_validated:
+                statements.validate_module(self, dev_mod)
         for m in modules:
             # may add new modules by import
             statements.validate_module(self, m)
