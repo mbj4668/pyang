@@ -1,0 +1,12 @@
+module m {
+  namespace "urn:m";
+  prefix m;
+
+  revision 2021-01-01;
+
+  container m_cont {
+    leaf val {
+      type string;
+    }
+  }
+}

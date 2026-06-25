@@ -1,0 +1,30 @@
+module e {
+  namespace "urn:e";
+  prefix e;
+
+  import d {
+    prefix d;
+    revision-date 2022-03-03;
+  }
+
+  import b {
+    prefix b;
+  }
+
+  revision 2022-04-04;
+
+  // d is reached twice in the dependency closure: directly (pinned to
+  // 2022-03-03) and transitively via b (which imports d with no
+  // revision-date).  It must appear only once in the prerequisites.
+  leaf ed {
+    type leafref {
+      path "/d:d_cont/d:leaf_d";
+    }
+  }
+
+  leaf eb {
+    type leafref {
+      path "/b:b_cont/b:leaf_1";
+    }
+  }
+}

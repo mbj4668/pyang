@@ -1,0 +1,23 @@
+module m {
+  namespace "urn:m";
+  prefix m;
+
+  // m imports dep; with --depend-recurse the walk must descend into m (itself
+  // resolved by content, not file name) and pick up dep as a prerequisite.
+  import dep {
+    prefix dep;
+  }
+
+  revision 2020-01-01;
+
+  container m_cont {
+    leaf val {
+      type string;
+    }
+    leaf dref {
+      type leafref {
+        path "/dep:dep_cont/dep:d";
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+module mtop {
+  namespace "urn:mtop";
+  prefix mtop;
+
+  // m is pinned to 2020-01-01 (in v1); a newer 2021-01-01 lives in v2.  Both
+  // files are named plainly "m.yang", so the revision is only distinguishable
+  // by module content, not by the file name.
+  import m {
+    prefix m;
+    revision-date 2020-01-01;
+  }
+
+  revision 2024-01-01;
+
+  leaf mref {
+    type leafref {
+      path "/m:m_cont/m:val";
+    }
+  }
+}

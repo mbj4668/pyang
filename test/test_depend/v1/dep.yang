@@ -1,0 +1,12 @@
+module dep {
+  namespace "urn:dep";
+  prefix dep;
+
+  revision 2019-01-01;
+
+  container dep_cont {
+    leaf d {
+      type string;
+    }
+  }
+}

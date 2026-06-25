@@ -67,41 +67,57 @@ def emit_depend(ctx, modules, fd):
             fd.write('%s :' % module.pos.ref)
         else:
             fd.write('%s :' % ctx.opts.depend_target)
-        prereqs = []
+        prereqs = []  # list of (name, revision) pairs
         add_prereqs(ctx, module, prereqs)
-        for i in prereqs:
-            if i in ctx.opts.depend_ignore:
+        emitted = set()  # dedup on the emitted token, not the (name, rev) pair
+        for name, revision in prereqs:
+            if name in ctx.opts.depend_ignore:
                 continue
             if ctx.opts.depend_include_path:
-                m = ctx.get_module(i)
-                if ctx.opts.depend_extension is None:
+                # resolve with revision; a name-only lookup picks the latest
+                # revision, which may not be loaded (so m would be None)
+                m = ctx.get_module(name, revision)
+                if m is None or m.pos is None:
+                    # unresolvable; best-effort name@revision keeps the revision
+                    base = '%s@%s' % (name, revision) if revision else name
+                    filename = '%s%s' % (base, ctx.opts.depend_extension or "")
+                elif ctx.opts.depend_extension is None:
                     filename = m.pos.ref
                 else:
                     basename = os.path.splitext(m.pos.ref)[0]
                     filename = '%s%s' % (basename, ctx.opts.depend_extension)
-                fd.write(' %s' % filename)
             else:
-                if ctx.opts.depend_extension is None:
-                    ext = ""
-                else:
-                    ext = ctx.opts.depend_extension
-                fd.write(' %s%s' % (i, ext))
+                filename = '%s%s' % (name, ctx.opts.depend_extension or "")
+            if filename not in emitted:
+                emitted.add(filename)
+                fd.write(' %s' % filename)
         fd.write('\n')
 
+def _revision(stmt):
+    rev = stmt.search_one("revision-date")
+    return rev.arg if rev is not None else None
+
 def add_prereqs(ctx, module, prereqs):
-    new = [(i.arg, i.search_one("revision-date")) for i in module.search("import") if i.arg not in prereqs]
+    # dedup on the (name, revision) pair, not the name alone
+    seen = set(prereqs)
+    new = []
+    def add(stmts):
+        for i in stmts:
+            key = (i.arg, _revision(i))
+            if key not in seen:
+                seen.add(key)
+                new.append(key)
+    add(module.search("import"))
     if not ctx.opts.depend_no_submodules:
-        new += [(i.arg, i.search_one("revision-date")) for i in module.search("include")
-                if i.arg not in prereqs and i.arg not in new]
+        add(module.search("include"))
     if ctx.opts.depend_from_submodules:
         for i in module.search("include"):
-            subm = ctx.get_module(i.arg)
+            subm = ctx.get_module(i.arg, _revision(i))
             if subm is not None:
-                new += [(i.arg, i.search_one("revision-date")) for i in subm.search("import")
-                        if i.arg not in prereqs and i.arg not in new]
-    prereqs.extend(i[0] for i in new)
+                add(subm.search("import"))
+    prereqs.extend(new)
     if ctx.opts.depend_recurse:
-        for modulename, revision_date in new:
-            revision = revision_date.arg if revision_date is not None else None
-            m = ctx.get_module(modulename, revision)
-            add_prereqs(ctx, m, prereqs)
+        for name, revision in new:
+            m = ctx.get_module(name, revision)
+            if m is not None:
+                add_prereqs(ctx, m, prereqs)
