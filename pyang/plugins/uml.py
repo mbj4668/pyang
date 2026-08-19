@@ -89,6 +89,10 @@ class UMLPlugin(plugin.PyangPlugin):
             optparse.make_option("--uml-max-bits",
                                  dest="uml_max_bits",
                                  help="The maximum number of bit values to render. If set also enables rendering of bits typedefs as a 'bits' class"),
+            optparse.make_option("--uml-max-pattern-length",
+                                 dest="uml_max_pattern_length",
+                                 default="20",
+                                 help="The maximum number of pattern characters to render (default 20)"),
             optparse.make_option("--uml-more-values",
                                  dest="uml_more_values",
                                  default="",
@@ -1079,11 +1083,11 @@ class uml_emitter:
 
         pattern = t.search_one('pattern')
         if pattern is not None: # truncate long patterns
-            s = s + ' {pattern = ' + pattern.arg[:20]
-            if len(pattern.arg) < 20:
+            s = s + ' {pattern = ' + pattern.arg[:int(self._ctx.opts.uml_max_pattern_length)]
+            if len(pattern.arg) <= int(self._ctx.opts.uml_max_pattern_length):
                 s = s + '}'
             else:
-                s = s + '...}'
+                s = s + self.ctx_more_string + '}'
 
         return s
 
