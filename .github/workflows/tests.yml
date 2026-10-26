@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8.18", "3.9.21", "3.10.16", "3.11.11", "3.12.8", "3.13.1"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -39,7 +39,7 @@ jobs:
           find . -name '.coverage*' -exec mv -t . {} +
           coverage combine
           # Test .gitignore for tests:
-          TMP=$(tempfile)
+          TMP=$(mktemp)
           git ls-files . --exclude-standard --others | tee "$TMP"
           if test -s "$TMP"; then false; else true; fi
           # Test if we .gitignore any tracked files:

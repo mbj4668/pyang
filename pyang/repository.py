@@ -77,27 +77,15 @@ class FileRepository(Repository):
 
             # for some systems, sys.prefix returns `/usr`
             # but the real location is `/usr/local`
-            # if the package is installed with pip
-            # this information can be easily retrieved
-            import importlib
-            if not importlib.util.find_spec('pip'):
-                break  # abort search if pip is not installed
-
-            # hack below to handle pip 10 internals
-            # if someone knows pip and how to fix this, it would be great!
-            location = None
-            try:
-                import pip.locations as locations
-                location = locations.distutils_scheme('pyang')
-            except:
-                try:
-                    import pip._internal.locations as locations
-                    location = locations.distutils_scheme('pyang')
-                except:
-                    pass
-            if location is not None:
-                self._add_directory(
-                    os.path.join(location['data'], 'share', 'yang', 'modules'))
+            # if the package is installed with pip.
+            # pip installs data files in the sysconfig 'data' path,
+            # or in the user base for `pip install --user`
+            import sysconfig
+            import site
+            for data in (sysconfig.get_path('data'), site.getuserbase()):
+                if data:
+                    self._add_directory(
+                        os.path.join(data, 'share', 'yang', 'modules'))
 
         if verbose:
             sys.stderr.write('# module search path: %s\n'
