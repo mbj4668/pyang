@@ -2,14 +2,41 @@ module m {
   yang-version 1.1;
   namespace "urn:m";
   prefix m;
+
   include s1;
   include s2;
+
   feature fm;
+
   identity im;
-  identity im2 { base i2; }
-  typedef tm { type string; }
-  grouping gm { leaf gml { type string; } }
-  extension em { argument x; }
-  container top { leaf x { type string; } }
-  augment "/m:s2top" { leaf from-main { type string; } }
+
+  identity im2 {
+    base i2;
+  }
+
+  typedef tm {
+    type string;
+  }
+
+  grouping gm {
+    leaf gml {
+      type string;
+    }
+  }
+
+  extension em {
+    argument x;
+  }
+
+  container top {
+    leaf x {
+      type string;
+    }
+  }
+
+  augment "/m:s2top" {
+    leaf from-main {
+      type string;
+    }
+  }
 }

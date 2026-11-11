@@ -3,11 +3,14 @@ submodule y-profiles {
   belongs-to y-base {
     prefix y-b;
   }
+
   include y-base2;
+
   // augments a node in the main module
+
   augment "/y-b:x-setting/y-b:configs/y-b:profiles" {
     list profile {
-      key name;
+      key "name";
       leaf name {
         type string;
       }

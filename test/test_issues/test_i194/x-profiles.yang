@@ -3,9 +3,10 @@ submodule x-profiles {
   belongs-to x-base {
     prefix x-b;
   }
+
   augment "/x-b:configs/x-b:profiles" {
     list profile {
-      key name;
+      key "name";
       leaf name {
         type string;
       }

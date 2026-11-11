@@ -261,6 +261,14 @@ def chk_xpath_path(ctx, mod, pos, initial, node, path):
                     pmodule = initial
                 else:
                     pmodule = initial.i_module
+                    if (pmodule is not None and
+                        pmodule.keyword == 'submodule' and
+                        pmodule.i_version != '1'):
+                        # the nodes of a 1.1 submodule are found in
+                        # the module it belongs to
+                        main = getattr(pmodule, 'i_main_module', None)
+                        if main is not None:
+                            pmodule = main
             else:
                 pmodule = prefix_to_module(mod, prefix, pos, ctx.errors)
             # if node and initial are None, it means we're checking an XPath

@@ -1,0 +1,3 @@
+ds1.yang:33: warning: XPATH_NODE_NOT_FOUND1
+ds1.yang:37: warning: XPATH_NODE_NOT_FOUND1
+ds1.yang:52: error: LEAFREF_IDENTIFIER_NOT_FOUND

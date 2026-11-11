@@ -3,10 +3,10 @@ submodule y-base2 {
   belongs-to y-base {
     prefix y-b;
   }
+
   grouping y-base2-setting {
     container configs {
-      container profiles {
-      }
+      container profiles;
     }
   }
 }

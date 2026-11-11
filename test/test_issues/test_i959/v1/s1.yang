@@ -1,24 +1,86 @@
 submodule s1 {
-  belongs-to m { prefix mm; }
-  identity i1 { base im; }
-  identity i1b { base mm:i2; }
-  feature f1 { if-feature "fm and f2"; }
-  typedef t1 { type tm; }
-  typedef t1b { type mm:t2; }
+  belongs-to m {
+    prefix mm;
+  }
+
+  identity i1 {
+    base im;
+  }
+
+  identity i1b {
+    base mm:i2;
+  }
+
+  feature f1 {
+    if-feature "fm and f2";
+  }
+
+  typedef t1 {
+    type tm;
+  }
+
+  typedef t1b {
+    type mm:t2;
+  }
+
   mm:em "foo";
   mm:e2 "foo";
+
   container s1top {
     uses gm;
     uses mm:g2;
-    leaf a { type tm; }
-    leaf b { type t2; }
-    leaf c { type leafref { path "/mm:top/mm:x"; } }
-    leaf d { type leafref { path "/mm:s2top/mm:y"; } must "/mm:top/mm:x = /mm:s2top/mm:y"; }
-    leaf e { type identityref { base i2; } default i1b; }
-    leaf f { type identityref { base i2; } default i2b; }
-    leaf g { type identityref { base i2; } default im2; }
+    leaf a {
+      type tm;
+    }
+    leaf b {
+      type t2;
+    }
+    leaf c {
+      type leafref {
+        path "/mm:top/mm:x";
+      }
+    }
+    leaf d {
+      type leafref {
+        path "/mm:s2top/mm:y";
+      }
+      must '/mm:top/mm:x = /mm:s2top/mm:y';
+    }
+    leaf e {
+      type identityref {
+        base i2;
+      }
+      default "i1b";
+    }
+    leaf f {
+      type identityref {
+        base i2;
+      }
+      default "i2b";
+    }
+    leaf g {
+      type identityref {
+        base i2;
+      }
+      default "im2";
+    }
   }
-  augment "/mm:top" { leaf aug1 { type string; } }
-  augment "/mm:s2top" { leaf aug2 { type string; } }
-  deviation "/mm:top/mm:x" { deviate add { default "a"; } }
+
+  augment "/mm:top" {
+    leaf aug1 {
+      type string;
+    }
+  }
+
+  augment "/mm:s2top" {
+    leaf aug2 {
+      type string;
+    }
+  }
+
+  deviation "/mm:top/mm:x" {
+    deviate add {
+      default "a";
+    }
+  }
 }

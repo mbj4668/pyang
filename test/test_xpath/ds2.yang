@@ -1,0 +1,45 @@
+submodule ds2 {
+  yang-version 1.1;
+  belongs-to d {
+    prefix d;
+  }
+
+  typedef tm2 {
+    type string;
+  }
+
+  typedef s2ref {
+    type leafref {
+      path "/d:s1top/d:a";
+    }
+  }
+
+  grouping g2 {
+    container g2c {
+      leaf g2l {
+        type string;
+      }
+    }
+  }
+
+  container s2top {
+    leaf y {
+      type string;
+    }
+    leaf dev-me {
+      type string;
+    }
+    choice ch {
+      case c1 {
+        leaf c1l {
+          type string;
+        }
+      }
+    }
+    leaf z {
+      if-feature "fm";
+      type string;
+      must "/s1top/a = 'x' and /d:top/d:aug1";
+    }
+  }
+}

@@ -1,0 +1,57 @@
+module d {
+  yang-version 1.1;
+  namespace "urn:d";
+  prefix d;
+
+  include ds1;
+  include ds2;
+
+  feature fm;
+
+  typedef mref {
+    type leafref {
+      path "/s2top/y";
+    }
+  }
+
+  grouping gm {
+    leaf gml {
+      type string;
+      must '/s2top/y and /d:s1top/d:a and ../a';
+    }
+  }
+
+  container top {
+    leaf x {
+      type string;
+    }
+    list l {
+      key "k";
+      leaf k {
+        type string;
+      }
+      action act {
+        input {
+          leaf p {
+            type string;
+            must '/s1top/a';
+          }
+        }
+      }
+    }
+    must '/s1top/a = /d:s2top/d:y';
+    leaf r {
+      type leafref {
+        path "/s1top/a";
+      }
+    }
+  }
+
+  rpc mrpc {
+    input {
+      leaf i {
+        type string;
+      }
+    }
+  }
+}

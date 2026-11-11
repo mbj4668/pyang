@@ -1,0 +1,148 @@
+submodule ds1 {
+  yang-version 1.1;
+  belongs-to d {
+    prefix mm;
+  }
+
+  typedef s1ref {
+    type leafref {
+      path "/mm:top/mm:x";
+    }
+  }
+
+  container s1top {
+    leaf a {
+      type string;
+    }
+    // xpath: unprefixed and prefixed, to main and to sibling
+    leaf b {
+      type string;
+      must "/top/x = 'a'";
+    }
+    leaf c {
+      type string;
+      must "/mm:top/mm:x = 'a'";
+    }
+    leaf d {
+      type string;
+      must "/s2top/y = 'a'";
+      when '/mm:s2top/mm:y';
+    }
+    leaf e {
+      type string;
+      must '../a and /top/nonexist';
+    }
+    leaf f {
+      type string;
+      must '/mm:s2top/mm:nonexist';
+    }
+    // leafref: unprefixed
+    leaf g {
+      type leafref {
+        path "/top/x";
+      }
+    }
+    leaf h {
+      type leafref {
+        path "/s2top/y";
+      }
+    }
+    leaf i {
+      type leafref {
+        path "/top/nonexist";
+      }
+    }
+    leaf j {
+      type mref;
+    }
+    leaf k {
+      type s1ref;
+    }
+    leaf l {
+      type s2ref;
+    }
+    leaf m {
+      type leafref {
+        path "/top/l/k";
+      }
+    }
+    uses gm;
+    uses g2 {
+      augment "g2c" {
+        leaf ua {
+          type string;
+          must '/top/x';
+        }
+      }
+      refine "g2c/g2l" {
+        must '/top/x';
+      }
+    }
+    list ul {
+      key "k1";
+      unique "u1";
+      leaf k1 {
+        type tm2;
+      }
+      leaf u1 {
+        type string;
+      }
+    }
+  }
+
+  augment "/mm:top" {
+    when "/s2top/y = 'x'";
+    leaf aug1 {
+      type string;
+      must '../x and /s1top/a';
+    }
+  }
+
+  augment "/top/l/act/input" {
+    leaf p2 {
+      type string;
+    }
+  }
+
+  augment "/mm:mrpc/mm:input" {
+    leaf i2 {
+      type string;
+      must '../i';
+    }
+  }
+
+  augment "/mm:s2top/mm:ch" {
+    case c3 {
+      leaf c3l {
+        type string;
+      }
+    }
+  }
+
+  deviation "/mm:s2top/mm:y" {
+    deviate add {
+      must '/top/x';
+    }
+  }
+
+  deviation "/mm:s2top/mm:dev-me" {
+    deviate not-supported;
+  }
+
+  notification n1 {
+    leaf nl {
+      type leafref {
+        path "/top/x";
+      }
+    }
+  }
+
+  rpc r1 {
+    input {
+      leaf il {
+        type string;
+        must '/top/x';
+      }
+    }
+  }
+}

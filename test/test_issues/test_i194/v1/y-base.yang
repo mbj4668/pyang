@@ -2,8 +2,10 @@ module y-base {
   yang-version 1;
   namespace "http://example.com/y-base";
   prefix y-b;
+
   include y-base2;
   include y-profiles;
+
   container x-setting {
     uses y-base2-setting;
   }

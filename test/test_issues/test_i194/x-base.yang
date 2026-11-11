@@ -2,7 +2,9 @@ module x-base {
   yang-version 1.1;
   namespace "http://example.com/x-base";
   prefix x-b;
+
   // the augmenting submodule is included before the augmented one
+
   include x-profiles;
   include x-base2;
 }

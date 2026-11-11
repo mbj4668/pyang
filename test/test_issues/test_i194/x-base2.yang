@@ -3,8 +3,8 @@ submodule x-base2 {
   belongs-to x-base {
     prefix x-b;
   }
+
   container configs {
-    container profiles {
-    }
+    container profiles;
   }
 }

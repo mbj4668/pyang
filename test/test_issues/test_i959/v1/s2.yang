@@ -1,11 +1,42 @@
 submodule s2 {
-  belongs-to m { prefix m; }
+  belongs-to m {
+    prefix m;
+  }
+
   identity i2;
-  identity i2b { base i2; }
+
+  identity i2b {
+    base i2;
+  }
+
   feature f2;
-  typedef t2 { type string; }
-  grouping g2 { leaf g2l { type string; } }
-  extension e2 { argument x; }
-  container s2top { leaf y { type string; } leaf z { type t1; } }
-  augment "/m:s1top" { leaf aug3 { type string; } }
+
+  typedef t2 {
+    type string;
+  }
+
+  grouping g2 {
+    leaf g2l {
+      type string;
+    }
+  }
+
+  extension e2 {
+    argument x;
+  }
+
+  container s2top {
+    leaf y {
+      type string;
+    }
+    leaf z {
+      type t1;
+    }
+  }
+
+  augment "/m:s1top" {
+    leaf aug3 {
+      type string;
+    }
+  }
 }
