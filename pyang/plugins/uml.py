@@ -956,10 +956,10 @@ class uml_emitter:
         s = t.arg
         if t.arg == 'enumeration':
             s = s + ' : {'
-            for enums in t.substmts[:3]:
+            for enums in t.substmts[:int(self._ctx.opts.uml_max_enums)]:
                 s = s + enums.arg + ','
-            if len(t.substmts) > 3:
-                s = s + "..."
+            if len(t.substmts) > int(self._ctx.opts.uml_max_enums):
+                s = s + self.ctx_more_string
             s = s + '}'
         elif t.arg == 'leafref':
             # sys.stderr.write('in leafref \n')
