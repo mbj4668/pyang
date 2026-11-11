@@ -1,0 +1,6 @@
+module: y-base
+  +--rw x-setting
+     +--rw configs
+        +--rw profiles
+           +--rw profile* [name]
+              +--rw name    string

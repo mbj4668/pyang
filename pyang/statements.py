@@ -356,11 +356,95 @@ _valid_deviations = {
 
 ### Validation
 
+# The phases run on a YANG 1.1 submodule when it is included.  The
+# rest of the phases are run interleaved with the including module
+# and its other submodules, see validate_module().
+_include_phases = ['init', 'init2', 'grammar', 'import']
+
 def validate_module(ctx, module):
-    """Validate `module`, which is a Statement representing a (sub)module"""
+    """Validate `module`, which is a Statement representing a (sub)module
+
+    In YANG 1.1, a submodule has access to all definitions and nodes
+    in the module it belongs to and in all the module's submodules.
+    A YANG 1.1 module is therefore validated together with its
+    submodules; each phase after 'import' is run over all submodules
+    and then the module, before the next phase is started.
+
+    In YANG 1, a submodule sees only its own definitions and the
+    submodules it includes, so it is validated completely when it is
+    included.
+    """
 
     if module.i_is_validated:
         return
+
+    if (module.keyword == 'submodule' and
+        _yang_version(module) != '1' and
+        getattr(module, 'i_including_module', None) is None):
+        # a 1.1 submodule cannot be validated on its own; validate the
+        # module it belongs to, which validates this submodule.
+        main = _find_main_module(ctx, module)
+        if main is not None:
+            validate_module(ctx, main)
+            if module.i_is_validated:
+                return
+        # otherwise validate the submodule stand-alone
+
+    module.i_is_validated = 'in_progress'
+    module.i_submodules = []
+    aborted = []
+    if not validate_phases(ctx, module, _include_phases):
+        aborted.append(module)
+    # i_submodules is filled in by the 'import' phase
+    units = module.i_submodules + [module]
+    for phase in _validation_phases:
+        if phase in _include_phases:
+            continue
+        for unit in units:
+            if unit in aborted:
+                continue
+            if not validate_phases(ctx, unit, [phase]):
+                aborted.append(unit)
+            if phase == 'expand_1' and unit is not module:
+                # add the submodule's nodes to the module
+                for ch in unit.i_children:
+                    if ch not in module.i_children:
+                        module.i_children.append(ch)
+    for unit in units:
+        unit.i_is_validated = True
+
+def _yang_version(module):
+    vsn = module.search_one('yang-version')
+    if vsn is not None:
+        return vsn.arg
+    return '1'
+
+def _find_main_module(ctx, submodule):
+    """Find the not yet validated module that includes `submodule`"""
+    belongs_to = submodule.search_one('belongs-to')
+    if belongs_to is None or belongs_to.arg is None:
+        return None
+    if not ctx.revs.get(belongs_to.arg):
+        return None
+    main = ctx.search_module(belongs_to.pos, belongs_to.arg)
+    if (main is None or main.keyword != 'module' or main.i_is_validated or
+        main.search_one('include', submodule.arg) is None):
+        return None
+    return main
+
+def scope_module(module):
+    """Return the module in which local definitions and nodes are found.
+
+    For a YANG 1.1 submodule, this is the module it belongs to."""
+    if module.i_version != '1':
+        main = getattr(module, 'i_main_module', None)
+        if main is not None:
+            return main
+    return module
+
+def validate_phases(ctx, module, phases):
+    """Run `phases` over `module`.  Return False if the validation was
+    aborted, and True otherwise."""
 
     def iterate(stmt, phase):
         # if the grammar is not yet checked or if it is checked and
@@ -412,13 +496,12 @@ def validate_module(ctx, module):
                 for s in stmt.substmts:
                     iterate(s, phase)
 
-    module.i_is_validated = 'in_progress'
     try:
-        for phase in _validation_phases:
+        for phase in phases:
             iterate(module, phase)
     except Abort:
-        pass
-    module.i_is_validated = True
+        return False
+    return True
 
 def v_init_module(ctx, stmt):
     ## remember that the grammar is not validated
@@ -445,7 +528,9 @@ def v_init_module(ctx, stmt):
         if belongs_to is not None and belongs_to.arg is not None:
             prefix = belongs_to.search_one('prefix')
             stmt.i_modulename = belongs_to.arg
-            mod = ctx.get_module(stmt.i_modulename)
+            mod = getattr(stmt, 'i_including_module', None)
+            if mod is None:
+                mod = ctx.get_module(stmt.i_modulename)
             if mod is None or not mod.i_is_validated:
                 # this happens if a submodule is validated standalone
                 mod = stmt
@@ -603,6 +688,14 @@ def v_import_module(ctx, stmt):
         if r is not None:
             rev = r.arg
         m = ctx.get_module(modulename, rev)
+        if i.keyword == 'include' and stmt.i_version != '1':
+            if m is None or not m.i_is_validated:
+                m = ctx.search_module(i.pos, modulename, rev,
+                                      primary_module=primary_module)
+            if (m is not None and m.keyword == 'submodule' and
+                _yang_version(m) != '1'):
+                # 1.1 submodules are validated with the module
+                return add_submodule(m)
         if m is not None and i.keyword == 'import' and i.i_is_safe_import:
             pass
         elif m is not None and m.i_is_validated == 'in_progress':
@@ -618,6 +711,26 @@ def v_import_module(ctx, stmt):
             err_add(ctx.errors, i.pos,
                     'BAD_IMPORT_YANG_VERSION',
                     (stmt.i_version, m.i_version))
+        return m
+
+    def add_submodule(m):
+        main = stmt.i_main_module
+        if (stmt.keyword == 'submodule' and
+            (main is None or main is stmt)):
+            # we're validated stand-alone; so is the included submodule
+            validate_module(ctx, m)
+        elif not m.i_is_validated and stmt.keyword == 'module':
+            m.i_including_module = stmt
+            m.i_is_validated = 'in_progress'
+            # the module is validated up to the 'import' phase.  the
+            # rest of the phases are run in validate_module()
+            validate_phases(ctx, m, _include_phases)
+            stmt.i_submodules.append(m)
+        elif not m.i_is_validated:
+            # included by a submodule, but not (yet) by the module.
+            # if it is included by the module, it will be validated
+            # with it, otherwise an error is reported for the module.
+            return None
         return m
 
     for i in imports:
@@ -658,9 +771,12 @@ def v_import_module(ctx, stmt):
                                     (s.arg, submodule.arg, stmt.arg))
 
                 # add typedefs, groupings, nodes etc to this module
-                for ch in submodule.i_children:
-                    if ch not in stmt.i_children:
-                        stmt.i_children.append(ch)
+                # (if the submodule is not yet validated, the nodes are
+                # added in validate_module())
+                if submodule.i_is_validated is True:
+                    for ch in submodule.i_children:
+                        if ch not in stmt.i_children:
+                            stmt.i_children.append(ch)
                 # verify that the submodule's definitions do not collide
                 # with the module's definitions
                 defs = [
@@ -1239,7 +1355,9 @@ def v_type_extension(ctx, stmt):
     """verify that the extension matches the extension definition"""
     (modulename, identifier) = stmt.keyword
     revision = stmt.i_extension_revision
-    module = modulename_to_module(stmt.i_module, modulename, revision)
+    module = scope_module(stmt.i_module)
+    if modulename != module.arg:
+        module = modulename_to_module(stmt.i_module, modulename, revision)
     if module is None:
         return
     if identifier not in module.i_extensions:
@@ -1318,7 +1436,7 @@ def v_type_if_feature(ctx, stmt, no_error_report=False):
         prefix, name = util.split_identifier(name)
         if prefix is None or stmt.i_module.i_prefix == prefix:
             # check local features
-            pmodule = stmt.i_module
+            pmodule = scope_module(stmt.i_module)
         else:
             # this is a prefixed name, check the imported modules
             pmodule = util.prefix_to_module(
@@ -1394,7 +1512,7 @@ def v_type_base(ctx, stmt, no_error_report=False):
 
     if prefix is None or stmt.i_module.i_prefix == prefix:
         # check local identities
-        pmodule = stmt.i_module
+        pmodule = scope_module(stmt.i_module)
     else:
         # this is a prefixed name, check the imported modules
         pmodule = util.prefix_to_module(
@@ -2567,6 +2685,11 @@ def search_typedef(stmt, name):
     # (this covers the case where the statement has been re-parented)
     if mod is not None and orig_stmt is not mod:
         return search_typedef(mod, name)
+    if orig_stmt.keyword == 'submodule':
+        # in 1.1, a submodule sees all definitions in its module
+        main = scope_module(orig_stmt)
+        if main is not orig_stmt and name in main.i_typedefs:
+            return main.i_typedefs[name]
     return None
 
 def search_grouping(stmt, name):
@@ -2589,6 +2712,11 @@ def search_grouping(stmt, name):
     # (this covers the case where the statement has been re-parented)
     if mod is not None and orig_stmt is not mod:
         return search_grouping(mod, name)
+    if orig_stmt.keyword == 'submodule':
+        # in 1.1, a submodule sees all definitions in its module
+        main = scope_module(orig_stmt)
+        if main is not orig_stmt and name in main.i_groupings:
+            return main.i_groupings[name]
     return None
 
 def search_data_keyword_child(children, modulename, identifier):
@@ -2646,7 +2774,8 @@ def find_target_node(ctx, stmt, is_augment=False):
                 return None
             child = search_child(node.i_children, module.i_modulename,
                                  identifier)
-            if child is None and module == stmt.i_module and is_augment:
+            if (child is None and is_augment and
+                module == scope_module(stmt.i_module)):
                 # create a temporary statement
                 child = Statement(node.top, node, stmt.pos, '__tmp_augment__',
                                   identifier)
@@ -2656,7 +2785,7 @@ def find_target_node(ctx, stmt, is_augment=False):
                 child.i_config = node.i_config
                 node.i_children.append(child)
                 # keep track of this temporary statement
-                stmt.i_module.i_undefined_augment_nodes[child] = child
+                module.i_undefined_augment_nodes[child] = child
             elif child is None:
                 err_add(ctx.errors, stmt.pos, 'NODE_NOT_FOUND',
                         (module.i_modulename, identifier))
@@ -2769,7 +2898,7 @@ def validate_leafref_path(ctx, stmt, path_spec, path,
         elif in_typedef and stmt.i_module.i_version != '1':
             raise Abort
         else: # local identifier
-            return (local_module, identifier)
+            return (scope_module(local_module), identifier)
 
     def is_identifier(x):
         if util.is_local(x):
@@ -3172,6 +3301,8 @@ class ModSubmodStatement(Statement):
         'i_identities',
         'i_extensions',
         'i_including_modulename',
+        'i_including_module',        # Set in 1.1 submodules
+        'i_submodules',              # 1.1 submodules validated w/ the module
         'i_ctx',
         'i_undefined_augment_nodes',
         'i_is_primary_module',
@@ -3191,6 +3322,8 @@ class ModSubmodStatement(Statement):
     def _init_i_attrs(self):
         self.i_is_primary_module = False
         self.i_is_validated = False
+        self.i_including_module = None
+        self.i_submodules = []
 
     def prune(self):
         def p(n):

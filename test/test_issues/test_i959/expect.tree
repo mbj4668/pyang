@@ -1,0 +1,6 @@
+module: example-3-a
+  +--rw top
+     +--rw quux?   uint8
+     +--rw foo?    empty {fea1}?
+     +--rw bar?    string
+     +--rw baz?    string {fea2}?

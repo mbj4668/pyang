@@ -258,6 +258,11 @@ class IdentityrefTypeSpec(TypeSpec):
         if prefix is None or module.i_prefix == prefix:
             # check local identities
             pmodule = module
+            if module.i_version != '1':
+                # a 1.1 submodule sees all identities in its module
+                main = getattr(module, 'i_main_module', None)
+                if main is not None:
+                    pmodule = main
         else:
             # this is a prefixed name, check the imported modules
             pmodule = util.prefix_to_module(module, prefix, pos, errors)

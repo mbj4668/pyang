@@ -1,0 +1,12 @@
+submodule y-base2 {
+  yang-version 1;
+  belongs-to y-base {
+    prefix y-b;
+  }
+  grouping y-base2-setting {
+    container configs {
+      container profiles {
+      }
+    }
+  }
+}

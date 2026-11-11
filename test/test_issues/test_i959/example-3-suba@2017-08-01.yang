@@ -1,0 +1,24 @@
+submodule example-3-suba {
+
+  yang-version 1.1;
+
+  belongs-to example-3-a {
+    prefix ex3a;
+  }
+
+  revision 2017-08-01;
+
+  grouping gquux {
+    leaf quux {
+      type uint8;
+    }
+  }
+
+  augment "/ex3a:top" {
+    uses gbar;
+    leaf baz {
+      if-feature "fea2";
+      type string;
+    }
+  }
+}

@@ -1,0 +1,5 @@
+module: x-base
+  +--rw configs
+     +--rw profiles
+        +--rw profile* [name]
+           +--rw name    string

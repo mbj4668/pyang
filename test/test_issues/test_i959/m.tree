@@ -1,0 +1,20 @@
+module: m
+  +--rw s1top
+  |  +--rw gml?    string
+  |  +--rw g2l?    string
+  |  +--rw a?      tm
+  |  +--rw b?      t2
+  |  +--rw c?      -> /top/x
+  |  +--rw d?      -> /s2top/y
+  |  +--rw e?      identityref
+  |  +--rw f?      identityref
+  |  +--rw g?      identityref
+  |  +--rw aug3?   string
+  +--rw s2top
+  |  +--rw y?           string
+  |  +--rw z?           t1
+  |  +--rw aug2?        string
+  |  +--rw from-main?   string
+  +--rw top
+     +--rw x?      string
+     +--rw aug1?   string
